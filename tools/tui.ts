@@ -17,7 +17,7 @@ const RETURN_FROM_ATTACH_DELAY = 120; // detach 后静默 sync tree / restore st
 const PREVIEW_LINES = 80;
 
 const TUI_CONFIG = {
-  VERSION: '0.3.2',
+  VERSION: '0.3.3',
   VIEWER_SESSION: `__tui_viewer__`,
   TUI_KEYTABLE: "tui_empty",
   REMARK_KEY: "@remark",
