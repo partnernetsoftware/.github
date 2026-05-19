@@ -5,7 +5,7 @@ LAB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BUILD_DIR="$LAB_DIR/.build"
 SRC="$LAB_DIR/samples/strlen.lispir"
 BLOB="$BUILD_DIR/strlen.ljir"
-RUNNER="$BUILD_DIR/irjit"
+RUNNER="$BUILD_DIR/lispjit"
 RESULTS="$BUILD_DIR/results.txt"
 
 mkdir -p "$BUILD_DIR"
@@ -30,15 +30,17 @@ run_case() {
   return "$status"
 }
 
-log "# LispJIT portable IR blob prototype"
+log "# LispJIT portable IR blob CLI"
 log "source.bytes=$(bytes_of "$SRC")"
 
-run_case "compile-portable-blob" "$LAB_DIR/compile_blob.py" "$SRC" "$BLOB"
-log "blob.bytes=$(bytes_of "$BLOB")"
-
-run_case "build-irjit-runtime" cc -Os -s "$LAB_DIR/irjit.c" -ldl -o "$RUNNER"
+run_case "build-lispjit-cli" cc -Os -s "$LAB_DIR/lispjit.c" -ldl -o "$RUNNER"
 log "runtime.bytes=$(bytes_of "$RUNNER")"
 
-run_case "execute-blob-via-jit" "$RUNNER" "$BLOB"
+run_case "compile-portable-blob" "$RUNNER" compile "$SRC" "$BLOB"
+log "blob.bytes=$(bytes_of "$BLOB")"
+
+run_case "dump-portable-blob" "$RUNNER" dump "$BLOB"
+
+run_case "execute-blob-via-jit" "$RUNNER" run "$BLOB"
 log ""
 log "results.file=$RESULTS"

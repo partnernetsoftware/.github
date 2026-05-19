@@ -1,13 +1,27 @@
 # lispjit-ir
 
-目标：验证“发布 portable IR blob，运行时解析 IR 并 JIT 执行”的方向。
+目标：第一个可用的超迷你 LispJIT：发布 portable IR blob，运行时加载 blob 并 JIT 执行。
 
 ## 现在实现了什么
 
-- `samples/strlen.lispir`：极小 Lisp-like 源，只作为编译输入。
-- `compile_blob.py`：把源编译为 `.ljir` portable IR blob。
-- `irjit.c`：只加载 `.ljir`，解析 import table/常量池/IR 指令，然后生成本机 JIT call stub。
-- `run.sh`：生成 blob、编译 runtime、执行 blob 并输出体积。
+- `lispjit.c`：主程序，支持 `compile` / `run` / `dump`。
+- `samples/strlen.lispir`：极小 Lisp-like 输入，编译后不需要随发布物分发。
+- `compile_blob.py`、`irjit.c`：早期拆分原型，保留作格式参考。
+- `run.sh`：native 自测。
+- `build_cosmo.sh`：使用 cosmocc 构建 x86_64+aarch64 APE 多架构程序。
+
+## CLI
+
+```bash
+# 编译 Lisp-like 源到 portable IR blob
+./lispjit compile samples/strlen.lispir strlen.ljir
+
+# 查看 blob
+./lispjit dump strlen.ljir
+
+# 加载 blob，解析 import，生成本机 JIT call stub 并执行
+./lispjit run strlen.ljir
+```
 
 ## Blob 格式
 
@@ -30,8 +44,23 @@
 
 执行时不需要 Lisp 源；runtime 只读 `.ljir`。
 
+## Cosmopolitan 构建
+
+```bash
+cd /workspace
+bash lab/lispjit-ir/build_cosmo.sh
+```
+
+脚本需要 `third_party/cosmocc/bin` 下存在：
+
+- `x86_64-unknown-cosmo-cc`
+- `aarch64-unknown-cosmo-cc`
+- `apelink`
+
+当前仓库未跟踪 `third_party/cosmocc/`，所以没有工具链时脚本会明确报 `cosmocc=missing`。
+
 ## 当前边界
 
 - 已支持 x86_64/aarch64 的 `u64(ptr)` JIT call stub。
-- 还不是完整 Lisp；这是 LispJIT 发布物形态的最小验证。
+- 还不是完整 Lisp；当前可用集合是 import、string const、main call。
 - AOT 可以在下一步加入：把 JIT 结果保存为 arch/OS 专用 native cache，并保留 import relocation table。
