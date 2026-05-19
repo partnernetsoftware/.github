@@ -5,6 +5,7 @@
  * v0.3 agent: `tui agent register|send|inbox|wait|list` — window 的 @agent 为纯名 id；inbox ~/.tui/inbox/<name>.jsonl
  * CLI 增强: `status` / `inspect` / 全局 `--json` — 供脚本与 agent 拉取结构化车队信息
  * 开发: `tui dev` — bun --watch 热重启（TUI_DEV=1，tmux 会话不中断）
+ * 暂停功能恢复: docs/paused-features.md
  */
 import {
   accessSync, appendFileSync, chmodSync, constants, copyFileSync, existsSync,
@@ -19,6 +20,11 @@ const DRIVE_NAV_QUIET_MS = 1500;   // ↑↓ 期间暂停后台 snap/proc（覆�
 const DRIVE_SNAP_TTL_MS = 2000;
 const DRIVE_PROC_TTL_MS = 3000;
 const DRIVE_SNAP_CONCURRENCY = 6;
+const DRIVE_RENDER_DEBOUNCE_MS = 150;
+const DRIVE_NAV_FLUSH_SLACK_MS = 30;
+const PREVIEW_SCROLL_MAX = 5000;
+const MOUSE_DBLCLICK_MS = 500;
+const MSG_SUMMARY_MAX = 120;
 const RETURN_FROM_ATTACH_DELAY = 120; // detach 后静默 sync tree / restore status
 const PREVIEW_LINES = 80;
 
@@ -37,7 +43,6 @@ const TUI_CONFIG = {
   DATA_DIR: join(homedir(), ".tui"),
   INBOX_DIR: join(homedir(), ".tui", "inbox"),
   READ_DIR: join(homedir(), ".tui", "read"),
-  // BUS_PATH: join(homedir(), ".tui", "bus.jsonl"), // OBSERVER_PAUSED
 } as const;
 
 type AgentKind = "msg" | "reply";
@@ -758,37 +763,8 @@ function parseInboxFile(path: string): AgentEnvelope[] {
 }
 
 function summarizeMessage(body: string): string {
-  return stripAnsi(body).replace(/\s+/g, " ").trim().slice(0, 120);
+  return stripAnsi(body).replace(/\s+/g, " ").trim().slice(0, MSG_SUMMARY_MAX);
 }
-
-// ═══ OBSERVER_PAUSED：v 消息栏 + bus.jsonl 镜像（恢复时取消注释）═══
-/*
-function appendBus(env: AgentEnvelope): void {
-  try {
-    mkdirSync(TUI_CONFIG.DATA_DIR, { recursive: true });
-    appendFileSync(TUI_CONFIG.BUS_PATH, JSON.stringify(env) + "\n");
-  } catch (e: unknown) {
-    if (!tmuxQuietDepth) {
-      process.stderr.write(`warn: 写入 bus 失败: ${e instanceof Error ? e.message : String(e)}\n`);
-    }
-  }
-}
-
-function readBusTail(limit = 500): AgentEnvelope[] {
-  if (!existsSync(TUI_CONFIG.BUS_PATH)) return [];
-  const lines = readFileSync(TUI_CONFIG.BUS_PATH, "utf8").trimEnd().split("\n").slice(-limit);
-  const out: AgentEnvelope[] = [];
-  for (const line of lines) {
-    const t = line.trim();
-    if (!t) continue;
-    try {
-      out.push(JSON.parse(t) as AgentEnvelope);
-    } catch {
-    }
-  }
-  return out;
-}
-*/
 
 function agentSend(opts: {
   to: string;
@@ -816,7 +792,6 @@ function agentSend(opts: {
   };
   mkdirSync(TUI_CONFIG.INBOX_DIR, { recursive: true });
   appendFileSync(inboxPath(toName), JSON.stringify(env) + "\n");
-  // OBSERVER_PAUSED: appendBus(env);
   return env;
 }
 
@@ -995,7 +970,6 @@ let driveSnapTimer: ReturnType<typeof setInterval> | null = null;
 let driveProcTimer: ReturnType<typeof setInterval> | null = null;
 let driveSnapRefreshing = false;
 let driveProcRefreshing = false;
-let previewFetchTimer: ReturnType<typeof setTimeout> | null = null;
 let driveRenderTimer: ReturnType<typeof setTimeout> | null = null;
 let driveMetaCache: Map<number, ReturnType<typeof windowDriveMeta>> | null = null;
 let driveNavQuietUntil = 0;
@@ -1017,7 +991,7 @@ function markDriveNav(): void {
       state.driveViewIndices = null;
       if (state.uiMode === "drive") scheduleDriveRender();
     }
-  }, DRIVE_NAV_QUIET_MS + 30);
+  }, DRIVE_NAV_QUIET_MS + DRIVE_NAV_FLUSH_SLACK_MS);
 }
 
 function beginDriveMetaCache(): void {
@@ -1045,7 +1019,7 @@ function scheduleDriveRender(): void {
     const [cols, rows] = screen.getSize();
     const layout = getLayout(cols, rows);
     if (layout.mode === "drive") renderDriveTableZone(cols, layout);
-  }, 150);
+  }, DRIVE_RENDER_DEBOUNCE_MS);
 }
 
 function readDriveSnap(target: string): WinSnap {
@@ -1158,13 +1132,7 @@ function findMainProcess(shellPid: number, rows: PsRow[]): { pid: number; cmd: s
   return { pid: pick.pid, cmd: pick.comm, cpu: pick.pcpu, rssMB: Math.round(pick.rss / 1024) };
 }
 
-function updateDriveProcMapSync(): void {
-  const paneRaw = tmux([
-    "list-panes", "-a",
-    "-F", "#{session_name}:#{window_index}|#{pane_active}|#{pane_pid}",
-  ]).trim();
-  const psRaw = Bun.spawnSync(["ps", "-A", "-o", "pid=,ppid=,pcpu=,rss=,comm="], { stdout: "pipe" }).stdout?.toString() ?? "";
-  const psRows = parsePsDump(psRaw);
+function applyPaneProcMap(paneRaw: string, psRows: PsRow[]): void {
   for (const line of paneRaw.split("\n").filter(Boolean)) {
     const [loc, active, pidStr] = line.split("|");
     if (active !== "1") continue;
@@ -1177,6 +1145,15 @@ function updateDriveProcMapSync(): void {
   }
 }
 
+function updateDriveProcMapSync(): void {
+  const paneRaw = tmux([
+    "list-panes", "-a",
+    "-F", "#{session_name}:#{window_index}|#{pane_active}|#{pane_pid}",
+  ]).trim();
+  const psRaw = Bun.spawnSync(["ps", "-A", "-o", "pid=,ppid=,pcpu=,rss=,comm="], { stdout: "pipe" }).stdout?.toString() ?? "";
+  applyPaneProcMap(paneRaw, parsePsDump(psRaw));
+}
+
 async function updateDriveProcMap(): Promise<void> {
   if (driveNavQuiet()) return;
   const paneRaw = tmux([
@@ -1187,17 +1164,7 @@ async function updateDriveProcMap(): Promise<void> {
   const psRaw = await new Response(proc.stdout).text();
   await proc.exited;
   if (driveNavQuiet()) return;
-  const psRows = parsePsDump(psRaw);
-  for (const line of paneRaw.split("\n").filter(Boolean)) {
-    const [loc, active, pidStr] = line.split("|");
-    if (active !== "1") continue;
-    const [sess, winIdx] = (loc ?? "").split(":");
-    const shellPid = parseInt(pidStr ?? "", 10);
-    if (!sess || !winIdx || !shellPid) continue;
-    const target = buildWinTarget(sess, winIdx);
-    const main = findMainProcess(shellPid, psRows);
-    driveProc.set(target, { ...main, shellPid, ts: Date.now() });
-  }
+  applyPaneProcMap(paneRaw, parsePsDump(psRaw));
 }
 
 async function refreshDriveProc(force = false): Promise<void> {
@@ -1235,11 +1202,6 @@ function formatProcCells(proc: ProcInfo | null): { pname: string; pid: string } 
   return { pname: procBasename(proc.cmd), pid: String(proc.pid) };
 }
 
-function formatProcAnchor(proc: ProcInfo): string {
-  const cpu = proc.cpu < 10 ? proc.cpu.toFixed(1) : String(Math.round(proc.cpu));
-  return `⟦${proc.cmd} ${proc.rssMB}M ${cpu}% pid=${proc.pid}⟧`;
-}
-
 function startDriveLoops(): void {
   stopDriveLoops();
   // 不在进入驾驶时全量 snap/proc（会与 ↑↓ 抢 tmux）；靠 f 刷新 + 空闲定时
@@ -1262,11 +1224,6 @@ function stopDriveLoops(): void {
   driveProcTimer = null;
   driveRenderTimer = null;
   driveNavFlushTimer = null;
-}
-
-/** 上一 refresh 周期末行，供 act 忙碌启发（snap 异步更新时写入） */
-function syncDriveLineHashes(): void {
-  /* no-op：drivePrevLineHash 在 refreshDriveSnapshots 内维护 */
 }
 
 function formatRelativeAge(epochSec: number): string {
@@ -1442,10 +1399,9 @@ function getTree(): TreeNode[] {
     const wins = tmuxApi.listWindows(sess, "#{window_index}|#{window_name}|#{window_active}|#{window_activity}|#{@auto}");
     for (let i = 0; i < wins.length; i++) {
       const [idx, name, active, activity, autoRaw] = wins[i].split("|");
-      const marker = "" //active === "1" ? "●" : "○";
       const branch = i === wins.length - 1 ? "└" : "├";
       const winNode: TreeNode = {
-        label: `${branch} ${name}`,//`${branch} ${marker} ${idx}: ${name}`,
+        label: `${branch} ${name}`,
         target: `${sess}:${idx}`,
         indent: 1,
         type: "window",
@@ -1499,7 +1455,6 @@ class TuiState {
   viewOffset = 0;
   /** 索引（左右）| 驾驶（上下 tree-table） */
   uiMode: UiMode = "index";
-  // layoutMode: "preview" | "observer" = "preview"; // OBSERVER_PAUSED
   preview = "";
   previewTimer: ReturnType<typeof setTimeout> | null = null;
   previewFetchId = 0;
@@ -1508,7 +1463,6 @@ class TuiState {
   inputMode: InputMode | null = null;
   scrollOffset = 0;
   seenMax = 0;
-  // selectMode = false; // 主界面选区暂停，见下方 MAIN_SELECT_PAUSED 块
   /** 从沉浸式返回后：右侧 preview 不自动 capture（避免把刚看过的输出再刷一遍） */
   suppressPreviewAfterAttach = false;
   /** 驾驶模式：折叠的 session 名 */
@@ -1550,9 +1504,8 @@ function getLayout(cols: number, rows: number): LayoutInfo {
     return { mode: "drive", bodyH, fullW: cols, treeHeaderH, treeDataH, paneH };
   }
   const leftW = Math.min(Math.max(Math.floor(cols * 0.2), 12), 30);
-  const inspectorW = 0; // OBSERVER_PAUSED
   const rightW = cols - leftW - 1;
-  return { mode: "index", bodyH, leftW, rightW, inspectorW };
+  return { mode: "index", bodyH, leftW, rightW, inspectorW: 0 };
 }
 
 function uiModeTag(): string {
@@ -1785,25 +1738,7 @@ function driveCursorStep(dir: -1 | 1): void {
   } else {
     render();
   }
-  scheduleDrivePreview();
-}
-
-/** 驾驶 ↑↓：仅 debounce preview，不触发全屏 render / IO */
-function scheduleDrivePreview(): void {
-  if (state.previewTimer) clearTimeout(state.previewTimer);
-  if (
-    state.tree.length === 0 ||
-    state.cursor >= state.tree.length ||
-    state.tree[state.cursor].type !== "window"
-  ) {
-    clearPreview();
-    return;
-  }
-  state.previewTimer = setTimeout(() => {
-    state.previewTimer = null;
-    state.previewFetchId++;
-    void refreshPreview();
-  }, PREVIEW_DELAY);
+  schedulePreview({ driveOnly: true });
 }
 
 /** 重绘驾驶表区（含锚点），不碰 header/preview/footer */
@@ -1906,32 +1841,6 @@ function renderDriveAnchor(row: number, textW: number): void {
   screen.write(screen.dim(padVis(truncVis(line, textW), textW)));
 }
 
-// ═══ DRIVE_SHORTCUTS_PAUSED：跳窗 / 已读 / 档位（恢复时取消注释）═══
-/*
-function gotoCurrentWindow(): void {
-  const node = state.tree[state.cursor];
-  if (node?.type !== "window") return;
-  const idx = node.target.split(":")[1] ?? "";
-  tmuxApi.selectWindow(buildWinTarget(node.sessionName, idx));
-}
-
-function markCurrentAgentRead(): void {
-  const node = state.tree[state.cursor];
-  if (node?.type !== "window" || !node.agent) return;
-  agentMarkRead(node.agent);
-  invalidateDriveView();
-  render();
-}
-
-function cycleCurrentAuto(): void {
-  if (state.uiMode !== "drive") return;
-  const node = state.tree[state.cursor];
-  if (node?.type !== "window") return;
-  writeAuto(node, nextAutoLevel(readAuto(node)));
-  refreshAll();
-}
-*/
-
 function writeDriveRow(row: number, cols: number, line: string, selected: boolean, dim = false): void {
   const cap = cols - 2; // 末列滚动条
   screen.cursorAt(row, 1);
@@ -2030,37 +1939,6 @@ function renderLeftCell(node: TreeNode, isSelected: boolean, cap: number): void 
   }
 }
 
-/*
-function formatBusLine(env: AgentEnvelope, cap: number): string {
-  const time = env.ts ? new Date(env.ts).toTimeString().slice(0, 8) : "--:--:--";
-  const status = env.status ? ` ${env.status}` : "";
-  const summary = env.summary || summarizeMessage(env.body || "");
-  const from = env.fromTarget ? `${env.from}@${env.fromTarget}` : env.from;
-  const to = env.toTarget ? `${env.to}@${env.toTarget}` : env.to;
-  return truncVis(`${time} ${from}->${to} ${env.kind}${status} ${summary}`, cap);
-}
-
-function renderInspectorCell(row: number, col: number, width: number, lineIdx: number, rows: AgentEnvelope[]): void {
-  const cap = Math.max(0, width - 1);
-  screen.cursorAt(row, col);
-  if (lineIdx === 0) {
-    screen.write(screen.inv(screen.bold(padVis(truncVis(" messages · bus.jsonl ", cap), cap))));
-    return;
-  }
-  if (rows.length === 0) {
-    if (lineIdx === 1) screen.write(screen.dim(padVis(truncVis("暂无消息", cap), cap)));
-    else screen.write(" ".repeat(cap));
-    return;
-  }
-  const env = rows[rows.length - lineIdx];
-  if (!env) {
-    screen.write(" ".repeat(cap));
-    return;
-  }
-  screen.write(padVis(formatBusLine(env, cap), cap));
-}
-*/
-
 function renderHeader(cols: number): void {
   screen.cursorAt(1, 1);
   const previewScrollInd = state.scrollOffset > 0 ? ` ↕${state.scrollOffset}` : "";
@@ -2085,7 +1963,7 @@ function renderFooter(cols: number, rows: number): void {
     screen.write(screen.gold(padVis(truncVis(line, cols - 1), cols - 1)));
     screen.showCursor();
   } else if (state.uiMode === "drive") {
-    const hint = " Space折 · Enter进舱"; // DRIVE_SHORTCUTS_PAUSED: g跳 c已读 a:档位
+    const hint = " Space折 · Enter进舱";
     screen.write(screen.gold(padVis(truncVis(hint, cols - 1), cols - 1)));
   } else {
     screen.write(screen.gold(" ".repeat(cols - 1)));
@@ -2177,15 +2055,15 @@ function render() {
   endDriveMetaCache();
 }
 
-// ── Ctrl-Left 支持：detach 返回 tree mode ──
+// ── Ctrl-Left：沉浸式 detach 返回 tree mode ──
 
-const installCtrlQ = () => {
+const installDetachKeys = () => {
   tmuxApi.bindKey(TUI_CONFIG.TUI_KEYTABLE, "C-Left", "detach-client");
   tmuxApi.bindKey(TUI_CONFIG.TUI_KEYTABLE, "M-Left", "detach-client");
   tmuxApi.bindKey(null, "C-Left", "detach-client");
   tmuxApi.bindKey(null, "M-Left", "detach-client");
 };
-const uninstallCtrlQ = () => {
+const uninstallDetachKeys = () => {
   tmuxApi.unbindKeyRoot("C-Left");
   tmuxApi.unbindKeyRoot("M-Left");
 };
@@ -2203,42 +2081,6 @@ function decodeMouseBtn(raw: number) {
     ctrl: (raw & 16) !== 0,
   };
 }
-
-// ═══ MAIN_SELECT_PAUSED：主界面 preview 终端选区（s / Shift+点 / 点 preview）暂停 ═══
-// 沉浸式 attach() 仍 screen.disableMouse()（关 TUI SGR）；滚轮由 viewer tmux mouse 接管。恢复时取消本块注释。
-/*
-function enterSelectMode() {
-  if (state.selectMode) return;
-  screen.disableMouse();
-  restoreOuterMouse();
-  state.selectMode = true;
-  render();
-}
-function exitSelectMode() {
-  if (!state.selectMode) return;
-  state.selectMode = false;
-  disableOuterMouse();
-  screen.enableMouse();
-  render();
-}
-function maybeEnterSelectMode(rawBtn: number, x: number, y: number, press: boolean): boolean {
-  if (!press || state.selectMode || state.inputMode) return false;
-  const [cols, rows] = screen.getSize();
-  const { leftW } = getLayout(cols, rows);
-  if (y > rows - FOOTER_H || y < BODY_START_ROW) return false;
-  const { btn, shift } = decodeMouseBtn(rawBtn);
-  const inPreview = x >= leftW;
-  if (shift && btn <= 2) {
-    enterSelectMode();
-    return true;
-  }
-  if (inPreview && btn === 0) {
-    enterSelectMode();
-    return true;
-  }
-  return false;
-}
-*/
 
 function disableOuterMouse() {
   if (!insideTmux) return;
@@ -2318,16 +2160,8 @@ function cursorDown() {
 function enterAttach() {
   if (state.tree.length === 0) return;
   if (state.tree[state.cursor]?.type !== "window") return;
-  // MAIN_SELECT_PAUSED: if (wasSelectMode) enterSelectMode();
   attach(state.tree[state.cursor].target);
 }
-
-/*
-function toggleObserver() {
-  state.layoutMode = state.layoutMode === "observer" ? "preview" : "observer";
-  render();
-}
-*/
 
 const TUI_KEYBINDS: { help: string; match: (s: string) => boolean; run: () => void }[] = [
   { help: "↑/k", match: (s) => s === "\x1b[A" || s === "k", run: cursorUp },
@@ -2339,11 +2173,6 @@ const TUI_KEYBINDS: { help: string; match: (s: string) => boolean; run: () => vo
   { help: "m:备注", match: (s) => s === "m", run: () => remarkCurrent() },
   { help: "f:刷", match: (s) => s === "f", run: () => refreshAll() },
   { help: "o:模式", match: (s) => s === "o", run: () => toggleUiMode() },
-  // DRIVE_SHORTCUTS_PAUSED:
-  // { help: "g:跳窗", match: (s) => s === "g", run: () => { gotoCurrentWindow(); render(); } },
-  // { help: "c:已读", match: (s) => s === "c", run: () => markCurrentAgentRead() },
-  // { help: "a:档位", match: (s) => s === "a", run: () => cycleCurrentAuto() },
-  // OBSERVER_PAUSED: { help: "v:消息", match: (s) => s === "v", run: () => toggleObserver() },
 ];
 
 function tuiHeaderHelp(): string {
@@ -2466,8 +2295,6 @@ function attach(target: string) {
   state.previewFetchId++;
   if (state.previewTimer) clearTimeout(state.previewTimer);
   state.previewTimer = null;
-  if (previewFetchTimer) clearTimeout(previewFetchTimer);
-  previewFetchTimer = null;
 
   screen.showCursor();
   screen.disableMouse();
@@ -2475,7 +2302,7 @@ function attach(target: string) {
   // 主界面 disableOuterMouse 可能关了全局 mouse；沉浸式须开回，否则 server 收不到滚轮
   tmuxApi.setGlobalOption("mouse", "on");
   withTmuxQuiet(() => {
-    installCtrlQ();
+    installDetachKeys();
     createViewer(sess, idx);
   });
 
@@ -2491,7 +2318,7 @@ function attach(target: string) {
 
 /** detach 后立刻回 tree；不自动 capture-pane（用户按 f 再刷新） */
 function resumeTreeAfterAttach() {
-  withTmuxQuiet(uninstallCtrlQ);
+  withTmuxQuiet(uninstallDetachKeys);
   process.stdin.setRawMode(true);
   disableOuterMouse();
   screen.enableMouse();
@@ -2578,10 +2405,11 @@ function schedulePreview(opts?: {
   delay?: number;
   /** false：attach 返回等场景，不调度 debounced preview */
   pending?: boolean;
+  /** 驾驶 ↑↓：不 render，仅 debounce preview fetch */
+  driveOnly?: boolean;
 }) {
   state.suppressPreviewAfterAttach = false;
   if (state.previewTimer) clearTimeout(state.previewTimer);
-  if (previewFetchTimer) clearTimeout(previewFetchTimer);
   if (opts?.pending === false) return;
 
   if (!opts?.keepScroll) {
@@ -2594,16 +2422,19 @@ function schedulePreview(opts?: {
     state.tree[state.cursor].type !== "window"
   ) {
     clearPreview();
-    render();
+    if (!opts?.driveOnly) render();
     return;
   }
 
   const delay = opts?.delay ?? PREVIEW_DELAY;
-  state.previewFetchId++;
-  render();
+  if (!opts?.driveOnly) {
+    state.previewFetchId++;
+    render();
+  }
 
   state.previewTimer = setTimeout(() => {
     state.previewTimer = null;
+    if (opts?.driveOnly) state.previewFetchId++;
     void refreshPreview();
   }, delay);
 }
@@ -2614,8 +2445,6 @@ let lastClickY = -1;
 let lastClickT = 0;
 
 function handleMouse(rawBtn: number, x: number, y: number, press: boolean) {
-  // MAIN_SELECT_PAUSED: maybeEnterSelectMode / if (state.selectMode) return;
-
   const { btn } = decodeMouseBtn(rawBtn);
   const [cols, rows] = screen.getSize();
   const layout = getLayout(cols, rows);
@@ -2632,7 +2461,7 @@ function handleMouse(rawBtn: number, x: number, y: number, press: boolean) {
       const previewH = getPreviewH();
       if (btn === 64) state.scrollOffset += 3;
       else state.scrollOffset = Math.max(0, state.scrollOffset - 3);
-      const maxScroll = Math.max(0, 5000 - previewH);
+      const maxScroll = Math.max(0, PREVIEW_SCROLL_MAX - previewH);
       if (state.scrollOffset > maxScroll) state.scrollOffset = maxScroll;
       refreshPreview();
     } else if (layout.mode === "drive") {
@@ -2659,7 +2488,7 @@ function handleMouse(rawBtn: number, x: number, y: number, press: boolean) {
   }
   if (idx < 0 || idx >= state.tree.length) return;
   const now = Date.now();
-  const dbl = lastClickY === idx && now - lastClickT < 500;
+  const dbl = lastClickY === idx && now - lastClickT < MOUSE_DBLCLICK_MS;
   lastClickY = idx;
   lastClickT = now;
   state.cursor = idx;
@@ -2690,20 +2519,7 @@ function handleKey(data: Buffer) {
     return;
   }
 
-  /*
-  if (s === "s") {
-    if (state.selectMode) exitSelectMode();
-    else enterSelectMode();
-    return;
-  }
-  if (state.selectMode && s === "\x1b") {
-    exitSelectMode();
-    return;
-  }
-  */
-
   if (s === "\x03" || s === "q") {
-    // MAIN_SELECT_PAUSED: if (state.selectMode) exitSelectMode();
     screen.showCursor();
     screen.clear();
     process.exit(0);
@@ -2985,7 +2801,6 @@ function cliHelp(): number {
     "agent: 纯名 + window @agent；register 后 inbox → ~/.tui/inbox/<name>.jsonl",
     "结构化: 任意子命令可加 --json；status/inspect 供 agent 拉车队快照",
     "开发: tui dev [args…] — 保存源码自动重启（TUI_DEV=1）",
-    // OBSERVER_PAUSED: 消息流镜像 → ~/.tui/bus.jsonl；TUI 按 v 查看
   );
   process.stdout.write(lines.join("\n") + "\n");
   return 0;
@@ -3567,7 +3382,5 @@ process.on("exit", () => {
 });
 process.on("SIGINT", () => process.exit(0));
 process.on("SIGTERM", () => process.exit(0));
-
-// OBSERVER_PAUSED: setInterval(() => { if (state.layoutMode === "observer") render(); }, 1000);
 
 schedulePreview({ delay: 0 });
