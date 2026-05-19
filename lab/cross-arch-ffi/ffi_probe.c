@@ -1,10 +1,8 @@
-#include <stdio.h>
-#include <stdlib.h>
-
 #if defined(__COSMORUN__)
 #ifndef RTLD_LAZY
 #define RTLD_LAZY 1
 #endif
+extern int printf(const char *format, ...);
 extern void *__dlopen(const char *name, int flags);
 extern void *__dlsym(void *handle, const char *symbol);
 extern int __dlclose(void *handle);
@@ -12,6 +10,7 @@ extern int __dlclose(void *handle);
 #define load_symbol __dlsym
 #define close_library __dlclose
 #else
+#include <stdio.h>
 #include <dlfcn.h>
 #define open_library dlopen
 #define load_symbol dlsym
