@@ -8,6 +8,7 @@ import {
   accessSync, appendFileSync, chmodSync, constants, copyFileSync, existsSync,
   mkdirSync, readFileSync, rmSync, writeFileSync,
 } from "fs";
+import { randomUUID } from "crypto";
 import { homedir } from "os";
 import { join } from "path";
 
@@ -27,16 +28,22 @@ const TUI_CONFIG = {
   DATA_DIR: join(homedir(), ".tui"),
   INBOX_DIR: join(homedir(), ".tui", "inbox"),
   READ_DIR: join(homedir(), ".tui", "read"),
+  BUS_PATH: join(homedir(), ".tui", "bus.jsonl"),
 } as const;
 
 type AgentKind = "msg" | "reply";
 
 interface AgentEnvelope {
+  id?: string;
   ts: string;
   from: string;
   to: string;
+  fromTarget?: string;
+  toTarget?: string;
   corr: string;
   kind: AgentKind;
+  status?: "sent" | "delivered" | "read" | "replied" | "error";
+  summary?: string;
   body: string;
 }
 
@@ -708,6 +715,37 @@ function parseInboxFile(path: string): AgentEnvelope[] {
   return out;
 }
 
+function summarizeMessage(body: string): string {
+  return stripAnsi(body).replace(/\s+/g, " ").trim().slice(0, 120);
+}
+
+function appendBus(env: AgentEnvelope): void {
+  try {
+    mkdirSync(TUI_CONFIG.DATA_DIR, { recursive: true });
+    appendFileSync(TUI_CONFIG.BUS_PATH, JSON.stringify(env) + "\n");
+  } catch (e: unknown) {
+    if (!tmuxQuietDepth) {
+      process.stderr.write(`warn: 写入 bus 失败: ${e instanceof Error ? e.message : String(e)}\n`);
+    }
+  }
+}
+
+function readBusTail(limit = 500): AgentEnvelope[] {
+  if (!existsSync(TUI_CONFIG.BUS_PATH)) return [];
+  const lines = readFileSync(TUI_CONFIG.BUS_PATH, "utf8").trimEnd().split("\n").slice(-limit);
+  const out: AgentEnvelope[] = [];
+  for (const line of lines) {
+    const t = line.trim();
+    if (!t) continue;
+    try {
+      out.push(JSON.parse(t) as AgentEnvelope);
+    } catch {
+      /* 跳过坏行 */
+    }
+  }
+  return out;
+}
+
 function agentSend(opts: {
   to: string;
   from: string;
@@ -715,19 +753,26 @@ function agentSend(opts: {
   corr?: string;
   kind?: AgentKind;
 }): AgentEnvelope {
-  requireAgentWindow(opts.to);
+  const toNode = requireAgentWindow(opts.to);
   const toName = resolveAgentName(opts.to);
   const fromName = normalizeAgentName(opts.from);
+  const fromNode = findNodeByAgent(fromName);
   const env: AgentEnvelope = {
+    id: randomUUID(),
     ts: new Date().toISOString(),
     from: fromName,
     to: toName,
+    fromTarget: fromNode?.target,
+    toTarget: toNode.target,
     corr: opts.corr ?? `c-${Date.now()}`,
     kind: opts.kind ?? "msg",
+    status: "sent",
+    summary: summarizeMessage(opts.body),
     body: opts.body,
   };
   mkdirSync(TUI_CONFIG.INBOX_DIR, { recursive: true });
   appendFileSync(inboxPath(toName), JSON.stringify(env) + "\n");
+  appendBus(env);
   return env;
 }
 
@@ -819,6 +864,7 @@ class TuiState {
   tree: TreeNode[] = getTree();
   cursor = 0;
   viewOffset = 0;
+  layoutMode: "preview" | "observer" = "preview";
   preview = "";
   previewTimer: ReturnType<typeof setTimeout> | null = null;
   previewFetchId = 0;
@@ -827,7 +873,7 @@ class TuiState {
   inputMode: InputMode | null = null;
   scrollOffset = 0;
   seenMax = 0;
-  selectMode = false;
+  // selectMode = false; // 主界面选区暂停，见下方 MAIN_SELECT_PAUSED 块
   /** 从沉浸式返回后：右侧 preview 不自动 capture（避免把刚看过的输出再刷一遍） */
   suppressPreviewAfterAttach = false;
 
@@ -845,9 +891,12 @@ function getPreviewH(): number {
 }
 function getLayout(cols: number, rows: number) {
   const leftW = Math.min(Math.max(Math.floor(cols * 0.2), 12), 30);
-  const rightW = cols - leftW - 1;
+  const inspectorW = state.layoutMode === "observer" && cols >= 100
+    ? Math.min(Math.max(Math.floor(cols * 0.3), 30), 48)
+    : 0;
+  const rightW = cols - leftW - 1 - (inspectorW ? inspectorW + 1 : 0);
   const bodyH = rows - HEADER_H - FOOTER_H;
-  return { leftW, rightW, bodyH };
+  return { leftW, rightW, inspectorW, bodyH };
 }
 
 // ── 渲染 ──
@@ -882,9 +931,38 @@ function renderLeftCell(node: TreeNode, isSelected: boolean, cap: number): void 
   }
 }
 
+function formatBusLine(env: AgentEnvelope, cap: number): string {
+  const time = env.ts ? new Date(env.ts).toTimeString().slice(0, 8) : "--:--:--";
+  const status = env.status ? ` ${env.status}` : "";
+  const summary = env.summary || summarizeMessage(env.body || "");
+  const from = env.fromTarget ? `${env.from}@${env.fromTarget}` : env.from;
+  const to = env.toTarget ? `${env.to}@${env.toTarget}` : env.to;
+  return truncVis(`${time} ${from}->${to} ${env.kind}${status} ${summary}`, cap);
+}
+
+function renderInspectorCell(row: number, col: number, width: number, lineIdx: number, rows: AgentEnvelope[]): void {
+  const cap = Math.max(0, width - 1);
+  screen.cursorAt(row, col);
+  if (lineIdx === 0) {
+    screen.write(screen.inv(screen.bold(padVis(truncVis(" messages · bus.jsonl ", cap), cap))));
+    return;
+  }
+  if (rows.length === 0) {
+    if (lineIdx === 1) screen.write(screen.dim(padVis(truncVis("暂无消息", cap), cap)));
+    else screen.write(" ".repeat(cap));
+    return;
+  }
+  const env = rows[rows.length - lineIdx];
+  if (!env) {
+    screen.write(" ".repeat(cap));
+    return;
+  }
+  screen.write(padVis(formatBusLine(env, cap), cap));
+}
+
 function render() {
   const [cols, rows] = screen.getSize();
-  const { leftW, rightW, bodyH } = getLayout(cols, rows);
+  const { leftW, rightW, inspectorW, bodyH } = getLayout(cols, rows);
 
   state.clampView(bodyH);
 
@@ -913,6 +991,7 @@ function render() {
 
   // 滚动条计算：右侧让出 1 列绘制
   const textW = Math.max(0, rightW - 1);
+  const busRows = inspectorW ? readBusTail(Math.max(100, bodyH * 4)) : [];
   const previewH = bodyH;
   const curDepth = state.scrollOffset + previewH;
   if (curDepth > state.seenMax) state.seenMax = curDepth;
@@ -957,6 +1036,13 @@ function render() {
       const inThumb = i >= thumbStart && i < thumbStart + thumbH;
       screen.write(`\x1b[90m${inThumb ? "▓" : "░"}\x1b[0m`);
     }
+
+    if (inspectorW) {
+      const inspectorCol = leftW + 1 + rightW + 1;
+      screen.cursorAt(row, inspectorCol - 1);
+      screen.write(screen.dim("│"));
+      renderInspectorCell(row, inspectorCol, inspectorW, i, busRows);
+    }
   }
 
   // footer
@@ -966,13 +1052,8 @@ function render() {
     screen.write(screen.gold(padVis(truncVis(line, cols - 1), cols - 1)));
     screen.showCursor();
   } else {
-    if (state.selectMode) {
-      const line = " [选择模式 s:退出]  鼠标可在 preview 框选复制；键盘 j/k/Enter 仍可用 ";
-      screen.write(screen.inv(screen.wrap("93")(padVis(truncVis(line, cols - 1), cols - 1))));
-    } else {
-      // 帮助已移到 header，footer 仅占位保持布局一致
-      screen.write(screen.gold(" ".repeat(cols - 1)));
-    }
+    // MAIN_SELECT_PAUSED: state.selectMode footer
+    screen.write(screen.gold(" ".repeat(cols - 1)));
   }
 }
 
@@ -989,25 +1070,55 @@ const uninstallCtrlQ = () => {
   tmuxApi.unbindKeyRoot("M-Left");
 };
 
-// ── 外层 tmux 鼠标穿透 ──
-// 若 tui 在 tmux 内运行，外层 tmux 的 mouse on 会先吃掉 SGR 序列，
-// 导致内层 tui 收不到点击。启动时关掉，退出/attach 时恢复。
+// ── 外层 tmux mouse（主界面 SGR on；沉浸式 attach 内 mouse off，见 attach）──
 const insideTmux = tmuxApi.isInsideSession();
 let savedOuterMouse: string | null = null;
 
+/** xterm SGR 1006：Cb 低 3 位为按键，+4 Shift +8 Meta +16 Ctrl */
+function decodeMouseBtn(raw: number) {
+  return {
+    btn: raw & ~28,
+    shift: (raw & 4) !== 0,
+    meta: (raw & 8) !== 0,
+    ctrl: (raw & 16) !== 0,
+  };
+}
+
+// ═══ MAIN_SELECT_PAUSED：主界面 preview 终端选区（s / Shift+点 / 点 preview）暂停 ═══
+// 沉浸式 attach() 仍 screen.disableMouse()，终端可划选，与此无关。恢复时取消本块注释。
+/*
 function enterSelectMode() {
-  // 关闭 SGR 鼠标，让终端原生选择接管
+  if (state.selectMode) return;
   screen.disableMouse();
   restoreOuterMouse();
   state.selectMode = true;
   render();
 }
 function exitSelectMode() {
+  if (!state.selectMode) return;
   state.selectMode = false;
   disableOuterMouse();
   screen.enableMouse();
   render();
 }
+function maybeEnterSelectMode(rawBtn: number, x: number, y: number, press: boolean): boolean {
+  if (!press || state.selectMode || state.inputMode) return false;
+  const [cols, rows] = screen.getSize();
+  const { leftW } = getLayout(cols, rows);
+  if (y > rows - FOOTER_H || y < BODY_START_ROW) return false;
+  const { btn, shift } = decodeMouseBtn(rawBtn);
+  const inPreview = x >= leftW;
+  if (shift && btn <= 2) {
+    enterSelectMode();
+    return true;
+  }
+  if (inPreview && btn === 0) {
+    enterSelectMode();
+    return true;
+  }
+  return false;
+}
+*/
 
 function disableOuterMouse() {
   if (!insideTmux) return;
@@ -1079,9 +1190,13 @@ function cursorDown() {
 function enterAttach() {
   if (state.tree.length === 0) return;
   if (state.tree[state.cursor]?.type !== "window") return;
-  const wasSelectMode = state.selectMode;
+  // MAIN_SELECT_PAUSED: if (wasSelectMode) enterSelectMode();
   attach(state.tree[state.cursor].target);
-  if (wasSelectMode) enterSelectMode();
+}
+
+function toggleObserver() {
+  state.layoutMode = state.layoutMode === "observer" ? "preview" : "observer";
+  render();
 }
 
 const TUI_KEYBINDS: { help: string; match: (s: string) => boolean; run: () => void }[] = [
@@ -1093,6 +1208,7 @@ const TUI_KEYBINDS: { help: string; match: (s: string) => boolean; run: () => vo
   { help: "r:改名", match: (s) => s === "r", run: () => renameCurrent() },
   { help: "m:备注", match: (s) => s === "m", run: () => remarkCurrent() },
   { help: "f:刷", match: (s) => s === "f", run: () => refreshAll() },
+  { help: "v:消息", match: (s) => s === "v", run: () => toggleObserver() },
 ];
 
 function tuiHeaderHelp(): string {
@@ -1332,7 +1448,10 @@ function schedulePreview(opts?: {
 let lastClickY = -1;
 let lastClickT = 0;
 
-function handleMouse(btn: number, x: number, y: number, press: boolean) {
+function handleMouse(rawBtn: number, x: number, y: number, press: boolean) {
+  // MAIN_SELECT_PAUSED: maybeEnterSelectMode / if (state.selectMode) return;
+
+  const { btn } = decodeMouseBtn(rawBtn);
   const [cols, rows] = screen.getSize();
   const { leftW } = getLayout(cols, rows);
   // 滚轮
@@ -1376,14 +1495,11 @@ function handleMouse(btn: number, x: number, y: number, press: boolean) {
 function handleKey(data: Buffer) {
   let s = data.toString();
 
-  // 抽取 SGR 鼠标序列（选择模式下应该收不到，但安全起见仍过滤掉）
   if (s.indexOf("\x1b[<") >= 0) {
     const re = /\x1b\[<(\d+);(\d+);(\d+)([Mm])/g;
-    if (!state.selectMode) {
-      let m: RegExpExecArray | null;
-      while ((m = re.exec(s)) !== null) {
-        handleMouse(parseInt(m[1]), parseInt(m[2]), parseInt(m[3]), m[4] === "M");
-      }
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(s)) !== null) {
+      handleMouse(parseInt(m[1]), parseInt(m[2]), parseInt(m[3]), m[4] === "M");
     }
     s = s.replace(re, "");
     if (!s) return;
@@ -1394,14 +1510,20 @@ function handleKey(data: Buffer) {
     return;
   }
 
+  /*
   if (s === "s") {
     if (state.selectMode) exitSelectMode();
     else enterSelectMode();
     return;
   }
+  if (state.selectMode && s === "\x1b") {
+    exitSelectMode();
+    return;
+  }
+  */
 
   if (s === "\x03" || s === "q") {
-    if (state.selectMode) exitSelectMode();
+    // MAIN_SELECT_PAUSED: if (state.selectMode) exitSelectMode();
     screen.showCursor();
     screen.clear();
     process.exit(0);
@@ -1566,7 +1688,7 @@ function cliHelp(): number {
   lines.push(
     "",
     "<spec>: @逻辑名 | sess | sess:idx | =sess:idx（@ 仅 remark 反查）",
-    "agent: 纯名 + window @agent；register 后 inbox → ~/.tui/inbox/<name>.jsonl",
+    "agent: 纯名 + window @agent；register 后 inbox → ~/.tui/inbox/<name>.jsonl，消息流镜像 → ~/.tui/bus.jsonl",
   );
   process.stdout.write(lines.join("\n") + "\n");
   return 0;
@@ -2024,5 +2146,9 @@ process.on("exit", () => {
 });
 process.on("SIGINT", () => process.exit(0));
 process.on("SIGTERM", () => process.exit(0));
+
+setInterval(() => {
+  if (state.layoutMode === "observer" && !state.inputMode) render();
+}, 1000);
 
 refreshPreview();
