@@ -171,13 +171,17 @@ interface IMultiplexerBackend {
 }
 
 // TmuxBackend — IMultiplexerBackend 的 tmux 实现。target 一律用 `=NAME[:IDX]` 精确语法。
-function tmux(args: string[], opts?: { missingOk?: boolean }): string {
+function tmux(args: string[], opts?: { missingOk?: boolean; unsetOk?: boolean }): string {
   const out = Bun.spawnSync(["tmux", ...args], { stdout: "pipe", stderr: "pipe" });
   if (out.exitCode !== 0) {
     const stderr = out.stderr.toString();
     // 幂等清理命令（kill/has/rename-session 等）目标不存在时静默吞掉
     if (opts?.missingOk && /can't find session|no such session|session not found/i.test(stderr)) {
       return out.stdout.toString();
+    }
+    // 用户自定义 @option 未设置时 show-options 报 invalid option，视为空值
+    if (opts?.unsetOk && /invalid option|unknown option|option not found/i.test(stderr)) {
+      return "";
     }
     if (!tmuxQuietDepth) {
       process.stderr.write(`[tmux ${args.join(" ")}] exit=${out.exitCode} ${stderr}`);
@@ -229,9 +233,9 @@ const tmuxApi: IMultiplexerBackend = {
   unsetSessionOption: (target: string, key: string) =>
     tmux(["set-option", "-u", "-t", target.replace(/^=/, ""), key]),
   showSessionRaw: (sessTarget: string, key: string): string =>
-    tmux(["show-options", "-t", sessTarget, key]).trim(),
+    tmux(["show-options", "-v", "-t", sessTarget, key], { unsetOk: true }).trim(),
   showWindowRaw: (winTarget: string, key: string): string =>
-    tmux(["show-options", "-wt", winTarget, key]).trim(),
+    tmux(["show-options", "-vw", "-t", winTarget, key], { unsetOk: true }).trim(),
   setSessUserOption: (sessTarget: string, key: string, val: string) =>
     tmux(["set-option", "-t", sessTarget, key, val]),
   unsetSessUserOption: (sessTarget: string, key: string) =>
@@ -296,20 +300,19 @@ interface TreeNode {
 }
 
 function readRemark(node: { type: "session" | "window"; target: string; sessionName: string }): string {
-  // 仅取本 scope 的值，避免 global @remark 泄漏到所有 session/window
-  // show-options 不带 -v 时，未设置则输出空；设置则输出 `@remark "value"`
-  // 关键：target 必须用 `=NAME:` 精确匹配，否则 tmux 对短名/数字名做模糊匹配，
-  // 会把所有 session 的写入都打到同一目标，造成"全局污染"假象。
   const sessTarget = buildSessTarget(node.sessionName);
   const winTarget = node.type === "window" ? buildWinTarget(node.sessionName, node.target.split(":")[1] ?? "") : sessTarget;
   const raw = node.type === "session"
     ? tmuxApi.showSessionRaw(sessTarget, TUI_CONFIG.REMARK_KEY)
     : tmuxApi.showWindowRaw(winTarget, TUI_CONFIG.REMARK_KEY);
   if (!raw) return "";
-  const m = raw.match(new RegExp(`^${TUI_CONFIG.REMARK_KEY}\\s+(?:"((?:[^"\\\\]|\\\\.)*)"|(\\S.*))$`));
-  if (!m) return "";
-  const v = m[1] !== undefined ? m[1].replace(/\\(.)/g, "$1") : m[2];
-  return v.trim();
+  // -v 直接返回值；兼容旧格式 `@remark "value"`
+  const m = raw.match(/^@remark\s+(?:"((?:[^"\\]|\\.)*)"|(\S.*))$/);
+  if (m) {
+    const v = m[1] !== undefined ? m[1].replace(/\\(.)/g, "$1") : m[2];
+    return v.trim();
+  }
+  return raw.trim();
 }
 
 function writeRemark(node: TreeNode, value: string) {
@@ -322,6 +325,72 @@ function writeRemark(node: TreeNode, value: string) {
     const winTarget = buildWinTarget(node.sessionName, idx);
     setUserOption(winTarget, true, TUI_CONFIG.REMARK_KEY, value || null);
   }
+}
+
+/** spec → tmux target + TreeNode（TUI / CLI 共用） */
+function nodeFromTarget(target: string): TreeNode {
+  const bare = target.replace(/^=/, "").replace(/:$/, "");
+  const colon = bare.indexOf(":");
+  if (colon >= 0) {
+    const sess = bare.slice(0, colon);
+    const idx = bare.slice(colon + 1);
+    return { label: "", target: `${sess}:${idx}`, indent: 1, type: "window", sessionName: sess };
+  }
+  return { label: "", target: bare, indent: 0, type: "session", sessionName: bare };
+}
+
+function findNodeByRemark(wanted: string): TreeNode | null {
+  for (const n of getTree()) {
+    if (n.remark === wanted) return n;
+  }
+  return null;
+}
+
+function parseTargetSpec(spec: string): { target: string; node: TreeNode } {
+  if (!spec) throw new Error("target spec 为空");
+  if (spec.startsWith("=")) {
+    const target = spec;
+    return { target, node: nodeFromTarget(target) };
+  }
+  if (!spec.startsWith("@")) {
+    if (spec.includes(":")) {
+      const [sess, idx] = spec.split(":");
+      const target = buildWinTarget(sess, idx ?? "");
+      return {
+        target,
+        node: { label: "", target: `${sess}:${idx}`, indent: 1, type: "window", sessionName: sess },
+      };
+    }
+    const target = buildSessTarget(spec);
+    return {
+      target,
+      node: { label: "", target: spec, indent: 0, type: "session", sessionName: spec },
+    };
+  }
+  const node = findNodeByRemark(spec);
+  if (!node) throw new Error(`找不到逻辑名 ${spec}`);
+  const target =
+    node.type === "window"
+      ? buildWinTarget(node.sessionName, node.target.split(":")[1] ?? "")
+      : buildSessTarget(node.sessionName);
+  return { target, node };
+}
+
+function resolveTarget(spec: string): string {
+  return parseTargetSpec(spec).target;
+}
+
+function capturePaneSync(target: string, startN: number, endArg = "-"): string {
+  const r = Bun.spawnSync(
+    ["tmux", "capture-pane", "-p", "-t", target, "-S", `-${startN}`, "-E", endArg],
+    { stdout: "pipe", stderr: "pipe" },
+  );
+  if (r.exitCode !== 0 && !tmuxQuietDepth) {
+    process.stderr.write(
+      `[tmux capture-pane -t ${target}] exit=${r.exitCode} ${r.stderr?.toString() || ""}`,
+    );
+  }
+  return r.stdout?.toString() || "";
 }
 
 function getTree(): TreeNode[] {
@@ -703,56 +772,35 @@ function remarkCurrent() {
   });
 }
 
-// === status guard：强制所有 session status off（留 viewer 显示提示栏），退出后恢复 ===
-interface StatusSnapshot {
-  sessions: Array<{ id: string; name: string; val: string }>;
-}
-function snapshotAndDisableStatus(): StatusSnapshot {
-  const r = tmuxApi.rawSpawnSync(["list-sessions", "-F", "#{session_id}\t#{session_name}\t#{status}"]);
-  const sessions = (r.stdout?.toString() || "")
-    .split("\n").map((l) => l.trim()).filter(Boolean)
-    .map((l) => { const [id, name, val] = l.split("\t"); return { id, name, val: val || "" }; });
-  for (const s of sessions) {
-    if (s.id && s.name !== TUI_CONFIG.VIEWER_SESSION) {
-      tmuxApi.setSessionOption(s.id, "status", "off");
-    }
-  }
-  return { sessions };
-}
-function restoreStatus(snap: StatusSnapshot) {
-  for (const s of snap.sessions) {
-    if (!s.id || s.name === TUI_CONFIG.VIEWER_SESSION) continue;
-    if (s.val === "") tmuxApi.unsetSessionOption(s.id, "status");   // 恢复默认（unset）
-    else tmuxApi.setSessionOption(s.id, "status", s.val);
-  }
+/** 单次 shell 批量 tmux 配置，避免逐个 spawn 刷屏 */
+function tmuxShBatch(script: string): void {
+  Bun.spawnSync(["sh", "-c", script], { stdout: "pipe", stderr: "pipe" });
 }
 
 // === viewer session helper：创建/销毁屏蔽 byobu 的 grouped viewer ===
 function createViewer(sess: string, idx?: string) {
-  tmuxApi.killSession(TUI_CONFIG.VIEWER_SESSION);
-  tmuxApi.newGroupedSession(TUI_CONFIG.VIEWER_SESSION, sess);
-  const vTarget = buildSessTarget(TUI_CONFIG.VIEWER_SESSION);
-  // 屏蔽 byobu 全局快捷键：切到自定义空 key-table + 关掉 prefix
-  tmuxApi.setSessionOption(vTarget, "key-table", TUI_CONFIG.TUI_KEYTABLE);
-  tmuxApi.setSessionOption(vTarget, "prefix", "None");
-  tmuxApi.setSessionOption(vTarget, "prefix2", "None");
-  // byobu 风格底部只读提示栏：ctrl-← 返回 tree mode
-  // session-level status-left/right/style 覆盖全局设置，其他 session 已设 status=off
-  tmuxApi.setSessionOption(vTarget, "mouse", "off");       // viewer 内鼠标不被 tmux 捕获，允许原生文本选择
-
-  if (idx) tmuxApi.selectWindow(buildWinTarget(TUI_CONFIG.VIEWER_SESSION, idx));
-
-  tmuxApi.setSessionOption(vTarget, "status-position", "top");
-  tmuxApi.setSessionOption(vTarget, "status", "on");
-  tmuxApi.setSessionOption(vTarget, "status-left", " #[bold]ctrl-左: 返回 ");
-  tmuxApi.setSessionOption(vTarget, "status-left-length", "30");
-  tmuxApi.setSessionOption(vTarget, "status-right", `驾驶分舱:${idx||''} `);
-  tmuxApi.setSessionOption(vTarget, "window-status-format", "");//for windows list in middle
-  tmuxApi.setSessionOption(vTarget, "window-status-current-format", "");//for active win in middle
-  tmuxApi.setSessionOption(vTarget, "window-status-separator", "");
-  tmuxApi.setSessionOption(vTarget, "status-justify", "centre");
-  tmuxApi.setSessionOption(vTarget, "status-style", "bg=white,fg=black");
-
+  const v = TUI_CONFIG.VIEWER_SESSION;
+  const cabin = (idx || "").replace(/'/g, "'\\''");
+  tmuxApi.killSession(v);
+  tmuxApi.newGroupedSession(v, sess);
+  const opts = [
+    `tmux set-option -t '${v}' key-table '${TUI_CONFIG.TUI_KEYTABLE}'`,
+    `tmux set-option -t '${v}' prefix None`,
+    `tmux set-option -t '${v}' prefix2 None`,
+    `tmux set-option -t '${v}' mouse off`,
+    `tmux set-option -t '${v}' status-position top`,
+    `tmux set-option -t '${v}' status on`,
+    `tmux set-option -t '${v}' status-left ' #[bold]ctrl-左: 返回 '`,
+    `tmux set-option -t '${v}' status-left-length 30`,
+    `tmux set-option -t '${v}' status-right '驾驶分舱:${cabin} '`,
+    `tmux set-option -t '${v}' window-status-format ''`,
+    `tmux set-option -t '${v}' window-status-current-format ''`,
+    `tmux set-option -t '${v}' window-status-separator ''`,
+    `tmux set-option -t '${v}' status-justify centre`,
+    `tmux set-option -t '${v}' status-style 'bg=white,fg=black'`,
+  ].join(" && ");
+  const win = idx ? ` && tmux select-window -t '=${v}:${idx}'` : "";
+  tmuxShBatch(opts + win);
 }
 
 function attach(target: string) {
@@ -766,12 +814,9 @@ function attach(target: string) {
   screen.showCursor();
   screen.disableMouse();
   process.stdin.setRawMode(false);
-  installCtrlQ();
-
-  let statusSnap: StatusSnapshot = { sessions: [] };
   withTmuxQuiet(() => {
+    installCtrlQ();
     createViewer(sess, idx);
-    statusSnap = snapshotAndDisableStatus();
   });
 
   screen.leaveAltScreen();
@@ -781,12 +826,12 @@ function attach(target: string) {
     withTmuxQuiet(() => tmuxApi.killSession(TUI_CONFIG.VIEWER_SESSION));
   }
 
-  resumeTreeAfterAttach(statusSnap);
+  resumeTreeAfterAttach();
 }
 
 /** detach 后立刻回 tree；不自动 capture-pane（用户按 f 再刷新） */
-function resumeTreeAfterAttach(statusSnap: StatusSnapshot) {
-  uninstallCtrlQ();
+function resumeTreeAfterAttach() {
+  withTmuxQuiet(uninstallCtrlQ);
   process.stdin.setRawMode(true);
   disableOuterMouse();
   screen.enableMouse();
@@ -803,7 +848,6 @@ function resumeTreeAfterAttach(statusSnap: StatusSnapshot) {
 
   setTimeout(() => {
     withTmuxQuiet(() => {
-      restoreStatus(statusSnap);
       state.tree = getTree();
       if (state.cursor >= state.tree.length) {
         state.cursor = Math.max(0, state.tree.length - 1);
@@ -997,165 +1041,203 @@ function handleKey(data: Buffer) {
   }
 }
 
-// ── CLI 模式 ──
+// ── CLI 模式（声明式命令树，与 TUI 共用 parseTargetSpec / capturePaneSync）──
 
-const CLI_COMMANDS = new Set([
-  "list", "capture", "send", "paste", "remark", "msg", "help", "--help", "-h",
-]);
+const CLI_BIN = (process.argv[1] || "tui").replace(/^.*\//, "");
 
-function resolveTarget(spec: string): string {
-  if (!spec) throw new Error("target spec 为空");
-  // 裸 tmux target：以 `=` 开头或形如 sess:idx
-  if (spec.startsWith("=")) return spec;
-  if (!spec.startsWith("@")) {
-    // sess:idx → window target；sess → session target（必须带尾冒号消歧义）
-    if (spec.includes(":")) {
-      const [sess, idx] = spec.split(":");
-      return buildWinTarget(sess, idx ?? "");
-    }
-    return buildSessTarget(spec);
-  }
-  // 逻辑名：遍历查 remark
-  const wanted = spec; // 含 `@` 前缀
-  const sessions = tmuxApi.listSessions();
-  for (const sess of sessions) {
-    const sessNode = { type: "session" as const, target: sess, sessionName: sess };
-    if (readRemark(sessNode) === wanted) return buildSessTarget(sess);
-    const wins = tmuxApi.listWindows(sess, "#{window_index}|#{window_name}");
-    for (const w of wins) {
-      const [idx] = w.split("|");
-      const winNode = { type: "window" as const, target: `${sess}:${idx}`, sessionName: sess };
-      if (readRemark(winNode) === wanted) return buildWinTarget(sess, idx);
-    }
-  }
-  throw new Error(`找不到逻辑名 ${spec}`);
+type CliCtx = { bin: string; rest: string[] };
+type CliHandler = (ctx: CliCtx) => number;
+
+interface CliCommand {
+  name: string;
+  aliases?: string[];
+  summary: string;
+  usage?: string;
+  children?: CliCommand[];
+  run: CliHandler;
 }
 
-function cliHelp(): void {
-  process.stdout.write(
-`tui_v2 — TMUX 驾驶舱 (CLI 模式)
-不带子命令时进入 TUI；以下子命令用于跨窗口通讯：
-
-  list                       列出所有 session/window，含 @remark 与当前行预览
-  capture <spec> [lines]     capture-pane 输出到 stdout（默认 80 行）
-  send <spec> <text...>      send-keys 注入文本 + Enter（短文本）
-  paste <spec> <file>        load-buffer + paste-buffer（大块内容）
-  remark <spec> <text>       设 @remark（以 @ 开头即逻辑名）
-  msg <@name> <text...>      send 同义词，强调逻辑名寻址
-  help                       本帮助
-
-<spec> 可为 @logic-name（按 @remark 反查），或 tmux target（sess / sess:idx / =sess:idx）
-`);
+function cliUsage(cmd: CliCommand, sub?: CliCommand): string {
+  const leaf = sub ?? cmd;
+  const head = sub ? `${cmd.name} ${leaf.name}` : cmd.name;
+  return leaf.usage ? `${head} ${leaf.usage}` : head;
 }
 
-function cliList(): number {
-  const tree = getTree();
-  for (const n of tree) {
+function matchCliName(cmd: CliCommand, name: string): boolean {
+  return cmd.name === name || (cmd.aliases?.includes(name) ?? false);
+}
+
+function isCliInvocation(argv: string[]): boolean {
+  const head = argv[2];
+  if (!head) return false;
+  return CLI_ROOT.some((c) => matchCliName(c, head));
+}
+
+function cliList(_ctx: CliCtx): number {
+  for (const n of getTree()) {
     if (n.type === "session") {
       const rk = n.remark ? `  ${n.remark}` : "";
       process.stdout.write(`${n.target}${rk}\n`);
     } else {
       const rk = n.remark ? `  ${n.remark}` : "";
-      // 当前行预览：capture 最后一行
-      let last = "";
-      try {
-        // n.target 形如 `sess:idx`（window 分支）；用精确 target 消歧义
-        const winIdx = n.target.split(":")[1] ?? "";
-        const r = Bun.spawnSync(["tmux", "capture-pane", "-p", "-t", buildWinTarget(n.sessionName, winIdx), "-S", "-1", "-E", "-"]);
-        last = (r.stdout?.toString() || "").split("\n").map(s => s.trim()).filter(Boolean).pop() || "";
-      } catch {}
+      const winIdx = n.target.split(":")[1] ?? "";
+      const last = capturePaneSync(buildWinTarget(n.sessionName, winIdx), 1)
+        .split("\n")
+        .map((s) => s.trim())
+        .filter(Boolean)
+        .pop() || "";
       process.stdout.write(`  ${n.target}${rk}  | ${stripAnsi(last).slice(0, 80)}\n`);
     }
   }
   return 0;
 }
 
-function cliCapture(spec: string, lines: number): number {
-  const target = resolveTarget(spec);
-  const r = Bun.spawnSync(["tmux", "capture-pane", "-p", "-t", target, "-S", `-${lines}`, "-E", "-"]);
-  process.stdout.write(r.stdout?.toString() || "");
-  return r.exitCode ?? 0;
-}
-
-function cliSend(spec: string, text: string): number {
-  const target = resolveTarget(spec);
-  const r = Bun.spawnSync(["tmux", "send-keys", "-t", target, text, "Enter"]);
-  if (r.exitCode !== 0) {
-    process.stderr.write((r.stderr?.toString() || "send-keys failed") + "\n");
-    return r.exitCode ?? 1;
+function cliCapture(ctx: CliCtx): number {
+  if (!ctx.rest[0]) {
+    process.stderr.write(`usage: ${CLI_BIN} ${cliUsage(CLI_CMD.capture)}\n`);
+    return 2;
   }
-  process.stdout.write(`sent → ${target}: ${text.length} chars\n`);
+  const lines = ctx.rest[1] ? parseInt(ctx.rest[1], 10) : PREVIEW_LINES;
+  const target = resolveTarget(ctx.rest[0]);
+  process.stdout.write(capturePaneSync(target, isNaN(lines) ? PREVIEW_LINES : lines));
   return 0;
 }
 
-function cliPaste(spec: string, file: string): number {
-  const target = resolveTarget(spec);
-  const buf = `tui_v2_${process.pid}`;
-  const r1 = Bun.spawnSync(["tmux", "load-buffer", "-b", buf, file]);
-  if (r1.exitCode !== 0) {
-    process.stderr.write((r1.stderr?.toString() || `load-buffer failed: ${file}`) + "\n");
-    return r1.exitCode ?? 1;
+function cliSend(ctx: CliCtx): number {
+  if (ctx.rest.length < 2) {
+    process.stderr.write(`usage: ${CLI_BIN} ${cliUsage(CLI_CMD.send)}\n`);
+    return 2;
   }
-  const r2 = Bun.spawnSync(["tmux", "paste-buffer", "-d", "-b", buf, "-t", target]);
-  if (r2.exitCode !== 0) {
-    process.stderr.write((r2.stderr?.toString() || "paste-buffer failed") + "\n");
-    return r2.exitCode ?? 1;
+  const target = resolveTarget(ctx.rest[0]);
+  tmuxApi.sendKeys(target, ctx.rest.slice(1).join(" "));
+  process.stdout.write(`sent → ${target}: ${ctx.rest.slice(1).join(" ").length} chars\n`);
+  return 0;
+}
+
+function cliPaste(ctx: CliCtx): number {
+  if (ctx.rest.length < 2) {
+    process.stderr.write(`usage: ${CLI_BIN} ${cliUsage(CLI_CMD.paste)}\n`);
+    return 2;
   }
+  const target = resolveTarget(ctx.rest[0]);
+  const file = ctx.rest[1];
+  tmuxApi.loadBuffer(target, file);
+  tmuxApi.pasteBuffer(target);
   process.stdout.write(`pasted ${file} → ${target}\n`);
   return 0;
 }
 
-function cliRemark(spec: string, text: string): number {
-  const target = resolveTarget(spec);
-  // target 形如 =sess 或 =sess:idx，构造 TreeNode 用于 writeRemark
-  const bare = target.replace(/^=/, "");
-  const [sess, idx] = bare.split(":");
-  const node: TreeNode = idx !== undefined
-    ? { label: "", target: `${sess}:${idx}`, indent: 1, type: "window", sessionName: sess }
-    : { label: "", target: sess, indent: 0, type: "session", sessionName: sess };
+function cliRemarkSet(ctx: CliCtx): number {
+  if (!ctx.rest[0]) {
+    process.stderr.write(`usage: ${CLI_BIN} ${cliUsage(CLI_CMD.remark, CLI_CMD.remarkSet)}\n`);
+    return 2;
+  }
+  const { target, node } = parseTargetSpec(ctx.rest[0]);
+  const text = ctx.rest.slice(1).join(" ");
   writeRemark(node, text);
   process.stdout.write(`remark ${target} = ${text || "(cleared)"}\n`);
   return 0;
 }
 
-function runCli(argv: string[]): number {
-  const cmd = argv[2];
-  const rest = argv.slice(3);
-  try {
-    switch (cmd) {
-      case "help": case "--help": case "-h":
-        cliHelp(); return 0;
-      case "list":
-        return cliList();
-      case "capture": {
-        if (!rest[0]) { process.stderr.write("usage: tui_v2 capture <spec> [lines]\n"); return 2; }
-        const lines = rest[1] ? parseInt(rest[1], 10) : 80;
-        return cliCapture(rest[0], isNaN(lines) ? 80 : lines);
+function cliRemarkGet(ctx: CliCtx): number {
+  if (!ctx.rest[0]) {
+    process.stderr.write(`usage: ${CLI_BIN} ${cliUsage(CLI_CMD.remark, CLI_CMD.remarkGet)}\n`);
+    return 2;
+  }
+  const { node } = parseTargetSpec(ctx.rest[0]);
+  const v = readRemark(node);
+  process.stdout.write(v ? `${v}\n` : "\n");
+  return 0;
+}
+
+/** 兼容：remark <spec> [text]；remark get <spec> */
+function cliRemarkLegacy(ctx: CliCtx): number {
+  const sub = ctx.rest[0];
+  if (sub === "get" || sub === "show" || sub === "read") return cliRemarkGet({ ...ctx, rest: ctx.rest.slice(1) });
+  if (sub === "set" || sub === "write") return cliRemarkSet({ ...ctx, rest: ctx.rest.slice(1) });
+  return cliRemarkSet(ctx);
+}
+
+function cliHelp(): number {
+  const lines = [
+    `${CLI_BIN} — TMUX 驾驶舱 v${TUI_CONFIG.VERSION} (CLI)`,
+    "无子命令 → 进入 TUI",
+    "",
+    "命令树:",
+  ];
+  for (const cmd of CLI_ROOT) {
+    if (cmd.name === "help") continue;
+    const alias = cmd.aliases?.length ? ` (${cmd.aliases.join(", ")})` : "";
+    lines.push(`  ${cmd.name}${alias}`);
+    lines.push(`    ${cmd.summary}`);
+    if (cmd.children) {
+      for (const sub of cmd.children) {
+        const sa = sub.aliases?.length ? ` (${sub.aliases.join(", ")})` : "";
+        lines.push(`    ├─ ${sub.name}${sa}  — ${sub.summary}`);
+        lines.push(`    │    usage: ${CLI_BIN} ${cliUsage(cmd, sub)}`);
       }
-      case "send": case "msg": {
-        if (rest.length < 2) { process.stderr.write(`usage: tui_v2 ${cmd} <spec> <text...>\n`); return 2; }
-        return cliSend(rest[0], rest.slice(1).join(" "));
-      }
-      case "paste": {
-        if (rest.length < 2) { process.stderr.write("usage: tui_v2 paste <spec> <file>\n"); return 2; }
-        return cliPaste(rest[0], rest[1]);
-      }
-      case "remark": {
-        if (rest.length < 1) { process.stderr.write("usage: tui_v2 remark <spec> <text>\n"); return 2; }
-        return cliRemark(rest[0], rest.slice(1).join(" "));
-      }
-      default:
-        process.stderr.write(`未知子命令: ${cmd}\n`);
-        cliHelp();
-        return 2;
+      lines.push(`    └─ (省略子命令) ${cliUsage(cmd)}  [兼容]`);
+    } else if (cmd.usage) {
+      lines.push(`    usage: ${CLI_BIN} ${cliUsage(cmd)}`);
     }
-  } catch (e: any) {
-    process.stderr.write(`error: ${e?.message || e}\n`);
+  }
+  lines.push("", "<spec>: @逻辑名 | sess | sess:idx | =sess:idx");
+  process.stdout.write(lines.join("\n") + "\n");
+  return 0;
+}
+
+const CLI_CMD = {
+  help: { name: "help", aliases: ["-h", "--help"], summary: "显示帮助", run: () => cliHelp() },
+  list: { name: "list", aliases: ["tree", "ls"], summary: "列出 session/window、@remark、末行预览", run: cliList },
+  capture: { name: "capture", summary: "capture-pane → stdout", usage: "<spec> [lines]", run: cliCapture },
+  send: { name: "send", aliases: ["msg"], summary: "send-keys 注入", usage: "<spec> <text...>", run: cliSend },
+  paste: { name: "paste", summary: "load-buffer + paste-buffer", usage: "<spec> <file>", run: cliPaste },
+  remarkSet: { name: "set", aliases: ["write"], summary: "设置 @remark", usage: "<spec> [text...]", run: cliRemarkSet },
+  remarkGet: { name: "get", aliases: ["show", "read"], summary: "读取 @remark", usage: "<spec>", run: cliRemarkGet },
+  remark: {
+    name: "remark",
+    summary: "读写 @remark 逻辑名",
+    run: cliRemarkLegacy,
+    children: [] as CliCommand[],
+  },
+};
+CLI_CMD.remark.children = [CLI_CMD.remarkSet, CLI_CMD.remarkGet];
+
+const CLI_ROOT: CliCommand[] = [
+  CLI_CMD.help,
+  CLI_CMD.list,
+  CLI_CMD.capture,
+  CLI_CMD.send,
+  CLI_CMD.paste,
+  CLI_CMD.remark,
+];
+
+function dispatchCliCommand(cmd: CliCommand, rest: string[]): number {
+  if (cmd.children?.length) {
+    const sub = rest[0] ? cmd.children.find((c) => matchCliName(c, rest[0])) : undefined;
+    if (sub) return sub.run({ bin: CLI_BIN, rest: rest.slice(1) });
+    return cmd.run({ bin: CLI_BIN, rest });
+  }
+  return cmd.run({ bin: CLI_BIN, rest });
+}
+
+function runCli(argv: string[]): number {
+  const head = argv[2];
+  const rest = argv.slice(3);
+  const cmd = CLI_ROOT.find((c) => matchCliName(c, head || ""));
+  if (!cmd) {
+    process.stderr.write(`未知子命令: ${head}\n`);
+    return cliHelp() === 0 ? 2 : 2;
+  }
+  try {
+    return dispatchCliCommand(cmd, rest);
+  } catch (e: unknown) {
+    process.stderr.write(`error: ${e instanceof Error ? e.message : String(e)}\n`);
     return 1;
   }
 }
 
-if (process.argv[2] && CLI_COMMANDS.has(process.argv[2])) {
+if (isCliInvocation(process.argv)) {
   process.exit(runCli(process.argv));
 }
 
