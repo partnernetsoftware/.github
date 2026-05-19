@@ -6,6 +6,14 @@ libduckdb.so
 libduckdb.dylib
 duckdb.dll
 
+# Jekyll build output and Ruby gems
+_site/
+vendor/
+
+# Python cache
+__pycache__/
+*.pyc
+
 # Large third-party tools (download separately)
 third_party/cosmocc/
 third_party/zig/
