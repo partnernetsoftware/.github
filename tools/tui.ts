@@ -31,7 +31,7 @@ const PREVIEW_LINES = 80;
 const SHELL_COMMS = new Set(["bash", "zsh", "sh", "fish", "dash", "tmux", "-bash", "-zsh"]);
 
 const TUI_CONFIG = {
-  VERSION: '0.4.3',
+  VERSION: '0.4.4',
   VIEWER_SESSION: `__tui_viewer__`,
   TUI_KEYTABLE: "tui_empty",
   REMARK_KEY: "@remark",
@@ -925,39 +925,37 @@ function driveAlertFromText(line: string): boolean {
   return DRIVE_ALERT_RE.test(stripAnsi(line));
 }
 
-function capturePreviewMeta(target: string, lines: number): { lastLine: string; text: string } {
-  const text = tmuxApi.capturePaneText(target, lines);
-  const lastLine =
-    text.split("\n").map((s) => stripAnsi(s).trim()).filter(Boolean).pop() || "";
-  return { lastLine, text };
+function lastLineFromCaptureText(text: string): string {
+  return text.split("\n").map((s) => stripAnsi(s).trim()).filter(Boolean).pop() || "";
 }
 
-type CaptureCacheEntry = { lastLine: string; alert: boolean; text: string };
-let captureCache: Map<string, CaptureCacheEntry> | null = null;
+type PaneSnapResult = { lastLine: string; alert: boolean; text: string };
+let paneSnapBatch: Map<string, PaneSnapResult> | null = null;
 
-function beginCaptureCache(): void {
-  captureCache = new Map();
-}
+function beginPaneSnapBatch(): void { paneSnapBatch = new Map(); }
+function endPaneSnapBatch(): void { paneSnapBatch = null; }
 
-function clearCaptureCache(): void {
-  captureCache = null;
-}
-
-function getCachedCapture(target: string, lines: number): CaptureCacheEntry {
-  if (!captureCache) {
-    const { lastLine, text } = capturePreviewMeta(target, lines);
-    return { lastLine, alert: driveAlertFromText(lastLine), text };
+/** live：drive 内存 snap；sync / batch：tmux capture（CLI、f 刷新） */
+function paneSnap(target: string, opts?: { lines?: number; sync?: boolean }): PaneSnapResult {
+  const lines = opts?.lines ?? 1;
+  if (opts?.sync || paneSnapBatch !== null) {
+    const hit = paneSnapBatch?.get(target);
+    if (hit) return hit;
+    const text = tmuxApi.capturePaneText(target, lines);
+    const lastLine = lastLineFromCaptureText(text);
+    const entry = { lastLine, alert: driveAlertFromText(lastLine), text };
+    paneSnapBatch?.set(target, entry);
+    return entry;
   }
-  let entry = captureCache.get(target);
-  if (!entry) {
-    const { lastLine, text } = capturePreviewMeta(target, lines);
-    entry = { lastLine, alert: driveAlertFromText(lastLine), text };
-    captureCache.set(target, entry);
-  }
-  return entry;
+  const live = driveSnap.get(target);
+  return live
+    ? { lastLine: live.lastLine, alert: live.alert, text: "" }
+    : { lastLine: "", alert: false, text: "" };
 }
 
 // ── 驾驶模式：后台 snap / proc（render 主路径零 spawnSync）──
+
+type WindowMeta = { unread: number; alert: boolean; lastLine: string; lvl: AutoLevel; age: string; act: string };
 
 type WinSnap = { lastLine: string; alert: boolean; ts: number };
 type ProcInfo = { pid: number; cmd: string; cpu: number; rssMB: number; shellPid: number; ts: number };
@@ -971,7 +969,7 @@ let driveProcTimer: ReturnType<typeof setInterval> | null = null;
 let driveSnapRefreshing = false;
 let driveProcRefreshing = false;
 let driveRenderTimer: ReturnType<typeof setTimeout> | null = null;
-let driveMetaCache: Map<number, ReturnType<typeof windowDriveMeta>> | null = null;
+let driveMetaCache: Map<number, WindowMeta> | null = null;
 let driveNavQuietUntil = 0;
 let driveViewDirty = false;
 let driveNavFlushTimer: ReturnType<typeof setTimeout> | null = null;
@@ -1002,11 +1000,9 @@ function endDriveMetaCache(): void {
   driveMetaCache = null;
 }
 
-function windowDriveMetaCached(node: TreeNode, treeIdx: number) {
-  if (driveMetaCache?.has(treeIdx)) return driveMetaCache.get(treeIdx)!;
-  const m = windowDriveMeta(node);
-  driveMetaCache?.set(treeIdx, m);
-  return m;
+function withDriveMetaCache(fn: () => void): void {
+  beginDriveMetaCache();
+  try { fn(); } finally { endDriveMetaCache(); }
 }
 
 /** 后台 snap/proc 更新：只重绘表区，不碰 preview */
@@ -1018,12 +1014,10 @@ function scheduleDriveRender(): void {
     if (state.uiMode !== "drive" || driveNavQuiet()) return;
     const [cols, rows] = screen.getSize();
     const layout = getLayout(cols, rows);
-    if (layout.mode === "drive") renderDriveTableZone(cols, layout);
+    if (layout.mode === "drive") {
+      withDriveMetaCache(() => renderDriveRows(cols, layout));
+    }
   }, DRIVE_RENDER_DEBOUNCE_MS);
-}
-
-function readDriveSnap(target: string): WinSnap {
-  return driveSnap.get(target) ?? { lastLine: "", alert: false, ts: 0 };
 }
 
 async function mapPoolLimit<T>(items: T[], limit: number, fn: (item: T) => Promise<void>): Promise<void> {
@@ -1045,10 +1039,10 @@ async function captureLastLineAsync(target: string): Promise<string> {
     );
     const text = await new Response(proc.stdout).text();
     await proc.exited;
-    if (proc.exitCode !== 0) return readDriveSnap(target).lastLine;
-    return text.split("\n").map((s) => stripAnsi(s).trim()).filter(Boolean).pop() || "";
+    if (proc.exitCode !== 0) return paneSnap(target).lastLine;
+    return lastLineFromCaptureText(text);
   } catch {
-    return readDriveSnap(target).lastLine;
+    return paneSnap(target).lastLine;
   }
 }
 
@@ -1254,16 +1248,16 @@ function deriveActChar(node: TreeNode, lastLine: string): string {
   return "○";
 }
 
-function windowDriveMeta(node: TreeNode, opts?: { sync?: boolean }): {
-  unread: number; alert: boolean; lastLine: string; lvl: AutoLevel; age: string; act: string;
-} {
+function windowMeta(node: TreeNode, treeIdx?: number, opts?: { sync?: boolean }): WindowMeta {
+  if (treeIdx !== undefined && driveMetaCache?.has(treeIdx)) return driveMetaCache.get(treeIdx)!;
   const target = winTargetFromNode(node);
   const inDrive = state.uiMode === "drive" && !opts?.sync;
-  const unread = inDrive ? (node.cachedUnread ?? 0) : (node.cachedUnread ?? (node.agent ? agentUnreadCount(node.agent) : 0));
-  const useSnap = inDrive;
-  const cap = useSnap ? readDriveSnap(target) : getCachedCapture(target, 1);
+  const unread = inDrive
+    ? (node.cachedUnread ?? 0)
+    : (node.cachedUnread ?? (node.agent ? agentUnreadCount(node.agent) : 0));
+  const cap = paneSnap(target, inDrive ? undefined : { sync: true, lines: 1 });
   const lvl = inDrive ? (node.autoLevel ?? "0") : (node.autoLevel ?? readAuto(node));
-  return {
+  const meta: WindowMeta = {
     unread,
     alert: cap.alert,
     lastLine: cap.lastLine,
@@ -1271,10 +1265,41 @@ function windowDriveMeta(node: TreeNode, opts?: { sync?: boolean }): {
     age: windowDriveAge(node),
     act: deriveActChar(node, cap.lastLine),
   };
+  if (treeIdx !== undefined) driveMetaCache?.set(treeIdx, meta);
+  return meta;
+}
+
+function procToCli(proc: ProcInfo | null): CliProcInfo | undefined {
+  return proc
+    ? { pid: proc.pid, cmd: proc.cmd, cpu: proc.cpu, rssMB: proc.rssMB, shellPid: proc.shellPid }
+    : undefined;
+}
+
+function fleetWindowRow(n: TreeNode, previewLines: number): CliFleetRow {
+  const winIdx = n.target.split(":")[1] ?? "";
+  const ag = n.agent;
+  const m = windowMeta(n, undefined, { sync: true });
+  const winTarget = buildWinTarget(n.sessionName, winIdx);
+  const cap = paneSnap(winTarget, { sync: true, lines: previewLines });
+  return {
+    type: "window",
+    target: n.target,
+    session: n.sessionName,
+    windowIndex: winIdx,
+    windowName: windowNameFromNode(n),
+    label: n.label,
+    remark: n.remark || undefined,
+    agent: ag || undefined,
+    unread: m.unread,
+    inboxPath: ag ? inboxPath(ag) : undefined,
+    previewLastLine: cap.lastLine || undefined,
+    placeholders: { lvl: m.lvl, age: m.age, st: m.alert ? "!" : "—", act: m.act },
+    proc: procToCli(readDriveProc(winTarget)),
+  };
 }
 
 function buildFleetSnapshot(previewLines = 1): CliFleetSnapshot {
-  beginCaptureCache();
+  beginPaneSnapBatch();
   try {
     updateDriveProcMapSync();
   } catch {
@@ -1296,31 +1321,7 @@ function buildFleetSnapshot(previewLines = 1): CliFleetSnapshot {
       });
       continue;
     }
-    const winIdx = n.target.split(":")[1] ?? "";
-    const ag = n.agent;
-    const m = windowDriveMeta(n, { sync: true });
-    const winTarget = buildWinTarget(n.sessionName, winIdx);
-    const cap = previewLines > 1
-      ? getCachedCapture(winTarget, previewLines)
-      : { lastLine: m.lastLine, alert: m.alert, text: "" };
-    const procSnap = readDriveProc(winTarget);
-    rows.push({
-      type: "window",
-      target: n.target,
-      session: n.sessionName,
-      windowIndex: winIdx,
-      windowName: windowNameFromNode(n),
-      label: n.label,
-      remark: n.remark || undefined,
-      agent: ag || undefined,
-      unread: m.unread,
-      inboxPath: ag ? inboxPath(ag) : undefined,
-      previewLastLine: cap.lastLine || undefined,
-      placeholders: { lvl: m.lvl, age: m.age, st: m.alert ? "!" : "—", act: m.act },
-      proc: procSnap
-        ? { pid: procSnap.pid, cmd: procSnap.cmd, cpu: procSnap.cpu, rssMB: procSnap.rssMB, shellPid: procSnap.shellPid }
-        : undefined,
-    });
+    rows.push(fleetWindowRow(n, previewLines));
   }
   const agents = listRegisteredAgents().map((a) => ({
     id: a.id,
@@ -1328,7 +1329,7 @@ function buildFleetSnapshot(previewLines = 1): CliFleetSnapshot {
     unread: a.unread,
     inboxPath: inboxPath(a.id),
   }));
-  clearCaptureCache();
+  endPaneSnapBatch();
   return {
     version: TUI_CONFIG.VERSION,
     generatedAt: new Date().toISOString(),
@@ -1357,16 +1358,16 @@ function buildInspectResult(spec: string, previewLines: number): CliInspectResul
     }
     return { ...base, windowCount: wc };
   }
-  beginCaptureCache();
+  beginPaneSnapBatch();
   const tree = getTree();
   const full = tree.find((n) => n.type === "window" && n.target === node.target) ?? node;
   const winIdx = full.target.split(":")[1] ?? "";
   const ag = full.agent ?? readAgent(full);
-  const m = windowDriveMeta(full, { sync: true });
+  const m = windowMeta(full, undefined, { sync: true });
   const winTarget = buildWinTarget(full.sessionName, winIdx);
-  const cap = getCachedCapture(winTarget, previewLines);
+  const cap = paneSnap(winTarget, { sync: true, lines: previewLines });
   const procSnap = readDriveProc(winTarget);
-  clearCaptureCache();
+  endPaneSnapBatch();
   return {
     ...base,
     windowIndex: winIdx,
@@ -1377,9 +1378,7 @@ function buildInspectResult(spec: string, previewLines: number): CliInspectResul
     inboxPath: ag ? inboxPath(ag) : undefined,
     preview: { lines: previewLines, text: cap.text, lastLine: cap.lastLine },
     placeholders: { lvl: m.lvl, age: m.age, st: m.alert ? "!" : "—", act: m.act },
-    proc: procSnap
-      ? { pid: procSnap.pid, cmd: procSnap.cmd, cpu: procSnap.cpu, rssMB: procSnap.rssMB, shellPid: procSnap.shellPid }
-      : undefined,
+    proc: procToCli(procSnap),
   };
 }
 
@@ -1446,11 +1445,11 @@ const DRIVE_TREE_FRAC = 0.4; // 驾驶模式：上区 tree-table 约占 body 40%
 type UiMode = "index" | "drive";
 
 type LayoutInfo =
-  | { mode: "index"; bodyH: number; leftW: number; rightW: number; inspectorW: number }
+  | { mode: "index"; bodyH: number; leftW: number; rightW: number }
   | { mode: "drive"; bodyH: number; fullW: number; treeHeaderH: number; treeDataH: number; paneH: number };
 
 class TuiState {
-  tree: TreeNode[] = getTree();
+  tree: TreeNode[] = [];
   cursor = 0;
   viewOffset = 0;
   /** 索引（左右）| 驾驶（上下 tree-table） */
@@ -1505,7 +1504,7 @@ function getLayout(cols: number, rows: number): LayoutInfo {
   }
   const leftW = Math.min(Math.max(Math.floor(cols * 0.2), 12), 30);
   const rightW = cols - leftW - 1;
-  return { mode: "index", bodyH, leftW, rightW, inspectorW: 0 };
+  return { mode: "index", bodyH, leftW, rightW };
 }
 
 function uiModeTag(): string {
@@ -1615,7 +1614,7 @@ function sessionChildCount(treeIdx: number): number {
 }
 
 function driveRowScoreLight(node: TreeNode): number {
-  const snap = readDriveSnap(winTargetFromNode(node));
+  const snap = paneSnap(winTargetFromNode(node));
   const unread = node.cachedUnread ?? 0;
   if (snap.alert) return 3;
   if (unread > 0) return 2;
@@ -1687,8 +1686,9 @@ function scrollDriveTree(delta: number, treeDataH: number): void {
   state.clampView(treeDataH);
   const [cols, rows] = screen.getSize();
   const layout = getLayout(cols, rows);
-  if (layout.mode === "drive") renderDriveTableZone(cols, layout);
-  else render();
+  if (layout.mode === "drive") {
+    withDriveMetaCache(() => renderDriveRows(cols, layout));
+  } else render();
 }
 
 function treeScrollThumb(treeDataH: number): { thumbH: number; thumbStart: number } {
@@ -1726,14 +1726,14 @@ function driveCursorStep(dir: -1 | 1): void {
   state.clampView(treeVisibleRows(layout));
 
   if (layout.mode === "drive" && !state.needsFullClear) {
-    beginDriveMetaCache();
-    screen.hideCursor();
-    if (state.viewOffset !== prevOffset) {
-      renderDriveTableZone(cols, layout);
-    } else {
-      renderDriveNavUpdate(prevCursor, cols, layout);
-    }
-    endDriveMetaCache();
+    withDriveMetaCache(() => {
+      screen.hideCursor();
+      if (state.viewOffset !== prevOffset) {
+        renderDriveRows(cols, layout);
+      } else {
+        renderDriveRows(cols, layout, { treeIndices: [prevCursor, state.cursor] });
+      }
+    });
     renderFooter(cols, rows);
   } else {
     render();
@@ -1741,36 +1741,58 @@ function driveCursorStep(dir: -1 | 1): void {
   schedulePreview({ driveOnly: true });
 }
 
-/** 重绘驾驶表区（含锚点），不碰 header/preview/footer */
-function renderDriveTableZone(cols: number, layout: Extract<LayoutInfo, { mode: "drive" }>): void {
-  beginDriveMetaCache();
-  try {
-    const cw = driveColWidths(cols);
-    const view = getDriveViewIndices();
-    const treeThumb = treeScrollThumb(layout.treeDataH);
-    const scrollCol = cols;
-    const treeZoneH = layout.treeHeaderH + layout.treeDataH;
+function writeDriveScrollGlyph(
+  row: number, scrollCol: number, dataRow: number,
+  thumb: { thumbStart: number; thumbH: number },
+): void {
+  screen.cursorAt(row, scrollCol);
+  const inThumb = dataRow >= thumb.thumbStart && dataRow < thumb.thumbStart + thumb.thumbH;
+  screen.write(`\x1b[90m${inThumb ? "▓" : "░"}\x1b[0m`);
+}
 
+function renderDriveTableDataRow(
+  row: number, dataRow: number, treeIdx: number, cols: number, cw: DriveColWidths,
+  thumb: { thumbStart: number; thumbH: number }, scrollCol: number,
+): void {
+  if (treeIdx >= 0 && treeIdx < state.tree.length) {
+    renderDriveTableRow(row, state.tree[treeIdx], treeIdx, treeIdx === state.cursor, cols, cw);
+  } else {
+    screen.cursorAt(row, 1);
+    screen.write(" ".repeat(Math.max(0, cols - 2)));
+  }
+  writeDriveScrollGlyph(row, scrollCol, dataRow, thumb);
+}
+
+function renderDriveRows(
+  cols: number,
+  layout: Extract<LayoutInfo, { mode: "drive" }>,
+  opts?: { treeIndices?: number[] },
+): void {
+  const cw = driveColWidths(cols);
+  const view = getDriveViewIndices();
+  const thumb = treeScrollThumb(layout.treeDataH);
+  const scrollCol = cols;
+  const treeZoneH = layout.treeHeaderH + layout.treeDataH;
+
+  if (!opts?.treeIndices) {
     renderDriveTableHeader(BODY_START_ROW, cols, cw);
-
     for (let dataRow = 0; dataRow < layout.treeDataH; dataRow++) {
       const row = layout.treeHeaderH + dataRow + BODY_START_ROW;
-      const viewPos = dataRow + state.viewOffset;
-      const treeIdx = view[viewPos] ?? -1;
-      if (treeIdx >= 0 && treeIdx < state.tree.length) {
-        renderDriveTableRow(row, state.tree[treeIdx], treeIdx, treeIdx === state.cursor, cols, cw);
-      } else {
-        screen.cursorAt(row, 1);
-        screen.write(" ".repeat(Math.max(0, cols - 2)));
-      }
-      screen.cursorAt(row, scrollCol);
-      const inThumb = dataRow >= treeThumb.thumbStart && dataRow < treeThumb.thumbStart + treeThumb.thumbH;
-      screen.write(`\x1b[90m${inThumb ? "▓" : "░"}\x1b[0m`);
+      renderDriveTableDataRow(row, dataRow, view[dataRow + state.viewOffset] ?? -1, cols, cw, thumb, scrollCol);
     }
-    renderDriveAnchor(treeZoneH + BODY_START_ROW, Math.max(0, cols - 2));
-  } finally {
-    endDriveMetaCache();
+  } else {
+    for (const treeIdx of opts.treeIndices) {
+      if (treeIdx < 0 || treeIdx >= state.tree.length) continue;
+      const viewPos = view.indexOf(treeIdx);
+      if (viewPos < 0) continue;
+      const dataRow = viewPos - state.viewOffset;
+      if (dataRow < 0 || dataRow >= layout.treeDataH) continue;
+      renderDriveTableDataRow(
+        layout.treeHeaderH + dataRow + BODY_START_ROW, dataRow, treeIdx, cols, cw, thumb, scrollCol,
+      );
+    }
   }
+  renderDriveAnchor(treeZoneH + BODY_START_ROW, Math.max(0, cols - 2));
 }
 
 /** 仅重绘 preview 区 */
@@ -1791,44 +1813,15 @@ function renderDrivePreviewPane(cols: number, layout: Extract<LayoutInfo, { mode
   }
 }
 
-/** ↑↓ 且未滚动：只重绘选中行 + 锚点 + footer，不动 preview */
-function renderDriveNavUpdate(prevCursor: number, cols: number, layout: Extract<LayoutInfo, { mode: "drive" }>): void {
-  beginDriveMetaCache();
-  try {
-    const cw = driveColWidths(cols);
-    const view = getDriveViewIndices();
-    const scrollCol = cols;
-    const treeThumb = treeScrollThumb(layout.treeDataH);
-
-    for (const treeIdx of [prevCursor, state.cursor]) {
-      if (treeIdx < 0 || treeIdx >= state.tree.length) continue;
-      const viewPos = view.indexOf(treeIdx);
-      if (viewPos < 0) continue;
-      const dataRow = viewPos - state.viewOffset;
-      if (dataRow < 0 || dataRow >= layout.treeDataH) continue;
-      const row = layout.treeHeaderH + dataRow + BODY_START_ROW;
-      renderDriveTableRow(row, state.tree[treeIdx], treeIdx, treeIdx === state.cursor, cols, cw);
-      screen.cursorAt(row, scrollCol);
-      const inThumb = dataRow >= treeThumb.thumbStart && dataRow < treeThumb.thumbStart + treeThumb.thumbH;
-      screen.write(`\x1b[90m${inThumb ? "▓" : "░"}\x1b[0m`);
-    }
-
-    const anchorRow = layout.treeHeaderH + layout.treeDataH + BODY_START_ROW;
-    renderDriveAnchor(anchorRow, Math.max(0, cols - 2));
-  } finally {
-    endDriveMetaCache();
-  }
-}
-
 function renderDriveAnchor(row: number, textW: number): void {
   const node = state.tree[state.cursor];
   if (!node) return;
   let line = "";
   if (node.type === "session") {
     const folded = state.collapsedSessions.has(node.sessionName) ? " ▾" : " ▴";
-    line = `▣ ${node.sessionName}${folded} · Space 折/展`;
+    line = `▣ ${node.sessionName}${folded} · Space 折/展`;//toogle 树的这个分支的 “展开/折上”
   } else {
-    const m = windowDriveMetaCached(node, state.cursor);
+    const m = windowMeta(node, state.cursor);
     const ag = node.agent;
     const proc = readDriveProc(winTargetFromNode(node));
     line = `${node.sessionName}:${node.target.split(":")[1]} ${windowNameFromNode(node)}`
@@ -1887,7 +1880,7 @@ function renderDriveTableRow(
     return;
   }
   const [, winIdx] = node.target.split(":");
-  const m = windowDriveMetaCached(node, treeIdx);
+  const m = windowMeta(node, treeIdx);
   const winName = node.label.replace(/^[├└]\s*/, "");
   const proc = formatProcCells(readDriveProc(winTargetFromNode(node)));
   const line = driveRowLine(cw, {
@@ -1919,7 +1912,7 @@ function renderLeftCell(node: TreeNode, isSelected: boolean, cap: number): void 
   const baseVis = truncVis(base, cap);
   const baseW = visW(baseVis);
   const ag = node.agent;
-  const unread = ag && node.type === "window" ? agentUnreadCount(ag) : 0;
+  const unread = node.type === "window" ? (node.cachedUnread ?? 0) : 0;
   const agentPart = ag ? ` [${ag}${unread > 0 ? `·${unread}` : ""}]` : "";
   const remarkPart = rk ? ` *${rk}` : "";
   const pendPart = pending ? " **" : "";
@@ -2031,7 +2024,7 @@ function renderIndexBody(cols: number, rows: number, layout: Extract<LayoutInfo,
 }
 
 function renderDriveBody(cols: number, layout: Extract<LayoutInfo, { mode: "drive" }>) {
-  renderDriveTableZone(cols, layout);
+  renderDriveRows(cols, layout);
   renderDrivePreviewPane(cols, layout);
 }
 
@@ -2046,13 +2039,13 @@ function render() {
     if (layout.mode === "drive") state.needsFullClear = false;
   }
 
-  beginDriveMetaCache();
-  screen.hideCursor();
-  renderHeader(cols);
-  if (layout.mode === "drive") renderDriveBody(cols, layout);
-  else renderIndexBody(cols, rows, layout);
+  withDriveMetaCache(() => {
+    screen.hideCursor();
+    renderHeader(cols);
+    if (layout.mode === "drive") renderDriveBody(cols, layout);
+    else renderIndexBody(cols, rows, layout);
+  });
   renderFooter(cols, rows);
-  endDriveMetaCache();
 }
 
 // ── Ctrl-Left：沉浸式 detach 返回 tree mode ──
@@ -2349,7 +2342,7 @@ function resumeTreeAfterAttach() {
 // ── preview 调度 ──
 
 function refreshAll() {
-  clearCaptureCache();
+  endPaneSnapBatch();
   state.suppressPreviewAfterAttach = false;
   state.needsFullClear = true;
   invalidateDriveView();
@@ -3337,50 +3330,56 @@ function runCli(argv: string[]): number {
   }
 }
 
-if (isCliInvocation(process.argv)) {
-  process.exit(runCli(process.argv));
+if (import.meta.main) {
+  if (isCliInvocation(process.argv)) {
+    process.exit(runCli(process.argv));
+  }
+  startTui();
 }
 
-// ── 启动（TUI 需 tmux；install-tmux / doctor 已在上方 CLI 分支退出）──
+function startTui(): void {
+  // ── 启动（TUI 需 tmux；install-tmux / doctor 已在上方 CLI 分支退出）──
 
-const _tmuxAtStart = resolveTmuxPath();
-if (!_tmuxAtStart) {
-  process.stderr.write(`tmux 未找到。运行: ${CLI_BIN} install-tmux\n`);
-  process.stderr.write(`  或系统安装: ${CLI_BIN} install-tmux --system\n`);
-  process.exit(1);
-}
-_resolvedTmuxBin = _tmuxAtStart;
+  const _tmuxAtStart = resolveTmuxPath();
+  if (!_tmuxAtStart) {
+    process.stderr.write(`tmux 未找到。运行: ${CLI_BIN} install-tmux\n`);
+    process.stderr.write(`  或系统安装: ${CLI_BIN} install-tmux --system\n`);
+    process.exit(1);
+  }
+  _resolvedTmuxBin = _tmuxAtStart;
 
-if (state.tree.length === 0) {
-  tmuxApi.newSession("main");
   state.tree = getTree();
   if (state.tree.length === 0) {
-    tmuxApi.assertAvailable();
+    tmuxApi.newSession("main");
+    state.tree = getTree();
+    if (state.tree.length === 0) {
+      tmuxApi.assertAvailable();
+    }
   }
+
+  screen.enterAltScreen();
+  process.stdin.setRawMode(true);
+  process.stdin.resume();
+  disableOuterMouse();
+  screen.enableMouse(); // SGR 鼠标
+  process.stdin.on("data", handleKey);
+
+  process.on("SIGWINCH", () => {
+    state.needsFullClear = true;
+    schedulePreview({ delay: 0, keepScroll: true });
+  });
+  process.on("exit", () => {
+    stopDriveLoops();
+    tmuxApi.killSession(TUI_CONFIG.VIEWER_SESSION);
+    screen.disableMouse();
+    restoreOuterMouse();
+    screen.showCursor();
+    screen.leaveAltScreen();
+    screen.write("\x1b[0m");
+    console.log("TMUX 驾驶舱已经离开，用 tui 重新进入");
+  });
+  process.on("SIGINT", () => process.exit(0));
+  process.on("SIGTERM", () => process.exit(0));
+
+  schedulePreview({ delay: 0 });
 }
-
-screen.enterAltScreen();
-process.stdin.setRawMode(true);
-process.stdin.resume();
-disableOuterMouse();
-screen.enableMouse(); // SGR 鼠标
-process.stdin.on("data", handleKey);
-
-process.on("SIGWINCH", () => {
-  state.needsFullClear = true;
-  schedulePreview({ delay: 0, keepScroll: true });
-});
-process.on("exit", () => {
-  stopDriveLoops();
-  tmuxApi.killSession(TUI_CONFIG.VIEWER_SESSION);
-  screen.disableMouse();
-  restoreOuterMouse();
-  screen.showCursor();
-  screen.leaveAltScreen();
-  screen.write("\x1b[0m");
-  console.log("TMUX 驾驶舱已经离开，用 tui 重新进入");
-});
-process.on("SIGINT", () => process.exit(0));
-process.on("SIGTERM", () => process.exit(0));
-
-schedulePreview({ delay: 0 });
