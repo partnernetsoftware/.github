@@ -14,6 +14,10 @@ vendor/
 __pycache__/
 *.pyc
 
+# Lab build outputs
+lab/**/.build/
+lab/**/*.o
+
 # Large third-party tools (download separately)
 third_party/cosmocc/
 third_party/zig/

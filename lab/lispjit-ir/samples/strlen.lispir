@@ -1,0 +1,6 @@
+; Portable IR source. This is not shipped at runtime; compile_blob.py turns it
+; into a .ljir blob with imports, constants, and compact IR instructions.
+(module
+  (import strlen "libc" "strlen" "u64(ptr)")
+  (const arg "ffi")
+  (main (call strlen arg)))
