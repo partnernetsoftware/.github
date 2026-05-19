@@ -861,7 +861,7 @@ interface InputMode {
 const HEADER_H = 1;
 const FOOTER_H = 1;
 const BODY_START_ROW = HEADER_H + 1; // 2
-const DRIVE_TREE_FRAC = 0.42; // 驾驶模式：上区 tree-table 约占 body
+const DRIVE_TREE_FRAC = 0.4; // 驾驶模式：上区 tree-table 约占 body 40%
 
 type UiMode = "index" | "drive";
 
@@ -933,80 +933,113 @@ function toggleUiMode() {
   state.uiMode = state.uiMode === "index" ? "drive" : "index";
   state.viewOffset = 0;
   state.scrollOffset = 0;
-  const [, rows] = screen.getSize();
-  state.clampView(treeVisibleRows(getLayout(screen.getSize()[0], rows)));
+  const [cols, rows] = screen.getSize();
+  state.clampView(treeVisibleRows(getLayout(cols, rows)));
   render();
   schedulePreview();
 }
 
 type DriveColWidths = { stat: number; sess: number; win: number; agent: number; unread: number; auto: number; age: number; task: number };
 
+/** 紧凑列宽：无列间空隙，task 吃剩余 */
 function driveColWidths(cols: number): DriveColWidths {
   const stat = 1;
-  const unread = 4;
-  const auto = 3;
-  const age = 4;
-  const sess = Math.min(14, Math.max(8, Math.floor(cols * 0.14)));
-  const win = Math.min(10, Math.max(6, Math.floor(cols * 0.1)));
-  const agent = Math.min(12, Math.max(8, Math.floor(cols * 0.12)));
-  const fixed = stat + 1 + sess + 1 + win + 1 + agent + 1 + unread + 1 + auto + 1 + age;
-  const task = Math.max(8, cols - fixed);
+  const unread = 2;
+  const auto = 1;
+  const age = 3;
+  const win = 4;
+  const sess = Math.min(10, Math.max(5, Math.floor(cols * 0.11)));
+  const agent = Math.min(9, Math.max(5, Math.floor(cols * 0.1)));
+  const fixed = stat + sess + win + agent + unread + auto + age;
+  const task = Math.max(4, cols - fixed - 1); // 留 1 列给滚动条
   return { stat, sess, win, agent, unread, auto, age, task };
 }
 
-function renderDriveCell(text: string, w: number, selected: boolean, dim = false): void {
-  const vis = padVis(truncVis(text, w), w);
+function driveFmtCol(text: string, w: number): string {
+  return padVis(truncVis(text, w), w);
+}
+
+function driveRowLine(cw: DriveColWidths, parts: {
+  stat: string; sess: string; win: string; agent: string; task: string; unread: string; auto: string; age: string;
+}): string {
+  return driveFmtCol(parts.stat, cw.stat)
+    + driveFmtCol(parts.sess, cw.sess)
+    + driveFmtCol(parts.win, cw.win)
+    + driveFmtCol(parts.agent, cw.agent)
+    + driveFmtCol(parts.task, cw.task)
+    + driveFmtCol(parts.unread, cw.unread)
+    + driveFmtCol(parts.auto, cw.auto)
+    + driveFmtCol(parts.age, cw.age);
+}
+
+function sessionChildCount(treeIdx: number): number {
+  let n = 0;
+  for (let i = treeIdx + 1; i < state.tree.length && state.tree[i].type === "window"; i++) n++;
+  return n;
+}
+
+function driveTreeScrollMax(treeDataH: number): number {
+  return Math.max(0, state.tree.length - treeDataH);
+}
+
+function scrollDriveTree(delta: number, treeDataH: number): void {
+  const maxOff = driveTreeScrollMax(treeDataH);
+  state.viewOffset = Math.max(0, Math.min(maxOff, state.viewOffset + delta));
+  state.clampView(treeDataH);
+  render();
+}
+
+function treeScrollThumb(treeDataH: number): { thumbH: number; thumbStart: number } {
+  const total = Math.max(state.tree.length, treeDataH);
+  const thumbH = Math.max(1, Math.round((treeDataH * treeDataH) / total));
+  const maxOff = driveTreeScrollMax(treeDataH);
+  const thumbStart = maxOff <= 0
+    ? 0
+    : Math.max(0, Math.min(treeDataH - thumbH, Math.round((treeDataH * state.viewOffset) / maxOff)));
+  return { thumbH, thumbStart };
+}
+
+function writeDriveRow(row: number, cols: number, line: string, selected: boolean, dim = false): void {
+  const cap = cols - 2; // 末列滚动条
+  screen.cursorAt(row, 1);
+  const vis = padVis(truncVis(line, cap), cap);
   if (selected) screen.write(screen.inv(dim ? screen.dim(vis) : vis));
   else if (dim) screen.write(screen.dim(vis));
   else screen.write(vis);
 }
 
 function renderDriveTableHeader(row: number, cols: number, cw: DriveColWidths): void {
-  let col = 1;
-  const hdr = (t: string, w: number) => {
-    screen.cursorAt(row, col);
-    screen.write(screen.inv(screen.bold(padVis(truncVis(t, w), w))));
-    col += w + 1;
-  };
-  hdr("●", cw.stat);
-  hdr("Session", cw.sess);
-  hdr("Win", cw.win);
-  hdr("Agent", cw.agent);
-  hdr("Task", cw.task);
-  hdr("Rd", cw.unread);
-  hdr("A", cw.auto);
-  hdr("Age", cw.age);
-  if (col <= cols) {
-    screen.cursorAt(row, col);
-    screen.write(screen.dim("─".repeat(Math.max(0, cols - col + 1))));
-  }
+  const line = driveRowLine(cw, {
+    stat: "●", sess: "Sess", win: "W", agent: "Agt", task: "Task", unread: "R", auto: "0", age: "T",
+  });
+  screen.cursorAt(row, 1);
+  screen.write(screen.inv(screen.bold(padVis(truncVis(line, cols - 2), cols - 2))));
 }
 
-function renderDriveTableRow(row: number, node: TreeNode, selected: boolean, cols: number, cw: DriveColWidths): void {
-  const [, winIdx] = node.type === "window" ? node.target.split(":") : ["", ""];
+function renderDriveTableRow(
+  row: number, node: TreeNode, treeIdx: number, selected: boolean, cols: number, cw: DriveColWidths,
+): void {
+  if (node.type === "session") {
+    const n = sessionChildCount(treeIdx);
+    const line = `▣${node.sessionName} (${n})`;
+    writeDriveRow(row, cols, line, selected, true);
+    return;
+  }
+  const [, winIdx] = node.target.split(":");
   const ag = node.agent || "";
-  const unread = ag && node.type === "window" ? agentUnreadCount(ag) : 0;
-  const stat = node.type === "session" ? "▣" : (unread > 0 ? "●" : "○");
-  const sess = node.type === "session" ? node.sessionName : node.sessionName;
-  const win = node.type === "window" ? winIdx : "—";
-  const agent = ag || "—";
-  const task = node.remark || truncVis(node.label.replace(/^[├└]\s*/, ""), cw.task);
-  const auto = "0";
-  const age = "—";
-  let col = 1;
-  const cell = (t: string, w: number, dim = false) => {
-    screen.cursorAt(row, col);
-    renderDriveCell(t, w, selected, dim);
-    col += w + 1;
-  };
-  cell(stat, cw.stat);
-  cell(sess, cw.sess, node.type === "session");
-  cell(win, cw.win);
-  cell(agent, cw.agent);
-  cell(task, cw.task);
-  cell(unread > 0 ? String(unread) : "", cw.unread);
-  cell(auto, cw.auto, true);
-  cell(age, cw.age, true);
+  const unread = ag ? agentUnreadCount(ag) : 0;
+  const winName = truncVis(node.label.replace(/^[├└]\s*/, ""), cw.win);
+  const line = driveRowLine(cw, {
+    stat: unread > 0 ? "●" : "○",
+    sess: truncVis(node.sessionName, cw.sess),
+    win: winIdx || winName,
+    agent: ag || "—",
+    task: node.remark || winName,
+    unread: unread > 0 ? String(unread) : "",
+    auto: "0",
+    age: "—",
+  });
+  writeDriveRow(row, cols, line, selected);
 }
 
 // ── 渲染 ──
