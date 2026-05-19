@@ -8,10 +8,12 @@
 extern int printf(const char *format, ...);
 extern void *__dlopen(const char *name, int flags);
 extern void *__dlsym(void *handle, const char *symbol);
-extern int __dlclose(void *handle);
 #define open_library __dlopen
 #define load_symbol __dlsym
-#define close_library __dlclose
+static int close_library(void *handle) {
+  (void)handle;
+  return 0;
+}
 #else
 #include <stdio.h>
 #include <dlfcn.h>
