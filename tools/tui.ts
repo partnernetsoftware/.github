@@ -17,7 +17,7 @@ const RETURN_FROM_ATTACH_DELAY = 120; // detach 后静默 sync tree / restore st
 const PREVIEW_LINES = 80;
 
 const TUI_CONFIG = {
-  VERSION: '0.3.1',
+  VERSION: '0.3.2',
   VIEWER_SESSION: `__tui_viewer__`,
   TUI_KEYTABLE: "tui_empty",
   REMARK_KEY: "@remark",
@@ -914,7 +914,7 @@ function renderLeftCell(node: TreeNode, isSelected: boolean, cap: number): void 
   const ag = node.agent;
   const unread = ag && node.type === "window" ? agentUnreadCount(ag) : 0;
   const agentPart = ag ? ` [${ag}${unread > 0 ? `·${unread}` : ""}]` : "";
-  const remarkPart = rk ? ` ${rk}` : "";
+  const remarkPart = rk ? ` *${rk}` : "";
   const pendPart = pending ? " **" : "";
   const tail = truncVis(agentPart + remarkPart + pendPart, Math.max(0, cap - baseW));
   const tailW = visW(tail);
@@ -977,12 +977,12 @@ function render() {
   const scrollInd = state.scrollOffset > 0 ? ` ↕${state.scrollOffset}` : "";
   const helpRest = tuiHeaderHelp() + scrollInd;
   const maxW = cols - 1;
-  const logoVis = truncVis(TUI_CONFIG.TITLE, maxW);
+  const logoVis = truncVis(TUI_CONFIG.TITLE + ' '+TUI_CONFIG.VERSION, maxW);
   const logoW = visW(logoVis);
   screen.write(screen.asuLogo(padVis(logoVis, logoW)));
   const helpCap = Math.max(0, maxW - logoW);
   if (helpCap > 0) {
-    const helpVis = truncVis(helpRest, helpCap);
+    const helpVis = ' '+truncVis(helpRest, helpCap);
     screen.write(screen.inv(screen.bold(padVis(helpVis, helpCap))));
   }
 
@@ -1278,7 +1278,7 @@ function renameCurrent() {
 function remarkCurrent() {
   if (state.tree.length === 0) return;
   const node = state.tree[state.cursor];
-  startInput(`remark [${node.target}] (空=删除)`, (raw) => {
+  startInput(`修改备注 [${node.target}]`, (raw) => {
     if (raw === null) {
       render();
       return;
