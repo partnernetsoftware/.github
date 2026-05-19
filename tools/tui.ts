@@ -1,25 +1,55 @@
 #!/usr/bin/env bun
 /**
- * CLI usage: see `tui_v2 help`
- * tmux 获取方式（绿色/便携优先）：
- *   macOS  : `brew install tmux` 或 MacPorts `port install tmux`；
- *            无 brew 时可下载 Homebrew bottle 解包，临时 `DYLD_LIBRARY_PATH=... ./tmux` 运行。
- *   Linux  : 包管理器 `apt/dnf/pacman/apk install tmux`；
- *            无 root 时用 conda-forge (`conda install -c conda-forge tmux`)、tmux-appimage 或静态构建。
- *   Windows: 首选 MSYS2 `pacman -S tmux`（原生）；备选 WSL；或 Cygwin。
- *   通用   : 未检测到 tmux 时，tmuxApi.assertAvailable() 会报错提示。
+ * CLI: `tui help`（可 ln -s ~/.local/bin/tui）
+ * tmux: `tui install-tmux` → $HOME/tmux/bin/tmux
+ * v0.3 agent: `tui agent register|send|inbox|wait|list` — window 的 @agent 为纯名 id；inbox ~/.tui/inbox/<name>.jsonl
  */
+import {
+  accessSync, appendFileSync, chmodSync, constants, copyFileSync, existsSync,
+  mkdirSync, readFileSync, rmSync, writeFileSync,
+} from "fs";
+import { homedir } from "os";
+import { join } from "path";
+
 const PREVIEW_DELAY = 1000;
 const RETURN_FROM_ATTACH_DELAY = 120; // detach 后静默 sync tree / restore status
 const PREVIEW_LINES = 80;
 
 const TUI_CONFIG = {
-  VERSION: '0.2',
+  VERSION: '0.3.1',
   VIEWER_SESSION: `__tui_viewer__`,
   TUI_KEYTABLE: "tui_empty",
   REMARK_KEY: "@remark",
+  AGENT_KEY: "@agent",
   TITLE: "TMUX 驾驶舱",
-  TMUX_MISSING_MSG: "tmux 不可用，请先安装 tmux。",
+  TMUX_HOME: join(homedir(), "tmux"),
+  TMUX_PORTABLE_BIN: join(homedir(), "tmux", "bin", "tmux"),
+  DATA_DIR: join(homedir(), ".tui"),
+  INBOX_DIR: join(homedir(), ".tui", "inbox"),
+  READ_DIR: join(homedir(), ".tui", "read"),
+} as const;
+
+type AgentKind = "msg" | "reply";
+
+interface AgentEnvelope {
+  ts: string;
+  from: string;
+  to: string;
+  corr: string;
+  kind: AgentKind;
+  body: string;
+}
+
+/** tmux/tmux-builds 官方 static（v3.6a） */
+const TMUX_STATIC_RELEASE = {
+  version: "3.6a",
+  base: "https://github.com/tmux/tmux-builds/releases/download/v3.6a",
+  assets: {
+    "darwin-arm64": { file: "tmux-3.6a-macos-arm64.tar.gz", sha256: "12b5b9f8696e1286897d946649c0a80d0169dd76e018d34476a1fbd34de89a0f" },
+    "darwin-x64": { file: "tmux-3.6a-macos-x86_64.tar.gz", sha256: "b9b12eaeba43acf5671acf3857d947525440b544185a8db34ea557199a090251" },
+    "linux-arm64": { file: "tmux-3.6a-linux-arm64.tar.gz", sha256: "bb5afd9d646df54a7d7c66e198aa22c7d293c7453534f1670f7c540534db8b5e" },
+    "linux-x64": { file: "tmux-3.6a-linux-x86_64.tar.gz", sha256: "c0a772a5e6ca8f129b0111d10029a52e02bcbc8352d5a8c0d3de8466a1e59c2e" },
+  } as Record<string, { file: string; sha256: string }>,
 } as const;
 
 // ── AnsiScreen ──
@@ -66,6 +96,135 @@ class AnsiScreen {
 const screen = new AnsiScreen();
 
 let tmuxQuietDepth = 0;
+let _resolvedTmuxBin: string | null = null;
+
+function isExecutable(p: string): boolean {
+  try {
+    accessSync(p, constants.X_OK);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function tmuxPlatformKey(): string | null {
+  const os = process.platform === "darwin" ? "darwin" : process.platform === "linux" ? "linux" : null;
+  const arch = process.arch === "arm64" ? "arm64" : process.arch === "x64" ? "x64" : null;
+  if (!os || !arch) return null;
+  return `${os}-${arch}`;
+}
+
+function resolveTmuxPath(): string | null {
+  if (process.env.TMUX_BIN) {
+    const p = process.env.TMUX_BIN;
+    if (isExecutable(p)) return p;
+  }
+  if (isExecutable(TUI_CONFIG.TMUX_PORTABLE_BIN)) return TUI_CONFIG.TMUX_PORTABLE_BIN;
+  const onPath = Bun.which("tmux");
+  if (onPath) return onPath;
+  return null;
+}
+
+function tmuxBin(): string {
+  if (!_resolvedTmuxBin) {
+    const p = resolveTmuxPath();
+    if (!p) throw new Error("tmux not found");
+    _resolvedTmuxBin = p;
+  }
+  return _resolvedTmuxBin;
+}
+
+function resetTmuxBinCache() {
+  _resolvedTmuxBin = null;
+}
+
+function sha256File(path: string): string {
+  if (Bun.which("shasum")) {
+    const r = Bun.spawnSync(["shasum", "-a", "256", path], { stdout: "pipe" });
+    return r.stdout?.toString().trim().split(/\s+/)[0] ?? "";
+  }
+  const r = Bun.spawnSync(["sha256sum", path], { stdout: "pipe" });
+  return r.stdout?.toString().trim().split(/\s+/)[0] ?? "";
+}
+
+function installTmuxPortable(force = false): number {
+  const key = tmuxPlatformKey();
+  const asset = key ? TMUX_STATIC_RELEASE.assets[key] : undefined;
+  if (!asset) {
+    process.stderr.write(`不支持的平台 ${process.platform}/${process.arch}\n`);
+    return 1;
+  }
+  if (!force && isExecutable(TUI_CONFIG.TMUX_PORTABLE_BIN)) {
+    process.stdout.write(`已存在: ${TUI_CONFIG.TMUX_PORTABLE_BIN}\n`);
+    return 0;
+  }
+  const binDir = join(TUI_CONFIG.TMUX_HOME, "bin");
+  const cacheDir = join(TUI_CONFIG.TMUX_HOME, ".cache");
+  mkdirSync(binDir, { recursive: true });
+  mkdirSync(cacheDir, { recursive: true });
+  const archive = join(cacheDir, asset.file);
+  const url = `${TMUX_STATIC_RELEASE.base}/${asset.file}`;
+  process.stderr.write(`下载 ${url}\n`);
+  const dl = Bun.spawnSync(["curl", "-fsSL", "-o", archive, url], { stdout: "pipe", stderr: "pipe" });
+  if (dl.exitCode !== 0) {
+    process.stderr.write(`下载失败: ${dl.stderr?.toString() || "curl error"}\n`);
+    return 1;
+  }
+  const got = sha256File(archive);
+  if (got !== asset.sha256) {
+    process.stderr.write(`校验失败: expected ${asset.sha256} got ${got}\n`);
+    return 1;
+  }
+  const extractDir = join(cacheDir, asset.file.replace(/\.tar\.gz$/, ""));
+  rmSync(extractDir, { recursive: true, force: true });
+  mkdirSync(extractDir, { recursive: true });
+  const untar = Bun.spawnSync(["tar", "-xzf", archive, "-C", extractDir], { stdout: "pipe", stderr: "pipe" });
+  if (untar.exitCode !== 0) {
+    process.stderr.write(`解包失败: ${untar.stderr?.toString()}\n`);
+    return 1;
+  }
+  const extracted = join(extractDir, "tmux");
+  if (!isExecutable(extracted)) {
+    process.stderr.write(`解包后未找到可执行文件: ${extracted}\n`);
+    return 1;
+  }
+  copyFileSync(extracted, TUI_CONFIG.TMUX_PORTABLE_BIN);
+  chmodSync(TUI_CONFIG.TMUX_PORTABLE_BIN, 0o755);
+  if (process.platform === "darwin") {
+    Bun.spawnSync(["xattr", "-dr", "com.apple.quarantine", TUI_CONFIG.TMUX_HOME], { stdout: "pipe", stderr: "pipe" });
+  }
+  resetTmuxBinCache();
+  const ver = Bun.spawnSync([TUI_CONFIG.TMUX_PORTABLE_BIN, "-V"], { stdout: "pipe" }).stdout?.toString().trim();
+  process.stdout.write(`已安装 → ${TUI_CONFIG.TMUX_PORTABLE_BIN}  (${ver})\n`);
+  return 0;
+}
+
+function installTmuxSystem(): number {
+  if (process.platform === "darwin") {
+    const brew = Bun.which("brew");
+    if (!brew) {
+      process.stderr.write("未找到 brew，请用: tui install-tmux（便携版）\n");
+      return 1;
+    }
+    process.stderr.write("brew install tmux …\n");
+    const r = Bun.spawnSync([brew, "install", "tmux"], { stdin: "inherit", stdout: "inherit", stderr: "inherit" });
+    resetTmuxBinCache();
+    return r.exitCode ?? 1;
+  }
+  if (process.platform === "linux") {
+    if (Bun.which("apt-get")) {
+      process.stderr.write("请运行: sudo apt-get update && sudo apt-get install -y tmux\n");
+    } else if (Bun.which("dnf")) {
+      process.stderr.write("请运行: sudo dnf install -y tmux\n");
+    } else {
+      process.stderr.write("请用: tui install-tmux（便携版，无需 root）\n");
+    }
+    return 1;
+  }
+  process.stderr.write(`不支持的平台 ${process.platform}\n`);
+  return 1;
+}
+
 function withTmuxQuiet<T>(fn: () => T): T {
   tmuxQuietDepth++;
   try {
@@ -140,6 +299,8 @@ interface IMultiplexerBackend {
   selectWindow(target: string): unknown;
   attach(name: string): unknown;
   capturePane(target: string, startN: number, endArg: string): unknown;
+  /** TUI preview 异步；CLI 用 capturePaneText */
+  capturePaneText(target: string, startN: number, endArg?: string): string;
   sendKeys(target: string, text: string): unknown;
   loadBuffer(target: string, file: string): unknown;
   pasteBuffer(target: string): unknown;
@@ -172,7 +333,8 @@ interface IMultiplexerBackend {
 
 // TmuxBackend — IMultiplexerBackend 的 tmux 实现。target 一律用 `=NAME[:IDX]` 精确语法。
 function tmux(args: string[], opts?: { missingOk?: boolean; unsetOk?: boolean }): string {
-  const out = Bun.spawnSync(["tmux", ...args], { stdout: "pipe", stderr: "pipe" });
+  const bin = tmuxBin();
+  const out = Bun.spawnSync([bin, ...args], { stdout: "pipe", stderr: "pipe" });
   if (out.exitCode !== 0) {
     const stderr = out.stderr.toString();
     // 幂等清理命令（kill/has/rename-session 等）目标不存在时静默吞掉
@@ -209,17 +371,29 @@ const tmuxApi: IMultiplexerBackend = {
     tmux(["new-window", "-d", "-t", buildSessTarget(sess), "-n", name]),
   selectWindow: (target: string) => tmux(["select-window", "-t", target]),
   attach: (name: string) =>
-    Bun.spawnSync(["tmux", "attach-session", "-t", buildSessOnlyTarget(name)], {
+    Bun.spawnSync([tmuxBin(), "attach-session", "-t", buildSessOnlyTarget(name)], {
       stdin: "inherit", stdout: "inherit", stderr: "inherit",
     }),
   capturePane: (target: string, startN: number, endArg: string) =>
-    Bun.spawn(["tmux", "capture-pane", "-p", "-t", target, "-S", `-${startN}`, "-E", endArg]),
+    Bun.spawn([tmuxBin(), "capture-pane", "-p", "-t", target, "-S", `-${startN}`, "-E", endArg]),
+  capturePaneText: (target: string, startN: number, endArg = "-") => {
+    const r = Bun.spawnSync(
+      [tmuxBin(), "capture-pane", "-p", "-t", target, "-S", `-${startN}`, "-E", endArg],
+      { stdout: "pipe", stderr: "pipe" },
+    );
+    if (r.exitCode !== 0 && !tmuxQuietDepth) {
+      process.stderr.write(
+        `[tmux capture-pane -t ${target}] exit=${r.exitCode} ${r.stderr?.toString() || ""}`,
+      );
+    }
+    return r.stdout?.toString() || "";
+  },
   sendKeys: (target: string, text: string) =>
-    Bun.spawnSync(["tmux", "send-keys", "-t", target, text, "Enter"]),
+    Bun.spawnSync([tmuxBin(), "send-keys", "-t", target, text, "Enter"]),
   loadBuffer: (target: string, file: string) =>
-    Bun.spawnSync(["tmux", "load-buffer", "-b", `tui_v2_${process.pid}`, file]),
+    Bun.spawnSync([tmuxBin(), "load-buffer", "-b", `tui_v2_${process.pid}`, file]),
   pasteBuffer: (target: string) =>
-    Bun.spawnSync(["tmux", "paste-buffer", "-d", "-b", `tui_v2_${process.pid}`, "-t", target]),
+    Bun.spawnSync([tmuxBin(), "paste-buffer", "-d", "-b", `tui_v2_${process.pid}`, "-t", target]),
   // options
   getGlobalOption: (key: string): string =>
     tmux(["show-options", "-gv", key]).trim(),
@@ -250,13 +424,19 @@ const tmuxApi: IMultiplexerBackend = {
   unbindKeyRoot: (key: string) => tmux(["unbind-key", "-n", key]),
   // raw fallback for special list cases
   rawSpawnSync: (args: string[]) =>
-    Bun.spawnSync(["tmux", ...args], { stdout: "pipe", stderr: "pipe" }),
+    Bun.spawnSync([tmuxBin(), ...args], { stdout: "pipe", stderr: "pipe" }),
 
   // 运行时探测
   isInsideSession: (): boolean => !!process.env.TMUX,
   assertAvailable: (): void => {
-    console.log("tmux 不可用，请先安装 tmux。");
-    process.exit(1);
+    const p = resolveTmuxPath();
+    if (!p) {
+      const bin = (process.argv[1] || "tui").replace(/^.*\//, "");
+      console.log(`tmux 未找到。运行: ${bin} install-tmux`);
+      console.log(`  系统包管理: ${bin} install-tmux --system`);
+      process.exit(1);
+    }
+    _resolvedTmuxBin = p;
   },
 };
 
@@ -297,22 +477,40 @@ interface TreeNode {
   type: "session" | "window";
   sessionName: string;
   remark?: string;
+  agent?: string;
 }
 
-function readRemark(node: { type: "session" | "window"; target: string; sessionName: string }): string {
-  const sessTarget = buildSessTarget(node.sessionName);
-  const winTarget = node.type === "window" ? buildWinTarget(node.sessionName, node.target.split(":")[1] ?? "") : sessTarget;
-  const raw = node.type === "session"
-    ? tmuxApi.showSessionRaw(sessTarget, TUI_CONFIG.REMARK_KEY)
-    : tmuxApi.showWindowRaw(winTarget, TUI_CONFIG.REMARK_KEY);
+function parseUserOptionValue(raw: string, key: string): string {
   if (!raw) return "";
-  // -v 直接返回值；兼容旧格式 `@remark "value"`
-  const m = raw.match(/^@remark\s+(?:"((?:[^"\\]|\\.)*)"|(\S.*))$/);
+  const esc = key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const m = raw.match(new RegExp(`^${esc}\\s+(?:"((?:[^"\\\\]|\\\\.)*)"|(\\S.*))$`));
   if (m) {
     const v = m[1] !== undefined ? m[1].replace(/\\(.)/g, "$1") : m[2];
     return v.trim();
   }
   return raw.trim();
+}
+
+function readUserOption(
+  node: { type: "session" | "window"; target: string; sessionName: string },
+  key: string,
+): string {
+  const sessTarget = buildSessTarget(node.sessionName);
+  const winTarget = node.type === "window"
+    ? buildWinTarget(node.sessionName, node.target.split(":")[1] ?? "")
+    : sessTarget;
+  const raw = node.type === "session"
+    ? tmuxApi.showSessionRaw(sessTarget, key)
+    : tmuxApi.showWindowRaw(winTarget, key);
+  return parseUserOptionValue(raw, key);
+}
+
+function readRemark(node: { type: "session" | "window"; target: string; sessionName: string }): string {
+  return readUserOption(node, TUI_CONFIG.REMARK_KEY);
+}
+
+function readAgent(node: { type: "session" | "window"; target: string; sessionName: string }): string {
+  return readUserOption(node, TUI_CONFIG.AGENT_KEY);
 }
 
 function writeRemark(node: TreeNode, value: string) {
@@ -325,6 +523,13 @@ function writeRemark(node: TreeNode, value: string) {
     const winTarget = buildWinTarget(node.sessionName, idx);
     setUserOption(winTarget, true, TUI_CONFIG.REMARK_KEY, value || null);
   }
+}
+
+function writeAgent(node: TreeNode, value: string) {
+  if (node.type !== "window") throw new Error("agent 仅可绑定 window");
+  const idx = node.target.split(":")[1] ?? "";
+  const winTarget = buildWinTarget(node.sessionName, idx);
+  setUserOption(winTarget, true, TUI_CONFIG.AGENT_KEY, value || null);
 }
 
 /** spec → tmux target + TreeNode（TUI / CLI 共用） */
@@ -380,17 +585,178 @@ function resolveTarget(spec: string): string {
   return parseTargetSpec(spec).target;
 }
 
-function capturePaneSync(target: string, startN: number, endArg = "-"): string {
-  const r = Bun.spawnSync(
-    ["tmux", "capture-pane", "-p", "-t", target, "-S", `-${startN}`, "-E", endArg],
-    { stdout: "pipe", stderr: "pipe" },
-  );
-  if (r.exitCode !== 0 && !tmuxQuietDepth) {
-    process.stderr.write(
-      `[tmux capture-pane -t ${target}] exit=${r.exitCode} ${r.stderr?.toString() || ""}`,
-    );
+// ── 领域操作（TUI 快捷键 + CLI 子命令共用，避免双份业务逻辑）──
+
+function normName(raw: string, what: string): string {
+  const n = raw.trim().replace(/\s+/g, "-");
+  if (!n) throw new Error(`${what} 名称为空`);
+  return n;
+}
+
+function opNewSession(name: string): string {
+  const n = normName(name, "session");
+  tmuxApi.newSession(n);
+  return n;
+}
+
+function opNewWindow(sessionSpec: string, winName: string): string {
+  const { node } = parseTargetSpec(sessionSpec);
+  if (node.type !== "session") throw new Error("new-window 需要 session 级 spec（sess 或 @remark→session）");
+  const n = normName(winName, "window");
+  tmuxApi.newWindow(node.sessionName, n);
+  return n;
+}
+
+function opRename(spec: string, newName: string): string {
+  const { node } = parseTargetSpec(spec);
+  const n = normName(newName, node.type);
+  if (node.type === "session") tmuxApi.renameSession(node.sessionName, n);
+  else tmuxApi.renameWindow(buildWinTarget(node.sessionName, node.target.split(":")[1] ?? ""), n);
+  return n;
+}
+
+function opKillWindow(spec: string): void {
+  const { node, target } = parseTargetSpec(spec);
+  if (node.type === "session") throw new Error("kill-window 仅支持 window（sess:idx 或 @remark→window）");
+  tmuxApi.killWindow(target);
+}
+
+// ── agentBus：window @agent 为纯名 id；与 @remark / 各 CLI 的 @ 语义分离 ──
+
+function normalizeAgentName(name: string): string {
+  let t = name.trim();
+  if (!t) throw new Error("agent 名为空");
+  if (t.startsWith("@")) {
+    t = t.slice(1).trim();
+    if (!t) throw new Error("agent 名不能仅为 @");
   }
-  return r.stdout?.toString() || "";
+  if (t.includes("@")) {
+    throw new Error("agent 名勿含 @（@ 保留给 remark 寻址与各 agent CLI）");
+  }
+  return t;
+}
+
+function agentIdFileKey(name: string): string {
+  return normalizeAgentName(name).replace(/[^a-zA-Z0-9._-]/g, "_");
+}
+
+function inboxPath(name: string): string {
+  const key = agentIdFileKey(name);
+  const primary = join(TUI_CONFIG.INBOX_DIR, `${key}.jsonl`);
+  if (existsSync(primary)) return primary;
+  const legacy = join(TUI_CONFIG.INBOX_DIR, `@${key}.jsonl`);
+  if (existsSync(legacy)) return legacy;
+  return primary;
+}
+
+function readCursorPath(name: string): string {
+  const key = agentIdFileKey(name);
+  const primary = join(TUI_CONFIG.READ_DIR, `${key}.cursor`);
+  if (existsSync(primary)) return primary;
+  const legacy = join(TUI_CONFIG.READ_DIR, `@${key}.cursor`);
+  if (existsSync(legacy)) return legacy;
+  return primary;
+}
+
+function findNodeByAgent(name: string): TreeNode | null {
+  const wanted = normalizeAgentName(name);
+  for (const n of getTree()) {
+    if (n.type === "window" && n.agent === wanted) return n;
+  }
+  return null;
+}
+
+/** agent 寻址：纯名 | sess:idx | =sess:idx（勿用 @，@ 仅 remark） */
+function resolveAgentName(spec: string): string {
+  if (!spec) throw new Error("agent spec 为空");
+  if (spec.startsWith("@")) {
+    throw new Error("agent 用纯名或 window spec；@ 仅用于 remark 寻址（如 send @逻辑名）");
+  }
+  if (spec.startsWith("=") || spec.includes(":")) {
+    const { node } = parseTargetSpec(spec);
+    if (node.type !== "window") throw new Error("agent 仅绑定 window");
+    const id = readAgent(node);
+    if (!id) {
+      throw new Error(`window ${node.target} 未注册 agent（tui agent register ${spec} <name>）`);
+    }
+    return id;
+  }
+  return normalizeAgentName(spec);
+}
+
+function requireAgentWindow(spec: string): TreeNode {
+  const name = resolveAgentName(spec);
+  const node = findNodeByAgent(name);
+  if (!node) {
+    throw new Error(`未找到 agent「${name}」（tui agent register <spec> ${name}）`);
+  }
+  return node;
+}
+
+function parseInboxFile(path: string): AgentEnvelope[] {
+  if (!existsSync(path)) return [];
+  const out: AgentEnvelope[] = [];
+  for (const line of readFileSync(path, "utf8").split("\n")) {
+    const t = line.trim();
+    if (!t) continue;
+    try {
+      out.push(JSON.parse(t) as AgentEnvelope);
+    } catch {
+      /* 跳过坏行 */
+    }
+  }
+  return out;
+}
+
+function agentSend(opts: {
+  to: string;
+  from: string;
+  body: string;
+  corr?: string;
+  kind?: AgentKind;
+}): AgentEnvelope {
+  requireAgentWindow(opts.to);
+  const toName = resolveAgentName(opts.to);
+  const fromName = normalizeAgentName(opts.from);
+  const env: AgentEnvelope = {
+    ts: new Date().toISOString(),
+    from: fromName,
+    to: toName,
+    corr: opts.corr ?? `c-${Date.now()}`,
+    kind: opts.kind ?? "msg",
+    body: opts.body,
+  };
+  mkdirSync(TUI_CONFIG.INBOX_DIR, { recursive: true });
+  appendFileSync(inboxPath(toName), JSON.stringify(env) + "\n");
+  return env;
+}
+
+function agentInboxCount(agentId: string): number {
+  return parseInboxFile(inboxPath(agentId)).length;
+}
+
+function agentUnreadCount(agentId: string): number {
+  const total = agentInboxCount(agentId);
+  const cp = readCursorPath(agentId);
+  if (!existsSync(cp)) return total;
+  const seen = parseInt(readFileSync(cp, "utf8"), 10) || 0;
+  return Math.max(0, total - seen);
+}
+
+function agentMarkRead(agentId: string, throughLine?: number): void {
+  mkdirSync(TUI_CONFIG.READ_DIR, { recursive: true });
+  const n = throughLine ?? agentInboxCount(agentId);
+  writeFileSync(readCursorPath(agentId), String(n));
+}
+
+function listRegisteredAgents(): Array<{ id: string; target: string; unread: number }> {
+  const out: Array<{ id: string; target: string; unread: number }> = [];
+  for (const n of getTree()) {
+    if (n.type === "window" && n.agent) {
+      out.push({ id: n.agent, target: n.target, unread: agentUnreadCount(n.agent) });
+    }
+  }
+  return out;
 }
 
 function getTree(): TreeNode[] {
@@ -419,6 +785,7 @@ function getTree(): TreeNode[] {
         sessionName: sess,
       };
       winNode.remark = readRemark(winNode);
+      winNode.agent = readAgent(winNode);
       nodes.push(winNode);
     }
   }
@@ -494,9 +861,12 @@ function renderLeftCell(node: TreeNode, isSelected: boolean, cap: number): void 
   const base = node.label;
   const baseVis = truncVis(base, cap);
   const baseW = visW(baseVis);
+  const ag = node.agent;
+  const unread = ag && node.type === "window" ? agentUnreadCount(ag) : 0;
+  const agentPart = ag ? ` [${ag}${unread > 0 ? `·${unread}` : ""}]` : "";
   const remarkPart = rk ? ` ${rk}` : "";
   const pendPart = pending ? " **" : "";
-  const tail = truncVis(remarkPart + pendPart, Math.max(0, cap - baseW));
+  const tail = truncVis(agentPart + remarkPart + pendPart, Math.max(0, cap - baseW));
   const tailW = visW(tail);
   const padN = Math.max(0, cap - baseW - tailW);
   const padStr = " ".repeat(padN);
@@ -524,7 +894,7 @@ function render() {
   // header：左上 LOGO（ASU 金底栗色字）+ 帮助快捷键
   screen.cursorAt(1, 1);
   const scrollInd = state.scrollOffset > 0 ? ` ↕${state.scrollOffset}` : "";
-  const helpRest = " 上下移动 Enter:进 C-左:回 n:新Session w:新Win d:删 r:改名 m:备注 f:刷新 q:退出" + scrollInd;
+  const helpRest = tuiHeaderHelp() + scrollInd;
   const maxW = cols - 1;
   const logoVis = truncVis(TUI_CONFIG.TITLE, maxW);
   const logoW = visW(logoVis);
@@ -690,17 +1060,57 @@ function handleInputKey(s: string): void {
   }
 }
 
-// ── 操作 ──
+// ── TUI 按键（help 文案与 handler 同源）──
+
+function cursorUp() {
+  if (state.cursor > 0) {
+    state.cursor--;
+    schedulePreview();
+  }
+}
+
+function cursorDown() {
+  if (state.cursor < state.tree.length - 1) {
+    state.cursor++;
+    schedulePreview();
+  }
+}
+
+function enterAttach() {
+  if (state.tree.length === 0) return;
+  if (state.tree[state.cursor]?.type !== "window") return;
+  const wasSelectMode = state.selectMode;
+  attach(state.tree[state.cursor].target);
+  if (wasSelectMode) enterSelectMode();
+}
+
+const TUI_KEYBINDS: { help: string; match: (s: string) => boolean; run: () => void }[] = [
+  { help: "↑/k", match: (s) => s === "\x1b[A" || s === "k", run: cursorUp },
+  { help: "↓/j", match: (s) => s === "\x1b[B" || s === "j", run: cursorDown },
+  { help: "n:Session", match: (s) => s === "n", run: () => newSession() },
+  { help: "w:Win", match: (s) => s === "w", run: () => newWindow() },
+  { help: "d:删", match: (s) => s === "d", run: () => deleteCurrent() },
+  { help: "r:改名", match: (s) => s === "r", run: () => renameCurrent() },
+  { help: "m:备注", match: (s) => s === "m", run: () => remarkCurrent() },
+  { help: "f:刷", match: (s) => s === "f", run: () => refreshAll() },
+];
+
+function tuiHeaderHelp(): string {
+  return ["Enter进", "C-←回", ...TUI_KEYBINDS.map((b) => b.help), "q:退"].join(" ");
+}
+
+const TUI_ENTER_KEYS = new Set([
+  "\r", "\x1b[1;5C", "\x1b[1;3C", "\x1b[1;9C", "\x1b\x1b[C", "\x1bOC",
+]);
+
+// ── 操作（调 op*，与 CLI 共用）──
 
 function newSession() {
   startInput("新 Session 名称", (raw) => {
-    const name = raw?.trim().replace(/\s+/g, "-");
-    if (name) {
-      tmuxApi.newSession(name);
+    if (raw?.trim()) {
+      const name = opNewSession(raw);
       refreshAll();
-      const idx = state.tree.findIndex(
-        (n) => n.type === "session" && n.target === name,
-      );
+      const idx = state.tree.findIndex((n) => n.type === "session" && n.target === name);
       if (idx >= 0) state.cursor = idx;
     }
     refreshPreview();
@@ -711,9 +1121,8 @@ function newWindow() {
   if (state.tree.length === 0) return;
   const sess = state.tree[state.cursor].sessionName;
   startInput(`在 [${sess}] 新建 Window 名称`, (raw) => {
-    const name = raw?.trim();
-    if (name) {
-      tmuxApi.newWindow(sess, name);
+    if (raw?.trim()) {
+      opNewWindow(sess, raw);
       refreshAll();
     }
     refreshPreview();
@@ -729,15 +1138,12 @@ function deleteCurrent() {
       : `window [${node.target}]`;
 
   startInput(`删除 ${node.type} ${what}? (y/n)`, (ans) => {
-
     if (ans?.toLowerCase() === "y") {
-
       if (node.type === "session") {
-        //too danger, not able yet.
-        //tmuxApi.killSession(node.target);
+        // too danger, not enabled yet
+      } else {
+        opKillWindow(node.target);
       }
-      else tmuxApi.killWindow(node.target);
-
     }
     refreshAll();
   });
@@ -746,15 +1152,9 @@ function deleteCurrent() {
 function renameCurrent() {
   if (state.tree.length === 0) return;
   const node = state.tree[state.cursor];
+  const spec = node.type === "session" ? node.sessionName : node.target;
   startInput(`rename ${node.type} [${node.target}]`, (raw) => {
-    const name = raw?.trim().replace(/\s+/g, "-");
-    if (name) {
-      if (node.type === "session") {
-        tmuxApi.renameSession(node.sessionName, name);
-      } else {
-        tmuxApi.renameWindow(node.target, name);
-      }
-    }
+    if (raw?.trim()) opRename(spec, raw);
     refreshAll();
   });
 }
@@ -783,23 +1183,24 @@ function createViewer(sess: string, idx?: string) {
   const cabin = (idx || "").replace(/'/g, "'\\''");
   tmuxApi.killSession(v);
   tmuxApi.newGroupedSession(v, sess);
+  const tb = tmuxBin().replace(/'/g, "'\\''");
   const opts = [
-    `tmux set-option -t '${v}' key-table '${TUI_CONFIG.TUI_KEYTABLE}'`,
-    `tmux set-option -t '${v}' prefix None`,
-    `tmux set-option -t '${v}' prefix2 None`,
-    `tmux set-option -t '${v}' mouse off`,
-    `tmux set-option -t '${v}' status-position top`,
-    `tmux set-option -t '${v}' status on`,
-    `tmux set-option -t '${v}' status-left ' #[bold]ctrl-左: 返回 '`,
-    `tmux set-option -t '${v}' status-left-length 30`,
-    `tmux set-option -t '${v}' status-right '驾驶分舱:${cabin} '`,
-    `tmux set-option -t '${v}' window-status-format ''`,
-    `tmux set-option -t '${v}' window-status-current-format ''`,
-    `tmux set-option -t '${v}' window-status-separator ''`,
-    `tmux set-option -t '${v}' status-justify centre`,
-    `tmux set-option -t '${v}' status-style 'bg=white,fg=black'`,
+    `'${tb}' set-option -t '${v}' key-table '${TUI_CONFIG.TUI_KEYTABLE}'`,
+    `'${tb}' set-option -t '${v}' prefix None`,
+    `'${tb}' set-option -t '${v}' prefix2 None`,
+    `'${tb}' set-option -t '${v}' mouse off`,
+    `'${tb}' set-option -t '${v}' status-position top`,
+    `'${tb}' set-option -t '${v}' status on`,
+    `'${tb}' set-option -t '${v}' status-left ' #[bold]ctrl-左: 返回 '`,
+    `'${tb}' set-option -t '${v}' status-left-length 30`,
+    `'${tb}' set-option -t '${v}' status-right '驾驶分舱:${cabin} '`,
+    `'${tb}' set-option -t '${v}' window-status-format ''`,
+    `'${tb}' set-option -t '${v}' window-status-current-format ''`,
+    `'${tb}' set-option -t '${v}' window-status-separator ''`,
+    `'${tb}' set-option -t '${v}' status-justify centre`,
+    `'${tb}' set-option -t '${v}' status-style 'bg=white,fg=black'`,
   ].join(" && ");
-  const win = idx ? ` && tmux select-window -t '=${v}:${idx}'` : "";
+  const win = idx ? ` && '${tb}' select-window -t '=${v}:${idx}'` : "";
   tmuxShBatch(opts + win);
 }
 
@@ -1004,38 +1405,18 @@ function handleKey(data: Buffer) {
     screen.showCursor();
     screen.clear();
     process.exit(0);
-  } else if (s === "\x1b[A" || s === "k") {
-    if (state.cursor > 0) {
-      state.cursor--;
-      schedulePreview();
+  }
+  if (TUI_ENTER_KEYS.has(s)) {
+    enterAttach();
+    return;
+  }
+  for (const bind of TUI_KEYBINDS) {
+    if (bind.match(s)) {
+      bind.run();
+      return;
     }
-  } else if (s === "\x1b[B" || s === "j") {
-    if (state.cursor < state.tree.length - 1) {
-      state.cursor++;
-      schedulePreview();
-    }
-  } else if (s === "\r" || s === "\x1b[1;5C" || s === "\x1b[1;3C" || s === "\x1b[1;9C" || s === "\x1b\x1b[C" || s === "\x1bOC") {
-    if (state.tree.length > 0) {
-      if (state.tree[state.cursor]?.type !== "window") return;
-      const wasSelectMode = state.selectMode;
-      attach(state.tree[state.cursor].target);
-      // attach 返回后 screen.enableMouse + disableOuterMouse 破坏了 selectMode，重新进入
-      if (wasSelectMode) enterSelectMode();
-    }
-  } else if (s === "n") {
-    newSession();
-  } else if (s === "w") {
-    newWindow();
-  } else if (s === "d") {
-    deleteCurrent();
-  } else if (s === "r") {
-    renameCurrent();
-  } else if (s === "m") {
-    remarkCurrent();
-  } else if (s === "f") {
-    //refreshPreview();
-    refreshAll();
-  } else if (process.env.DEBUG_KEYS && s.length > 0 && (s.length > 1 || s < " " || s === "\x1b")) {
+  }
+  if (process.env.DEBUG_KEYS && s.length > 0 && (s.length > 1 || s < " " || s === "\x1b")) {
     const hex = [...s].map(c => "\\x" + c.charCodeAt(0).toString(16).padStart(2, "0")).join("");
     require("fs").appendFileSync("/tmp/tui_debug_keys.log", `[${new Date().toISOString()}] unhandled seq (len=${s.length}): ${hex}\n`);
   }
@@ -1080,13 +1461,14 @@ function cliList(_ctx: CliCtx): number {
       process.stdout.write(`${n.target}${rk}\n`);
     } else {
       const rk = n.remark ? `  ${n.remark}` : "";
+      const ag = n.agent ? `  agent:${n.agent}` : "";
       const winIdx = n.target.split(":")[1] ?? "";
-      const last = capturePaneSync(buildWinTarget(n.sessionName, winIdx), 1)
+      const last = tmuxApi.capturePaneText(buildWinTarget(n.sessionName, winIdx), 1)
         .split("\n")
         .map((s) => s.trim())
         .filter(Boolean)
         .pop() || "";
-      process.stdout.write(`  ${n.target}${rk}  | ${stripAnsi(last).slice(0, 80)}\n`);
+      process.stdout.write(`  ${n.target}${ag}${rk}  | ${stripAnsi(last).slice(0, 80)}\n`);
     }
   }
   return 0;
@@ -1099,7 +1481,7 @@ function cliCapture(ctx: CliCtx): number {
   }
   const lines = ctx.rest[1] ? parseInt(ctx.rest[1], 10) : PREVIEW_LINES;
   const target = resolveTarget(ctx.rest[0]);
-  process.stdout.write(capturePaneSync(target, isNaN(lines) ? PREVIEW_LINES : lines));
+  process.stdout.write(tmuxApi.capturePaneText(target, isNaN(lines) ? PREVIEW_LINES : lines));
   return 0;
 }
 
@@ -1181,17 +1563,306 @@ function cliHelp(): number {
       lines.push(`    usage: ${CLI_BIN} ${cliUsage(cmd)}`);
     }
   }
-  lines.push("", "<spec>: @逻辑名 | sess | sess:idx | =sess:idx");
+  lines.push(
+    "",
+    "<spec>: @逻辑名 | sess | sess:idx | =sess:idx（@ 仅 remark 反查）",
+    "agent: 纯名 + window @agent；register 后 inbox → ~/.tui/inbox/<name>.jsonl",
+  );
   process.stdout.write(lines.join("\n") + "\n");
   return 0;
 }
 
+/** 解析 agent 子命令 flags：--from orch --corr id --timeout 30 */
+function parseCliFlags(rest: string[]): { positional: string[]; flags: Record<string, string> } {
+  const positional: string[] = [];
+  const flags: Record<string, string> = {};
+  for (let i = 0; i < rest.length; i++) {
+    const a = rest[i];
+    if (a === "--from" && rest[i + 1]) { flags.from = rest[++i]; continue; }
+    if (a === "--corr" && rest[i + 1]) { flags.corr = rest[++i]; continue; }
+    if (a === "--kind" && rest[i + 1]) { flags.kind = rest[++i]; continue; }
+    if (a === "--timeout" && rest[i + 1]) { flags.timeout = rest[++i]; continue; }
+    if (a === "--since" && rest[i + 1]) { flags.since = rest[++i]; continue; }
+    if (a.startsWith("--from=")) { flags.from = a.slice(7); continue; }
+    if (a.startsWith("--corr=")) { flags.corr = a.slice(7); continue; }
+    if (a.startsWith("--kind=")) { flags.kind = a.slice(7); continue; }
+    if (a.startsWith("--timeout=")) { flags.timeout = a.slice(10); continue; }
+    if (a === "--follow" || a === "-f") { flags.follow = "1"; continue; }
+    if (a === "--mark-read") { flags["mark-read"] = "1"; continue; }
+    if (a === "--reply") { flags.kind = "reply"; continue; }
+    positional.push(a);
+  }
+  return { positional, flags };
+}
+
+function cliAgentSend(ctx: CliCtx): number {
+  const { positional, flags } = parseCliFlags(ctx.rest);
+  if (!positional[0] || !flags.from) {
+    process.stderr.write(
+      `usage: ${CLI_BIN} ${cliUsage(CLI_CMD.agent, CLI_CMD.agentSend)}\n`,
+    );
+    return 2;
+  }
+  const body = positional.slice(1).join(" ");
+  if (!body) {
+    process.stderr.write("error: 消息正文为空\n");
+    return 2;
+  }
+  const kind = (flags.kind === "reply" ? "reply" : "msg") as AgentKind;
+  const env = agentSend({
+    to: positional[0],
+    from: flags.from,
+    body,
+    corr: flags.corr,
+    kind,
+  });
+  process.stdout.write(`${env.corr}\n`);
+  return 0;
+}
+
+function cliAgentInbox(ctx: CliCtx): number {
+  const { positional, flags } = parseCliFlags(ctx.rest);
+  if (!positional[0]) {
+    process.stderr.write(
+      `usage: ${CLI_BIN} ${cliUsage(CLI_CMD.agent, CLI_CMD.agentInbox)}\n`,
+    );
+    return 2;
+  }
+  const id = resolveAgentName(positional[0]);
+  const path = inboxPath(id);
+  const since = flags.since ? Date.parse(flags.since) : 0;
+  const follow = !!flags.follow;
+
+  const printNew = (fromLine = 0) => {
+    const rows = parseInboxFile(path);
+    let n = 0;
+    for (let i = fromLine; i < rows.length; i++) {
+      const e = rows[i];
+      if (since && Date.parse(e.ts) < since) continue;
+      process.stdout.write(JSON.stringify(e) + "\n");
+      n = i + 1;
+    }
+    return n;
+  };
+
+  if (follow) {
+    let cursor = printNew(0);
+    agentMarkRead(id, cursor);
+    process.stderr.write(`following ${path} (Ctrl-C 退出)…\n`);
+    while (true) {
+      Bun.sleepSync(400);
+      const n = agentInboxCount(id);
+      if (n > cursor) {
+        cursor = printNew(cursor);
+        agentMarkRead(id, cursor);
+      }
+    }
+  }
+
+  const end = printNew(0);
+  if (flags["mark-read"]) agentMarkRead(id, end);
+  return 0;
+}
+
+function cliAgentWait(ctx: CliCtx): number {
+  const { positional, flags } = parseCliFlags(ctx.rest);
+  if (!positional[0] || !flags.corr) {
+    process.stderr.write(
+      `usage: ${CLI_BIN} ${cliUsage(CLI_CMD.agent, CLI_CMD.agentWait)}\n`,
+    );
+    return 2;
+  }
+  const id = resolveAgentName(positional[0]);
+  const corr = flags.corr;
+  const timeoutMs = Math.max(1000, (parseInt(flags.timeout || "60", 10) || 60) * 1000);
+  const deadline = Date.now() + timeoutMs;
+  const path = inboxPath(id);
+  let scanned = 0;
+
+  while (Date.now() < deadline) {
+    const rows = parseInboxFile(path);
+    for (let i = scanned; i < rows.length; i++) {
+      const e = rows[i];
+      if (e.corr === corr && e.kind === "reply") {
+        process.stdout.write(JSON.stringify(e) + "\n");
+        agentMarkRead(id, i + 1);
+        return 0;
+      }
+    }
+    scanned = rows.length;
+    Bun.sleepSync(300);
+  }
+  process.stderr.write(`timeout: 未收到 corr=${corr}\n`);
+  return 1;
+}
+
+function cliAgentList(_ctx: CliCtx): number {
+  const agents = listRegisteredAgents();
+  if (agents.length === 0) {
+    process.stderr.write("无已注册 agent（tui agent register <spec> <name>）\n");
+    return 0;
+  }
+  for (const a of agents) {
+    const unread = a.unread > 0 ? `  unread:${a.unread}` : "";
+    process.stdout.write(`${a.id}  ${a.target}${unread}\n`);
+  }
+  return 0;
+}
+
+function cliAgentRegister(ctx: CliCtx): number {
+  if (ctx.rest.length < 2) {
+    process.stderr.write(
+      `usage: ${CLI_BIN} ${cliUsage(CLI_CMD.agent, CLI_CMD.agentRegister)}\n`,
+    );
+    return 2;
+  }
+  const { target, node } = parseTargetSpec(ctx.rest[0]);
+  if (node.type !== "window") {
+    process.stderr.write("error: register 需要 window spec\n");
+    return 2;
+  }
+  const name = normalizeAgentName(ctx.rest[1]);
+  writeAgent(node, name);
+  process.stdout.write(`agent ${name} → ${target}\n`);
+  return 0;
+}
+
+function cliAgentUnregister(ctx: CliCtx): number {
+  if (!ctx.rest[0]) {
+    process.stderr.write(
+      `usage: ${CLI_BIN} ${cliUsage(CLI_CMD.agent, CLI_CMD.agentUnregister)}\n`,
+    );
+    return 2;
+  }
+  const { target, node } = parseTargetSpec(ctx.rest[0]);
+  if (node.type !== "window") {
+    process.stderr.write("error: unregister 需要 window spec\n");
+    return 2;
+  }
+  writeAgent(node, "");
+  process.stdout.write(`agent cleared on ${target}\n`);
+  return 0;
+}
+
+function cliAgentLegacy(ctx: CliCtx): number {
+  const sub = ctx.rest[0];
+  if (sub === "register" || sub === "bind") return cliAgentRegister({ ...ctx, rest: ctx.rest.slice(1) });
+  if (sub === "unregister" || sub === "unbind") return cliAgentUnregister({ ...ctx, rest: ctx.rest.slice(1) });
+  if (sub === "send") return cliAgentSend({ ...ctx, rest: ctx.rest.slice(1) });
+  if (sub === "inbox") return cliAgentInbox({ ...ctx, rest: ctx.rest.slice(1) });
+  if (sub === "wait") return cliAgentWait({ ...ctx, rest: ctx.rest.slice(1) });
+  if (sub === "list" || sub === "ls") return cliAgentList(ctx);
+  process.stderr.write(`未知 agent 子命令: ${sub}\n`);
+  return 2;
+}
+
+function cliNewSession(ctx: CliCtx): number {
+  if (!ctx.rest[0]) {
+    process.stderr.write(`usage: ${CLI_BIN} ${cliUsage(CLI_CMD.newSession)}\n`);
+    return 2;
+  }
+  const name = opNewSession(ctx.rest[0]);
+  process.stdout.write(`session ${name}\n`);
+  return 0;
+}
+
+function cliNewWindow(ctx: CliCtx): number {
+  if (ctx.rest.length < 2) {
+    process.stderr.write(`usage: ${CLI_BIN} ${cliUsage(CLI_CMD.newWindow)}\n`);
+    return 2;
+  }
+  const name = opNewWindow(ctx.rest[0], ctx.rest[1]);
+  process.stdout.write(`window ${ctx.rest[0]}:${name}\n`);
+  return 0;
+}
+
+function cliRename(ctx: CliCtx): number {
+  if (ctx.rest.length < 2) {
+    process.stderr.write(`usage: ${CLI_BIN} ${cliUsage(CLI_CMD.rename)}\n`);
+    return 2;
+  }
+  const name = opRename(ctx.rest[0], ctx.rest[1]);
+  process.stdout.write(`renamed → ${name}\n`);
+  return 0;
+}
+
+function cliKillWindow(ctx: CliCtx): number {
+  if (!ctx.rest[0]) {
+    process.stderr.write(`usage: ${CLI_BIN} ${cliUsage(CLI_CMD.killWindow)}\n`);
+    return 2;
+  }
+  opKillWindow(ctx.rest[0]);
+  process.stdout.write(`killed ${resolveTarget(ctx.rest[0])}\n`);
+  return 0;
+}
+
+function cliDoctor(_ctx: CliCtx): number {
+  const key = tmuxPlatformKey();
+  const lines = [
+    `platform: ${process.platform}/${process.arch} → ${key ?? "不支持便携安装"}`,
+    `TMUX_BIN: ${process.env.TMUX_BIN ?? "(未设置)"}`,
+    `portable: ${TUI_CONFIG.TMUX_PORTABLE_BIN} (${existsSync(TUI_CONFIG.TMUX_PORTABLE_BIN) ? "有" : "无"})`,
+    `resolved: ${resolveTmuxPath() ?? "(未找到)"}`,
+    `inside tmux: ${!!process.env.TMUX}`,
+  ];
+  const p = resolveTmuxPath();
+  if (p) {
+    const v = Bun.spawnSync([p, "-V"], { stdout: "pipe" }).stdout?.toString().trim();
+    lines.push(`version: ${v}`);
+  } else {
+    lines.push(`hint: ${CLI_BIN} install-tmux`);
+  }
+  if (process.platform === "darwin" && existsSync(TUI_CONFIG.TMUX_HOME)) {
+    const x = Bun.spawnSync(["xattr", "-lr", TUI_CONFIG.TMUX_HOME], { stdout: "pipe" }).stdout?.toString() || "";
+    lines.push(x.includes("quarantine") ? "quarantine: 有（执行 xattr -dr com.apple.quarantine ~/tmux）" : "quarantine: 无");
+  }
+  process.stdout.write(lines.join("\n") + "\n");
+  return p ? 0 : 1;
+}
+
+function cliInstallTmux(ctx: CliCtx): number {
+  const system = ctx.rest.some((a) => a === "--system" || a === "-s");
+  const force = ctx.rest.some((a) => a === "--force" || a === "-f");
+  if (system) return installTmuxSystem();
+  return installTmuxPortable(force);
+}
+
 const CLI_CMD = {
   help: { name: "help", aliases: ["-h", "--help"], summary: "显示帮助", run: () => cliHelp() },
+  doctor: { name: "doctor", summary: "诊断 tmux 路径/版本/quarantine", run: cliDoctor },
+  installTmux: {
+    name: "install-tmux",
+    aliases: ["install"],
+    summary: "安装 tmux（默认便携版→~/tmux）",
+    usage: "[--force] [--system]",
+    run: cliInstallTmux,
+  },
   list: { name: "list", aliases: ["tree", "ls"], summary: "列出 session/window、@remark、末行预览", run: cliList },
   capture: { name: "capture", summary: "capture-pane → stdout", usage: "<spec> [lines]", run: cliCapture },
   send: { name: "send", aliases: ["msg"], summary: "send-keys 注入", usage: "<spec> <text...>", run: cliSend },
   paste: { name: "paste", summary: "load-buffer + paste-buffer", usage: "<spec> <file>", run: cliPaste },
+  newSession: {
+    name: "new-session",
+    aliases: ["ns"],
+    summary: "新建 session（-d）",
+    usage: "<name>",
+    run: cliNewSession,
+  },
+  newWindow: {
+    name: "new-window",
+    aliases: ["nw"],
+    summary: "在 session 下新建 window",
+    usage: "<sess-spec> <name>",
+    run: cliNewWindow,
+  },
+  rename: { name: "rename", summary: "重命名 session/window", usage: "<spec> <name>", run: cliRename },
+  killWindow: {
+    name: "kill-window",
+    aliases: ["delete", "rm"],
+    summary: "关闭 window（不含 session）",
+    usage: "<spec>",
+    run: cliKillWindow,
+  },
   remarkSet: { name: "set", aliases: ["write"], summary: "设置 @remark", usage: "<spec> [text...]", run: cliRemarkSet },
   remarkGet: { name: "get", aliases: ["show", "read"], summary: "读取 @remark", usage: "<spec>", run: cliRemarkGet },
   remark: {
@@ -1200,15 +1871,74 @@ const CLI_CMD = {
     run: cliRemarkLegacy,
     children: [] as CliCommand[],
   },
+  agentRegister: {
+    name: "register",
+    aliases: ["bind"],
+    summary: "为 window 设置 @agent 纯名",
+    usage: "<window-spec> <name>",
+    run: cliAgentRegister,
+  },
+  agentUnregister: {
+    name: "unregister",
+    aliases: ["unbind"],
+    summary: "清除 window 的 @agent",
+    usage: "<window-spec>",
+    run: cliAgentUnregister,
+  },
+  agentSend: {
+    name: "send",
+    summary: "投递消息到对方 ~/.tui/inbox",
+    usage: "<to> --from <me> [--corr id] [--reply] <body>",
+    run: cliAgentSend,
+  },
+  agentInbox: {
+    name: "inbox",
+    summary: "读取 inbox（jsonl）",
+    usage: "<me> [--follow] [--mark-read] [--since iso]",
+    run: cliAgentInbox,
+  },
+  agentWait: {
+    name: "wait",
+    summary: "阻塞等待 kind=reply 且 corr 匹配",
+    usage: "<me> --corr id [--timeout 60]",
+    run: cliAgentWait,
+  },
+  agentList: {
+    name: "list",
+    aliases: ["ls"],
+    summary: "已注册 agent（@agent）与未读",
+    run: cliAgentList,
+  },
+  agent: {
+    name: "agent",
+    summary: "v0.3 — window @agent 纯名；与 @remark 分离",
+    run: cliAgentLegacy,
+    children: [] as CliCommand[],
+  },
 };
 CLI_CMD.remark.children = [CLI_CMD.remarkSet, CLI_CMD.remarkGet];
+CLI_CMD.agent.children = [
+  CLI_CMD.agentRegister,
+  CLI_CMD.agentUnregister,
+  CLI_CMD.agentSend,
+  CLI_CMD.agentInbox,
+  CLI_CMD.agentWait,
+  CLI_CMD.agentList,
+];
 
 const CLI_ROOT: CliCommand[] = [
   CLI_CMD.help,
+  CLI_CMD.doctor,
+  CLI_CMD.installTmux,
+  CLI_CMD.agent,
   CLI_CMD.list,
   CLI_CMD.capture,
   CLI_CMD.send,
   CLI_CMD.paste,
+  CLI_CMD.newSession,
+  CLI_CMD.newWindow,
+  CLI_CMD.rename,
+  CLI_CMD.killWindow,
   CLI_CMD.remark,
 ];
 
@@ -1221,6 +1951,14 @@ function dispatchCliCommand(cmd: CliCommand, rest: string[]): number {
   return cmd.run({ bin: CLI_BIN, rest });
 }
 
+function cliNeedsTmux(head: string): boolean {
+  if (!head) return false;
+  if (matchCliName(CLI_CMD.help, head)) return false;
+  if (matchCliName(CLI_CMD.doctor, head)) return false;
+  if (matchCliName(CLI_CMD.installTmux, head)) return false;
+  return true;
+}
+
 function runCli(argv: string[]): number {
   const head = argv[2];
   const rest = argv.slice(3);
@@ -1228,6 +1966,14 @@ function runCli(argv: string[]): number {
   if (!cmd) {
     process.stderr.write(`未知子命令: ${head}\n`);
     return cliHelp() === 0 ? 2 : 2;
+  }
+  if (cliNeedsTmux(head || "")) {
+    const p = resolveTmuxPath();
+    if (!p) {
+      process.stderr.write(`tmux 未找到。运行: ${CLI_BIN} install-tmux\n`);
+      return 1;
+    }
+    _resolvedTmuxBin = p;
   }
   try {
     return dispatchCliCommand(cmd, rest);
@@ -1241,7 +1987,15 @@ if (isCliInvocation(process.argv)) {
   process.exit(runCli(process.argv));
 }
 
-// ── 启动 ──
+// ── 启动（TUI 需 tmux；install-tmux / doctor 已在上方 CLI 分支退出）──
+
+const _tmuxAtStart = resolveTmuxPath();
+if (!_tmuxAtStart) {
+  process.stderr.write(`tmux 未找到。运行: ${CLI_BIN} install-tmux\n`);
+  process.stderr.write(`  或系统安装: ${CLI_BIN} install-tmux --system\n`);
+  process.exit(1);
+}
+_resolvedTmuxBin = _tmuxAtStart;
 
 if (state.tree.length === 0) {
   tmuxApi.newSession("main");
