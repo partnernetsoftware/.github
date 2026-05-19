@@ -51,13 +51,13 @@ cd /workspace
 bash lab/lispjit-ir/build_cosmo.sh
 ```
 
-脚本需要 `third_party/cosmocc/bin` 下存在：
+脚本会自动探测 `COSMO_BIN`、PATH、`/opt/cosmocc/bin`、`third_party/cosmocc/bin` 等位置。标准镜像里通常在 `/opt/cosmocc/bin` 下存在：
 
 - `x86_64-unknown-cosmo-cc`
 - `aarch64-unknown-cosmo-cc`
 - `apelink`
 
-当前仓库未跟踪 `third_party/cosmocc/`，所以没有工具链时脚本会明确报 `cosmocc=missing`。
+如果当前容器没有暴露这些工具，脚本会明确报 `cosmocc=missing`，可用 `COSMO_BIN=/opt/cosmocc/bin` 显式指定。
 
 ## 当前边界
 
