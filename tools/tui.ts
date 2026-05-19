@@ -861,11 +861,20 @@ interface InputMode {
 const HEADER_H = 1;
 const FOOTER_H = 1;
 const BODY_START_ROW = HEADER_H + 1; // 2
+const DRIVE_TREE_FRAC = 0.42; // 驾驶模式：上区 tree-table 约占 body
+
+type UiMode = "index" | "drive";
+
+type LayoutInfo =
+  | { mode: "index"; bodyH: number; leftW: number; rightW: number; inspectorW: number }
+  | { mode: "drive"; bodyH: number; fullW: number; treeHeaderH: number; treeDataH: number; paneH: number };
 
 class TuiState {
   tree: TreeNode[] = getTree();
   cursor = 0;
   viewOffset = 0;
+  /** 索引（左右）| 驾驶（上下 tree-table） */
+  uiMode: UiMode = "index";
   // layoutMode: "preview" | "observer" = "preview"; // OBSERVER_PAUSED
   preview = "";
   previewTimer: ReturnType<typeof setTimeout> | null = null;
@@ -889,15 +898,115 @@ const state = new TuiState();
 
 function getPreviewH(): number {
   const [, rows] = screen.getSize();
-  return Math.max(1, rows - HEADER_H - FOOTER_H);
+  const bodyH = Math.max(1, rows - HEADER_H - FOOTER_H);
+  if (state.uiMode === "index") return bodyH;
+  const treeHeaderH = 1;
+  const treeDataH = Math.max(3, Math.floor(bodyH * DRIVE_TREE_FRAC) - treeHeaderH);
+  const paneDividerH = 1;
+  return Math.max(1, bodyH - treeHeaderH - treeDataH - paneDividerH);
 }
-function getLayout(cols: number, rows: number) {
-  const leftW = Math.min(Math.max(Math.floor(cols * 0.2), 12), 30);
-  // OBSERVER_PAUSED: inspectorW / observer 第三栏
-  const inspectorW = 0;
-  const rightW = cols - leftW - 1;
+
+function getLayout(cols: number, rows: number): LayoutInfo {
   const bodyH = rows - HEADER_H - FOOTER_H;
-  return { leftW, rightW, inspectorW, bodyH };
+  if (state.uiMode === "drive") {
+    const treeHeaderH = 1;
+    const treeDataH = Math.max(3, Math.floor(bodyH * DRIVE_TREE_FRAC) - treeHeaderH);
+    const paneDividerH = 1;
+    const paneH = Math.max(1, bodyH - treeHeaderH - treeDataH - paneDividerH);
+    return { mode: "drive", bodyH, fullW: cols, treeHeaderH, treeDataH, paneH };
+  }
+  const leftW = Math.min(Math.max(Math.floor(cols * 0.2), 12), 30);
+  const inspectorW = 0; // OBSERVER_PAUSED
+  const rightW = cols - leftW - 1;
+  return { mode: "index", bodyH, leftW, rightW, inspectorW };
+}
+
+function uiModeTag(): string {
+  return state.uiMode === "drive" ? "[驾驶]" : "[索引]";
+}
+
+function treeVisibleRows(layout: LayoutInfo): number {
+  return layout.mode === "drive" ? layout.treeDataH : layout.bodyH;
+}
+
+function toggleUiMode() {
+  state.uiMode = state.uiMode === "index" ? "drive" : "index";
+  state.viewOffset = 0;
+  state.scrollOffset = 0;
+  const [, rows] = screen.getSize();
+  state.clampView(treeVisibleRows(getLayout(screen.getSize()[0], rows)));
+  render();
+  schedulePreview();
+}
+
+type DriveColWidths = { stat: number; sess: number; win: number; agent: number; unread: number; auto: number; age: number; task: number };
+
+function driveColWidths(cols: number): DriveColWidths {
+  const stat = 1;
+  const unread = 4;
+  const auto = 3;
+  const age = 4;
+  const sess = Math.min(14, Math.max(8, Math.floor(cols * 0.14)));
+  const win = Math.min(10, Math.max(6, Math.floor(cols * 0.1)));
+  const agent = Math.min(12, Math.max(8, Math.floor(cols * 0.12)));
+  const fixed = stat + 1 + sess + 1 + win + 1 + agent + 1 + unread + 1 + auto + 1 + age;
+  const task = Math.max(8, cols - fixed);
+  return { stat, sess, win, agent, unread, auto, age, task };
+}
+
+function renderDriveCell(text: string, w: number, selected: boolean, dim = false): void {
+  const vis = padVis(truncVis(text, w), w);
+  if (selected) screen.write(screen.inv(dim ? screen.dim(vis) : vis));
+  else if (dim) screen.write(screen.dim(vis));
+  else screen.write(vis);
+}
+
+function renderDriveTableHeader(row: number, cols: number, cw: DriveColWidths): void {
+  let col = 1;
+  const hdr = (t: string, w: number) => {
+    screen.cursorAt(row, col);
+    screen.write(screen.inv(screen.bold(padVis(truncVis(t, w), w))));
+    col += w + 1;
+  };
+  hdr("●", cw.stat);
+  hdr("Session", cw.sess);
+  hdr("Win", cw.win);
+  hdr("Agent", cw.agent);
+  hdr("Task", cw.task);
+  hdr("Rd", cw.unread);
+  hdr("A", cw.auto);
+  hdr("Age", cw.age);
+  if (col <= cols) {
+    screen.cursorAt(row, col);
+    screen.write(screen.dim("─".repeat(Math.max(0, cols - col + 1))));
+  }
+}
+
+function renderDriveTableRow(row: number, node: TreeNode, selected: boolean, cols: number, cw: DriveColWidths): void {
+  const [, winIdx] = node.type === "window" ? node.target.split(":") : ["", ""];
+  const ag = node.agent || "";
+  const unread = ag && node.type === "window" ? agentUnreadCount(ag) : 0;
+  const stat = node.type === "session" ? "▣" : (unread > 0 ? "●" : "○");
+  const sess = node.type === "session" ? node.sessionName : node.sessionName;
+  const win = node.type === "window" ? winIdx : "—";
+  const agent = ag || "—";
+  const task = node.remark || truncVis(node.label.replace(/^[├└]\s*/, ""), cw.task);
+  const auto = "0";
+  const age = "—";
+  let col = 1;
+  const cell = (t: string, w: number, dim = false) => {
+    screen.cursorAt(row, col);
+    renderDriveCell(t, w, selected, dim);
+    col += w + 1;
+  };
+  cell(stat, cw.stat);
+  cell(sess, cw.sess, node.type === "session");
+  cell(win, cw.win);
+  cell(agent, cw.agent);
+  cell(task, cw.task);
+  cell(unread > 0 ? String(unread) : "", cw.unread);
+  cell(auto, cw.auto, true);
+  cell(age, cw.age, true);
 }
 
 // ── 渲染 ──
@@ -963,39 +1072,33 @@ function renderInspectorCell(row: number, col: number, width: number, lineIdx: n
 }
 */
 
-function render() {
-  const [cols, rows] = screen.getSize();
-  const { leftW, rightW, inspectorW, bodyH } = getLayout(cols, rows);
-
-  state.clampView(bodyH);
-
-  screen.clear();
-  screen.hideCursor();
-
-  // header：左上 LOGO（ASU 金底栗色字）+ 帮助快捷键
+function renderHeader(cols: number): void {
   screen.cursorAt(1, 1);
   const scrollInd = state.scrollOffset > 0 ? ` ↕${state.scrollOffset}` : "";
-  const helpRest = tuiHeaderHelp() + scrollInd;
+  const helpRest = `${uiModeTag()} ${tuiHeaderHelp()}${scrollInd}`;
   const maxW = cols - 1;
-  const logoVis = truncVis(TUI_CONFIG.TITLE + ' '+TUI_CONFIG.VERSION, maxW);
+  const logoVis = truncVis(TUI_CONFIG.TITLE + " " + TUI_CONFIG.VERSION, maxW);
   const logoW = visW(logoVis);
   screen.write(screen.asuLogo(padVis(logoVis, logoW)));
   const helpCap = Math.max(0, maxW - logoW);
   if (helpCap > 0) {
-    const helpVis = ' '+truncVis(helpRest, helpCap);
+    const helpVis = " " + truncVis(helpRest, helpCap);
     screen.write(screen.inv(screen.bold(padVis(helpVis, helpCap))));
   }
+}
 
-  // body
-  const allPLines = state.preview.split("\n");
-  // 取最后 bodyH 行（capture 末尾即最新输出）
-  const pLines = allPLines.length > bodyH ? allPLines.slice(allPLines.length - bodyH) : allPLines;
-  const blankLeft = " ".repeat(leftW - 1);
+function renderFooter(cols: number, rows: number): void {
+  screen.cursorAt(rows, 1);
+  if (state.inputMode) {
+    const line = ` ${state.inputMode.prompt}: ${state.inputMode.value}█ `;
+    screen.write(screen.gold(padVis(truncVis(line, cols - 1), cols - 1)));
+    screen.showCursor();
+  } else {
+    screen.write(screen.gold(" ".repeat(cols - 1)));
+  }
+}
 
-  // 滚动条计算：右侧让出 1 列绘制
-  const textW = Math.max(0, rightW - 1);
-  // OBSERVER_PAUSED: const busRows = inspectorW ? readBusTail(...) : [];
-  const previewH = bodyH;
+function previewScrollMetrics(previewH: number) {
   const curDepth = state.scrollOffset + previewH;
   if (curDepth > state.seenMax) state.seenMax = curDepth;
   const total = Math.max(state.seenMax, previewH);
@@ -1004,11 +1107,40 @@ function render() {
     ? 0
     : Math.max(0, Math.min(previewH - thumbH,
         Math.round((previewH * (total - state.scrollOffset - previewH)) / total)));
+  return { thumbH, thumbStart };
+}
+
+function renderPreviewLine(
+  row: number, col: number, textW: number, lineIdx: number, pLines: string[], thumb?: { thumbH: number; thumbStart: number },
+): void {
+  screen.cursorAt(row, col);
+  if (state.previewTarget && lineIdx === 0) {
+    screen.write(screen.dim(`⏳ ${state.previewTarget} ...`).slice(0, textW));
+  } else if (state.suppressPreviewAfterAttach && lineIdx === 0) {
+    screen.write(screen.dim("  已从分舱返回 · 按 f 刷新预览").slice(0, textW));
+  } else if (state.suppressPreviewAfterAttach) {
+    screen.write(" ".repeat(textW));
+  } else {
+    screen.write((pLines[lineIdx] || "").slice(0, textW));
+  }
+  if (thumb) {
+    screen.cursorAt(row, col + textW);
+    const inThumb = lineIdx >= thumb.thumbStart && lineIdx < thumb.thumbStart + thumb.thumbH;
+    screen.write(`\x1b[90m${inThumb ? "▓" : "░"}\x1b[0m`);
+  }
+}
+
+function renderIndexBody(cols: number, rows: number, layout: Extract<LayoutInfo, { mode: "index" }>) {
+  const { leftW, rightW, bodyH } = layout;
+  const allPLines = state.preview.split("\n");
+  const pLines = allPLines.length > bodyH ? allPLines.slice(allPLines.length - bodyH) : allPLines;
+  const blankLeft = " ".repeat(leftW - 1);
+  const textW = Math.max(0, rightW - 1);
+  const { thumbH, thumbStart } = previewScrollMetrics(bodyH);
+
   for (let i = 0; i < bodyH; i++) {
     const row = i + BODY_START_ROW;
     const treeIdx = i + state.viewOffset;
-
-    // left: tree
     screen.cursorAt(row, 1);
     const cap = leftW - 1;
     if (treeIdx < state.tree.length) {
@@ -1016,43 +1148,59 @@ function render() {
     } else {
       screen.write(blankLeft);
     }
-
-    // divider (固定列 leftW)
     screen.cursorAt(row, leftW);
     screen.write(screen.dim("│"));
-
-    // right: preview (let out 1 col for scrollbar)
-    screen.cursorAt(row, leftW + 1);
-    if (state.previewTarget && i === 0) {
-      screen.write(screen.dim(`⏳ ${state.previewTarget} ...`).slice(0, textW));
-    } else if (state.suppressPreviewAfterAttach && i === 0) {
-      screen.write(screen.dim("  已从分舱返回 · 按 f 刷新预览").slice(0, textW));
-    } else if (state.suppressPreviewAfterAttach) {
-      screen.write(" ".repeat(Math.min(textW, leftW + rightW)));
-    } else {
-      screen.write((pLines[i] || "").slice(0, textW));
-    }
-
-    // scrollbar (最右一列)
-    if (rightW >= 1) {
-      screen.cursorAt(row, leftW + 1 + textW);
-      const inThumb = i >= thumbStart && i < thumbStart + thumbH;
-      screen.write(`\x1b[90m${inThumb ? "▓" : "░"}\x1b[0m`);
-    }
-
-    // OBSERVER_PAUSED: inspector 第三栏（bus.jsonl）
+    renderPreviewLine(row, leftW + 1, textW, i, pLines, { thumbH, thumbStart });
   }
+}
 
-  // footer
-  screen.cursorAt(rows, 1);
-  if (state.inputMode) {
-    const line = ` ${state.inputMode.prompt}: ${state.inputMode.value}█ `;
-    screen.write(screen.gold(padVis(truncVis(line, cols - 1), cols - 1)));
-    screen.showCursor();
-  } else {
-    // MAIN_SELECT_PAUSED: state.selectMode footer
-    screen.write(screen.gold(" ".repeat(cols - 1)));
+function renderDriveBody(cols: number, layout: Extract<LayoutInfo, { mode: "drive" }>) {
+  const { bodyH, treeHeaderH, treeDataH, paneH } = layout;
+  const cw = driveColWidths(cols);
+  const treeZoneH = treeHeaderH + treeDataH;
+  const allPLines = state.preview.split("\n");
+  const pLines = allPLines.length > paneH ? allPLines.slice(allPLines.length - paneH) : allPLines;
+  const textW = Math.max(0, cols - 2);
+  const { thumbH, thumbStart } = previewScrollMetrics(paneH);
+  for (let i = 0; i < bodyH; i++) {
+    const row = i + BODY_START_ROW;
+    if (i < treeZoneH) {
+      if (i === 0) {
+        renderDriveTableHeader(row, cols, cw);
+      } else {
+        const treeIdx = (i - treeHeaderH) + state.viewOffset;
+        if (treeIdx < state.tree.length) {
+          renderDriveTableRow(row, state.tree[treeIdx], treeIdx === state.cursor, cols, cw);
+        } else {
+          screen.cursorAt(row, 1);
+          screen.write(" ".repeat(cols - 1));
+        }
+      }
+      continue;
+    }
+    if (i === treeZoneH) {
+      screen.cursorAt(row, 1);
+      screen.write(screen.dim("─".repeat(cols - 1)));
+      continue;
+    }
+    const paneLine = i - treeZoneH - 1;
+    if (paneLine < paneH) {
+      renderPreviewLine(row, 1, textW, paneLine, pLines, { thumbH, thumbStart });
+    }
   }
+}
+
+function render() {
+  const [cols, rows] = screen.getSize();
+  const layout = getLayout(cols, rows);
+  state.clampView(treeVisibleRows(layout));
+
+  screen.clear();
+  screen.hideCursor();
+  renderHeader(cols);
+  if (layout.mode === "drive") renderDriveBody(cols, layout);
+  else renderIndexBody(cols, rows, layout);
+  renderFooter(cols, rows);
 }
 
 // ── Ctrl-Left 支持：detach 返回 tree mode ──
@@ -1208,6 +1356,7 @@ const TUI_KEYBINDS: { help: string; match: (s: string) => boolean; run: () => vo
   { help: "r:改名", match: (s) => s === "r", run: () => renameCurrent() },
   { help: "m:备注", match: (s) => s === "m", run: () => remarkCurrent() },
   { help: "f:刷", match: (s) => s === "f", run: () => refreshAll() },
+  { help: "o:模式", match: (s) => s === "o", run: () => toggleUiMode() },
   // OBSERVER_PAUSED: { help: "v:消息", match: (s) => s === "v", run: () => toggleObserver() },
 ];
 
@@ -1458,16 +1607,20 @@ function handleMouse(rawBtn: number, x: number, y: number, press: boolean) {
 
   const { btn } = decodeMouseBtn(rawBtn);
   const [cols, rows] = screen.getSize();
-  const { leftW } = getLayout(cols, rows);
+  const layout = getLayout(cols, rows);
+  const bodyY = y - BODY_START_ROW;
+  const treeZoneH = layout.mode === "drive" ? layout.treeHeaderH + layout.treeDataH : layout.bodyH;
+  const paneStartY = layout.mode === "drive" ? treeZoneH + 1 : layout.bodyH;
+  const inPreviewZone = layout.mode === "index"
+    ? x >= layout.leftW
+    : bodyY >= paneStartY;
   // 滚轮
   if (btn === 64 || btn === 65) {
     if (!press) return;
-    if (x >= leftW) {
-      // 右栏 preview 滚动
+    if (inPreviewZone) {
       const previewH = getPreviewH();
       if (btn === 64) state.scrollOffset += 3;
       else state.scrollOffset = Math.max(0, state.scrollOffset - 3);
-      // 上限：tmux history-limit 通常 2000；放宽到一个合理值
       const maxScroll = Math.max(0, 5000 - previewH);
       if (state.scrollOffset > maxScroll) state.scrollOffset = maxScroll;
       refreshPreview();
@@ -1478,10 +1631,13 @@ function handleMouse(rawBtn: number, x: number, y: number, press: boolean) {
     return;
   }
   if (btn !== 0 || !press) return;
-  if (y > rows - FOOTER_H) return;     // footer 占 FOOTER_H 行
-  if (y < BODY_START_ROW) return;       // header
-  if (x >= leftW) return;               // 右栏忽略
-  const idx = (y - BODY_START_ROW) + state.viewOffset;
+  if (y > rows - FOOTER_H) return;
+  if (y < BODY_START_ROW) return;
+  if (layout.mode === "index" && x >= layout.leftW) return;
+  if (layout.mode === "drive" && bodyY >= paneStartY) return;
+  const idx = layout.mode === "drive"
+    ? Math.max(0, bodyY - layout.treeHeaderH) + state.viewOffset
+    : bodyY + state.viewOffset;
   if (idx < 0 || idx >= state.tree.length) return;
   const now = Date.now();
   const dbl = lastClickY === idx && now - lastClickT < 500;
