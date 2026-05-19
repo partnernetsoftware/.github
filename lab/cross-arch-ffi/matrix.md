@@ -11,3 +11,5 @@
 | Zig/Rust/Go 单文件 | 每架构交叉编译 | 中到大 | 中到强；看链接策略 | 适合产品化，不是最小实验 |
 
 结论：以 CosmoRun 做“功能大”的主线，以原生 C/TCC 做“小体积”基线；Lua 仅在补 C bridge 或改 LuaJIT 后纳入 FFI 主线。
+
+字节预算补充：`byte_budget.c` 把 FFI 符号地址写入 JIT 机器码；在 x86_64 上，JIT payload 只需要 23 字节即可调用系统 `strlen`。

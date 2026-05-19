@@ -21,6 +21,12 @@ bash lab/cross-arch-ffi/run.sh
 - `dlopen`/`dlsym` 打开 libm 并调用 `cos(0)`。
 - 输出当前 OS、架构、二进制体积。
 
+`byte_budget.c` 单独测“FFI + JIT 合体”的字节预算：
+
+- 先 FFI 解析系统 libc 的 `strlen`。
+- 再生成一段可执行机器码。
+- JIT 代码直接调用这个 FFI 函数，并输出 `jit.code.bytes`。
+
 若当前 checkout 缺少 TCC 链接所需 CRT 对象，脚本会记录链接失败并降级为 `-c` 编译对象验证。
 
 ## 当前判断
