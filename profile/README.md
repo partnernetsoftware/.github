@@ -1,20 +1,12 @@
 ![bh](49981741243466_.pic.jpg)
 
-UPDATE
-
-【AI 自进化】这个代码仓实在进化太快，我把它私有了。将来会慢慢把成果直接发布
-
-我发布一个 YOLO prompt for claude code:
+YOLO prompt:
 ```
 严格按顺序执行：
 1，如果我有新的留言给你，跳到第3步；
-2，安排subagent的工程师按todo任务树开工，因为是子任务，执行完继续下面第 3 步就行；
-3，根据第1和第2的情况，动态规划调整todo任务树；
+2，安排subagent的工程师按todo/mindmap任务树图开工，因为是子任务，执行完继续下面第 3 步就行；
+3，根据第1和第2的情况，动态规划调整todo/mindmap任务树图；
 4，只要任务树没全部处理完你就回到上面第1步
 ```
-
-有想法可以联系 wanjochan[at]azu.edu 但不一定会回复。
-
-做好失业的预期吧骚年们！
 
 Heil Yolo！Ebrace your unemployment!
