@@ -37,7 +37,7 @@ const PREVIEW_LINES = 80;
 const SHELL_COMMS = new Set(["bash", "zsh", "sh", "fish", "dash", "tmux", "-bash", "-zsh"]);
 
 const TUI_CONFIG = {
-  VERSION: '0.4.6',
+  VERSION: '0.4.8',
   VIEWER_SESSION: `__tui_viewer__`,
   TUI_KEYTABLE: "tui_empty",
   REMARK_KEY: "@remark",
@@ -517,6 +517,8 @@ interface TreeNode {
   autoLevel?: AutoLevel;
   /** getTree / f 刷新时缓存，render 路径不读 inbox */
   cachedUnread?: number;
+  /** f 刷新时在 drive 模式预计算，排序不再重复 windowMeta */
+  driveSortScore?: number;
 }
 
 const AUTO_LEVELS = ["0", "50", "100"] as const;
@@ -611,8 +613,9 @@ function nodeFromTarget(target: string): TreeNode {
   return { label: "", target: bare, indent: 0, type: "session", sessionName: bare };
 }
 
-function findNodeByRemark(wanted: string): TreeNode | null {
-  for (const n of getTree()) {
+function findNodeByRemark(wanted: string, source?: TreeNode[]): TreeNode | null {
+  const tree = source ?? (state.tree.length > 0 ? state.tree : syncTree());
+  for (const n of tree) {
     if (n.remark === wanted) return n;
   }
   return null;
@@ -725,9 +728,10 @@ function readCursorPath(name: string): string {
   return primary;
 }
 
-function findNodeByAgent(name: string): TreeNode | null {
+function findNodeByAgent(name: string, source?: TreeNode[]): TreeNode | null {
   const wanted = normalizeAgentName(name);
-  for (const n of getTree()) {
+  const tree = source ?? (state.tree.length > 0 ? state.tree : syncTree());
+  for (const n of tree) {
     if (n.type === "window" && n.agent === wanted) return n;
   }
   return null;
@@ -848,11 +852,16 @@ function agentLastInboxTs(agentId: string): number | null {
   return Number.isNaN(ts) ? null : ts;
 }
 
-function listRegisteredAgents(): Array<{ id: string; target: string; unread: number }> {
+function listRegisteredAgents(source?: TreeNode[]): Array<{ id: string; target: string; unread: number }> {
   const out: Array<{ id: string; target: string; unread: number }> = [];
-  for (const n of getTree()) {
+  const tree = source ?? syncTree();
+  for (const n of tree) {
     if (n.type === "window" && n.agent) {
-      out.push({ id: n.agent, target: n.target, unread: agentUnreadCount(n.agent) });
+      out.push({
+        id: n.agent,
+        target: n.target,
+        unread: n.cachedUnread ?? agentUnreadCount(n.agent),
+      });
     }
   }
   return out;
@@ -1387,14 +1396,14 @@ function fleetWindowRow(n: TreeNode, previewLines: number): CliFleetRow {
   };
 }
 
-function buildFleetSnapshot(previewLines = 1): CliFleetSnapshot {
+function buildFleetSnapshot(previewLines = 1, sourceTree?: TreeNode[]): CliFleetSnapshot {
   beginPaneSnapBatch();
   try {
     updateDriveProcMapSync();
   } catch {
     /* tmux/ps 不可用时跳过 proc */
   }
-  const tree = getTree();
+  const tree = sourceTree ?? syncTree();
   const rows: CliFleetRow[] = [];
   for (let i = 0; i < tree.length; i++) {
     const n = tree[i];
@@ -1412,7 +1421,7 @@ function buildFleetSnapshot(previewLines = 1): CliFleetSnapshot {
     }
     rows.push(fleetWindowRow(n, previewLines));
   }
-  const agents = listRegisteredAgents().map((a) => ({
+  const agents = listRegisteredAgents(tree).map((a) => ({
     id: a.id,
     target: a.target,
     unread: a.unread,
@@ -1427,7 +1436,7 @@ function buildFleetSnapshot(previewLines = 1): CliFleetSnapshot {
   };
 }
 
-function buildInspectResult(spec: string, previewLines: number): CliInspectResult {
+function buildInspectResult(spec: string, previewLines: number, sourceTree?: TreeNode[]): CliInspectResult {
   const { target, node } = parseTargetSpec(spec);
   const base: CliInspectResult = {
     version: TUI_CONFIG.VERSION,
@@ -1440,7 +1449,7 @@ function buildInspectResult(spec: string, previewLines: number): CliInspectResul
     placeholders: { lvl: "0", age: "—", st: "—", act: "—" },
   };
   if (node.type === "session") {
-    const tree = getTree();
+    const tree = sourceTree ?? syncTree();
     let wc = 0;
     for (const t of tree) {
       if (t.type === "window" && t.sessionName === node.sessionName) wc++;
@@ -1448,7 +1457,7 @@ function buildInspectResult(spec: string, previewLines: number): CliInspectResul
     return { ...base, windowCount: wc };
   }
   beginPaneSnapBatch();
-  const tree = getTree();
+  const tree = sourceTree ?? syncTree();
   const full = tree.find((n) => n.type === "window" && n.target === node.target) ?? node;
   const winIdx = full.target.split(":")[1] ?? "";
   const ag = full.agent ?? readAgent(full);
@@ -1471,40 +1480,74 @@ function buildInspectResult(spec: string, previewLines: number): CliInspectResul
   };
 }
 
-function getTree(): TreeNode[] {
+// PART:tree-sync
+
+const TREE_SESS_FMT = "#{session_name}|#{@remark}";
+const TREE_WIN_FMT = "#{window_index}|#{window_name}|#{window_active}|#{window_activity}|#{@auto}|#{@remark}|#{@agent}";
+
+function parseWinSyncFields(raw: string): {
+  idx: string; name: string; active: boolean; activity?: number; auto: AutoLevel; remark: string; agent: string;
+} {
+  const [idx, name, active, activity, autoRaw, remark, agent] = raw.split("|");
+  return {
+    idx: idx ?? "",
+    name: name ?? "",
+    active: active === "1",
+    activity: activity ? parseInt(activity, 10) || undefined : undefined,
+    auto: normalizeAutoLevel(autoRaw ?? "0"),
+    remark: (remark ?? "").trim(),
+    agent: (agent ?? "").trim(),
+  };
+}
+
+function syncTree(): TreeNode[] {
   const nodes: TreeNode[] = [];
-  const sessions = tmuxApi.listSessions();
-  for (const sess of sessions) {
-    const sessNode: TreeNode = {
-      label: `# ${sess}`,//sess,
+  for (const row of tmuxApi.listSessions(TREE_SESS_FMT)) {
+    const [sess, sessRemark = ""] = row.split("|");
+    nodes.push({
+      label: `# ${sess}`,
       target: sess,
       indent: 0,
       type: "session",
       sessionName: sess,
-    };
-    sessNode.remark = readRemark(sessNode);
-    nodes.push(sessNode);
-    const wins = tmuxApi.listWindows(sess, "#{window_index}|#{window_name}|#{window_active}|#{window_activity}|#{@auto}");
+      remark: sessRemark.trim() || undefined,
+    });
+    const wins = tmuxApi.listWindows(sess, TREE_WIN_FMT);
     for (let i = 0; i < wins.length; i++) {
-      const [idx, name, active, activity, autoRaw] = wins[i].split("|");
+      const w = parseWinSyncFields(wins[i]);
       const branch = i === wins.length - 1 ? "└" : "├";
-      const winNode: TreeNode = {
-        label: `${branch} ${name}`,
-        target: `${sess}:${idx}`,
+      nodes.push({
+        label: `${branch} ${w.name}`,
+        target: `${sess}:${w.idx}`,
         indent: 1,
         type: "window",
         sessionName: sess,
-        windowActive: active === "1",
-        windowActivity: activity ? parseInt(activity, 10) || undefined : undefined,
-        autoLevel: normalizeAutoLevel(autoRaw ?? "0"),
-      };
-      winNode.remark = readRemark(winNode);
-      winNode.agent = readAgent(winNode);
-      winNode.cachedUnread = winNode.agent ? agentUnreadCount(winNode.agent) : 0;
-      nodes.push(winNode);
+        windowActive: w.active,
+        windowActivity: w.activity,
+        autoLevel: w.auto,
+        remark: w.remark || undefined,
+        agent: w.agent || undefined,
+        cachedUnread: w.agent ? agentUnreadCount(w.agent) : 0,
+      });
     }
   }
   return nodes;
+}
+
+/** @deprecated 别名；请用 syncTree */
+function getTree(): TreeNode[] {
+  return syncTree();
+}
+
+function hydrateDriveSortScores(tree: TreeNode[]): void {
+  withDriveMetaCache(() => {
+    for (let i = 0; i < tree.length; i++) {
+      const n = tree[i];
+      if (n.type === "window") {
+        n.driveSortScore = driveRowScore(windowMeta(n, i));
+      }
+    }
+  });
 }
 
 async function getPreview(target: string): Promise<string> {
@@ -1617,8 +1660,10 @@ function toggleUiMode() {
   state.scrollOffset = 0;
   state.needsFullClear = true;
   invalidateDriveView();
-  if (enteringDrive) startDriveLoops();
-  else stopDriveLoops();
+  if (enteringDrive) {
+    hydrateDriveSortScores(state.tree);
+    startDriveLoops();
+  } else stopDriveLoops();
   const [cols, rows] = screen.getSize();
   state.clampView(treeVisibleRows(getLayout(cols, rows)));
   render();
@@ -1698,12 +1743,21 @@ function sessionChildCount(treeIdx: number): number {
   return n;
 }
 
-function driveRowScoreForNode(node: TreeNode): number {
-  return driveRowScore(windowMeta(node));
+function driveRowScoreForNode(node: TreeNode, treeIdx: number): number {
+  if (node.driveSortScore !== undefined) return node.driveSortScore;
+  return driveRowScore(windowMeta(node, treeIdx));
 }
 
 function buildDriveViewIndices(): number[] {
   const tree = state.tree;
+  const scoreCache = new Map<number, number>();
+  withDriveMetaCache(() => {
+    for (let i = 0; i < tree.length; i++) {
+      if (tree[i].type === "window") {
+        scoreCache.set(i, tree[i].driveSortScore ?? driveRowScore(windowMeta(tree[i], i)));
+      }
+    }
+  });
   const groups: Array<{ sessIdx: number; winIdxs: number[] }> = [];
   let i = 0;
   while (i < tree.length) {
@@ -1720,8 +1774,8 @@ function buildDriveViewIndices(): number[] {
       i++;
     }
     winIdxs.sort((a, b) => {
-      const sa = driveRowScoreForNode(tree[a]);
-      const sb = driveRowScoreForNode(tree[b]);
+      const sa = scoreCache.get(a) ?? 0;
+      const sb = scoreCache.get(b) ?? 0;
       if (sb !== sa) return sb - sa;
       const wa = tree[a].target.split(":")[1] ?? "";
       const wb = tree[b].target.split(":")[1] ?? "";
@@ -2209,6 +2263,18 @@ function handleInputKey(s: string): void {
 
 // PART:tui-keys
 
+function matchKeyUp(s: string): boolean {
+  if (s === "k") return true;
+  if (s === "\x1b[A" || s === "\x1bOA") return true;
+  return /^\x1b\[(?:\d+(?:;\d+)*)?A$/.test(s);
+}
+
+function matchKeyDown(s: string): boolean {
+  if (s === "j") return true;
+  if (s === "\x1b[B" || s === "\x1bOB") return true;
+  return /^\x1b\[(?:\d+(?:;\d+)*)?B$/.test(s);
+}
+
 function cursorUp() {
   if (state.uiMode === "drive") {
     driveCursorStep(-1);
@@ -2237,17 +2303,134 @@ function enterAttach() {
   attach(state.tree[state.cursor].target);
 }
 
-const TUI_KEYBINDS: { help: string; match: (s: string) => boolean; run: () => void }[] = [
-  { help: "↑/k", match: (s) => s === "\x1b[A" || s === "k", run: cursorUp },
-  { help: "↓/j", match: (s) => s === "\x1b[B" || s === "j", run: cursorDown },
-  { help: "n:Session", match: (s) => s === "n", run: () => newSession() },
-  { help: "w:Win", match: (s) => s === "w", run: () => newWindow() },
-  { help: "d:删", match: (s) => s === "d", run: () => deleteCurrent() },
-  { help: "r:改名", match: (s) => s === "r", run: () => renameCurrent() },
-  { help: "m:备注", match: (s) => s === "m", run: () => remarkCurrent() },
-  { help: "f:刷", match: (s) => s === "f", run: () => refreshAll() },
-  { help: "o:模式", match: (s) => s === "o", run: () => toggleUiMode() },
+// PART:tui-registry — mirror CLI_OPS / CLI_USER_OPTS
+
+type TuiPromptSpec = {
+  key: string;
+  help: string;
+  mirror?: string;
+  needsTree?: boolean;
+  prompt: () => string;
+  submit: (answer: string | null) => void;
+};
+
+type TuiInstantSpec = {
+  key: string;
+  help: string;
+  run: () => void;
+};
+
+function runTuiPrompt(spec: TuiPromptSpec): void {
+  if (spec.needsTree && state.tree.length === 0) return;
+  startInput(spec.prompt(), spec.submit);
+}
+
+const TUI_NAV: { help: string; match: (s: string) => boolean; run: () => void }[] = [
+  { help: "↑/k", match: matchKeyUp, run: cursorUp },
+  { help: "↓/j", match: matchKeyDown, run: cursorDown },
 ];
+
+const TUI_INSTANT: TuiInstantSpec[] = [
+  { key: "f", help: "f:刷", run: refreshAll },
+  { key: "o", help: "o:模式", run: toggleUiMode },
+];
+
+const TUI_PROMPTS: TuiPromptSpec[] = [
+  {
+    key: "n",
+    help: "n:Session",
+    mirror: "new-session",
+    prompt: () => "新 Session 名称",
+    submit: (raw) => {
+      if (raw?.trim()) {
+        const name = opNewSession(raw);
+        refreshAll();
+        const idx = state.tree.findIndex((n) => n.type === "session" && n.target === name);
+        if (idx >= 0) state.cursor = idx;
+      }
+      refreshPreview();
+    },
+  },
+  {
+    key: "w",
+    help: "w:Win",
+    mirror: "new-window",
+    needsTree: true,
+    prompt: () => `在 [${state.tree[state.cursor].sessionName}] 新建 Window 名称`,
+    submit: (raw) => {
+      if (raw?.trim()) {
+        opNewWindow(state.tree[state.cursor].sessionName, raw);
+        refreshAll();
+      }
+      refreshPreview();
+    },
+  },
+  {
+    key: "d",
+    help: "d:删",
+    mirror: "kill-window",
+    needsTree: true,
+    prompt: () => {
+      const node = state.tree[state.cursor];
+      const what = node.type === "session" ? `session [${node.target}]` : `window [${node.target}]`;
+      return `删除 ${node.type} ${what}? (y/n)`;
+    },
+    submit: (ans) => {
+      const node = state.tree[state.cursor];
+      if (ans?.toLowerCase() === "y" && node.type === "window") opKillWindow(node.target);
+      refreshAll();
+    },
+  },
+  {
+    key: "r",
+    help: "r:改名",
+    mirror: "rename",
+    needsTree: true,
+    prompt: () => {
+      const node = state.tree[state.cursor];
+      return `rename ${node.type} [${node.target}]`;
+    },
+    submit: (raw) => {
+      const node = state.tree[state.cursor];
+      const spec = node.type === "session" ? node.sessionName : node.target;
+      if (raw?.trim()) opRename(spec, raw);
+      refreshAll();
+    },
+  },
+  {
+    key: "m",
+    help: "m:备注",
+    mirror: "remark",
+    needsTree: true,
+    prompt: () => `修改备注 [${state.tree[state.cursor].target}]`,
+    submit: (raw) => {
+      if (raw === null) {
+        render();
+        return;
+      }
+      writeRemark(state.tree[state.cursor], raw.trim());
+      refreshAll();
+    },
+  },
+];
+
+function buildTuiKeybinds(): { help: string; match: (s: string) => boolean; run: () => void }[] {
+  return [
+    ...TUI_NAV,
+    ...TUI_PROMPTS.map((p) => ({
+      help: p.help,
+      match: (s: string) => s === p.key,
+      run: () => runTuiPrompt(p),
+    })),
+    ...TUI_INSTANT.map((i) => ({
+      help: i.help,
+      match: (s: string) => s === i.key,
+      run: i.run,
+    })),
+  ];
+}
+
+const TUI_KEYBINDS = buildTuiKeybinds();
 
 function tuiHeaderHelp(): string {
   return ["Enter进", "C-←回", ...TUI_KEYBINDS.map((b) => b.help), "q:退"].join(" ");
@@ -2258,73 +2441,6 @@ const TUI_ENTER_KEYS = new Set([
 ]);
 
 // PART:tui-ops
-
-function newSession() {
-  startInput("新 Session 名称", (raw) => {
-    if (raw?.trim()) {
-      const name = opNewSession(raw);
-      refreshAll();
-      const idx = state.tree.findIndex((n) => n.type === "session" && n.target === name);
-      if (idx >= 0) state.cursor = idx;
-    }
-    refreshPreview();
-  });
-}
-
-function newWindow() {
-  if (state.tree.length === 0) return;
-  const sess = state.tree[state.cursor].sessionName;
-  startInput(`在 [${sess}] 新建 Window 名称`, (raw) => {
-    if (raw?.trim()) {
-      opNewWindow(sess, raw);
-      refreshAll();
-    }
-    refreshPreview();
-  });
-}
-
-function deleteCurrent() {
-  if (state.tree.length === 0) return;
-  const node = state.tree[state.cursor];
-  const what =
-    node.type === "session"
-      ? `session [${node.target}]`
-      : `window [${node.target}]`;
-
-  startInput(`删除 ${node.type} ${what}? (y/n)`, (ans) => {
-    if (ans?.toLowerCase() === "y") {
-      if (node.type === "session") {
-        // too danger, not enabled yet
-      } else {
-        opKillWindow(node.target);
-      }
-    }
-    refreshAll();
-  });
-}
-
-function renameCurrent() {
-  if (state.tree.length === 0) return;
-  const node = state.tree[state.cursor];
-  const spec = node.type === "session" ? node.sessionName : node.target;
-  startInput(`rename ${node.type} [${node.target}]`, (raw) => {
-    if (raw?.trim()) opRename(spec, raw);
-    refreshAll();
-  });
-}
-
-function remarkCurrent() {
-  if (state.tree.length === 0) return;
-  const node = state.tree[state.cursor];
-  startInput(`修改备注 [${node.target}]`, (raw) => {
-    if (raw === null) {
-      render();
-      return;
-    }
-    writeRemark(node, raw.trim());
-    refreshAll();
-  });
-}
 
 /** 单次 shell 批量 tmux 配置，避免逐个 spawn 刷屏 */
 function tmuxShBatch(script: string): void {
@@ -2410,7 +2526,8 @@ function resumeTreeAfterAttach() {
 
   setTimeout(() => {
     withTmuxQuiet(() => {
-      state.tree = getTree();
+      state.tree = syncTree();
+      if (state.uiMode === "drive") hydrateDriveSortScores(state.tree);
       if (state.cursor >= state.tree.length) {
         state.cursor = Math.max(0, state.tree.length - 1);
       }
@@ -2427,7 +2544,8 @@ function refreshAll() {
   state.suppressPreviewAfterAttach = false;
   state.needsFullClear = true;
   invalidateDriveView();
-  state.tree = getTree();
+  state.tree = syncTree();
+  if (state.uiMode === "drive") hydrateDriveSortScores(state.tree);
   if (state.cursor >= state.tree.length) state.cursor = Math.max(0, state.tree.length - 1);
   if (state.uiMode === "drive") {
     void refreshDriveSnapshots(true);
@@ -2517,6 +2635,49 @@ function schedulePreview(opts?: {
 
 let lastClickY = -1;
 let lastClickT = 0;
+/** raw stdin 分片 ESC 缓冲 */
+let keyInputBuf = "";
+
+function isEscapeComplete(s: string): boolean {
+  if (!s.startsWith("\x1b")) return true;
+  if (s.length === 1) return false;
+  if (s.startsWith("\x1b[<")) return /^\x1b\[<\d+;\d+;\d+[Mm]/.test(s);
+  if (s.startsWith("\x1bO")) return s.length >= 3;
+  if (s.startsWith("\x1b[")) return /^\x1b\[[\d;]*[\x40-\x7E]$/.test(s);
+  return s.length >= 2;
+}
+
+function pullKeySequences(data: Buffer): string[] {
+  keyInputBuf += data.toString();
+  const out: string[] = [];
+  while (keyInputBuf.length > 0) {
+    const mouse = keyInputBuf.match(/^\x1b\[<(\d+);(\d+);(\d+)([Mm])/);
+    if (mouse) {
+      handleMouse(parseInt(mouse[1], 10), parseInt(mouse[2], 10), parseInt(mouse[3], 10), mouse[4] === "M");
+      keyInputBuf = keyInputBuf.slice(mouse[0].length);
+      continue;
+    }
+    if (keyInputBuf.startsWith("\x1b")) {
+      if (!isEscapeComplete(keyInputBuf)) {
+        if (keyInputBuf.length > 24) {
+          out.push(keyInputBuf[0]!);
+          keyInputBuf = keyInputBuf.slice(1);
+          continue;
+        }
+        break;
+      }
+      const ss3 = keyInputBuf.match(/^\x1bO[\x40-\x7E]/)?.[0];
+      const csi = keyInputBuf.match(/^\x1b\[[\d;]*[\x40-\x7E]/)?.[0];
+      const seq = ss3 || csi || keyInputBuf.slice(0, 1);
+      out.push(seq);
+      keyInputBuf = keyInputBuf.slice(seq.length);
+      continue;
+    }
+    out.push(keyInputBuf[0]!);
+    keyInputBuf = keyInputBuf.slice(1);
+  }
+  return out;
+}
 
 function handleMouse(rawBtn: number, x: number, y: number, press: boolean) {
   const { btn } = decodeMouseBtn(rawBtn);
@@ -2575,19 +2736,7 @@ function handleMouse(rawBtn: number, x: number, y: number, press: boolean) {
   schedulePreview();
 }
 
-function handleKey(data: Buffer) {
-  let s = data.toString();
-
-  if (s.indexOf("\x1b[<") >= 0) {
-    const re = /\x1b\[<(\d+);(\d+);(\d+)([Mm])/g;
-    let m: RegExpExecArray | null;
-    while ((m = re.exec(s)) !== null) {
-      handleMouse(parseInt(m[1]), parseInt(m[2]), parseInt(m[3]), m[4] === "M");
-    }
-    s = s.replace(re, "");
-    if (!s) return;
-  }
-
+function handleKeySeq(s: string) {
   if (state.inputMode) {
     handleInputKey(s);
     return;
@@ -2617,6 +2766,10 @@ function handleKey(data: Buffer) {
     const hex = [...s].map(c => "\\x" + c.charCodeAt(0).toString(16).padStart(2, "0")).join("");
     require("fs").appendFileSync("/tmp/tui_debug_keys.log", `[${new Date().toISOString()}] unhandled seq (len=${s.length}): ${hex}\n`);
   }
+}
+
+function handleKey(data: Buffer) {
+  for (const s of pullKeySequences(data)) handleKeySeq(s);
 }
 
 // PART:cli
@@ -3194,16 +3347,74 @@ function cliAgentUnregister(ctx: CliCtx): number {
   return 0;
 }
 
+type AgentCmdSpec = {
+  summary: string;
+  usage: string;
+  aliases?: string[];
+  run: (ctx: CliCtx) => number;
+};
+
+const CLI_AGENT_CMDS: Record<string, AgentCmdSpec> = {
+  register: {
+    summary: "为 window 设置 @agent 纯名",
+    usage: "<window-spec> <name>",
+    aliases: ["bind"],
+    run: cliAgentRegister,
+  },
+  unregister: {
+    summary: "清除 window 的 @agent",
+    usage: "<window-spec>",
+    aliases: ["unbind"],
+    run: cliAgentUnregister,
+  },
+  send: {
+    summary: "投递消息到对方 ~/.tui/inbox",
+    usage: "<to> --from <me> [--corr id] [--reply] <body>",
+    run: cliAgentSend,
+  },
+  inbox: {
+    summary: "读取 inbox（jsonl）",
+    usage: "<me> [--follow] [--mark-read] [--since iso]",
+    run: cliAgentInbox,
+  },
+  wait: {
+    summary: "阻塞等待 kind=reply 且 corr 匹配",
+    usage: "<me> --corr id [--timeout 60]",
+    run: cliAgentWait,
+  },
+  list: {
+    summary: "已注册 agent、未读、inbox 路径",
+    usage: "[--json]",
+    aliases: ["ls"],
+    run: cliAgentList,
+  },
+};
+
+function matchAgentCmd(name: string): [string, AgentCmdSpec] | null {
+  for (const [n, spec] of Object.entries(CLI_AGENT_CMDS)) {
+    if (n === name || (spec.aliases?.includes(name) ?? false)) return [n, spec];
+  }
+  return null;
+}
+
 function cliAgentLegacy(ctx: CliCtx): number {
   const sub = ctx.rest[0];
-  if (sub === "register" || sub === "bind") return cliAgentRegister({ ...ctx, rest: ctx.rest.slice(1) });
-  if (sub === "unregister" || sub === "unbind") return cliAgentUnregister({ ...ctx, rest: ctx.rest.slice(1) });
-  if (sub === "send") return cliAgentSend({ ...ctx, rest: ctx.rest.slice(1) });
-  if (sub === "inbox") return cliAgentInbox({ ...ctx, rest: ctx.rest.slice(1) });
-  if (sub === "wait") return cliAgentWait({ ...ctx, rest: ctx.rest.slice(1) });
-  if (sub === "list" || sub === "ls") return cliAgentList(ctx);
-  process.stderr.write(`未知 agent 子命令: ${sub}\n`);
-  return 2;
+  const hit = sub ? matchAgentCmd(sub) : null;
+  if (!hit) {
+    process.stderr.write(`未知 agent 子命令: ${sub ?? "(none)"}\n`);
+    return 2;
+  }
+  return hit[1].run({ ...ctx, rest: ctx.rest.slice(1) });
+}
+
+function buildAgentCmd(name: string, spec: AgentCmdSpec): CliCommand {
+  return {
+    name,
+    aliases: spec.aliases,
+    summary: spec.summary,
+    usage: spec.usage,
+    run: spec.run,
+  };
 }
 
 function buildAgentGroup(): CliCommand {
@@ -3211,47 +3422,7 @@ function buildAgentGroup(): CliCommand {
     name: "agent",
     summary: "v0.3 — window @agent 纯名；与 @remark 分离",
     run: cliAgentLegacy,
-    children: [
-      {
-        name: "register",
-        aliases: ["bind"],
-        summary: "为 window 设置 @agent 纯名",
-        usage: "<window-spec> <name>",
-        run: cliAgentRegister,
-      },
-      {
-        name: "unregister",
-        aliases: ["unbind"],
-        summary: "清除 window 的 @agent",
-        usage: "<window-spec>",
-        run: cliAgentUnregister,
-      },
-      {
-        name: "send",
-        summary: "投递消息到对方 ~/.tui/inbox",
-        usage: "<to> --from <me> [--corr id] [--reply] <body>",
-        run: cliAgentSend,
-      },
-      {
-        name: "inbox",
-        summary: "读取 inbox（jsonl）",
-        usage: "<me> [--follow] [--mark-read] [--since iso]",
-        run: cliAgentInbox,
-      },
-      {
-        name: "wait",
-        summary: "阻塞等待 kind=reply 且 corr 匹配",
-        usage: "<me> --corr id [--timeout 60]",
-        run: cliAgentWait,
-      },
-      {
-        name: "list",
-        aliases: ["ls"],
-        summary: "已注册 agent、未读、inbox 路径",
-        usage: "[--json]",
-        run: cliAgentList,
-      },
-    ],
+    children: Object.entries(CLI_AGENT_CMDS).map(([n, s]) => buildAgentCmd(n, s)),
   };
 }
 
@@ -3418,10 +3589,10 @@ function startTui(): void {
   }
   _resolvedTmuxBin = _tmuxAtStart;
 
-  state.tree = getTree();
+  state.tree = syncTree();
   if (state.tree.length === 0) {
     tmuxApi.newSession("main");
-    state.tree = getTree();
+    state.tree = syncTree();
     if (state.tree.length === 0) {
       tmuxApi.assertAvailable();
     }
