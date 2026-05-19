@@ -10,6 +10,11 @@
 #include <sys/mman.h>
 #endif
 
+#if defined(__COSMOPOLITAN__)
+extern void *cosmo_dlopen(const char *filename, int flags);
+extern void *cosmo_dlsym(void *handle, const char *symbol);
+#endif
+
 #define HEADER_SIZE 32u
 #define IMPORT_SIZE 16u
 #define CONST_SIZE 16u
@@ -462,6 +467,14 @@ static void *open_named_library(const char *name) {
     return h ? h : LoadLibraryA("msvcrt.dll");
   }
   return LoadLibraryA(name);
+#elif defined(__COSMOPOLITAN__)
+  if (strcmp(name, "libc") == 0) {
+    void *h = cosmo_dlopen(NULL, RTLD_LAZY);
+    if (h) return h;
+    h = cosmo_dlopen("libc.so.6", RTLD_LAZY);
+    return h ? h : cosmo_dlopen("libc.so", RTLD_LAZY);
+  }
+  return cosmo_dlopen(name, RTLD_LAZY);
 #else
   if (strcmp(name, "libc") == 0) {
 #if defined(__APPLE__)
@@ -478,6 +491,8 @@ static void *open_named_library(const char *name) {
 static void *load_symbol(void *handle, const char *name) {
 #if defined(_WIN32)
   return (void *)GetProcAddress((HMODULE)handle, name);
+#elif defined(__COSMOPOLITAN__)
+  return cosmo_dlsym(handle, name);
 #else
   return dlsym(handle, name);
 #endif
