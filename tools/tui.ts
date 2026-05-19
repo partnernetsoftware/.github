@@ -1068,7 +1068,7 @@ const uninstallCtrlQ = () => {
   tmuxApi.unbindKeyRoot("M-Left");
 };
 
-// ── 外层 tmux mouse（主界面 SGR on；沉浸式 attach 内 mouse off，见 attach）──
+// ── 外层 tmux mouse（主界面 SGR on；沉浸式 viewer session mouse on，见 createViewer）──
 const insideTmux = tmuxApi.isInsideSession();
 let savedOuterMouse: string | null = null;
 
@@ -1083,7 +1083,7 @@ function decodeMouseBtn(raw: number) {
 }
 
 // ═══ MAIN_SELECT_PAUSED：主界面 preview 终端选区（s / Shift+点 / 点 preview）暂停 ═══
-// 沉浸式 attach() 仍 screen.disableMouse()，终端可划选，与此无关。恢复时取消本块注释。
+// 沉浸式 attach() 仍 screen.disableMouse()（关 TUI SGR）；滚轮由 viewer tmux mouse 接管。恢复时取消本块注释。
 /*
 function enterSelectMode() {
   if (state.selectMode) return;
@@ -1301,10 +1301,12 @@ function createViewer(sess: string, idx?: string) {
   tmuxApi.newGroupedSession(v, sess);
   const tb = tmuxBin().replace(/'/g, "'\\''");
   const opts = [
-    `'${tb}' set-option -t '${v}' key-table '${TUI_CONFIG.TUI_KEYTABLE}'`,
+    // 用 root 键表才有默认 WheelUp/Down；tui_empty 无滚轮绑定
+    `'${tb}' set-option -t '${v}' key-table root`,
     `'${tb}' set-option -t '${v}' prefix None`,
     `'${tb}' set-option -t '${v}' prefix2 None`,
-    `'${tb}' set-option -t '${v}' mouse off`,
+    // mouse on：滚 pane 历史；mouse off 时终端 scrollback 会连 status 一起滚
+    `'${tb}' set-option -t '${v}' mouse on`,
     `'${tb}' set-option -t '${v}' status-position top`,
     `'${tb}' set-option -t '${v}' status on`,
     `'${tb}' set-option -t '${v}' status-left ' #[bold]ctrl-左: 返回 '`,
@@ -1318,6 +1320,7 @@ function createViewer(sess: string, idx?: string) {
   ].join(" && ");
   const win = idx ? ` && '${tb}' select-window -t '=${v}:${idx}'` : "";
   tmuxShBatch(opts + win);
+  tmuxApi.setSessionOption(v, "mouse", "on");
 }
 
 function attach(target: string) {
@@ -1331,6 +1334,8 @@ function attach(target: string) {
   screen.showCursor();
   screen.disableMouse();
   process.stdin.setRawMode(false);
+  // 主界面 disableOuterMouse 可能关了全局 mouse；沉浸式须开回，否则 server 收不到滚轮
+  tmuxApi.setGlobalOption("mouse", "on");
   withTmuxQuiet(() => {
     installCtrlQ();
     createViewer(sess, idx);
