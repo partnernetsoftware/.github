@@ -19,11 +19,12 @@ const RETURN_FROM_ATTACH_DELAY = 120; // detach 后静默 sync tree / restore st
 const PREVIEW_LINES = 80;
 
 const TUI_CONFIG = {
-  VERSION: '0.3.3',
+  VERSION: '0.4.1',
   VIEWER_SESSION: `__tui_viewer__`,
   TUI_KEYTABLE: "tui_empty",
   REMARK_KEY: "@remark",
   AGENT_KEY: "@agent",
+  AUTO_KEY: "@auto",
   TITLE: "TMUX 驾驶舱",
   TMUX_HOME: join(homedir(), "tmux"),
   TMUX_PORTABLE_BIN: join(homedir(), "tmux", "bin", "tmux"),
@@ -487,7 +488,14 @@ interface TreeNode {
   sessionName: string;
   remark?: string;
   agent?: string;
+  /** tmux #{window_activity} epoch seconds */
+  windowActivity?: number;
+  /** tmux #{window_active} */
+  windowActive?: boolean;
 }
+
+const AUTO_LEVELS = ["0", "50", "100"] as const;
+type AutoLevel = (typeof AUTO_LEVELS)[number];
 
 function parseUserOptionValue(raw: string, key: string): string {
   if (!raw) return "";
@@ -522,6 +530,19 @@ function readAgent(node: { type: "session" | "window"; target: string; sessionNa
   return readUserOption(node, TUI_CONFIG.AGENT_KEY);
 }
 
+function normalizeAutoLevel(raw: string): AutoLevel {
+  return raw === "50" || raw === "100" ? raw : "0";
+}
+
+function readAuto(node: { type: "session" | "window"; target: string; sessionName: string }): AutoLevel {
+  return normalizeAutoLevel(readUserOption(node, TUI_CONFIG.AUTO_KEY));
+}
+
+function nextAutoLevel(cur: AutoLevel): AutoLevel {
+  const i = AUTO_LEVELS.indexOf(cur);
+  return AUTO_LEVELS[(i + 1) % AUTO_LEVELS.length];
+}
+
 function writeRemark(node: TreeNode, value: string) {
   // 关键：用 `=NAME:` / `=NAME:IDX` 精确目标，避免 tmux 对 "1"、短名 做模糊匹配导致跨 session 污染
   if (node.type === "session") {
@@ -539,6 +560,14 @@ function writeAgent(node: TreeNode, value: string) {
   const idx = node.target.split(":")[1] ?? "";
   const winTarget = buildWinTarget(node.sessionName, idx);
   setUserOption(winTarget, true, TUI_CONFIG.AGENT_KEY, value || null);
+}
+
+function writeAuto(node: TreeNode, value: string) {
+  if (node.type !== "window") throw new Error("auto 仅可绑定 window");
+  const idx = node.target.split(":")[1] ?? "";
+  const winTarget = buildWinTarget(node.sessionName, idx);
+  const lvl = normalizeAutoLevel(value);
+  setUserOption(winTarget, true, TUI_CONFIG.AUTO_KEY, lvl === "0" ? null : lvl);
 }
 
 /** spec → tmux target + TreeNode（TUI / CLI 共用） */
@@ -798,6 +827,13 @@ function agentMarkRead(agentId: string, throughLine?: number): void {
   writeFileSync(readCursorPath(agentId), String(n));
 }
 
+function agentLastInboxTs(agentId: string): number | null {
+  const rows = parseInboxFile(inboxPath(agentId));
+  if (rows.length === 0) return null;
+  const ts = Date.parse(rows[rows.length - 1].ts);
+  return Number.isNaN(ts) ? null : ts;
+}
+
 function listRegisteredAgents(): Array<{ id: string; target: string; unread: number }> {
   const out: Array<{ id: string; target: string; unread: number }> = [];
   for (const n of getTree()) {
@@ -881,6 +917,13 @@ function windowNameFromNode(node: TreeNode): string {
   return node.label.replace(/^[├└]\s*/, "").trim();
 }
 
+const DRIVE_PH = "—"; // 未实现列占位
+const DRIVE_ALERT_RE = /\b(error|fail|panic|exception|fatal)\b/i;
+
+function driveAlertFromText(line: string): boolean {
+  return DRIVE_ALERT_RE.test(stripAnsi(line));
+}
+
 function capturePreviewMeta(target: string, lines: number): { lastLine: string; text: string } {
   const text = tmuxApi.capturePaneText(target, lines);
   const lastLine =
@@ -888,7 +931,95 @@ function capturePreviewMeta(target: string, lines: number): { lastLine: string; 
   return { lastLine, text };
 }
 
+type CaptureCacheEntry = { lastLine: string; alert: boolean; text: string };
+let captureCache: Map<string, CaptureCacheEntry> | null = null;
+
+function beginCaptureCache(): void {
+  captureCache = new Map();
+}
+
+function clearCaptureCache(): void {
+  captureCache = null;
+}
+
+function getCachedCapture(target: string, lines: number): CaptureCacheEntry {
+  if (!captureCache) {
+    const { lastLine, text } = capturePreviewMeta(target, lines);
+    return { lastLine, alert: driveAlertFromText(lastLine), text };
+  }
+  let entry = captureCache.get(target);
+  if (!entry) {
+    const { lastLine, text } = capturePreviewMeta(target, lines);
+    entry = { lastLine, alert: driveAlertFromText(lastLine), text };
+    captureCache.set(target, entry);
+  }
+  return entry;
+}
+
+/** 上一 refresh 周期末行 hash，供 act 忙碌启发 */
+const drivePrevLineHash = new Map<string, string>();
+
+function syncDriveLineHashes(): void {
+  const next = new Map<string, string>();
+  for (const n of state.tree) {
+    if (n.type !== "window") continue;
+    const winIdx = n.target.split(":")[1] ?? "";
+    const target = buildWinTarget(n.sessionName, winIdx);
+    next.set(target, getCachedCapture(target, 1).lastLine);
+  }
+  drivePrevLineHash.clear();
+  for (const [k, v] of next) drivePrevLineHash.set(k, v);
+}
+
+function formatRelativeAge(epochSec: number): string {
+  const sec = Math.max(0, Math.floor(Date.now() / 1000 - epochSec));
+  if (sec < 60) return "now";
+  const min = Math.floor(sec / 60);
+  if (min < 60) return `${min}m`;
+  const hr = Math.floor(min / 60);
+  if (hr < 24) return `${hr}h`;
+  return `${Math.floor(hr / 24)}d`;
+}
+
+function windowDriveAge(node: TreeNode): string {
+  let epochSec = node.windowActivity;
+  if (!epochSec && node.agent) {
+    const inboxTs = agentLastInboxTs(node.agent);
+    if (inboxTs !== null) epochSec = Math.floor(inboxTs / 1000);
+  }
+  if (!epochSec) return DRIVE_PH;
+  return formatRelativeAge(epochSec);
+}
+
+function deriveActChar(node: TreeNode, lastLine: string): string {
+  if (node.windowActive) return "●";
+  const winIdx = node.target.split(":")[1] ?? "";
+  const target = buildWinTarget(node.sessionName, winIdx);
+  const prev = drivePrevLineHash.get(target);
+  if (prev !== undefined && prev !== lastLine && lastLine) return "…";
+  return "○";
+}
+
+function windowDriveMeta(node: TreeNode): {
+  unread: number; alert: boolean; lastLine: string; lvl: AutoLevel; age: string; act: string;
+} {
+  const ag = node.agent;
+  const unread = ag ? agentUnreadCount(ag) : 0;
+  const winIdx = node.target.split(":")[1] ?? "";
+  const target = buildWinTarget(node.sessionName, winIdx);
+  const cap = getCachedCapture(target, 1);
+  return {
+    unread,
+    alert: cap.alert,
+    lastLine: cap.lastLine,
+    lvl: readAuto(node),
+    age: windowDriveAge(node),
+    act: deriveActChar(node, cap.lastLine),
+  };
+}
+
 function buildFleetSnapshot(previewLines = 1): CliFleetSnapshot {
+  beginCaptureCache();
   const tree = getTree();
   const rows: CliFleetRow[] = [];
   for (let i = 0; i < tree.length; i++) {
@@ -907,7 +1038,10 @@ function buildFleetSnapshot(previewLines = 1): CliFleetSnapshot {
     }
     const winIdx = n.target.split(":")[1] ?? "";
     const ag = n.agent;
-    const { lastLine } = capturePreviewMeta(buildWinTarget(n.sessionName, winIdx), previewLines);
+    const m = windowDriveMeta(n);
+    const cap = previewLines > 1
+      ? getCachedCapture(buildWinTarget(n.sessionName, winIdx), previewLines)
+      : { lastLine: m.lastLine, alert: m.alert, text: "" };
     rows.push({
       type: "window",
       target: n.target,
@@ -917,10 +1051,10 @@ function buildFleetSnapshot(previewLines = 1): CliFleetSnapshot {
       label: n.label,
       remark: n.remark || undefined,
       agent: ag || undefined,
-      unread: ag ? agentUnreadCount(ag) : 0,
+      unread: m.unread,
       inboxPath: ag ? inboxPath(ag) : undefined,
-      previewLastLine: lastLine || undefined,
-      placeholders: { lvl: "0", age: "—", st: "—", act: "—" },
+      previewLastLine: cap.lastLine || undefined,
+      placeholders: { lvl: m.lvl, age: m.age, st: m.alert ? "!" : "—", act: m.act },
     });
   }
   const agents = listRegisteredAgents().map((a) => ({
@@ -929,6 +1063,7 @@ function buildFleetSnapshot(previewLines = 1): CliFleetSnapshot {
     unread: a.unread,
     inboxPath: inboxPath(a.id),
   }));
+  clearCaptureCache();
   return {
     version: TUI_CONFIG.VERSION,
     generatedAt: new Date().toISOString(),
@@ -957,18 +1092,24 @@ function buildInspectResult(spec: string, previewLines: number): CliInspectResul
     }
     return { ...base, windowCount: wc };
   }
-  const winIdx = node.target.split(":")[1] ?? "";
-  const ag = node.agent;
-  const cap = capturePreviewMeta(buildWinTarget(node.sessionName, winIdx), previewLines);
+  beginCaptureCache();
+  const tree = getTree();
+  const full = tree.find((n) => n.type === "window" && n.target === node.target) ?? node;
+  const winIdx = full.target.split(":")[1] ?? "";
+  const ag = full.agent ?? readAgent(full);
+  const m = windowDriveMeta(full);
+  const cap = getCachedCapture(buildWinTarget(full.sessionName, winIdx), previewLines);
+  clearCaptureCache();
   return {
     ...base,
     windowIndex: winIdx,
-    windowName: windowNameFromNode(node),
-    label: node.label,
+    windowName: windowNameFromNode(full),
+    label: full.label,
     agent: ag || undefined,
     unread: ag ? agentUnreadCount(ag) : 0,
     inboxPath: ag ? inboxPath(ag) : undefined,
     preview: { lines: previewLines, text: cap.text, lastLine: cap.lastLine },
+    placeholders: { lvl: m.lvl, age: m.age, st: m.alert ? "!" : "—", act: m.act },
   };
 }
 
@@ -985,9 +1126,9 @@ function getTree(): TreeNode[] {
     };
     sessNode.remark = readRemark(sessNode);
     nodes.push(sessNode);
-    const wins = tmuxApi.listWindows(sess, "#{window_index}|#{window_name}|#{window_active}");
+    const wins = tmuxApi.listWindows(sess, "#{window_index}|#{window_name}|#{window_active}|#{window_activity}");
     for (let i = 0; i < wins.length; i++) {
-      const [idx, name, active] = wins[i].split("|");
+      const [idx, name, active, activity] = wins[i].split("|");
       const marker = "" //active === "1" ? "●" : "○";
       const branch = i === wins.length - 1 ? "└" : "├";
       const winNode: TreeNode = {
@@ -996,6 +1137,8 @@ function getTree(): TreeNode[] {
         indent: 1,
         type: "window",
         sessionName: sess,
+        windowActive: active === "1",
+        windowActivity: activity ? parseInt(activity, 10) || undefined : undefined,
       };
       winNode.remark = readRemark(winNode);
       winNode.agent = readAgent(winNode);
@@ -1053,8 +1196,16 @@ class TuiState {
   // selectMode = false; // 主界面选区暂停，见下方 MAIN_SELECT_PAUSED 块
   /** 从沉浸式返回后：右侧 preview 不自动 capture（避免把刚看过的输出再刷一遍） */
   suppressPreviewAfterAttach = false;
+  /** 驾驶模式：折叠的 session 名 */
+  collapsedSessions = new Set<string>();
+  /** 驾驶表可见行 → state.tree 下标（排序+折叠后） */
+  driveViewIndices: number[] | null = null;
 
   clampView(bodyH: number) {
+    if (state.uiMode === "drive") {
+      clampDriveView(bodyH);
+      return;
+    }
     if (this.cursor < this.viewOffset) this.viewOffset = this.cursor;
     else if (this.cursor >= this.viewOffset + bodyH) this.viewOffset = this.cursor - bodyH + 1;
     if (this.viewOffset < 0) this.viewOffset = 0;
@@ -1096,17 +1247,22 @@ function treeVisibleRows(layout: LayoutInfo): number {
   return layout.mode === "drive" ? layout.treeDataH : layout.bodyH;
 }
 
+function invalidateDriveView() {
+  state.driveViewIndices = null;
+}
+
 function toggleUiMode() {
   state.uiMode = state.uiMode === "index" ? "drive" : "index";
   state.viewOffset = 0;
   state.scrollOffset = 0;
+  invalidateDriveView();
   const [cols, rows] = screen.getSize();
   state.clampView(treeVisibleRows(getLayout(cols, rows)));
   render();
   schedulePreview();
 }
 
-/** 驾驶表列（固定宽 + task 弹性）；占位列后续再接逻辑 */
+/** 驾驶表列（固定宽 + task 弹性） */
 type DriveColWidths = {
   stat: number; sess: number; win: number; wname: number; agent: number; task: number;
   unread: number; lvl: number; age: number; st: number; act: number;
@@ -1116,8 +1272,6 @@ type DriveRowCells = {
   stat: string; sess: string; win: string; wname: string; agent: string; task: string;
   unread: string; lvl: string; age: string; st: string; act: string;
 };
-
-const DRIVE_PH = "—"; // 未实现列占位
 
 /** Session / Win 固定下限；窄屏先缩 wname/agent，再缩 task */
 function driveColWidths(cols: number): DriveColWidths {
@@ -1179,8 +1333,63 @@ function sessionChildCount(treeIdx: number): number {
   return n;
 }
 
+function buildDriveViewIndices(): number[] {
+  const tree = state.tree;
+  const groups: Array<{ sessIdx: number; score: number; winIdxs: number[] }> = [];
+  let i = 0;
+  while (i < tree.length) {
+    if (tree[i].type !== "session") {
+      i++;
+      continue;
+    }
+    const sessIdx = i;
+    const sess = tree[i].sessionName;
+    const winIdxs: number[] = [];
+    let score = 0;
+    i++;
+    while (i < tree.length && tree[i].type === "window") {
+      const m = windowDriveMeta(tree[i]);
+      score = Math.max(score, m.alert ? 3 : m.unread > 0 ? 2 : 1);
+      if (!state.collapsedSessions.has(sess)) winIdxs.push(i);
+      i++;
+    }
+    groups.push({ sessIdx, score, winIdxs });
+  }
+  groups.sort(
+    (a, b) =>
+      b.score - a.score
+      || tree[a.sessIdx].sessionName.localeCompare(tree[b.sessIdx].sessionName),
+  );
+  const out: number[] = [];
+  for (const g of groups) {
+    out.push(g.sessIdx);
+    out.push(...g.winIdxs);
+  }
+  return out;
+}
+
+function getDriveViewIndices(): number[] {
+  if (!state.driveViewIndices) state.driveViewIndices = buildDriveViewIndices();
+  return state.driveViewIndices;
+}
+
+function clampDriveView(treeDataH: number): void {
+  const view = getDriveViewIndices();
+  if (view.length === 0) return;
+  let pos = view.indexOf(state.cursor);
+  if (pos < 0) {
+    state.cursor = view[0];
+    pos = 0;
+  }
+  if (pos < state.viewOffset) state.viewOffset = pos;
+  else if (pos >= state.viewOffset + treeDataH) state.viewOffset = pos - treeDataH + 1;
+  const maxOff = Math.max(0, view.length - treeDataH);
+  if (state.viewOffset > maxOff) state.viewOffset = maxOff;
+  if (state.viewOffset < 0) state.viewOffset = 0;
+}
+
 function driveTreeScrollMax(treeDataH: number): number {
-  return Math.max(0, state.tree.length - treeDataH);
+  return Math.max(0, getDriveViewIndices().length - treeDataH);
 }
 
 function scrollDriveTree(delta: number, treeDataH: number): void {
@@ -1191,13 +1400,74 @@ function scrollDriveTree(delta: number, treeDataH: number): void {
 }
 
 function treeScrollThumb(treeDataH: number): { thumbH: number; thumbStart: number } {
-  const total = Math.max(state.tree.length, treeDataH);
+  const total = Math.max(getDriveViewIndices().length, treeDataH);
   const thumbH = Math.max(1, Math.round((treeDataH * treeDataH) / total));
   const maxOff = driveTreeScrollMax(treeDataH);
   const thumbStart = maxOff <= 0
     ? 0
     : Math.max(0, Math.min(treeDataH - thumbH, Math.round((treeDataH * state.viewOffset) / maxOff)));
   return { thumbH, thumbStart };
+}
+
+function toggleSessionCollapse(sess: string): void {
+  if (state.collapsedSessions.has(sess)) state.collapsedSessions.delete(sess);
+  else state.collapsedSessions.add(sess);
+  invalidateDriveView();
+  const [cols, rows] = screen.getSize();
+  state.clampView(treeVisibleRows(getLayout(cols, rows)));
+  render();
+}
+
+function driveCursorStep(dir: -1 | 1): void {
+  const view = getDriveViewIndices();
+  const pos = view.indexOf(state.cursor);
+  const next = pos < 0 ? 0 : pos + dir;
+  if (next >= 0 && next < view.length) {
+    state.cursor = view[next];
+    schedulePreview();
+  }
+}
+
+function renderDriveAnchor(row: number, textW: number): void {
+  const node = state.tree[state.cursor];
+  if (!node) return;
+  let line = "";
+  if (node.type === "session") {
+    const folded = state.collapsedSessions.has(node.sessionName) ? " ▾" : " ▴";
+    line = `▣ ${node.sessionName}${folded} · Space 折/展`;
+  } else {
+    const m = windowDriveMeta(node);
+    const ag = node.agent;
+    line = `${node.sessionName}:${node.target.split(":")[1]} ${windowNameFromNode(node)}`
+      + (ag ? ` @${ag}` : "")
+      + (m.unread > 0 ? ` ·未读${m.unread}` : "")
+      + (m.alert ? " ·⚠" : "");
+  }
+  screen.cursorAt(row, 1);
+  screen.write(screen.dim(padVis(truncVis(line, textW), textW)));
+}
+
+function gotoCurrentWindow(): void {
+  const node = state.tree[state.cursor];
+  if (node?.type !== "window") return;
+  const idx = node.target.split(":")[1] ?? "";
+  tmuxApi.selectWindow(buildWinTarget(node.sessionName, idx));
+}
+
+function markCurrentAgentRead(): void {
+  const node = state.tree[state.cursor];
+  if (node?.type !== "window" || !node.agent) return;
+  agentMarkRead(node.agent);
+  invalidateDriveView();
+  render();
+}
+
+function cycleCurrentAuto(): void {
+  if (state.uiMode !== "drive") return;
+  const node = state.tree[state.cursor];
+  if (node?.type !== "window") return;
+  writeAuto(node, nextAutoLevel(readAuto(node)));
+  refreshAll();
 }
 
 function writeDriveRow(row: number, cols: number, line: string, selected: boolean, dim = false): void {
@@ -1244,20 +1514,20 @@ function renderDriveTableRow(
   }
   const [, winIdx] = node.target.split(":");
   const ag = node.agent || "";
-  const unread = ag ? agentUnreadCount(ag) : 0;
+  const m = windowDriveMeta(node);
   const winName = node.label.replace(/^[├└]\s*/, "");
   const line = driveRowLine(cw, {
-    stat: unread > 0 ? "●" : "○",
+    stat: m.alert ? "!" : m.unread > 0 ? "●" : "○",
     sess: node.sessionName,
     win: winIdx,
     wname: winName,
     agent: ag || DRIVE_PH,
-    task: node.remark || winName,
-    unread: unread > 0 ? String(unread) : "",
-    lvl: "0",       // TODO: @auto 0/50/100
-    age: DRIVE_PH,  // TODO: 末 activity
-    st: DRIVE_PH,   // TODO: 告警 capture 规则
-    act: DRIVE_PH,  // TODO: 存活/忙碌
+    task: node.remark || truncVis(m.lastLine || winName, cw.task),
+    unread: m.unread > 0 ? String(m.unread) : "",
+    lvl: m.lvl,
+    age: m.age,
+    st: m.alert ? "!" : DRIVE_PH,
+    act: m.act,
   });
   writeDriveRow(row, cols, line, selected);
 }
@@ -1348,6 +1618,9 @@ function renderFooter(cols: number, rows: number): void {
     const line = ` ${state.inputMode.prompt}: ${state.inputMode.value}█ `;
     screen.write(screen.gold(padVis(truncVis(line, cols - 1), cols - 1)));
     screen.showCursor();
+  } else if (state.uiMode === "drive") {
+    const hint = " Space折 g跳 c已读 a:档位 · Enter进舱";
+    screen.write(screen.gold(padVis(truncVis(hint, cols - 1), cols - 1)));
   } else {
     screen.write(screen.gold(" ".repeat(cols - 1)));
   }
@@ -1413,10 +1686,14 @@ function renderDriveBody(cols: number, layout: Extract<LayoutInfo, { mode: "driv
   const { bodyH, treeHeaderH, treeDataH, paneH } = layout;
   const cw = driveColWidths(cols);
   const treeZoneH = treeHeaderH + treeDataH;
+  const view = getDriveViewIndices();
   const allPLines = state.preview.split("\n");
-  const pLines = allPLines.length > paneH ? allPLines.slice(allPLines.length - paneH) : allPLines;
+  const previewRows = Math.max(0, paneH - 1);
+  const pLines = allPLines.length > previewRows
+    ? allPLines.slice(allPLines.length - previewRows)
+    : allPLines;
   const textW = Math.max(0, cols - 2);
-  const { thumbH, thumbStart } = previewScrollMetrics(paneH);
+  const { thumbH, thumbStart } = previewScrollMetrics(previewRows);
   const treeThumb = treeScrollThumb(treeDataH);
   const scrollCol = cols;
 
@@ -1427,8 +1704,9 @@ function renderDriveBody(cols: number, layout: Extract<LayoutInfo, { mode: "driv
         renderDriveTableHeader(row, cols, cw);
       } else {
         const dataRow = i - treeHeaderH;
-        const treeIdx = dataRow + state.viewOffset;
-        if (treeIdx < state.tree.length) {
+        const viewPos = dataRow + state.viewOffset;
+        const treeIdx = view[viewPos] ?? -1;
+        if (treeIdx >= 0 && treeIdx < state.tree.length) {
           renderDriveTableRow(row, state.tree[treeIdx], treeIdx, treeIdx === state.cursor, cols, cw);
         } else {
           screen.cursorAt(row, 1);
@@ -1441,13 +1719,12 @@ function renderDriveBody(cols: number, layout: Extract<LayoutInfo, { mode: "driv
       continue;
     }
     if (i === treeZoneH) {
-      screen.cursorAt(row, 1);
-      screen.write(screen.dim("─".repeat(Math.max(0, cols - 1))));
+      renderDriveAnchor(row, textW);
       continue;
     }
     const paneLine = i - treeZoneH - 1;
-    if (paneLine < paneH) {
-      renderPreviewLine(row, 1, textW, paneLine, pLines, { thumbH, thumbStart });
+    if (paneLine > 0 && paneLine - 1 < previewRows) {
+      renderPreviewLine(row, 1, textW, paneLine - 1, pLines, { thumbH, thumbStart });
     }
   }
 }
@@ -1457,12 +1734,19 @@ function render() {
   const layout = getLayout(cols, rows);
   state.clampView(treeVisibleRows(layout));
 
+  if (layout.mode === "drive") beginCaptureCache();
+
   screen.clear();
   screen.hideCursor();
   renderHeader(cols);
   if (layout.mode === "drive") renderDriveBody(cols, layout);
   else renderIndexBody(cols, rows, layout);
   renderFooter(cols, rows);
+
+  if (layout.mode === "drive") {
+    syncDriveLineHashes();
+    clearCaptureCache();
+  }
 }
 
 // ── Ctrl-Left 支持：detach 返回 tree mode ──
@@ -1582,6 +1866,10 @@ function handleInputKey(s: string): void {
 // ── TUI 按键（help 文案与 handler 同源）──
 
 function cursorUp() {
+  if (state.uiMode === "drive") {
+    driveCursorStep(-1);
+    return;
+  }
   if (state.cursor > 0) {
     state.cursor--;
     schedulePreview();
@@ -1589,6 +1877,10 @@ function cursorUp() {
 }
 
 function cursorDown() {
+  if (state.uiMode === "drive") {
+    driveCursorStep(1);
+    return;
+  }
   if (state.cursor < state.tree.length - 1) {
     state.cursor++;
     schedulePreview();
@@ -1619,6 +1911,9 @@ const TUI_KEYBINDS: { help: string; match: (s: string) => boolean; run: () => vo
   { help: "m:备注", match: (s) => s === "m", run: () => remarkCurrent() },
   { help: "f:刷", match: (s) => s === "f", run: () => refreshAll() },
   { help: "o:模式", match: (s) => s === "o", run: () => toggleUiMode() },
+  { help: "g:跳窗", match: (s) => s === "g", run: () => { gotoCurrentWindow(); render(); } },
+  { help: "c:已读", match: (s) => s === "c", run: () => markCurrentAgentRead() },
+  { help: "a:档位", match: (s) => s === "a", run: () => cycleCurrentAuto() },
   // OBSERVER_PAUSED: { help: "v:消息", match: (s) => s === "v", run: () => toggleObserver() },
 ];
 
@@ -1793,7 +2088,9 @@ function resumeTreeAfterAttach() {
 // ── preview 调度 ──
 
 function refreshAll() {
+  clearCaptureCache();
   state.suppressPreviewAfterAttach = false;
+  invalidateDriveView();
   state.tree = getTree();
   if (state.cursor >= state.tree.length) state.cursor = Math.max(0, state.tree.length - 1);
   refreshPreview();
@@ -1900,9 +2197,14 @@ function handleMouse(rawBtn: number, x: number, y: number, press: boolean) {
   if (y < BODY_START_ROW) return;
   if (layout.mode === "index" && x >= layout.leftW) return;
   if (layout.mode === "drive" && bodyY >= paneStartY) return;
-  const idx = layout.mode === "drive"
-    ? Math.max(0, bodyY - layout.treeHeaderH) + state.viewOffset
-    : bodyY + state.viewOffset;
+  let idx: number;
+  if (layout.mode === "drive") {
+    const view = getDriveViewIndices();
+    const viewPos = Math.max(0, bodyY - layout.treeHeaderH) + state.viewOffset;
+    idx = view[viewPos] ?? -1;
+  } else {
+    idx = bodyY + state.viewOffset;
+  }
   if (idx < 0 || idx >= state.tree.length) return;
   const now = Date.now();
   const dbl = lastClickY === idx && now - lastClickT < 500;
@@ -1956,6 +2258,11 @@ function handleKey(data: Buffer) {
   }
   if (TUI_ENTER_KEYS.has(s)) {
     enterAttach();
+    return;
+  }
+  if (s === " " && state.uiMode === "drive") {
+    const node = state.tree[state.cursor];
+    if (node?.type === "session") toggleSessionCollapse(node.sessionName);
     return;
   }
   for (const bind of TUI_KEYBINDS) {
@@ -2038,8 +2345,10 @@ function cliStatus(ctx: CliCtx): number {
     } else {
       const dot = row.unread > 0 ? "●" : "○";
       const ur = row.unread > 0 ? ` rd:${row.unread}` : "";
+      const ph = row.placeholders;
       process.stdout.write(
-        `  ${dot} ${row.session}:${row.windowIndex} ${row.windowName}${row.agent ? ` @${row.agent}` : ""}${ur}\n`,
+        `  ${dot} ${row.session}:${row.windowIndex} ${row.windowName}${row.agent ? ` @${row.agent}` : ""}${ur}`
+        + ` lv:${ph.lvl} age:${ph.age} act:${ph.act}\n`,
       );
     }
   }
@@ -2062,6 +2371,10 @@ function cliInspect(ctx: CliCtx): number {
   if (info.remark) process.stdout.write(`remark: ${info.remark}\n`);
   if (info.agent) process.stdout.write(`agent: ${info.agent}  unread:${info.unread ?? 0}\n`);
   if (info.windowCount !== undefined) process.stdout.write(`windows: ${info.windowCount}\n`);
+  if (info.placeholders && info.type === "window") {
+    const ph = info.placeholders;
+    process.stdout.write(`auto: ${ph.lvl}  age: ${ph.age}  act: ${ph.act}\n`);
+  }
   if (info.preview?.lastLine) process.stdout.write(`last: ${info.preview.lastLine}\n`);
   return 0;
 }
@@ -2145,6 +2458,50 @@ function cliRemarkLegacy(ctx: CliCtx): number {
   if (sub === "get" || sub === "show" || sub === "read") return cliRemarkGet({ ...ctx, rest: ctx.rest.slice(1) });
   if (sub === "set" || sub === "write") return cliRemarkSet({ ...ctx, rest: ctx.rest.slice(1) });
   return cliRemarkSet(ctx);
+}
+
+function cliAutoSet(ctx: CliCtx): number {
+  if (ctx.rest.length < 2) {
+    process.stderr.write(`usage: ${CLI_BIN} ${cliUsage(CLI_CMD.auto, CLI_CMD.autoSet)}\n`);
+    return 2;
+  }
+  const { target, node } = parseTargetSpec(ctx.rest[0]);
+  if (node.type !== "window") {
+    process.stderr.write("error: auto 需要 window spec\n");
+    return 2;
+  }
+  const lvl = normalizeAutoLevel(ctx.rest[1]);
+  if (!AUTO_LEVELS.includes(lvl)) {
+    process.stderr.write("error: auto 档位须为 0 | 50 | 100\n");
+    return 2;
+  }
+  writeAuto(node, lvl);
+  process.stdout.write(`auto ${target} = ${lvl}\n`);
+  return 0;
+}
+
+function cliAutoGet(ctx: CliCtx): number {
+  if (!ctx.rest[0]) {
+    process.stderr.write(`usage: ${CLI_BIN} ${cliUsage(CLI_CMD.auto, CLI_CMD.autoGet)}\n`);
+    return 2;
+  }
+  const { node } = parseTargetSpec(ctx.rest[0]);
+  if (node.type !== "window") {
+    process.stderr.write("error: auto 需要 window spec\n");
+    return 2;
+  }
+  const v = readAuto(node);
+  process.stdout.write(`${v}\n`);
+  return 0;
+}
+
+/** 兼容：auto get <spec> */
+function cliAutoLegacy(ctx: CliCtx): number {
+  const sub = ctx.rest[0];
+  if (sub === "get" || sub === "show" || sub === "read") return cliAutoGet({ ...ctx, rest: ctx.rest.slice(1) });
+  if (sub === "set" || sub === "write") return cliAutoSet({ ...ctx, rest: ctx.rest.slice(1) });
+  process.stderr.write(`usage: ${CLI_BIN} auto set|get <window-spec> [0|50|100]\n`);
+  return 2;
 }
 
 function cliHelp(): number {
@@ -2568,6 +2925,26 @@ const CLI_CMD = {
     run: cliRemarkLegacy,
     children: [] as CliCommand[],
   },
+  autoSet: {
+    name: "set",
+    aliases: ["write"],
+    summary: "设置 @auto 档位",
+    usage: "<window-spec> <0|50|100>",
+    run: cliAutoSet,
+  },
+  autoGet: {
+    name: "get",
+    aliases: ["show", "read"],
+    summary: "读取 @auto 档位",
+    usage: "<window-spec>",
+    run: cliAutoGet,
+  },
+  auto: {
+    name: "auto",
+    summary: "读写 window @auto 档位（0/50/100）",
+    run: cliAutoLegacy,
+    children: [] as CliCommand[],
+  },
   agentRegister: {
     name: "register",
     aliases: ["bind"],
@@ -2615,6 +2992,7 @@ const CLI_CMD = {
   },
 };
 CLI_CMD.remark.children = [CLI_CMD.remarkSet, CLI_CMD.remarkGet];
+CLI_CMD.auto.children = [CLI_CMD.autoSet, CLI_CMD.autoGet];
 CLI_CMD.agent.children = [
   CLI_CMD.agentRegister,
   CLI_CMD.agentUnregister,
@@ -2641,6 +3019,7 @@ const CLI_ROOT: CliCommand[] = [
   CLI_CMD.rename,
   CLI_CMD.killWindow,
   CLI_CMD.remark,
+  CLI_CMD.auto,
 ];
 
 function dispatchCliCommand(cmd: CliCommand, rest: string[], json = false): number {
