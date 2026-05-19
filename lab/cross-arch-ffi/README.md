@@ -21,6 +21,8 @@ bash lab/cross-arch-ffi/run.sh
 - `dlopen`/`dlsym` 打开 libm 并调用 `cos(0)`。
 - 输出当前 OS、架构、二进制体积。
 
+若当前 checkout 缺少 TCC 链接所需 CRT 对象，脚本会记录链接失败并降级为 `-c` 编译对象验证。
+
 ## 当前判断
 
 首选主线：`CosmoRun + TinyCC`。它牺牲一部分 runtime 体积，换来跨平台单入口、C ABI、系统库 FFI 和运行时代码能力。

@@ -37,6 +37,9 @@ run_case() {
   log ""
   log "## $name"
   "$@" 2>&1 | tee -a "$RESULTS"
+  local status="${PIPESTATUS[0]}"
+  log "exit.status=$status"
+  return "$status"
 }
 
 log "# cross-arch ffi executable probe"
@@ -57,9 +60,16 @@ fi
 TCCX="$ROOT_DIR/third_party/tccx.sh"
 if [ -x "$TCCX" ]; then
   TCC_BIN="$BUILD_DIR/ffi_probe_tcc"
-  run_case "bundled-tcc-build" "$TCCX" "$PROBE_C" -ldl -lm -o "$TCC_BIN"
-  describe_file "$TCC_BIN"
-  run_case "bundled-tcc-run" "$TCC_BIN"
+  if run_case "bundled-tcc-build" "$TCCX" "$PROBE_C" -ldl -lm -o "$TCC_BIN"; then
+    describe_file "$TCC_BIN"
+    run_case "bundled-tcc-run" "$TCC_BIN"
+  else
+    log "bundled-tcc-link=fail"
+    log "bundled-tcc-note=missing CRT objects in this checkout; trying compile-only"
+    TCC_OBJ="$BUILD_DIR/ffi_probe_tcc.o"
+    run_case "bundled-tcc-compile-only" "$TCCX" -c "$PROBE_C" -o "$TCC_OBJ"
+    describe_file "$TCC_OBJ"
+  fi
 else
   log ""
   log "## bundled-tcc"
