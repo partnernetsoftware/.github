@@ -65,6 +65,7 @@
 | `third_party/libffi-dl/*.so/.dylib/.dll` | 二进制存在 | 可作为未来通用 FFI 层候选 |
 | `third_party/lua-5.4.7` | 源码存在 | 脚本层；标准 Lua 本身不是 FFI/JIT 核心 |
 | `third_party/wasm3` | 空目录 | 目前不能作为实测路线 |
+| `lab/lispjit-ir` | 原型 | portable IR blob + 本机 JIT call stub |
 
 ## 推荐路线
 
@@ -80,6 +81,8 @@
 优点：体积极小，和“动态编译可执行字节”最贴近。
 
 风险：签名覆盖和 ABI 细节会快速膨胀。
+
+`lab/lispjit-ir` 已按这个方向落地一个最小原型：发布 `.ljir` portable blob，runtime 只加载 blob，然后解析 IR 并 JIT 到本机 call stub。
 
 ### B. 功能扩展路线
 
