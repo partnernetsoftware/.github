@@ -36,6 +36,8 @@ class AnsiScreen {
   cyan = this.wrap("36");
   yellow = this.wrap("33");
   gold = this.wrap("40;93");
+  /** ASU: gold #FFC627 bg, maroon #8C1D40 fg */
+  asuLogo = this.wrap("48;5;220;38;5;88;1");
   gray = this.wrap("90");
 
   write(s: string) { process.stdout.write(s); }
@@ -424,11 +426,20 @@ function render() {
   screen.clear();
   screen.hideCursor();
 
-  // header：显示帮助快捷键（原 footer 内容移入）
+  // header：左上 LOGO（ASU 金底栗色字）+ 帮助快捷键
   screen.cursorAt(1, 1);
   const scrollInd = state.scrollOffset > 0 ? ` ↕${state.scrollOffset}` : "";
-  const help = TUI_CONFIG.TITLE + " " + TUI_CONFIG.VERSION+ " 上/下:移动 Enter:进 C-左:回 n:新Session w:新Win d:删 r:改名 m:备注 f:刷 q:退" + scrollInd;
-  screen.write(screen.inv(screen.bold(padVis(truncVis(help, cols - 1), cols - 1))));
+  const helpRest =
+    "j/k:移动 Enter:进 C-左:回 n:新Session w:新Win d:删 r:改名 m:备注 f:刷新 q:退出" + scrollInd;
+  const maxW = cols - 1;
+  const logoVis = truncVis(TUI_CONFIG.TITLE, maxW);
+  const logoW = visW(logoVis);
+  screen.write(screen.asuLogo(padVis(logoVis, logoW)));
+  const helpCap = Math.max(0, maxW - logoW);
+  if (helpCap > 0) {
+    const helpVis = truncVis(helpRest, helpCap);
+    screen.write(screen.inv(screen.bold(padVis(helpVis, helpCap))));
+  }
 
   // body
   const allPLines = state.preview.split("\n");
