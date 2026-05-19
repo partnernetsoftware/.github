@@ -44,9 +44,22 @@ run_case() {
 }
 
 log "# cross-arch ffi executable probe"
+log "script.role=evidence-generator-not-runtime"
 log "host.uname=$(uname -srm)"
 log "probe.source.bytes=$(bytes_of "$PROBE_C")"
 log "budget.source.bytes=$(bytes_of "$BUDGET_C")"
+
+log ""
+log "## runtime-size-inventory"
+for asset in \
+  "$ROOT_DIR"/cosmorun/cosmorun*.exe \
+  "$ROOT_DIR"/third_party/tcc_*.* \
+  "$ROOT_DIR"/third_party/libffi-dl/ff8-*; do
+  if [ -f "$asset" ]; then
+    rel="${asset#$ROOT_DIR/}"
+    log "asset.bytes=$(bytes_of "$asset") asset=$rel"
+  fi
+done
 
 if command -v cc >/dev/null 2>&1; then
   NATIVE_BIN="$BUILD_DIR/ffi_probe_native"
