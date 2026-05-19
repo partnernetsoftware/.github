@@ -15,18 +15,11 @@ import { homedir } from "os";
 import { join } from "path";
 
 const PREVIEW_DELAY = 1000;
-const PREVIEW_PENDING_DELAY = 200; // 驾驶模式：停留后再标 pending
-const PREVIEW_FETCH_DELAY = 600;   // pending 后再抓 preview
-const DRIVE_SNAP_TTL_MS = 1500;
-const DRIVE_PROC_TTL_MS = 3000;
-const DRIVE_SNAP_CONCURRENCY = 6;
 const RETURN_FROM_ATTACH_DELAY = 120; // detach 后静默 sync tree / restore status
 const PREVIEW_LINES = 80;
 
-const SHELL_COMMS = new Set(["bash", "zsh", "sh", "fish", "dash", "tmux", "-bash", "-zsh"]);
-
 const TUI_CONFIG = {
-  VERSION: '0.4.2',
+  VERSION: '0.4.1',
   VIEWER_SESSION: `__tui_viewer__`,
   TUI_KEYTABLE: "tui_empty",
   REMARK_KEY: "@remark",
@@ -90,7 +83,6 @@ class AnsiScreen {
 
   write(s: string) { process.stdout.write(s); }
   clear() { this.write(`${this.ESC}2J${this.ESC}H`); }
-  eraseDown() { this.write(`${this.ESC}J`); }
   cursorAt(r: number, c: number) { this.write(`${this.ESC}${r};${c}H`); }
   hideCursor() { this.write(`${this.ESC}?25l`); }
   showCursor() { this.write(`${this.ESC}?25h`); }
@@ -877,15 +869,6 @@ interface CliFleetWindow {
   inboxPath?: string;
   previewLastLine?: string;
   placeholders: { lvl: string; age: string; st: string; act: string };
-  proc?: CliProcInfo;
-}
-
-interface CliProcInfo {
-  pid: number;
-  cmd: string;
-  cpu: number;
-  rssMB: number;
-  shellPid?: number;
 }
 
 type CliFleetRow = CliFleetSession | CliFleetWindow;
@@ -914,7 +897,6 @@ interface CliInspectResult {
   windowCount?: number;
   preview?: { lines: number; text: string; lastLine: string };
   placeholders: { lvl: string; age: string; st: string; act: string };
-  proc?: CliProcInfo;
 }
 
 function peelJsonFlag(rest: string[]): { rest: string[]; json: boolean } {
@@ -933,11 +915,6 @@ function cliWriteJson(data: unknown): void {
 
 function windowNameFromNode(node: TreeNode): string {
   return node.label.replace(/^[├└]\s*/, "").trim();
-}
-
-function winTargetFromNode(node: TreeNode): string {
-  const winIdx = node.target.split(":")[1] ?? "";
-  return buildWinTarget(node.sessionName, winIdx);
 }
 
 const DRIVE_PH = "—"; // 未实现列占位
@@ -979,192 +956,19 @@ function getCachedCapture(target: string, lines: number): CaptureCacheEntry {
   return entry;
 }
 
-// ── 驾驶模式：后台 snap / proc（render 主路径零 spawnSync）──
-
-type WinSnap = { lastLine: string; alert: boolean; ts: number };
-type ProcInfo = { pid: number; cmd: string; cpu: number; rssMB: number; shellPid: number; ts: number };
-
-const driveSnap = new Map<string, WinSnap>();
-const driveProc = new Map<string, ProcInfo>();
+/** 上一 refresh 周期末行 hash，供 act 忙碌启发 */
 const drivePrevLineHash = new Map<string, string>();
 
-let driveSnapTimer: ReturnType<typeof setInterval> | null = null;
-let driveProcTimer: ReturnType<typeof setInterval> | null = null;
-let driveSnapRefreshing = false;
-let driveProcRefreshing = false;
-let previewFetchTimer: ReturnType<typeof setTimeout> | null = null;
-
-function readDriveSnap(target: string): WinSnap {
-  return driveSnap.get(target) ?? { lastLine: "", alert: false, ts: 0 };
-}
-
-async function mapPoolLimit<T>(items: T[], limit: number, fn: (item: T) => Promise<void>): Promise<void> {
-  const queue = [...items];
-  const n = Math.max(1, Math.min(limit, queue.length));
-  await Promise.all(Array.from({ length: n }, async () => {
-    while (queue.length) {
-      const item = queue.shift()!;
-      await fn(item);
-    }
-  }));
-}
-
-async function captureLastLineAsync(target: string): Promise<string> {
-  try {
-    const proc = Bun.spawn(
-      [tmuxBin(), "capture-pane", "-p", "-t", target, "-S", "-1", "-E", "-"],
-      { stdout: "pipe", stderr: "pipe" },
-    );
-    const text = await new Response(proc.stdout).text();
-    await proc.exited;
-    if (proc.exitCode !== 0) return readDriveSnap(target).lastLine;
-    return text.split("\n").map((s) => stripAnsi(s).trim()).filter(Boolean).pop() || "";
-  } catch {
-    return readDriveSnap(target).lastLine;
-  }
-}
-
-async function refreshDriveSnapshots(force = false): Promise<void> {
-  if (driveSnapRefreshing) return;
-  if (state.uiMode !== "drive") return;
-  driveSnapRefreshing = true;
-  try {
-    const now = Date.now();
-    const targets = state.tree
-      .filter((n) => n.type === "window")
-      .map((n) => winTargetFromNode(n));
-    const stale = force
-      ? targets
-      : targets.filter((t) => now - (driveSnap.get(t)?.ts ?? 0) > DRIVE_SNAP_TTL_MS);
-    if (stale.length === 0) return;
-
-    await mapPoolLimit(stale, DRIVE_SNAP_CONCURRENCY, async (target) => {
-      const prevEntry = driveSnap.get(target);
-      const prevLine = prevEntry?.lastLine ?? "";
-      const lastLine = await captureLastLineAsync(target);
-      if (lastLine !== prevLine) drivePrevLineHash.set(target, prevLine);
-      driveSnap.set(target, {
-        lastLine,
-        alert: driveAlertFromText(lastLine),
-        ts: Date.now(),
-      });
-    });
-
-    invalidateDriveView();
-    if (state.uiMode === "drive") render();
-  } finally {
-    driveSnapRefreshing = false;
-  }
-}
-
-type PsRow = { pid: number; ppid: number; pcpu: number; rss: number; comm: string };
-
-function parsePsDump(raw: string): PsRow[] {
-  const out: PsRow[] = [];
-  for (const line of raw.split("\n")) {
-    const t = line.trim();
-    if (!t) continue;
-    const m = t.match(/^(\d+)\s+(\d+)\s+([\d.]+)\s+(\d+)\s+(\S+)/);
-    if (!m) continue;
-    out.push({
-      pid: parseInt(m[1], 10),
-      ppid: parseInt(m[2], 10),
-      pcpu: parseFloat(m[3]),
-      rss: parseInt(m[4], 10),
-      comm: m[5],
-    });
-  }
-  return out;
-}
-
-function findMainProcess(shellPid: number, rows: PsRow[]): { pid: number; cmd: string; cpu: number; rssMB: number } {
-  const byPpid = new Map<number, PsRow[]>();
-  const byPid = new Map<number, PsRow>();
-  for (const r of rows) {
-    byPid.set(r.pid, r);
-    if (!byPpid.has(r.ppid)) byPpid.set(r.ppid, []);
-    byPpid.get(r.ppid)!.push(r);
-  }
-  const queue = [...(byPpid.get(shellPid) ?? [])];
-  const visited = new Set<number>();
-  let best: PsRow | null = null;
-  while (queue.length) {
-    const cur = queue.shift()!;
-    if (visited.has(cur.pid)) continue;
-    visited.add(cur.pid);
-    if (!SHELL_COMMS.has(cur.comm)) {
-      if (!best || cur.pcpu > best.pcpu || (cur.pcpu === best.pcpu && cur.rss > best.rss)) best = cur;
-    }
-    for (const child of byPpid.get(cur.pid) ?? []) queue.push(child);
-  }
-  const pick = best ?? byPid.get(shellPid);
-  if (!pick) return { pid: shellPid, cmd: "?", cpu: 0, rssMB: 0 };
-  return { pid: pick.pid, cmd: pick.comm, cpu: pick.pcpu, rssMB: Math.round(pick.rss / 1024) };
-}
-
-function updateDriveProcMap(): void {
-  const paneRaw = tmux([
-    "list-panes", "-a",
-    "-F", "#{session_name}:#{window_index}|#{pane_active}|#{pane_pid}",
-  ]).trim();
-  const psRaw = Bun.spawnSync(["ps", "-A", "-o", "pid=,ppid=,pcpu=,rss=,comm="], { stdout: "pipe" }).stdout?.toString() ?? "";
-  const psRows = parsePsDump(psRaw);
-  for (const line of paneRaw.split("\n").filter(Boolean)) {
-    const [loc, active, pidStr] = line.split("|");
-    if (active !== "1") continue;
-    const [sess, winIdx] = (loc ?? "").split(":");
-    const shellPid = parseInt(pidStr ?? "", 10);
-    if (!sess || !winIdx || !shellPid) continue;
-    const target = buildWinTarget(sess, winIdx);
-    const main = findMainProcess(shellPid, psRows);
-    driveProc.set(target, { ...main, shellPid, ts: Date.now() });
-  }
-}
-
-async function refreshDriveProc(force = false): Promise<void> {
-  if (driveProcRefreshing) return;
-  if (state.uiMode !== "drive") return;
-  const now = Date.now();
-  if (!force && driveProc.size > 0) {
-    const anyStale = [...driveProc.values()].some((p) => now - p.ts > DRIVE_PROC_TTL_MS);
-    if (!anyStale) return;
-  }
-  driveProcRefreshing = true;
-  try {
-    updateDriveProcMap();
-    if (state.uiMode === "drive") render();
-  } finally {
-    driveProcRefreshing = false;
-  }
-}
-
-function readDriveProc(target: string): ProcInfo | null {
-  return driveProc.get(target) ?? null;
-}
-
-function formatProcAnchor(proc: ProcInfo): string {
-  const cpu = proc.cpu < 10 ? proc.cpu.toFixed(1) : String(Math.round(proc.cpu));
-  return `⟦${proc.cmd} ${proc.rssMB}M ${cpu}% pid=${proc.pid}⟧`;
-}
-
-function startDriveLoops(): void {
-  stopDriveLoops();
-  void refreshDriveSnapshots(true);
-  void refreshDriveProc(true);
-  driveSnapTimer = setInterval(() => { void refreshDriveSnapshots(false); }, DRIVE_SNAP_TTL_MS);
-  driveProcTimer = setInterval(() => { void refreshDriveProc(false); }, DRIVE_PROC_TTL_MS);
-}
-
-function stopDriveLoops(): void {
-  if (driveSnapTimer) clearInterval(driveSnapTimer);
-  if (driveProcTimer) clearInterval(driveProcTimer);
-  driveSnapTimer = null;
-  driveProcTimer = null;
-}
-
-/** 上一 refresh 周期末行，供 act 忙碌启发（snap 异步更新时写入） */
 function syncDriveLineHashes(): void {
-  /* no-op：drivePrevLineHash 在 refreshDriveSnapshots 内维护 */
+  const next = new Map<string, string>();
+  for (const n of state.tree) {
+    if (n.type !== "window") continue;
+    const winIdx = n.target.split(":")[1] ?? "";
+    const target = buildWinTarget(n.sessionName, winIdx);
+    next.set(target, getCachedCapture(target, 1).lastLine);
+  }
+  drivePrevLineHash.clear();
+  for (const [k, v] of next) drivePrevLineHash.set(k, v);
 }
 
 function formatRelativeAge(epochSec: number): string {
@@ -1189,20 +993,21 @@ function windowDriveAge(node: TreeNode): string {
 
 function deriveActChar(node: TreeNode, lastLine: string): string {
   if (node.windowActive) return "●";
-  const target = winTargetFromNode(node);
+  const winIdx = node.target.split(":")[1] ?? "";
+  const target = buildWinTarget(node.sessionName, winIdx);
   const prev = drivePrevLineHash.get(target);
   if (prev !== undefined && prev !== lastLine && lastLine) return "…";
   return "○";
 }
 
-function windowDriveMeta(node: TreeNode, opts?: { sync?: boolean }): {
+function windowDriveMeta(node: TreeNode): {
   unread: number; alert: boolean; lastLine: string; lvl: AutoLevel; age: string; act: string;
 } {
   const ag = node.agent;
   const unread = ag ? agentUnreadCount(ag) : 0;
-  const target = winTargetFromNode(node);
-  const useSnap = !opts?.sync && state.uiMode === "drive";
-  const cap = useSnap ? readDriveSnap(target) : getCachedCapture(target, 1);
+  const winIdx = node.target.split(":")[1] ?? "";
+  const target = buildWinTarget(node.sessionName, winIdx);
+  const cap = getCachedCapture(target, 1);
   return {
     unread,
     alert: cap.alert,
@@ -1215,11 +1020,6 @@ function windowDriveMeta(node: TreeNode, opts?: { sync?: boolean }): {
 
 function buildFleetSnapshot(previewLines = 1): CliFleetSnapshot {
   beginCaptureCache();
-  try {
-    updateDriveProcMap();
-  } catch {
-    /* tmux/ps 不可用时跳过 proc */
-  }
   const tree = getTree();
   const rows: CliFleetRow[] = [];
   for (let i = 0; i < tree.length; i++) {
@@ -1238,12 +1038,10 @@ function buildFleetSnapshot(previewLines = 1): CliFleetSnapshot {
     }
     const winIdx = n.target.split(":")[1] ?? "";
     const ag = n.agent;
-    const m = windowDriveMeta(n, { sync: true });
-    const winTarget = buildWinTarget(n.sessionName, winIdx);
+    const m = windowDriveMeta(n);
     const cap = previewLines > 1
-      ? getCachedCapture(winTarget, previewLines)
+      ? getCachedCapture(buildWinTarget(n.sessionName, winIdx), previewLines)
       : { lastLine: m.lastLine, alert: m.alert, text: "" };
-    const procSnap = readDriveProc(winTarget);
     rows.push({
       type: "window",
       target: n.target,
@@ -1257,9 +1055,6 @@ function buildFleetSnapshot(previewLines = 1): CliFleetSnapshot {
       inboxPath: ag ? inboxPath(ag) : undefined,
       previewLastLine: cap.lastLine || undefined,
       placeholders: { lvl: m.lvl, age: m.age, st: m.alert ? "!" : "—", act: m.act },
-      proc: procSnap
-        ? { pid: procSnap.pid, cmd: procSnap.cmd, cpu: procSnap.cpu, rssMB: procSnap.rssMB, shellPid: procSnap.shellPid }
-        : undefined,
     });
   }
   const agents = listRegisteredAgents().map((a) => ({
@@ -1302,10 +1097,8 @@ function buildInspectResult(spec: string, previewLines: number): CliInspectResul
   const full = tree.find((n) => n.type === "window" && n.target === node.target) ?? node;
   const winIdx = full.target.split(":")[1] ?? "";
   const ag = full.agent ?? readAgent(full);
-  const m = windowDriveMeta(full, { sync: true });
-  const winTarget = buildWinTarget(full.sessionName, winIdx);
-  const cap = getCachedCapture(winTarget, previewLines);
-  const procSnap = readDriveProc(winTarget);
+  const m = windowDriveMeta(full);
+  const cap = getCachedCapture(buildWinTarget(full.sessionName, winIdx), previewLines);
   clearCaptureCache();
   return {
     ...base,
@@ -1317,9 +1110,6 @@ function buildInspectResult(spec: string, previewLines: number): CliInspectResul
     inboxPath: ag ? inboxPath(ag) : undefined,
     preview: { lines: previewLines, text: cap.text, lastLine: cap.lastLine },
     placeholders: { lvl: m.lvl, age: m.age, st: m.alert ? "!" : "—", act: m.act },
-    proc: procSnap
-      ? { pid: procSnap.pid, cmd: procSnap.cmd, cpu: procSnap.cpu, rssMB: procSnap.rssMB, shellPid: procSnap.shellPid }
-      : undefined,
   };
 }
 
@@ -1410,8 +1200,6 @@ class TuiState {
   collapsedSessions = new Set<string>();
   /** 驾驶表可见行 → state.tree 下标（排序+折叠后） */
   driveViewIndices: number[] | null = null;
-  /** 驾驶模式增量绘：false 时 render 不清屏 */
-  needsFullClear = true;
 
   clampView(bodyH: number) {
     if (state.uiMode === "drive") {
@@ -1464,14 +1252,10 @@ function invalidateDriveView() {
 }
 
 function toggleUiMode() {
-  const enteringDrive = state.uiMode === "index";
-  state.uiMode = enteringDrive ? "drive" : "index";
+  state.uiMode = state.uiMode === "index" ? "drive" : "index";
   state.viewOffset = 0;
   state.scrollOffset = 0;
-  state.needsFullClear = true;
   invalidateDriveView();
-  if (enteringDrive) startDriveLoops();
-  else stopDriveLoops();
   const [cols, rows] = screen.getSize();
   state.clampView(treeVisibleRows(getLayout(cols, rows)));
   render();
@@ -1640,10 +1424,7 @@ function driveCursorStep(dir: -1 | 1): void {
   const next = pos < 0 ? 0 : pos + dir;
   if (next >= 0 && next < view.length) {
     state.cursor = view[next];
-    const [cols, rows] = screen.getSize();
-    state.clampView(treeVisibleRows(getLayout(cols, rows)));
-    render();
-    schedulePreview({ pending: false });
+    schedulePreview();
   }
 }
 
@@ -1657,19 +1438,15 @@ function renderDriveAnchor(row: number, textW: number): void {
   } else {
     const m = windowDriveMeta(node);
     const ag = node.agent;
-    const proc = readDriveProc(winTargetFromNode(node));
     line = `${node.sessionName}:${node.target.split(":")[1]} ${windowNameFromNode(node)}`
       + (ag ? ` @${ag}` : "")
       + (m.unread > 0 ? ` ·未读${m.unread}` : "")
-      + (m.alert ? " ·⚠" : "")
-      + (proc ? ` ${formatProcAnchor(proc)}` : "");
+      + (m.alert ? " ·⚠" : "");
   }
   screen.cursorAt(row, 1);
   screen.write(screen.dim(padVis(truncVis(line, textW), textW)));
 }
 
-// ═══ DRIVE_SHORTCUTS_PAUSED：跳窗 / 已读 / 档位（恢复时取消注释）═══
-/*
 function gotoCurrentWindow(): void {
   const node = state.tree[state.cursor];
   if (node?.type !== "window") return;
@@ -1692,7 +1469,6 @@ function cycleCurrentAuto(): void {
   writeAuto(node, nextAutoLevel(readAuto(node)));
   refreshAll();
 }
-*/
 
 function writeDriveRow(row: number, cols: number, line: string, selected: boolean, dim = false): void {
   const cap = cols - 2; // 末列滚动条
@@ -1843,7 +1619,7 @@ function renderFooter(cols: number, rows: number): void {
     screen.write(screen.gold(padVis(truncVis(line, cols - 1), cols - 1)));
     screen.showCursor();
   } else if (state.uiMode === "drive") {
-    const hint = " Space折 · Enter进舱"; // DRIVE_SHORTCUTS_PAUSED: g跳 c已读 a:档位
+    const hint = " Space折 g跳 c已读 a:档位 · Enter进舱";
     screen.write(screen.gold(padVis(truncVis(hint, cols - 1), cols - 1)));
   } else {
     screen.write(screen.gold(" ".repeat(cols - 1)));
@@ -1866,18 +1642,14 @@ function renderPreviewLine(
   row: number, col: number, textW: number, lineIdx: number, pLines: string[], thumb?: { thumbH: number; thumbStart: number },
 ): void {
   screen.cursorAt(row, col);
-  const pending = state.previewDoneId < state.previewFetchId;
-  if (state.previewTarget && lineIdx === 0 && pending && state.uiMode !== "drive") {
+  if (state.previewTarget && lineIdx === 0) {
     screen.write(screen.dim(`⏳ ${state.previewTarget} ...`).slice(0, textW));
   } else if (state.suppressPreviewAfterAttach && lineIdx === 0) {
     screen.write(screen.dim("  已从分舱返回 · 按 f 刷新预览").slice(0, textW));
   } else if (state.suppressPreviewAfterAttach) {
     screen.write(" ".repeat(textW));
-  } else if (pending && state.uiMode === "drive" && pLines[lineIdx]) {
-    screen.write(screen.dim((pLines[lineIdx] || "").slice(0, textW)));
   } else {
-    const raw = (pLines[lineIdx] || "").slice(0, textW);
-    screen.write(pending && state.uiMode === "drive" ? screen.dim(raw) : raw);
+    screen.write((pLines[lineIdx] || "").slice(0, textW));
   }
   if (thumb) {
     screen.cursorAt(row, col + textW);
@@ -1962,22 +1734,18 @@ function render() {
   const layout = getLayout(cols, rows);
   state.clampView(treeVisibleRows(layout));
 
-  const driveIncremental = layout.mode === "drive" && !state.needsFullClear;
-  if (driveIncremental) {
-    /* 驾驶模式光标移动：擦行覆盖，避免全屏 clear 闪屏 */
-  } else {
-    screen.clear();
-    if (layout.mode === "drive") state.needsFullClear = false;
-  }
+  if (layout.mode === "drive") beginCaptureCache();
 
+  screen.clear();
   screen.hideCursor();
   renderHeader(cols);
   if (layout.mode === "drive") renderDriveBody(cols, layout);
   else renderIndexBody(cols, rows, layout);
   renderFooter(cols, rows);
 
-  if (layout.mode === "drive" && driveIncremental) {
-    screen.eraseDown();
+  if (layout.mode === "drive") {
+    syncDriveLineHashes();
+    clearCaptureCache();
   }
 }
 
@@ -2143,10 +1911,9 @@ const TUI_KEYBINDS: { help: string; match: (s: string) => boolean; run: () => vo
   { help: "m:备注", match: (s) => s === "m", run: () => remarkCurrent() },
   { help: "f:刷", match: (s) => s === "f", run: () => refreshAll() },
   { help: "o:模式", match: (s) => s === "o", run: () => toggleUiMode() },
-  // DRIVE_SHORTCUTS_PAUSED:
-  // { help: "g:跳窗", match: (s) => s === "g", run: () => { gotoCurrentWindow(); render(); } },
-  // { help: "c:已读", match: (s) => s === "c", run: () => markCurrentAgentRead() },
-  // { help: "a:档位", match: (s) => s === "a", run: () => cycleCurrentAuto() },
+  { help: "g:跳窗", match: (s) => s === "g", run: () => { gotoCurrentWindow(); render(); } },
+  { help: "c:已读", match: (s) => s === "c", run: () => markCurrentAgentRead() },
+  { help: "a:档位", match: (s) => s === "a", run: () => cycleCurrentAuto() },
   // OBSERVER_PAUSED: { help: "v:消息", match: (s) => s === "v", run: () => toggleObserver() },
 ];
 
@@ -2266,12 +2033,9 @@ function attach(target: string) {
   // target = "<sess>:<idx>"
   const [sess, idx] = target.split(":");
 
-  stopDriveLoops();
   state.previewFetchId++;
   if (state.previewTimer) clearTimeout(state.previewTimer);
   state.previewTimer = null;
-  if (previewFetchTimer) clearTimeout(previewFetchTimer);
-  previewFetchTimer = null;
 
   screen.showCursor();
   screen.disableMouse();
@@ -2308,7 +2072,6 @@ function resumeTreeAfterAttach() {
   state.scrollOffset = 0;
   state.seenMax = 0;
   state.suppressPreviewAfterAttach = true;
-  state.needsFullClear = true;
   render();
 
   setTimeout(() => {
@@ -2318,7 +2081,6 @@ function resumeTreeAfterAttach() {
         state.cursor = Math.max(0, state.tree.length - 1);
       }
     });
-    if (state.uiMode === "drive") startDriveLoops();
     render();
   }, RETURN_FROM_ATTACH_DELAY);
 }
@@ -2328,14 +2090,9 @@ function resumeTreeAfterAttach() {
 function refreshAll() {
   clearCaptureCache();
   state.suppressPreviewAfterAttach = false;
-  state.needsFullClear = true;
   invalidateDriveView();
   state.tree = getTree();
   if (state.cursor >= state.tree.length) state.cursor = Math.max(0, state.tree.length - 1);
-  if (state.uiMode === "drive") {
-    void refreshDriveSnapshots(true);
-    void refreshDriveProc(true);
-  }
   refreshPreview();
 }
 
@@ -2353,9 +2110,9 @@ async function refreshPreview() {
   ) {
     const id = state.previewFetchId;
     const target = state.tree[state.cursor].target;
-    if (!state.preview && state.uiMode !== "drive") {
+    if (!state.preview) {
       state.previewTarget = target;
-      render(); // 无缓存时才显示 ⏳（索引模式）
+      render(); // 无缓存时才显示 ⏳
     }
     const text = await getPreview(target);
     if (id !== state.previewFetchId) return; // discard stale
@@ -2371,12 +2128,11 @@ async function refreshPreview() {
 function schedulePreview(opts?: {
   keepScroll?: boolean;
   delay?: number;
-  /** false：驾驶模式移动光标时不立刻 pending/全屏重绘 */
+  /** false：不立刻标 pending / 不重绘（用于 attach 返回，避免闪 ⏳） */
   pending?: boolean;
 }) {
   state.suppressPreviewAfterAttach = false;
   if (state.previewTimer) clearTimeout(state.previewTimer);
-  if (previewFetchTimer) clearTimeout(previewFetchTimer);
   if (!opts?.keepScroll) {
     state.scrollOffset = 0;
     state.seenMax = 0;
@@ -2391,23 +2147,13 @@ function schedulePreview(opts?: {
     render();
     return;
   }
-
-  const driveNav = state.uiMode === "drive" && opts?.pending === false;
-  const leadMs = driveNav ? PREVIEW_PENDING_DELAY : (opts?.delay ?? PREVIEW_DELAY);
-
-  state.previewTimer = setTimeout(() => {
-    state.previewTimer = null;
+  const delay = opts?.delay ?? PREVIEW_DELAY;
+  const showPending = opts?.pending !== false;
+  if (showPending) {
     state.previewFetchId++;
-    const node = state.tree[state.cursor];
-    if (node?.type === "window") state.previewTarget = node.target;
-    if (!driveNav && !state.preview) render();
-    else if (driveNav) render();
-
-    previewFetchTimer = setTimeout(() => {
-      previewFetchTimer = null;
-      refreshPreview();
-    }, driveNav ? PREVIEW_FETCH_DELAY : 0);
-  }, leadMs);
+    render();
+  }
+  state.previewTimer = setTimeout(refreshPreview, delay);
 }
 
 // ── 按键 ──
@@ -3353,12 +3099,8 @@ disableOuterMouse();
 screen.enableMouse(); // SGR 鼠标
 process.stdin.on("data", handleKey);
 
-process.on("SIGWINCH", () => {
-  state.needsFullClear = true;
-  refreshPreview();
-});
+process.on("SIGWINCH", () => refreshPreview());
 process.on("exit", () => {
-  stopDriveLoops();
   tmuxApi.killSession(TUI_CONFIG.VIEWER_SESSION);
   screen.disableMouse();
   restoreOuterMouse();
