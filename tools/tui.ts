@@ -6,6 +6,12 @@
  * CLI 增强: `status` / `inspect` / 全局 `--json` — 供脚本与 agent 拉取结构化车队信息
  * 开发: `tui dev` — bun --watch 热重启（TUI_DEV=1，tmux 会话不中断）
  * 暂停功能恢复: docs/paused-features.md
+ *
+ * PARTS（章节自索引，改章节时只维护下方 `// PART:` 行）:
+ *   rg '^// PART:' tools/tui.ts
+ *   rg -n 'PART:drive' tools/tui.ts
+ *   bun ~/.cursor/skills/code-outline/scripts/outline.ts tools/tui.ts
+ *   bun ~/.cursor/skills/code-outline/scripts/outline.ts tools/tui.ts --part cli-registry
  */
 import {
   accessSync, appendFileSync, chmodSync, constants, copyFileSync, existsSync,
@@ -31,7 +37,7 @@ const PREVIEW_LINES = 80;
 const SHELL_COMMS = new Set(["bash", "zsh", "sh", "fish", "dash", "tmux", "-bash", "-zsh"]);
 
 const TUI_CONFIG = {
-  VERSION: '0.4.4',
+  VERSION: '0.4.6',
   VIEWER_SESSION: `__tui_viewer__`,
   TUI_KEYTABLE: "tui_empty",
   REMARK_KEY: "@remark",
@@ -73,7 +79,7 @@ const TMUX_STATIC_RELEASE = {
   } as Record<string, { file: string; sha256: string }>,
 } as const;
 
-// ── AnsiScreen ──
+// PART:ansi-screen
 
 class AnsiScreen {
   private ESC = "\x1b[";
@@ -119,6 +125,8 @@ const screen = new AnsiScreen();
 
 let tmuxQuietDepth = 0;
 let _resolvedTmuxBin: string | null = null;
+
+// PART:tmux-bootstrap
 
 function isExecutable(p: string): boolean {
   try {
@@ -256,7 +264,7 @@ function withTmuxQuiet<T>(fn: () => T): T {
   }
 }
 
-// ── 纯工具函数 ──
+// PART:text-utils
 
 const ANSI_RE = /\x1b\[[0-9;]*[a-zA-Z]/g;
 function stripAnsi(s: string): string {
@@ -303,6 +311,7 @@ function padVis(s: string, target: number): string {
   return s + " ".repeat(target - w);
 }
 
+// PART:tmux-backend
 // tmux 调用统一走 backend 抽象（保留接口与单例，回到单文件实现）
 // IMultiplexerBackend — 多路复用器后端抽象
 // 第一版接口直接以 tmux 语义命名，目的是把"调 tmux CLI 的动作"集中起来。
@@ -463,7 +472,7 @@ const tmuxApi: IMultiplexerBackend = {
 };
 
 
-// ── target helpers ──
+// PART:target
 // tmux target 语法陷阱：`=NAME` 在 NAME 同时为 session 名和某 window 名时会歧义匹配到 window。
 // 强制 session 维度一律带尾冒号 `=NAME:`；window 维度 `=NAME:IDX`。所有 target 拼接走这里。
 function buildSessTarget(sessionName: string): string {
@@ -490,7 +499,7 @@ function setUserOption(target: string, isWindow: boolean, key: string, val: stri
   }
 }
 
-// ── 数据层 ──
+// PART:tree-data
 
 interface TreeNode {
   label: string;
@@ -559,31 +568,35 @@ function nextAutoLevel(cur: AutoLevel): AutoLevel {
   return AUTO_LEVELS[(i + 1) % AUTO_LEVELS.length];
 }
 
-function writeRemark(node: TreeNode, value: string) {
-  // 关键：用 `=NAME:` / `=NAME:IDX` 精确目标，避免 tmux 对 "1"、短名 做模糊匹配导致跨 session 污染
+function writeNodeOpt(node: TreeNode, key: string, raw: string | null): void {
+  if (key === TUI_CONFIG.AGENT_KEY || key === TUI_CONFIG.AUTO_KEY) {
+    if (node.type !== "window") throw new Error(`${key} 仅可绑定 window`);
+  }
+  let val: string | null = raw;
+  if (key === TUI_CONFIG.AUTO_KEY) {
+    const lvl = normalizeAutoLevel(raw ?? "0");
+    val = lvl === "0" ? null : lvl;
+  } else if (val === "") {
+    val = null;
+  }
   if (node.type === "session") {
-    const sessTarget = buildSessTarget(node.sessionName);
-    setUserOption(sessTarget, false, TUI_CONFIG.REMARK_KEY, value || null);
+    setUserOption(buildSessTarget(node.sessionName), false, key, val);
   } else {
     const idx = node.target.split(":")[1] ?? "";
-    const winTarget = buildWinTarget(node.sessionName, idx);
-    setUserOption(winTarget, true, TUI_CONFIG.REMARK_KEY, value || null);
+    setUserOption(buildWinTarget(node.sessionName, idx), true, key, val);
   }
 }
 
+function writeRemark(node: TreeNode, value: string) {
+  writeNodeOpt(node, TUI_CONFIG.REMARK_KEY, value || null);
+}
+
 function writeAgent(node: TreeNode, value: string) {
-  if (node.type !== "window") throw new Error("agent 仅可绑定 window");
-  const idx = node.target.split(":")[1] ?? "";
-  const winTarget = buildWinTarget(node.sessionName, idx);
-  setUserOption(winTarget, true, TUI_CONFIG.AGENT_KEY, value || null);
+  writeNodeOpt(node, TUI_CONFIG.AGENT_KEY, value || null);
 }
 
 function writeAuto(node: TreeNode, value: string) {
-  if (node.type !== "window") throw new Error("auto 仅可绑定 window");
-  const idx = node.target.split(":")[1] ?? "";
-  const winTarget = buildWinTarget(node.sessionName, idx);
-  const lvl = normalizeAutoLevel(value);
-  setUserOption(winTarget, true, TUI_CONFIG.AUTO_KEY, lvl === "0" ? null : lvl);
+  writeNodeOpt(node, TUI_CONFIG.AUTO_KEY, value);
 }
 
 /** spec → tmux target + TreeNode（TUI / CLI 共用） */
@@ -639,7 +652,7 @@ function resolveTarget(spec: string): string {
   return parseTargetSpec(spec).target;
 }
 
-// ── 领域操作（TUI 快捷键 + CLI 子命令共用，避免双份业务逻辑）──
+// PART:domain-ops
 
 function normName(raw: string, what: string): string {
   const n = raw.trim().replace(/\s+/g, "-");
@@ -675,7 +688,7 @@ function opKillWindow(spec: string): void {
   tmuxApi.killWindow(target);
 }
 
-// ── agentBus：window @agent 为纯名 id；与 @remark / 各 CLI 的 @ 语义分离 ──
+// PART:agent-bus
 
 function normalizeAgentName(name: string): string {
   let t = name.trim();
@@ -766,6 +779,21 @@ function summarizeMessage(body: string): string {
   return stripAnsi(body).replace(/\s+/g, " ").trim().slice(0, MSG_SUMMARY_MAX);
 }
 
+function inboxLastSummary(agentId: string): string {
+  const path = inboxPath(agentId);
+  if (!existsSync(path)) return "";
+  const raw = readFileSync(path, "utf8").trimEnd();
+  if (!raw) return "";
+  const last = raw.split("\n").pop()?.trim();
+  if (!last) return "";
+  try {
+    const e = JSON.parse(last) as AgentEnvelope;
+    return e.summary || summarizeMessage(e.body);
+  } catch {
+    return "";
+  }
+}
+
 function agentSend(opts: {
   to: string;
   from: string;
@@ -830,7 +858,7 @@ function listRegisteredAgents(): Array<{ id: string; target: string; unread: num
   return out;
 }
 
-// ── CLI 结构化输出（status / inspect / --json）──
+// PART:cli-fleet
 
 type CliCtx = { bin: string; rest: string[]; json?: boolean };
 
@@ -918,11 +946,34 @@ function winTargetFromNode(node: TreeNode): string {
   return buildWinTarget(node.sessionName, winIdx);
 }
 
-const DRIVE_PH = "—"; // 未实现列占位
+const DRIVE_PH = "—";
+const DRIVE_CAPTURE_TAIL_LINES = 12;
 const DRIVE_ALERT_RE = /\b(error|fail|panic|exception|fatal)\b/i;
+const DRIVE_ALERT_NEG_RE = /\b(0 errors?|no errors?|without errors?)\b/i;
 
-function driveAlertFromText(line: string): boolean {
-  return DRIVE_ALERT_RE.test(stripAnsi(line));
+function driveAlertFromLine(line: string): boolean {
+  const s = stripAnsi(line);
+  if (!s || DRIVE_ALERT_NEG_RE.test(s)) return false;
+  return DRIVE_ALERT_RE.test(s);
+}
+
+function captureLines(text: string): string[] {
+  return text.split("\n").map((s) => stripAnsi(s).trim()).filter(Boolean);
+}
+
+function driveAlertFromTailDiff(prevTail: string, newTail: string): boolean {
+  const prev = captureLines(prevTail);
+  const cur = captureLines(newTail);
+  if (cur.length === 0) return false;
+  if (prev.length === 0) return driveAlertFromLine(cur[cur.length - 1]);
+  for (let overlap = Math.min(prev.length, cur.length); overlap >= 0; overlap--) {
+    const prevSuffix = prev.slice(-overlap);
+    const curPrefix = cur.slice(0, overlap);
+    if (overlap === 0 || prevSuffix.every((l, i) => l === curPrefix[i])) {
+      return cur.slice(overlap).some(driveAlertFromLine);
+    }
+  }
+  return driveAlertFromLine(cur[cur.length - 1]);
 }
 
 function lastLineFromCaptureText(text: string): string {
@@ -943,7 +994,7 @@ function paneSnap(target: string, opts?: { lines?: number; sync?: boolean }): Pa
     if (hit) return hit;
     const text = tmuxApi.capturePaneText(target, lines);
     const lastLine = lastLineFromCaptureText(text);
-    const entry = { lastLine, alert: driveAlertFromText(lastLine), text };
+    const entry = { lastLine, alert: driveAlertFromLine(lastLine), text };
     paneSnapBatch?.set(target, entry);
     return entry;
   }
@@ -953,11 +1004,14 @@ function paneSnap(target: string, opts?: { lines?: number; sync?: boolean }): Pa
     : { lastLine: "", alert: false, text: "" };
 }
 
-// ── 驾驶模式：后台 snap / proc（render 主路径零 spawnSync）──
+// PART:drive-bg
 
-type WindowMeta = { unread: number; alert: boolean; lastLine: string; lvl: AutoLevel; age: string; act: string };
+type WindowMeta = {
+  unread: number; alert: boolean; lastLine: string; task: string;
+  lvl: AutoLevel; age: string; ageSec: number; act: string;
+};
 
-type WinSnap = { lastLine: string; alert: boolean; ts: number };
+type WinSnap = { lastLine: string; tail: string; alert: boolean; ts: number };
 type ProcInfo = { pid: number; cmd: string; cpu: number; rssMB: number; shellPid: number; ts: number };
 
 const driveSnap = new Map<string, WinSnap>();
@@ -1031,18 +1085,18 @@ async function mapPoolLimit<T>(items: T[], limit: number, fn: (item: T) => Promi
   }));
 }
 
-async function captureLastLineAsync(target: string): Promise<string> {
+async function capturePaneTailAsync(target: string): Promise<string> {
   try {
     const proc = Bun.spawn(
-      [tmuxBin(), "capture-pane", "-p", "-t", target, "-S", "-1", "-E", "-"],
+      [tmuxBin(), "capture-pane", "-p", "-t", target, "-S", `-${DRIVE_CAPTURE_TAIL_LINES}`, "-E", "-"],
       { stdout: "pipe", stderr: "pipe" },
     );
     const text = await new Response(proc.stdout).text();
     await proc.exited;
-    if (proc.exitCode !== 0) return paneSnap(target).lastLine;
-    return lastLineFromCaptureText(text);
+    if (proc.exitCode !== 0) return driveSnap.get(target)?.tail ?? "";
+    return text;
   } catch {
-    return paneSnap(target).lastLine;
+    return driveSnap.get(target)?.tail ?? "";
   }
 }
 
@@ -1066,11 +1120,15 @@ async function refreshDriveSnapshots(force = false): Promise<void> {
       const prevEntry = driveSnap.get(target);
       const prevLine = prevEntry?.lastLine ?? "";
       const prevAlert = prevEntry?.alert ?? false;
-      const lastLine = await captureLastLineAsync(target);
-      const alert = driveAlertFromText(lastLine);
+      const prevTail = prevEntry?.tail ?? "";
+      const newTail = await capturePaneTailAsync(target);
+      const lastLine = lastLineFromCaptureText(newTail);
+      const alert = prevTail
+        ? driveAlertFromTailDiff(prevTail, newTail)
+        : driveAlertFromLine(lastLine);
       if (lastLine !== prevLine) drivePrevLineHash.set(target, prevLine);
       if (alert !== prevAlert) sortDirty = true;
-      driveSnap.set(target, { lastLine, alert, ts: Date.now() });
+      driveSnap.set(target, { lastLine, tail: newTail, alert, ts: Date.now() });
     });
 
     if (sortDirty) invalidateDriveView();
@@ -1220,6 +1278,21 @@ function stopDriveLoops(): void {
   driveNavFlushTimer = null;
 }
 
+function windowAgeEpochSec(node: TreeNode): number {
+  let epochSec = node.windowActivity ?? 0;
+  if (node.agent) {
+    const inboxTs = agentLastInboxTs(node.agent);
+    if (inboxTs !== null) epochSec = Math.max(epochSec, Math.floor(inboxTs / 1000));
+  }
+  return epochSec;
+}
+
+function windowAgeSec(node: TreeNode): number {
+  const epochSec = windowAgeEpochSec(node);
+  if (!epochSec) return 0;
+  return Math.max(0, Math.floor(Date.now() / 1000 - epochSec));
+}
+
 function formatRelativeAge(epochSec: number): string {
   const sec = Math.max(0, Math.floor(Date.now() / 1000 - epochSec));
   if (sec < 60) return "now";
@@ -1230,14 +1303,23 @@ function formatRelativeAge(epochSec: number): string {
   return `${Math.floor(hr / 24)}d`;
 }
 
-function windowDriveAge(node: TreeNode): string {
-  let epochSec = node.windowActivity;
-  if (!epochSec && state.uiMode !== "drive" && node.agent) {
-    const inboxTs = agentLastInboxTs(node.agent);
-    if (inboxTs !== null) epochSec = Math.floor(inboxTs / 1000);
+function driveTaskLabel(node: TreeNode, lastLine: string): string {
+  if (node.remark) return node.remark;
+  if (node.agent) {
+    const summary = inboxLastSummary(node.agent);
+    if (summary) return summary;
   }
-  if (!epochSec) return DRIVE_PH;
-  return formatRelativeAge(epochSec);
+  if (lastLine) return lastLine;
+  return windowNameFromNode(node);
+}
+
+function driveRowScore(m: WindowMeta): number {
+  let score = 0;
+  if (m.unread > 0) score += m.unread * 5;
+  if (m.alert) score += 20;
+  if (m.ageSec > 600) score += 8;
+  score += (parseInt(m.lvl, 10) || 0) / 10;
+  return score;
 }
 
 function deriveActChar(node: TreeNode, lastLine: string): string {
@@ -1248,21 +1330,28 @@ function deriveActChar(node: TreeNode, lastLine: string): string {
   return "○";
 }
 
-function windowMeta(node: TreeNode, treeIdx?: number, opts?: { sync?: boolean }): WindowMeta {
+function windowMeta(
+  node: TreeNode,
+  treeIdx?: number,
+  opts?: { sync?: boolean; cap?: PaneSnapResult },
+): WindowMeta {
   if (treeIdx !== undefined && driveMetaCache?.has(treeIdx)) return driveMetaCache.get(treeIdx)!;
   const target = winTargetFromNode(node);
   const inDrive = state.uiMode === "drive" && !opts?.sync;
   const unread = inDrive
     ? (node.cachedUnread ?? 0)
     : (node.cachedUnread ?? (node.agent ? agentUnreadCount(node.agent) : 0));
-  const cap = paneSnap(target, inDrive ? undefined : { sync: true, lines: 1 });
+  const cap = opts?.cap ?? paneSnap(target, inDrive ? undefined : { sync: opts?.sync ?? true, lines: 1 });
   const lvl = inDrive ? (node.autoLevel ?? "0") : (node.autoLevel ?? readAuto(node));
+  const ageSec = windowAgeSec(node);
   const meta: WindowMeta = {
     unread,
     alert: cap.alert,
     lastLine: cap.lastLine,
+    task: driveTaskLabel(node, cap.lastLine),
     lvl,
-    age: windowDriveAge(node),
+    age: ageSec ? formatRelativeAge(windowAgeEpochSec(node)) : DRIVE_PH,
+    ageSec,
     act: deriveActChar(node, cap.lastLine),
   };
   if (treeIdx !== undefined) driveMetaCache?.set(treeIdx, meta);
@@ -1278,9 +1367,9 @@ function procToCli(proc: ProcInfo | null): CliProcInfo | undefined {
 function fleetWindowRow(n: TreeNode, previewLines: number): CliFleetRow {
   const winIdx = n.target.split(":")[1] ?? "";
   const ag = n.agent;
-  const m = windowMeta(n, undefined, { sync: true });
   const winTarget = buildWinTarget(n.sessionName, winIdx);
   const cap = paneSnap(winTarget, { sync: true, lines: previewLines });
+  const m = windowMeta(n, undefined, { sync: true, cap });
   return {
     type: "window",
     target: n.target,
@@ -1428,7 +1517,7 @@ async function getPreview(target: string): Promise<string> {
   return text;
 }
 
-// ── 状态 ──
+// PART:state
 
 interface InputMode {
   prompt: string;
@@ -1484,13 +1573,9 @@ class TuiState {
 const state = new TuiState();
 
 function getPreviewH(): number {
-  const [, rows] = screen.getSize();
-  const bodyH = Math.max(1, rows - HEADER_H - FOOTER_H);
-  if (state.uiMode === "index") return bodyH;
-  const treeHeaderH = 1;
-  const treeDataH = Math.max(3, Math.floor(bodyH * DRIVE_TREE_FRAC) - treeHeaderH);
-  const paneDividerH = 1;
-  return Math.max(1, bodyH - treeHeaderH - treeDataH - paneDividerH);
+  const [cols, rows] = screen.getSize();
+  const layout = getLayout(cols, rows);
+  return layout.mode === "drive" ? layout.paneH : layout.bodyH;
 }
 
 function getLayout(cols: number, rows: number): LayoutInfo {
@@ -1613,12 +1698,8 @@ function sessionChildCount(treeIdx: number): number {
   return n;
 }
 
-function driveRowScoreLight(node: TreeNode): number {
-  const snap = paneSnap(winTargetFromNode(node));
-  const unread = node.cachedUnread ?? 0;
-  if (snap.alert) return 3;
-  if (unread > 0) return 2;
-  return 1;
+function driveRowScoreForNode(node: TreeNode): number {
+  return driveRowScore(windowMeta(node));
 }
 
 function buildDriveViewIndices(): number[] {
@@ -1639,8 +1720,8 @@ function buildDriveViewIndices(): number[] {
       i++;
     }
     winIdxs.sort((a, b) => {
-      const sa = driveRowScoreLight(tree[a]);
-      const sb = driveRowScoreLight(tree[b]);
+      const sa = driveRowScoreForNode(tree[a]);
+      const sb = driveRowScoreForNode(tree[b]);
       if (sb !== sa) return sb - sa;
       const wa = tree[a].target.split(":")[1] ?? "";
       const wb = tree[b].target.split(":")[1] ?? "";
@@ -1890,7 +1971,7 @@ function renderDriveTableRow(
     wname: winName,
     pname: proc.pname,
     pid: proc.pid,
-    task: node.remark || truncVis(m.lastLine || winName, cw.task),
+    task: truncVis(m.task, cw.task),
     unread: m.unread > 0 ? String(m.unread) : "",
     lvl: m.lvl,
     age: m.age,
@@ -1900,7 +1981,7 @@ function renderDriveTableRow(
   writeDriveRow(row, cols, line, selected);
 }
 
-// ── 渲染 ──
+// PART:render
 
 function renderLeftCell(node: TreeNode, isSelected: boolean, cap: number): void {
   const rk = node.remark;
@@ -2048,7 +2129,7 @@ function render() {
   renderFooter(cols, rows);
 }
 
-// ── Ctrl-Left：沉浸式 detach 返回 tree mode ──
+// PART:detach-keys
 
 const installDetachKeys = () => {
   tmuxApi.bindKey(TUI_CONFIG.TUI_KEYTABLE, "C-Left", "detach-client");
@@ -2061,7 +2142,7 @@ const uninstallDetachKeys = () => {
   tmuxApi.unbindKeyRoot("M-Left");
 };
 
-// ── 外层 tmux mouse（主界面 SGR on；沉浸式 viewer session mouse on，见 createViewer）──
+// PART:outer-mouse
 const insideTmux = tmuxApi.isInsideSession();
 let savedOuterMouse: string | null = null;
 
@@ -2085,7 +2166,7 @@ function restoreOuterMouse() {
   tmuxApi.setGlobalOption("mouse", savedOuterMouse);
 }
 
-// ── 输入框 ──
+// PART:input
 
 function startInput(prompt: string, callback: (v: string | null) => void) {
   state.inputMode = { prompt, value: "", callback };
@@ -2126,7 +2207,7 @@ function handleInputKey(s: string): void {
   }
 }
 
-// ── TUI 按键（help 文案与 handler 同源）──
+// PART:tui-keys
 
 function cursorUp() {
   if (state.uiMode === "drive") {
@@ -2176,7 +2257,7 @@ const TUI_ENTER_KEYS = new Set([
   "\r", "\x1b[1;5C", "\x1b[1;3C", "\x1b[1;9C", "\x1b\x1b[C", "\x1bOC",
 ]);
 
-// ── 操作（调 op*，与 CLI 共用）──
+// PART:tui-ops
 
 function newSession() {
   startInput("新 Session 名称", (raw) => {
@@ -2339,7 +2420,7 @@ function resumeTreeAfterAttach() {
   }, RETURN_FROM_ATTACH_DELAY);
 }
 
-// ── preview 调度 ──
+// PART:preview
 
 function refreshAll() {
   endPaneSnapBatch();
@@ -2432,7 +2513,7 @@ function schedulePreview(opts?: {
   }, delay);
 }
 
-// ── 按键 ──
+// PART:key-handler
 
 let lastClickY = -1;
 let lastClickT = 0;
@@ -2538,7 +2619,7 @@ function handleKey(data: Buffer) {
   }
 }
 
-// ── CLI 模式（声明式命令树，与 TUI 共用 parseTargetSpec / capturePaneSync）──
+// PART:cli
 
 const CLI_BIN = (process.argv[1] || "tui").replace(/^.*\//, "");
 
@@ -2553,30 +2634,90 @@ interface CliCommand {
   run: CliHandler;
 }
 
-function cliUsage(cmd: CliCommand, sub?: CliCommand): string {
-  const leaf = sub ?? cmd;
-  const head = sub ? `${cmd.name} ${leaf.name}` : cmd.name;
-  return leaf.usage ? `${head} ${leaf.usage}` : head;
-}
+// PART:cli-registry — 能力声明（CLI 树由此推导）
 
-function matchCliName(cmd: CliCommand, name: string): boolean {
-  return cmd.name === name || (cmd.aliases?.includes(name) ?? false);
-}
+type UserOptSpec = {
+  summary: string;
+  scope: "any" | "window";
+  read: (node: TreeNode) => string;
+  write: (node: TreeNode, v: string) => void;
+  setUsage: string;
+  getUsage: string;
+  /** true: set 时 positional[1..] 拼成文本；false: 单值 positional[1] */
+  setJoinRest?: boolean;
+  validate?: (raw: string) => string | null;
+};
 
-function isCliInvocation(argv: string[]): boolean {
-  const head = argv[2];
-  if (!head) return false;
-  return CLI_ROOT.some((c) => matchCliName(c, head));
-}
+const CLI_USER_OPTS: Record<string, UserOptSpec> = {
+  remark: {
+    summary: "读写 @remark 逻辑名",
+    scope: "any",
+    read: readRemark,
+    write: writeRemark,
+    setUsage: "<spec> [text...]",
+    getUsage: "<spec>",
+    setJoinRest: true,
+  },
+  auto: {
+    summary: "读写 window @auto 档位（0/50/100）",
+    scope: "window",
+    read: (n) => readAuto(n),
+    write: writeAuto,
+    setUsage: "<window-spec> <0|50|100>",
+    getUsage: "<window-spec>",
+    validate: (raw) => {
+      const lvl = normalizeAutoLevel(raw);
+      return AUTO_LEVELS.includes(lvl) ? lvl : null;
+    },
+  },
+};
 
-function cliList(ctx: CliCtx): number {
-  const { positional, flags } = parseCliFlags(ctx.rest);
-  const previewLines = parseInt(flags.lines || "1", 10) || 1;
-  const snap = buildFleetSnapshot(previewLines);
-  if (ctx.json) {
-    cliWriteJson(snap);
-    return 0;
-  }
+type OpSpec = {
+  summary: string;
+  usage: string;
+  aliases?: string[];
+  arity: number;
+  run: (args: string[]) => string;
+};
+
+const CLI_OPS: Record<string, OpSpec> = {
+  "new-session": {
+    summary: "新建 session（-d）",
+    usage: "<name>",
+    aliases: ["ns"],
+    arity: 1,
+    run: (a) => { const n = opNewSession(a[0]); return `session ${n}\n`; },
+  },
+  "new-window": {
+    summary: "在 session 下新建 window",
+    usage: "<sess-spec> <name>",
+    aliases: ["nw"],
+    arity: 2,
+    run: (a) => { const n = opNewWindow(a[0], a[1]); return `window ${a[0]}:${n}\n`; },
+  },
+  rename: {
+    summary: "重命名 session/window",
+    usage: "<spec> <name>",
+    arity: 2,
+    run: (a) => { const n = opRename(a[0], a[1]); return `renamed → ${n}\n`; },
+  },
+  "kill-window": {
+    summary: "关闭 window（不含 session）",
+    usage: "<spec>",
+    aliases: ["delete", "rm"],
+    arity: 1,
+    run: (a) => { opKillWindow(a[0]); return `killed ${resolveTarget(a[0])}\n`; },
+  },
+};
+
+type FleetViewSpec = {
+  summary: string;
+  usage: string;
+  aliases?: string[];
+  print: (snap: CliFleetSnapshot) => void;
+};
+
+function printFleetList(snap: CliFleetSnapshot): void {
   for (const row of snap.tree) {
     if (row.type === "session") {
       const rk = row.remark ? `  ${row.remark}` : "";
@@ -2589,17 +2730,9 @@ function cliList(ctx: CliCtx): number {
       process.stdout.write(`  ${row.target}${ag}${rk}${ur}${tail}\n`);
     }
   }
-  return 0;
 }
 
-function cliStatus(ctx: CliCtx): number {
-  const { flags } = parseCliFlags(ctx.rest);
-  const previewLines = parseInt(flags.lines || "1", 10) || 1;
-  const snap = buildFleetSnapshot(previewLines);
-  if (ctx.json) {
-    cliWriteJson(snap);
-    return 0;
-  }
+function printFleetStatus(snap: CliFleetSnapshot): void {
   for (const row of snap.tree) {
     if (row.type === "session") {
       process.stdout.write(`▣ ${row.session}  (${row.windowCount})\n`);
@@ -2613,15 +2746,181 @@ function cliStatus(ctx: CliCtx): number {
       );
     }
   }
+}
+
+const CLI_FLEET_VIEWS: Record<string, FleetViewSpec> = {
+  list: {
+    summary: "列出 session/window、agent、未读、末行预览",
+    usage: "[--lines N] [--json]",
+    aliases: ["tree", "ls"],
+    print: printFleetList,
+  },
+  status: {
+    summary: "车队快照（驾驶表同源字段，默认文本）",
+    usage: "[--lines N] [--json]",
+    aliases: ["fleet", "snap"],
+    print: printFleetStatus,
+  },
+};
+
+// PART:cli-router
+
+function cliUsage(cmd: CliCommand, sub?: CliCommand): string {
+  const leaf = sub ?? cmd;
+  const head = sub ? `${cmd.name} ${leaf.name}` : cmd.name;
+  return leaf.usage ? `${head} ${leaf.usage}` : head;
+}
+
+function matchCliName(cmd: CliCommand, name: string): boolean {
+  return cmd.name === name || (cmd.aliases?.includes(name) ?? false);
+}
+
+function cliFailUsage(usage: string): number {
+  process.stderr.write(`usage: ${CLI_BIN} ${usage}\n`);
+  return 2;
+}
+
+function cliRespond(ctx: CliCtx, data: unknown, text: () => void): number {
+  if (ctx.json) {
+    cliWriteJson(data);
+    return 0;
+  }
+  text();
   return 0;
+}
+
+function cliRequireWindow(node: TreeNode, label: string): number | null {
+  if (node.type !== "window") {
+    process.stderr.write(`error: ${label} 需要 window spec\n`);
+    return 2;
+  }
+  return null;
+}
+
+function cliUserOptGet(optName: string, ctx: CliCtx): number {
+  const spec = CLI_USER_OPTS[optName];
+  if (!ctx.rest[0]) return cliFailUsage(`${optName} get ${spec.getUsage}`);
+  const { node } = parseTargetSpec(ctx.rest[0]);
+  if (spec.scope === "window") {
+    const err = cliRequireWindow(node, optName);
+    if (err !== null) return err;
+  }
+  const v = spec.read(node);
+  process.stdout.write(v ? `${v}\n` : "\n");
+  return 0;
+}
+
+function cliUserOptSet(optName: string, ctx: CliCtx): number {
+  const spec = CLI_USER_OPTS[optName];
+  const minArgs = spec.setJoinRest ? 1 : 2;
+  if (ctx.rest.length < minArgs) return cliFailUsage(`${optName} set ${spec.setUsage}`);
+  const { target, node } = parseTargetSpec(ctx.rest[0]);
+  if (spec.scope === "window") {
+    const err = cliRequireWindow(node, optName);
+    if (err !== null) return err;
+  }
+  let value: string;
+  if (spec.setJoinRest) {
+    value = ctx.rest.slice(1).join(" ");
+  } else {
+    const raw = ctx.rest[1];
+    if (spec.validate) {
+      const ok = spec.validate(raw);
+      if (ok === null) {
+        process.stderr.write(`error: ${optName} 档位须为 0 | 50 | 100\n`);
+        return 2;
+      }
+      value = ok;
+    } else {
+      value = raw;
+    }
+  }
+  spec.write(node, value);
+  process.stdout.write(`${optName} ${target} = ${value || "(cleared)"}\n`);
+  return 0;
+}
+
+function cliUserOptLegacy(optName: string, ctx: CliCtx): number {
+  const sub = ctx.rest[0];
+  if (sub === "get" || sub === "show" || sub === "read") {
+    return cliUserOptGet(optName, { ...ctx, rest: ctx.rest.slice(1) });
+  }
+  if (sub === "set" || sub === "write") {
+    return cliUserOptSet(optName, { ...ctx, rest: ctx.rest.slice(1) });
+  }
+  if (optName === "remark") return cliUserOptSet(optName, ctx);
+  return cliFailUsage(`${optName} set|get …`);
+}
+
+function cliOp(opName: string, ctx: CliCtx): number {
+  const spec = CLI_OPS[opName];
+  const { positional } = parseCliFlags(ctx.rest);
+  if (positional.length < spec.arity) return cliFailUsage(`${opName} ${spec.usage}`);
+  process.stdout.write(spec.run(positional));
+  return 0;
+}
+
+function cliFleet(viewName: string, ctx: CliCtx): number {
+  const spec = CLI_FLEET_VIEWS[viewName];
+  const { flags } = parseCliFlags(ctx.rest);
+  const previewLines = parseInt(flags.lines || "1", 10) || 1;
+  const snap = buildFleetSnapshot(previewLines);
+  return cliRespond(ctx, snap, () => spec.print(snap));
+}
+
+function buildUserOptGroup(name: string, spec: UserOptSpec): CliCommand {
+  return {
+    name,
+    summary: spec.summary,
+    run: (ctx) => cliUserOptLegacy(name, ctx),
+    children: [
+      {
+        name: "set",
+        aliases: ["write"],
+        summary: `设置 @${name}`,
+        usage: spec.setUsage,
+        run: (ctx) => cliUserOptSet(name, ctx),
+      },
+      {
+        name: "get",
+        aliases: ["show", "read"],
+        summary: `读取 @${name}`,
+        usage: spec.getUsage,
+        run: (ctx) => cliUserOptGet(name, ctx),
+      },
+    ],
+  };
+}
+
+function buildOpCommand(name: string, spec: OpSpec): CliCommand {
+  return {
+    name,
+    aliases: spec.aliases,
+    summary: spec.summary,
+    usage: spec.usage,
+    run: (ctx) => cliOp(name, ctx),
+  };
+}
+
+function buildFleetCommand(name: string, spec: FleetViewSpec): CliCommand {
+  return {
+    name,
+    aliases: spec.aliases,
+    summary: spec.summary,
+    usage: spec.usage,
+    run: (ctx) => cliFleet(name, ctx),
+  };
+}
+
+function isCliInvocation(argv: string[]): boolean {
+  const head = argv[2];
+  if (!head) return false;
+  return CLI_ROOT.some((c) => matchCliName(c, head));
 }
 
 function cliInspect(ctx: CliCtx): number {
   const { positional, flags } = parseCliFlags(ctx.rest);
-  if (!positional[0]) {
-    process.stderr.write(`usage: ${CLI_BIN} ${cliUsage(CLI_CMD.inspect)}\n`);
-    return 2;
-  }
+  if (!positional[0]) return cliFailUsage("inspect <spec> [--lines N] [--json]");
   const previewLines = parseInt(flags.lines || String(PREVIEW_LINES), 10) || PREVIEW_LINES;
   const info = buildInspectResult(positional[0], previewLines);
   if (ctx.json) {
@@ -2642,10 +2941,7 @@ function cliInspect(ctx: CliCtx): number {
 
 function cliCapture(ctx: CliCtx): number {
   const { positional, flags } = parseCliFlags(ctx.rest);
-  if (!positional[0]) {
-    process.stderr.write(`usage: ${CLI_BIN} ${cliUsage(CLI_CMD.capture)}\n`);
-    return 2;
-  }
+  if (!positional[0]) return cliFailUsage("capture <spec> [lines] [--json]");
   const lines = positional[1] ? parseInt(positional[1], 10) : PREVIEW_LINES;
   const n = isNaN(lines) ? PREVIEW_LINES : lines;
   const spec = positional[0];
@@ -2667,10 +2963,7 @@ function cliCapture(ctx: CliCtx): number {
 }
 
 function cliSend(ctx: CliCtx): number {
-  if (ctx.rest.length < 2) {
-    process.stderr.write(`usage: ${CLI_BIN} ${cliUsage(CLI_CMD.send)}\n`);
-    return 2;
-  }
+  if (ctx.rest.length < 2) return cliFailUsage("send <spec> <text...>");
   const target = resolveTarget(ctx.rest[0]);
   tmuxApi.sendKeys(target, ctx.rest.slice(1).join(" "));
   process.stdout.write(`sent → ${target}: ${ctx.rest.slice(1).join(" ").length} chars\n`);
@@ -2678,91 +2971,13 @@ function cliSend(ctx: CliCtx): number {
 }
 
 function cliPaste(ctx: CliCtx): number {
-  if (ctx.rest.length < 2) {
-    process.stderr.write(`usage: ${CLI_BIN} ${cliUsage(CLI_CMD.paste)}\n`);
-    return 2;
-  }
+  if (ctx.rest.length < 2) return cliFailUsage("paste <spec> <file>");
   const target = resolveTarget(ctx.rest[0]);
   const file = ctx.rest[1];
   tmuxApi.loadBuffer(target, file);
   tmuxApi.pasteBuffer(target);
   process.stdout.write(`pasted ${file} → ${target}\n`);
   return 0;
-}
-
-function cliRemarkSet(ctx: CliCtx): number {
-  if (!ctx.rest[0]) {
-    process.stderr.write(`usage: ${CLI_BIN} ${cliUsage(CLI_CMD.remark, CLI_CMD.remarkSet)}\n`);
-    return 2;
-  }
-  const { target, node } = parseTargetSpec(ctx.rest[0]);
-  const text = ctx.rest.slice(1).join(" ");
-  writeRemark(node, text);
-  process.stdout.write(`remark ${target} = ${text || "(cleared)"}\n`);
-  return 0;
-}
-
-function cliRemarkGet(ctx: CliCtx): number {
-  if (!ctx.rest[0]) {
-    process.stderr.write(`usage: ${CLI_BIN} ${cliUsage(CLI_CMD.remark, CLI_CMD.remarkGet)}\n`);
-    return 2;
-  }
-  const { node } = parseTargetSpec(ctx.rest[0]);
-  const v = readRemark(node);
-  process.stdout.write(v ? `${v}\n` : "\n");
-  return 0;
-}
-
-/** 兼容：remark <spec> [text]；remark get <spec> */
-function cliRemarkLegacy(ctx: CliCtx): number {
-  const sub = ctx.rest[0];
-  if (sub === "get" || sub === "show" || sub === "read") return cliRemarkGet({ ...ctx, rest: ctx.rest.slice(1) });
-  if (sub === "set" || sub === "write") return cliRemarkSet({ ...ctx, rest: ctx.rest.slice(1) });
-  return cliRemarkSet(ctx);
-}
-
-function cliAutoSet(ctx: CliCtx): number {
-  if (ctx.rest.length < 2) {
-    process.stderr.write(`usage: ${CLI_BIN} ${cliUsage(CLI_CMD.auto, CLI_CMD.autoSet)}\n`);
-    return 2;
-  }
-  const { target, node } = parseTargetSpec(ctx.rest[0]);
-  if (node.type !== "window") {
-    process.stderr.write("error: auto 需要 window spec\n");
-    return 2;
-  }
-  const lvl = normalizeAutoLevel(ctx.rest[1]);
-  if (!AUTO_LEVELS.includes(lvl)) {
-    process.stderr.write("error: auto 档位须为 0 | 50 | 100\n");
-    return 2;
-  }
-  writeAuto(node, lvl);
-  process.stdout.write(`auto ${target} = ${lvl}\n`);
-  return 0;
-}
-
-function cliAutoGet(ctx: CliCtx): number {
-  if (!ctx.rest[0]) {
-    process.stderr.write(`usage: ${CLI_BIN} ${cliUsage(CLI_CMD.auto, CLI_CMD.autoGet)}\n`);
-    return 2;
-  }
-  const { node } = parseTargetSpec(ctx.rest[0]);
-  if (node.type !== "window") {
-    process.stderr.write("error: auto 需要 window spec\n");
-    return 2;
-  }
-  const v = readAuto(node);
-  process.stdout.write(`${v}\n`);
-  return 0;
-}
-
-/** 兼容：auto get <spec> */
-function cliAutoLegacy(ctx: CliCtx): number {
-  const sub = ctx.rest[0];
-  if (sub === "get" || sub === "show" || sub === "read") return cliAutoGet({ ...ctx, rest: ctx.rest.slice(1) });
-  if (sub === "set" || sub === "write") return cliAutoSet({ ...ctx, rest: ctx.rest.slice(1) });
-  process.stderr.write(`usage: ${CLI_BIN} auto set|get <window-spec> [0|50|100]\n`);
-  return 2;
 }
 
 function cliHelp(): number {
@@ -2828,10 +3043,7 @@ function parseCliFlags(rest: string[]): { positional: string[]; flags: Record<st
 function cliAgentSend(ctx: CliCtx): number {
   const { positional, flags } = parseCliFlags(ctx.rest);
   if (!positional[0] || !flags.from) {
-    process.stderr.write(
-      `usage: ${CLI_BIN} ${cliUsage(CLI_CMD.agent, CLI_CMD.agentSend)}\n`,
-    );
-    return 2;
+    return cliFailUsage("agent send <to> --from <me> [--corr id] [--reply] <body>");
   }
   const body = positional.slice(1).join(" ");
   if (!body) {
@@ -2856,12 +3068,7 @@ function cliAgentSend(ctx: CliCtx): number {
 
 function cliAgentInbox(ctx: CliCtx): number {
   const { positional, flags } = parseCliFlags(ctx.rest);
-  if (!positional[0]) {
-    process.stderr.write(
-      `usage: ${CLI_BIN} ${cliUsage(CLI_CMD.agent, CLI_CMD.agentInbox)}\n`,
-    );
-    return 2;
-  }
+  if (!positional[0]) return cliFailUsage("agent inbox <me> [--follow] [--mark-read] [--since iso]");
   const id = resolveAgentName(positional[0]);
   const path = inboxPath(id);
   const since = flags.since ? Date.parse(flags.since) : 0;
@@ -2901,10 +3108,7 @@ function cliAgentInbox(ctx: CliCtx): number {
 function cliAgentWait(ctx: CliCtx): number {
   const { positional, flags } = parseCliFlags(ctx.rest);
   if (!positional[0] || !flags.corr) {
-    process.stderr.write(
-      `usage: ${CLI_BIN} ${cliUsage(CLI_CMD.agent, CLI_CMD.agentWait)}\n`,
-    );
-    return 2;
+    return cliFailUsage("agent wait <me> --corr id [--timeout 60]");
   }
   const id = resolveAgentName(positional[0]);
   const corr = flags.corr;
@@ -2952,7 +3156,7 @@ function cliAgentList(ctx: CliCtx): number {
           const n = findNodeByAgent(a.id);
           if (!n) return undefined;
           const idx = n.target.split(":")[1] ?? "";
-          return capturePreviewMeta(buildWinTarget(n.sessionName, idx), 1).lastLine;
+          return paneSnap(buildWinTarget(n.sessionName, idx), { lines: 1, sync: true }).lastLine;
         })(),
       })),
     });
@@ -2966,12 +3170,7 @@ function cliAgentList(ctx: CliCtx): number {
 }
 
 function cliAgentRegister(ctx: CliCtx): number {
-  if (ctx.rest.length < 2) {
-    process.stderr.write(
-      `usage: ${CLI_BIN} ${cliUsage(CLI_CMD.agent, CLI_CMD.agentRegister)}\n`,
-    );
-    return 2;
-  }
+  if (ctx.rest.length < 2) return cliFailUsage("agent register <window-spec> <name>");
   const { target, node } = parseTargetSpec(ctx.rest[0]);
   if (node.type !== "window") {
     process.stderr.write("error: register 需要 window spec\n");
@@ -2984,12 +3183,7 @@ function cliAgentRegister(ctx: CliCtx): number {
 }
 
 function cliAgentUnregister(ctx: CliCtx): number {
-  if (!ctx.rest[0]) {
-    process.stderr.write(
-      `usage: ${CLI_BIN} ${cliUsage(CLI_CMD.agent, CLI_CMD.agentUnregister)}\n`,
-    );
-    return 2;
-  }
+  if (!ctx.rest[0]) return cliFailUsage("agent unregister <window-spec>");
   const { target, node } = parseTargetSpec(ctx.rest[0]);
   if (node.type !== "window") {
     process.stderr.write("error: unregister 需要 window spec\n");
@@ -3012,45 +3206,97 @@ function cliAgentLegacy(ctx: CliCtx): number {
   return 2;
 }
 
-function cliNewSession(ctx: CliCtx): number {
-  if (!ctx.rest[0]) {
-    process.stderr.write(`usage: ${CLI_BIN} ${cliUsage(CLI_CMD.newSession)}\n`);
-    return 2;
-  }
-  const name = opNewSession(ctx.rest[0]);
-  process.stdout.write(`session ${name}\n`);
-  return 0;
+function buildAgentGroup(): CliCommand {
+  return {
+    name: "agent",
+    summary: "v0.3 — window @agent 纯名；与 @remark 分离",
+    run: cliAgentLegacy,
+    children: [
+      {
+        name: "register",
+        aliases: ["bind"],
+        summary: "为 window 设置 @agent 纯名",
+        usage: "<window-spec> <name>",
+        run: cliAgentRegister,
+      },
+      {
+        name: "unregister",
+        aliases: ["unbind"],
+        summary: "清除 window 的 @agent",
+        usage: "<window-spec>",
+        run: cliAgentUnregister,
+      },
+      {
+        name: "send",
+        summary: "投递消息到对方 ~/.tui/inbox",
+        usage: "<to> --from <me> [--corr id] [--reply] <body>",
+        run: cliAgentSend,
+      },
+      {
+        name: "inbox",
+        summary: "读取 inbox（jsonl）",
+        usage: "<me> [--follow] [--mark-read] [--since iso]",
+        run: cliAgentInbox,
+      },
+      {
+        name: "wait",
+        summary: "阻塞等待 kind=reply 且 corr 匹配",
+        usage: "<me> --corr id [--timeout 60]",
+        run: cliAgentWait,
+      },
+      {
+        name: "list",
+        aliases: ["ls"],
+        summary: "已注册 agent、未读、inbox 路径",
+        usage: "[--json]",
+        run: cliAgentList,
+      },
+    ],
+  };
 }
 
-function cliNewWindow(ctx: CliCtx): number {
-  if (ctx.rest.length < 2) {
-    process.stderr.write(`usage: ${CLI_BIN} ${cliUsage(CLI_CMD.newWindow)}\n`);
-    return 2;
-  }
-  const name = opNewWindow(ctx.rest[0], ctx.rest[1]);
-  process.stdout.write(`window ${ctx.rest[0]}:${name}\n`);
-  return 0;
+function buildCliRoot(): CliCommand[] {
+  return [
+    { name: "help", aliases: ["-h", "--help"], summary: "显示帮助", run: () => cliHelp() },
+    {
+      name: "dev",
+      aliases: ["watch"],
+      summary: "bun --watch 热重启（加速改 CLI/TUI）",
+      usage: "[子命令参数…]  例: dev | dev status --json",
+      run: cliDev,
+    },
+    { name: "doctor", summary: "诊断 tmux 路径/版本/quarantine", run: cliDoctor },
+    {
+      name: "install-tmux",
+      aliases: ["install"],
+      summary: "安装 tmux（默认便携版→~/tmux）",
+      usage: "[--force] [--system]",
+      run: cliInstallTmux,
+    },
+    buildAgentGroup(),
+    buildFleetCommand("status", CLI_FLEET_VIEWS.status),
+    buildFleetCommand("list", CLI_FLEET_VIEWS.list),
+    {
+      name: "inspect",
+      aliases: ["show", "get"],
+      summary: "单个 session/window/agent 详情 + capture",
+      usage: "<spec> [--lines N] [--json]",
+      run: cliInspect,
+    },
+    {
+      name: "capture",
+      summary: "capture-pane → stdout 或 JSON",
+      usage: "<spec> [lines] [--json]",
+      run: cliCapture,
+    },
+    { name: "send", aliases: ["msg"], summary: "send-keys 注入", usage: "<spec> <text...>", run: cliSend },
+    { name: "paste", summary: "load-buffer + paste-buffer", usage: "<spec> <file>", run: cliPaste },
+    ...Object.entries(CLI_OPS).map(([n, s]) => buildOpCommand(n, s)),
+    ...Object.entries(CLI_USER_OPTS).map(([n, s]) => buildUserOptGroup(n, s)),
+  ];
 }
 
-function cliRename(ctx: CliCtx): number {
-  if (ctx.rest.length < 2) {
-    process.stderr.write(`usage: ${CLI_BIN} ${cliUsage(CLI_CMD.rename)}\n`);
-    return 2;
-  }
-  const name = opRename(ctx.rest[0], ctx.rest[1]);
-  process.stdout.write(`renamed → ${name}\n`);
-  return 0;
-}
-
-function cliKillWindow(ctx: CliCtx): number {
-  if (!ctx.rest[0]) {
-    process.stderr.write(`usage: ${CLI_BIN} ${cliUsage(CLI_CMD.killWindow)}\n`);
-    return 2;
-  }
-  opKillWindow(ctx.rest[0]);
-  process.stdout.write(`killed ${resolveTarget(ctx.rest[0])}\n`);
-  return 0;
-}
+const CLI_ROOT = buildCliRoot();
 
 function cliDoctor(_ctx: CliCtx): number {
   const key = tmuxPlatformKey();
@@ -3089,7 +3335,6 @@ function resolveSelfScript(): string {
   return join(import.meta.dir, "tui.ts");
 }
 
-/** 开发热重启：bun --watch 重新执行本脚本；子进程设 TUI_DEV=1 */
 function cliDev(ctx: CliCtx): number {
   const script = resolveSelfScript();
   const bunArgs = ["--watch", script, ...ctx.rest];
@@ -3109,179 +3354,6 @@ function cliDev(ctx: CliCtx): number {
   return r.exitCode ?? 0;
 }
 
-const CLI_CMD = {
-  help: { name: "help", aliases: ["-h", "--help"], summary: "显示帮助", run: () => cliHelp() },
-  dev: {
-    name: "dev",
-    aliases: ["watch"],
-    summary: "bun --watch 热重启（加速改 CLI/TUI）",
-    usage: "[子命令参数…]  例: dev | dev status --json",
-    run: cliDev,
-  },
-  doctor: { name: "doctor", summary: "诊断 tmux 路径/版本/quarantine", run: cliDoctor },
-  installTmux: {
-    name: "install-tmux",
-    aliases: ["install"],
-    summary: "安装 tmux（默认便携版→~/tmux）",
-    usage: "[--force] [--system]",
-    run: cliInstallTmux,
-  },
-  list: {
-    name: "list",
-    aliases: ["tree", "ls"],
-    summary: "列出 session/window、agent、未读、末行预览",
-    usage: "[--lines N] [--json]",
-    run: cliList,
-  },
-  status: {
-    name: "status",
-    aliases: ["fleet", "snap"],
-    summary: "车队快照（驾驶表同源字段，默认文本）",
-    usage: "[--lines N] [--json]",
-    run: cliStatus,
-  },
-  inspect: {
-    name: "inspect",
-    aliases: ["show", "get"],
-    summary: "单个 session/window/agent 详情 + capture",
-    usage: "<spec> [--lines N] [--json]",
-    run: cliInspect,
-  },
-  capture: {
-    name: "capture",
-    summary: "capture-pane → stdout 或 JSON",
-    usage: "<spec> [lines] [--json]",
-    run: cliCapture,
-  },
-  send: { name: "send", aliases: ["msg"], summary: "send-keys 注入", usage: "<spec> <text...>", run: cliSend },
-  paste: { name: "paste", summary: "load-buffer + paste-buffer", usage: "<spec> <file>", run: cliPaste },
-  newSession: {
-    name: "new-session",
-    aliases: ["ns"],
-    summary: "新建 session（-d）",
-    usage: "<name>",
-    run: cliNewSession,
-  },
-  newWindow: {
-    name: "new-window",
-    aliases: ["nw"],
-    summary: "在 session 下新建 window",
-    usage: "<sess-spec> <name>",
-    run: cliNewWindow,
-  },
-  rename: { name: "rename", summary: "重命名 session/window", usage: "<spec> <name>", run: cliRename },
-  killWindow: {
-    name: "kill-window",
-    aliases: ["delete", "rm"],
-    summary: "关闭 window（不含 session）",
-    usage: "<spec>",
-    run: cliKillWindow,
-  },
-  remarkSet: { name: "set", aliases: ["write"], summary: "设置 @remark", usage: "<spec> [text...]", run: cliRemarkSet },
-  remarkGet: { name: "get", aliases: ["show", "read"], summary: "读取 @remark", usage: "<spec>", run: cliRemarkGet },
-  remark: {
-    name: "remark",
-    summary: "读写 @remark 逻辑名",
-    run: cliRemarkLegacy,
-    children: [] as CliCommand[],
-  },
-  autoSet: {
-    name: "set",
-    aliases: ["write"],
-    summary: "设置 @auto 档位",
-    usage: "<window-spec> <0|50|100>",
-    run: cliAutoSet,
-  },
-  autoGet: {
-    name: "get",
-    aliases: ["show", "read"],
-    summary: "读取 @auto 档位",
-    usage: "<window-spec>",
-    run: cliAutoGet,
-  },
-  auto: {
-    name: "auto",
-    summary: "读写 window @auto 档位（0/50/100）",
-    run: cliAutoLegacy,
-    children: [] as CliCommand[],
-  },
-  agentRegister: {
-    name: "register",
-    aliases: ["bind"],
-    summary: "为 window 设置 @agent 纯名",
-    usage: "<window-spec> <name>",
-    run: cliAgentRegister,
-  },
-  agentUnregister: {
-    name: "unregister",
-    aliases: ["unbind"],
-    summary: "清除 window 的 @agent",
-    usage: "<window-spec>",
-    run: cliAgentUnregister,
-  },
-  agentSend: {
-    name: "send",
-    summary: "投递消息到对方 ~/.tui/inbox",
-    usage: "<to> --from <me> [--corr id] [--reply] <body>",
-    run: cliAgentSend,
-  },
-  agentInbox: {
-    name: "inbox",
-    summary: "读取 inbox（jsonl）",
-    usage: "<me> [--follow] [--mark-read] [--since iso]",
-    run: cliAgentInbox,
-  },
-  agentWait: {
-    name: "wait",
-    summary: "阻塞等待 kind=reply 且 corr 匹配",
-    usage: "<me> --corr id [--timeout 60]",
-    run: cliAgentWait,
-  },
-  agentList: {
-    name: "list",
-    aliases: ["ls"],
-    summary: "已注册 agent、未读、inbox 路径",
-    usage: "[--json]",
-    run: cliAgentList,
-  },
-  agent: {
-    name: "agent",
-    summary: "v0.3 — window @agent 纯名；与 @remark 分离",
-    run: cliAgentLegacy,
-    children: [] as CliCommand[],
-  },
-};
-CLI_CMD.remark.children = [CLI_CMD.remarkSet, CLI_CMD.remarkGet];
-CLI_CMD.auto.children = [CLI_CMD.autoSet, CLI_CMD.autoGet];
-CLI_CMD.agent.children = [
-  CLI_CMD.agentRegister,
-  CLI_CMD.agentUnregister,
-  CLI_CMD.agentSend,
-  CLI_CMD.agentInbox,
-  CLI_CMD.agentWait,
-  CLI_CMD.agentList,
-];
-
-const CLI_ROOT: CliCommand[] = [
-  CLI_CMD.help,
-  CLI_CMD.dev,
-  CLI_CMD.doctor,
-  CLI_CMD.installTmux,
-  CLI_CMD.agent,
-  CLI_CMD.status,
-  CLI_CMD.inspect,
-  CLI_CMD.list,
-  CLI_CMD.capture,
-  CLI_CMD.send,
-  CLI_CMD.paste,
-  CLI_CMD.newSession,
-  CLI_CMD.newWindow,
-  CLI_CMD.rename,
-  CLI_CMD.killWindow,
-  CLI_CMD.remark,
-  CLI_CMD.auto,
-];
-
 function dispatchCliCommand(cmd: CliCommand, rest: string[], json = false): number {
   const peeled = peelJsonFlag(rest);
   const ctx: CliCtx = { bin: CLI_BIN, rest: peeled.rest, json: json || peeled.json };
@@ -3295,11 +3367,9 @@ function dispatchCliCommand(cmd: CliCommand, rest: string[], json = false): numb
 
 function cliNeedsTmux(head: string): boolean {
   if (!head) return false;
-  if (matchCliName(CLI_CMD.help, head)) return false;
-  if (matchCliName(CLI_CMD.dev, head)) return false;
-  if (matchCliName(CLI_CMD.doctor, head)) return false;
-  if (matchCliName(CLI_CMD.installTmux, head)) return false;
-  return true;
+  const cmd = CLI_ROOT.find((c) => matchCliName(c, head));
+  if (!cmd) return true;
+  return !["help", "dev", "doctor", "install-tmux"].includes(cmd.name);
 }
 
 function runCli(argv: string[]): number {
@@ -3330,6 +3400,8 @@ function runCli(argv: string[]): number {
   }
 }
 
+// PART:entry
+
 if (import.meta.main) {
   if (isCliInvocation(process.argv)) {
     process.exit(runCli(process.argv));
@@ -3338,8 +3410,6 @@ if (import.meta.main) {
 }
 
 function startTui(): void {
-  // ── 启动（TUI 需 tmux；install-tmux / doctor 已在上方 CLI 分支退出）──
-
   const _tmuxAtStart = resolveTmuxPath();
   if (!_tmuxAtStart) {
     process.stderr.write(`tmux 未找到。运行: ${CLI_BIN} install-tmux\n`);
