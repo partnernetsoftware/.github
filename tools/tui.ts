@@ -28,7 +28,7 @@ const TUI_CONFIG = {
   DATA_DIR: join(homedir(), ".tui"),
   INBOX_DIR: join(homedir(), ".tui", "inbox"),
   READ_DIR: join(homedir(), ".tui", "read"),
-  BUS_PATH: join(homedir(), ".tui", "bus.jsonl"),
+  // BUS_PATH: join(homedir(), ".tui", "bus.jsonl"), // OBSERVER_PAUSED
 } as const;
 
 type AgentKind = "msg" | "reply";
@@ -719,6 +719,8 @@ function summarizeMessage(body: string): string {
   return stripAnsi(body).replace(/\s+/g, " ").trim().slice(0, 120);
 }
 
+// ═══ OBSERVER_PAUSED：v 消息栏 + bus.jsonl 镜像（恢复时取消注释）═══
+/*
 function appendBus(env: AgentEnvelope): void {
   try {
     mkdirSync(TUI_CONFIG.DATA_DIR, { recursive: true });
@@ -740,11 +742,11 @@ function readBusTail(limit = 500): AgentEnvelope[] {
     try {
       out.push(JSON.parse(t) as AgentEnvelope);
     } catch {
-      /* 跳过坏行 */
     }
   }
   return out;
 }
+*/
 
 function agentSend(opts: {
   to: string;
@@ -772,7 +774,7 @@ function agentSend(opts: {
   };
   mkdirSync(TUI_CONFIG.INBOX_DIR, { recursive: true });
   appendFileSync(inboxPath(toName), JSON.stringify(env) + "\n");
-  appendBus(env);
+  // OBSERVER_PAUSED: appendBus(env);
   return env;
 }
 
@@ -864,7 +866,7 @@ class TuiState {
   tree: TreeNode[] = getTree();
   cursor = 0;
   viewOffset = 0;
-  layoutMode: "preview" | "observer" = "preview";
+  // layoutMode: "preview" | "observer" = "preview"; // OBSERVER_PAUSED
   preview = "";
   previewTimer: ReturnType<typeof setTimeout> | null = null;
   previewFetchId = 0;
@@ -891,10 +893,9 @@ function getPreviewH(): number {
 }
 function getLayout(cols: number, rows: number) {
   const leftW = Math.min(Math.max(Math.floor(cols * 0.2), 12), 30);
-  const inspectorW = state.layoutMode === "observer" && cols >= 100
-    ? Math.min(Math.max(Math.floor(cols * 0.3), 30), 48)
-    : 0;
-  const rightW = cols - leftW - 1 - (inspectorW ? inspectorW + 1 : 0);
+  // OBSERVER_PAUSED: inspectorW / observer 第三栏
+  const inspectorW = 0;
+  const rightW = cols - leftW - 1;
   const bodyH = rows - HEADER_H - FOOTER_H;
   return { leftW, rightW, inspectorW, bodyH };
 }
@@ -931,6 +932,7 @@ function renderLeftCell(node: TreeNode, isSelected: boolean, cap: number): void 
   }
 }
 
+/*
 function formatBusLine(env: AgentEnvelope, cap: number): string {
   const time = env.ts ? new Date(env.ts).toTimeString().slice(0, 8) : "--:--:--";
   const status = env.status ? ` ${env.status}` : "";
@@ -959,6 +961,7 @@ function renderInspectorCell(row: number, col: number, width: number, lineIdx: n
   }
   screen.write(padVis(formatBusLine(env, cap), cap));
 }
+*/
 
 function render() {
   const [cols, rows] = screen.getSize();
@@ -991,7 +994,7 @@ function render() {
 
   // 滚动条计算：右侧让出 1 列绘制
   const textW = Math.max(0, rightW - 1);
-  const busRows = inspectorW ? readBusTail(Math.max(100, bodyH * 4)) : [];
+  // OBSERVER_PAUSED: const busRows = inspectorW ? readBusTail(...) : [];
   const previewH = bodyH;
   const curDepth = state.scrollOffset + previewH;
   if (curDepth > state.seenMax) state.seenMax = curDepth;
@@ -1037,12 +1040,7 @@ function render() {
       screen.write(`\x1b[90m${inThumb ? "▓" : "░"}\x1b[0m`);
     }
 
-    if (inspectorW) {
-      const inspectorCol = leftW + 1 + rightW + 1;
-      screen.cursorAt(row, inspectorCol - 1);
-      screen.write(screen.dim("│"));
-      renderInspectorCell(row, inspectorCol, inspectorW, i, busRows);
-    }
+    // OBSERVER_PAUSED: inspector 第三栏（bus.jsonl）
   }
 
   // footer
@@ -1194,10 +1192,12 @@ function enterAttach() {
   attach(state.tree[state.cursor].target);
 }
 
+/*
 function toggleObserver() {
   state.layoutMode = state.layoutMode === "observer" ? "preview" : "observer";
   render();
 }
+*/
 
 const TUI_KEYBINDS: { help: string; match: (s: string) => boolean; run: () => void }[] = [
   { help: "↑/k", match: (s) => s === "\x1b[A" || s === "k", run: cursorUp },
@@ -1208,7 +1208,7 @@ const TUI_KEYBINDS: { help: string; match: (s: string) => boolean; run: () => vo
   { help: "r:改名", match: (s) => s === "r", run: () => renameCurrent() },
   { help: "m:备注", match: (s) => s === "m", run: () => remarkCurrent() },
   { help: "f:刷", match: (s) => s === "f", run: () => refreshAll() },
-  { help: "v:消息", match: (s) => s === "v", run: () => toggleObserver() },
+  // OBSERVER_PAUSED: { help: "v:消息", match: (s) => s === "v", run: () => toggleObserver() },
 ];
 
 function tuiHeaderHelp(): string {
@@ -1688,7 +1688,8 @@ function cliHelp(): number {
   lines.push(
     "",
     "<spec>: @逻辑名 | sess | sess:idx | =sess:idx（@ 仅 remark 反查）",
-    "agent: 纯名 + window @agent；register 后 inbox → ~/.tui/inbox/<name>.jsonl，消息流镜像 → ~/.tui/bus.jsonl",
+    "agent: 纯名 + window @agent；register 后 inbox → ~/.tui/inbox/<name>.jsonl",
+    // OBSERVER_PAUSED: 消息流镜像 → ~/.tui/bus.jsonl；TUI 按 v 查看
   );
   process.stdout.write(lines.join("\n") + "\n");
   return 0;
@@ -2147,8 +2148,6 @@ process.on("exit", () => {
 process.on("SIGINT", () => process.exit(0));
 process.on("SIGTERM", () => process.exit(0));
 
-setInterval(() => {
-  if (state.layoutMode === "observer" && !state.inputMode) render();
-}, 1000);
+// OBSERVER_PAUSED: setInterval(() => { if (state.layoutMode === "observer") render(); }, 1000);
 
 refreshPreview();
