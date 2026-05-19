@@ -75,7 +75,7 @@ int main(void) {
   static const char *const math_names[] = {"libm.so.6", "libm.so", NULL};
 #endif
 
-  typedef int (*puts_fn)(const char *);
+  typedef unsigned long (*strlen_fn)(const char *);
   typedef double (*cos_fn)(double);
 
   const char *libc_name = NULL;
@@ -90,13 +90,13 @@ int main(void) {
     printf("ffi.libc=fail\n");
     return 10;
   }
-  puts_fn host_puts = (puts_fn)load_symbol(libc_handle, "puts");
-  if (!host_puts) {
+  strlen_fn host_strlen = (strlen_fn)load_symbol(libc_handle, "strlen");
+  if (!host_strlen) {
     printf("ffi.libc.symbol=fail\n");
     return 11;
   }
   printf("ffi.libc=%s\n", libc_name);
-  host_puts("ffi.libc.puts=ok");
+  printf("ffi.libc.strlen=%lu\n", host_strlen("ffi"));
 
   if (!math_handle) {
     printf("ffi.libm=fail\n");

@@ -17,7 +17,7 @@ bash lab/cross-arch-ffi/run.sh
 
 探针会实际执行：
 
-- `dlopen`/`dlsym` 打开 libc 并调用 `puts`。
+- `dlopen`/`dlsym` 打开 libc 并调用 `strlen`。
 - `dlopen`/`dlsym` 打开 libm 并调用 `cos(0)`。
 - 输出当前 OS、架构、二进制体积。
 
