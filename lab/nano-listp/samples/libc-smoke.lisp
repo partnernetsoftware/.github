@@ -1,0 +1,19 @@
+; Small callable libc subset. Full libc coverage should use gen_libc_resolve.py
+; with "addr" imports first, then add exact signatures for callable cases.
+(module
+  (import strlen "libc" "strlen" "u64(ptr)")
+  (import atoi "libc" "atoi" "i32(ptr)")
+  (import strcmp "libc" "strcmp" "i32(ptr,ptr)")
+  (import getpid "libc" "getpid" "i32()")
+  (const word "ffi")
+  (const same "ffi")
+  (const number "42")
+  (main
+    (resolve strlen)
+    (resolve atoi)
+    (resolve strcmp)
+    (resolve getpid)
+    (call strlen word)
+    (call atoi number)
+    (call strcmp word same)
+    (call getpid)))

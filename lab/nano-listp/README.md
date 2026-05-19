@@ -8,6 +8,7 @@
 ./nano-listp.com compile samples/strlen.lisp strlen.lbin
 ./nano-listp.com dump strlen.lbin
 ./nano-listp.com run strlen.lbin
+./nano-listp.com resolve --quiet strlen.lbin
 ```
 
 当前 `.lisp` 语法沿用最小 module DSL：
@@ -23,8 +24,11 @@
 
 - `compile`：解析 `.lisp`，输出 `.lbin` portable blob。
 - `dump`：查看 blob header、import、const、instruction 数量。
-- `run`：解析 `.lbin`，通过 `dlopen`/`dlsym` 找系统符号，生成本机 JIT call stub 后执行。
-- 目前支持 x86_64/aarch64 的 `u64(ptr)` 调用路径。
+- `resolve`：只验证 `.lbin` import table 的动态库和符号可解析，不调用函数；适合全量 libc 导入测试。
+- `run`：解析 `.lbin`，通过 `dlopen`/`dlsym` 找系统符号，执行 main 指令流。
+- 当前签名：`addr`、`u64(ptr)`、`i32(ptr)`、`i32(ptr,ptr)`、`i32()`。
+- `u64(ptr)` 仍走 x86_64/aarch64 JIT call stub；其他安全 smoke 签名先用 typed C call。
+- `gen_libc_resolve.py` 可从 libc 动态符号表生成 resolver-only `.lisp` manifest。
 
 ## 构建与验证
 
