@@ -14,10 +14,9 @@ import { randomUUID } from "crypto";
 import { homedir } from "os";
 import { join } from "path";
 
-const PREVIEW_DELAY = 1000;
-const PREVIEW_PENDING_DELAY = 200; // 驾驶模式：停留后再标 pending
-const PREVIEW_FETCH_DELAY = 600;   // pending 后再抓 preview
-const DRIVE_SNAP_TTL_MS = 1500;
+const PREVIEW_DELAY = 1000;        // preview debounce（驾驶 ↑↓ 停稳后再抓）
+const DRIVE_NAV_QUIET_MS = 1500;   // ↑↓ 期间暂停后台 snap/proc（覆盖 PREVIEW_DELAY）
+const DRIVE_SNAP_TTL_MS = 2000;
 const DRIVE_PROC_TTL_MS = 3000;
 const DRIVE_SNAP_CONCURRENCY = 6;
 const RETURN_FROM_ATTACH_DELAY = 120; // detach 后静默 sync tree / restore status
@@ -26,7 +25,7 @@ const PREVIEW_LINES = 80;
 const SHELL_COMMS = new Set(["bash", "zsh", "sh", "fish", "dash", "tmux", "-bash", "-zsh"]);
 
 const TUI_CONFIG = {
-  VERSION: '0.4.2',
+  VERSION: '0.4.3',
   VIEWER_SESSION: `__tui_viewer__`,
   TUI_KEYTABLE: "tui_empty",
   REMARK_KEY: "@remark",
@@ -500,6 +499,10 @@ interface TreeNode {
   windowActivity?: number;
   /** tmux #{window_active} */
   windowActive?: boolean;
+  /** getTree 时批量读取 #{@auto}，render 路径不再 spawn tmux */
+  autoLevel?: AutoLevel;
+  /** getTree / f 刷新时缓存，render 路径不读 inbox */
+  cachedUnread?: number;
 }
 
 const AUTO_LEVELS = ["0", "50", "100"] as const;
@@ -993,6 +996,57 @@ let driveProcTimer: ReturnType<typeof setInterval> | null = null;
 let driveSnapRefreshing = false;
 let driveProcRefreshing = false;
 let previewFetchTimer: ReturnType<typeof setTimeout> | null = null;
+let driveRenderTimer: ReturnType<typeof setTimeout> | null = null;
+let driveMetaCache: Map<number, ReturnType<typeof windowDriveMeta>> | null = null;
+let driveNavQuietUntil = 0;
+let driveViewDirty = false;
+let driveNavFlushTimer: ReturnType<typeof setTimeout> | null = null;
+
+function driveNavQuiet(): boolean {
+  return Date.now() < driveNavQuietUntil;
+}
+
+/** ↑↓ 时标记：暂停后台刷新，preview 走 PREVIEW_DELAY debounce */
+function markDriveNav(): void {
+  driveNavQuietUntil = Date.now() + DRIVE_NAV_QUIET_MS;
+  if (driveNavFlushTimer) clearTimeout(driveNavFlushTimer);
+  driveNavFlushTimer = setTimeout(() => {
+    driveNavFlushTimer = null;
+    if (driveViewDirty) {
+      driveViewDirty = false;
+      state.driveViewIndices = null;
+      if (state.uiMode === "drive") scheduleDriveRender();
+    }
+  }, DRIVE_NAV_QUIET_MS + 30);
+}
+
+function beginDriveMetaCache(): void {
+  driveMetaCache = new Map();
+}
+
+function endDriveMetaCache(): void {
+  driveMetaCache = null;
+}
+
+function windowDriveMetaCached(node: TreeNode, treeIdx: number) {
+  if (driveMetaCache?.has(treeIdx)) return driveMetaCache.get(treeIdx)!;
+  const m = windowDriveMeta(node);
+  driveMetaCache?.set(treeIdx, m);
+  return m;
+}
+
+/** 后台 snap/proc 更新：只重绘表区，不碰 preview */
+function scheduleDriveRender(): void {
+  if (state.uiMode !== "drive" || driveNavQuiet()) return;
+  if (driveRenderTimer) return;
+  driveRenderTimer = setTimeout(() => {
+    driveRenderTimer = null;
+    if (state.uiMode !== "drive" || driveNavQuiet()) return;
+    const [cols, rows] = screen.getSize();
+    const layout = getLayout(cols, rows);
+    if (layout.mode === "drive") renderDriveTableZone(cols, layout);
+  }, 150);
+}
 
 function readDriveSnap(target: string): WinSnap {
   return driveSnap.get(target) ?? { lastLine: "", alert: false, ts: 0 };
@@ -1027,6 +1081,7 @@ async function captureLastLineAsync(target: string): Promise<string> {
 async function refreshDriveSnapshots(force = false): Promise<void> {
   if (driveSnapRefreshing) return;
   if (state.uiMode !== "drive") return;
+  if (!force && driveNavQuiet()) return;
   driveSnapRefreshing = true;
   try {
     const now = Date.now();
@@ -1038,20 +1093,21 @@ async function refreshDriveSnapshots(force = false): Promise<void> {
       : targets.filter((t) => now - (driveSnap.get(t)?.ts ?? 0) > DRIVE_SNAP_TTL_MS);
     if (stale.length === 0) return;
 
+    let sortDirty = false;
     await mapPoolLimit(stale, DRIVE_SNAP_CONCURRENCY, async (target) => {
       const prevEntry = driveSnap.get(target);
       const prevLine = prevEntry?.lastLine ?? "";
+      const prevAlert = prevEntry?.alert ?? false;
       const lastLine = await captureLastLineAsync(target);
+      const alert = driveAlertFromText(lastLine);
       if (lastLine !== prevLine) drivePrevLineHash.set(target, prevLine);
-      driveSnap.set(target, {
-        lastLine,
-        alert: driveAlertFromText(lastLine),
-        ts: Date.now(),
-      });
+      if (alert !== prevAlert) sortDirty = true;
+      driveSnap.set(target, { lastLine, alert, ts: Date.now() });
     });
 
-    invalidateDriveView();
-    if (state.uiMode === "drive") render();
+    if (sortDirty) invalidateDriveView();
+    else if (driveNavQuiet()) driveViewDirty = true;
+    scheduleDriveRender();
   } finally {
     driveSnapRefreshing = false;
   }
@@ -1102,7 +1158,7 @@ function findMainProcess(shellPid: number, rows: PsRow[]): { pid: number; cmd: s
   return { pid: pick.pid, cmd: pick.comm, cpu: pick.pcpu, rssMB: Math.round(pick.rss / 1024) };
 }
 
-function updateDriveProcMap(): void {
+function updateDriveProcMapSync(): void {
   const paneRaw = tmux([
     "list-panes", "-a",
     "-F", "#{session_name}:#{window_index}|#{pane_active}|#{pane_pid}",
@@ -1121,9 +1177,33 @@ function updateDriveProcMap(): void {
   }
 }
 
+async function updateDriveProcMap(): Promise<void> {
+  if (driveNavQuiet()) return;
+  const paneRaw = tmux([
+    "list-panes", "-a",
+    "-F", "#{session_name}:#{window_index}|#{pane_active}|#{pane_pid}",
+  ]).trim();
+  const proc = Bun.spawn(["ps", "-A", "-o", "pid=,ppid=,pcpu=,rss=,comm="], { stdout: "pipe", stderr: "pipe" });
+  const psRaw = await new Response(proc.stdout).text();
+  await proc.exited;
+  if (driveNavQuiet()) return;
+  const psRows = parsePsDump(psRaw);
+  for (const line of paneRaw.split("\n").filter(Boolean)) {
+    const [loc, active, pidStr] = line.split("|");
+    if (active !== "1") continue;
+    const [sess, winIdx] = (loc ?? "").split(":");
+    const shellPid = parseInt(pidStr ?? "", 10);
+    if (!sess || !winIdx || !shellPid) continue;
+    const target = buildWinTarget(sess, winIdx);
+    const main = findMainProcess(shellPid, psRows);
+    driveProc.set(target, { ...main, shellPid, ts: Date.now() });
+  }
+}
+
 async function refreshDriveProc(force = false): Promise<void> {
   if (driveProcRefreshing) return;
   if (state.uiMode !== "drive") return;
+  if (!force && driveNavQuiet()) return;
   const now = Date.now();
   if (!force && driveProc.size > 0) {
     const anyStale = [...driveProc.values()].some((p) => now - p.ts > DRIVE_PROC_TTL_MS);
@@ -1131,8 +1211,8 @@ async function refreshDriveProc(force = false): Promise<void> {
   }
   driveProcRefreshing = true;
   try {
-    updateDriveProcMap();
-    if (state.uiMode === "drive") render();
+    await updateDriveProcMap();
+    scheduleDriveRender();
   } finally {
     driveProcRefreshing = false;
   }
@@ -1142,6 +1222,19 @@ function readDriveProc(target: string): ProcInfo | null {
   return driveProc.get(target) ?? null;
 }
 
+/** 表列：主进程短名 + PID */
+function procBasename(cmd: string): string {
+  const s = cmd.trim();
+  if (!s) return "?";
+  const leaf = s.includes("/") ? s.split("/").pop()! : s;
+  return (leaf.split(/\s+/)[0] ?? leaf).slice(0, 12);
+}
+
+function formatProcCells(proc: ProcInfo | null): { pname: string; pid: string } {
+  if (!proc) return { pname: DRIVE_PH, pid: DRIVE_PH };
+  return { pname: procBasename(proc.cmd), pid: String(proc.pid) };
+}
+
 function formatProcAnchor(proc: ProcInfo): string {
   const cpu = proc.cpu < 10 ? proc.cpu.toFixed(1) : String(Math.round(proc.cpu));
   return `⟦${proc.cmd} ${proc.rssMB}M ${cpu}% pid=${proc.pid}⟧`;
@@ -1149,17 +1242,26 @@ function formatProcAnchor(proc: ProcInfo): string {
 
 function startDriveLoops(): void {
   stopDriveLoops();
-  void refreshDriveSnapshots(true);
-  void refreshDriveProc(true);
-  driveSnapTimer = setInterval(() => { void refreshDriveSnapshots(false); }, DRIVE_SNAP_TTL_MS);
-  driveProcTimer = setInterval(() => { void refreshDriveProc(false); }, DRIVE_PROC_TTL_MS);
+  // 不在进入驾驶时全量 snap/proc（会与 ↑↓ 抢 tmux）；靠 f 刷新 + 空闲定时
+  driveSnapTimer = setInterval(() => {
+    if (driveNavQuiet()) return;
+    void refreshDriveSnapshots(false);
+  }, DRIVE_SNAP_TTL_MS);
+  driveProcTimer = setInterval(() => {
+    if (driveNavQuiet()) return;
+    void refreshDriveProc(false);
+  }, DRIVE_PROC_TTL_MS);
 }
 
 function stopDriveLoops(): void {
   if (driveSnapTimer) clearInterval(driveSnapTimer);
   if (driveProcTimer) clearInterval(driveProcTimer);
+  if (driveRenderTimer) clearTimeout(driveRenderTimer);
+  if (driveNavFlushTimer) clearTimeout(driveNavFlushTimer);
   driveSnapTimer = null;
   driveProcTimer = null;
+  driveRenderTimer = null;
+  driveNavFlushTimer = null;
 }
 
 /** 上一 refresh 周期末行，供 act 忙碌启发（snap 异步更新时写入） */
@@ -1179,7 +1281,7 @@ function formatRelativeAge(epochSec: number): string {
 
 function windowDriveAge(node: TreeNode): string {
   let epochSec = node.windowActivity;
-  if (!epochSec && node.agent) {
+  if (!epochSec && state.uiMode !== "drive" && node.agent) {
     const inboxTs = agentLastInboxTs(node.agent);
     if (inboxTs !== null) epochSec = Math.floor(inboxTs / 1000);
   }
@@ -1198,16 +1300,17 @@ function deriveActChar(node: TreeNode, lastLine: string): string {
 function windowDriveMeta(node: TreeNode, opts?: { sync?: boolean }): {
   unread: number; alert: boolean; lastLine: string; lvl: AutoLevel; age: string; act: string;
 } {
-  const ag = node.agent;
-  const unread = ag ? agentUnreadCount(ag) : 0;
   const target = winTargetFromNode(node);
-  const useSnap = !opts?.sync && state.uiMode === "drive";
+  const inDrive = state.uiMode === "drive" && !opts?.sync;
+  const unread = inDrive ? (node.cachedUnread ?? 0) : (node.cachedUnread ?? (node.agent ? agentUnreadCount(node.agent) : 0));
+  const useSnap = inDrive;
   const cap = useSnap ? readDriveSnap(target) : getCachedCapture(target, 1);
+  const lvl = inDrive ? (node.autoLevel ?? "0") : (node.autoLevel ?? readAuto(node));
   return {
     unread,
     alert: cap.alert,
     lastLine: cap.lastLine,
-    lvl: readAuto(node),
+    lvl,
     age: windowDriveAge(node),
     act: deriveActChar(node, cap.lastLine),
   };
@@ -1216,7 +1319,7 @@ function windowDriveMeta(node: TreeNode, opts?: { sync?: boolean }): {
 function buildFleetSnapshot(previewLines = 1): CliFleetSnapshot {
   beginCaptureCache();
   try {
-    updateDriveProcMap();
+    updateDriveProcMapSync();
   } catch {
     /* tmux/ps 不可用时跳过 proc */
   }
@@ -1336,9 +1439,9 @@ function getTree(): TreeNode[] {
     };
     sessNode.remark = readRemark(sessNode);
     nodes.push(sessNode);
-    const wins = tmuxApi.listWindows(sess, "#{window_index}|#{window_name}|#{window_active}|#{window_activity}");
+    const wins = tmuxApi.listWindows(sess, "#{window_index}|#{window_name}|#{window_active}|#{window_activity}|#{@auto}");
     for (let i = 0; i < wins.length; i++) {
-      const [idx, name, active, activity] = wins[i].split("|");
+      const [idx, name, active, activity, autoRaw] = wins[i].split("|");
       const marker = "" //active === "1" ? "●" : "○";
       const branch = i === wins.length - 1 ? "└" : "├";
       const winNode: TreeNode = {
@@ -1349,9 +1452,11 @@ function getTree(): TreeNode[] {
         sessionName: sess,
         windowActive: active === "1",
         windowActivity: activity ? parseInt(activity, 10) || undefined : undefined,
+        autoLevel: normalizeAutoLevel(autoRaw ?? "0"),
       };
       winNode.remark = readRemark(winNode);
       winNode.agent = readAgent(winNode);
+      winNode.cachedUnread = winNode.agent ? agentUnreadCount(winNode.agent) : 0;
       nodes.push(winNode);
     }
   }
@@ -1460,7 +1565,12 @@ function treeVisibleRows(layout: LayoutInfo): number {
 }
 
 function invalidateDriveView() {
+  if (driveNavQuiet()) {
+    driveViewDirty = true;
+    return;
+  }
   state.driveViewIndices = null;
+  driveViewDirty = false;
 }
 
 function toggleUiMode() {
@@ -1480,16 +1590,16 @@ function toggleUiMode() {
 
 /** 驾驶表列（固定宽 + task 弹性） */
 type DriveColWidths = {
-  stat: number; sess: number; win: number; wname: number; agent: number; task: number;
+  stat: number; sess: number; win: number; wname: number; pname: number; pid: number; task: number;
   unread: number; lvl: number; age: number; st: number; act: number;
 };
 
 type DriveRowCells = {
-  stat: string; sess: string; win: string; wname: string; agent: string; task: string;
+  stat: string; sess: string; win: string; wname: string; pname: string; pid: string; task: string;
   unread: string; lvl: string; age: string; st: string; act: string;
 };
 
-/** Session / Win 固定下限；窄屏先缩 wname/agent，再缩 task */
+/** Session / Win 固定下限；窄屏先缩 wname/pname，再缩 task */
 function driveColWidths(cols: number): DriveColWidths {
   const scroll = 1;
   const stat = 1;
@@ -1499,14 +1609,15 @@ function driveColWidths(cols: number): DriveColWidths {
   const age = 4;
   const st = 1;
   const act = 3;
+  const pid = 6;
   let sess = 16;
-  let wname = 14;
-  let agent = 9;
-  const sumFixed = () => stat + sess + win + wname + agent + unread + lvl + age + st + act;
+  let wname = 12;
+  let pname = 7;
+  const sumFixed = () => stat + sess + win + wname + pname + pid + unread + lvl + age + st + act;
   let task = cols - sumFixed() - scroll;
   if (task < 5) {
-    wname = Math.max(8, wname - 2);
-    agent = Math.max(6, agent - 1);
+    wname = Math.max(7, wname - 2);
+    pname = Math.max(5, pname - 1);
     task = cols - sumFixed() - scroll;
   }
   if (task < 5) {
@@ -1514,7 +1625,7 @@ function driveColWidths(cols: number): DriveColWidths {
     task = cols - sumFixed() - scroll;
   }
   task = Math.max(4, task);
-  return { stat, sess, win, wname, agent, task, unread, lvl, age, st, act };
+  return { stat, sess, win, wname, pname, pid, task, unread, lvl, age, st, act };
 }
 
 function driveFmtCol(text: string, w: number): string {
@@ -1526,7 +1637,8 @@ function driveRowLine(cw: DriveColWidths, parts: DriveRowCells): string {
     + driveFmtCol(parts.sess, cw.sess)
     + driveFmtCol(parts.win, cw.win)
     + driveFmtCol(parts.wname, cw.wname)
-    + driveFmtCol(parts.agent, cw.agent)
+    + driveFmtCol(parts.pname, cw.pname)
+    + driveFmtCol(parts.pid, cw.pid)
     + driveFmtCol(parts.task, cw.task)
     + driveFmtCol(parts.unread, cw.unread)
     + driveFmtCol(parts.lvl, cw.lvl)
@@ -1537,7 +1649,7 @@ function driveRowLine(cw: DriveColWidths, parts: DriveRowCells): string {
 
 function drivePlaceholderCells(extra?: Partial<DriveRowCells>): DriveRowCells {
   return {
-    stat: DRIVE_PH, sess: DRIVE_PH, win: DRIVE_PH, wname: DRIVE_PH, agent: DRIVE_PH, task: DRIVE_PH,
+    stat: DRIVE_PH, sess: DRIVE_PH, win: DRIVE_PH, wname: DRIVE_PH, pname: DRIVE_PH, pid: DRIVE_PH, task: DRIVE_PH,
     unread: DRIVE_PH, lvl: DRIVE_PH, age: DRIVE_PH, st: DRIVE_PH, act: DRIVE_PH,
     ...extra,
   };
@@ -1549,9 +1661,17 @@ function sessionChildCount(treeIdx: number): number {
   return n;
 }
 
+function driveRowScoreLight(node: TreeNode): number {
+  const snap = readDriveSnap(winTargetFromNode(node));
+  const unread = node.cachedUnread ?? 0;
+  if (snap.alert) return 3;
+  if (unread > 0) return 2;
+  return 1;
+}
+
 function buildDriveViewIndices(): number[] {
   const tree = state.tree;
-  const groups: Array<{ sessIdx: number; score: number; winIdxs: number[] }> = [];
+  const groups: Array<{ sessIdx: number; winIdxs: number[] }> = [];
   let i = 0;
   while (i < tree.length) {
     if (tree[i].type !== "session") {
@@ -1561,21 +1681,21 @@ function buildDriveViewIndices(): number[] {
     const sessIdx = i;
     const sess = tree[i].sessionName;
     const winIdxs: number[] = [];
-    let score = 0;
     i++;
     while (i < tree.length && tree[i].type === "window") {
-      const m = windowDriveMeta(tree[i]);
-      score = Math.max(score, m.alert ? 3 : m.unread > 0 ? 2 : 1);
       if (!state.collapsedSessions.has(sess)) winIdxs.push(i);
       i++;
     }
-    groups.push({ sessIdx, score, winIdxs });
+    winIdxs.sort((a, b) => {
+      const sa = driveRowScoreLight(tree[a]);
+      const sb = driveRowScoreLight(tree[b]);
+      if (sb !== sa) return sb - sa;
+      const wa = tree[a].target.split(":")[1] ?? "";
+      const wb = tree[b].target.split(":")[1] ?? "";
+      return parseInt(wa, 10) - parseInt(wb, 10);
+    });
+    groups.push({ sessIdx, winIdxs });
   }
-  groups.sort(
-    (a, b) =>
-      b.score - a.score
-      || tree[a.sessIdx].sessionName.localeCompare(tree[b.sessIdx].sessionName),
-  );
   const out: number[] = [];
   for (const g of groups) {
     out.push(g.sessIdx);
@@ -1612,7 +1732,10 @@ function scrollDriveTree(delta: number, treeDataH: number): void {
   const maxOff = driveTreeScrollMax(treeDataH);
   state.viewOffset = Math.max(0, Math.min(maxOff, state.viewOffset + delta));
   state.clampView(treeDataH);
-  render();
+  const [cols, rows] = screen.getSize();
+  const layout = getLayout(cols, rows);
+  if (layout.mode === "drive") renderDriveTableZone(cols, layout);
+  else render();
 }
 
 function treeScrollThumb(treeDataH: number): { thumbH: number; thumbStart: number } {
@@ -1638,12 +1761,127 @@ function driveCursorStep(dir: -1 | 1): void {
   const view = getDriveViewIndices();
   const pos = view.indexOf(state.cursor);
   const next = pos < 0 ? 0 : pos + dir;
-  if (next >= 0 && next < view.length) {
-    state.cursor = view[next];
-    const [cols, rows] = screen.getSize();
-    state.clampView(treeVisibleRows(getLayout(cols, rows)));
+  if (next < 0 || next >= view.length) return;
+
+  markDriveNav();
+  const prevCursor = state.cursor;
+  const prevOffset = state.viewOffset;
+  state.cursor = view[next];
+
+  const [cols, rows] = screen.getSize();
+  const layout = getLayout(cols, rows);
+  state.clampView(treeVisibleRows(layout));
+
+  if (layout.mode === "drive" && !state.needsFullClear) {
+    beginDriveMetaCache();
+    screen.hideCursor();
+    if (state.viewOffset !== prevOffset) {
+      renderDriveTableZone(cols, layout);
+    } else {
+      renderDriveNavUpdate(prevCursor, cols, layout);
+    }
+    endDriveMetaCache();
+    renderFooter(cols, rows);
+  } else {
     render();
-    schedulePreview({ pending: false });
+  }
+  scheduleDrivePreview();
+}
+
+/** 驾驶 ↑↓：仅 debounce preview，不触发全屏 render / IO */
+function scheduleDrivePreview(): void {
+  if (state.previewTimer) clearTimeout(state.previewTimer);
+  if (
+    state.tree.length === 0 ||
+    state.cursor >= state.tree.length ||
+    state.tree[state.cursor].type !== "window"
+  ) {
+    clearPreview();
+    return;
+  }
+  state.previewTimer = setTimeout(() => {
+    state.previewTimer = null;
+    state.previewFetchId++;
+    void refreshPreview();
+  }, PREVIEW_DELAY);
+}
+
+/** 重绘驾驶表区（含锚点），不碰 header/preview/footer */
+function renderDriveTableZone(cols: number, layout: Extract<LayoutInfo, { mode: "drive" }>): void {
+  beginDriveMetaCache();
+  try {
+    const cw = driveColWidths(cols);
+    const view = getDriveViewIndices();
+    const treeThumb = treeScrollThumb(layout.treeDataH);
+    const scrollCol = cols;
+    const treeZoneH = layout.treeHeaderH + layout.treeDataH;
+
+    renderDriveTableHeader(BODY_START_ROW, cols, cw);
+
+    for (let dataRow = 0; dataRow < layout.treeDataH; dataRow++) {
+      const row = layout.treeHeaderH + dataRow + BODY_START_ROW;
+      const viewPos = dataRow + state.viewOffset;
+      const treeIdx = view[viewPos] ?? -1;
+      if (treeIdx >= 0 && treeIdx < state.tree.length) {
+        renderDriveTableRow(row, state.tree[treeIdx], treeIdx, treeIdx === state.cursor, cols, cw);
+      } else {
+        screen.cursorAt(row, 1);
+        screen.write(" ".repeat(Math.max(0, cols - 2)));
+      }
+      screen.cursorAt(row, scrollCol);
+      const inThumb = dataRow >= treeThumb.thumbStart && dataRow < treeThumb.thumbStart + treeThumb.thumbH;
+      screen.write(`\x1b[90m${inThumb ? "▓" : "░"}\x1b[0m`);
+    }
+    renderDriveAnchor(treeZoneH + BODY_START_ROW, Math.max(0, cols - 2));
+  } finally {
+    endDriveMetaCache();
+  }
+}
+
+/** 仅重绘 preview 区 */
+function renderDrivePreviewPane(cols: number, layout: Extract<LayoutInfo, { mode: "drive" }>): void {
+  const { paneH, treeHeaderH, treeDataH } = layout;
+  const treeZoneH = treeHeaderH + treeDataH;
+  const previewRows = Math.max(0, paneH - 1);
+  const allPLines = state.preview.split("\n");
+  const pLines = allPLines.length > previewRows
+    ? allPLines.slice(allPLines.length - previewRows)
+    : allPLines;
+  const textW = Math.max(0, cols - 2);
+  const { thumbH, thumbStart } = previewScrollMetrics(previewRows);
+  for (let paneLine = 1; paneLine < paneH; paneLine++) {
+    if (paneLine - 1 >= previewRows) continue;
+    const row = treeZoneH + paneLine + BODY_START_ROW;
+    renderPreviewLine(row, 1, textW, paneLine - 1, pLines, { thumbH, thumbStart });
+  }
+}
+
+/** ↑↓ 且未滚动：只重绘选中行 + 锚点 + footer，不动 preview */
+function renderDriveNavUpdate(prevCursor: number, cols: number, layout: Extract<LayoutInfo, { mode: "drive" }>): void {
+  beginDriveMetaCache();
+  try {
+    const cw = driveColWidths(cols);
+    const view = getDriveViewIndices();
+    const scrollCol = cols;
+    const treeThumb = treeScrollThumb(layout.treeDataH);
+
+    for (const treeIdx of [prevCursor, state.cursor]) {
+      if (treeIdx < 0 || treeIdx >= state.tree.length) continue;
+      const viewPos = view.indexOf(treeIdx);
+      if (viewPos < 0) continue;
+      const dataRow = viewPos - state.viewOffset;
+      if (dataRow < 0 || dataRow >= layout.treeDataH) continue;
+      const row = layout.treeHeaderH + dataRow + BODY_START_ROW;
+      renderDriveTableRow(row, state.tree[treeIdx], treeIdx, treeIdx === state.cursor, cols, cw);
+      screen.cursorAt(row, scrollCol);
+      const inThumb = dataRow >= treeThumb.thumbStart && dataRow < treeThumb.thumbStart + treeThumb.thumbH;
+      screen.write(`\x1b[90m${inThumb ? "▓" : "░"}\x1b[0m`);
+    }
+
+    const anchorRow = layout.treeHeaderH + layout.treeDataH + BODY_START_ROW;
+    renderDriveAnchor(anchorRow, Math.max(0, cols - 2));
+  } finally {
+    endDriveMetaCache();
   }
 }
 
@@ -1655,14 +1893,14 @@ function renderDriveAnchor(row: number, textW: number): void {
     const folded = state.collapsedSessions.has(node.sessionName) ? " ▾" : " ▴";
     line = `▣ ${node.sessionName}${folded} · Space 折/展`;
   } else {
-    const m = windowDriveMeta(node);
+    const m = windowDriveMetaCached(node, state.cursor);
     const ag = node.agent;
     const proc = readDriveProc(winTargetFromNode(node));
     line = `${node.sessionName}:${node.target.split(":")[1]} ${windowNameFromNode(node)}`
       + (ag ? ` @${ag}` : "")
       + (m.unread > 0 ? ` ·未读${m.unread}` : "")
       + (m.alert ? " ·⚠" : "")
-      + (proc ? ` ${formatProcAnchor(proc)}` : "");
+      + (proc ? ` ·${proc.rssMB}M ${proc.cpu < 10 ? proc.cpu.toFixed(1) : Math.round(proc.cpu)}%` : "");
   }
   screen.cursorAt(row, 1);
   screen.write(screen.dim(padVis(truncVis(line, textW), textW)));
@@ -1709,7 +1947,8 @@ function renderDriveTableHeader(row: number, cols: number, cw: DriveColWidths): 
     sess: "Session",
     win: "Win",
     wname: "Name",
-    agent: "Agent",
+    pname: "Cmd",
+    pid: "PID",
     task: "Task",
     unread: "Rd",
     lvl: "Lv",
@@ -1729,23 +1968,26 @@ function renderDriveTableRow(
     const line = driveRowLine(cw, drivePlaceholderCells({
       stat: "▣",
       sess: node.sessionName,
-      win: `(${n})`,
-      wname: "",
+      win: "",
+      wname: `(${n})`,
+      pname: "",
+      pid: "",
       task: "",
     }));
     writeDriveRow(row, cols, line, selected, true);
     return;
   }
   const [, winIdx] = node.target.split(":");
-  const ag = node.agent || "";
-  const m = windowDriveMeta(node);
+  const m = windowDriveMetaCached(node, treeIdx);
   const winName = node.label.replace(/^[├└]\s*/, "");
+  const proc = formatProcCells(readDriveProc(winTargetFromNode(node)));
   const line = driveRowLine(cw, {
     stat: m.alert ? "!" : m.unread > 0 ? "●" : "○",
     sess: node.sessionName,
     win: winIdx,
     wname: winName,
-    agent: ag || DRIVE_PH,
+    pname: proc.pname,
+    pid: proc.pid,
     task: node.remark || truncVis(m.lastLine || winName, cw.task),
     unread: m.unread > 0 ? String(m.unread) : "",
     lvl: m.lvl,
@@ -1911,50 +2153,8 @@ function renderIndexBody(cols: number, rows: number, layout: Extract<LayoutInfo,
 }
 
 function renderDriveBody(cols: number, layout: Extract<LayoutInfo, { mode: "drive" }>) {
-  const { bodyH, treeHeaderH, treeDataH, paneH } = layout;
-  const cw = driveColWidths(cols);
-  const treeZoneH = treeHeaderH + treeDataH;
-  const view = getDriveViewIndices();
-  const allPLines = state.preview.split("\n");
-  const previewRows = Math.max(0, paneH - 1);
-  const pLines = allPLines.length > previewRows
-    ? allPLines.slice(allPLines.length - previewRows)
-    : allPLines;
-  const textW = Math.max(0, cols - 2);
-  const { thumbH, thumbStart } = previewScrollMetrics(previewRows);
-  const treeThumb = treeScrollThumb(treeDataH);
-  const scrollCol = cols;
-
-  for (let i = 0; i < bodyH; i++) {
-    const row = i + BODY_START_ROW;
-    if (i < treeZoneH) {
-      if (i === 0) {
-        renderDriveTableHeader(row, cols, cw);
-      } else {
-        const dataRow = i - treeHeaderH;
-        const viewPos = dataRow + state.viewOffset;
-        const treeIdx = view[viewPos] ?? -1;
-        if (treeIdx >= 0 && treeIdx < state.tree.length) {
-          renderDriveTableRow(row, state.tree[treeIdx], treeIdx, treeIdx === state.cursor, cols, cw);
-        } else {
-          screen.cursorAt(row, 1);
-          screen.write(" ".repeat(Math.max(0, cols - 2)));
-        }
-        screen.cursorAt(row, scrollCol);
-        const inThumb = dataRow >= treeThumb.thumbStart && dataRow < treeThumb.thumbStart + treeThumb.thumbH;
-        screen.write(`\x1b[90m${inThumb ? "▓" : "░"}\x1b[0m`);
-      }
-      continue;
-    }
-    if (i === treeZoneH) {
-      renderDriveAnchor(row, textW);
-      continue;
-    }
-    const paneLine = i - treeZoneH - 1;
-    if (paneLine > 0 && paneLine - 1 < previewRows) {
-      renderPreviewLine(row, 1, textW, paneLine - 1, pLines, { thumbH, thumbStart });
-    }
-  }
+  renderDriveTableZone(cols, layout);
+  renderDrivePreviewPane(cols, layout);
 }
 
 function render() {
@@ -1963,22 +2163,18 @@ function render() {
   state.clampView(treeVisibleRows(layout));
 
   const driveIncremental = layout.mode === "drive" && !state.needsFullClear;
-  if (driveIncremental) {
-    /* 驾驶模式光标移动：擦行覆盖，避免全屏 clear 闪屏 */
-  } else {
+  if (!driveIncremental) {
     screen.clear();
     if (layout.mode === "drive") state.needsFullClear = false;
   }
 
+  beginDriveMetaCache();
   screen.hideCursor();
   renderHeader(cols);
   if (layout.mode === "drive") renderDriveBody(cols, layout);
   else renderIndexBody(cols, rows, layout);
   renderFooter(cols, rows);
-
-  if (layout.mode === "drive" && driveIncremental) {
-    screen.eraseDown();
-  }
+  endDriveMetaCache();
 }
 
 // ── Ctrl-Left 支持：detach 返回 tree mode ──
@@ -2336,7 +2532,7 @@ function refreshAll() {
     void refreshDriveSnapshots(true);
     void refreshDriveProc(true);
   }
-  refreshPreview();
+  schedulePreview({ delay: 0 });
 }
 
 function clearPreview(): void {
@@ -2346,6 +2542,10 @@ function clearPreview(): void {
 }
 
 async function refreshPreview() {
+  const [cols, rows] = screen.getSize();
+  const layout = getLayout(cols, rows);
+  const drive = layout.mode === "drive";
+
   if (
     state.tree.length > 0 &&
     state.cursor < state.tree.length &&
@@ -2353,35 +2553,41 @@ async function refreshPreview() {
   ) {
     const id = state.previewFetchId;
     const target = state.tree[state.cursor].target;
-    if (!state.preview && state.uiMode !== "drive") {
+    if (!state.preview && !drive) {
       state.previewTarget = target;
-      render(); // 无缓存时才显示 ⏳（索引模式）
+      render();
     }
     const text = await getPreview(target);
-    if (id !== state.previewFetchId) return; // discard stale
+    if (id !== state.previewFetchId) return;
     state.preview = text;
     state.previewTarget = "";
     state.previewDoneId = id;
   } else {
     clearPreview();
   }
-  render();
+
+  if (drive && layout.mode === "drive") {
+    renderDrivePreviewPane(cols, layout);
+  } else {
+    render();
+  }
 }
 
 function schedulePreview(opts?: {
   keepScroll?: boolean;
   delay?: number;
-  /** false：驾驶模式移动光标时不立刻 pending/全屏重绘 */
+  /** false：attach 返回等场景，不调度 debounced preview */
   pending?: boolean;
 }) {
   state.suppressPreviewAfterAttach = false;
   if (state.previewTimer) clearTimeout(state.previewTimer);
   if (previewFetchTimer) clearTimeout(previewFetchTimer);
+  if (opts?.pending === false) return;
+
   if (!opts?.keepScroll) {
     state.scrollOffset = 0;
     state.seenMax = 0;
   }
-  // session 节点无 pane，直接清空、不标 pending
   if (
     state.tree.length === 0 ||
     state.cursor >= state.tree.length ||
@@ -2392,22 +2598,14 @@ function schedulePreview(opts?: {
     return;
   }
 
-  const driveNav = state.uiMode === "drive" && opts?.pending === false;
-  const leadMs = driveNav ? PREVIEW_PENDING_DELAY : (opts?.delay ?? PREVIEW_DELAY);
+  const delay = opts?.delay ?? PREVIEW_DELAY;
+  state.previewFetchId++;
+  render();
 
   state.previewTimer = setTimeout(() => {
     state.previewTimer = null;
-    state.previewFetchId++;
-    const node = state.tree[state.cursor];
-    if (node?.type === "window") state.previewTarget = node.target;
-    if (!driveNav && !state.preview) render();
-    else if (driveNav) render();
-
-    previewFetchTimer = setTimeout(() => {
-      previewFetchTimer = null;
-      refreshPreview();
-    }, driveNav ? PREVIEW_FETCH_DELAY : 0);
-  }, leadMs);
+    void refreshPreview();
+  }, delay);
 }
 
 // ── 按键 ──
@@ -3355,7 +3553,7 @@ process.stdin.on("data", handleKey);
 
 process.on("SIGWINCH", () => {
   state.needsFullClear = true;
-  refreshPreview();
+  schedulePreview({ delay: 0, keepScroll: true });
 });
 process.on("exit", () => {
   stopDriveLoops();
@@ -3372,4 +3570,4 @@ process.on("SIGTERM", () => process.exit(0));
 
 // OBSERVER_PAUSED: setInterval(() => { if (state.layoutMode === "observer") render(); }, 1000);
 
-refreshPreview();
+schedulePreview({ delay: 0 });
