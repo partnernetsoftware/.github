@@ -10,11 +10,22 @@
 #include <sys/mman.h>
 #endif
 
-#define LJ_MAGIC "LJIRB1"
 #define HEADER_SIZE 32u
 #define IMPORT_SIZE 16u
 #define CONST_SIZE 16u
 #define INSTR_SIZE 12u
+
+#ifdef NANO_LISTP
+#define OUTPUT_MAGIC_INIT {'L', 'B', 'I', 'N', '0', '1', 0, 0}
+#define OUTPUT_FORMAT "lbin"
+#define SOURCE_EXT "lisp"
+#define BLOB_EXT "lbin"
+#else
+#define OUTPUT_MAGIC_INIT {'L', 'J', 'I', 'R', 'B', '1', 0, 0}
+#define OUTPUT_FORMAT "ljir"
+#define SOURCE_EXT "lispir"
+#define BLOB_EXT "ljir"
+#endif
 
 #define SIG_U64_PTR 1u
 #define CONST_STRING 1u
@@ -55,6 +66,7 @@ typedef struct {
 typedef struct {
   unsigned char *data;
   size_t size;
+  uint32_t format;
   uint32_t version;
   uint32_t import_count;
   uint32_t const_count;
@@ -370,7 +382,7 @@ static unsigned char *compile_module(const Module *m, size_t *out_n) {
   buf_put32(&instrs, 0);
   buf_put32(&instrs, 0);
 
-  unsigned char magic[8] = {'L', 'J', 'I', 'R', 'B', '1', 0, 0};
+  unsigned char magic[8] = OUTPUT_MAGIC_INIT;
   buf_put(&out, magic, 8);
   buf_put32(&out, 1);
   buf_put32(&out, 0);
@@ -396,8 +408,16 @@ static int checked_span(size_t size, size_t off, size_t count, size_t each) {
 }
 
 static int blob_init(Blob *b, unsigned char *data, size_t size) {
-  static const unsigned char magic[8] = {'L', 'J', 'I', 'R', 'B', '1', 0, 0};
-  if (size < HEADER_SIZE || memcmp(data, magic, sizeof(magic)) != 0) return 0;
+  static const unsigned char lbin_magic[8] = {'L', 'B', 'I', 'N', '0', '1', 0, 0};
+  static const unsigned char ljir_magic[8] = {'L', 'J', 'I', 'R', 'B', '1', 0, 0};
+  if (size < HEADER_SIZE) return 0;
+  if (memcmp(data, lbin_magic, sizeof(lbin_magic)) == 0) {
+    b->format = 1;
+  } else if (memcmp(data, ljir_magic, sizeof(ljir_magic)) == 0) {
+    b->format = 2;
+  } else {
+    return 0;
+  }
   b->data = data;
   b->size = size;
   b->version = rd32(data + 8);
@@ -568,6 +588,7 @@ static int execute_blob(const Blob *b) {
 }
 
 static int dump_blob(const Blob *b) {
+  printf("blob.format=%s\n", b->format == 1 ? "lbin" : "legacy-ljir");
   printf("blob.version=%u\n", b->version);
   printf("blob.imports=%u\n", b->import_count);
   printf("blob.consts=%u\n", b->const_count);
@@ -604,6 +625,7 @@ static int cmd_compile(const char *src_path, const char *out_path) {
     module_free(&m);
     return 3;
   }
+  printf("blob.format=%s\n", OUTPUT_FORMAT);
   printf("blob.bytes=%zu\n", blob_n);
   printf("blob.path=%s\n", out_path);
   free(src);
@@ -638,9 +660,9 @@ static int cmd_dump(const char *blob_path) {
 
 static void usage(const char *argv0) {
   fprintf(stderr, "usage:\n");
-  fprintf(stderr, "  %s compile input.lispir output.ljir\n", argv0);
-  fprintf(stderr, "  %s run program.ljir\n", argv0);
-  fprintf(stderr, "  %s dump program.ljir\n", argv0);
+  fprintf(stderr, "  %s compile input.%s output.%s\n", argv0, SOURCE_EXT, BLOB_EXT);
+  fprintf(stderr, "  %s run program.%s\n", argv0, BLOB_EXT);
+  fprintf(stderr, "  %s dump program.%s\n", argv0, BLOB_EXT);
 }
 
 int main(int argc, char **argv) {
