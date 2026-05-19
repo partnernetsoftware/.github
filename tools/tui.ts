@@ -10,6 +10,7 @@
  *   通用   : 未检测到 tmux 时，tmuxApi.assertAvailable() 会报错提示。
  */
 const PREVIEW_DELAY = 1000;
+const RETURN_FROM_ATTACH_DELAY = 120; // detach 后静默 sync tree / restore status
 const PREVIEW_LINES = 80;
 
 const TUI_CONFIG = {
@@ -47,11 +48,32 @@ class AnsiScreen {
   showCursor() { this.write(`${this.ESC}?25h`); }
   enableMouse() { this.write(this.MOUSE_ON); }
   disableMouse() { this.write(this.MOUSE_OFF); }
+  private altOn = false;
+  enterAltScreen() {
+    if (this.altOn) return;
+    this.write("\x1b[?1049h\x1b[2J\x1b[H");
+    this.altOn = true;
+  }
+  leaveAltScreen() {
+    if (!this.altOn) return;
+    this.write("\x1b[?1049l");
+    this.altOn = false;
+  }
   getSize(): [number, number] {
     return [process.stdout.columns || 80, process.stdout.rows || 24];
   }
 }
 const screen = new AnsiScreen();
+
+let tmuxQuietDepth = 0;
+function withTmuxQuiet<T>(fn: () => T): T {
+  tmuxQuietDepth++;
+  try {
+    return fn();
+  } finally {
+    tmuxQuietDepth--;
+  }
+}
 
 // ── 纯工具函数 ──
 
@@ -150,14 +172,16 @@ interface IMultiplexerBackend {
 
 // TmuxBackend — IMultiplexerBackend 的 tmux 实现。target 一律用 `=NAME[:IDX]` 精确语法。
 function tmux(args: string[], opts?: { missingOk?: boolean }): string {
-  const out = Bun.spawnSync(["tmux", ...args]);
+  const out = Bun.spawnSync(["tmux", ...args], { stdout: "pipe", stderr: "pipe" });
   if (out.exitCode !== 0) {
     const stderr = out.stderr.toString();
     // 幂等清理命令（kill/has/rename-session 等）目标不存在时静默吞掉
     if (opts?.missingOk && /can't find session|no such session|session not found/i.test(stderr)) {
       return out.stdout.toString();
     }
-    process.stderr.write(`[tmux ${args.join(" ")}] exit=${out.exitCode} ${stderr}`);
+    if (!tmuxQuietDepth) {
+      process.stderr.write(`[tmux ${args.join(" ")}] exit=${out.exitCode} ${stderr}`);
+    }
   }
   return out.stdout.toString();
 }
@@ -368,6 +392,8 @@ class TuiState {
   scrollOffset = 0;
   seenMax = 0;
   selectMode = false;
+  /** 从沉浸式返回后：右侧 preview 不自动 capture（避免把刚看过的输出再刷一遍） */
+  suppressPreviewAfterAttach = false;
 
   clampView(bodyH: number) {
     if (this.cursor < this.viewOffset) this.viewOffset = this.cursor;
@@ -429,8 +455,7 @@ function render() {
   // header：左上 LOGO（ASU 金底栗色字）+ 帮助快捷键
   screen.cursorAt(1, 1);
   const scrollInd = state.scrollOffset > 0 ? ` ↕${state.scrollOffset}` : "";
-  const helpRest =
-    "j/k:移动 Enter:进 C-左:回 n:新Session w:新Win d:删 r:改名 m:备注 f:刷新 q:退出" + scrollInd;
+  const helpRest = " 上下移动 Enter:进 C-左:回 n:新Session w:新Win d:删 r:改名 m:备注 f:刷新 q:退出" + scrollInd;
   const maxW = cols - 1;
   const logoVis = truncVis(TUI_CONFIG.TITLE, maxW);
   const logoW = visW(logoVis);
@@ -479,6 +504,10 @@ function render() {
     screen.cursorAt(row, leftW + 1);
     if (state.previewTarget && i === 0) {
       screen.write(screen.dim(`⏳ ${state.previewTarget} ...`).slice(0, textW));
+    } else if (state.suppressPreviewAfterAttach && i === 0) {
+      screen.write(screen.dim("  已从分舱返回 · 按 f 刷新预览").slice(0, textW));
+    } else if (state.suppressPreviewAfterAttach) {
+      screen.write(" ".repeat(Math.min(textW, leftW + rightW)));
     } else {
       screen.write((pLines[i] || "").slice(0, textW));
     }
@@ -679,13 +708,7 @@ interface StatusSnapshot {
   sessions: Array<{ id: string; name: string; val: string }>;
 }
 function snapshotAndDisableStatus(): StatusSnapshot {
-  // 只关 session-level status，不碰 global status。
-  // session-level status-left/right/style 会覆盖全局 setting，
-  // 所以 viewer 的 session 自定义提示栏不受其他 session/global 影响。
-  // 注意：必须按 session_name 跳过 viewer（旧代码拿 session_id 比字面名永远不等，
-  // 反而把刚 createViewer 设好的 status=on 又改回 off，沉浸式底栏因此消失）。
-  //const r = tmuxApi.rawSpawnSync(["list-sessions", "-F", "#{session_id}\t#{session_name}\t#{status}"]);
-  const r = tmuxApi.listSessions("#{session_id}\t#{session_name}\t#{status}")
+  const r = tmuxApi.rawSpawnSync(["list-sessions", "-F", "#{session_id}\t#{session_name}\t#{status}"]);
   const sessions = (r.stdout?.toString() || "")
     .split("\n").map((l) => l.trim()).filter(Boolean)
     .map((l) => { const [id, name, val] = l.split("\t"); return { id, name, val: val || "" }; });
@@ -736,32 +759,64 @@ function attach(target: string) {
   // target = "<sess>:<idx>"
   const [sess, idx] = target.split(":");
 
+  state.previewFetchId++;
+  if (state.previewTimer) clearTimeout(state.previewTimer);
+  state.previewTimer = null;
+
   screen.showCursor();
   screen.disableMouse();
   process.stdin.setRawMode(false);
-  // 不调 restoreOuterMouse — viewer 内需要鼠标不被 tmux 捕获才能原生 select
   installCtrlQ();
 
-  createViewer(sess, idx);
-  const statusSnap = snapshotAndDisableStatus();
+  let statusSnap: StatusSnapshot = { sessions: [] };
+  withTmuxQuiet(() => {
+    createViewer(sess, idx);
+    statusSnap = snapshotAndDisableStatus();
+  });
 
+  screen.leaveAltScreen();
   try {
     tmuxApi.attach(TUI_CONFIG.VIEWER_SESSION);
   } finally {
-    tmuxApi.killSession(TUI_CONFIG.VIEWER_SESSION);
-    restoreStatus(statusSnap);
+    withTmuxQuiet(() => tmuxApi.killSession(TUI_CONFIG.VIEWER_SESSION));
   }
 
+  resumeTreeAfterAttach(statusSnap);
+}
+
+/** detach 后立刻回 tree；不自动 capture-pane（用户按 f 再刷新） */
+function resumeTreeAfterAttach(statusSnap: StatusSnapshot) {
   uninstallCtrlQ();
   process.stdin.setRawMode(true);
   disableOuterMouse();
   screen.enableMouse();
-  refreshAll();
+  screen.enterAltScreen();
+
+  if (state.previewTimer) clearTimeout(state.previewTimer);
+  state.previewTimer = null;
+  state.previewTarget = "";
+  state.preview = "";
+  state.scrollOffset = 0;
+  state.seenMax = 0;
+  state.suppressPreviewAfterAttach = true;
+  render();
+
+  setTimeout(() => {
+    withTmuxQuiet(() => {
+      restoreStatus(statusSnap);
+      state.tree = getTree();
+      if (state.cursor >= state.tree.length) {
+        state.cursor = Math.max(0, state.tree.length - 1);
+      }
+    });
+    render();
+  }, RETURN_FROM_ATTACH_DELAY);
 }
 
 // ── preview 调度 ──
 
 function refreshAll() {
+  state.suppressPreviewAfterAttach = false;
   state.tree = getTree();
   if (state.cursor >= state.tree.length) state.cursor = Math.max(0, state.tree.length - 1);
   refreshPreview();
@@ -781,8 +836,10 @@ async function refreshPreview() {
   ) {
     const id = state.previewFetchId;
     const target = state.tree[state.cursor].target;
-    state.previewTarget = target;
-    render(); // loading indicator
+    if (!state.preview) {
+      state.previewTarget = target;
+      render(); // 无缓存时才显示 ⏳
+    }
     const text = await getPreview(target);
     if (id !== state.previewFetchId) return; // discard stale
     state.preview = text;
@@ -794,10 +851,18 @@ async function refreshPreview() {
   render();
 }
 
-function schedulePreview() {
+function schedulePreview(opts?: {
+  keepScroll?: boolean;
+  delay?: number;
+  /** false：不立刻标 pending / 不重绘（用于 attach 返回，避免闪 ⏳） */
+  pending?: boolean;
+}) {
+  state.suppressPreviewAfterAttach = false;
   if (state.previewTimer) clearTimeout(state.previewTimer);
-  state.scrollOffset = 0;
-  state.seenMax = 0;
+  if (!opts?.keepScroll) {
+    state.scrollOffset = 0;
+    state.seenMax = 0;
+  }
   // session 节点无 pane，直接清空、不标 pending
   if (
     state.tree.length === 0 ||
@@ -808,9 +873,13 @@ function schedulePreview() {
     render();
     return;
   }
-  state.previewFetchId++; // 立即标记 pending
-  render(); // 光标立即响应
-  state.previewTimer = setTimeout(refreshPreview, PREVIEW_DELAY);
+  const delay = opts?.delay ?? PREVIEW_DELAY;
+  const showPending = opts?.pending !== false;
+  if (showPending) {
+    state.previewFetchId++;
+    render();
+  }
+  state.previewTimer = setTimeout(refreshPreview, delay);
 }
 
 // ── 按键 ──
@@ -1100,6 +1169,7 @@ if (state.tree.length === 0) {
   }
 }
 
+screen.enterAltScreen();
 process.stdin.setRawMode(true);
 process.stdin.resume();
 disableOuterMouse();
@@ -1112,6 +1182,7 @@ process.on("exit", () => {
   screen.disableMouse();
   restoreOuterMouse();
   screen.showCursor();
+  screen.leaveAltScreen();
   screen.write("\x1b[0m");
   console.log("TMUX 驾驶舱已经离开，用 tui 重新进入");
 });
