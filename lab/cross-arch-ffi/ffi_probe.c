@@ -1,4 +1,7 @@
 #if defined(__COSMORUN__)
+#ifndef NULL
+#define NULL ((void *)0)
+#endif
 #ifndef RTLD_LAZY
 #define RTLD_LAZY 1
 #endif
