@@ -66,6 +66,9 @@ RET42_EXE="$BUILD_DIR/nano_ret42"
 ARITH_OBJ="$BUILD_DIR/arithmetic_obj.o"
 ARITH_OBJ_C="$BUILD_DIR/arithmetic_obj_main.c"
 ARITH_OBJ_EXE="$BUILD_DIR/arithmetic_obj"
+ARITH_CODE_OBJ="$BUILD_DIR/arithmetic_code_obj.o"
+ARITH_CODE_OBJ_C="$BUILD_DIR/arithmetic_code_obj_main.c"
+ARITH_CODE_OBJ_EXE="$BUILD_DIR/arithmetic_code_obj"
 CALL42_OBJ="$BUILD_DIR/nano_call42.o"
 CALL42_C="$BUILD_DIR/nano_call42_main.c"
 CALL42_EXE="$BUILD_DIR/nano_call42"
@@ -96,6 +99,12 @@ cat > "$ARITH_OBJ_C" <<'EOF'
 extern int nano_arith(void);
 int main(void) {
   return nano_arith();
+}
+EOF
+cat > "$ARITH_CODE_OBJ_C" <<'EOF'
+extern int nano_arith_code(void);
+int main(void) {
+  return nano_arith_code();
 }
 EOF
 cat > "$CALL42_C" <<'EOF'
@@ -182,6 +191,9 @@ run_case "nano-jit-run-elf64-obj-ret42" bash -c '"$1"; status=$?; test "$status"
 run_case "nano-jit-aot-arithmetic-elf64-obj-ret42" "$BUILD_DIR/nano-jit.com" aot-elf64-obj-ret "$ARITH_BLOB" "$ARITH_OBJ" nano_arith
 run_case "nano-jit-link-aot-arithmetic-obj-ret42" cc "$ARITH_OBJ_C" "$ARITH_OBJ" -o "$ARITH_OBJ_EXE"
 run_case "nano-jit-run-aot-arithmetic-obj-ret42" bash -c '"$1"; status=$?; test "$status" -eq 42' _ "$ARITH_OBJ_EXE"
+run_case "nano-jit-aot-arithmetic-elf64-obj-code42" "$BUILD_DIR/nano-jit.com" aot-elf64-obj-code "$ARITH_BLOB" "$ARITH_CODE_OBJ" nano_arith_code
+run_case "nano-jit-link-aot-arithmetic-obj-code42" cc "$ARITH_CODE_OBJ_C" "$ARITH_CODE_OBJ" -o "$ARITH_CODE_OBJ_EXE"
+run_case "nano-jit-run-aot-arithmetic-obj-code42" bash -c '"$1"; status=$?; test "$status" -eq 42' _ "$ARITH_CODE_OBJ_EXE"
 run_case "nano-jit-emit-elf64-obj-call42" "$BUILD_DIR/nano-jit.com" emit-elf64-obj-call "$CALL42_OBJ" nano_call nano_ext
 run_case "nano-jit-link-elf64-obj-call42" cc "$CALL42_C" "$CALL42_OBJ" -o "$CALL42_EXE"
 run_case "nano-jit-run-elf64-obj-call42" bash -c '"$1"; status=$?; test "$status" -eq 42' _ "$CALL42_EXE"

@@ -1162,15 +1162,14 @@ static void wr_elf64_shdr(unsigned char *p, uint32_t name, uint32_t type, uint64
   wr64(p + 56, entsize);
 }
 
-static int emit_elf64_obj_ret_file(const char *out_path, const char *symbol, uint32_t value) {
+static int emit_elf64_obj_text_file(const char *out_path, const char *symbol,
+                                    const unsigned char *text, size_t text_n) {
   static const unsigned char shstr[] = "\0.text\0.shstrtab\0.symtab\0.strtab\0.note.GNU-stack";
   size_t sym_len = strlen(symbol);
   size_t strtab_n = 1 + sym_len + 1;
-  unsigned char text[6] = {0xb8, 0, 0, 0, 0, 0xc3};
-  wr32(text + 1, value);
 
   size_t off_text = 64;
-  size_t off_shstr = off_text + sizeof(text);
+  size_t off_shstr = off_text + text_n;
   size_t off_strtab = off_shstr + sizeof(shstr);
   size_t off_symtab = align_up_size(off_strtab + strtab_n, 8);
   size_t symtab_n = 48;
@@ -1195,7 +1194,7 @@ static int emit_elf64_obj_ret_file(const char *out_path, const char *symbol, uin
   wr16(out + 60, 6);
   wr16(out + 62, 2);
 
-  memcpy(out + off_text, text, sizeof(text));
+  memcpy(out + off_text, text, text_n);
   memcpy(out + off_shstr, shstr, sizeof(shstr));
   out[off_strtab] = 0;
   memcpy(out + off_strtab + 1, symbol, sym_len + 1);
@@ -1205,10 +1204,10 @@ static int emit_elf64_obj_ret_file(const char *out_path, const char *symbol, uin
   sym[4] = 0x12;
   wr16(sym + 6, 1);
   wr64(sym + 8, 0);
-  wr64(sym + 16, sizeof(text));
+  wr64(sym + 16, text_n);
 
   unsigned char *sh = out + off_shdr;
-  wr_elf64_shdr(sh + 1 * 64, 1, 1, 0x6, 0, off_text, sizeof(text), 0, 0, 16, 0);
+  wr_elf64_shdr(sh + 1 * 64, 1, 1, 0x6, 0, off_text, text_n, 0, 0, 16, 0);
   wr_elf64_shdr(sh + 2 * 64, 7, 3, 0, 0, off_shstr, sizeof(shstr), 0, 0, 1, 0);
   wr_elf64_shdr(sh + 3 * 64, 17, 2, 0, 0, off_symtab, symtab_n, 4, 1, 8, 24);
   wr_elf64_shdr(sh + 4 * 64, 25, 3, 0, 0, off_strtab, strtab_n, 0, 0, 1, 0);
@@ -1217,6 +1216,12 @@ static int emit_elf64_obj_ret_file(const char *out_path, const char *symbol, uin
   int ok = write_file(out_path, out, file_n);
   free(out);
   return ok;
+}
+
+static int emit_elf64_obj_ret_file(const char *out_path, const char *symbol, uint32_t value) {
+  unsigned char text[6] = {0xb8, 0, 0, 0, 0, 0xc3};
+  wr32(text + 1, value);
+  return emit_elf64_obj_text_file(out_path, symbol, text, sizeof(text));
 }
 
 static int emit_elf64_obj_call_file(const char *out_path, const char *local, const char *external) {
@@ -1489,6 +1494,63 @@ static int compile_pure_u64_blob_to_x86_exit(const Blob *b, Buf *code) {
   return saw_ret;
 }
 
+static int compile_pure_u64_blob_to_x86_ret(const Blob *b, Buf *code) {
+  int saw_ret = 0;
+  Buf expect_patches = {0};
+  for (uint32_t pc = 0; pc < b->instr_count; ++pc) {
+    const unsigned char *ins = instr_row(b, pc);
+    if (!ins) {
+      free(expect_patches.data);
+      return 0;
+    }
+    uint8_t op = ins[0];
+    uint32_t arg0 = rd32(ins + 4);
+    uint32_t arg1 = rd32(ins + 8);
+    uint64_t imm = (uint64_t)arg0 | ((uint64_t)arg1 << 32);
+    if (imm > UINT32_MAX) {
+      free(expect_patches.data);
+      return 0;
+    }
+    if (op == OP_CONST_U64) {
+      unsigned char mov_eax[5] = {0xb8, 0, 0, 0, 0};
+      wr32(mov_eax + 1, (uint32_t)imm);
+      buf_put(code, mov_eax, sizeof(mov_eax));
+    } else if (op == OP_ADD_U64) {
+      unsigned char add_eax[5] = {0x05, 0, 0, 0, 0};
+      wr32(add_eax + 1, (uint32_t)imm);
+      buf_put(code, add_eax, sizeof(add_eax));
+    } else if (op == OP_EXPECT_U64) {
+      unsigned char cmp_eax[5] = {0x3d, 0, 0, 0, 0};
+      unsigned char jne_fail[6] = {0x0f, 0x85, 0, 0, 0, 0};
+      uint32_t patch_off = (uint32_t)(code->len + sizeof(cmp_eax) + 2);
+      wr32(cmp_eax + 1, (uint32_t)imm);
+      buf_put(code, cmp_eax, sizeof(cmp_eax));
+      buf_put(code, jne_fail, sizeof(jne_fail));
+      buf_put32(&expect_patches, patch_off);
+    } else if (op == OP_RET_LAST) {
+      unsigned char ret = 0xc3;
+      buf_put(code, &ret, 1);
+      saw_ret = 1;
+      break;
+    } else {
+      free(expect_patches.data);
+      return 0;
+    }
+  }
+  if (saw_ret && expect_patches.len) {
+    size_t fail_off = code->len;
+    unsigned char fail_ret[6] = {0xb8, 125, 0, 0, 0, 0xc3};
+    buf_put(code, fail_ret, sizeof(fail_ret));
+    for (size_t i = 0; i < expect_patches.len; i += 4) {
+      uint32_t patch_off = rd32(expect_patches.data + i);
+      int64_t rel = (int64_t)fail_off - (int64_t)(patch_off + 4);
+      wr32(code->data + patch_off, (uint32_t)(int32_t)rel);
+    }
+  }
+  free(expect_patches.data);
+  return saw_ret;
+}
+
 static int cmd_aot_elf64_code(const char *blob_path, const char *out_path) {
   Blob b;
   unsigned char *owned = NULL;
@@ -1512,6 +1574,38 @@ static int cmd_aot_elf64_code(const char *blob_path, const char *out_path) {
   printf("aot.code.output=%s\n", out_path);
   printf("aot.code.bytes=%zu\n", 120 + code.len);
   printf("aot.code.x86.bytes=%zu\n", code.len);
+  free(code.data);
+  return 0;
+}
+
+static int cmd_aot_elf64_obj_code(const char *blob_path, const char *out_path,
+                                  const char *symbol) {
+  Blob b;
+  unsigned char *owned = NULL;
+  Buf code = {0};
+  if (!symbol[0]) {
+    fprintf(stderr, "aot-elf64-obj-code=bad_symbol\n");
+    return 1;
+  }
+  if (!blob_load_path(blob_path, &b, &owned)) {
+    fprintf(stderr, "blob=parse_fail path=%s\n", blob_path);
+    return 1;
+  }
+  int ok = compile_pure_u64_blob_to_x86_ret(&b, &code);
+  free(owned);
+  if (!ok) {
+    free(code.data);
+    fprintf(stderr, "aot-elf64-obj-code=unsupported_blob\n");
+    return 2;
+  }
+  if (!emit_elf64_obj_text_file(out_path, symbol, code.data, code.len)) {
+    free(code.data);
+    fprintf(stderr, "aot-elf64-obj-code=write_fail path=%s\n", out_path);
+    return 3;
+  }
+  printf("aot.obj.code.output=%s\n", out_path);
+  printf("aot.obj.code.symbol=%s\n", symbol);
+  printf("aot.obj.code.x86.bytes=%zu\n", code.len);
   free(code.data);
   return 0;
 }
@@ -1688,6 +1782,7 @@ static void usage(const char *argv0) {
   fprintf(stderr, "  %s aot-elf64-exit input.%s output.elf\n", argv0, BLOB_EXT);
   fprintf(stderr, "  %s aot-elf64-obj-ret input.%s output.o symbol\n", argv0, BLOB_EXT);
   fprintf(stderr, "  %s aot-elf64-code input.%s output.elf\n", argv0, BLOB_EXT);
+  fprintf(stderr, "  %s aot-elf64-obj-code input.%s output.o symbol\n", argv0, BLOB_EXT);
   fprintf(stderr, "  %s dump program.%s\n", argv0, BLOB_EXT);
   fprintf(stderr, "  %s hash program.%s\n", argv0, BLOB_EXT);
   fprintf(stderr, "  %s resolve [--quiet] program.%s\n", argv0, BLOB_EXT);
@@ -1725,6 +1820,9 @@ int main(int argc, char **argv) {
   }
   if (argc >= 2 && strcmp(argv[1], "aot-elf64-code") == 0 && argc == 4) {
     return cmd_aot_elf64_code(argv[2], argv[3]);
+  }
+  if (argc >= 2 && strcmp(argv[1], "aot-elf64-obj-code") == 0 && argc == 5) {
+    return cmd_aot_elf64_obj_code(argv[2], argv[3], argv[4]);
   }
   if (argc >= 2 && strcmp(argv[1], "dump") == 0 && argc == 3) {
     return cmd_dump(argv[2]);
