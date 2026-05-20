@@ -125,6 +125,7 @@ run_case "nano-jit-pack-smoke-app" "$BUILD_DIR/nano-jit.com" pack-app \
   "$BUILD_DIR/nano-jit.x86_64" \
   "$BUILD_DIR/nano-jit.aarch64" \
   "$SMOKE_BLOB"
+run_case "nano-jit-inspect-smoke-app" "$BUILD_DIR/nano-jit.com" inspect-app "$SMOKE_APP"
 {
   echo "libc-smoke-app.com.bytes=$(bytes_of "$SMOKE_APP")"
   echo "libc-smoke-app.com.sha256=$(sha256_of "$SMOKE_APP")"
