@@ -74,6 +74,10 @@ extern void *cosmo_dlsym(void *handle, const char *symbol);
 #define AOT_STMT_EXPECT_U64 3u
 #define AOT_STMT_CALL_FUNC 4u
 
+#define BOOTSTRAP_STEP_COMPILE 1u
+#define BOOTSTRAP_STEP_HASH 2u
+#define BOOTSTRAP_STEP_RUN 3u
+
 typedef uint64_t (*jit_entry_fn)(void);
 typedef int (*ffi_i32_ptr_fn)(const char *);
 typedef int (*ffi_i32_ptr_ptr_fn)(const char *, const char *);
@@ -136,6 +140,18 @@ typedef struct {
   uint32_t patch_off;
   const char *target_name;
 } AotCallPatch;
+
+typedef struct {
+  uint32_t kind;
+  char *arg0;
+  char *arg1;
+} BootstrapStep;
+
+typedef struct {
+  BootstrapStep *steps;
+  size_t step_count;
+  size_t step_cap;
+} BootstrapPlan;
 
 typedef struct {
   unsigned char *data;
@@ -486,6 +502,14 @@ static void aot_module_free(AotModule *m) {
   free(m->funcs);
 }
 
+static void bootstrap_plan_free(BootstrapPlan *plan) {
+  for (size_t i = 0; i < plan->step_count; ++i) {
+    free(plan->steps[i].arg0);
+    free(plan->steps[i].arg1);
+  }
+  free(plan->steps);
+}
+
 static int add_import(Module *m, char *name, char *lib, char *symbol, char *sig) {
   uint32_t sig_id = parse_sig_id(sig);
   if (sig_id == UINT32_MAX) {
@@ -550,6 +574,18 @@ static int aot_add_stmt(AotFunc *f, uint32_t kind, uint64_t imm, char *target_na
     f->stmt_cap = next;
   }
   f->stmts[f->stmt_count++] = (AotStmt){kind, imm, target_name};
+  return 1;
+}
+
+static int bootstrap_add_step(BootstrapPlan *plan, uint32_t kind, char *arg0, char *arg1) {
+  if (plan->step_count == plan->step_cap) {
+    size_t next = plan->step_cap ? plan->step_cap * 2 : 4;
+    BootstrapStep *p = (BootstrapStep *)realloc(plan->steps, next * sizeof(*p));
+    if (!p) return 0;
+    plan->steps = p;
+    plan->step_cap = next;
+  }
+  plan->steps[plan->step_count++] = (BootstrapStep){kind, arg0, arg1};
   return 1;
 }
 
@@ -691,6 +727,53 @@ static int parse_aot_module(const char *src, AotModule *m) {
     }
     free(head);
     if (!ok) return 0;
+  }
+}
+
+static int parse_bootstrap_plan(const char *src, BootstrapPlan *plan) {
+  const char *p = src;
+  if (!eat(&p, '(')) return 0;
+  char *head = parse_atom(&p);
+  if (!head || strcmp(head, "bootstrap") != 0) {
+    free(head);
+    return 0;
+  }
+  free(head);
+  while (1) {
+    skip_ws(&p);
+    if (*p == ')') {
+      p++;
+      skip_ws(&p);
+      return *p == 0 && plan->step_count > 0;
+    }
+    if (!eat(&p, '(')) return 0;
+    head = parse_atom(&p);
+    if (!head) return 0;
+    if (strcmp(head, "compile") == 0) {
+      char *arg0 = parse_string(&p);
+      char *arg1 = parse_string(&p);
+      int ok = arg0 && arg1 && eat(&p, ')') &&
+               bootstrap_add_step(plan, BOOTSTRAP_STEP_COMPILE, arg0, arg1);
+      if (!ok) {
+        free(arg0);
+        free(arg1);
+        free(head);
+        return 0;
+      }
+    } else if (strcmp(head, "hash") == 0 || strcmp(head, "run") == 0) {
+      char *arg0 = parse_string(&p);
+      uint32_t kind = strcmp(head, "hash") == 0 ? BOOTSTRAP_STEP_HASH : BOOTSTRAP_STEP_RUN;
+      int ok = arg0 && eat(&p, ')') && bootstrap_add_step(plan, kind, arg0, NULL);
+      if (!ok) {
+        free(arg0);
+        free(head);
+        return 0;
+      }
+    } else {
+      free(head);
+      return 0;
+    }
+    free(head);
   }
 }
 
@@ -1623,6 +1706,40 @@ static int cmd_resolve(const char *blob_path, int quiet) {
   }
   int rc = resolve_blob(&b, quiet);
   free(owned);
+  return rc;
+}
+
+static int cmd_run_bootstrap_plan(const char *plan_path) {
+  size_t n = 0;
+  unsigned char *src = read_file(plan_path, &n);
+  BootstrapPlan plan = {0};
+  int rc = 0;
+  if (!src || !parse_bootstrap_plan((const char *)src, &plan)) {
+    fprintf(stderr, "bootstrap-plan=parse_fail path=%s\n", plan_path);
+    free(src);
+    bootstrap_plan_free(&plan);
+    return 1;
+  }
+  printf("bootstrap-plan.path=%s\n", plan_path);
+  printf("bootstrap-plan.steps=%zu\n", plan.step_count);
+  for (size_t i = 0; i < plan.step_count; ++i) {
+    const BootstrapStep *step = &plan.steps[i];
+    if (step->kind == BOOTSTRAP_STEP_COMPILE) {
+      printf("bootstrap-step.%zu=compile\n", i);
+      rc = cmd_compile(step->arg0, step->arg1);
+    } else if (step->kind == BOOTSTRAP_STEP_HASH) {
+      printf("bootstrap-step.%zu=hash\n", i);
+      rc = cmd_hash(step->arg0);
+    } else if (step->kind == BOOTSTRAP_STEP_RUN) {
+      printf("bootstrap-step.%zu=run\n", i);
+      rc = cmd_run(step->arg0);
+    } else {
+      rc = 2;
+    }
+    if (rc != 0) break;
+  }
+  free(src);
+  bootstrap_plan_free(&plan);
   return rc;
 }
 
@@ -2900,6 +3017,7 @@ static void usage(const char *argv0) {
   fprintf(stderr, "  %s dump program.%s\n", argv0, BLOB_EXT);
   fprintf(stderr, "  %s hash program.%s\n", argv0, BLOB_EXT);
   fprintf(stderr, "  %s resolve [--quiet] program.%s\n", argv0, BLOB_EXT);
+  fprintf(stderr, "  %s run-bootstrap-plan plan.lisp\n", argv0);
   fprintf(stderr, "  %s pack-ape output.com x86_64.elf aarch64.elf\n", argv0);
   fprintf(stderr, "  %s pack-app output.com x86_64.elf aarch64.elf program.%s\n", argv0, BLOB_EXT);
 }
@@ -2956,6 +3074,9 @@ int main(int argc, char **argv) {
   if (argc >= 2 && strcmp(argv[1], "resolve") == 0) {
     if (argc == 3) return cmd_resolve(argv[2], 0);
     if (argc == 4 && strcmp(argv[2], "--quiet") == 0) return cmd_resolve(argv[3], 1);
+  }
+  if (argc >= 2 && strcmp(argv[1], "run-bootstrap-plan") == 0 && argc == 3) {
+    return cmd_run_bootstrap_plan(argv[2]);
   }
   if (argc >= 2 && strcmp(argv[1], "pack-ape") == 0 && argc == 5) {
     return cmd_pack_ape(argv[2], argv[3], argv[4]);

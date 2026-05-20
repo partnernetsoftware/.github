@@ -9,6 +9,7 @@ ARITH_SRC="$LAB_DIR/samples/arithmetic.lisp"
 TYPED_SRC="$LAB_DIR/samples/typed-values.lisp"
 CTRL_SRC="$LAB_DIR/samples/control-flow.lisp"
 MULTI_SRC="$LAB_DIR/samples/multi-func.lisp"
+BOOTSTRAP_SRC="$LAB_DIR/samples/bootstrap-smoke.lisp"
 SMOKE_SRC="$LAB_DIR/samples/libc-smoke.lisp"
 BLOB="$BUILD_DIR/strlen.lbin"
 BLOB_REPEAT="$BUILD_DIR/strlen-repeat.lbin"
@@ -132,6 +133,8 @@ log "control.source.path=$CTRL_SRC"
 log "control.source.bytes=$(bytes_of "$CTRL_SRC")"
 log "multi.source.path=$MULTI_SRC"
 log "multi.source.bytes=$(bytes_of "$MULTI_SRC")"
+log "bootstrap.source.path=$BOOTSTRAP_SRC"
+log "bootstrap.source.bytes=$(bytes_of "$BOOTSTRAP_SRC")"
 log "smoke.source.path=$SMOKE_SRC"
 log "smoke.source.bytes=$(bytes_of "$SMOKE_SRC")"
 
@@ -165,6 +168,8 @@ run_case "compile-typed-values-lbin" "$RUNNER" compile "$TYPED_SRC" "$TYPED_BLOB
 log "typed.blob.bytes=$(bytes_of "$TYPED_BLOB")"
 
 run_case "execute-typed-values-lbin" "$RUNNER" run "$TYPED_BLOB"
+
+run_case "run-bootstrap-plan" "$RUNNER" run-bootstrap-plan "$BOOTSTRAP_SRC"
 
 run_case "compile-control-flow-lbin" "$RUNNER" compile "$CTRL_SRC" "$CTRL_BLOB"
 log "control.blob.bytes=$(bytes_of "$CTRL_BLOB")"

@@ -94,6 +94,7 @@ SMOKE_SRC="$LAB_DIR/samples/libc-smoke.lisp"
 SMOKE_BLOB="$BUILD_DIR/libc-smoke.lbin"
 SMOKE_BLOB_REPEAT="$BUILD_DIR/libc-smoke-repeat.lbin"
 SMOKE_APP="$BUILD_DIR/libc-smoke-app.com"
+BOOTSTRAP_PLAN="$BUILD_DIR/bootstrap-smoke-plan.lisp"
 RESOLVE_SRC="$BUILD_DIR/libc-resolve.lisp"
 RESOLVE_BLOB="$BUILD_DIR/libc-resolve.lbin"
 REPORT="$BUILD_DIR/bootstrap-report.txt"
@@ -145,6 +146,12 @@ extern int nano_multi_entry(void);
 int main(void) {
   return nano_multi_entry();
 }
+EOF
+cat > "$BOOTSTRAP_PLAN" <<EOF
+(bootstrap
+  (compile "$SMOKE_SRC" "$BUILD_DIR/bootstrap-smoke.lbin")
+  (hash "$BUILD_DIR/bootstrap-smoke.lbin")
+  (run "$BUILD_DIR/bootstrap-smoke.lbin"))
 EOF
 
 if [ ! -x "$X86_CC" ] || [ ! -x "$ARM_CC" ]; then
@@ -208,6 +215,7 @@ run_case "nano-jit-compile-arithmetic" "$BUILD_DIR/nano-jit.com" compile "$ARITH
 run_case "nano-jit-run-arithmetic" "$BUILD_DIR/nano-jit.com" run "$ARITH_BLOB"
 run_case "nano-jit-compile-typed-values" "$BUILD_DIR/nano-jit.com" compile "$TYPED_SRC" "$TYPED_BLOB"
 run_case "nano-jit-run-typed-values" "$BUILD_DIR/nano-jit.com" run "$TYPED_BLOB"
+run_case "nano-jit-run-bootstrap-plan" "$BUILD_DIR/nano-jit.com" run-bootstrap-plan "$BOOTSTRAP_PLAN"
 run_case "nano-jit-compile-control-flow" "$BUILD_DIR/nano-jit.com" compile "$CTRL_SRC" "$CTRL_BLOB"
 run_case "nano-jit-run-control-flow" "$BUILD_DIR/nano-jit.com" run "$CTRL_BLOB"
 run_case "nano-jit-emit-elf64-exit42" "$BUILD_DIR/nano-jit.com" emit-elf64-exit "$EXIT42" 42
