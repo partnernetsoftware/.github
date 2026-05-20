@@ -37,7 +37,7 @@ const PREVIEW_LINES = 80;
 const SHELL_COMMS = new Set(["bash", "zsh", "sh", "fish", "dash", "tmux", "-bash", "-zsh"]);
 
 const TUI_CONFIG = {
-  VERSION: '0.4.13',
+  VERSION: '0.4.16',
   VIEWER_SESSION: `__tui_viewer__`,
   TUI_KEYTABLE: "tui_empty",
   REMARK_KEY: "@remark",
@@ -126,11 +126,40 @@ const screen = new AnsiScreen();
 let tmuxQuietDepth = 0;
 let _resolvedTmuxBin: string | null = null;
 
-/** pipe/head 关 stdout 时避免 EPIPE 挂死（CLI + install 共用） */
+/** pipe/head 关读端时 EPIPE 立即退出，TTY 才等 drain */
+function cliInstallPipeGuard(stream: NodeJS.WriteStream): void {
+  stream.on("error", (err: NodeJS.ErrnoException) => {
+    if (err.code === "EPIPE") process.exit(0);
+  });
+}
+
 function cliWriteStdout(text: string): void {
-  if (!process.stdout.write(text)) {
-    process.stdout.once("drain", () => {});
+  if (process.stdout.destroyed) return;
+  try {
+    const needDrain = !process.stdout.write(text);
+    if (needDrain && process.stdout.isTTY) {
+      process.stdout.once("drain", () => {});
+    }
+  } catch (e: unknown) {
+    if ((e as NodeJS.ErrnoException).code === "EPIPE") process.exit(0);
   }
+}
+
+function cliWriteStderr(text: string): void {
+  if (process.stderr.destroyed) return;
+  try {
+    const needDrain = !process.stderr.write(text);
+    if (needDrain && process.stderr.isTTY) {
+      process.stderr.once("drain", () => {});
+    }
+  } catch (e: unknown) {
+    if ((e as NodeJS.ErrnoException).code === "EPIPE") process.exit(0);
+  }
+}
+
+function cliError(message: string, code = 2): number {
+  cliWriteStderr(`error: ${message}\n`);
+  return code;
 }
 
 // PART:tmux-bootstrap
@@ -188,7 +217,7 @@ function installTmuxPortable(force = false): number {
   const key = tmuxPlatformKey();
   const asset = key ? TMUX_STATIC_RELEASE.assets[key] : undefined;
   if (!asset) {
-    process.stderr.write(`不支持的平台 ${process.platform}/${process.arch}\n`);
+    cliWriteStderr(`不支持的平台 ${process.platform}/${process.arch}\n`);
     return 1;
   }
   if (!force && isExecutable(TUI_CONFIG.TMUX_PORTABLE_BIN)) {
@@ -201,15 +230,15 @@ function installTmuxPortable(force = false): number {
   mkdirSync(cacheDir, { recursive: true });
   const archive = join(cacheDir, asset.file);
   const url = `${TMUX_STATIC_RELEASE.base}/${asset.file}`;
-  process.stderr.write(`下载 ${url}\n`);
+  cliWriteStderr(`下载 ${url}\n`);
   const dl = Bun.spawnSync(["curl", "-fsSL", "-o", archive, url], { stdout: "pipe", stderr: "pipe" });
   if (dl.exitCode !== 0) {
-    process.stderr.write(`下载失败: ${dl.stderr?.toString() || "curl error"}\n`);
+    cliWriteStderr(`下载失败: ${dl.stderr?.toString() || "curl error"}\n`);
     return 1;
   }
   const got = sha256File(archive);
   if (got !== asset.sha256) {
-    process.stderr.write(`校验失败: expected ${asset.sha256} got ${got}\n`);
+    cliWriteStderr(`校验失败: expected ${asset.sha256} got ${got}\n`);
     return 1;
   }
   const extractDir = join(cacheDir, asset.file.replace(/\.tar\.gz$/, ""));
@@ -217,12 +246,12 @@ function installTmuxPortable(force = false): number {
   mkdirSync(extractDir, { recursive: true });
   const untar = Bun.spawnSync(["tar", "-xzf", archive, "-C", extractDir], { stdout: "pipe", stderr: "pipe" });
   if (untar.exitCode !== 0) {
-    process.stderr.write(`解包失败: ${untar.stderr?.toString()}\n`);
+    cliWriteStderr(`解包失败: ${untar.stderr?.toString()}\n`);
     return 1;
   }
   const extracted = join(extractDir, "tmux");
   if (!isExecutable(extracted)) {
-    process.stderr.write(`解包后未找到可执行文件: ${extracted}\n`);
+    cliWriteStderr(`解包后未找到可执行文件: ${extracted}\n`);
     return 1;
   }
   copyFileSync(extracted, TUI_CONFIG.TMUX_PORTABLE_BIN);
@@ -240,25 +269,25 @@ function installTmuxSystem(): number {
   if (process.platform === "darwin") {
     const brew = Bun.which("brew");
     if (!brew) {
-      process.stderr.write("未找到 brew，请用: tui install-tmux（便携版）\n");
+      cliWriteStderr("未找到 brew，请用: tui install-tmux（便携版）\n");
       return 1;
     }
-    process.stderr.write("brew install tmux …\n");
+    cliWriteStderr("brew install tmux …\n");
     const r = Bun.spawnSync([brew, "install", "tmux"], { stdin: "inherit", stdout: "inherit", stderr: "inherit" });
     resetTmuxBinCache();
     return r.exitCode ?? 1;
   }
   if (process.platform === "linux") {
     if (Bun.which("apt-get")) {
-      process.stderr.write("请运行: sudo apt-get update && sudo apt-get install -y tmux\n");
+      cliWriteStderr("请运行: sudo apt-get update && sudo apt-get install -y tmux\n");
     } else if (Bun.which("dnf")) {
-      process.stderr.write("请运行: sudo dnf install -y tmux\n");
+      cliWriteStderr("请运行: sudo dnf install -y tmux\n");
     } else {
-      process.stderr.write("请用: tui install-tmux（便携版，无需 root）\n");
+      cliWriteStderr("请用: tui install-tmux（便携版，无需 root）\n");
     }
     return 1;
   }
-  process.stderr.write(`不支持的平台 ${process.platform}\n`);
+  cliWriteStderr(`不支持的平台 ${process.platform}\n`);
   return 1;
 }
 
@@ -385,7 +414,7 @@ function tmux(args: string[], opts?: { missingOk?: boolean; unsetOk?: boolean })
       return "";
     }
     if (!tmuxQuietDepth) {
-      process.stderr.write(`[tmux ${args.join(" ")}] exit=${out.exitCode} ${stderr}`);
+      cliWriteStderr(`[tmux ${args.join(" ")}] exit=${out.exitCode} ${stderr}`);
     }
   }
   return out.stdout.toString();
@@ -421,7 +450,7 @@ const tmuxApi: IMultiplexerBackend = {
       { stdout: "pipe", stderr: "pipe" },
     );
     if (r.exitCode !== 0 && !tmuxQuietDepth) {
-      process.stderr.write(
+      cliWriteStderr(
         `[tmux capture-pane -t ${target}] exit=${r.exitCode} ${r.stderr?.toString() || ""}`,
       );
     }
@@ -523,9 +552,9 @@ interface TreeNode {
   windowActivity?: number;
   /** tmux #{window_active} */
   windowActive?: boolean;
-  /** getTree 时批量读取 #{@auto}，render 路径不再 spawn tmux */
+  /** syncTree 时批量读取 #{@auto}，render 路径不再 spawn tmux */
   autoLevel?: AutoLevel;
-  /** getTree / f 刷新时缓存，render 路径不读 inbox */
+  /** syncTree / f 刷新时缓存，render 路径不读 inbox */
   cachedUnread?: number;
   /** f 刷新时在 drive 模式预计算，排序不再重复 windowMeta */
   driveSortScore?: number;
@@ -956,16 +985,15 @@ function cliWriteJson(data: unknown): void {
   cliWriteStdout(JSON.stringify(data, null, 2) + "\n");
 }
 
-function sessionWindowCount(tree: TreeNode[], sessIdx: number): number {
-  let wc = 0;
-  for (let j = sessIdx + 1; j < tree.length && tree[j].type === "window"; j++) wc++;
-  return wc;
-}
-
-function countSessionWindows(tree: TreeNode[], sessionName: string): number {
+function sessionWindowCount(tree: TreeNode[], sessIdxOrName: number | string): number {
+  if (typeof sessIdxOrName === "number") {
+    let wc = 0;
+    for (let j = sessIdxOrName + 1; j < tree.length && tree[j].type === "window"; j++) wc++;
+    return wc;
+  }
   let wc = 0;
   for (const n of tree) {
-    if (n.type === "window" && n.sessionName === sessionName) wc++;
+    if (n.type === "window" && n.sessionName === sessIdxOrName) wc++;
   }
   return wc;
 }
@@ -1486,7 +1514,7 @@ function buildInspectResult(spec: string, previewLines: number, sourceTree?: Tre
   };
   if (node.type === "session") {
     const tree = sourceTree ?? syncTree();
-    return { ...base, windowCount: countSessionWindows(tree, node.sessionName) };
+    return { ...base, windowCount: sessionWindowCount(tree, node.sessionName) };
   }
   beginPaneSnapBatch();
   const tree = sourceTree ?? syncTree();
@@ -1560,11 +1588,6 @@ function syncTree(): TreeNode[] {
     }
   }
   return nodes;
-}
-
-/** @deprecated 别名；请用 syncTree */
-function getTree(): TreeNode[] {
-  return syncTree();
 }
 
 function hydrateDriveSortScores(tree: TreeNode[]): void {
@@ -2334,12 +2357,12 @@ function enterAttach() {
   attach(state.tree[state.cursor].target);
 }
 
-// PART:tui-registry — TUI_PROMPTS.mirror ↔ TUI_CLI_MIRROR ↔ CLI_OPS / CLI_USER_OPTS
+// PART:tui-registry — buildTuiPrompts(TUI_CLI_MIRROR) @ CLI_OPS 之后 init
 
 type TuiPromptSpec = {
   key: string;
   help: string;
-  mirror?: string;
+  mirror: string;
   needsTree?: boolean;
   prompt: () => string;
   submit: (answer: string | null) => void;
@@ -2366,84 +2389,8 @@ const TUI_INSTANT: TuiInstantSpec[] = [
   { key: "o", help: "o:模式", run: toggleUiMode },
 ];
 
-const TUI_PROMPTS: TuiPromptSpec[] = [
-  {
-    key: "n",
-    help: "n:Session",
-    mirror: "new-session",
-    prompt: () => "新 Session 名称",
-    submit: (raw) => {
-      if (raw?.trim()) {
-        const name = opNewSession(raw);
-        refreshAll();
-        const idx = state.tree.findIndex((n) => n.type === "session" && n.target === name);
-        if (idx >= 0) state.cursor = idx;
-      }
-      refreshPreview();
-    },
-  },
-  {
-    key: "w",
-    help: "w:Win",
-    mirror: "new-window",
-    needsTree: true,
-    prompt: () => `在 [${state.tree[state.cursor].sessionName}] 新建 Window 名称`,
-    submit: (raw) => {
-      if (raw?.trim()) {
-        opNewWindow(state.tree[state.cursor].sessionName, raw);
-        refreshAll();
-      }
-      refreshPreview();
-    },
-  },
-  {
-    key: "d",
-    help: "d:删",
-    mirror: "kill-window",
-    needsTree: true,
-    prompt: () => {
-      const node = state.tree[state.cursor];
-      const what = node.type === "session" ? `session [${node.target}]` : `window [${node.target}]`;
-      return `删除 ${node.type} ${what}? (y/n)`;
-    },
-    submit: (ans) => {
-      const node = state.tree[state.cursor];
-      if (ans?.toLowerCase() === "y" && node.type === "window") opKillWindow(node.target);
-      refreshAll();
-    },
-  },
-  {
-    key: "r",
-    help: "r:改名",
-    mirror: "rename",
-    needsTree: true,
-    prompt: () => {
-      const node = state.tree[state.cursor];
-      return `rename ${node.type} [${node.target}]`;
-    },
-    submit: (raw) => {
-      const node = state.tree[state.cursor];
-      const spec = node.type === "session" ? node.sessionName : node.target;
-      if (raw?.trim()) opRename(spec, raw);
-      refreshAll();
-    },
-  },
-  {
-    key: "m",
-    help: "m:备注",
-    mirror: "remark",
-    needsTree: true,
-    prompt: () => `修改备注 [${state.tree[state.cursor].target}]`,
-    submit: (raw) => {
-      if (raw === null) {
-        render();
-        return;
-      }
-      writeRemark(state.tree[state.cursor], raw.trim());
-      refreshAll();
-    },
-  },
-];
+let TUI_PROMPTS: TuiPromptSpec[] = [];
+let TUI_KEYBINDS: { help: string; match: (s: string) => boolean; run: () => void }[] = [];
 
 function buildTuiKeybinds(): { help: string; match: (s: string) => boolean; run: () => void }[] {
   return [
@@ -2461,9 +2408,15 @@ function buildTuiKeybinds(): { help: string; match: (s: string) => boolean; run:
   ];
 }
 
-const TUI_KEYBINDS = buildTuiKeybinds();
+function initTuiRegistry(): void {
+  if (TUI_KEYBINDS.length > 0) return;
+  assertTuiCliMirror();
+  TUI_PROMPTS = buildTuiPrompts();
+  TUI_KEYBINDS = buildTuiKeybinds();
+}
 
 function tuiHeaderHelp(): string {
+  initTuiRegistry();
   return ["Enter进", "C-←回", ...TUI_KEYBINDS.map((b) => b.help), "q:退"].join(" ");
 }
 
@@ -2582,7 +2535,7 @@ function attach(target: string) {
 // PART:preview
 
 function refreshAll() {
-  endPaneSnapBatch();
+  endPaneSnapBatch(); // 清掉可能未闭合的 paneSnap 批处理
   state.suppressPreviewAfterAttach = false;
   state.needsFullClear = true;
   invalidateDriveView();
@@ -2798,6 +2751,7 @@ function handleKeySeq(s: string) {
     if (node?.type === "session") toggleSessionCollapse(node.sessionName);
     return;
   }
+  initTuiRegistry();
   for (const bind of TUI_KEYBINDS) {
     if (bind.match(s)) {
       bind.run();
@@ -2893,6 +2847,7 @@ const CLI_USER_OPTS: Record<string, UserOptSpec> = {
       const lvl = normalizeAutoLevel(raw);
       return AUTO_LEVELS.includes(lvl) ? lvl : null;
     },
+    /** @reserved drive 自动波/档未设计；仅 metadata + CLI，不参与采样策略 */
   },
 };
 
@@ -2910,33 +2865,64 @@ const CLI_OPS: Record<string, OpSpec> = {
     usage: "<name>",
     aliases: ["ns"],
     arity: 1,
-    run: (a) => { const n = opNewSession(a[0]); return `session ${n}\n`; },
+    run: (a) => { const n = opNewSession(a[0]); return `session ${n}`; },
   },
   "new-window": {
     summary: "在 session 下新建 window",
     usage: "<sess-spec> <name>",
     aliases: ["nw"],
     arity: 2,
-    run: (a) => { const n = opNewWindow(a[0], a[1]); return `window ${a[0]}:${n}\n`; },
+    run: (a) => { const n = opNewWindow(a[0], a[1]); return `window ${a[0]}:${n}`; },
   },
   rename: {
     summary: "重命名 session/window",
     usage: "<spec> <name>",
     arity: 2,
-    run: (a) => { const n = opRename(a[0], a[1]); return `renamed → ${n}\n`; },
+    run: (a) => { const n = opRename(a[0], a[1]); return `renamed → ${n}`; },
   },
   "kill-window": {
     summary: "关闭 window（不含 session）",
     usage: "<spec>",
     aliases: ["delete", "rm"],
     arity: 1,
-    run: (a) => { opKillWindow(a[0]); return `killed ${resolveTarget(a[0])}\n`; },
+    run: (a) => { opKillWindow(a[0]); return `killed ${resolveTarget(a[0])}`; },
   },
 };
 
+/** CLI user-opt set 与 TUI remark 共用 */
+function applyUserOptSet(optName: string, targetSpec: string, rawValue: string): string {
+  const spec = CLI_USER_OPTS[optName];
+  const { target, node } = parseTargetSpec(targetSpec);
+  if (spec.scope === "window" && node.type !== "window") {
+    throw new Error(`${optName} 需要 window spec`);
+  }
+  let value = rawValue;
+  if (spec.validate) {
+    const ok = spec.validate(rawValue);
+    if (ok === null) throw new Error(`${optName} 档位须为 0 | 50 | 100`);
+    value = ok;
+  }
+  spec.write(node, value);
+  return `${optName} ${target} = ${value || "(cleared)"}`;
+}
+
+/** CLI_OPS + CLI_USER_OPTS set 单一执行入口（TUI runTuiOp / cliOp / cliUserOptSet 共用） */
+function runRegistryOp(name: string, args: string[]): string {
+  if (name in CLI_OPS) {
+    const spec = CLI_OPS[name]!;
+    if (args.length < spec.arity) throw new Error(`${name} 需要 ${spec.arity} 个参数`);
+    return spec.run(args);
+  }
+  if (name in CLI_USER_OPTS) {
+    if (!args[0]) throw new Error(`${name} 需要 target spec`);
+    return applyUserOptSet(name, args[0], args.slice(1).join(" "));
+  }
+  throw new Error(`未知 registry 命令: ${name}`);
+}
+
 type TuiMirrorEntry = { key: string; help: string; needsTree?: boolean };
 
-/** TUI 快捷键 ↔ CLI 镜像（TUI_PROMPTS.mirror 须与此表一致） */
+/** TUI 快捷键 ↔ CLI 镜像（buildTuiPrompts 单一投影源） */
 const TUI_CLI_MIRROR: {
   ops: Record<keyof typeof CLI_OPS, TuiMirrorEntry>;
   userOpts: Partial<Record<keyof typeof CLI_USER_OPTS, TuiMirrorEntry>>;
@@ -2952,38 +2938,129 @@ const TUI_CLI_MIRROR: {
   },
 };
 
-function assertTuiCliMirror(): void {
-  for (const [op, spec] of Object.entries(TUI_CLI_MIRROR.ops) as [keyof typeof CLI_OPS, TuiMirrorEntry][]) {
-    if (!(op in CLI_OPS)) throw new Error(`TUI_CLI_MIRROR.ops 引用未知 CLI_OPS: ${op}`);
-    const p = TUI_PROMPTS.find((x) => x.mirror === op);
-    if (!p) throw new Error(`TUI_PROMPTS 缺少 mirror=${op}`);
-    if (p.key !== spec.key || p.help !== spec.help) {
-      throw new Error(`TUI_PROMPTS[${op}] 与 TUI_CLI_MIRROR 漂移 (key/help)`);
+function tuiCursorNode(): TreeNode {
+  return state.tree[state.cursor]!;
+}
+
+const TUI_PROMPT_HANDLERS: Record<string, { prompt: () => string; args: (answer: string | null) => string[] | null }> = {
+  "new-session": {
+    prompt: () => "新 Session 名称",
+    args: (a) => { const name = a?.trim(); return name ? [name] : null; },
+  },
+  "new-window": {
+    prompt: () => `在 [${tuiCursorNode().sessionName}] 新建 Window 名称`,
+    args: (a) => { const name = a?.trim(); return name ? [tuiCursorNode().sessionName, name] : null; },
+  },
+  "kill-window": {
+    prompt: () => {
+      const node = tuiCursorNode();
+      if (node.type !== "window") return "不可删 session；请将光标移到 window";
+      return `删除 window [${node.target}]? (y/n)`;
+    },
+    args: (a) => {
+      if (a === null) return null;
+      const node = tuiCursorNode();
+      if (a.toLowerCase() !== "y" || node.type !== "window") return null;
+      return [node.target];
+    },
+  },
+  rename: {
+    prompt: () => {
+      const node = tuiCursorNode();
+      return `rename ${node.type} [${node.target}]`;
+    },
+    args: (a) => {
+      const name = a?.trim();
+      if (!name) return null;
+      const node = tuiCursorNode();
+      const spec = node.type === "session" ? node.sessionName : node.target;
+      return [spec, name];
+    },
+  },
+  remark: {
+    prompt: () => `修改备注 [${tuiCursorNode().target}]`,
+    args: (a) => (a === null ? null : [tuiCursorNode().target, a.trim()]),
+  },
+};
+
+type TuiOpOutcome = { applied: false } | { applied: true; focusSession?: string };
+
+/** TUI submit → runRegistryOp 同源执行 */
+function runTuiOp(mirror: string, answer: string | null): TuiOpOutcome {
+  const h = TUI_PROMPT_HANDLERS[mirror];
+  const args = h?.args(answer) ?? null;
+  if (!args) return { applied: false };
+  try {
+    const msg = runRegistryOp(mirror, args);
+    if (mirror === "new-session") {
+      const m = msg.match(/^session (\S+)/);
+      return { applied: true, focusSession: m?.[1] };
     }
-    if (!!p.needsTree !== !!spec.needsTree) {
-      throw new Error(`TUI_PROMPTS[${op}] needsTree 与 TUI_CLI_MIRROR 不一致`);
-    }
-  }
-  for (const [opt, spec] of Object.entries(TUI_CLI_MIRROR.userOpts) as [keyof typeof CLI_USER_OPTS, TuiMirrorEntry][]) {
-    if (!(opt in CLI_USER_OPTS)) throw new Error(`TUI_CLI_MIRROR.userOpts 引用未知 CLI_USER_OPTS: ${opt}`);
-    const p = TUI_PROMPTS.find((x) => x.mirror === opt);
-    if (!p) throw new Error(`TUI_PROMPTS 缺少 mirror=${opt}`);
-    if (p.key !== spec.key || p.help !== spec.help) {
-      throw new Error(`TUI_PROMPTS[${opt}] 与 TUI_CLI_MIRROR 漂移 (key/help)`);
-    }
-    if (!!p.needsTree !== !!spec.needsTree) {
-      throw new Error(`TUI_PROMPTS[${opt}] needsTree 与 TUI_CLI_MIRROR 不一致`);
-    }
-  }
-  for (const p of TUI_PROMPTS) {
-    if (!p.mirror) throw new Error(`TUI_PROMPTS[${p.key}] 缺少 mirror（须对应 CLI_OPS / CLI_USER_OPTS）`);
-    if (!(p.mirror in CLI_OPS) && !(p.mirror in CLI_USER_OPTS)) {
-      throw new Error(`TUI_PROMPTS mirror orphan: ${p.mirror}`);
-    }
+    return { applied: true };
+  } catch {
+    return { applied: false };
   }
 }
 
-assertTuiCliMirror();
+function tuiOpSubmit(mirror: string, answer: string | null): void {
+  if (mirror === "remark" && answer === null) {
+    render();
+    return;
+  }
+  const outcome = runTuiOp(mirror, answer);
+  if (outcome.applied) {
+    refreshAll();
+    if (outcome.focusSession) {
+      const idx = state.tree.findIndex((n) => n.type === "session" && n.target === outcome.focusSession);
+      if (idx >= 0) state.cursor = idx;
+    }
+    refreshPreview();
+    return;
+  }
+  if (mirror === "new-session" || mirror === "new-window") refreshPreview();
+}
+
+function buildTuiPrompts(): TuiPromptSpec[] {
+  const prompts: TuiPromptSpec[] = [];
+  for (const [mirror, meta] of Object.entries(TUI_CLI_MIRROR.ops) as [keyof typeof CLI_OPS, TuiMirrorEntry][]) {
+    const h = TUI_PROMPT_HANDLERS[mirror];
+    if (!h) throw new Error(`TUI_PROMPT_HANDLERS 缺少 ${mirror}`);
+    prompts.push({
+      key: meta.key,
+      help: meta.help,
+      mirror,
+      needsTree: meta.needsTree,
+      prompt: h.prompt,
+      submit: (answer) => tuiOpSubmit(mirror, answer),
+    });
+  }
+  for (const [mirror, meta] of Object.entries(TUI_CLI_MIRROR.userOpts) as [keyof typeof CLI_USER_OPTS, TuiMirrorEntry][]) {
+    const h = TUI_PROMPT_HANDLERS[mirror];
+    if (!h) throw new Error(`TUI_PROMPT_HANDLERS 缺少 ${mirror}`);
+    prompts.push({
+      key: meta.key,
+      help: meta.help,
+      mirror,
+      needsTree: meta.needsTree,
+      prompt: h.prompt,
+      submit: (answer) => tuiOpSubmit(mirror, answer),
+    });
+  }
+  return prompts;
+}
+
+function assertTuiCliMirror(): void {
+  for (const op of Object.keys(TUI_CLI_MIRROR.ops)) {
+    if (!(op in CLI_OPS)) throw new Error(`TUI_CLI_MIRROR.ops 引用未知 CLI_OPS: ${op}`);
+    const h = TUI_PROMPT_HANDLERS[op];
+    if (!h?.prompt || !h.args) throw new Error(`TUI_PROMPT_HANDLERS 缺少 ${op}`);
+  }
+  for (const opt of Object.keys(TUI_CLI_MIRROR.userOpts)) {
+    if (!(opt in CLI_USER_OPTS)) throw new Error(`TUI_CLI_MIRROR.userOpts 引用未知 CLI_USER_OPTS: ${opt}`);
+    const h = TUI_PROMPT_HANDLERS[opt];
+    if (!h?.prompt || !h.args) throw new Error(`TUI_PROMPT_HANDLERS 缺少 ${opt}`);
+  }
+}
 
 type FleetViewSpec = {
   summary: string;
@@ -3075,7 +3152,7 @@ function matchCliName(cmd: CliCommand, name: string): boolean {
 }
 
 function cliFailUsage(usage: string): number {
-  process.stderr.write(`usage: ${CLI_BIN} ${usage}\n`);
+  cliWriteStderr(`usage: ${CLI_BIN} ${usage}\n`);
   return 2;
 }
 
@@ -3089,10 +3166,7 @@ function cliRespond(ctx: CliCtx, data: unknown, text: () => void): number {
 }
 
 function cliRequireWindow(node: TreeNode, label: string): number | null {
-  if (node.type !== "window") {
-    process.stderr.write(`error: ${label} 需要 window spec\n`);
-    return 2;
-  }
+  if (node.type !== "window") return cliError(`${label} 需要 window spec`);
   return null;
 }
 
@@ -3113,29 +3187,12 @@ function cliUserOptSet(optName: string, ctx: CliCtx): number {
   const spec = CLI_USER_OPTS[optName];
   const minArgs = spec.setJoinRest ? 1 : 2;
   if (ctx.rest.length < minArgs) return cliFailUsage(`${optName} set ${spec.setUsage}`);
-  const { target, node } = parseTargetSpec(ctx.rest[0]);
-  if (spec.scope === "window") {
-    const err = cliRequireWindow(node, optName);
-    if (err !== null) return err;
+  const args = spec.setJoinRest ? [ctx.rest[0], ctx.rest.slice(1).join(" ")] : ctx.rest;
+  try {
+    cliWriteStdout(runRegistryOp(optName, args) + "\n");
+  } catch (e: unknown) {
+    return cliError(e instanceof Error ? e.message : String(e));
   }
-  let value: string;
-  if (spec.setJoinRest) {
-    value = ctx.rest.slice(1).join(" ");
-  } else {
-    const raw = ctx.rest[1];
-    if (spec.validate) {
-      const ok = spec.validate(raw);
-      if (ok === null) {
-        process.stderr.write(`error: ${optName} 档位须为 0 | 50 | 100\n`);
-        return 2;
-      }
-      value = ok;
-    } else {
-      value = raw;
-    }
-  }
-  spec.write(node, value);
-  cliWriteStdout(`${optName} ${target} = ${value || "(cleared)"}\n`);
   return 0;
 }
 
@@ -3155,7 +3212,11 @@ function cliOp(opName: string, ctx: CliCtx): number {
   const spec = CLI_OPS[opName];
   const { positional } = parseCliFlags(ctx.rest);
   if (positional.length < spec.arity) return cliFailUsage(`${opName} ${spec.usage}`);
-  cliWriteStdout(spec.run(positional));
+  try {
+    cliWriteStdout(runRegistryOp(opName, positional) + "\n");
+  } catch (e: unknown) {
+    return cliError(e instanceof Error ? e.message : String(e));
+  }
   return 0;
 }
 
@@ -3301,8 +3362,8 @@ function cliHelp(): number {
     "",
     "命令树:",
   ];
-  for (const section of CLI_ROOT_SECTIONS) {
-    const cmds = section.build().filter((c) => !c.helpHidden);
+  for (const section of CLI_HELP_SECTIONS) {
+    const cmds = section.cmds.filter((c) => !c.helpHidden);
     if (!cmds.length) continue;
     if (section.title) lines.push("", `${section.title}:`);
     for (const cmd of cmds) lines.push(...formatCliHelpEntry(cmd));
@@ -3344,10 +3405,7 @@ function cliAgentSend(ctx: CliCtx): number {
     return cliFailUsage("agent send <to> --from <me> [--corr id] [--reply] <body>");
   }
   const body = positional.slice(1).join(" ");
-  if (!body) {
-    process.stderr.write("error: 消息正文为空\n");
-    return 2;
-  }
+  if (!body) return cliError("消息正文为空");
   const kind = (flags.kind === "reply" ? "reply" : "msg") as AgentKind;
   const env = agentSend({
     to: positional[0],
@@ -3387,7 +3445,7 @@ function cliAgentInbox(ctx: CliCtx): number {
   if (follow) {
     let cursor = printNew(0);
     agentMarkRead(id, cursor);
-    process.stderr.write(`following ${path} (Ctrl-C 退出)…\n`);
+    cliWriteStderr(`following ${path} (Ctrl-C 退出)…\n`);
     while (true) {
       Bun.sleepSync(400);
       const n = agentInboxCount(id);
@@ -3428,7 +3486,7 @@ function cliAgentWait(ctx: CliCtx): number {
     scanned = rows.length;
     Bun.sleepSync(300);
   }
-  process.stderr.write(`timeout: 未收到 corr=${corr}\n`);
+  cliWriteStderr(`timeout: 未收到 corr=${corr}\n`);
   return 1;
 }
 
@@ -3439,7 +3497,7 @@ function cliAgentList(ctx: CliCtx): number {
       cliWriteJson({ version: TUI_CONFIG.VERSION, agents: [] });
       return 0;
     }
-    process.stderr.write("无已注册 agent（tui agent register <spec> <name>）\n");
+    cliWriteStderr("无已注册 agent（tui agent register <spec> <name>）\n");
     return 0;
   }
   if (ctx.json) {
@@ -3471,8 +3529,7 @@ function cliAgentRegister(ctx: CliCtx): number {
   if (ctx.rest.length < 2) return cliFailUsage("agent register <window-spec> <name>");
   const { target, node } = parseTargetSpec(ctx.rest[0]);
   if (node.type !== "window") {
-    process.stderr.write("error: register 需要 window spec\n");
-    return 2;
+    return cliError("register 需要 window spec");
   }
   const name = normalizeAgentName(ctx.rest[1]);
   writeAgent(node, name);
@@ -3484,8 +3541,7 @@ function cliAgentUnregister(ctx: CliCtx): number {
   if (!ctx.rest[0]) return cliFailUsage("agent unregister <window-spec>");
   const { target, node } = parseTargetSpec(ctx.rest[0]);
   if (node.type !== "window") {
-    process.stderr.write("error: unregister 需要 window spec\n");
-    return 2;
+    return cliError("unregister 需要 window spec");
   }
   writeAgent(node, "");
   cliWriteStdout(`agent cleared on ${target}\n`);
@@ -3546,8 +3602,7 @@ function cliAgentLegacy(ctx: CliCtx): number {
   const sub = ctx.rest[0];
   const hit = sub ? matchAgentCmd(sub) : null;
   if (!hit) {
-    process.stderr.write(`未知 agent 子命令: ${sub ?? "(none)"}\n`);
-    return 2;
+    return cliError(`未知 agent 子命令: ${sub ?? "(none)"}`);
   }
   return hit[1].run({ ...ctx, rest: ctx.rest.slice(1) });
 }
@@ -3662,11 +3717,13 @@ const CLI_ROOT_SECTIONS: CliRootSection[] = [
   },
 ];
 
-function buildCliRoot(): CliCommand[] {
-  return CLI_ROOT_SECTIONS.flatMap((s) => s.build());
+const CLI_HELP_SECTIONS: { title?: string; cmds: CliCommand[] }[] = [];
+const CLI_ROOT: CliCommand[] = [];
+for (const s of CLI_ROOT_SECTIONS) {
+  const cmds = s.build();
+  CLI_HELP_SECTIONS.push({ title: s.title, cmds });
+  CLI_ROOT.push(...cmds);
 }
-
-const CLI_ROOT = buildCliRoot();
 
 function cliDoctor(_ctx: CliCtx): number {
   const key = tmuxPlatformKey();
@@ -3709,7 +3766,7 @@ function cliDev(ctx: CliCtx): number {
   const script = resolveSelfScript();
   const bunArgs = ["--watch", script, ...ctx.rest];
   const label = ctx.rest.length > 0 ? ctx.rest.join(" ") : "(TUI)";
-  process.stderr.write(
+  cliWriteStderr(
     `[tui dev] ${label}\n` +
     `  watch: bun ${bunArgs.join(" ")}\n` +
     `  保存 tui.ts 自动重启；Ctrl-C 结束；tmux 内 agent/window 不受影响\n`,
@@ -3747,13 +3804,13 @@ function runCli(argv: string[]): number {
   const peeled = peelJsonFlag(argv.slice(3));
   const cmd = CLI_ROOT.find((c) => matchCliName(c, head || ""));
   if (!cmd) {
-    process.stderr.write(`未知子命令: ${head}\n`);
+    cliWriteStderr(`未知子命令: ${head}\n`);
     return cliHelp() === 0 ? 2 : 2;
   }
   if (cliNeedsTmux(head || "")) {
     const p = resolveTmuxPath();
     if (!p) {
-      process.stderr.write(`tmux 未找到。运行: ${CLI_BIN} install-tmux\n`);
+      cliWriteStderr(`tmux 未找到。运行: ${CLI_BIN} install-tmux\n`);
       return 1;
     }
     _resolvedTmuxBin = p;
@@ -3764,7 +3821,7 @@ function runCli(argv: string[]): number {
     if (peeled.json) {
       cliWriteJson({ error: e instanceof Error ? e.message : String(e) });
     } else {
-      process.stderr.write(`error: ${e instanceof Error ? e.message : String(e)}\n`);
+      cliError(e instanceof Error ? e.message : String(e), 1);
     }
     return 1;
   }
@@ -3772,11 +3829,9 @@ function runCli(argv: string[]): number {
 
 // PART:entry
 
-process.stdout.on("error", (err: NodeJS.ErrnoException) => {
-  if (err.code === "EPIPE") process.exit(0);
-});
-
 if (import.meta.main) {
+  cliInstallPipeGuard(process.stdout);
+  cliInstallPipeGuard(process.stderr);
   if (isCliInvocation(process.argv)) {
     process.exit(runCli(process.argv));
   }
@@ -3786,11 +3841,12 @@ if (import.meta.main) {
 function startTui(): void {
   const _tmuxAtStart = resolveTmuxPath();
   if (!_tmuxAtStart) {
-    process.stderr.write(`tmux 未找到。运行: ${CLI_BIN} install-tmux\n`);
-    process.stderr.write(`  或系统安装: ${CLI_BIN} install-tmux --system\n`);
+    cliWriteStderr(`tmux 未找到。运行: ${CLI_BIN} install-tmux\n`);
+    cliWriteStderr(`  或系统安装: ${CLI_BIN} install-tmux --system\n`);
     process.exit(1);
   }
   _resolvedTmuxBin = _tmuxAtStart;
+  initTuiRegistry();
 
   state.tree = syncTree();
   if (state.tree.length === 0) {
