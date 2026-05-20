@@ -941,35 +941,38 @@ static int dump_blob(const Blob *b) {
   return 0;
 }
 
-static int cmd_compile(const char *src_path, const char *out_path) {
+static unsigned char *compile_source_path_to_blob(const char *src_path, size_t *out_blob_n) {
   size_t src_n = 0;
   unsigned char *src = read_file(src_path, &src_n);
   if (!src) {
     fprintf(stderr, "read=fail path=%s\n", src_path);
-    return 1;
+    return NULL;
   }
   Module m = {0};
   if (!parse_module((const char *)src, &m)) {
     fprintf(stderr, "parse=fail path=%s\n", src_path);
     free(src);
     module_free(&m);
-    return 2;
+    return NULL;
   }
+  unsigned char *blob = compile_module(&m, out_blob_n);
+  free(src);
+  module_free(&m);
+  return blob;
+}
+
+static int cmd_compile(const char *src_path, const char *out_path) {
   size_t blob_n = 0;
-  unsigned char *blob = compile_module(&m, &blob_n);
+  unsigned char *blob = compile_source_path_to_blob(src_path, &blob_n);
   if (!blob || !write_file(out_path, blob, blob_n)) {
     fprintf(stderr, "compile=fail\n");
-    free(src);
     free(blob);
-    module_free(&m);
     return 3;
   }
   printf("blob.format=%s\n", OUTPUT_FORMAT);
   printf("blob.bytes=%zu\n", blob_n);
   printf("blob.path=%s\n", out_path);
-  free(src);
   free(blob);
-  module_free(&m);
   return 0;
 }
 
@@ -1803,6 +1806,35 @@ static int cmd_aot_elf64_code(const char *blob_path, const char *out_path) {
   return 0;
 }
 
+static int cmd_compile_elf64_code(const char *src_path, const char *out_path) {
+  size_t blob_n = 0;
+  unsigned char *blob_data = compile_source_path_to_blob(src_path, &blob_n);
+  Blob b;
+  Buf code = {0};
+  if (!blob_data || !blob_init(&b, blob_data, blob_n)) {
+    fprintf(stderr, "compile-elf64-code=compile_fail\n");
+    free(blob_data);
+    return 1;
+  }
+  int ok = compile_pure_u64_blob_to_x86_exit(&b, &code);
+  free(blob_data);
+  if (!ok) {
+    free(code.data);
+    fprintf(stderr, "compile-elf64-code=unsupported_source\n");
+    return 2;
+  }
+  if (!emit_elf64_code_file(out_path, code.data, code.len)) {
+    free(code.data);
+    fprintf(stderr, "compile-elf64-code=write_fail path=%s\n", out_path);
+    return 3;
+  }
+  printf("compile.elf64.output=%s\n", out_path);
+  printf("compile.elf64.bytes=%zu\n", 120 + code.len);
+  printf("compile.elf64.x86.bytes=%zu\n", code.len);
+  free(code.data);
+  return 0;
+}
+
 static int cmd_aot_elf64_obj_code(const char *blob_path, const char *out_path,
                                   const char *symbol) {
   Blob b;
@@ -1831,6 +1863,41 @@ static int cmd_aot_elf64_obj_code(const char *blob_path, const char *out_path,
   printf("aot.obj.code.output=%s\n", out_path);
   printf("aot.obj.code.symbol=%s\n", symbol);
   printf("aot.obj.code.x86.bytes=%zu\n", code.len);
+  free(code.data);
+  return 0;
+}
+
+static int cmd_compile_elf64_obj_code(const char *src_path, const char *out_path,
+                                      const char *symbol) {
+  size_t blob_n = 0;
+  unsigned char *blob_data = compile_source_path_to_blob(src_path, &blob_n);
+  Blob b;
+  Buf code = {0};
+  if (!symbol[0]) {
+    fprintf(stderr, "compile-elf64-obj-code=bad_symbol\n");
+    free(blob_data);
+    return 1;
+  }
+  if (!blob_data || !blob_init(&b, blob_data, blob_n)) {
+    fprintf(stderr, "compile-elf64-obj-code=compile_fail\n");
+    free(blob_data);
+    return 1;
+  }
+  int ok = compile_pure_u64_blob_to_x86_ret(&b, &code);
+  free(blob_data);
+  if (!ok) {
+    free(code.data);
+    fprintf(stderr, "compile-elf64-obj-code=unsupported_source\n");
+    return 2;
+  }
+  if (!emit_elf64_obj_text_file(out_path, symbol, code.data, code.len)) {
+    free(code.data);
+    fprintf(stderr, "compile-elf64-obj-code=write_fail path=%s\n", out_path);
+    return 3;
+  }
+  printf("compile.obj.code.output=%s\n", out_path);
+  printf("compile.obj.code.symbol=%s\n", symbol);
+  printf("compile.obj.code.x86.bytes=%zu\n", code.len);
   free(code.data);
   return 0;
 }
@@ -2008,6 +2075,8 @@ static void usage(const char *argv0) {
   fprintf(stderr, "  %s aot-elf64-obj-ret input.%s output.o symbol\n", argv0, BLOB_EXT);
   fprintf(stderr, "  %s aot-elf64-code input.%s output.elf\n", argv0, BLOB_EXT);
   fprintf(stderr, "  %s aot-elf64-obj-code input.%s output.o symbol\n", argv0, BLOB_EXT);
+  fprintf(stderr, "  %s compile-elf64-code input.%s output.elf\n", argv0, SOURCE_EXT);
+  fprintf(stderr, "  %s compile-elf64-obj-code input.%s output.o symbol\n", argv0, SOURCE_EXT);
   fprintf(stderr, "  %s link-elf64-exe output.elf entry_symbol input.o...\n", argv0);
   fprintf(stderr, "  %s dump program.%s\n", argv0, BLOB_EXT);
   fprintf(stderr, "  %s hash program.%s\n", argv0, BLOB_EXT);
@@ -2049,6 +2118,12 @@ int main(int argc, char **argv) {
   }
   if (argc >= 2 && strcmp(argv[1], "aot-elf64-obj-code") == 0 && argc == 5) {
     return cmd_aot_elf64_obj_code(argv[2], argv[3], argv[4]);
+  }
+  if (argc >= 2 && strcmp(argv[1], "compile-elf64-code") == 0 && argc == 4) {
+    return cmd_compile_elf64_code(argv[2], argv[3]);
+  }
+  if (argc >= 2 && strcmp(argv[1], "compile-elf64-obj-code") == 0 && argc == 5) {
+    return cmd_compile_elf64_obj_code(argv[2], argv[3], argv[4]);
   }
   if (argc >= 2 && strcmp(argv[1], "link-elf64-exe") == 0) {
     return cmd_link_elf64_exe(argc, argv);

@@ -29,6 +29,10 @@ ARITH_CODE_OBJ="$BUILD_DIR/arithmetic_code_obj.o"
 ARITH_CODE_OBJ_C="$BUILD_DIR/arithmetic_code_obj_main.c"
 ARITH_CODE_OBJ_EXE="$BUILD_DIR/arithmetic_code_obj"
 ARITH_LINK_EXE="$BUILD_DIR/arithmetic_linked"
+ARITH_DIRECT_EXE="$BUILD_DIR/arithmetic_direct"
+ARITH_DIRECT_OBJ="$BUILD_DIR/arithmetic_direct.o"
+ARITH_DIRECT_OBJ_C="$BUILD_DIR/arithmetic_direct_main.c"
+ARITH_DIRECT_OBJ_EXE="$BUILD_DIR/arithmetic_direct_obj"
 CALL42_OBJ="$BUILD_DIR/nano_call42.o"
 CALL42_CALLEE_OBJ="$BUILD_DIR/nano_ext42.o"
 CALL42_LINK_EXE="$BUILD_DIR/nano_call42_linked"
@@ -63,6 +67,12 @@ cat > "$ARITH_CODE_OBJ_C" <<'EOF'
 extern int nano_arith_code(void);
 int main(void) {
   return nano_arith_code();
+}
+EOF
+cat > "$ARITH_DIRECT_OBJ_C" <<'EOF'
+extern int nano_arith_direct(void);
+int main(void) {
+  return nano_arith_direct();
 }
 EOF
 cat > "$CALL42_C" <<'EOF'
@@ -156,6 +166,12 @@ if [ "$(uname -m)" = "x86_64" ] || [ "$(uname -m)" = "amd64" ]; then
   run_case "tiny-link-aot-arithmetic-obj-code42" "$RUNNER" link-elf64-exe "$ARITH_LINK_EXE" nano_arith_code "$ARITH_CODE_OBJ"
   log "arithmetic.tiny.link.bytes=$(bytes_of "$ARITH_LINK_EXE")"
   run_case "run-tiny-linked-arithmetic42" bash -c '"$1"; status=$?; test "$status" -eq 42' _ "$ARITH_LINK_EXE"
+  run_case "compile-arithmetic-elf64-code42" "$RUNNER" compile-elf64-code "$ARITH_SRC" "$ARITH_DIRECT_EXE"
+  log "arithmetic.direct.bytes=$(bytes_of "$ARITH_DIRECT_EXE")"
+  run_case "run-direct-compiled-arithmetic42" bash -c '"$1"; status=$?; test "$status" -eq 42' _ "$ARITH_DIRECT_EXE"
+  run_case "compile-arithmetic-elf64-obj-code42" "$RUNNER" compile-elf64-obj-code "$ARITH_SRC" "$ARITH_DIRECT_OBJ" nano_arith_direct
+  run_case "link-direct-compiled-arithmetic-obj42" cc "$ARITH_DIRECT_OBJ_C" "$ARITH_DIRECT_OBJ" -o "$ARITH_DIRECT_OBJ_EXE"
+  run_case "run-direct-compiled-arithmetic-obj42" bash -c '"$1"; status=$?; test "$status" -eq 42' _ "$ARITH_DIRECT_OBJ_EXE"
   run_case "emit-elf64-obj-call42" "$RUNNER" emit-elf64-obj-call "$CALL42_OBJ" nano_call nano_ext
   log "call42.obj.bytes=$(bytes_of "$CALL42_OBJ")"
   run_case "link-elf64-obj-call42" cc "$CALL42_C" "$CALL42_OBJ" -o "$CALL42_EXE"
