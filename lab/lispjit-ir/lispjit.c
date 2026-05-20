@@ -122,6 +122,18 @@ static uint32_t rd32(const unsigned char *p) {
          ((uint32_t)p[3] << 24);
 }
 
+static uint16_t rd16(const unsigned char *p) {
+  return ((uint16_t)p[0]) | ((uint16_t)p[1] << 8);
+}
+
+static uint64_t rd64(const unsigned char *p) {
+  uint64_t v = 0;
+  for (int i = 7; i >= 0; --i) {
+    v = (v << 8) | p[i];
+  }
+  return v;
+}
+
 static void wr16(unsigned char *p, uint16_t v) {
   p[0] = (unsigned char)(v & 0xff);
   p[1] = (unsigned char)((v >> 8) & 0xff);
@@ -1296,6 +1308,219 @@ static int emit_elf64_obj_call_file(const char *out_path, const char *local, con
   return ok;
 }
 
+typedef struct {
+  const unsigned char *data;
+  size_t size;
+  const unsigned char *shdr;
+  uint16_t shnum;
+  uint16_t shentsize;
+  uint16_t text_idx;
+  const unsigned char *text;
+  size_t text_size;
+  size_t out_off;
+  const unsigned char *symtab;
+  size_t sym_count;
+  const unsigned char *strtab;
+  size_t strtab_size;
+  const unsigned char *rela;
+  size_t rela_count;
+} ElfObj;
+
+typedef struct {
+  const char *name;
+  size_t obj_idx;
+  uint64_t value;
+} LinkSym;
+
+static int is_elf(const unsigned char *data, size_t n);
+
+static const unsigned char *elf_section(const ElfObj *o, uint16_t idx) {
+  if (!idx || idx >= o->shnum) return NULL;
+  return o->shdr + (size_t)idx * o->shentsize;
+}
+
+static const char *elf_str(const unsigned char *tab, size_t tab_n, uint32_t off) {
+  if (off >= tab_n) return NULL;
+  const char *s = (const char *)tab + off;
+  return memchr(s, 0, tab_n - off) ? s : NULL;
+}
+
+static int parse_elf_obj(const unsigned char *data, size_t size, ElfObj *o) {
+  if (!is_elf(data, size) || size < 64 || rd16(data + 16) != 1 ||
+      rd16(data + 18) != 62) {
+    return 0;
+  }
+  uint64_t shoff = rd64(data + 40);
+  uint16_t shentsize = rd16(data + 58);
+  uint16_t shnum = rd16(data + 60);
+  uint16_t shstrndx = rd16(data + 62);
+  if (shentsize < 64 || shoff > size || shnum > (size - shoff) / shentsize ||
+      shstrndx >= shnum) {
+    return 0;
+  }
+  memset(o, 0, sizeof(*o));
+  o->data = data;
+  o->size = size;
+  o->shdr = data + shoff;
+  o->shnum = shnum;
+  o->shentsize = shentsize;
+
+  const unsigned char *shstr = elf_section(o, shstrndx);
+  if (!shstr) return 0;
+  uint64_t shstr_off = rd64(shstr + 24);
+  uint64_t shstr_size = rd64(shstr + 32);
+  if (shstr_off > size || shstr_size > size - shstr_off) return 0;
+
+  for (uint16_t i = 1; i < shnum; ++i) {
+    const unsigned char *sh = elf_section(o, i);
+    uint32_t name_off = rd32(sh);
+    uint32_t type = rd32(sh + 4);
+    uint64_t off = rd64(sh + 24);
+    uint64_t n = rd64(sh + 32);
+    uint32_t link = rd32(sh + 40);
+    uint32_t info = rd32(sh + 44);
+    const char *name = elf_str(data + shstr_off, (size_t)shstr_size, name_off);
+    if (!name || off > size || n > size - off) return 0;
+    if (strcmp(name, ".text") == 0) {
+      o->text_idx = i;
+      o->text = data + off;
+      o->text_size = (size_t)n;
+    } else if (type == 2) {
+      uint64_t entsize = rd64(sh + 56);
+      if (entsize != 24 || link >= shnum) return 0;
+      const unsigned char *str_sh = elf_section(o, (uint16_t)link);
+      uint64_t str_off = rd64(str_sh + 24);
+      uint64_t str_n = rd64(str_sh + 32);
+      if (str_off > size || str_n > size - str_off) return 0;
+      o->symtab = data + off;
+      o->sym_count = (size_t)(n / entsize);
+      o->strtab = data + str_off;
+      o->strtab_size = (size_t)str_n;
+    } else if (type == 4 && strcmp(name, ".rela.text") == 0) {
+      uint64_t entsize = rd64(sh + 56);
+      if (entsize != 24 || info >= shnum) return 0;
+      o->rela = data + off;
+      o->rela_count = (size_t)(n / entsize);
+    }
+  }
+  return o->text && o->symtab && o->strtab;
+}
+
+static int link_find_sym(const LinkSym *syms, size_t sym_count, const char *name, uint64_t *out) {
+  for (size_t i = 0; i < sym_count; ++i) {
+    if (strcmp(syms[i].name, name) == 0) {
+      *out = syms[i].value;
+      return 1;
+    }
+  }
+  return 0;
+}
+
+static int cmd_link_elf64_exe(int argc, char **argv) {
+  if (argc < 5) {
+    fprintf(stderr, "link-elf64-exe=bad_args\n");
+    return 1;
+  }
+  const char *out_path = argv[2];
+  const char *entry_name = argv[3];
+  int obj_count = argc - 4;
+  unsigned char **owned = (unsigned char **)calloc((size_t)obj_count, sizeof(*owned));
+  size_t *owned_n = (size_t *)calloc((size_t)obj_count, sizeof(*owned_n));
+  ElfObj *objs = (ElfObj *)calloc((size_t)obj_count, sizeof(*objs));
+  LinkSym *syms = NULL;
+  size_t sym_count = 0;
+  size_t sym_cap = 0;
+  if (!owned || !owned_n || !objs) return 2;
+
+  size_t code_off = 14;
+  for (int i = 0; i < obj_count; ++i) {
+    owned[i] = read_file(argv[4 + i], &owned_n[i]);
+    if (!owned[i] || !parse_elf_obj(owned[i], owned_n[i], &objs[i])) {
+      fprintf(stderr, "link-elf64-exe=parse_fail path=%s\n", argv[4 + i]);
+      return 2;
+    }
+    objs[i].out_off = code_off;
+    code_off += objs[i].text_size;
+
+    for (size_t s = 1; s < objs[i].sym_count; ++s) {
+      const unsigned char *sym = objs[i].symtab + s * 24;
+      uint16_t shndx = rd16(sym + 6);
+      if (shndx != objs[i].text_idx) continue;
+      const char *name = elf_str(objs[i].strtab, objs[i].strtab_size, rd32(sym));
+      if (!name || !name[0]) continue;
+      if (sym_count == sym_cap) {
+        size_t next = sym_cap ? sym_cap * 2 : 8;
+        LinkSym *p = (LinkSym *)realloc(syms, next * sizeof(*p));
+        if (!p) return 2;
+        syms = p;
+        sym_cap = next;
+      }
+      syms[sym_count++] = (LinkSym){name, (size_t)i, 0x400000u + 120 + objs[i].out_off + rd64(sym + 8)};
+    }
+  }
+
+  Buf code = {0};
+  unsigned char entry_stub[14] = {
+    0xe8, 0, 0, 0, 0,
+    0x89, 0xc7,
+    0xb8, 0x3c, 0, 0, 0,
+    0x0f, 0x05
+  };
+  buf_put(&code, entry_stub, sizeof(entry_stub));
+  for (int i = 0; i < obj_count; ++i) {
+    buf_put(&code, objs[i].text, objs[i].text_size);
+  }
+
+  uint64_t entry_addr = 0;
+  if (!link_find_sym(syms, sym_count, entry_name, &entry_addr)) {
+    fprintf(stderr, "link-elf64-exe=entry_missing symbol=%s\n", entry_name);
+    return 3;
+  }
+  int64_t entry_rel = (int64_t)entry_addr - (int64_t)(0x400000u + 120 + 5);
+  wr32(code.data + 1, (uint32_t)(int32_t)entry_rel);
+
+  for (int i = 0; i < obj_count; ++i) {
+    const ElfObj *o = &objs[i];
+    for (size_t r = 0; r < o->rela_count; ++r) {
+      const unsigned char *rela = o->rela + r * 24;
+      uint64_t r_off = rd64(rela);
+      uint64_t r_info = rd64(rela + 8);
+      int64_t addend = (int64_t)rd64(rela + 16);
+      uint32_t type = (uint32_t)r_info;
+      uint32_t sym_idx = (uint32_t)(r_info >> 32);
+      if (type != 4 || sym_idx >= o->sym_count || r_off > o->text_size - 4) {
+        fprintf(stderr, "link-elf64-exe=unsupported_reloc\n");
+        return 4;
+      }
+      const unsigned char *sym = o->symtab + (size_t)sym_idx * 24;
+      const char *name = elf_str(o->strtab, o->strtab_size, rd32(sym));
+      uint64_t target = 0;
+      if (!name || !link_find_sym(syms, sym_count, name, &target)) {
+        fprintf(stderr, "link-elf64-exe=symbol_missing symbol=%s\n", name ? name : "?");
+        return 4;
+      }
+      uint64_t place = 0x400000u + 120 + o->out_off + r_off;
+      int64_t rel = (int64_t)target + addend - (int64_t)place;
+      wr32(code.data + o->out_off + r_off, (uint32_t)(int32_t)rel);
+    }
+  }
+
+  if (!emit_elf64_code_file(out_path, code.data, code.len)) {
+    fprintf(stderr, "link-elf64-exe=write_fail path=%s\n", out_path);
+    return 5;
+  }
+  printf("link.output=%s\n", out_path);
+  printf("link.objects=%d\n", obj_count);
+  printf("link.code.bytes=%zu\n", code.len);
+  free(code.data);
+  free(syms);
+  for (int i = 0; i < obj_count; ++i) free(owned[i]);
+  free(owned);
+  free(owned_n);
+  free(objs);
+  return 0;
+}
+
 static int emit_elf64_exit_file(const char *out_path, uint8_t exit_code) {
   unsigned char code[12];
   memset(code, 0, sizeof(code));
@@ -1783,6 +2008,7 @@ static void usage(const char *argv0) {
   fprintf(stderr, "  %s aot-elf64-obj-ret input.%s output.o symbol\n", argv0, BLOB_EXT);
   fprintf(stderr, "  %s aot-elf64-code input.%s output.elf\n", argv0, BLOB_EXT);
   fprintf(stderr, "  %s aot-elf64-obj-code input.%s output.o symbol\n", argv0, BLOB_EXT);
+  fprintf(stderr, "  %s link-elf64-exe output.elf entry_symbol input.o...\n", argv0);
   fprintf(stderr, "  %s dump program.%s\n", argv0, BLOB_EXT);
   fprintf(stderr, "  %s hash program.%s\n", argv0, BLOB_EXT);
   fprintf(stderr, "  %s resolve [--quiet] program.%s\n", argv0, BLOB_EXT);
@@ -1823,6 +2049,9 @@ int main(int argc, char **argv) {
   }
   if (argc >= 2 && strcmp(argv[1], "aot-elf64-obj-code") == 0 && argc == 5) {
     return cmd_aot_elf64_obj_code(argv[2], argv[3], argv[4]);
+  }
+  if (argc >= 2 && strcmp(argv[1], "link-elf64-exe") == 0) {
+    return cmd_link_elf64_exe(argc, argv);
   }
   if (argc >= 2 && strcmp(argv[1], "dump") == 0 && argc == 3) {
     return cmd_dump(argv[2]);
