@@ -37,7 +37,7 @@ const PREVIEW_LINES = 80;
 const SHELL_COMMS = new Set(["bash", "zsh", "sh", "fish", "dash", "tmux", "-bash", "-zsh"]);
 
 const TUI_CONFIG = {
-  VERSION: '0.4.10',
+  VERSION: '0.4.12',
   VIEWER_SESSION: `__tui_viewer__`,
   TUI_KEYTABLE: "tui_empty",
   REMARK_KEY: "@remark",
@@ -2508,10 +2508,8 @@ function createViewer(sess: string, idx?: string) {
   tmuxApi.setSessionOption(v, "mouse", "on");
 }
 
-function attach(target: string) {
-  // target = "<sess>:<idx>"
-  const [sess, idx] = target.split(":");
-
+/** 进舱前：停 loop、清 preview、切终端/鼠标、建 viewer + detach 键 */
+function enterImmersiveAttach(sess: string, idx?: string): void {
   stopDriveLoops();
   state.previewFetchId++;
   if (state.previewTimer) clearTimeout(state.previewTimer);
@@ -2526,19 +2524,10 @@ function attach(target: string) {
     installDetachKeys();
     createViewer(sess, idx);
   });
-
-  screen.leaveAltScreen();
-  try {
-    tmuxApi.attach(TUI_CONFIG.VIEWER_SESSION);
-  } finally {
-    withTmuxQuiet(() => tmuxApi.killSession(TUI_CONFIG.VIEWER_SESSION));
-  }
-
-  resumeTreeAfterAttach();
 }
 
-/** detach 后立刻回 tree；不自动 capture-pane（用户按 f 再刷新） */
-function resumeTreeAfterAttach() {
+/** 出舱后：恢复 TUI 态 + 延迟 sync tree（detach 后静默） */
+function exitImmersiveAttach(): void {
   withTmuxQuiet(uninstallDetachKeys);
   process.stdin.setRawMode(true);
   disableOuterMouse();
@@ -2566,6 +2555,28 @@ function resumeTreeAfterAttach() {
     if (state.uiMode === "drive") startDriveLoops();
     render();
   }, RETURN_FROM_ATTACH_DELAY);
+}
+
+/** 沉浸式 attach 生命周期：enter → run(attach) → kill viewer → exit */
+function withImmersiveAttach(target: string, attachFn: () => void): void {
+  const [sess, idx] = target.split(":");
+  enterImmersiveAttach(sess, idx);
+  try {
+    screen.leaveAltScreen();
+    try {
+      attachFn();
+    } finally {
+      withTmuxQuiet(() => tmuxApi.killSession(TUI_CONFIG.VIEWER_SESSION));
+    }
+  } finally {
+    exitImmersiveAttach();
+  }
+}
+
+function attach(target: string) {
+  withImmersiveAttach(target, () => {
+    tmuxApi.attach(TUI_CONFIG.VIEWER_SESSION);
+  });
 }
 
 // PART:preview
@@ -2817,11 +2828,13 @@ interface CliCommand {
   children?: CliCommand[];
   run: CliHandler;
   needsTmux?: boolean;
+  /** true: cliHelp 跳过（如 help 自身） */
+  helpHidden?: boolean;
 }
 
 // PART:cli-registry — 能力声明（CLI 树由此推导）
 //
-// 分层（单一真相源 → buildCliRoot 投影）:
+// 分层（CLI_ROOT_SECTIONS → buildCliRoot / cliHelp 同源投影）:
 //   CLI_META_CMDS    — help
 //   CLI_MAINT_CMDS   — dev / doctor / install-tmux（无需 tmux）
 //   CLI_FLEET_VIEWS  — status / list
@@ -2837,6 +2850,7 @@ type LeafCmdSpec = {
   run: CliHandler;
   /** false = runCli 跳过 tmux 探测；默认 true */
   needsTmux?: boolean;
+  helpHidden?: boolean;
 };
 
 const CLI_HELP_NOTES = [
@@ -2981,6 +2995,30 @@ function cliUsage(cmd: CliCommand, sub?: CliCommand): string {
   return leaf.usage ? `${head} ${leaf.usage}` : head;
 }
 
+function formatCliAlias(cmd: CliCommand): string {
+  return cmd.aliases?.length ? ` (${cmd.aliases.join(", ")})` : "";
+}
+
+/** 单条命令 help 行（含子命令树） */
+function formatCliHelpEntry(cmd: CliCommand, indent = "  "): string[] {
+  const lines = [`${indent}${cmd.name}${formatCliAlias(cmd)}`, `${indent}  ${cmd.summary}`];
+  if (cmd.children?.length) {
+    const kids = cmd.children;
+    for (let i = 0; i < kids.length; i++) {
+      const sub = kids[i]!;
+      const last = i === kids.length - 1;
+      const branch = last ? "└─" : "├─";
+      const cont = last ? " " : "│";
+      lines.push(`${indent}  ${branch} ${sub.name}${formatCliAlias(sub)}  — ${sub.summary}`);
+      lines.push(`${indent}  ${cont}   usage: ${CLI_BIN} ${cliUsage(cmd, sub)}`);
+    }
+    lines.push(`${indent}  note: 省略子命令 → ${cliUsage(cmd)}  [兼容]`);
+  } else if (cmd.usage) {
+    lines.push(`${indent}  usage: ${CLI_BIN} ${cliUsage(cmd)}`);
+  }
+  return lines;
+}
+
 function matchCliName(cmd: CliCommand, name: string): boolean {
   return cmd.name === name || (cmd.aliases?.includes(name) ?? false);
 }
@@ -3086,6 +3124,7 @@ function buildLeafCmd(name: string, spec: LeafCmdSpec): CliCommand {
     usage: spec.usage,
     run: spec.run,
     needsTmux: spec.needsTmux,
+    helpHidden: spec.helpHidden,
   };
 }
 
@@ -3211,24 +3250,14 @@ function cliHelp(): number {
     "",
     "命令树:",
   ];
-  for (const cmd of CLI_ROOT) {
-    if (cmd.name === "help") continue;
-    const alias = cmd.aliases?.length ? ` (${cmd.aliases.join(", ")})` : "";
-    lines.push(`  ${cmd.name}${alias}`);
-    lines.push(`    ${cmd.summary}`);
-    if (cmd.children) {
-      for (const sub of cmd.children) {
-        const sa = sub.aliases?.length ? ` (${sub.aliases.join(", ")})` : "";
-        lines.push(`    ├─ ${sub.name}${sa}  — ${sub.summary}`);
-        lines.push(`    │    usage: ${CLI_BIN} ${cliUsage(cmd, sub)}`);
-      }
-      lines.push(`    └─ (省略子命令) ${cliUsage(cmd)}  [兼容]`);
-    } else if (cmd.usage) {
-      lines.push(`    usage: ${CLI_BIN} ${cliUsage(cmd)}`);
-    }
+  for (const section of CLI_ROOT_SECTIONS) {
+    const cmds = section.build().filter((c) => !c.helpHidden);
+    if (!cmds.length) continue;
+    if (section.title) lines.push("", `${section.title}:`);
+    for (const cmd of cmds) lines.push(...formatCliHelpEntry(cmd));
   }
   lines.push("", ...CLI_HELP_NOTES);
-  process.stdout.write(lines.join("\n") + "\n");
+  cliWriteStdout(lines.join("\n") + "\n");
   return 0;
 }
 
@@ -3498,6 +3527,7 @@ const CLI_META_CMDS: Record<string, LeafCmdSpec> = {
     aliases: ["-h", "--help"],
     run: () => cliHelp(),
     needsTmux: false,
+    helpHidden: true,
   },
 };
 
@@ -3548,17 +3578,41 @@ const CLI_TOOL_CMDS: Record<string, LeafCmdSpec> = {
   },
 };
 
+type CliRootSection = {
+  title?: string;
+  build: () => CliCommand[];
+};
+
+const CLI_ROOT_SECTIONS: CliRootSection[] = [
+  { build: () => Object.entries(CLI_META_CMDS).map(([n, s]) => buildLeafCmd(n, s)) },
+  {
+    title: "维护",
+    build: () => Object.entries(CLI_MAINT_CMDS).map(([n, s]) => buildLeafCmd(n, s)),
+  },
+  { title: "Agent 总线", build: () => [buildAgentGroup()] },
+  {
+    title: "车队视图",
+    build: () => [
+      buildFleetCommand("status", CLI_FLEET_VIEWS.status),
+      buildFleetCommand("list", CLI_FLEET_VIEWS.list),
+    ],
+  },
+  {
+    title: "窗口工具",
+    build: () => Object.entries(CLI_TOOL_CMDS).map(([n, s]) => buildLeafCmd(n, s)),
+  },
+  {
+    title: "Session / Window",
+    build: () => Object.entries(CLI_OPS).map(([n, s]) => buildOpCommand(n, s)),
+  },
+  {
+    title: "用户选项",
+    build: () => Object.entries(CLI_USER_OPTS).map(([n, s]) => buildUserOptGroup(n, s)),
+  },
+];
+
 function buildCliRoot(): CliCommand[] {
-  return [
-    ...Object.entries(CLI_META_CMDS).map(([n, s]) => buildLeafCmd(n, s)),
-    ...Object.entries(CLI_MAINT_CMDS).map(([n, s]) => buildLeafCmd(n, s)),
-    buildAgentGroup(),
-    buildFleetCommand("status", CLI_FLEET_VIEWS.status),
-    buildFleetCommand("list", CLI_FLEET_VIEWS.list),
-    ...Object.entries(CLI_TOOL_CMDS).map(([n, s]) => buildLeafCmd(n, s)),
-    ...Object.entries(CLI_OPS).map(([n, s]) => buildOpCommand(n, s)),
-    ...Object.entries(CLI_USER_OPTS).map(([n, s]) => buildUserOptGroup(n, s)),
-  ];
+  return CLI_ROOT_SECTIONS.flatMap((s) => s.build());
 }
 
 const CLI_ROOT = buildCliRoot();
