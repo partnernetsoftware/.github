@@ -61,7 +61,12 @@
 下一步优先级：
 
 1. 给 AOT `.com` 增加结构化 manifest 和 `inspect-app`。
-2. 增加 deterministic `.lbin` hash/assert 测试。
-3. 扩展 VM typed value，减少 shell 输出比对。
-4. 扩展 safe libc call suite。
-5. 开始实现 tiny ELF writer，为替换 slice compiler 做准备。
+2. 扩展 VM typed value，减少 shell 输出比对。
+3. 扩展 safe libc call suite。
+4. 开始实现 tiny ELF writer，为替换 slice compiler 做准备。
+
+已完成：
+
+- AOT app 直接从 `.com` payload 读取内嵌 blob 执行。
+- AOT app 结构化 manifest 和 `inspect-app`。
+- deterministic `.lbin` hash/byte compare 测试。

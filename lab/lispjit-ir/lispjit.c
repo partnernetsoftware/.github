@@ -207,6 +207,15 @@ static int write_file(const char *path, const unsigned char *data, size_t n) {
   return ok;
 }
 
+static uint64_t fnv1a64(const unsigned char *data, size_t n) {
+  uint64_t h = 1469598103934665603ull;
+  for (size_t i = 0; i < n; ++i) {
+    h ^= data[i];
+    h *= 1099511628211ull;
+  }
+  return h;
+}
+
 static int make_executable(const char *path) {
 #if defined(_WIN32)
   (void)path;
@@ -930,6 +939,19 @@ static int cmd_dump(const char *blob_path) {
   return rc;
 }
 
+static int cmd_hash(const char *blob_path) {
+  Blob b;
+  unsigned char *owned = NULL;
+  if (!blob_load_path(blob_path, &b, &owned)) {
+    fprintf(stderr, "blob=parse_fail path=%s\n", blob_path);
+    return 1;
+  }
+  printf("blob.bytes=%zu\n", b.size);
+  printf("blob.fnv1a64=%016llx\n", (unsigned long long)fnv1a64(owned, b.size));
+  free(owned);
+  return 0;
+}
+
 static int cmd_resolve(const char *blob_path, int quiet) {
   Blob b;
   unsigned char *owned = NULL;
@@ -1148,6 +1170,7 @@ static void usage(const char *argv0) {
   fprintf(stderr, "  %s run-embedded container.com blob_offset blob_size\n", argv0);
   fprintf(stderr, "  %s inspect-app container.com\n", argv0);
   fprintf(stderr, "  %s dump program.%s\n", argv0, BLOB_EXT);
+  fprintf(stderr, "  %s hash program.%s\n", argv0, BLOB_EXT);
   fprintf(stderr, "  %s resolve [--quiet] program.%s\n", argv0, BLOB_EXT);
   fprintf(stderr, "  %s pack-ape output.com x86_64.elf aarch64.elf\n", argv0);
   fprintf(stderr, "  %s pack-app output.com x86_64.elf aarch64.elf program.%s\n", argv0, BLOB_EXT);
@@ -1168,6 +1191,9 @@ int main(int argc, char **argv) {
   }
   if (argc >= 2 && strcmp(argv[1], "dump") == 0 && argc == 3) {
     return cmd_dump(argv[2]);
+  }
+  if (argc >= 2 && strcmp(argv[1], "hash") == 0 && argc == 3) {
+    return cmd_hash(argv[2]);
   }
   if (argc >= 2 && strcmp(argv[1], "resolve") == 0) {
     if (argc == 3) return cmd_resolve(argv[2], 0);
