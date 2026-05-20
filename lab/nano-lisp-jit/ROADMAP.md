@@ -30,7 +30,7 @@
 
 - `pack-app` 生成内嵌 `.lbin` 的 `.com` 应用。
 - `run-embedded` 从自身容器 payload 直接读取 blob，不依赖外部 blob 文件。
-- 下一步：结构化 manifest，记录 slice/blob offset、size、hash、target arch。
+- `run-app` 可按 manifest 自动定位 `.com` 内嵌 blob 并执行。
 - 验收：`libc-smoke-app.com` 不带参数直接运行。
 
 ### 4. self-pack / APE linker
@@ -61,14 +61,14 @@
 下一步优先级：
 
 1. 把最小 control flow 子集继续接到机器码 AOT/codegen 路径，逐步缩小静态求值-only 语义。
-2. 继续扩大 bootstrap DSL：在已落地的 `compile/hash/compare/pack-app/inspect-app/run` 基础上，再接更丰富的可验证步骤。
+2. 继续扩大 bootstrap DSL：在已落地的 `compile/hash/compare/pack-app/inspect-app/run-app/run` 基础上，再接更丰富的可验证步骤。
 3. 持续缩小临时依赖：`cosmocc` 只保留为 slice compiler，下一阶段目标是生成 x86_64 slice 的可运行子集。
 4. 继续扩大 typed/AOT 交集：让 `i64`、`bool`、以及后续 `ptr` 子集逐步进入 object/codegen 路径；先补齐多函数 source AOT。
 
 已完成：
 
 - AOT app 直接从 `.com` payload 读取内嵌 blob 执行。
-- AOT app 结构化 manifest 和 `inspect-app`。
+- AOT app 结构化 manifest、`inspect-app` 和 `run-app`。
 - deterministic `.lbin` hash/byte compare 测试。
 - `(expect N)` 断言 op，smoke `.lbin` 可自证关键 FFI/JIT 结果。
 - `(u64 N)` / `(add-u64 N)` 纯 VM 算术 smoke，不依赖 FFI/libc。
@@ -93,6 +93,6 @@
 - `compile-elf64-obj-code` 已支持多函数 pure VM source、内部 `call`、基础 relocation，以及 `i64` / `bool` / `branch` / `label` typed/control-flow 子集。
 - 多函数 object 可同时被系统 `cc` 与 nano 自带 tiny linker 链接并运行。
 - `compile-elf64-exe` 已可把多函数 pure VM source 直接生成可运行 ELF，内部走 object backend + tiny linker。
-- `bootstrap` 最小 DSL 已落地，可用 `.lisp` 顺序描述并执行 `compile` / `hash` / `compare` / `pack-app` / `inspect-app` / `run` 子流程。
+- `bootstrap` 最小 DSL 已落地，可用 `.lisp` 顺序描述并执行 `compile` / `hash` / `compare` / `pack-app` / `inspect-app` / `run-app` / `run` 子流程。
 - `bootstrap` DSL 已可驱动 AOT/codegen/tiny-link executable smoke，覆盖 `emit-elf64-exit`、`emit-elf64-obj-*`、`aot-elf64-*`、`compile-elf64-*`、`resolve-quiet`、多 object `link-elf64-exe`、直接 executable 编译、失败状态断言和 `run-expect-exit`，开始把更多 build graph 从 shell 迁入 nano 描述。
 - control-flow pure blob 已能走静态求值 AOT 路径，生成 `aot-elf64-exit` / `aot-elf64-obj-ret` 产物。

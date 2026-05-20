@@ -108,6 +108,7 @@ extern void *cosmo_dlsym(void *handle, const char *symbol);
 #define BOOTSTRAP_STEP_LINK_EXPECT_EXIT 18u
 #define BOOTSTRAP_STEP_RESOLVE_QUIET 19u
 #define BOOTSTRAP_STEP_COMPILE_ELF64_EXE 20u
+#define BOOTSTRAP_STEP_RUN_APP 21u
 
 typedef uint64_t (*jit_entry_fn)(void);
 typedef int (*ffi_i32_ptr_fn)(const char *);
@@ -1023,10 +1024,12 @@ static int parse_bootstrap_plan(const char *src, BootstrapPlan *plan) {
         free(head);
         return 0;
       }
-    } else if (strcmp(head, "inspect-app") == 0) {
+    } else if (strcmp(head, "inspect-app") == 0 || strcmp(head, "run-app") == 0) {
       char *arg0 = parse_string(&p);
+      uint32_t kind = strcmp(head, "inspect-app") == 0 ? BOOTSTRAP_STEP_INSPECT_APP :
+                      BOOTSTRAP_STEP_RUN_APP;
       int ok = arg0 && eat(&p, ')') &&
-               bootstrap_add_step(plan, BOOTSTRAP_STEP_INSPECT_APP, arg0, NULL, NULL, NULL);
+               bootstrap_add_step(plan, kind, arg0, NULL, NULL, NULL);
       if (!ok) {
         free(arg0);
         free(head);
@@ -1935,6 +1938,10 @@ static int parse_size_arg(const char *s, size_t *out) {
   return (unsigned long long)*out == v;
 }
 
+static const char NANO_MANIFEST_BEGIN[] = "# nano.manifest.begin";
+static const char NANO_MANIFEST_END[] = "# nano.manifest.end";
+static const char NANO_APP_PAYLOAD_MARKER[] = "__NANO_APP_PAYLOAD_BELOW__";
+
 static int find_payload_start(const unsigned char *data, size_t n, const char *marker,
                               size_t *out) {
   size_t marker_n = strlen(marker);
@@ -1964,7 +1971,7 @@ static int cmd_run_embedded(const char *container_path, const char *off_s, const
     fprintf(stderr, "read=fail path=%s\n", container_path);
     return 1;
   }
-  if (!find_payload_start(container, container_n, "__NANO_APP_PAYLOAD_BELOW__", &payload_start) ||
+  if (!find_payload_start(container, container_n, NANO_APP_PAYLOAD_MARKER, &payload_start) ||
       rel_off > container_n - payload_start ||
       blob_n > container_n - payload_start - rel_off) {
     fprintf(stderr, "run-embedded=payload_bounds\n");
@@ -1980,6 +1987,66 @@ static int cmd_run_embedded(const char *container_path, const char *off_s, const
   int rc = execute_blob(&b);
   free(container);
   return rc;
+}
+
+static int manifest_find_size(const unsigned char *data, size_t n,
+                              const char *key, size_t *out) {
+  int in_manifest = 0;
+  size_t pos = 0;
+  size_t key_n = strlen(key);
+  while (pos < n) {
+    size_t line_start = pos;
+    while (pos < n && data[pos] != '\n') pos++;
+    size_t line_n = pos - line_start;
+    if (pos < n && data[pos] == '\n') pos++;
+    if (line_n == sizeof(NANO_MANIFEST_BEGIN) - 1 &&
+        memcmp(data + line_start, NANO_MANIFEST_BEGIN, sizeof(NANO_MANIFEST_BEGIN) - 1) == 0) {
+      in_manifest = 1;
+      continue;
+    }
+    if (line_n == sizeof(NANO_MANIFEST_END) - 1 &&
+        memcmp(data + line_start, NANO_MANIFEST_END, sizeof(NANO_MANIFEST_END) - 1) == 0) {
+      return 0;
+    }
+    if (in_manifest && line_n > 2 + key_n && data[line_start] == '#' &&
+        data[line_start + 1] == ' ' &&
+        memcmp(data + line_start + 2, key, key_n) == 0 &&
+        data[line_start + 2 + key_n] == '=') {
+      char value_buf[32];
+      size_t value_n = line_n - 3 - key_n;
+      if (value_n >= sizeof(value_buf)) return 0;
+      memcpy(value_buf, data + line_start + 3 + key_n, value_n);
+      value_buf[value_n] = '\0';
+      return parse_size_arg(value_buf, out);
+    }
+  }
+  return 0;
+}
+
+static int cmd_run_app(const char *container_path) {
+  size_t n = 0;
+  size_t blob_off = 0;
+  size_t blob_size = 0;
+  char off_buf[32];
+  char size_buf[32];
+  unsigned char *data = read_file(container_path, &n);
+  if (!data) {
+    fprintf(stderr, "read=fail path=%s\n", container_path);
+    return 1;
+  }
+  if (!manifest_find_size(data, n, "nano.blob.offset", &blob_off) ||
+      !manifest_find_size(data, n, "nano.blob.size", &blob_size)) {
+    fprintf(stderr, "run-app=manifest_key_missing path=%s\n", container_path);
+    free(data);
+    return 2;
+  }
+  free(data);
+  snprintf(off_buf, sizeof(off_buf), "%zu", blob_off);
+  snprintf(size_buf, sizeof(size_buf), "%zu", blob_size);
+  printf("run-app.path=%s\n", container_path);
+  printf("run-app.blob.offset=%zu\n", blob_off);
+  printf("run-app.blob.size=%zu\n", blob_size);
+  return cmd_run_embedded(container_path, off_buf, size_buf);
 }
 
 static int run_executable_expect_exit(const char *path, const char *expected_s) {
@@ -2212,6 +2279,9 @@ static int cmd_run_bootstrap_plan(const char *plan_path) {
     } else if (step->kind == BOOTSTRAP_STEP_INSPECT_APP) {
       printf("bootstrap-step.%zu=inspect-app\n", i);
       rc = cmd_inspect_app(step->arg0);
+    } else if (step->kind == BOOTSTRAP_STEP_RUN_APP) {
+      printf("bootstrap-step.%zu=run-app\n", i);
+      rc = cmd_run_app(step->arg0);
     } else if (step->kind == BOOTSTRAP_STEP_RUN) {
       printf("bootstrap-step.%zu=run\n", i);
       rc = cmd_run(step->arg0);
@@ -2231,8 +2301,6 @@ static int cmd_inspect_app(const char *container_path) {
     fprintf(stderr, "read=fail path=%s\n", container_path);
     return 1;
   }
-  static const char begin[] = "# nano.manifest.begin";
-  static const char end[] = "# nano.manifest.end";
   int in_manifest = 0;
   int found = 0;
   size_t pos = 0;
@@ -2241,14 +2309,14 @@ static int cmd_inspect_app(const char *container_path) {
     while (pos < n && data[pos] != '\n') pos++;
     size_t line_n = pos - line_start;
     if (pos < n && data[pos] == '\n') pos++;
-    if (line_n == sizeof(begin) - 1 &&
-        memcmp(data + line_start, begin, sizeof(begin) - 1) == 0) {
+    if (line_n == sizeof(NANO_MANIFEST_BEGIN) - 1 &&
+        memcmp(data + line_start, NANO_MANIFEST_BEGIN, sizeof(NANO_MANIFEST_BEGIN) - 1) == 0) {
       in_manifest = 1;
       found = 1;
       continue;
     }
-    if (line_n == sizeof(end) - 1 &&
-        memcmp(data + line_start, end, sizeof(end) - 1) == 0) {
+    if (line_n == sizeof(NANO_MANIFEST_END) - 1 &&
+        memcmp(data + line_start, NANO_MANIFEST_END, sizeof(NANO_MANIFEST_END) - 1) == 0) {
       free(data);
       return found ? 0 : 2;
     }
@@ -3818,6 +3886,7 @@ static void usage(const char *argv0) {
   fprintf(stderr, "  %s run program.%s\n", argv0, BLOB_EXT);
   fprintf(stderr, "  %s run-embedded container.com blob_offset blob_size\n", argv0);
   fprintf(stderr, "  %s inspect-app container.com\n", argv0);
+  fprintf(stderr, "  %s run-app container.com\n", argv0);
   fprintf(stderr, "  %s emit-elf64-exit output.elf exit_code\n", argv0);
   fprintf(stderr, "  %s emit-elf64-obj-ret output.o symbol value\n", argv0);
   fprintf(stderr, "  %s emit-elf64-obj-call output.o local_symbol external_symbol\n", argv0);
@@ -3849,6 +3918,9 @@ int main(int argc, char **argv) {
   }
   if (argc >= 2 && strcmp(argv[1], "inspect-app") == 0 && argc == 3) {
     return cmd_inspect_app(argv[2]);
+  }
+  if (argc >= 2 && strcmp(argv[1], "run-app") == 0 && argc == 3) {
+    return cmd_run_app(argv[2]);
   }
   if (argc >= 2 && strcmp(argv[1], "emit-elf64-exit") == 0 && argc == 4) {
     return cmd_emit_elf64_exit(argv[2], argv[3]);
