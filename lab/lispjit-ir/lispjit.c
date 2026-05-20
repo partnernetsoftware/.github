@@ -3109,8 +3109,9 @@ static int compile_pure_blob_to_x86(const Blob *b, Buf *code, int exit_style) {
     } else if (op == OP_EXPECT_U64 || op == OP_EXPECT_I64 || op == OP_EXPECT_BOOL) {
       uint32_t patch_off = 0;
       if (op == OP_EXPECT_U64) {
-        if (last_kind != VAL_U64) goto fail;
+        if (last_kind != VAL_U64 && last_kind != VAL_I64) goto fail;
         if (imm_u64 > UINT32_MAX) goto fail;
+        if (last_kind == VAL_I64 && imm_u64 > INT32_MAX) goto fail;
         if (exit_style) {
           unsigned char cmp_edi[6] = {0x81, 0xff, 0, 0, 0, 0};
           wr32(cmp_edi + 2, (uint32_t)imm_u64);
@@ -3325,7 +3326,8 @@ static int compile_aot_func_to_x86_ret(const AotFunc *func, Buf *code, Buf *call
       wr32(sub_eax + 1, (uint32_t)(int32_t)imm_i64);
       buf_put(code, sub_eax, sizeof(sub_eax));
     } else if (stmt->kind == AOT_STMT_EXPECT_U64) {
-      if (last_kind != VAL_U64) goto fail;
+      if (last_kind != VAL_U64 && last_kind != VAL_I64) goto fail;
+      if (last_kind == VAL_I64 && stmt->imm > INT32_MAX) goto fail;
       unsigned char cmp_eax[5] = {0x3d, 0, 0, 0, 0};
       unsigned char jne_fail[6] = {0x0f, 0x85, 0, 0, 0, 0};
       patch_off = (uint32_t)(code->len + sizeof(cmp_eax) + 2);
