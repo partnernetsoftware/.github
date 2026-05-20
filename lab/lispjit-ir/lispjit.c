@@ -1419,6 +1419,25 @@ static int link_find_sym(const LinkSym *syms, size_t sym_count, const char *name
   return 0;
 }
 
+static void link_cleanup(unsigned char **owned, size_t *owned_n, ElfObj *objs, int obj_count,
+                         LinkSym *syms, Buf *code) {
+  (void)owned_n;
+  if (code) free(code->data);
+  free(syms);
+  if (owned) {
+    for (int i = 0; i < obj_count; ++i) free(owned[i]);
+  }
+  free(owned);
+  free(owned_n);
+  free(objs);
+}
+
+static int link_rel32_checked(int64_t rel, uint32_t *out) {
+  if (rel < INT32_MIN || rel > INT32_MAX) return 0;
+  *out = (uint32_t)(int32_t)rel;
+  return 1;
+}
+
 static int cmd_link_elf64_exe(int argc, char **argv) {
   if (argc < 5) {
     fprintf(stderr, "link-elf64-exe=bad_args\n");
@@ -1433,14 +1452,16 @@ static int cmd_link_elf64_exe(int argc, char **argv) {
   LinkSym *syms = NULL;
   size_t sym_count = 0;
   size_t sym_cap = 0;
-  if (!owned || !owned_n || !objs) return 2;
+  int rc = 2;
+  if (!owned || !owned_n || !objs) goto done;
 
   size_t code_off = 14;
+  Buf code = {0};
   for (int i = 0; i < obj_count; ++i) {
     owned[i] = read_file(argv[4 + i], &owned_n[i]);
     if (!owned[i] || !parse_elf_obj(owned[i], owned_n[i], &objs[i])) {
       fprintf(stderr, "link-elf64-exe=parse_fail path=%s\n", argv[4 + i]);
-      return 2;
+      goto done;
     }
     objs[i].out_off = code_off;
     code_off += objs[i].text_size;
@@ -1451,10 +1472,15 @@ static int cmd_link_elf64_exe(int argc, char **argv) {
       if (shndx != objs[i].text_idx) continue;
       const char *name = elf_str(objs[i].strtab, objs[i].strtab_size, rd32(sym));
       if (!name || !name[0]) continue;
+      uint64_t existing = 0;
+      if (link_find_sym(syms, sym_count, name, &existing)) {
+        fprintf(stderr, "link-elf64-exe=duplicate_symbol symbol=%s\n", name);
+        goto done;
+      }
       if (sym_count == sym_cap) {
         size_t next = sym_cap ? sym_cap * 2 : 8;
         LinkSym *p = (LinkSym *)realloc(syms, next * sizeof(*p));
-        if (!p) return 2;
+        if (!p) goto done;
         syms = p;
         sym_cap = next;
       }
@@ -1462,7 +1488,6 @@ static int cmd_link_elf64_exe(int argc, char **argv) {
     }
   }
 
-  Buf code = {0};
   unsigned char entry_stub[14] = {
     0xe8, 0, 0, 0, 0,
     0x89, 0xc7,
@@ -1477,10 +1502,17 @@ static int cmd_link_elf64_exe(int argc, char **argv) {
   uint64_t entry_addr = 0;
   if (!link_find_sym(syms, sym_count, entry_name, &entry_addr)) {
     fprintf(stderr, "link-elf64-exe=entry_missing symbol=%s\n", entry_name);
-    return 3;
+    rc = 3;
+    goto done;
   }
   int64_t entry_rel = (int64_t)entry_addr - (int64_t)(0x400000u + 120 + 5);
-  wr32(code.data + 1, (uint32_t)(int32_t)entry_rel);
+  uint32_t rel32 = 0;
+  if (!link_rel32_checked(entry_rel, &rel32)) {
+    fprintf(stderr, "link-elf64-exe=entry_out_of_range symbol=%s\n", entry_name);
+    rc = 3;
+    goto done;
+  }
+  wr32(code.data + 1, rel32);
 
   for (int i = 0; i < obj_count; ++i) {
     const ElfObj *o = &objs[i];
@@ -1493,35 +1525,41 @@ static int cmd_link_elf64_exe(int argc, char **argv) {
       uint32_t sym_idx = (uint32_t)(r_info >> 32);
       if (type != 4 || sym_idx >= o->sym_count || r_off > o->text_size - 4) {
         fprintf(stderr, "link-elf64-exe=unsupported_reloc\n");
-        return 4;
+        rc = 4;
+        goto done;
       }
       const unsigned char *sym = o->symtab + (size_t)sym_idx * 24;
       const char *name = elf_str(o->strtab, o->strtab_size, rd32(sym));
       uint64_t target = 0;
       if (!name || !link_find_sym(syms, sym_count, name, &target)) {
         fprintf(stderr, "link-elf64-exe=symbol_missing symbol=%s\n", name ? name : "?");
-        return 4;
+        rc = 4;
+        goto done;
       }
       uint64_t place = 0x400000u + 120 + o->out_off + r_off;
       int64_t rel = (int64_t)target + addend - (int64_t)place;
-      wr32(code.data + o->out_off + r_off, (uint32_t)(int32_t)rel);
+      if (!link_rel32_checked(rel, &rel32)) {
+        fprintf(stderr, "link-elf64-exe=reloc_out_of_range symbol=%s\n", name);
+        rc = 4;
+        goto done;
+      }
+      wr32(code.data + o->out_off + r_off, rel32);
     }
   }
 
   if (!emit_elf64_code_file(out_path, code.data, code.len)) {
     fprintf(stderr, "link-elf64-exe=write_fail path=%s\n", out_path);
-    return 5;
+    rc = 5;
+    goto done;
   }
   printf("link.output=%s\n", out_path);
   printf("link.objects=%d\n", obj_count);
   printf("link.code.bytes=%zu\n", code.len);
-  free(code.data);
-  free(syms);
-  for (int i = 0; i < obj_count; ++i) free(owned[i]);
-  free(owned);
-  free(owned_n);
-  free(objs);
-  return 0;
+  rc = 0;
+
+done:
+  link_cleanup(owned, owned_n, objs, obj_count, syms, &code);
+  return rc;
 }
 
 static int emit_elf64_exit_file(const char *out_path, uint8_t exit_code) {
