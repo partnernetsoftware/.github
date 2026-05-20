@@ -316,7 +316,7 @@ run_case "nano-jit-tiny-link-reject-duplicate-symbol" bash -c 'if "$1" link-elf6
 run_case "nano-jit-compile-smoke-repeat" "$BUILD_DIR/nano-jit.com" compile "$SMOKE_SRC" "$SMOKE_BLOB_REPEAT"
 run_case "nano-jit-hash-smoke" "$BUILD_DIR/nano-jit.com" hash "$SMOKE_BLOB"
 run_case "nano-jit-hash-smoke-repeat" "$BUILD_DIR/nano-jit.com" hash "$SMOKE_BLOB_REPEAT"
-run_case "nano-jit-compare-deterministic-smoke" cmp "$SMOKE_BLOB" "$SMOKE_BLOB_REPEAT"
+run_case "nano-jit-compare-deterministic-smoke" "$BUILD_DIR/nano-jit.com" compare "$SMOKE_BLOB" "$SMOKE_BLOB_REPEAT"
 run_case "nano-jit-run-smoke" "$BUILD_DIR/nano-jit.com" run "$SMOKE_BLOB"
 run_case "nano-jit-pack-smoke-app" "$BUILD_DIR/nano-jit.com" pack-app \
   "$SMOKE_APP" \
