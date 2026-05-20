@@ -187,7 +187,17 @@ cat > "$BOOTSTRAP_PLAN" <<EOF
   (compare "$BUILD_DIR/bootstrap-smoke.lbin" "$BUILD_DIR/bootstrap-smoke-repeat.lbin")
   (pack-app "$BUILD_DIR/bootstrap-smoke.com" "$BUILD_DIR/nano-jit.x86_64" "$BUILD_DIR/nano-jit.aarch64" "$BUILD_DIR/bootstrap-smoke.lbin")
   (inspect-app "$BUILD_DIR/bootstrap-smoke.com")
-  (run "$BUILD_DIR/bootstrap-smoke.lbin"))
+  (run "$BUILD_DIR/bootstrap-smoke.lbin")
+  (compile "$ARITH_SRC" "$BUILD_DIR/bootstrap-aot-arithmetic.lbin")
+  (aot-elf64-exit "$BUILD_DIR/bootstrap-aot-arithmetic.lbin" "$BUILD_DIR/bootstrap-aot-arithmetic-exit.elf")
+  (run-expect-exit "$BUILD_DIR/bootstrap-aot-arithmetic-exit.elf" 42)
+  (aot-elf64-code "$BUILD_DIR/bootstrap-aot-arithmetic.lbin" "$BUILD_DIR/bootstrap-aot-arithmetic-code.elf")
+  (run-expect-exit "$BUILD_DIR/bootstrap-aot-arithmetic-code.elf" 42)
+  (compile-elf64-code "$CTRL_SRC" "$BUILD_DIR/bootstrap-aot-control-flow.elf")
+  (run-expect-exit "$BUILD_DIR/bootstrap-aot-control-flow.elf" 1)
+  (compile-elf64-obj-code "$MULTI_CTRL_SRC" "$BUILD_DIR/bootstrap-aot-multi-ctrl.o" "nano_bootstrap_multi_ctrl")
+  (link-elf64-exe "$BUILD_DIR/bootstrap-aot-multi-ctrl-linked" "nano_bootstrap_multi_ctrl" "$BUILD_DIR/bootstrap-aot-multi-ctrl.o")
+  (run-expect-exit "$BUILD_DIR/bootstrap-aot-multi-ctrl-linked" 43))
 EOF
 
 if [ ! -x "$X86_CC" ] || [ ! -x "$ARM_CC" ]; then
