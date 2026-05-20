@@ -56,14 +56,16 @@
 
 ## 当前下一刀
 
-已完成：AOT app 直接从 `.com` payload 读取内嵌 blob 执行。
+最新稳定基线：`nano-jit.com` 已能 self-pack，不调用 `apelink`；能从纯 VM `.lisp` 直接生成 ELF/object；能把 nano 生成的多个 ELF64 object 用自带 tiny linker 链成可运行 ELF。
 
 下一步优先级：
 
-1. 给 AOT `.com` 增加结构化 manifest 和 `inspect-app`。
-2. 扩展 VM typed value，减少 shell 输出比对。
-3. 扩展 safe libc call suite。
-4. 扩展 tiny ELF writer，从 `exit` 程序推进到函数/section/relocation。
+1. 抽象 ELF/object/linker 代码：把 section、symbol、relocation 写入和解析整理成小型内部 API。
+2. 扩展 VM typed value：`i64`、`bool`、`ptr`，并让 assert 支持更多类型。
+3. 扩展 control flow：`block`、`branch`、`label`，让 `.lbin` 可表达更接近真实编译器的流程。
+4. 扩展 AOT object backend：从单函数推进到多函数、内部 call、基础 relocation 生成。
+5. 开始 tiny self-host 描述：用 `.lisp` 描述 bootstrap pipeline 的一部分，逐步替代 shell。
+6. 持续缩小临时依赖：`cosmocc` 只保留为 slice compiler，下一阶段目标是生成 x86_64 slice 的可运行子集。
 
 已完成：
 
@@ -82,3 +84,4 @@
 - `aot-elf64-obj-code` 可把纯 VM `.lbin` 编译为包含真实机器码的可链接 function object。
 - `link-elf64-exe` 可链接当前 nano object 子集，初步替代系统 linker。
 - `compile-elf64-code` / `compile-elf64-obj-code` 可直接从 `.lisp` 生成 ELF/object。
+- tiny linker 支持多 object、`R_X86_64_PLT32` relocation、重复符号拒绝和 rel32 范围检查。
