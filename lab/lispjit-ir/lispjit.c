@@ -63,6 +63,7 @@ extern void *cosmo_dlsym(void *handle, const char *symbol);
 #define OP_EQ_I64 19u
 #define OP_LT_I64 20u
 #define OP_GT_I64 21u
+#define OP_NE_I64 22u
 
 #define SRC_FORM_CALL 1u
 #define SRC_FORM_RESOLVE 2u
@@ -82,6 +83,7 @@ extern void *cosmo_dlsym(void *handle, const char *symbol);
 #define SRC_FORM_EQ_I64 16u
 #define SRC_FORM_LT_I64 17u
 #define SRC_FORM_GT_I64 18u
+#define SRC_FORM_NE_I64 19u
 
 #define AOT_STMT_CONST_U64 1u
 #define AOT_STMT_ADD_U64 2u
@@ -99,6 +101,7 @@ extern void *cosmo_dlsym(void *handle, const char *symbol);
 #define AOT_STMT_EQ_I64 14u
 #define AOT_STMT_LT_I64 15u
 #define AOT_STMT_GT_I64 16u
+#define AOT_STMT_NE_I64 17u
 
 #define BOOTSTRAP_STEP_COMPILE 1u
 #define BOOTSTRAP_STEP_HASH 2u
@@ -363,6 +366,12 @@ static int value_gt_i64(Value *v, int64_t rhs) {
   uint64_t lhs_ordered = v->bits ^ 0x8000000000000000ull;
   uint64_t rhs_ordered = (uint64_t)rhs ^ 0x8000000000000000ull;
   *v = value_bool(lhs_ordered > rhs_ordered);
+  return 1;
+}
+
+static int value_ne_i64(Value *v, int64_t rhs) {
+  if (v->kind != VAL_I64) return 0;
+  *v = value_bool(v->bits != (uint64_t)rhs);
   return 1;
 }
 
@@ -801,7 +810,7 @@ static int parse_aot_body_items(const char **p, AotFunc *f) {
                strcmp(head, "i64") == 0 || strcmp(head, "add-i64") == 0 ||
                strcmp(head, "sub-i64") == 0 || strcmp(head, "mul-i64") == 0 ||
                strcmp(head, "eq-i64") == 0 || strcmp(head, "lt-i64") == 0 ||
-               strcmp(head, "gt-i64") == 0) {
+               strcmp(head, "gt-i64") == 0 || strcmp(head, "ne-i64") == 0) {
       char *value = parse_atom(p);
       uint64_t imm = 0;
       int64_t i64 = 0;
@@ -813,11 +822,12 @@ static int parse_aot_body_items(const char **p, AotFunc *f) {
                       strcmp(head, "mul-i64") == 0 ? AOT_STMT_MUL_I64 :
                       strcmp(head, "eq-i64") == 0 ? AOT_STMT_EQ_I64 :
                       strcmp(head, "lt-i64") == 0 ? AOT_STMT_LT_I64 :
-                      AOT_STMT_GT_I64;
+                      strcmp(head, "gt-i64") == 0 ? AOT_STMT_GT_I64 :
+                      AOT_STMT_NE_I64;
       if (strcmp(head, "i64") == 0 || strcmp(head, "add-i64") == 0 ||
           strcmp(head, "sub-i64") == 0 || strcmp(head, "mul-i64") == 0 ||
           strcmp(head, "eq-i64") == 0 || strcmp(head, "lt-i64") == 0 ||
-          strcmp(head, "gt-i64") == 0) {
+          strcmp(head, "gt-i64") == 0 || strcmp(head, "ne-i64") == 0) {
         ok = value && parse_i64_atom(value, &i64) && eat(p, ')') &&
              aot_add_stmt(f, kind, (uint64_t)i64, NULL);
       } else {
@@ -1163,7 +1173,7 @@ static int parse_main_items(const char **p, Module *m) {
                strcmp(head, "i64") == 0 || strcmp(head, "add-i64") == 0 ||
                strcmp(head, "sub-i64") == 0 || strcmp(head, "mul-i64") == 0 ||
                strcmp(head, "eq-i64") == 0 || strcmp(head, "lt-i64") == 0 ||
-               strcmp(head, "gt-i64") == 0) {
+               strcmp(head, "gt-i64") == 0 || strcmp(head, "ne-i64") == 0) {
       char *value = parse_atom(p);
       uint64_t imm = 0;
       int64_t i64 = 0;
@@ -1175,11 +1185,12 @@ static int parse_main_items(const char **p, Module *m) {
                       strcmp(head, "mul-i64") == 0 ? SRC_FORM_MUL_I64 :
                       strcmp(head, "eq-i64") == 0 ? SRC_FORM_EQ_I64 :
                       strcmp(head, "lt-i64") == 0 ? SRC_FORM_LT_I64 :
-                      SRC_FORM_GT_I64;
+                      strcmp(head, "gt-i64") == 0 ? SRC_FORM_GT_I64 :
+                      SRC_FORM_NE_I64;
       if (strcmp(head, "i64") == 0 || strcmp(head, "add-i64") == 0 ||
           strcmp(head, "sub-i64") == 0 || strcmp(head, "mul-i64") == 0 ||
           strcmp(head, "eq-i64") == 0 || strcmp(head, "lt-i64") == 0 ||
-          strcmp(head, "gt-i64") == 0) {
+          strcmp(head, "gt-i64") == 0 || strcmp(head, "ne-i64") == 0) {
         ok = value && parse_i64_atom(value, &i64) && eat(p, ')') &&
              add_instr(m, form, NULL, NULL, NULL, (uint64_t)i64);
       } else {
@@ -1368,7 +1379,7 @@ static unsigned char *compile_module(const Module *m, size_t *out_n) {
         in->form == SRC_FORM_CONST_I64 || in->form == SRC_FORM_ADD_I64 ||
         in->form == SRC_FORM_SUB_I64 || in->form == SRC_FORM_MUL_I64 ||
         in->form == SRC_FORM_EQ_I64 || in->form == SRC_FORM_LT_I64 ||
-        in->form == SRC_FORM_GT_I64) {
+        in->form == SRC_FORM_GT_I64 || in->form == SRC_FORM_NE_I64) {
       uint8_t op = in->form == SRC_FORM_CONST_U64 ? OP_CONST_U64 :
                    in->form == SRC_FORM_ADD_U64 ? OP_ADD_U64 :
                    in->form == SRC_FORM_CONST_I64 ? OP_CONST_I64 :
@@ -1377,7 +1388,8 @@ static unsigned char *compile_module(const Module *m, size_t *out_n) {
                    in->form == SRC_FORM_MUL_I64 ? OP_MUL_I64 :
                    in->form == SRC_FORM_EQ_I64 ? OP_EQ_I64 :
                    in->form == SRC_FORM_LT_I64 ? OP_LT_I64 :
-                   OP_GT_I64;
+                   in->form == SRC_FORM_GT_I64 ? OP_GT_I64 :
+                   OP_NE_I64;
       emit_instr(&instrs, op, (uint32_t)(in->imm & 0xffffffffu),
                  (uint32_t)(in->imm >> 32));
       continue;
@@ -1965,6 +1977,20 @@ static int execute_blob(const Blob *b) {
         return 20;
       }
       printf("gt-i64.%u=", pc);
+      print_value(stdout, last);
+      printf("\n");
+      pc++;
+      continue;
+    }
+    if (op == OP_NE_I64) {
+      int64_t rhs = (int64_t)((uint64_t)arg0 | ((uint64_t)arg1 << 32));
+      if (!value_ne_i64(&last, rhs)) {
+        fprintf(stderr, "type.ne-i64=%u actual=", pc);
+        print_value(stderr, last);
+        fprintf(stderr, "\n");
+        return 20;
+      }
+      printf("ne-i64.%u=", pc);
       print_value(stdout, last);
       printf("\n");
       pc++;
@@ -3422,6 +3448,10 @@ static int eval_pure_blob(const Blob *b, Value *out) {
       int64_t rhs = (int64_t)((uint64_t)arg0 | ((uint64_t)arg1 << 32));
       if (!value_gt_i64(&last, rhs)) return 0;
       pc++;
+    } else if (op == OP_NE_I64) {
+      int64_t rhs = (int64_t)((uint64_t)arg0 | ((uint64_t)arg1 << 32));
+      if (!value_ne_i64(&last, rhs)) return 0;
+      pc++;
     } else if (op == OP_EXPECT_U64) {
       uint64_t expected = (uint64_t)arg0 | ((uint64_t)arg1 << 32);
       if (!value_expect_u64(last, expected)) return 0;
@@ -3665,6 +3695,26 @@ static int compile_pure_blob_to_x86(const Blob *b, Buf *code, int exit_style) {
         buf_put(code, movzx_eax_al, sizeof(movzx_eax_al));
       }
       last_kind = VAL_BOOL;
+    } else if (op == OP_NE_I64) {
+      if (last_kind != VAL_I64 || imm_i64 < INT32_MIN || imm_i64 > INT32_MAX) goto fail;
+      if (exit_style) {
+        unsigned char cmp_edi[6] = {0x81, 0xff, 0, 0, 0, 0};
+        unsigned char setne_al[3] = {0x0f, 0x95, 0xc0};
+        unsigned char movzx_edi_al[3] = {0x0f, 0xb6, 0xf8};
+        wr32(cmp_edi + 2, (uint32_t)(int32_t)imm_i64);
+        buf_put(code, cmp_edi, sizeof(cmp_edi));
+        buf_put(code, setne_al, sizeof(setne_al));
+        buf_put(code, movzx_edi_al, sizeof(movzx_edi_al));
+      } else {
+        unsigned char cmp_eax[5] = {0x3d, 0, 0, 0, 0};
+        unsigned char setne_al[3] = {0x0f, 0x95, 0xc0};
+        unsigned char movzx_eax_al[3] = {0x0f, 0xb6, 0xc0};
+        wr32(cmp_eax + 1, (uint32_t)(int32_t)imm_i64);
+        buf_put(code, cmp_eax, sizeof(cmp_eax));
+        buf_put(code, setne_al, sizeof(setne_al));
+        buf_put(code, movzx_eax_al, sizeof(movzx_eax_al));
+      }
+      last_kind = VAL_BOOL;
     } else if (op == OP_EXPECT_U64 || op == OP_EXPECT_I64 || op == OP_EXPECT_BOOL) {
       uint32_t patch_off = 0;
       if (op == OP_EXPECT_U64) {
@@ -3846,7 +3896,8 @@ static int compile_aot_func_to_x86_ret(const AotFunc *func, Buf *code, Buf *call
     }
     if (stmt->kind == AOT_STMT_ADD_I64 || stmt->kind == AOT_STMT_SUB_I64 ||
         stmt->kind == AOT_STMT_MUL_I64 || stmt->kind == AOT_STMT_EQ_I64 ||
-        stmt->kind == AOT_STMT_LT_I64 || stmt->kind == AOT_STMT_GT_I64) {
+        stmt->kind == AOT_STMT_LT_I64 || stmt->kind == AOT_STMT_GT_I64 ||
+        stmt->kind == AOT_STMT_NE_I64) {
       int64_t imm_i64 = (int64_t)stmt->imm;
       if (imm_i64 < INT32_MIN || imm_i64 > INT32_MAX) goto fail;
     }
@@ -3923,6 +3974,17 @@ static int compile_aot_func_to_x86_ret(const AotFunc *func, Buf *code, Buf *call
       wr32(cmp_eax + 1, (uint32_t)(int32_t)imm_i64);
       buf_put(code, cmp_eax, sizeof(cmp_eax));
       buf_put(code, setg_al, sizeof(setg_al));
+      buf_put(code, movzx_eax_al, sizeof(movzx_eax_al));
+      last_kind = VAL_BOOL;
+    } else if (stmt->kind == AOT_STMT_NE_I64) {
+      int64_t imm_i64 = (int64_t)stmt->imm;
+      if (last_kind != VAL_I64) goto fail;
+      unsigned char cmp_eax[5] = {0x3d, 0, 0, 0, 0};
+      unsigned char setne_al[3] = {0x0f, 0x95, 0xc0};
+      unsigned char movzx_eax_al[3] = {0x0f, 0xb6, 0xc0};
+      wr32(cmp_eax + 1, (uint32_t)(int32_t)imm_i64);
+      buf_put(code, cmp_eax, sizeof(cmp_eax));
+      buf_put(code, setne_al, sizeof(setne_al));
       buf_put(code, movzx_eax_al, sizeof(movzx_eax_al));
       last_kind = VAL_BOOL;
     } else if (stmt->kind == AOT_STMT_EXPECT_U64) {
