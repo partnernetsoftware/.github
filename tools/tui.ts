@@ -37,7 +37,7 @@ const PREVIEW_LINES = 80;
 const SHELL_COMMS = new Set(["bash", "zsh", "sh", "fish", "dash", "tmux", "-bash", "-zsh"]);
 
 const TUI_CONFIG = {
-  VERSION: '0.4.12',
+  VERSION: '0.4.13',
   VIEWER_SESSION: `__tui_viewer__`,
   TUI_KEYTABLE: "tui_empty",
   REMARK_KEY: "@remark",
@@ -126,6 +126,13 @@ const screen = new AnsiScreen();
 let tmuxQuietDepth = 0;
 let _resolvedTmuxBin: string | null = null;
 
+/** pipe/head 关 stdout 时避免 EPIPE 挂死（CLI + install 共用） */
+function cliWriteStdout(text: string): void {
+  if (!process.stdout.write(text)) {
+    process.stdout.once("drain", () => {});
+  }
+}
+
 // PART:tmux-bootstrap
 
 function isExecutable(p: string): boolean {
@@ -185,7 +192,7 @@ function installTmuxPortable(force = false): number {
     return 1;
   }
   if (!force && isExecutable(TUI_CONFIG.TMUX_PORTABLE_BIN)) {
-    process.stdout.write(`已存在: ${TUI_CONFIG.TMUX_PORTABLE_BIN}\n`);
+    cliWriteStdout(`已存在: ${TUI_CONFIG.TMUX_PORTABLE_BIN}\n`);
     return 0;
   }
   const binDir = join(TUI_CONFIG.TMUX_HOME, "bin");
@@ -225,7 +232,7 @@ function installTmuxPortable(force = false): number {
   }
   resetTmuxBinCache();
   const ver = Bun.spawnSync([TUI_CONFIG.TMUX_PORTABLE_BIN, "-V"], { stdout: "pipe" }).stdout?.toString().trim();
-  process.stdout.write(`已安装 → ${TUI_CONFIG.TMUX_PORTABLE_BIN}  (${ver})\n`);
+  cliWriteStdout(`已安装 → ${TUI_CONFIG.TMUX_PORTABLE_BIN}  (${ver})\n`);
   return 0;
 }
 
@@ -947,13 +954,6 @@ function peelJsonFlag(rest: string[]): { rest: string[]; json: boolean } {
 
 function cliWriteJson(data: unknown): void {
   cliWriteStdout(JSON.stringify(data, null, 2) + "\n");
-}
-
-/** pipe/head 关 stdout 时避免 EPIPE 挂死 */
-function cliWriteStdout(text: string): void {
-  if (!process.stdout.write(text)) {
-    process.stdout.once("drain", () => {});
-  }
 }
 
 function sessionWindowCount(tree: TreeNode[], sessIdx: number): number {
@@ -2945,13 +2945,13 @@ function printFleetList(snap: CliFleetSnapshot): void {
   for (const row of snap.tree) {
     if (row.type === "session") {
       const rk = row.remark ? `  ${row.remark}` : "";
-      process.stdout.write(`${row.target}${rk}  (${row.windowCount} windows)\n`);
+      cliWriteStdout(`${row.target}${rk}  (${row.windowCount} windows)\n`);
     } else {
       const rk = row.remark ? `  ${row.remark}` : "";
       const ag = row.agent ? `  agent:${row.agent}` : "";
       const ur = row.unread > 0 ? `  unread:${row.unread}` : "";
       const tail = row.previewLastLine ? `  | ${row.previewLastLine.slice(0, 80)}` : "";
-      process.stdout.write(`  ${row.target}${ag}${rk}${ur}${tail}\n`);
+      cliWriteStdout(`  ${row.target}${ag}${rk}${ur}${tail}\n`);
     }
   }
 }
@@ -2959,12 +2959,12 @@ function printFleetList(snap: CliFleetSnapshot): void {
 function printFleetStatus(snap: CliFleetSnapshot): void {
   for (const row of snap.tree) {
     if (row.type === "session") {
-      process.stdout.write(`▣ ${row.session}  (${row.windowCount})\n`);
+      cliWriteStdout(`▣ ${row.session}  (${row.windowCount})\n`);
     } else {
       const dot = row.unread > 0 ? "●" : "○";
       const ur = row.unread > 0 ? ` rd:${row.unread}` : "";
       const ph = row.placeholders;
-      process.stdout.write(
+      cliWriteStdout(
         `  ${dot} ${row.session}:${row.windowIndex} ${row.windowName}${row.agent ? ` @${row.agent}` : ""}${ur}`
         + ` lv:${ph.lvl} age:${ph.age} act:${ph.act}\n`,
       );
@@ -3054,7 +3054,7 @@ function cliUserOptGet(optName: string, ctx: CliCtx): number {
     if (err !== null) return err;
   }
   const v = spec.read(node);
-  process.stdout.write(v ? `${v}\n` : "\n");
+  cliWriteStdout(v ? `${v}\n` : "\n");
   return 0;
 }
 
@@ -3084,7 +3084,7 @@ function cliUserOptSet(optName: string, ctx: CliCtx): number {
     }
   }
   spec.write(node, value);
-  process.stdout.write(`${optName} ${target} = ${value || "(cleared)"}\n`);
+  cliWriteStdout(`${optName} ${target} = ${value || "(cleared)"}\n`);
   return 0;
 }
 
@@ -3104,7 +3104,7 @@ function cliOp(opName: string, ctx: CliCtx): number {
   const spec = CLI_OPS[opName];
   const { positional } = parseCliFlags(ctx.rest);
   if (positional.length < spec.arity) return cliFailUsage(`${opName} ${spec.usage}`);
-  process.stdout.write(spec.run(positional));
+  cliWriteStdout(spec.run(positional));
   return 0;
 }
 
@@ -3309,7 +3309,7 @@ function cliAgentSend(ctx: CliCtx): number {
     cliWriteJson(env);
     return 0;
   }
-  process.stdout.write(`${env.corr}\n`);
+  cliWriteStdout(`${env.corr}\n`);
   return 0;
 }
 
