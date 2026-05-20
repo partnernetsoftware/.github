@@ -157,7 +157,7 @@ bootstrap DSL 也能描述一条最小 AOT/codegen/tiny-link 构建图，不需�
 - `compile`：解析 `.lisp`，输出 `.lbin` portable blob。
 - `dump`：查看 blob header、import、const、instruction 数量。
 - `resolve`：验证 `.lbin` import table 的动态库和符号可解析；运行时会把解析到的函数地址放进当前 `ptr` typed value，适合全量 libc 导入测试或指针断言。
-- `run-bootstrap-plan`：读取最小 bootstrap DSL，顺序执行 `compile` / `hash` / `compare` / `resolve-quiet` / `pack-app` / `inspect-app` / `run-app` / `run` / `emit-elf64-exit` / `emit-elf64-obj-ret` / `emit-elf64-obj-call` / `aot-elf64-exit` / `aot-elf64-obj-ret` / `aot-elf64-code` / `aot-elf64-obj-code` / `compile-elf64-code` / `compile-elf64-obj-code` / `compile-elf64-exe` / `link-elf64-exe` / `link-expect-exit` / `run-expect-exit` 子流程，开始把 shell 片段迁到 `.lisp` 描述。
+- `run-bootstrap-plan`：读取最小 bootstrap DSL，顺序执行 `compile` / `dump` / `hash` / `compare` / `resolve-quiet` / `pack-app` / `inspect-app` / `run-app` / `run` / `emit-elf64-exit` / `emit-elf64-obj-ret` / `emit-elf64-obj-call` / `aot-elf64-exit` / `aot-elf64-obj-ret` / `aot-elf64-code` / `aot-elf64-obj-code` / `compile-elf64-code` / `compile-elf64-obj-code` / `compile-elf64-exe` / `link-elf64-exe` / `link-expect-exit` / `run-expect-exit` 子流程，开始把 shell 片段迁到 `.lisp` 描述。
 - `run`：解析 `.lbin`，通过 `dlopen`/`dlsym` 找系统符号，执行 main 指令流。
 - `run-embedded`：从 `.com` 容器内按 payload 偏移直接读取并执行内嵌 blob。
 - `inspect-app`：读取 AOT app manifest，输出 runtime slice 和 blob 的 offset/size。

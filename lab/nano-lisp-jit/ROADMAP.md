@@ -93,6 +93,6 @@
 - `compile-elf64-obj-code` 已支持多函数 pure VM source、内部 `call`、基础 relocation，以及 `i64` / `bool` / `branch` / `label` typed/control-flow 子集。
 - 多函数 object 可同时被系统 `cc` 与 nano 自带 tiny linker 链接并运行。
 - `compile-elf64-exe` 已可把多函数 pure VM source 直接生成可运行 ELF，内部走 object backend + tiny linker。
-- `bootstrap` 最小 DSL 已落地，可用 `.lisp` 顺序描述并执行核心 `.lbin` 样例矩阵、`compile` / `hash` / `compare` / `pack-app` / `inspect-app` / `run-app` / `run` 子流程。
+- `bootstrap` 最小 DSL 已落地，可用 `.lisp` 顺序描述并执行核心 `.lbin` 样例矩阵、`compile` / `dump` / `hash` / `compare` / `pack-app` / `inspect-app` / `run-app` / `run` 子流程。
 - `bootstrap` DSL 已可驱动 AOT/codegen/tiny-link executable smoke，覆盖 `emit-elf64-exit`、`emit-elf64-obj-*`、`aot-elf64-*`、`compile-elf64-*`、`resolve-quiet`、多 object `link-elf64-exe`、直接 executable 编译、失败状态断言和 `run-expect-exit`，开始把更多 build graph 从 shell 迁入 nano 描述。
 - control-flow pure blob 已能走静态求值 AOT 路径，生成 `aot-elf64-exit` / `aot-elf64-obj-ret` 产物。
