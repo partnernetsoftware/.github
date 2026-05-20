@@ -2223,6 +2223,80 @@ static const char *default_libc_path(void) {
   return candidates[0];
 }
 
+static int collect_libc_dynsym_symbols(const char *libc_path, char ***symbols,
+                                       size_t *symbol_count, size_t *symbol_cap) {
+  enum {
+    LOCAL_ELF64_EHDR_SIZE = 64,
+    LOCAL_ELF64_SHDR_SIZE = 64,
+    LOCAL_ELF64_SYM_SIZE = 24,
+    LOCAL_SHT_STRTAB = 3,
+    LOCAL_SHT_DYNSYM = 11,
+    LOCAL_SHT_GNU_VERSYM = 0x6fffffff
+  };
+  size_t size = 0;
+  unsigned char *data = read_file(libc_path, &size);
+  if (!data) return 0;
+  int ok = 0;
+  if (size < LOCAL_ELF64_EHDR_SIZE || data[0] != 0x7f || data[1] != 'E' ||
+      data[2] != 'L' || data[3] != 'F' || data[4] != 2 || data[5] != 1) {
+    goto done;
+  }
+  uint64_t shoff = rd64(data + 40);
+  uint16_t shentsize = rd16(data + 58);
+  uint16_t shnum = rd16(data + 60);
+  if (shentsize < LOCAL_ELF64_SHDR_SIZE || shoff > size ||
+      shnum > (size - shoff) / shentsize) {
+    goto done;
+  }
+  const unsigned char *shdr = data + shoff;
+  for (uint16_t i = 1; i < shnum; ++i) {
+    const unsigned char *sh = shdr + (size_t)i * shentsize;
+    if (rd32(sh + 4) != LOCAL_SHT_DYNSYM) continue;
+    uint64_t sym_off = rd64(sh + 24);
+    uint64_t sym_size = rd64(sh + 32);
+    uint32_t str_idx = rd32(sh + 40);
+    uint64_t sym_entsize = rd64(sh + 56);
+    if (sym_entsize != LOCAL_ELF64_SYM_SIZE || str_idx >= shnum ||
+        sym_off > size || sym_size > size - sym_off) {
+      goto done;
+    }
+    const unsigned char *str_sh = shdr + (size_t)str_idx * shentsize;
+    if (rd32(str_sh + 4) != LOCAL_SHT_STRTAB) goto done;
+    uint64_t str_off = rd64(str_sh + 24);
+    uint64_t str_size = rd64(str_sh + 32);
+    if (str_off > size || str_size > size - str_off) goto done;
+    const unsigned char *strtab = data + str_off;
+    const unsigned char *versym = NULL;
+    size_t versym_count = 0;
+    for (uint16_t v = 1; v < shnum; ++v) {
+      const unsigned char *vsh = shdr + (size_t)v * shentsize;
+      if (rd32(vsh + 4) != LOCAL_SHT_GNU_VERSYM || rd32(vsh + 40) != i) continue;
+      uint64_t v_off = rd64(vsh + 24);
+      uint64_t v_size = rd64(vsh + 32);
+      if (v_off > size || v_size > size - v_off) goto done;
+      versym = data + v_off;
+      versym_count = (size_t)(v_size / 2u);
+      break;
+    }
+    size_t nsyms = (size_t)(sym_size / sym_entsize);
+    for (size_t s = 1; s < nsyms; ++s) {
+      const unsigned char *sym = data + sym_off + s * sym_entsize;
+      uint32_t name_off = rd32(sym);
+      uint16_t shndx = rd16(sym + 6);
+      if (shndx == 0 || name_off >= str_size) continue;
+      if (versym && s < versym_count && (rd16(versym + s * 2u) & 0x8000u)) continue;
+      const char *name = (const char *)strtab + name_off;
+      if (!memchr(name, 0, (size_t)str_size - name_off)) continue;
+      if (strncmp(name, "GLIBC_", 6) == 0 || strncmp(name, "GCC_", 4) == 0 || name[0] == 0) continue;
+      if (!symbol_vec_push(symbols, symbol_count, symbol_cap, name)) goto done;
+    }
+  }
+  ok = 1;
+done:
+  free(data);
+  return ok;
+}
+
 static int cmd_gen_libc_resolve(const char *libc_path, const char *out_path) {
 #if defined(_WIN32)
   (void)libc_path;
@@ -2231,46 +2305,12 @@ static int cmd_gen_libc_resolve(const char *libc_path, const char *out_path) {
   return 2;
 #else
   if (!libc_path || !libc_path[0]) libc_path = default_libc_path();
-  if (strchr(libc_path, '\'') || strchr(libc_path, '\n')) {
-    fprintf(stderr, "gen-libc-resolve=bad_libc_path\n");
-    return 2;
-  }
-  char cmd[1024];
-  int cmd_n = snprintf(cmd, sizeof(cmd), "nm -D --defined-only '%s'", libc_path);
-  if (cmd_n < 0 || (size_t)cmd_n >= sizeof(cmd)) {
-    fprintf(stderr, "gen-libc-resolve=command_too_long\n");
-    return 2;
-  }
-  FILE *pipe = popen(cmd, "r");
-  if (!pipe) {
-    fprintf(stderr, "gen-libc-resolve=nm_fail\n");
-    return 2;
-  }
   char **symbols = NULL;
   size_t symbol_count = 0;
   size_t symbol_cap = 0;
-  char line[4096];
   int rc = 0;
-  while (fgets(line, sizeof(line), pipe)) {
-    char *tok = strtok(line, " \t\r\n");
-    char *raw = NULL;
-    while (tok) {
-      raw = tok;
-      tok = strtok(NULL, " \t\r\n");
-    }
-    if (!raw) continue;
-    char *at = strchr(raw, '@');
-    if (at && !(at[1] == '@')) continue;
-    if (at) *at = 0;
-    if (strncmp(raw, "GLIBC_", 6) == 0 || strncmp(raw, "GCC_", 4) == 0 || raw[0] == 0) continue;
-    if (!symbol_vec_push(&symbols, &symbol_count, &symbol_cap, raw)) {
-      rc = 2;
-      break;
-    }
-  }
-  int nm_status = pclose(pipe);
-  if (nm_status != 0 && rc == 0) {
-    fprintf(stderr, "gen-libc-resolve=nm_exit status=%d\n", nm_status);
+  if (!collect_libc_dynsym_symbols(libc_path, &symbols, &symbol_count, &symbol_cap)) {
+    fprintf(stderr, "gen-libc-resolve=dynsym_fail path=%s\n", libc_path);
     rc = 2;
   }
   if (rc == 0) {
