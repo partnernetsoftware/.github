@@ -54,6 +54,8 @@ BUILD_DIR="$LAB_DIR/.build/nano-jit"
 NANO_C="$ROOT_DIR/lab/lispjit-ir/lispjit.c"
 ARITH_SRC="$LAB_DIR/samples/arithmetic.lisp"
 ARITH_BLOB="$BUILD_DIR/arithmetic.lbin"
+ARITH_I64_SRC="$LAB_DIR/samples/arithmetic-i64.lisp"
+ARITH_I64_BLOB="$BUILD_DIR/arithmetic-i64.lbin"
 TYPED_SRC="$LAB_DIR/samples/typed-values.lisp"
 TYPED_BLOB="$BUILD_DIR/typed-values.lbin"
 CTRL_SRC="$LAB_DIR/samples/control-flow.lisp"
@@ -65,6 +67,7 @@ BAD_ARITH_BLOB="$BUILD_DIR/arithmetic-bad.lbin"
 EXIT42="$BUILD_DIR/exit42.elf"
 ARITH_EXIT="$BUILD_DIR/arithmetic-aot.elf"
 ARITH_CODE="$BUILD_DIR/arithmetic-code.elf"
+ARITH_I64_CODE="$BUILD_DIR/arithmetic-i64-code.elf"
 BAD_ARITH_CODE="$BUILD_DIR/arithmetic-bad-code.elf"
 CTRL_CODE="$BUILD_DIR/control-flow-code.elf"
 CTRL_EXIT="$BUILD_DIR/control-flow-aot.elf"
@@ -185,11 +188,14 @@ cat > "$BOOTSTRAP_PLAN" <<EOF
   (emit-elf64-exit "$BUILD_DIR/bootstrap-aot-exit42.elf" 42)
   (run-expect-exit "$BUILD_DIR/bootstrap-aot-exit42.elf" 42)
   (compile "$ARITH_SRC" "$BUILD_DIR/bootstrap-aot-arithmetic.lbin")
+  (compile "$ARITH_I64_SRC" "$BUILD_DIR/bootstrap-aot-arithmetic-i64.lbin")
   (compile "$BAD_ARITH_SRC" "$BUILD_DIR/bootstrap-aot-arithmetic-bad.lbin")
   (aot-elf64-exit "$BUILD_DIR/bootstrap-aot-arithmetic.lbin" "$BUILD_DIR/bootstrap-aot-arithmetic-exit.elf")
   (run-expect-exit "$BUILD_DIR/bootstrap-aot-arithmetic-exit.elf" 42)
   (aot-elf64-code "$BUILD_DIR/bootstrap-aot-arithmetic.lbin" "$BUILD_DIR/bootstrap-aot-arithmetic-code.elf")
   (run-expect-exit "$BUILD_DIR/bootstrap-aot-arithmetic-code.elf" 42)
+  (aot-elf64-code "$BUILD_DIR/bootstrap-aot-arithmetic-i64.lbin" "$BUILD_DIR/bootstrap-aot-arithmetic-i64-code.elf")
+  (run-expect-exit "$BUILD_DIR/bootstrap-aot-arithmetic-i64-code.elf" 42)
   (aot-elf64-code "$BUILD_DIR/bootstrap-aot-arithmetic-bad.lbin" "$BUILD_DIR/bootstrap-aot-arithmetic-bad-code.elf")
   (run-expect-exit "$BUILD_DIR/bootstrap-aot-arithmetic-bad-code.elf" 125)
   (compile "$CTRL_SRC" "$BUILD_DIR/bootstrap-aot-control-flow.lbin")
@@ -211,8 +217,15 @@ cat > "$BOOTSTRAP_PLAN" <<EOF
   (aot-elf64-obj-code "$BUILD_DIR/bootstrap-aot-arithmetic.lbin" "$BUILD_DIR/bootstrap-aot-arithmetic-code.o" "nano_bootstrap_arith_code")
   (link-elf64-exe "$BUILD_DIR/bootstrap-aot-arithmetic-code-linked" "nano_bootstrap_arith_code" "$BUILD_DIR/bootstrap-aot-arithmetic-code.o")
   (run-expect-exit "$BUILD_DIR/bootstrap-aot-arithmetic-code-linked" 42)
+  (aot-elf64-obj-code "$BUILD_DIR/bootstrap-aot-arithmetic-i64.lbin" "$BUILD_DIR/bootstrap-aot-arithmetic-i64-code.o" "nano_bootstrap_arith_i64_code")
+  (link-elf64-exe "$BUILD_DIR/bootstrap-aot-arithmetic-i64-code-linked" "nano_bootstrap_arith_i64_code" "$BUILD_DIR/bootstrap-aot-arithmetic-i64-code.o")
+  (run-expect-exit "$BUILD_DIR/bootstrap-aot-arithmetic-i64-code-linked" 42)
   (compile-elf64-code "$ARITH_SRC" "$BUILD_DIR/bootstrap-aot-arithmetic-direct.elf")
   (run-expect-exit "$BUILD_DIR/bootstrap-aot-arithmetic-direct.elf" 42)
+  (compile-elf64-code "$ARITH_I64_SRC" "$BUILD_DIR/bootstrap-aot-arithmetic-i64-direct.elf")
+  (run-expect-exit "$BUILD_DIR/bootstrap-aot-arithmetic-i64-direct.elf" 42)
+  (compile-elf64-exe "$ARITH_I64_SRC" "$BUILD_DIR/bootstrap-aot-arithmetic-i64-exe.elf" "nano_bootstrap_arith_i64_exe")
+  (run-expect-exit "$BUILD_DIR/bootstrap-aot-arithmetic-i64-exe.elf" 42)
   (compile-elf64-obj-code "$ARITH_SRC" "$BUILD_DIR/bootstrap-aot-arithmetic-direct.o" "nano_bootstrap_arith_direct")
   (link-elf64-exe "$BUILD_DIR/bootstrap-aot-arithmetic-direct-linked" "nano_bootstrap_arith_direct" "$BUILD_DIR/bootstrap-aot-arithmetic-direct.o")
   (run-expect-exit "$BUILD_DIR/bootstrap-aot-arithmetic-direct-linked" 42)
@@ -293,6 +306,8 @@ run_case "self-pack-nano-jit-com" "$PACKER" pack-ape \
 run_case "nano-jit-compile-smoke" "$BUILD_DIR/nano-jit.com" compile "$SMOKE_SRC" "$SMOKE_BLOB"
 run_case "nano-jit-compile-arithmetic" "$BUILD_DIR/nano-jit.com" compile "$ARITH_SRC" "$ARITH_BLOB"
 run_case "nano-jit-run-arithmetic" "$BUILD_DIR/nano-jit.com" run "$ARITH_BLOB"
+run_case "nano-jit-compile-arithmetic-i64" "$BUILD_DIR/nano-jit.com" compile "$ARITH_I64_SRC" "$ARITH_I64_BLOB"
+run_case "nano-jit-run-arithmetic-i64" "$BUILD_DIR/nano-jit.com" run "$ARITH_I64_BLOB"
 run_case "nano-jit-compile-typed-values" "$BUILD_DIR/nano-jit.com" compile "$TYPED_SRC" "$TYPED_BLOB"
 run_case "nano-jit-run-typed-values" "$BUILD_DIR/nano-jit.com" run "$TYPED_BLOB"
 run_case "nano-jit-run-bootstrap-plan" "$BUILD_DIR/nano-jit.com" run-bootstrap-plan "$BOOTSTRAP_PLAN"
@@ -304,6 +319,8 @@ run_case "nano-jit-aot-arithmetic-elf64-exit42" "$BUILD_DIR/nano-jit.com" aot-el
 run_case "nano-jit-run-aot-arithmetic-exit42" bash -c '"$1"; status=$?; test "$status" -eq 42' _ "$ARITH_EXIT"
 run_case "nano-jit-aot-arithmetic-elf64-code42" "$BUILD_DIR/nano-jit.com" aot-elf64-code "$ARITH_BLOB" "$ARITH_CODE"
 run_case "nano-jit-run-aot-arithmetic-code42" bash -c '"$1"; status=$?; test "$status" -eq 42' _ "$ARITH_CODE"
+run_case "nano-jit-aot-arithmetic-i64-elf64-code42" "$BUILD_DIR/nano-jit.com" aot-elf64-code "$ARITH_I64_BLOB" "$ARITH_I64_CODE"
+run_case "nano-jit-run-aot-arithmetic-i64-code42" bash -c '"$1"; status=$?; test "$status" -eq 42' _ "$ARITH_I64_CODE"
 run_case "nano-jit-compile-bad-arithmetic" "$BUILD_DIR/nano-jit.com" compile "$BAD_ARITH_SRC" "$BAD_ARITH_BLOB"
 run_case "nano-jit-aot-bad-arithmetic-elf64-code" "$BUILD_DIR/nano-jit.com" aot-elf64-code "$BAD_ARITH_BLOB" "$BAD_ARITH_CODE"
 run_case "nano-jit-run-aot-bad-arithmetic-expect125" bash -c '"$1"; status=$?; test "$status" -eq 125' _ "$BAD_ARITH_CODE"
