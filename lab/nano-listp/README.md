@@ -19,6 +19,7 @@
 ./nano-listp.com aot-elf64-exit arithmetic.lbin arithmetic.elf
 ./nano-listp.com aot-elf64-obj-ret arithmetic.lbin arithmetic.o nano_arith
 ./nano-listp.com aot-elf64-code arithmetic.lbin arithmetic-code.elf
+./nano-listp.com aot-elf64-obj-code arithmetic.lbin arithmetic-code.o nano_arith_code
 ./nano-listp.com hash strlen.lbin
 ./nano-listp.com resolve --quiet strlen.lbin
 ./nano-listp.com pack-app app.com nano-jit.x86_64 nano-jit.aarch64 strlen.lbin
@@ -59,6 +60,7 @@
 - `aot-elf64-exit`：静态求值纯 VM `.lbin`，直接生成对应 exit code 的 ELF。
 - `aot-elf64-obj-ret`：静态求值纯 VM `.lbin`，生成可链接的 ELF64 function object。
 - `aot-elf64-code`：把纯 VM 算术 op 编译成 x86_64 机器码 ELF。
+- `aot-elf64-obj-code`：把纯 VM 算术 op 编译成可链接的 ELF64 function object。
 - `hash`：输出 `.lbin` 的内建 FNV-1a 64-bit hash，用于 deterministic 编译测试。
 - `(expect N)`：在 `.lbin` 内断言上一条调用结果，失败时 runtime 返回非零。
 - `(u64 N)` / `(add-u64 N)`：最小 typed VM 算术内核，不依赖 FFI。
