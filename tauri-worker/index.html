@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="/src/styles.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>tauri-worker</title>
+    <script type="module" src="/src/main.ts" defer></script>
+  </head>
+
+  <body>
+    <main class="container">
+      <p class="eyebrow">Tauri v2 experiment</p>
+      <h1>tauri-worker</h1>
+      <p class="lede">
+        Small app for checking whether Tauri can be used as a headless worker.
+      </p>
+
+      <section class="panel">
+        <h2>Runtime status</h2>
+        <pre id="status">Loading...</pre>
+      </section>
+
+      <section class="grid">
+        <article>
+          <h2>Window mode</h2>
+          <p>Default run path creates a normal WebView window from Rust.</p>
+          <code>npm run tauri dev</code>
+        </article>
+        <article>
+          <h2>Rust-only worker</h2>
+          <p>Runs before Tauri initializes; this is the true headless path.</p>
+          <code>npm run worker:once</code>
+        </article>
+        <article>
+          <h2>No-window probe</h2>
+          <p>Starts Tauri with zero windows to test display/runtime needs.</p>
+          <code>npm run headless:probe</code>
+        </article>
+        <article>
+          <h2>Runtime switch probe</h2>
+          <p>Can hide and restore a window, but the display runtime stays active.</p>
+          <button id="toggle-window" type="button">Hide for one second</button>
+          <p id="toggle-result" class="result">Window visibility only; not true headless.</p>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>
