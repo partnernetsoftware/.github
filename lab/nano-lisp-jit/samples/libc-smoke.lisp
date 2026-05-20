@@ -1,4 +1,4 @@
-; Small callable libc subset. Full libc coverage should use gen_libc_resolve.py
+; Small callable libc subset. Full libc coverage should use gen-libc-resolve
 ; with "addr" imports first, then add exact signatures for callable cases.
 (module
   (import strlen "libc" "strlen" "u64(ptr)")
