@@ -77,3 +77,4 @@
 - `aot-elf64-exit` 可把纯 VM `.lbin` 静态求值并生成 ELF。
 - `aot-elf64-code` 可把纯 VM 算术 op 编译为 x86_64 机器码 ELF。
 - `emit-elf64-obj-ret` 可生成带 section/symbol table 的 ELF64 relocatable object。
+- `emit-elf64-obj-call` 可生成带 `.rela.text` 的 ELF64 object，验证外部符号 relocation。

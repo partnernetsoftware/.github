@@ -1219,6 +1219,78 @@ static int emit_elf64_obj_ret_file(const char *out_path, const char *symbol, uin
   return ok;
 }
 
+static int emit_elf64_obj_call_file(const char *out_path, const char *local, const char *external) {
+  static const unsigned char shstr[] =
+    "\0.text\0.rela.text\0.shstrtab\0.symtab\0.strtab\0.note.GNU-stack";
+  size_t local_len = strlen(local);
+  size_t external_len = strlen(external);
+  size_t local_name = 1;
+  size_t external_name = local_name + local_len + 1;
+  size_t strtab_n = 1 + local_len + 1 + external_len + 1;
+  unsigned char text[6] = {0xe8, 0, 0, 0, 0, 0xc3};
+  unsigned char rela[24] = {0};
+  wr64(rela + 0, 1);
+  wr64(rela + 8, ((uint64_t)2 << 32) | 4);
+  wr64(rela + 16, (uint64_t)(int64_t)-4);
+
+  size_t off_text = 64;
+  size_t off_rela = align_up_size(off_text + sizeof(text), 8);
+  size_t off_shstr = off_rela + sizeof(rela);
+  size_t off_strtab = off_shstr + sizeof(shstr);
+  size_t off_symtab = align_up_size(off_strtab + strtab_n, 8);
+  size_t symtab_n = 72;
+  size_t off_shdr = align_up_size(off_symtab + symtab_n, 8);
+  size_t file_n = off_shdr + 7 * 64;
+  unsigned char *out = (unsigned char *)calloc(1, file_n);
+  if (!out) return 0;
+
+  out[0] = 0x7f;
+  out[1] = 'E';
+  out[2] = 'L';
+  out[3] = 'F';
+  out[4] = 2;
+  out[5] = 1;
+  out[6] = 1;
+  wr16(out + 16, 1);
+  wr16(out + 18, 62);
+  wr32(out + 20, 1);
+  wr64(out + 40, off_shdr);
+  wr16(out + 52, 64);
+  wr16(out + 58, 64);
+  wr16(out + 60, 7);
+  wr16(out + 62, 3);
+
+  memcpy(out + off_text, text, sizeof(text));
+  memcpy(out + off_rela, rela, sizeof(rela));
+  memcpy(out + off_shstr, shstr, sizeof(shstr));
+  out[off_strtab] = 0;
+  memcpy(out + off_strtab + local_name, local, local_len + 1);
+  memcpy(out + off_strtab + external_name, external, external_len + 1);
+
+  unsigned char *sym_local = out + off_symtab + 24;
+  wr32(sym_local + 0, (uint32_t)local_name);
+  sym_local[4] = 0x12;
+  wr16(sym_local + 6, 1);
+  wr64(sym_local + 8, 0);
+  wr64(sym_local + 16, sizeof(text));
+  unsigned char *sym_external = out + off_symtab + 48;
+  wr32(sym_external + 0, (uint32_t)external_name);
+  sym_external[4] = 0x12;
+  wr16(sym_external + 6, 0);
+
+  unsigned char *sh = out + off_shdr;
+  wr_elf64_shdr(sh + 1 * 64, 1, 1, 0x6, 0, off_text, sizeof(text), 0, 0, 16, 0);
+  wr_elf64_shdr(sh + 2 * 64, 7, 4, 0, 0, off_rela, sizeof(rela), 4, 1, 8, 24);
+  wr_elf64_shdr(sh + 3 * 64, 18, 3, 0, 0, off_shstr, sizeof(shstr), 0, 0, 1, 0);
+  wr_elf64_shdr(sh + 4 * 64, 28, 2, 0, 0, off_symtab, symtab_n, 5, 1, 8, 24);
+  wr_elf64_shdr(sh + 5 * 64, 36, 3, 0, 0, off_strtab, strtab_n, 0, 0, 1, 0);
+  wr_elf64_shdr(sh + 6 * 64, 44, 1, 0, 0, 0, 0, 0, 0, 1, 0);
+
+  int ok = write_file(out_path, out, file_n);
+  free(out);
+  return ok;
+}
+
 static int emit_elf64_exit_file(const char *out_path, uint8_t exit_code) {
   unsigned char code[12];
   memset(code, 0, sizeof(code));
@@ -1261,6 +1333,21 @@ static int cmd_emit_elf64_obj_ret(const char *out_path, const char *symbol, cons
   printf("elf64.obj.output=%s\n", out_path);
   printf("elf64.obj.symbol=%s\n", symbol);
   printf("elf64.obj.ret=%zu\n", value);
+  return 0;
+}
+
+static int cmd_emit_elf64_obj_call(const char *out_path, const char *local, const char *external) {
+  if (!local[0] || !external[0]) {
+    fprintf(stderr, "emit-elf64-obj-call=bad_args\n");
+    return 1;
+  }
+  if (!emit_elf64_obj_call_file(out_path, local, external)) {
+    fprintf(stderr, "emit-elf64-obj-call=write_fail path=%s\n", out_path);
+    return 2;
+  }
+  printf("elf64.obj.output=%s\n", out_path);
+  printf("elf64.obj.symbol=%s\n", local);
+  printf("elf64.obj.extern=%s\n", external);
   return 0;
 }
 
@@ -1569,6 +1656,7 @@ static void usage(const char *argv0) {
   fprintf(stderr, "  %s inspect-app container.com\n", argv0);
   fprintf(stderr, "  %s emit-elf64-exit output.elf exit_code\n", argv0);
   fprintf(stderr, "  %s emit-elf64-obj-ret output.o symbol value\n", argv0);
+  fprintf(stderr, "  %s emit-elf64-obj-call output.o local_symbol external_symbol\n", argv0);
   fprintf(stderr, "  %s aot-elf64-exit input.%s output.elf\n", argv0, BLOB_EXT);
   fprintf(stderr, "  %s aot-elf64-code input.%s output.elf\n", argv0, BLOB_EXT);
   fprintf(stderr, "  %s dump program.%s\n", argv0, BLOB_EXT);
@@ -1596,6 +1684,9 @@ int main(int argc, char **argv) {
   }
   if (argc >= 2 && strcmp(argv[1], "emit-elf64-obj-ret") == 0 && argc == 5) {
     return cmd_emit_elf64_obj_ret(argv[2], argv[3], argv[4]);
+  }
+  if (argc >= 2 && strcmp(argv[1], "emit-elf64-obj-call") == 0 && argc == 5) {
+    return cmd_emit_elf64_obj_call(argv[2], argv[3], argv[4]);
   }
   if (argc >= 2 && strcmp(argv[1], "aot-elf64-exit") == 0 && argc == 4) {
     return cmd_aot_elf64_exit(argv[2], argv[3]);
