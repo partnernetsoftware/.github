@@ -54,9 +54,12 @@ BUILD_DIR="$LAB_DIR/.build/nano-jit"
 NANO_C="$ROOT_DIR/lab/lispjit-ir/lispjit.c"
 ARITH_SRC="$LAB_DIR/samples/arithmetic.lisp"
 ARITH_BLOB="$BUILD_DIR/arithmetic.lbin"
+BAD_ARITH_SRC="$BUILD_DIR/arithmetic-bad.lisp"
+BAD_ARITH_BLOB="$BUILD_DIR/arithmetic-bad.lbin"
 EXIT42="$BUILD_DIR/exit42.elf"
 ARITH_EXIT="$BUILD_DIR/arithmetic-aot.elf"
 ARITH_CODE="$BUILD_DIR/arithmetic-code.elf"
+BAD_ARITH_CODE="$BUILD_DIR/arithmetic-bad-code.elf"
 SMOKE_SRC="$LAB_DIR/samples/libc-smoke.lisp"
 SMOKE_BLOB="$BUILD_DIR/libc-smoke.lbin"
 SMOKE_BLOB_REPEAT="$BUILD_DIR/libc-smoke-repeat.lbin"
@@ -67,6 +70,13 @@ REPORT="$BUILD_DIR/bootstrap-report.txt"
 
 mkdir -p "$BUILD_DIR"
 : > "$REPORT"
+cat > "$BAD_ARITH_SRC" <<'EOF'
+(module
+  (main
+    (u64 40)
+    (add-u64 2)
+    (expect 43)))
+EOF
 
 if [ ! -x "$X86_CC" ] || [ ! -x "$ARM_CC" ]; then
   echo "cosmocc=missing"
@@ -133,6 +143,9 @@ run_case "nano-jit-aot-arithmetic-elf64-exit42" "$BUILD_DIR/nano-jit.com" aot-el
 run_case "nano-jit-run-aot-arithmetic-exit42" bash -c '"$1"; status=$?; test "$status" -eq 42' _ "$ARITH_EXIT"
 run_case "nano-jit-aot-arithmetic-elf64-code42" "$BUILD_DIR/nano-jit.com" aot-elf64-code "$ARITH_BLOB" "$ARITH_CODE"
 run_case "nano-jit-run-aot-arithmetic-code42" bash -c '"$1"; status=$?; test "$status" -eq 42' _ "$ARITH_CODE"
+run_case "nano-jit-compile-bad-arithmetic" "$BUILD_DIR/nano-jit.com" compile "$BAD_ARITH_SRC" "$BAD_ARITH_BLOB"
+run_case "nano-jit-aot-bad-arithmetic-elf64-code" "$BUILD_DIR/nano-jit.com" aot-elf64-code "$BAD_ARITH_BLOB" "$BAD_ARITH_CODE"
+run_case "nano-jit-run-aot-bad-arithmetic-expect125" bash -c '"$1"; status=$?; test "$status" -eq 125' _ "$BAD_ARITH_CODE"
 run_case "nano-jit-compile-smoke-repeat" "$BUILD_DIR/nano-jit.com" compile "$SMOKE_SRC" "$SMOKE_BLOB_REPEAT"
 run_case "nano-jit-hash-smoke" "$BUILD_DIR/nano-jit.com" hash "$SMOKE_BLOB"
 run_case "nano-jit-hash-smoke-repeat" "$BUILD_DIR/nano-jit.com" hash "$SMOKE_BLOB_REPEAT"
