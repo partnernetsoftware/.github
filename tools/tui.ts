@@ -2334,7 +2334,7 @@ function enterAttach() {
   attach(state.tree[state.cursor].target);
 }
 
-// PART:tui-registry — mirror CLI_OPS / CLI_USER_OPTS
+// PART:tui-registry — TUI_PROMPTS.mirror ↔ TUI_CLI_MIRROR ↔ CLI_OPS / CLI_USER_OPTS
 
 type TuiPromptSpec = {
   key: string;
@@ -2934,6 +2934,57 @@ const CLI_OPS: Record<string, OpSpec> = {
   },
 };
 
+type TuiMirrorEntry = { key: string; help: string; needsTree?: boolean };
+
+/** TUI 快捷键 ↔ CLI 镜像（TUI_PROMPTS.mirror 须与此表一致） */
+const TUI_CLI_MIRROR: {
+  ops: Record<keyof typeof CLI_OPS, TuiMirrorEntry>;
+  userOpts: Partial<Record<keyof typeof CLI_USER_OPTS, TuiMirrorEntry>>;
+} = {
+  ops: {
+    "new-session": { key: "n", help: "n:Session" },
+    "new-window": { key: "w", help: "w:Win", needsTree: true },
+    "kill-window": { key: "d", help: "d:删", needsTree: true },
+    rename: { key: "r", help: "r:改名", needsTree: true },
+  },
+  userOpts: {
+    remark: { key: "m", help: "m:备注", needsTree: true },
+  },
+};
+
+function assertTuiCliMirror(): void {
+  for (const [op, spec] of Object.entries(TUI_CLI_MIRROR.ops) as [keyof typeof CLI_OPS, TuiMirrorEntry][]) {
+    if (!(op in CLI_OPS)) throw new Error(`TUI_CLI_MIRROR.ops 引用未知 CLI_OPS: ${op}`);
+    const p = TUI_PROMPTS.find((x) => x.mirror === op);
+    if (!p) throw new Error(`TUI_PROMPTS 缺少 mirror=${op}`);
+    if (p.key !== spec.key || p.help !== spec.help) {
+      throw new Error(`TUI_PROMPTS[${op}] 与 TUI_CLI_MIRROR 漂移 (key/help)`);
+    }
+    if (!!p.needsTree !== !!spec.needsTree) {
+      throw new Error(`TUI_PROMPTS[${op}] needsTree 与 TUI_CLI_MIRROR 不一致`);
+    }
+  }
+  for (const [opt, spec] of Object.entries(TUI_CLI_MIRROR.userOpts) as [keyof typeof CLI_USER_OPTS, TuiMirrorEntry][]) {
+    if (!(opt in CLI_USER_OPTS)) throw new Error(`TUI_CLI_MIRROR.userOpts 引用未知 CLI_USER_OPTS: ${opt}`);
+    const p = TUI_PROMPTS.find((x) => x.mirror === opt);
+    if (!p) throw new Error(`TUI_PROMPTS 缺少 mirror=${opt}`);
+    if (p.key !== spec.key || p.help !== spec.help) {
+      throw new Error(`TUI_PROMPTS[${opt}] 与 TUI_CLI_MIRROR 漂移 (key/help)`);
+    }
+    if (!!p.needsTree !== !!spec.needsTree) {
+      throw new Error(`TUI_PROMPTS[${opt}] needsTree 与 TUI_CLI_MIRROR 不一致`);
+    }
+  }
+  for (const p of TUI_PROMPTS) {
+    if (!p.mirror) throw new Error(`TUI_PROMPTS[${p.key}] 缺少 mirror（须对应 CLI_OPS / CLI_USER_OPTS）`);
+    if (!(p.mirror in CLI_OPS) && !(p.mirror in CLI_USER_OPTS)) {
+      throw new Error(`TUI_PROMPTS mirror orphan: ${p.mirror}`);
+    }
+  }
+}
+
+assertTuiCliMirror();
+
 type FleetViewSpec = {
   summary: string;
   usage: string;
@@ -3327,7 +3378,7 @@ function cliAgentInbox(ctx: CliCtx): number {
     for (let i = fromLine; i < rows.length; i++) {
       const e = rows[i];
       if (since && Date.parse(e.ts) < since) continue;
-      process.stdout.write(JSON.stringify(e) + "\n");
+      cliWriteStdout(JSON.stringify(e) + "\n");
       n = i + 1;
     }
     return n;
@@ -3369,7 +3420,7 @@ function cliAgentWait(ctx: CliCtx): number {
     for (let i = scanned; i < rows.length; i++) {
       const e = rows[i];
       if (e.corr === corr && e.kind === "reply") {
-        process.stdout.write(JSON.stringify(e) + "\n");
+        cliWriteStdout(JSON.stringify(e) + "\n");
         agentMarkRead(id, i + 1);
         return 0;
       }
@@ -3411,7 +3462,7 @@ function cliAgentList(ctx: CliCtx): number {
   }
   for (const a of agents) {
     const unread = a.unread > 0 ? `  unread:${a.unread}` : "";
-    process.stdout.write(`${a.id}  ${a.target}${unread}\n`);
+    cliWriteStdout(`${a.id}  ${a.target}${unread}\n`);
   }
   return 0;
 }
@@ -3425,7 +3476,7 @@ function cliAgentRegister(ctx: CliCtx): number {
   }
   const name = normalizeAgentName(ctx.rest[1]);
   writeAgent(node, name);
-  process.stdout.write(`agent ${name} → ${target}\n`);
+  cliWriteStdout(`agent ${name} → ${target}\n`);
   return 0;
 }
 
@@ -3437,7 +3488,7 @@ function cliAgentUnregister(ctx: CliCtx): number {
     return 2;
   }
   writeAgent(node, "");
-  process.stdout.write(`agent cleared on ${target}\n`);
+  cliWriteStdout(`agent cleared on ${target}\n`);
   return 0;
 }
 
