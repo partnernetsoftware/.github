@@ -3,9 +3,7 @@
 
 fn main() {
     if std::env::args().any(|arg| arg == "--worker-once") {
-        println!(
-            "{{\"app\":\"tauri-worker\",\"mode\":\"worker-once\",\"runtime\":\"rust-only\",\"headless\":true}}"
-        );
+        println!("{}", tauri_worker_lib::worker::worker_once_json());
         return;
     }
 

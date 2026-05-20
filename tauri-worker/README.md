@@ -21,6 +21,7 @@ npm install
 npm run tauri dev
 npm run worker:once
 npm run headless:probe
+npm run release:size
 ```
 
 ## Experiment modes
@@ -43,6 +44,16 @@ Because headless is not native, there is no smooth no-restart switch between a
 real display-free Tauri runtime and a headed WebView runtime. A running Tauri app
 can create, hide, show, or close windows, but that is only headed/windowless
 state inside the same desktop runtime.
+
+For a browser-use style worker, use the architecture in `ARCHITECTURE.md`: keep
+automation in a Tauri-free worker core and treat Tauri as an optional local
+console.
+
+## Release size
+
+On this Linux build, the optimized Tauri executable is `4,071,744 bytes` (`3.9M`).
+The docs' sub-1MB number is possible for highly minimal optimized apps, but this
+sample does not reach it.
 
 References:
 

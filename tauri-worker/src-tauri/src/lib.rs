@@ -1,15 +1,10 @@
-use serde_json::json;
 use std::time::Duration;
 
+pub mod worker;
+
 #[tauri::command]
-fn worker_status() -> serde_json::Value {
-    json!({
-        "app": "tauri-worker",
-        "tauri": "v2",
-        "headless": "probe-only",
-        "hot_switch": "window visibility only",
-        "note": "Tauri still initializes the platform runtime; use --worker-once for true headless Rust work."
-    })
+fn worker_status() -> worker::WorkerStatus {
+    worker::status()
 }
 
 #[tauri::command]
@@ -51,7 +46,6 @@ pub fn run() {
     let mode = RunMode::from_args();
 
     tauri::Builder::default()
-        .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![worker_status, hide_then_restore])
         .setup(move |app| {
             if mode == RunMode::HeadlessProbe {
