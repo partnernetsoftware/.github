@@ -11,5 +11,8 @@
     (mul-i64 -6)
     (eq-i64 42)
     (expect true)
+    (i64 -1)
+    (lt-i64 2)
+    (expect true)
     (i64 42)
     (expect 42)))
