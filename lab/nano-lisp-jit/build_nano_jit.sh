@@ -52,6 +52,7 @@ X86_CC="$COSMO_BIN/x86_64-unknown-cosmo-cc"
 ARM_CC="$COSMO_BIN/aarch64-unknown-cosmo-cc"
 BUILD_DIR="$LAB_DIR/.build/nano-jit"
 NANO_C="$ROOT_DIR/lab/lispjit-ir/lispjit.c"
+STRLEN_SRC="$LAB_DIR/samples/strlen.lisp"
 ARITH_SRC="$LAB_DIR/samples/arithmetic.lisp"
 ARITH_BLOB="$BUILD_DIR/arithmetic.lbin"
 ARITH_I64_SRC="$LAB_DIR/samples/arithmetic-i64.lisp"
@@ -115,10 +116,10 @@ cat > "$BOOTSTRAP_PLAN" <<EOF
   (run "$BUILD_DIR/bootstrap-smoke-arithmetic-i64.lbin")
   (compile "$CTRL_SRC" "$BUILD_DIR/bootstrap-smoke-control-flow.lbin")
   (run "$BUILD_DIR/bootstrap-smoke-control-flow.lbin")
-  (compile "$SRC" "$BUILD_DIR/bootstrap-smoke-strlen.lbin")
+  (compile "$STRLEN_SRC" "$BUILD_DIR/bootstrap-smoke-strlen.lbin")
   (resolve-quiet "$BUILD_DIR/bootstrap-smoke-strlen.lbin")
   (hash "$BUILD_DIR/bootstrap-smoke-strlen.lbin")
-  (compile "$SRC" "$BUILD_DIR/bootstrap-smoke-strlen-repeat.lbin")
+  (compile "$STRLEN_SRC" "$BUILD_DIR/bootstrap-smoke-strlen-repeat.lbin")
   (compare "$BUILD_DIR/bootstrap-smoke-strlen.lbin" "$BUILD_DIR/bootstrap-smoke-strlen-repeat.lbin")
   (run "$BUILD_DIR/bootstrap-smoke-strlen.lbin")
   (compile "$TYPED_SRC" "$BUILD_DIR/bootstrap-smoke-typed-values.lbin")
