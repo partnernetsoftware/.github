@@ -145,6 +145,7 @@ bootstrap DSL 也能描述一条最小 AOT/codegen/tiny-link 构建图，不需�
 (bootstrap
   (compile "lab/nano-lisp-jit/samples/arithmetic.lisp" "lab/nano-lisp-jit/.build/bootstrap-aot-arithmetic.lbin")
   (aot-elf64-code "lab/nano-lisp-jit/.build/bootstrap-aot-arithmetic.lbin" "lab/nano-lisp-jit/.build/bootstrap-aot-arithmetic-code.elf")
+  (file-size "lab/nano-lisp-jit/.build/bootstrap-aot-arithmetic-code.elf")
   (run-expect-exit "lab/nano-lisp-jit/.build/bootstrap-aot-arithmetic-code.elf" 42)
   (compile "lab/nano-lisp-jit/samples/arithmetic-bad.lisp" "lab/nano-lisp-jit/.build/bootstrap-aot-arithmetic-bad.lbin")
   (aot-elf64-code "lab/nano-lisp-jit/.build/bootstrap-aot-arithmetic-bad.lbin" "lab/nano-lisp-jit/.build/bootstrap-aot-arithmetic-bad-code.elf")
