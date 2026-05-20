@@ -41,4 +41,4 @@ bash lab/nano-listp/build_nano_ape.sh
 
 `build_cosmo.sh` 输出 `lab/nano-listp/.build/nano-listp.com`，包含 x86_64 和 aarch64 APE 切片。
 默认构建使用 `-mtiny`、section GC 和禁用 unwind/stack protector 的 size profile；当前实测 `nano-listp.com` 约 462KB。
-`build_nano_ape.sh` 使用仓库内 `nano_apelink.py` 打包 x86_64/aarch64 ELF，不调用 `cosmocc` 的 `apelink`；这是后续替换完整 APE loader 的 stage0。
+`build_nano_ape.sh` 使用刚编出的 `nano-listp` 自身执行 `pack-ape`，打包 x86_64/aarch64 ELF，不调用 `cosmocc` 的 `apelink`；`nano_apelink.py` 仅保留作参考实现。
