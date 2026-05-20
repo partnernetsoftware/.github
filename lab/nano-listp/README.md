@@ -78,6 +78,19 @@ typed value 现在支持最小 `i64 / bool / ptr`：
       (expect -7))))
 ```
 
+多函数 object backend 当前支持最小内部 call relocation：
+
+```lisp
+(module
+  (func helper
+    (u64 40)
+    (add-u64 2))
+  (main
+    (call helper)
+    (add-u64 1)
+    (expect 43)))
+```
+
 ## 当前能力
 
 - `compile`：解析 `.lisp`，输出 `.lbin` portable blob。
@@ -94,11 +107,13 @@ typed value 现在支持最小 `i64 / bool / ptr`：
 - `aot-elf64-code`：把纯 VM 算术 op 编译成 x86_64 机器码 ELF。
 - `aot-elf64-obj-code`：把纯 VM 算术 op 编译成可链接的 ELF64 function object。
 - `compile-elf64-code` / `compile-elf64-obj-code`：直接从 `.lisp` 生成 ELF 或 object，减少外部脚本胶水。
+- `compile-elf64-obj-code` 当前已支持多函数纯 VM 子集、内部 `call` 和基础 relocation 生成。
 - `link-elf64-exe`：链接当前 nano object 子集，输出可运行 x86_64 ELF。
 - `hash`：输出 `.lbin` 的内建 FNV-1a 64-bit hash，用于 deterministic 编译测试。
 - `(expect N)` / `(expect -N)` / `(expect true|false)` / `(expect null|nonnull)`：在 `.lbin` 内断言上一条结果，失败时 runtime 返回非零。
 - `(u64 N)` / `(add-u64 N)` / `(i64 N)` / `(bool true|false)`：最小 typed VM 内核，不依赖 FFI。
 - `block` / `branch label` / `label`：最小解释执行控制流；当前 AOT 仍只支持线性纯 VM 子集，遇到分支会明确报 `unsupported_blob`。
+- `func` + `main`：当前仅在 `compile-elf64-obj-code` 的纯 VM AOT source 路径支持；helper 函数默认生成为 object 内部 local symbol。
 - `pack-app`：把 runtime slices 和 `.lbin` 打进一个多架构 `.com` 应用，运行时直接从自身容器执行内嵌 blob。
 - 当前签名：`addr`、`u64(ptr)`、`i32(ptr)`、`i32(ptr,ptr)`、`i32()`、`i32(i32)`。
 - `u64(ptr)` 仍走 x86_64/aarch64 JIT call stub；其他安全 smoke 签名先用 typed C call。

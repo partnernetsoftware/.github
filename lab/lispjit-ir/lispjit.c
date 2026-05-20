@@ -69,6 +69,11 @@ extern void *cosmo_dlsym(void *handle, const char *symbol);
 #define SRC_FORM_BRANCH 11u
 #define SRC_FORM_LABEL 12u
 
+#define AOT_STMT_CONST_U64 1u
+#define AOT_STMT_ADD_U64 2u
+#define AOT_STMT_EXPECT_U64 3u
+#define AOT_STMT_CALL_FUNC 4u
+
 typedef uint64_t (*jit_entry_fn)(void);
 typedef int (*ffi_i32_ptr_fn)(const char *);
 typedef int (*ffi_i32_ptr_ptr_fn)(const char *, const char *);
@@ -106,6 +111,31 @@ typedef struct {
   size_t instr_count;
   size_t instr_cap;
 } Module;
+
+typedef struct {
+  uint32_t kind;
+  uint64_t imm;
+  char *target_name;
+} AotStmt;
+
+typedef struct {
+  char *name;
+  int is_global;
+  AotStmt *stmts;
+  size_t stmt_count;
+  size_t stmt_cap;
+} AotFunc;
+
+typedef struct {
+  AotFunc *funcs;
+  size_t func_count;
+  size_t func_cap;
+} AotModule;
+
+typedef struct {
+  uint32_t patch_off;
+  const char *target_name;
+} AotCallPatch;
 
 typedef struct {
   unsigned char *data;
@@ -303,6 +333,14 @@ static uint32_t add_string(Buf *strings, const char *s) {
   return off;
 }
 
+static char *dup_cstr(const char *s) {
+  size_t n = strlen(s) + 1;
+  char *out = (char *)malloc(n);
+  if (!out) return NULL;
+  memcpy(out, s, n);
+  return out;
+}
+
 static unsigned char *read_file(const char *path, size_t *out_size) {
   FILE *f = fopen(path, "rb");
   if (!f) return NULL;
@@ -437,6 +475,17 @@ static void module_free(Module *m) {
   free(m->instrs);
 }
 
+static void aot_module_free(AotModule *m) {
+  for (size_t i = 0; i < m->func_count; ++i) {
+    free(m->funcs[i].name);
+    for (size_t j = 0; j < m->funcs[i].stmt_count; ++j) {
+      free(m->funcs[i].stmts[j].target_name);
+    }
+    free(m->funcs[i].stmts);
+  }
+  free(m->funcs);
+}
+
 static int add_import(Module *m, char *name, char *lib, char *symbol, char *sig) {
   uint32_t sig_id = parse_sig_id(sig);
   if (sig_id == UINT32_MAX) {
@@ -477,6 +526,30 @@ static int add_instr(Module *m, uint32_t form, char *import_name, char *const_na
     m->instr_cap = next;
   }
   m->instrs[m->instr_count++] = (InstrDef){form, import_name, const_name, const2_name, imm};
+  return 1;
+}
+
+static AotFunc *aot_add_func(AotModule *m, char *name, int is_global) {
+  if (m->func_count == m->func_cap) {
+    size_t next = m->func_cap ? m->func_cap * 2 : 4;
+    AotFunc *p = (AotFunc *)realloc(m->funcs, next * sizeof(*p));
+    if (!p) return NULL;
+    m->funcs = p;
+    m->func_cap = next;
+  }
+  m->funcs[m->func_count] = (AotFunc){name, is_global, NULL, 0, 0};
+  return &m->funcs[m->func_count++];
+}
+
+static int aot_add_stmt(AotFunc *f, uint32_t kind, uint64_t imm, char *target_name) {
+  if (f->stmt_count == f->stmt_cap) {
+    size_t next = f->stmt_cap ? f->stmt_cap * 2 : 8;
+    AotStmt *p = (AotStmt *)realloc(f->stmts, next * sizeof(*p));
+    if (!p) return 0;
+    f->stmts = p;
+    f->stmt_cap = next;
+  }
+  f->stmts[f->stmt_count++] = (AotStmt){kind, imm, target_name};
   return 1;
 }
 
@@ -526,6 +599,99 @@ static int parse_expect_ptr_atom(const char *s, int *out) {
     return 1;
   }
   return 0;
+}
+
+static int aot_find_func(const AotModule *m, const char *name) {
+  for (size_t i = 0; i < m->func_count; ++i) {
+    if (strcmp(m->funcs[i].name, name) == 0) return (int)i;
+  }
+  return -1;
+}
+
+static int parse_aot_body_items(const char **p, AotFunc *f) {
+  while (1) {
+    skip_ws(p);
+    if (**p == ')') {
+      (*p)++;
+      return f->stmt_count > 0;
+    }
+    if (!eat(p, '(')) return 0;
+    char *head = parse_atom(p);
+    if (!head) return 0;
+    int ok = 0;
+    if (strcmp(head, "block") == 0) {
+      ok = parse_aot_body_items(p, f);
+      free(head);
+      if (!ok) return 0;
+      continue;
+    }
+    if (strcmp(head, "u64") == 0 || strcmp(head, "add-u64") == 0 ||
+        strcmp(head, "expect") == 0) {
+      char *value = parse_atom(p);
+      uint64_t imm = 0;
+      uint32_t kind = strcmp(head, "u64") == 0 ? AOT_STMT_CONST_U64 :
+                      strcmp(head, "add-u64") == 0 ? AOT_STMT_ADD_U64 :
+                      AOT_STMT_EXPECT_U64;
+      ok = value && parse_u64_atom(value, &imm) && eat(p, ')') &&
+           aot_add_stmt(f, kind, imm, NULL);
+      free(value);
+    } else if (strcmp(head, "call") == 0) {
+      char *target = parse_atom(p);
+      skip_ws(p);
+      ok = target && **p == ')' && eat(p, ')') &&
+           aot_add_stmt(f, AOT_STMT_CALL_FUNC, 0, target);
+      if (!ok) free(target);
+    }
+    free(head);
+    if (!ok) return 0;
+  }
+}
+
+static int parse_aot_module(const char *src, AotModule *m) {
+  const char *p = src;
+  int saw_main = 0;
+  if (!eat(&p, '(')) return 0;
+  char *module = parse_atom(&p);
+  if (!module || strcmp(module, "module") != 0) {
+    free(module);
+    return 0;
+  }
+  free(module);
+  while (1) {
+    skip_ws(&p);
+    if (*p == ')') {
+      p++;
+      skip_ws(&p);
+      return *p == 0 && saw_main;
+    }
+    if (!eat(&p, '(')) return 0;
+    char *head = parse_atom(&p);
+    char *name = NULL;
+    AotFunc *func = NULL;
+    int ok = 0;
+    if (!head) return 0;
+    if (strcmp(head, "main") == 0) {
+      if (saw_main || aot_find_func(m, "main") >= 0) {
+        free(head);
+        return 0;
+      }
+      name = dup_cstr("main");
+      func = name ? aot_add_func(m, name, 1) : NULL;
+      ok = func && parse_aot_body_items(&p, func);
+      saw_main = ok;
+    } else if (strcmp(head, "func") == 0) {
+      name = parse_atom(&p);
+      if (!name || !name[0] || aot_find_func(m, name) >= 0 || strcmp(name, "main") == 0) {
+        free(name);
+        free(head);
+        return 0;
+      }
+      func = aot_add_func(m, name, 0);
+      ok = func && parse_aot_body_items(&p, func);
+    }
+    free(head);
+    if (!ok) return 0;
+  }
 }
 
 static int parse_import_form(const char **p, Module *m) {
@@ -1799,6 +1965,11 @@ static const char *elf_sym_name(const ElfObj *o, size_t idx) {
   return sym ? elf_str(o->strtab, o->strtab_size, rd32(sym)) : NULL;
 }
 
+static uint8_t elf_sym_binding(const ElfObj *o, size_t idx) {
+  const unsigned char *sym = elf_sym_row(o, idx);
+  return sym ? (uint8_t)(sym[4] >> 4) : 0;
+}
+
 static uint16_t elf_sym_shndx(const ElfObj *o, size_t idx) {
   const unsigned char *sym = elf_sym_row(o, idx);
   return sym ? rd16(sym + 6) : 0;
@@ -1908,7 +2079,8 @@ static int link_add_text_symbols(const ElfObj *o, size_t obj_idx, LinkSym **syms
   for (size_t s = 1; s < o->sym_count; ++s) {
     const char *name = elf_sym_name(o, s);
     uint64_t existing = 0;
-    if (elf_sym_shndx(o, s) != o->text_idx || !name || !name[0]) continue;
+    if (elf_sym_shndx(o, s) != o->text_idx || elf_sym_binding(o, s) == 0 ||
+        !name || !name[0]) continue;
     if (link_find_sym(*syms, *sym_count, name, &existing)) {
       fprintf(stderr, "link-elf64-exe=duplicate_symbol symbol=%s\n", name);
       return 0;
@@ -1942,10 +2114,18 @@ static int link_apply_relocations(Buf *code, const ElfObj *o, const LinkSym *sym
       fprintf(stderr, "link-elf64-exe=unsupported_reloc\n");
       return 0;
     }
-    name = elf_sym_name(o, sym_idx);
-    if (!name || !link_find_sym(syms, sym_count, name, &target)) {
-      fprintf(stderr, "link-elf64-exe=symbol_missing symbol=%s\n", name ? name : "?");
-      return 0;
+    if (elf_sym_binding(o, sym_idx) == 0) {
+      if (elf_sym_shndx(o, sym_idx) != o->text_idx) {
+        fprintf(stderr, "link-elf64-exe=unsupported_local_reloc\n");
+        return 0;
+      }
+      target = ELF64_EXEC_BASE + ELF64_EXEC_CODE_OFF + o->out_off + elf_sym_value(o, sym_idx);
+    } else {
+      name = elf_sym_name(o, sym_idx);
+      if (!name || !link_find_sym(syms, sym_count, name, &target)) {
+        fprintf(stderr, "link-elf64-exe=symbol_missing symbol=%s\n", name ? name : "?");
+        return 0;
+      }
     }
     uint64_t place = ELF64_EXEC_BASE + ELF64_EXEC_CODE_OFF + o->out_off + r_off;
     int64_t rel = (int64_t)target + addend - (int64_t)place;
@@ -2291,6 +2471,139 @@ static int compile_pure_u64_blob_to_x86_ret(const Blob *b, Buf *code) {
   return saw_ret;
 }
 
+static void free_buf_array(Buf *bufs, size_t count) {
+  if (!bufs) return;
+  for (size_t i = 0; i < count; ++i) free(bufs[i].data);
+  free(bufs);
+}
+
+static int compile_aot_func_to_x86_ret(const AotFunc *func, Buf *code, Buf *call_patches) {
+  int saw_ret = 0;
+  Buf expect_patches = {0};
+  for (size_t i = 0; i < func->stmt_count; ++i) {
+    const AotStmt *stmt = &func->stmts[i];
+    if (stmt->imm > UINT32_MAX) {
+      free(expect_patches.data);
+      return 0;
+    }
+    if (stmt->kind == AOT_STMT_CONST_U64) {
+      unsigned char mov_eax[5] = {0xb8, 0, 0, 0, 0};
+      wr32(mov_eax + 1, (uint32_t)stmt->imm);
+      buf_put(code, mov_eax, sizeof(mov_eax));
+    } else if (stmt->kind == AOT_STMT_ADD_U64) {
+      unsigned char add_eax[5] = {0x05, 0, 0, 0, 0};
+      wr32(add_eax + 1, (uint32_t)stmt->imm);
+      buf_put(code, add_eax, sizeof(add_eax));
+    } else if (stmt->kind == AOT_STMT_EXPECT_U64) {
+      unsigned char cmp_eax[5] = {0x3d, 0, 0, 0, 0};
+      unsigned char jne_fail[6] = {0x0f, 0x85, 0, 0, 0, 0};
+      uint32_t patch_off = (uint32_t)(code->len + sizeof(cmp_eax) + 2);
+      wr32(cmp_eax + 1, (uint32_t)stmt->imm);
+      buf_put(code, cmp_eax, sizeof(cmp_eax));
+      buf_put(code, jne_fail, sizeof(jne_fail));
+      buf_put32(&expect_patches, patch_off);
+    } else if (stmt->kind == AOT_STMT_CALL_FUNC) {
+      unsigned char call_rel32[5] = {0xe8, 0, 0, 0, 0};
+      AotCallPatch patch = {(uint32_t)(code->len + 1), stmt->target_name};
+      buf_put(code, call_rel32, sizeof(call_rel32));
+      buf_put(call_patches, &patch, sizeof(patch));
+    } else {
+      free(expect_patches.data);
+      return 0;
+    }
+  }
+  if (func->stmt_count) {
+    unsigned char ret = 0xc3;
+    buf_put(code, &ret, 1);
+    saw_ret = 1;
+  }
+  if (saw_ret && expect_patches.len) {
+    size_t fail_off = code->len;
+    unsigned char fail_ret[6] = {0xb8, 125, 0, 0, 0, 0xc3};
+    buf_put(code, fail_ret, sizeof(fail_ret));
+    for (size_t i = 0; i < expect_patches.len; i += 4) {
+      uint32_t patch_off = rd32(expect_patches.data + i);
+      int64_t rel = (int64_t)fail_off - (int64_t)(patch_off + 4);
+      wr32(code->data + patch_off, (uint32_t)(int32_t)rel);
+    }
+  }
+  free(expect_patches.data);
+  return saw_ret;
+}
+
+static int compile_aot_module_to_elf64_obj(const AotModule *m, const char *out_path,
+                                           const char *entry_symbol) {
+  Buf *codes = NULL;
+  Buf *call_patches = NULL;
+  size_t *text_offs = NULL;
+  uint32_t *func_sym_idx = NULL;
+  Elf64ObjSymbol *syms = NULL;
+  Elf64ObjRela *relas = NULL;
+  Buf text = {0};
+  size_t local_count = 0;
+  size_t rela_count = 0;
+  int ok = 0;
+
+  if (!entry_symbol[0] || !m->func_count) return 0;
+  for (size_t i = 0; i < m->func_count; ++i) {
+    if (m->funcs[i].is_global) continue;
+    local_count++;
+    if (strcmp(m->funcs[i].name, entry_symbol) == 0) return 0;
+  }
+
+  codes = (Buf *)calloc(m->func_count, sizeof(*codes));
+  call_patches = (Buf *)calloc(m->func_count, sizeof(*call_patches));
+  text_offs = (size_t *)calloc(m->func_count, sizeof(*text_offs));
+  func_sym_idx = (uint32_t *)calloc(m->func_count, sizeof(*func_sym_idx));
+  syms = (Elf64ObjSymbol *)calloc(m->func_count, sizeof(*syms));
+  if (!codes || !call_patches || !text_offs || !func_sym_idx || !syms) goto done;
+
+  for (size_t i = 0; i < m->func_count; ++i) {
+    if (!compile_aot_func_to_x86_ret(&m->funcs[i], &codes[i], &call_patches[i])) goto done;
+    text_offs[i] = text.len;
+    buf_put(&text, codes[i].data, codes[i].len);
+  }
+
+  for (size_t i = 0, next = 1; i < m->func_count; ++i) {
+    if (m->funcs[i].is_global) continue;
+    syms[next - 1] = (Elf64ObjSymbol){m->funcs[i].name, 0x02, 1, text_offs[i], codes[i].len};
+    func_sym_idx[i] = (uint32_t)next++;
+  }
+  for (size_t i = 0, next = (uint32_t)local_count + 1; i < m->func_count; ++i) {
+    if (!m->funcs[i].is_global) continue;
+    syms[next - 1] = (Elf64ObjSymbol){entry_symbol, 0x12, 1, text_offs[i], codes[i].len};
+    func_sym_idx[i] = (uint32_t)next++;
+  }
+
+  for (size_t i = 0; i < m->func_count; ++i) {
+    rela_count += call_patches[i].len / sizeof(AotCallPatch);
+  }
+  relas = rela_count ? (Elf64ObjRela *)calloc(rela_count, sizeof(*relas)) : NULL;
+  if (rela_count && !relas) goto done;
+
+  for (size_t i = 0, rela_idx = 0; i < m->func_count; ++i) {
+    for (size_t off = 0; off < call_patches[i].len; off += sizeof(AotCallPatch), rela_idx++) {
+      const AotCallPatch *patch = (const AotCallPatch *)(call_patches[i].data + off);
+      int target_idx = aot_find_func(m, patch->target_name);
+      if (target_idx < 0) goto done;
+      relas[rela_idx] =
+        (Elf64ObjRela){text_offs[i] + patch->patch_off, func_sym_idx[target_idx], 4, -4};
+    }
+  }
+
+  ok = emit_elf64_obj_file(out_path, text.data, text.len, syms, m->func_count, relas, rela_count);
+
+done:
+  free_buf_array(codes, m->func_count);
+  free_buf_array(call_patches, m->func_count);
+  free(text.data);
+  free(text_offs);
+  free(func_sym_idx);
+  free(syms);
+  free(relas);
+  return ok;
+}
+
 static int cmd_aot_elf64_code(const char *blob_path, const char *out_path) {
   Blob b;
   unsigned char *owned = NULL;
@@ -2381,36 +2694,30 @@ static int cmd_aot_elf64_obj_code(const char *blob_path, const char *out_path,
 
 static int cmd_compile_elf64_obj_code(const char *src_path, const char *out_path,
                                       const char *symbol) {
-  size_t blob_n = 0;
-  unsigned char *blob_data = compile_source_path_to_blob(src_path, &blob_n);
-  Blob b;
-  Buf code = {0};
+  size_t src_n = 0;
+  unsigned char *src = read_file(src_path, &src_n);
+  AotModule m = {0};
   if (!symbol[0]) {
     fprintf(stderr, "compile-elf64-obj-code=bad_symbol\n");
-    free(blob_data);
     return 1;
   }
-  if (!blob_data || !blob_init(&b, blob_data, blob_n)) {
+  if (!src || !parse_aot_module((const char *)src, &m)) {
     fprintf(stderr, "compile-elf64-obj-code=compile_fail\n");
-    free(blob_data);
+    free(src);
+    aot_module_free(&m);
     return 1;
   }
-  int ok = compile_pure_u64_blob_to_x86_ret(&b, &code);
-  free(blob_data);
-  if (!ok) {
-    free(code.data);
+  if (!compile_aot_module_to_elf64_obj(&m, out_path, symbol)) {
     fprintf(stderr, "compile-elf64-obj-code=unsupported_source\n");
+    free(src);
+    aot_module_free(&m);
     return 2;
   }
-  if (!emit_elf64_obj_text_file(out_path, symbol, code.data, code.len)) {
-    free(code.data);
-    fprintf(stderr, "compile-elf64-obj-code=write_fail path=%s\n", out_path);
-    return 3;
-  }
+  free(src);
+  aot_module_free(&m);
   printf("compile.obj.code.output=%s\n", out_path);
   printf("compile.obj.code.symbol=%s\n", symbol);
-  printf("compile.obj.code.x86.bytes=%zu\n", code.len);
-  free(code.data);
+  printf("compile.obj.code.mode=multi-func\n");
   return 0;
 }
 

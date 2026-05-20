@@ -58,6 +58,7 @@ TYPED_SRC="$LAB_DIR/samples/typed-values.lisp"
 TYPED_BLOB="$BUILD_DIR/typed-values.lbin"
 CTRL_SRC="$LAB_DIR/samples/control-flow.lisp"
 CTRL_BLOB="$BUILD_DIR/control-flow.lbin"
+MULTI_SRC="$LAB_DIR/samples/multi-func.lisp"
 BAD_ARITH_SRC="$BUILD_DIR/arithmetic-bad.lisp"
 BAD_ARITH_BLOB="$BUILD_DIR/arithmetic-bad.lbin"
 EXIT42="$BUILD_DIR/exit42.elf"
@@ -65,6 +66,10 @@ ARITH_EXIT="$BUILD_DIR/arithmetic-aot.elf"
 ARITH_CODE="$BUILD_DIR/arithmetic-code.elf"
 BAD_ARITH_CODE="$BUILD_DIR/arithmetic-bad-code.elf"
 CTRL_CODE="$BUILD_DIR/control-flow-code.elf"
+MULTI_OBJ="$BUILD_DIR/multi_func.o"
+MULTI_C="$BUILD_DIR/multi_func_main.c"
+MULTI_EXE="$BUILD_DIR/multi_func"
+MULTI_LINK_EXE="$BUILD_DIR/multi_func_linked"
 RET42_OBJ="$BUILD_DIR/nano_ret42.o"
 RET42_C="$BUILD_DIR/nano_ret42_main.c"
 RET42_EXE="$BUILD_DIR/nano_ret42"
@@ -133,6 +138,12 @@ int nano_ext(void) {
 extern int nano_call(void);
 int main(void) {
   return nano_call();
+}
+EOF
+cat > "$MULTI_C" <<'EOF'
+extern int nano_multi_entry(void);
+int main(void) {
+  return nano_multi_entry();
 }
 EOF
 
@@ -225,6 +236,11 @@ run_case "nano-jit-run-direct-compiled-arithmetic42" bash -c '"$1"; status=$?; t
 run_case "nano-jit-compile-arithmetic-elf64-obj-code42" "$BUILD_DIR/nano-jit.com" compile-elf64-obj-code "$ARITH_SRC" "$ARITH_DIRECT_OBJ" nano_arith_direct
 run_case "nano-jit-link-direct-compiled-arithmetic-obj42" cc "$ARITH_DIRECT_OBJ_C" "$ARITH_DIRECT_OBJ" -o "$ARITH_DIRECT_OBJ_EXE"
 run_case "nano-jit-run-direct-compiled-arithmetic-obj42" bash -c '"$1"; status=$?; test "$status" -eq 42' _ "$ARITH_DIRECT_OBJ_EXE"
+run_case "nano-jit-compile-multi-func-elf64-obj43" "$BUILD_DIR/nano-jit.com" compile-elf64-obj-code "$MULTI_SRC" "$MULTI_OBJ" nano_multi_entry
+run_case "nano-jit-link-multi-func-obj43" cc "$MULTI_C" "$MULTI_OBJ" -o "$MULTI_EXE"
+run_case "nano-jit-run-multi-func-obj43" bash -c '"$1"; status=$?; test "$status" -eq 43' _ "$MULTI_EXE"
+run_case "nano-jit-tiny-link-multi-func-obj43" "$BUILD_DIR/nano-jit.com" link-elf64-exe "$MULTI_LINK_EXE" nano_multi_entry "$MULTI_OBJ"
+run_case "nano-jit-run-tiny-linked-multi-func43" bash -c '"$1"; status=$?; test "$status" -eq 43' _ "$MULTI_LINK_EXE"
 run_case "nano-jit-emit-elf64-obj-call42" "$BUILD_DIR/nano-jit.com" emit-elf64-obj-call "$CALL42_OBJ" nano_call nano_ext
 run_case "nano-jit-link-elf64-obj-call42" cc "$CALL42_C" "$CALL42_OBJ" -o "$CALL42_EXE"
 run_case "nano-jit-run-elf64-obj-call42" bash -c '"$1"; status=$?; test "$status" -eq 42' _ "$CALL42_EXE"

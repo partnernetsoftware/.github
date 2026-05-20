@@ -8,6 +8,7 @@ SRC="$LAB_DIR/samples/strlen.lisp"
 ARITH_SRC="$LAB_DIR/samples/arithmetic.lisp"
 TYPED_SRC="$LAB_DIR/samples/typed-values.lisp"
 CTRL_SRC="$LAB_DIR/samples/control-flow.lisp"
+MULTI_SRC="$LAB_DIR/samples/multi-func.lisp"
 SMOKE_SRC="$LAB_DIR/samples/libc-smoke.lisp"
 BLOB="$BUILD_DIR/strlen.lbin"
 BLOB_REPEAT="$BUILD_DIR/strlen-repeat.lbin"
@@ -17,6 +18,10 @@ CTRL_BLOB="$BUILD_DIR/control-flow.lbin"
 BAD_ARITH_SRC="$BUILD_DIR/arithmetic-bad.lisp"
 BAD_ARITH_BLOB="$BUILD_DIR/arithmetic-bad.lbin"
 CTRL_CODE="$BUILD_DIR/control-flow-code.elf"
+MULTI_OBJ="$BUILD_DIR/multi_func.o"
+MULTI_C="$BUILD_DIR/multi_func_main.c"
+MULTI_EXE="$BUILD_DIR/multi_func"
+MULTI_LINK_EXE="$BUILD_DIR/multi_func_linked"
 SMOKE_BLOB="$BUILD_DIR/libc-smoke.lbin"
 LIBC_SRC="$BUILD_DIR/libc-resolve.lisp"
 LIBC_BLOB="$BUILD_DIR/libc-resolve.lbin"
@@ -90,6 +95,12 @@ int main(void) {
   return nano_call();
 }
 EOF
+cat > "$MULTI_C" <<'EOF'
+extern int nano_multi_entry(void);
+int main(void) {
+  return nano_multi_entry();
+}
+EOF
 
 log() {
   printf '%s\n' "$*" | tee -a "$RESULTS"
@@ -119,6 +130,8 @@ log "typed.source.path=$TYPED_SRC"
 log "typed.source.bytes=$(bytes_of "$TYPED_SRC")"
 log "control.source.path=$CTRL_SRC"
 log "control.source.bytes=$(bytes_of "$CTRL_SRC")"
+log "multi.source.path=$MULTI_SRC"
+log "multi.source.bytes=$(bytes_of "$MULTI_SRC")"
 log "smoke.source.path=$SMOKE_SRC"
 log "smoke.source.bytes=$(bytes_of "$SMOKE_SRC")"
 
@@ -193,6 +206,13 @@ if [ "$(uname -m)" = "x86_64" ] || [ "$(uname -m)" = "amd64" ]; then
   run_case "compile-arithmetic-elf64-obj-code42" "$RUNNER" compile-elf64-obj-code "$ARITH_SRC" "$ARITH_DIRECT_OBJ" nano_arith_direct
   run_case "link-direct-compiled-arithmetic-obj42" cc "$ARITH_DIRECT_OBJ_C" "$ARITH_DIRECT_OBJ" -o "$ARITH_DIRECT_OBJ_EXE"
   run_case "run-direct-compiled-arithmetic-obj42" bash -c '"$1"; status=$?; test "$status" -eq 42' _ "$ARITH_DIRECT_OBJ_EXE"
+  run_case "compile-multi-func-elf64-obj43" "$RUNNER" compile-elf64-obj-code "$MULTI_SRC" "$MULTI_OBJ" nano_multi_entry
+  log "multi.obj.bytes=$(bytes_of "$MULTI_OBJ")"
+  run_case "link-multi-func-obj43" cc "$MULTI_C" "$MULTI_OBJ" -o "$MULTI_EXE"
+  run_case "run-multi-func-obj43" bash -c '"$1"; status=$?; test "$status" -eq 43' _ "$MULTI_EXE"
+  run_case "tiny-link-multi-func-obj43" "$RUNNER" link-elf64-exe "$MULTI_LINK_EXE" nano_multi_entry "$MULTI_OBJ"
+  log "multi.tiny.link.bytes=$(bytes_of "$MULTI_LINK_EXE")"
+  run_case "run-tiny-linked-multi-func43" bash -c '"$1"; status=$?; test "$status" -eq 43' _ "$MULTI_LINK_EXE"
   run_case "emit-elf64-obj-call42" "$RUNNER" emit-elf64-obj-call "$CALL42_OBJ" nano_call nano_ext
   log "call42.obj.bytes=$(bytes_of "$CALL42_OBJ")"
   run_case "link-elf64-obj-call42" cc "$CALL42_C" "$CALL42_OBJ" -o "$CALL42_EXE"
