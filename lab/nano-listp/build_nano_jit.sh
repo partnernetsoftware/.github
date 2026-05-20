@@ -71,6 +71,8 @@ ARITH_CODE_OBJ_C="$BUILD_DIR/arithmetic_code_obj_main.c"
 ARITH_CODE_OBJ_EXE="$BUILD_DIR/arithmetic_code_obj"
 ARITH_LINK_EXE="$BUILD_DIR/arithmetic_linked"
 CALL42_OBJ="$BUILD_DIR/nano_call42.o"
+CALL42_CALLEE_OBJ="$BUILD_DIR/nano_ext42.o"
+CALL42_LINK_EXE="$BUILD_DIR/nano_call42_linked"
 CALL42_C="$BUILD_DIR/nano_call42_main.c"
 CALL42_EXE="$BUILD_DIR/nano_call42"
 SMOKE_SRC="$LAB_DIR/samples/libc-smoke.lisp"
@@ -200,6 +202,9 @@ run_case "nano-jit-run-tiny-linked-arithmetic42" bash -c '"$1"; status=$?; test 
 run_case "nano-jit-emit-elf64-obj-call42" "$BUILD_DIR/nano-jit.com" emit-elf64-obj-call "$CALL42_OBJ" nano_call nano_ext
 run_case "nano-jit-link-elf64-obj-call42" cc "$CALL42_C" "$CALL42_OBJ" -o "$CALL42_EXE"
 run_case "nano-jit-run-elf64-obj-call42" bash -c '"$1"; status=$?; test "$status" -eq 42' _ "$CALL42_EXE"
+run_case "nano-jit-emit-elf64-obj-callee42" "$BUILD_DIR/nano-jit.com" emit-elf64-obj-ret "$CALL42_CALLEE_OBJ" nano_ext 42
+run_case "nano-jit-tiny-link-elf64-obj-call42" "$BUILD_DIR/nano-jit.com" link-elf64-exe "$CALL42_LINK_EXE" nano_call "$CALL42_OBJ" "$CALL42_CALLEE_OBJ"
+run_case "nano-jit-run-tiny-linked-call42" bash -c '"$1"; status=$?; test "$status" -eq 42' _ "$CALL42_LINK_EXE"
 run_case "nano-jit-compile-smoke-repeat" "$BUILD_DIR/nano-jit.com" compile "$SMOKE_SRC" "$SMOKE_BLOB_REPEAT"
 run_case "nano-jit-hash-smoke" "$BUILD_DIR/nano-jit.com" hash "$SMOKE_BLOB"
 run_case "nano-jit-hash-smoke-repeat" "$BUILD_DIR/nano-jit.com" hash "$SMOKE_BLOB_REPEAT"
