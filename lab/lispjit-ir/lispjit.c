@@ -1222,36 +1222,63 @@ static int cmd_aot_elf64_exit(const char *blob_path, const char *out_path) {
 }
 
 static int compile_pure_u64_blob_to_x86_exit(const Blob *b, Buf *code) {
-  uint64_t last = 0;
   int saw_ret = 0;
+  Buf expect_patches = {0};
   for (uint32_t pc = 0; pc < b->instr_count; ++pc) {
     const unsigned char *ins = instr_row(b, pc);
-    if (!ins) return 0;
+    if (!ins) {
+      free(expect_patches.data);
+      return 0;
+    }
     uint8_t op = ins[0];
     uint32_t arg0 = rd32(ins + 4);
     uint32_t arg1 = rd32(ins + 8);
     uint64_t imm = (uint64_t)arg0 | ((uint64_t)arg1 << 32);
+    if (imm > UINT32_MAX) {
+      free(expect_patches.data);
+      return 0;
+    }
     if (op == OP_CONST_U64) {
       unsigned char mov_edi[5] = {0xbf, 0, 0, 0, 0};
       wr32(mov_edi + 1, (uint32_t)imm);
       buf_put(code, mov_edi, sizeof(mov_edi));
-      last = imm;
     } else if (op == OP_ADD_U64) {
       unsigned char add_edi[6] = {0x81, 0xc7, 0, 0, 0, 0};
       wr32(add_edi + 2, (uint32_t)imm);
       buf_put(code, add_edi, sizeof(add_edi));
-      last += imm;
     } else if (op == OP_EXPECT_U64) {
-      if (last != imm) return 0;
+      unsigned char cmp_edi[6] = {0x81, 0xff, 0, 0, 0, 0};
+      unsigned char jne_fail[6] = {0x0f, 0x85, 0, 0, 0, 0};
+      uint32_t patch_off = (uint32_t)(code->len + sizeof(cmp_edi) + 2);
+      wr32(cmp_edi + 2, (uint32_t)imm);
+      buf_put(code, cmp_edi, sizeof(cmp_edi));
+      buf_put(code, jne_fail, sizeof(jne_fail));
+      buf_put32(&expect_patches, patch_off);
     } else if (op == OP_RET_LAST) {
       unsigned char exit_syscall[7] = {0xb8, 0x3c, 0, 0, 0, 0x0f, 0x05};
       buf_put(code, exit_syscall, sizeof(exit_syscall));
       saw_ret = 1;
       break;
     } else {
+      free(expect_patches.data);
       return 0;
     }
   }
+  if (saw_ret && expect_patches.len) {
+    size_t fail_off = code->len;
+    unsigned char fail_exit[12] = {
+      0xbf, 125, 0, 0, 0,
+      0xb8, 0x3c, 0, 0, 0,
+      0x0f, 0x05
+    };
+    buf_put(code, fail_exit, sizeof(fail_exit));
+    for (size_t i = 0; i < expect_patches.len; i += 4) {
+      uint32_t patch_off = rd32(expect_patches.data + i);
+      int64_t rel = (int64_t)fail_off - (int64_t)(patch_off + 4);
+      wr32(code->data + patch_off, (uint32_t)(int32_t)rel);
+    }
+  }
+  free(expect_patches.data);
   return saw_ret;
 }
 

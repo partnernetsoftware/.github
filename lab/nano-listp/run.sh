@@ -10,18 +10,28 @@ SMOKE_SRC="$LAB_DIR/samples/libc-smoke.lisp"
 BLOB="$BUILD_DIR/strlen.lbin"
 BLOB_REPEAT="$BUILD_DIR/strlen-repeat.lbin"
 ARITH_BLOB="$BUILD_DIR/arithmetic.lbin"
+BAD_ARITH_SRC="$BUILD_DIR/arithmetic-bad.lisp"
+BAD_ARITH_BLOB="$BUILD_DIR/arithmetic-bad.lbin"
 SMOKE_BLOB="$BUILD_DIR/libc-smoke.lbin"
 LIBC_SRC="$BUILD_DIR/libc-resolve.lisp"
 LIBC_BLOB="$BUILD_DIR/libc-resolve.lbin"
 EXIT42="$BUILD_DIR/exit42.elf"
 ARITH_EXIT="$BUILD_DIR/arithmetic-aot.elf"
 ARITH_CODE="$BUILD_DIR/arithmetic-code.elf"
+BAD_ARITH_CODE="$BUILD_DIR/arithmetic-bad-code.elf"
 RUNNER="$BUILD_DIR/nano-listp"
 RESULTS="$BUILD_DIR/results.txt"
 NANO_C="$ROOT_DIR/lab/lispjit-ir/lispjit.c"
 
 mkdir -p "$BUILD_DIR"
 : > "$RESULTS"
+cat > "$BAD_ARITH_SRC" <<'EOF'
+(module
+  (main
+    (u64 40)
+    (add-u64 2)
+    (expect 43)))
+EOF
 
 log() {
   printf '%s\n' "$*" | tee -a "$RESULTS"
@@ -86,6 +96,9 @@ if [ "$(uname -m)" = "x86_64" ] || [ "$(uname -m)" = "amd64" ]; then
   run_case "aot-arithmetic-elf64-code42" "$RUNNER" aot-elf64-code "$ARITH_BLOB" "$ARITH_CODE"
   log "arithmetic.codegen.bytes=$(bytes_of "$ARITH_CODE")"
   run_case "run-aot-arithmetic-code42" bash -c '"$1"; status=$?; test "$status" -eq 42' _ "$ARITH_CODE"
+  run_case "compile-bad-arithmetic-lbin" "$RUNNER" compile "$BAD_ARITH_SRC" "$BAD_ARITH_BLOB"
+  run_case "aot-bad-arithmetic-elf64-code" "$RUNNER" aot-elf64-code "$BAD_ARITH_BLOB" "$BAD_ARITH_CODE"
+  run_case "run-aot-bad-arithmetic-expect125" bash -c '"$1"; status=$?; test "$status" -eq 125' _ "$BAD_ARITH_CODE"
 else
   log ""
   log "## run-elf64-exit42"
