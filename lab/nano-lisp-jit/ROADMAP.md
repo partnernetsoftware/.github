@@ -85,7 +85,7 @@
 - tiny linker 支持多 object、`R_X86_64_PLT32` relocation、重复符号拒绝和 rel32 范围检查。
 - ELF/object/linker 内部 API 已抽象成可复用 helper，减少 section/symbol/rela 写入与解析重复。
 - typed value 已覆盖 `i64`、`bool`、`ptr` 基础值；`resolve` 会产出 `ptr` 值。
-- typed 算术已覆盖 `add-i64`，进入解释执行、静态求值 AOT 和 x86_64 codegen/object 路径。
+- typed 算术已覆盖 `add-i64` / `sub-i64`，进入解释执行、静态求值 AOT 和 x86_64 codegen/object 路径。
 - `expect` 已支持负数、布尔值和 `null` / `nonnull` 指针断言。
 - `block` / `branch` / `label` 已可编译进 `.lbin` 并由解释执行路径运行。
 - control-flow pure blob 已能走机器码 codegen AOT 路径，覆盖 `aot-elf64-code` / `aot-elf64-obj-code` / `compile-elf64-code`。
