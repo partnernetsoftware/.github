@@ -37,7 +37,7 @@ const PREVIEW_LINES = 80;
 const SHELL_COMMS = new Set(["bash", "zsh", "sh", "fish", "dash", "tmux", "-bash", "-zsh"]);
 
 const TUI_CONFIG = {
-  VERSION: '0.4.16',
+  VERSION: '0.5.0',
   VIEWER_SESSION: `__tui_viewer__`,
   TUI_KEYTABLE: "tui_empty",
   REMARK_KEY: "@remark",
@@ -369,6 +369,7 @@ interface IMultiplexerBackend {
   /** TUI preview 异步；CLI 用 capturePaneText */
   capturePaneText(target: string, startN: number, endArg?: string): string;
   sendKeys(target: string, text: string): unknown;
+  sendKeysLiteral(target: string, text: string): unknown;
   loadBuffer(target: string, file: string): unknown;
   pasteBuffer(target: string): unknown;
 
@@ -457,7 +458,9 @@ const tmuxApi: IMultiplexerBackend = {
     return r.stdout?.toString() || "";
   },
   sendKeys: (target: string, text: string) =>
-    Bun.spawnSync([tmuxBin(), "send-keys", "-t", target, text, "Enter"]),
+    Bun.spawnSync([tmuxBin(), "send-keys", "-t", target, "-l", text, "Enter"]),
+  sendKeysLiteral: (target: string, text: string) =>
+    Bun.spawnSync([tmuxBin(), "send-keys", "-t", target, "-l", text]),
   loadBuffer: (target: string, file: string) =>
     Bun.spawnSync([tmuxBin(), "load-buffer", "-b", `tui_v2_${process.pid}`, file]),
   pasteBuffer: (target: string) =>
@@ -728,6 +731,23 @@ function opKillWindow(spec: string): void {
   const { node, target } = parseTargetSpec(spec);
   if (node.type === "session") throw new Error("kill-window 仅支持 window（sess:idx 或 @remark→window）");
   tmuxApi.killWindow(target);
+}
+
+/** 向 window 注入文本（默认带 Enter）；CLI send / 驾驶 i 共用 */
+function injectToWindow(specOrTarget: string, text: string, opts?: { enter?: boolean }): void {
+  const target = resolveTarget(specOrTarget);
+  if (!text) throw new Error("消息为空");
+  if (opts?.enter === false) tmuxApi.sendKeysLiteral(target, text);
+  else tmuxApi.sendKeys(target, text);
+}
+
+/** load-buffer + paste-buffer；CLI paste / 驾驶 P 共用 */
+function pasteFileToWindow(specOrTarget: string, file: string): void {
+  const target = resolveTarget(specOrTarget);
+  const path = file.startsWith("~") ? join(homedir(), file.slice(1)) : file;
+  if (!existsSync(path)) throw new Error(`文件不存在: ${file}`);
+  tmuxApi.loadBuffer(target, path);
+  tmuxApi.pasteBuffer(target);
 }
 
 // PART:agent-bus
@@ -1028,6 +1048,80 @@ const DRIVE_PH = "—";
 const DRIVE_CAPTURE_TAIL_LINES = 12;
 const DRIVE_ALERT_RE = /\b(error|fail|panic|exception|fatal)\b/i;
 const DRIVE_ALERT_NEG_RE = /\b(0 errors?|no errors?|without errors?)\b/i;
+/** 末行 shell/agent 等待输入 */
+const CABIN_PROMPT_RE = /(?:[#\$>%]|❯|➜|>>>|\?\s*|\:\s*)\s*$/;
+const CABIN_STUCK_MS = 180_000;
+const CABIN_CPU_RUN = 2;
+const CABIN_CPU_IDLE = 0.8;
+
+const CABIN_TTL_MS = {
+  error: 1000,
+  agent: 1500,
+  focus: 2000,
+  running: 1500,
+  waiting: 2500,
+  stuck: 6000,
+  idle: 8000,
+} as const;
+
+type CabinStateKind = keyof typeof CABIN_TTL_MS;
+
+type CabinSnapCtx = {
+  lastLine: string;
+  alert: boolean;
+  lineStillSince?: number;
+};
+
+type CabinState = {
+  kind: CabinStateKind;
+  /** 驾驶表 St 列单字 */
+  code: string;
+  snapTtlMs: number;
+};
+
+const CABIN_CODE: Record<CabinStateKind, string> = {
+  error: "E",
+  agent: "A",
+  focus: "F",
+  running: "R",
+  waiting: "W",
+  stuck: "S",
+  idle: "·",
+};
+
+function detectCabinState(node: TreeNode, snap: CabinSnapCtx, proc: ProcInfo | null): CabinState {
+  const unread = node.agent ? (node.cachedUnread ?? 0) : 0;
+  if (snap.alert) return { kind: "error", code: CABIN_CODE.error, snapTtlMs: CABIN_TTL_MS.error };
+  if (unread > 0) return { kind: "agent", code: CABIN_CODE.agent, snapTtlMs: CABIN_TTL_MS.agent };
+  if (node.windowActive) return { kind: "focus", code: CABIN_CODE.focus, snapTtlMs: CABIN_TTL_MS.focus };
+
+  const line = stripAnsi(snap.lastLine).trim();
+  const cpu = proc?.cpu ?? 0;
+  if (line && CABIN_PROMPT_RE.test(line) && cpu < CABIN_CPU_IDLE) {
+    return { kind: "waiting", code: CABIN_CODE.waiting, snapTtlMs: CABIN_TTL_MS.waiting };
+  }
+  if (cpu >= CABIN_CPU_RUN) {
+    return { kind: "running", code: CABIN_CODE.running, snapTtlMs: CABIN_TTL_MS.running };
+  }
+  if (snap.lineStillSince !== undefined && Date.now() - snap.lineStillSince >= CABIN_STUCK_MS) {
+    const ageSec = windowAgeSec(node);
+    if (ageSec >= 120 && cpu < CABIN_CPU_IDLE) {
+      return { kind: "stuck", code: CABIN_CODE.stuck, snapTtlMs: CABIN_TTL_MS.stuck };
+    }
+  }
+  if (line && snap.lineStillSince !== undefined && Date.now() - snap.lineStillSince < 8000 && cpu > 0.2) {
+    return { kind: "running", code: CABIN_CODE.running, snapTtlMs: CABIN_TTL_MS.running };
+  }
+  return { kind: "idle", code: CABIN_CODE.idle, snapTtlMs: CABIN_TTL_MS.idle };
+}
+
+function driveSnapTtlForTarget(target: string, nodeByTarget: Map<string, TreeNode>, now = Date.now()): number {
+  const snap = driveSnap.get(target);
+  const node = nodeByTarget.get(target);
+  if (!snap || !node) return DRIVE_SNAP_TTL_MS;
+  const proc = driveProc.get(target) ?? null;
+  return detectCabinState(node, snap, proc).snapTtlMs;
+}
 
 function driveAlertFromLine(line: string): boolean {
   const s = stripAnsi(line);
@@ -1087,9 +1181,16 @@ function paneSnap(target: string, opts?: { lines?: number; sync?: boolean }): Pa
 type WindowMeta = {
   unread: number; alert: boolean; lastLine: string; task: string;
   lvl: AutoLevel; age: string; ageSec: number; act: string;
+  cabin: CabinState;
 };
 
-type WinSnap = { lastLine: string; tail: string; alert: boolean; ts: number };
+type WinSnap = {
+  lastLine: string;
+  tail: string;
+  alert: boolean;
+  ts: number;
+  lineStillSince: number;
+};
 type ProcInfo = { pid: number; cmd: string; cpu: number; rssMB: number; shellPid: number; ts: number };
 
 const driveSnap = new Map<string, WinSnap>();
@@ -1185,12 +1286,17 @@ async function refreshDriveSnapshots(force = false): Promise<void> {
   driveSnapRefreshing = true;
   try {
     const now = Date.now();
+    const nodeByTarget = new Map<string, TreeNode>();
     const targets = state.tree
-      .filter((n) => n.type === "window")
+      .filter((n) => {
+        if (n.type !== "window") return false;
+        nodeByTarget.set(winTargetFromNode(n), n);
+        return true;
+      })
       .map((n) => winTargetFromNode(n));
     const stale = force
       ? targets
-      : targets.filter((t) => now - (driveSnap.get(t)?.ts ?? 0) > DRIVE_SNAP_TTL_MS);
+      : targets.filter((t) => now - (driveSnap.get(t)?.ts ?? 0) > driveSnapTtlForTarget(t, nodeByTarget, now));
     if (stale.length === 0) return;
 
     let sortDirty = false;
@@ -1205,8 +1311,17 @@ async function refreshDriveSnapshots(force = false): Promise<void> {
         ? driveAlertFromTailDiff(prevTail, newTail)
         : driveAlertFromLine(lastLine);
       if (lastLine !== prevLine) drivePrevLineHash.set(target, prevLine);
+      const lineStillSince = lastLine !== prevLine ? now : (prevEntry?.lineStillSince ?? now);
+      const prevCabin = prevEntry && nodeByTarget.has(target)
+        ? detectCabinState(nodeByTarget.get(target)!, prevEntry, driveProc.get(target) ?? null).kind
+        : null;
       if (alert !== prevAlert) sortDirty = true;
-      driveSnap.set(target, { lastLine, tail: newTail, alert, ts: Date.now() });
+      driveSnap.set(target, { lastLine, tail: newTail, alert, ts: now, lineStillSince });
+      const node = nodeByTarget.get(target);
+      if (node) {
+        const cabin = detectCabinState(node, driveSnap.get(target)!, driveProc.get(target) ?? null);
+        if (cabin.kind !== prevCabin) sortDirty = true;
+      }
     });
 
     if (sortDirty) invalidateDriveView();
@@ -1397,6 +1512,15 @@ function driveRowScore(m: WindowMeta): number {
   if (m.alert) score += 20;
   if (m.ageSec > 600) score += 8;
   score += (parseInt(m.lvl, 10) || 0) / 10;
+  switch (m.cabin.kind) {
+    case "error": score += 25; break;
+    case "agent": score += 15; break;
+    case "waiting": score += 10; break;
+    case "running": score += 6; break;
+    case "stuck": score += 12; break;
+    case "focus": score += 4; break;
+    default: break;
+  }
   return score;
 }
 
@@ -1422,6 +1546,14 @@ function windowMeta(
   const cap = opts?.cap ?? paneSnap(target, inDrive ? undefined : { sync: opts?.sync ?? true, lines: 1 });
   const lvl = inDrive ? (node.autoLevel ?? "0") : (node.autoLevel ?? readAuto(node));
   const ageSec = windowAgeSec(node);
+  const liveSnap = driveSnap.get(target);
+  const proc = readDriveProc(target);
+  const cabinCtx: CabinSnapCtx = liveSnap ?? {
+    lastLine: cap.lastLine,
+    alert: cap.alert,
+    lineStillSince: Date.now(),
+  };
+  const cabin = detectCabinState(node, cabinCtx, proc);
   const meta: WindowMeta = {
     unread,
     alert: cap.alert,
@@ -1431,6 +1563,7 @@ function windowMeta(
     age: ageSec ? formatRelativeAge(windowAgeEpochSec(node)) : DRIVE_PH,
     ageSec,
     act: deriveActChar(node, cap.lastLine),
+    cabin,
   };
   if (treeIdx !== undefined) driveMetaCache?.set(treeIdx, meta);
   return meta;
@@ -1457,7 +1590,7 @@ function fleetWindowRow(n: TreeNode, previewLines: number): CliFleetRow {
     unread: d.meta.unread,
     inboxPath: ag ? inboxPath(ag) : undefined,
     previewLastLine: d.cap.lastLine || undefined,
-    placeholders: { lvl: d.meta.lvl, age: d.meta.age, st: d.meta.alert ? "!" : "—", act: d.meta.act },
+    placeholders: { lvl: d.meta.lvl, age: d.meta.age, st: d.meta.cabin.code, act: d.meta.act },
     proc: procToCli(d.proc),
   };
 }
@@ -1531,7 +1664,7 @@ function buildInspectResult(spec: string, previewLines: number, sourceTree?: Tre
     unread: d.meta.unread,
     inboxPath: ag ? inboxPath(ag) : undefined,
     preview: { lines: previewLines, text: d.cap.text, lastLine: d.cap.lastLine },
-    placeholders: { lvl: d.meta.lvl, age: d.meta.age, st: d.meta.alert ? "!" : "—", act: d.meta.act },
+    placeholders: { lvl: d.meta.lvl, age: d.meta.age, st: d.meta.cabin.code, act: d.meta.act },
     proc: procToCli(d.proc),
   };
 }
@@ -1788,12 +1921,6 @@ function drivePlaceholderCells(extra?: Partial<DriveRowCells>): DriveRowCells {
   };
 }
 
-function sessionChildCount(treeIdx: number): number {
-  let n = 0;
-  for (let i = treeIdx + 1; i < state.tree.length && state.tree[i].type === "window"; i++) n++;
-  return n;
-}
-
 function driveRowScoreForNode(node: TreeNode, treeIdx: number): number {
   if (node.driveSortScore !== undefined) return node.driveSortScore;
   return driveRowScore(windowMeta(node, treeIdx));
@@ -1894,6 +2021,64 @@ function toggleSessionCollapse(sess: string): void {
   const [cols, rows] = screen.getSize();
   state.clampView(treeVisibleRows(getLayout(cols, rows)));
   render();
+}
+
+function driveCursorWindow(): TreeNode | null {
+  const node = state.tree[state.cursor];
+  return node?.type === "window" ? node : null;
+}
+
+/** 驾驶 i：向当前 window 注入文本（默认 Enter；末尾 \\ 仅字面不发送 Enter） */
+function driveSendPrompt(): void {
+  const node = driveCursorWindow();
+  if (!node) return;
+  const spec = node.target;
+  startInput(`send → ${spec} (\\ 结尾不 Enter)`, (raw) => {
+    if (raw === null) {
+      render();
+      return;
+    }
+    const noEnter = raw.endsWith("\\");
+    const body = noEnter ? raw.slice(0, -1) : raw;
+    if (!body.trim()) {
+      render();
+      return;
+    }
+    try {
+      injectToWindow(spec, body, { enter: !noEnter });
+      void refreshDriveSnapshots(true);
+      schedulePreview({ delay: 300, driveOnly: true });
+    } catch {
+      /* tmux 不可达时静默 */
+    }
+    render();
+  });
+}
+
+/** 驾驶 P：paste-buffer 粘贴文件到当前 window */
+function drivePastePrompt(): void {
+  const node = driveCursorWindow();
+  if (!node) return;
+  const spec = node.target;
+  startInput(`paste → ${spec}  文件路径`, (raw) => {
+    if (raw === null) {
+      render();
+      return;
+    }
+    const path = raw.trim();
+    if (!path) {
+      render();
+      return;
+    }
+    try {
+      pasteFileToWindow(spec, path);
+      void refreshDriveSnapshots(true);
+      schedulePreview({ delay: 300, driveOnly: true });
+    } catch {
+      /* 文件不存在等 */
+    }
+    render();
+  });
 }
 
 function driveCursorStep(dir: -1 | 1): void {
@@ -2011,9 +2196,9 @@ function renderDriveAnchor(row: number, textW: number): void {
     const ag = node.agent;
     const proc = readDriveProc(winTargetFromNode(node));
     line = `${node.sessionName}:${node.target.split(":")[1]} ${windowNameFromNode(node)}`
+      + ` ·${m.cabin.code}${m.cabin.kind}`
       + (ag ? ` @${ag}` : "")
       + (m.unread > 0 ? ` ·未读${m.unread}` : "")
-      + (m.alert ? " ·⚠" : "")
       + (proc ? ` ·${proc.rssMB}M ${proc.cpu < 10 ? proc.cpu.toFixed(1) : Math.round(proc.cpu)}%` : "");
   }
   screen.cursorAt(row, 1);
@@ -2041,7 +2226,7 @@ function renderDriveTableHeader(row: number, cols: number, cw: DriveColWidths): 
     unread: "Rd",
     lvl: "Lv",
     age: "Age",
-    st: "S",
+    st: "St",
     act: "Act",
   });
   screen.cursorAt(row, 1);
@@ -2052,7 +2237,7 @@ function renderDriveTableRow(
   row: number, node: TreeNode, treeIdx: number, selected: boolean, cols: number, cw: DriveColWidths,
 ): void {
   if (node.type === "session") {
-    const n = sessionChildCount(treeIdx);
+    const n = sessionWindowCount(state.tree, treeIdx);
     const line = driveRowLine(cw, drivePlaceholderCells({
       stat: "▣",
       sess: node.sessionName,
@@ -2080,7 +2265,7 @@ function renderDriveTableRow(
     unread: m.unread > 0 ? String(m.unread) : "",
     lvl: m.lvl,
     age: m.age,
-    st: m.alert ? "!" : DRIVE_PH,
+    st: m.cabin.code,
     act: m.act,
   });
   writeDriveRow(row, cols, line, selected);
@@ -2142,7 +2327,7 @@ function renderFooter(cols: number, rows: number): void {
     screen.write(screen.gold(padVis(truncVis(line, cols - 1), cols - 1)));
     screen.showCursor();
   } else if (state.uiMode === "drive") {
-    const hint = " Space折 · Enter进舱";
+    const hint = " Space折 · i发 · P贴 · Enter进舱";
     screen.write(screen.gold(padVis(truncVis(hint, cols - 1), cols - 1)));
   } else {
     screen.write(screen.gold(" ".repeat(cols - 1)));
@@ -2392,6 +2577,11 @@ const TUI_INSTANT: TuiInstantSpec[] = [
 let TUI_PROMPTS: TuiPromptSpec[] = [];
 let TUI_KEYBINDS: { help: string; match: (s: string) => boolean; run: () => void }[] = [];
 
+const TUI_DRIVE_INSTANT: TuiInstantSpec[] = [
+  { key: "i", help: "i:发", run: driveSendPrompt },
+  { key: "P", help: "P:贴", run: drivePastePrompt },
+];
+
 function buildTuiKeybinds(): { help: string; match: (s: string) => boolean; run: () => void }[] {
   return [
     ...TUI_NAV,
@@ -2404,6 +2594,11 @@ function buildTuiKeybinds(): { help: string; match: (s: string) => boolean; run:
       help: i.help,
       match: (s: string) => s === i.key,
       run: i.run,
+    })),
+    ...TUI_DRIVE_INSTANT.map((i) => ({
+      help: i.help,
+      match: (s: string) => s === i.key,
+      run: () => { if (state.uiMode === "drive") i.run(); },
     })),
   ];
 }
@@ -3300,7 +3495,7 @@ function printInspectText(info: CliInspectResult): void {
   if (info.windowCount !== undefined) cliWriteStdout(`windows: ${info.windowCount}\n`);
   if (info.placeholders && info.type === "window") {
     const ph = info.placeholders;
-    cliWriteStdout(`auto: ${ph.lvl}  age: ${ph.age}  act: ${ph.act}\n`);
+    cliWriteStdout(`cabin: ${ph.st}  auto: ${ph.lvl}  age: ${ph.age}  act: ${ph.act}\n`);
   }
   if (info.preview?.lastLine) cliWriteStdout(`last: ${info.preview.lastLine}\n`);
 }
@@ -3338,20 +3533,27 @@ function cliCapture(ctx: CliCtx): number {
 
 function cliSend(ctx: CliCtx): number {
   if (ctx.rest.length < 2) return cliFailUsage("send <spec> <text...>");
-  const target = resolveTarget(ctx.rest[0]);
+  const target = ctx.rest[0];
   const body = ctx.rest.slice(1).join(" ");
-  tmuxApi.sendKeys(target, body);
-  cliWriteStdout(`sent → ${target}: ${body.length} chars\n`);
+  try {
+    injectToWindow(target, body);
+  } catch (e: unknown) {
+    return cliError(e instanceof Error ? e.message : String(e));
+  }
+  cliWriteStdout(`sent → ${resolveTarget(target)}: ${body.length} chars\n`);
   return 0;
 }
 
 function cliPaste(ctx: CliCtx): number {
   if (ctx.rest.length < 2) return cliFailUsage("paste <spec> <file>");
-  const target = resolveTarget(ctx.rest[0]);
+  const target = ctx.rest[0];
   const file = ctx.rest[1];
-  tmuxApi.loadBuffer(target, file);
-  tmuxApi.pasteBuffer(target);
-  cliWriteStdout(`pasted ${file} → ${target}\n`);
+  try {
+    pasteFileToWindow(target, file);
+  } catch (e: unknown) {
+    return cliError(e instanceof Error ? e.message : String(e));
+  }
+  cliWriteStdout(`pasted ${file} → ${resolveTarget(target)}\n`);
   return 0;
 }
 
