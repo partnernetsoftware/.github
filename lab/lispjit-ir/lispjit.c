@@ -2124,6 +2124,30 @@ static int cmd_hash(const char *blob_path) {
   return 0;
 }
 
+static int compare_files(const char *left_path, const char *right_path, const char *label) {
+  size_t left_n = 0;
+  size_t right_n = 0;
+  unsigned char *left = read_file(left_path, &left_n);
+  unsigned char *right = read_file(right_path, &right_n);
+  int rc = 0;
+  if (!left || !right) {
+    fprintf(stderr, "%s=read_fail\n", label);
+    rc = 2;
+  } else if (left_n != right_n || memcmp(left, right, left_n) != 0) {
+    fprintf(stderr, "%s=diff left=%s right=%s\n", label, left_path, right_path);
+    rc = 2;
+  } else {
+    printf("%s.ok bytes=%zu\n", label, left_n);
+  }
+  free(left);
+  free(right);
+  return rc;
+}
+
+static int cmd_compare(const char *left_path, const char *right_path) {
+  return compare_files(left_path, right_path, "compare");
+}
+
 static int cmd_resolve(const char *blob_path, int quiet) {
   Blob b;
   unsigned char *owned = NULL;
@@ -2197,24 +2221,8 @@ static int cmd_run_bootstrap_plan(const char *plan_path) {
       printf("bootstrap-step.%zu=compile\n", i);
       rc = cmd_compile(step->arg0, step->arg1);
     } else if (step->kind == BOOTSTRAP_STEP_COMPARE) {
-      size_t left_n = 0;
-      size_t right_n = 0;
-      unsigned char *left = NULL;
-      unsigned char *right = NULL;
       printf("bootstrap-step.%zu=compare\n", i);
-      left = read_file(step->arg0, &left_n);
-      right = read_file(step->arg1, &right_n);
-      if (!left || !right) {
-        fprintf(stderr, "bootstrap-compare=read_fail\n");
-        rc = 2;
-      } else if (left_n != right_n || memcmp(left, right, left_n) != 0) {
-        fprintf(stderr, "bootstrap-compare=diff left=%s right=%s\n", step->arg0, step->arg1);
-        rc = 2;
-      } else {
-        printf("bootstrap-compare.ok bytes=%zu\n", left_n);
-      }
-      free(left);
-      free(right);
+      rc = compare_files(step->arg0, step->arg1, "bootstrap-compare");
     } else if (step->kind == BOOTSTRAP_STEP_HASH) {
       printf("bootstrap-step.%zu=hash\n", i);
       rc = cmd_hash(step->arg0);
@@ -3906,6 +3914,7 @@ static void usage(const char *argv0) {
   fprintf(stderr, "  %s link-elf64-exe output.elf entry_symbol input.o...\n", argv0);
   fprintf(stderr, "  %s dump program.%s\n", argv0, BLOB_EXT);
   fprintf(stderr, "  %s hash program.%s\n", argv0, BLOB_EXT);
+  fprintf(stderr, "  %s compare left.%s right.%s\n", argv0, BLOB_EXT, BLOB_EXT);
   fprintf(stderr, "  %s resolve [--quiet] program.%s\n", argv0, BLOB_EXT);
   fprintf(stderr, "  %s run-bootstrap-plan plan.lisp\n", argv0);
   fprintf(stderr, "  %s pack-ape output.com x86_64.elf aarch64.elf\n", argv0);
@@ -3966,6 +3975,9 @@ int main(int argc, char **argv) {
   }
   if (argc >= 2 && strcmp(argv[1], "hash") == 0 && argc == 3) {
     return cmd_hash(argv[2]);
+  }
+  if (argc >= 2 && strcmp(argv[1], "compare") == 0 && argc == 4) {
+    return cmd_compare(argv[2], argv[3]);
   }
   if (argc >= 2 && strcmp(argv[1], "resolve") == 0) {
     if (argc == 3) return cmd_resolve(argv[2], 0);

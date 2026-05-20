@@ -120,7 +120,7 @@ run_case "hash-lbin" "$RUNNER" hash "$BLOB"
 
 run_case "hash-lbin-repeat" "$RUNNER" hash "$BLOB_REPEAT"
 
-run_case "compare-deterministic-lbin" cmp "$BLOB" "$BLOB_REPEAT"
+run_case "compare-deterministic-lbin" "$RUNNER" compare "$BLOB" "$BLOB_REPEAT"
 
 run_case "execute-lbin-via-jit" "$RUNNER" run "$BLOB"
 
