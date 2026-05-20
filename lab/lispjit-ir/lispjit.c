@@ -110,6 +110,7 @@ extern void *cosmo_dlsym(void *handle, const char *symbol);
 #define BOOTSTRAP_STEP_COMPILE_ELF64_EXE 20u
 #define BOOTSTRAP_STEP_RUN_APP 21u
 #define BOOTSTRAP_STEP_DUMP 22u
+#define BOOTSTRAP_STEP_FILE_SIZE 23u
 
 typedef uint64_t (*jit_entry_fn)(void);
 typedef int (*ffi_i32_ptr_fn)(const char *);
@@ -1037,11 +1038,13 @@ static int parse_bootstrap_plan(const char *src, BootstrapPlan *plan) {
         return 0;
       }
     } else if (strcmp(head, "hash") == 0 || strcmp(head, "dump") == 0 ||
+               strcmp(head, "file-size") == 0 ||
                strcmp(head, "run") == 0 ||
                strcmp(head, "resolve-quiet") == 0) {
       char *arg0 = parse_string(&p);
       uint32_t kind = strcmp(head, "hash") == 0 ? BOOTSTRAP_STEP_HASH :
                       strcmp(head, "dump") == 0 ? BOOTSTRAP_STEP_DUMP :
+                      strcmp(head, "file-size") == 0 ? BOOTSTRAP_STEP_FILE_SIZE :
                       strcmp(head, "run") == 0 ? BOOTSTRAP_STEP_RUN :
                       BOOTSTRAP_STEP_RESOLVE_QUIET;
       int ok = arg0 && eat(&p, ')') && bootstrap_add_step(plan, kind, arg0, NULL, NULL, NULL);
@@ -2270,6 +2273,9 @@ static int cmd_run_bootstrap_plan(const char *plan_path) {
     } else if (step->kind == BOOTSTRAP_STEP_DUMP) {
       printf("bootstrap-step.%zu=dump\n", i);
       rc = cmd_dump(step->arg0);
+    } else if (step->kind == BOOTSTRAP_STEP_FILE_SIZE) {
+      printf("bootstrap-step.%zu=file-size\n", i);
+      rc = cmd_file_size(step->arg0);
     } else if (step->kind == BOOTSTRAP_STEP_EMIT_ELF64_EXIT) {
       printf("bootstrap-step.%zu=emit-elf64-exit\n", i);
       rc = cmd_emit_elf64_exit(step->arg0, step->arg1);

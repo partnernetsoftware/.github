@@ -127,6 +127,7 @@ bootstrap 子流程现在也可以先用 `.lisp` 描述，再由 nano 自己执�
   (run "lab/nano-lisp-jit/.build/bootstrap-smoke-arithmetic.lbin")
   (compile "lab/nano-lisp-jit/samples/typed-values.lisp" "lab/nano-lisp-jit/.build/bootstrap-smoke-typed-values.lbin")
   (resolve-quiet "lab/nano-lisp-jit/.build/bootstrap-smoke-typed-values.lbin")
+  (file-size "lab/nano-lisp-jit/.build/bootstrap-smoke-typed-values.lbin")
   (run "lab/nano-lisp-jit/.build/bootstrap-smoke-typed-values.lbin")
   (compile "lab/nano-lisp-jit/samples/libc-smoke.lisp" "lab/nano-lisp-jit/.build/bootstrap-smoke.lbin")
   (hash "lab/nano-lisp-jit/.build/bootstrap-smoke.lbin")
@@ -165,7 +166,7 @@ bootstrap DSL 也能描述一条最小 AOT/codegen/tiny-link 构建图，不需�
 - `run-expect-exit`：运行 ELF 并断言退出码，供 native smoke 和 bootstrap DSL 复用。
 - `link-expect-exit`：执行 tiny linker 并断言失败码，用于 duplicate-symbol 等负向 linker smoke。
 - `resolve`：验证 `.lbin` import table 的动态库和符号可解析；运行时会把解析到的函数地址放进当前 `ptr` typed value，适合全量 libc 导入测试或指针断言。
-- `run-bootstrap-plan`：读取最小 bootstrap DSL，顺序执行 `compile` / `dump` / `hash` / `compare` / `resolve-quiet` / `pack-app` / `inspect-app` / `run-app` / `run` / `emit-elf64-exit` / `emit-elf64-obj-ret` / `emit-elf64-obj-call` / `aot-elf64-exit` / `aot-elf64-obj-ret` / `aot-elf64-code` / `aot-elf64-obj-code` / `compile-elf64-code` / `compile-elf64-obj-code` / `compile-elf64-exe` / `link-elf64-exe` / `link-expect-exit` / `run-expect-exit` 子流程，开始把 shell 片段迁到 `.lisp` 描述。
+- `run-bootstrap-plan`：读取最小 bootstrap DSL，顺序执行 `compile` / `dump` / `file-size` / `hash` / `compare` / `resolve-quiet` / `pack-app` / `inspect-app` / `run-app` / `run` / `emit-elf64-exit` / `emit-elf64-obj-ret` / `emit-elf64-obj-call` / `aot-elf64-exit` / `aot-elf64-obj-ret` / `aot-elf64-code` / `aot-elf64-obj-code` / `compile-elf64-code` / `compile-elf64-obj-code` / `compile-elf64-exe` / `link-elf64-exe` / `link-expect-exit` / `run-expect-exit` 子流程，开始把 shell 片段迁到 `.lisp` 描述。
 - `run`：解析 `.lbin`，通过 `dlopen`/`dlsym` 找系统符号，执行 main 指令流。
 - `run-embedded`：从 `.com` 容器内按 payload 偏移直接读取并执行内嵌 blob。
 - `inspect-app`：读取 AOT app manifest，输出 runtime slice 和 blob 的 offset/size。
