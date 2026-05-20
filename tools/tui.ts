@@ -37,7 +37,7 @@ const PREVIEW_LINES = 80;
 const SHELL_COMMS = new Set(["bash", "zsh", "sh", "fish", "dash", "tmux", "-bash", "-zsh"]);
 
 const TUI_CONFIG = {
-  VERSION: '0.4.9',
+  VERSION: '0.4.10',
   VIEWER_SESSION: `__tui_viewer__`,
   TUI_KEYTABLE: "tui_empty",
   REMARK_KEY: "@remark",
@@ -2816,9 +2816,35 @@ interface CliCommand {
   usage?: string;
   children?: CliCommand[];
   run: CliHandler;
+  needsTmux?: boolean;
 }
 
 // PART:cli-registry — 能力声明（CLI 树由此推导）
+//
+// 分层（单一真相源 → buildCliRoot 投影）:
+//   CLI_META_CMDS    — help
+//   CLI_MAINT_CMDS   — dev / doctor / install-tmux（无需 tmux）
+//   CLI_FLEET_VIEWS  — status / list
+//   CLI_TOOL_CMDS    — inspect / capture / send / paste
+//   CLI_AGENT_CMDS   — agent bus
+//   CLI_OPS          — session/window 变更
+//   CLI_USER_OPTS    — @remark / @auto
+
+type LeafCmdSpec = {
+  summary: string;
+  usage?: string;
+  aliases?: string[];
+  run: CliHandler;
+  /** false = runCli 跳过 tmux 探测；默认 true */
+  needsTmux?: boolean;
+};
+
+const CLI_HELP_NOTES = [
+  "<spec>: @逻辑名 | sess | sess:idx | =sess:idx（@ 仅 remark 反查）",
+  "agent: 纯名 + window @agent；register 后 inbox → ~/.tui/inbox/<name>.jsonl",
+  "结构化: 任意子命令可加 --json；status/inspect 供 agent 拉车队快照",
+  "开发: tui dev [args…] — 保存源码自动重启（TUI_DEV=1）",
+] as const;
 
 type UserOptSpec = {
   summary: string;
@@ -3052,11 +3078,23 @@ function cliFleet(viewName: string, ctx: CliCtx): number {
   return cliRespond(ctx, snap, () => spec.print(snap));
 }
 
+function buildLeafCmd(name: string, spec: LeafCmdSpec): CliCommand {
+  return {
+    name,
+    aliases: spec.aliases,
+    summary: spec.summary,
+    usage: spec.usage,
+    run: spec.run,
+    needsTmux: spec.needsTmux,
+  };
+}
+
 function buildUserOptGroup(name: string, spec: UserOptSpec): CliCommand {
   return {
     name,
     summary: spec.summary,
     run: (ctx) => cliUserOptLegacy(name, ctx),
+    needsTmux: true,
     children: [
       {
         name: "set",
@@ -3083,6 +3121,7 @@ function buildOpCommand(name: string, spec: OpSpec): CliCommand {
     summary: spec.summary,
     usage: spec.usage,
     run: (ctx) => cliOp(name, ctx),
+    needsTmux: true,
   };
 }
 
@@ -3093,6 +3132,7 @@ function buildFleetCommand(name: string, spec: FleetViewSpec): CliCommand {
     summary: spec.summary,
     usage: spec.usage,
     run: (ctx) => cliFleet(name, ctx),
+    needsTmux: true,
   };
 }
 
@@ -3102,25 +3142,24 @@ function isCliInvocation(argv: string[]): boolean {
   return CLI_ROOT.some((c) => matchCliName(c, head));
 }
 
+function printInspectText(info: CliInspectResult): void {
+  cliWriteStdout(`${info.type} ${info.target}\n`);
+  if (info.remark) cliWriteStdout(`remark: ${info.remark}\n`);
+  if (info.agent) cliWriteStdout(`agent: ${info.agent}  unread:${info.unread ?? 0}\n`);
+  if (info.windowCount !== undefined) cliWriteStdout(`windows: ${info.windowCount}\n`);
+  if (info.placeholders && info.type === "window") {
+    const ph = info.placeholders;
+    cliWriteStdout(`auto: ${ph.lvl}  age: ${ph.age}  act: ${ph.act}\n`);
+  }
+  if (info.preview?.lastLine) cliWriteStdout(`last: ${info.preview.lastLine}\n`);
+}
+
 function cliInspect(ctx: CliCtx): number {
   const { positional, flags } = parseCliFlags(ctx.rest);
   if (!positional[0]) return cliFailUsage("inspect <spec> [--lines N] [--json]");
   const previewLines = parseInt(flags.lines || String(PREVIEW_LINES), 10) || PREVIEW_LINES;
   const info = buildInspectResult(positional[0], previewLines);
-  if (ctx.json) {
-    cliWriteJson(info);
-    return 0;
-  }
-  process.stdout.write(`${info.type} ${info.target}\n`);
-  if (info.remark) process.stdout.write(`remark: ${info.remark}\n`);
-  if (info.agent) process.stdout.write(`agent: ${info.agent}  unread:${info.unread ?? 0}\n`);
-  if (info.windowCount !== undefined) process.stdout.write(`windows: ${info.windowCount}\n`);
-  if (info.placeholders && info.type === "window") {
-    const ph = info.placeholders;
-    process.stdout.write(`auto: ${ph.lvl}  age: ${ph.age}  act: ${ph.act}\n`);
-  }
-  if (info.preview?.lastLine) process.stdout.write(`last: ${info.preview.lastLine}\n`);
-  return 0;
+  return cliRespond(ctx, info, () => printInspectText(info));
 }
 
 function cliCapture(ctx: CliCtx): number {
@@ -3138,19 +3177,20 @@ function cliCapture(ctx: CliCtx): number {
       target,
       lines: n,
       text,
-      lastLine: text.split("\n").map((s) => stripAnsi(s).trim()).filter(Boolean).pop() || "",
+      lastLine: lastLineFromCaptureText(text),
     });
     return 0;
   }
-  process.stdout.write(text);
+  cliWriteStdout(text);
   return 0;
 }
 
 function cliSend(ctx: CliCtx): number {
   if (ctx.rest.length < 2) return cliFailUsage("send <spec> <text...>");
   const target = resolveTarget(ctx.rest[0]);
-  tmuxApi.sendKeys(target, ctx.rest.slice(1).join(" "));
-  process.stdout.write(`sent → ${target}: ${ctx.rest.slice(1).join(" ").length} chars\n`);
+  const body = ctx.rest.slice(1).join(" ");
+  tmuxApi.sendKeys(target, body);
+  cliWriteStdout(`sent → ${target}: ${body.length} chars\n`);
   return 0;
 }
 
@@ -3160,7 +3200,7 @@ function cliPaste(ctx: CliCtx): number {
   const file = ctx.rest[1];
   tmuxApi.loadBuffer(target, file);
   tmuxApi.pasteBuffer(target);
-  process.stdout.write(`pasted ${file} → ${target}\n`);
+  cliWriteStdout(`pasted ${file} → ${target}\n`);
   return 0;
 }
 
@@ -3187,14 +3227,8 @@ function cliHelp(): number {
       lines.push(`    usage: ${CLI_BIN} ${cliUsage(cmd)}`);
     }
   }
-  lines.push(
-    "",
-    "<spec>: @逻辑名 | sess | sess:idx | =sess:idx（@ 仅 remark 反查）",
-    "agent: 纯名 + window @agent；register 后 inbox → ~/.tui/inbox/<name>.jsonl",
-    "结构化: 任意子命令可加 --json；status/inspect 供 agent 拉车队快照",
-    "开发: tui dev [args…] — 保存源码自动重启（TUI_DEV=1）",
-  );
-  cliWriteStdout(lines.join("\n") + "\n");
+  lines.push("", ...CLI_HELP_NOTES);
+  process.stdout.write(lines.join("\n") + "\n");
   return 0;
 }
 
@@ -3453,46 +3487,75 @@ function buildAgentGroup(): CliCommand {
     name: "agent",
     summary: "v0.3 — window @agent 纯名；与 @remark 分离",
     run: cliAgentLegacy,
+    needsTmux: true,
     children: Object.entries(CLI_AGENT_CMDS).map(([n, s]) => buildAgentCmd(n, s)),
   };
 }
 
+const CLI_META_CMDS: Record<string, LeafCmdSpec> = {
+  help: {
+    summary: "显示帮助",
+    aliases: ["-h", "--help"],
+    run: () => cliHelp(),
+    needsTmux: false,
+  },
+};
+
+const CLI_MAINT_CMDS: Record<string, LeafCmdSpec> = {
+  dev: {
+    summary: "bun --watch 热重启（加速改 CLI/TUI）",
+    usage: "[子命令参数…]  例: dev | dev status --json",
+    aliases: ["watch"],
+    run: cliDev,
+    needsTmux: false,
+  },
+  doctor: {
+    summary: "诊断 tmux 路径/版本/quarantine",
+    run: cliDoctor,
+    needsTmux: false,
+  },
+  "install-tmux": {
+    summary: "安装 tmux（默认便携版→~/tmux）",
+    usage: "[--force] [--system]",
+    aliases: ["install"],
+    run: cliInstallTmux,
+    needsTmux: false,
+  },
+};
+
+const CLI_TOOL_CMDS: Record<string, LeafCmdSpec> = {
+  inspect: {
+    summary: "单个 session/window/agent 详情 + capture",
+    usage: "<spec> [--lines N] [--json]",
+    aliases: ["show", "get"],
+    run: cliInspect,
+  },
+  capture: {
+    summary: "capture-pane → stdout 或 JSON",
+    usage: "<spec> [lines] [--json]",
+    run: cliCapture,
+  },
+  send: {
+    summary: "send-keys 注入",
+    usage: "<spec> <text...>",
+    aliases: ["msg"],
+    run: cliSend,
+  },
+  paste: {
+    summary: "load-buffer + paste-buffer",
+    usage: "<spec> <file>",
+    run: cliPaste,
+  },
+};
+
 function buildCliRoot(): CliCommand[] {
   return [
-    { name: "help", aliases: ["-h", "--help"], summary: "显示帮助", run: () => cliHelp() },
-    {
-      name: "dev",
-      aliases: ["watch"],
-      summary: "bun --watch 热重启（加速改 CLI/TUI）",
-      usage: "[子命令参数…]  例: dev | dev status --json",
-      run: cliDev,
-    },
-    { name: "doctor", summary: "诊断 tmux 路径/版本/quarantine", run: cliDoctor },
-    {
-      name: "install-tmux",
-      aliases: ["install"],
-      summary: "安装 tmux（默认便携版→~/tmux）",
-      usage: "[--force] [--system]",
-      run: cliInstallTmux,
-    },
+    ...Object.entries(CLI_META_CMDS).map(([n, s]) => buildLeafCmd(n, s)),
+    ...Object.entries(CLI_MAINT_CMDS).map(([n, s]) => buildLeafCmd(n, s)),
     buildAgentGroup(),
     buildFleetCommand("status", CLI_FLEET_VIEWS.status),
     buildFleetCommand("list", CLI_FLEET_VIEWS.list),
-    {
-      name: "inspect",
-      aliases: ["show", "get"],
-      summary: "单个 session/window/agent 详情 + capture",
-      usage: "<spec> [--lines N] [--json]",
-      run: cliInspect,
-    },
-    {
-      name: "capture",
-      summary: "capture-pane → stdout 或 JSON",
-      usage: "<spec> [lines] [--json]",
-      run: cliCapture,
-    },
-    { name: "send", aliases: ["msg"], summary: "send-keys 注入", usage: "<spec> <text...>", run: cliSend },
-    { name: "paste", summary: "load-buffer + paste-buffer", usage: "<spec> <file>", run: cliPaste },
+    ...Object.entries(CLI_TOOL_CMDS).map(([n, s]) => buildLeafCmd(n, s)),
     ...Object.entries(CLI_OPS).map(([n, s]) => buildOpCommand(n, s)),
     ...Object.entries(CLI_USER_OPTS).map(([n, s]) => buildUserOptGroup(n, s)),
   ];
@@ -3520,7 +3583,7 @@ function cliDoctor(_ctx: CliCtx): number {
     const x = Bun.spawnSync(["xattr", "-lr", TUI_CONFIG.TMUX_HOME], { stdout: "pipe" }).stdout?.toString() || "";
     lines.push(x.includes("quarantine") ? "quarantine: 有（执行 xattr -dr com.apple.quarantine ~/tmux）" : "quarantine: 无");
   }
-  process.stdout.write(lines.join("\n") + "\n");
+  cliWriteStdout(lines.join("\n") + "\n");
   return p ? 0 : 1;
 }
 
@@ -3571,7 +3634,7 @@ function cliNeedsTmux(head: string): boolean {
   if (!head) return false;
   const cmd = CLI_ROOT.find((c) => matchCliName(c, head));
   if (!cmd) return true;
-  return !["help", "dev", "doctor", "install-tmux"].includes(cmd.name);
+  return cmd.needsTmux !== false;
 }
 
 function runCli(argv: string[]): number {
