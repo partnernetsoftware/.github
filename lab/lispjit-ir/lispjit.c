@@ -942,6 +942,45 @@ static int cmd_resolve(const char *blob_path, int quiet) {
   return rc;
 }
 
+static int cmd_inspect_app(const char *container_path) {
+  size_t n = 0;
+  unsigned char *data = read_file(container_path, &n);
+  if (!data) {
+    fprintf(stderr, "read=fail path=%s\n", container_path);
+    return 1;
+  }
+  static const char begin[] = "# nano.manifest.begin";
+  static const char end[] = "# nano.manifest.end";
+  int in_manifest = 0;
+  int found = 0;
+  size_t pos = 0;
+  while (pos < n) {
+    size_t line_start = pos;
+    while (pos < n && data[pos] != '\n') pos++;
+    size_t line_n = pos - line_start;
+    if (pos < n && data[pos] == '\n') pos++;
+    if (line_n == sizeof(begin) - 1 &&
+        memcmp(data + line_start, begin, sizeof(begin) - 1) == 0) {
+      in_manifest = 1;
+      found = 1;
+      continue;
+    }
+    if (line_n == sizeof(end) - 1 &&
+        memcmp(data + line_start, end, sizeof(end) - 1) == 0) {
+      free(data);
+      return found ? 0 : 2;
+    }
+    if (in_manifest && line_n >= 2 && data[line_start] == '#' &&
+        data[line_start + 1] == ' ') {
+      fwrite(data + line_start + 2, 1, line_n - 2, stdout);
+      fputc('\n', stdout);
+    }
+  }
+  fprintf(stderr, "inspect-app=manifest_missing\n");
+  free(data);
+  return 2;
+}
+
 static int is_elf(const unsigned char *data, size_t n) {
   return n >= 4 && data[0] == 0x7f && data[1] == 'E' && data[2] == 'L' && data[3] == 'F';
 }
@@ -1041,6 +1080,15 @@ static int cmd_pack_app(const char *out_path, const char *x86_path, const char *
       "esac\n"
       "blob_off=%zu\n"
       "blob_size=%zu\n"
+      "# nano.manifest.begin\n"
+      "# nano.container=app-v1\n"
+      "# nano.slice.x86_64.offset=0\n"
+      "# nano.slice.x86_64.size=%zu\n"
+      "# nano.slice.aarch64.offset=%zu\n"
+      "# nano.slice.aarch64.size=%zu\n"
+      "# nano.blob.offset=%zu\n"
+      "# nano.blob.size=%zu\n"
+      "# nano.manifest.end\n"
       "payload_line=$(awk '/^__NANO_APP_PAYLOAD_BELOW__$/ { print NR + 1; exit }' \"$0\")\n"
       "if [ -z \"${payload_line:-}\" ]; then echo \"nano pack-app: payload marker missing\" >&2; exit 126; fi\n"
       "tmp_exe=\"${TMPDIR:-/tmp}/nano-app-$$-$suffix\"\n"
@@ -1051,7 +1099,8 @@ static int cmd_pack_app(const char *out_path, const char *x86_path, const char *
       "exit 127\n"
       "__NANO_APP_PAYLOAD_BELOW__\n";
 
-  int stub_n = snprintf(NULL, 0, stub_fmt, x86_n, x86_n, arm_n, x86_n + arm_n, blob_n);
+  int stub_n = snprintf(NULL, 0, stub_fmt, x86_n, x86_n, arm_n, x86_n + arm_n, blob_n,
+                        x86_n, x86_n, arm_n, x86_n + arm_n, blob_n);
   if (stub_n < 0) {
     free(x86);
     free(arm);
@@ -1065,7 +1114,8 @@ static int cmd_pack_app(const char *out_path, const char *x86_path, const char *
     free(blob);
     return 2;
   }
-  snprintf(stub, (size_t)stub_n + 1, stub_fmt, x86_n, x86_n, arm_n, x86_n + arm_n, blob_n);
+  snprintf(stub, (size_t)stub_n + 1, stub_fmt, x86_n, x86_n, arm_n,
+           x86_n + arm_n, blob_n, x86_n, x86_n, arm_n, x86_n + arm_n, blob_n);
 
   Buf out = {0};
   buf_put(&out, stub, (size_t)stub_n);
@@ -1096,6 +1146,7 @@ static void usage(const char *argv0) {
   fprintf(stderr, "  %s compile input.%s output.%s\n", argv0, SOURCE_EXT, BLOB_EXT);
   fprintf(stderr, "  %s run program.%s\n", argv0, BLOB_EXT);
   fprintf(stderr, "  %s run-embedded container.com blob_offset blob_size\n", argv0);
+  fprintf(stderr, "  %s inspect-app container.com\n", argv0);
   fprintf(stderr, "  %s dump program.%s\n", argv0, BLOB_EXT);
   fprintf(stderr, "  %s resolve [--quiet] program.%s\n", argv0, BLOB_EXT);
   fprintf(stderr, "  %s pack-ape output.com x86_64.elf aarch64.elf\n", argv0);
@@ -1111,6 +1162,9 @@ int main(int argc, char **argv) {
   }
   if (argc >= 2 && strcmp(argv[1], "run-embedded") == 0 && argc == 5) {
     return cmd_run_embedded(argv[2], argv[3], argv[4]);
+  }
+  if (argc >= 2 && strcmp(argv[1], "inspect-app") == 0 && argc == 3) {
+    return cmd_inspect_app(argv[2]);
   }
   if (argc >= 2 && strcmp(argv[1], "dump") == 0 && argc == 3) {
     return cmd_dump(argv[2]);

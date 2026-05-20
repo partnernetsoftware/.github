@@ -12,6 +12,7 @@
 ./nano-listp.com dump strlen.lbin
 ./nano-listp.com run strlen.lbin
 ./nano-listp.com run-embedded app.com blob_offset blob_size
+./nano-listp.com inspect-app app.com
 ./nano-listp.com resolve --quiet strlen.lbin
 ./nano-listp.com pack-app app.com nano-jit.x86_64 nano-jit.aarch64 strlen.lbin
 ```
@@ -32,6 +33,7 @@
 - `resolve`：只验证 `.lbin` import table 的动态库和符号可解析，不调用函数；适合全量 libc 导入测试。
 - `run`：解析 `.lbin`，通过 `dlopen`/`dlsym` 找系统符号，执行 main 指令流。
 - `run-embedded`：从 `.com` 容器内按 payload 偏移直接读取并执行内嵌 blob。
+- `inspect-app`：读取 AOT app manifest，输出 runtime slice 和 blob 的 offset/size。
 - `pack-app`：把 runtime slices 和 `.lbin` 打进一个多架构 `.com` 应用，运行时直接从自身容器执行内嵌 blob。
 - 当前签名：`addr`、`u64(ptr)`、`i32(ptr)`、`i32(ptr,ptr)`、`i32()`。
 - `u64(ptr)` 仍走 x86_64/aarch64 JIT call stub；其他安全 smoke 签名先用 typed C call。
