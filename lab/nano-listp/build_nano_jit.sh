@@ -59,6 +59,7 @@ TYPED_BLOB="$BUILD_DIR/typed-values.lbin"
 CTRL_SRC="$LAB_DIR/samples/control-flow.lisp"
 CTRL_BLOB="$BUILD_DIR/control-flow.lbin"
 MULTI_SRC="$LAB_DIR/samples/multi-func.lisp"
+MULTI_CTRL_SRC="$LAB_DIR/samples/multi-func-control-flow.lisp"
 BAD_ARITH_SRC="$BUILD_DIR/arithmetic-bad.lisp"
 BAD_ARITH_BLOB="$BUILD_DIR/arithmetic-bad.lbin"
 EXIT42="$BUILD_DIR/exit42.elf"
@@ -79,6 +80,10 @@ MULTI_OBJ="$BUILD_DIR/multi_func.o"
 MULTI_C="$BUILD_DIR/multi_func_main.c"
 MULTI_EXE="$BUILD_DIR/multi_func"
 MULTI_LINK_EXE="$BUILD_DIR/multi_func_linked"
+MULTI_CTRL_OBJ="$BUILD_DIR/multi_func_control.o"
+MULTI_CTRL_C="$BUILD_DIR/multi_func_control_main.c"
+MULTI_CTRL_EXE="$BUILD_DIR/multi_func_control"
+MULTI_CTRL_LINK_EXE="$BUILD_DIR/multi_func_control_linked"
 RET42_OBJ="$BUILD_DIR/nano_ret42.o"
 RET42_C="$BUILD_DIR/nano_ret42_main.c"
 RET42_EXE="$BUILD_DIR/nano_ret42"
@@ -166,6 +171,12 @@ cat > "$MULTI_C" <<'EOF'
 extern int nano_multi_entry(void);
 int main(void) {
   return nano_multi_entry();
+}
+EOF
+cat > "$MULTI_CTRL_C" <<'EOF'
+extern int nano_multi_ctrl(void);
+int main(void) {
+  return nano_multi_ctrl();
 }
 EOF
 cat > "$BOOTSTRAP_PLAN" <<EOF
@@ -287,6 +298,11 @@ run_case "nano-jit-link-multi-func-obj43" cc "$MULTI_C" "$MULTI_OBJ" -o "$MULTI_
 run_case "nano-jit-run-multi-func-obj43" bash -c '"$1"; status=$?; test "$status" -eq 43' _ "$MULTI_EXE"
 run_case "nano-jit-tiny-link-multi-func-obj43" "$BUILD_DIR/nano-jit.com" link-elf64-exe "$MULTI_LINK_EXE" nano_multi_entry "$MULTI_OBJ"
 run_case "nano-jit-run-tiny-linked-multi-func43" bash -c '"$1"; status=$?; test "$status" -eq 43' _ "$MULTI_LINK_EXE"
+run_case "nano-jit-compile-multi-func-control-flow-elf64-obj43" "$BUILD_DIR/nano-jit.com" compile-elf64-obj-code "$MULTI_CTRL_SRC" "$MULTI_CTRL_OBJ" nano_multi_ctrl
+run_case "nano-jit-link-multi-func-control-flow-obj43" cc "$MULTI_CTRL_C" "$MULTI_CTRL_OBJ" -o "$MULTI_CTRL_EXE"
+run_case "nano-jit-run-multi-func-control-flow-obj43" bash -c '"$1"; status=$?; test "$status" -eq 43' _ "$MULTI_CTRL_EXE"
+run_case "nano-jit-tiny-link-multi-func-control-flow-obj43" "$BUILD_DIR/nano-jit.com" link-elf64-exe "$MULTI_CTRL_LINK_EXE" nano_multi_ctrl "$MULTI_CTRL_OBJ"
+run_case "nano-jit-run-tiny-linked-multi-func-control-flow43" bash -c '"$1"; status=$?; test "$status" -eq 43' _ "$MULTI_CTRL_LINK_EXE"
 run_case "nano-jit-emit-elf64-obj-call42" "$BUILD_DIR/nano-jit.com" emit-elf64-obj-call "$CALL42_OBJ" nano_call nano_ext
 run_case "nano-jit-link-elf64-obj-call42" cc "$CALL42_C" "$CALL42_OBJ" -o "$CALL42_EXE"
 run_case "nano-jit-run-elf64-obj-call42" bash -c '"$1"; status=$?; test "$status" -eq 42' _ "$CALL42_EXE"

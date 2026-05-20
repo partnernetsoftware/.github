@@ -9,6 +9,7 @@ ARITH_SRC="$LAB_DIR/samples/arithmetic.lisp"
 TYPED_SRC="$LAB_DIR/samples/typed-values.lisp"
 CTRL_SRC="$LAB_DIR/samples/control-flow.lisp"
 MULTI_SRC="$LAB_DIR/samples/multi-func.lisp"
+MULTI_CTRL_SRC="$LAB_DIR/samples/multi-func-control-flow.lisp"
 BOOTSTRAP_SRC="$LAB_DIR/samples/bootstrap-smoke.lisp"
 SMOKE_SRC="$LAB_DIR/samples/libc-smoke.lisp"
 BLOB="$BUILD_DIR/strlen.lbin"
@@ -32,6 +33,10 @@ MULTI_OBJ="$BUILD_DIR/multi_func.o"
 MULTI_C="$BUILD_DIR/multi_func_main.c"
 MULTI_EXE="$BUILD_DIR/multi_func"
 MULTI_LINK_EXE="$BUILD_DIR/multi_func_linked"
+MULTI_CTRL_OBJ="$BUILD_DIR/multi_func_control.o"
+MULTI_CTRL_C="$BUILD_DIR/multi_func_control_main.c"
+MULTI_CTRL_EXE="$BUILD_DIR/multi_func_control"
+MULTI_CTRL_LINK_EXE="$BUILD_DIR/multi_func_control_linked"
 SMOKE_BLOB="$BUILD_DIR/libc-smoke.lbin"
 LIBC_SRC="$BUILD_DIR/libc-resolve.lisp"
 LIBC_BLOB="$BUILD_DIR/libc-resolve.lbin"
@@ -123,6 +128,12 @@ int main(void) {
   return nano_multi_entry();
 }
 EOF
+cat > "$MULTI_CTRL_C" <<'EOF'
+extern int nano_multi_ctrl(void);
+int main(void) {
+  return nano_multi_ctrl();
+}
+EOF
 
 log() {
   printf '%s\n' "$*" | tee -a "$RESULTS"
@@ -154,6 +165,8 @@ log "control.source.path=$CTRL_SRC"
 log "control.source.bytes=$(bytes_of "$CTRL_SRC")"
 log "multi.source.path=$MULTI_SRC"
 log "multi.source.bytes=$(bytes_of "$MULTI_SRC")"
+log "multi.ctrl.source.path=$MULTI_CTRL_SRC"
+log "multi.ctrl.source.bytes=$(bytes_of "$MULTI_CTRL_SRC")"
 log "bootstrap.source.path=$BOOTSTRAP_SRC"
 log "bootstrap.source.bytes=$(bytes_of "$BOOTSTRAP_SRC")"
 log "smoke.source.path=$SMOKE_SRC"
@@ -252,6 +265,13 @@ if [ "$(uname -m)" = "x86_64" ] || [ "$(uname -m)" = "amd64" ]; then
   run_case "tiny-link-multi-func-obj43" "$RUNNER" link-elf64-exe "$MULTI_LINK_EXE" nano_multi_entry "$MULTI_OBJ"
   log "multi.tiny.link.bytes=$(bytes_of "$MULTI_LINK_EXE")"
   run_case "run-tiny-linked-multi-func43" bash -c '"$1"; status=$?; test "$status" -eq 43' _ "$MULTI_LINK_EXE"
+  run_case "compile-multi-func-control-flow-elf64-obj43" "$RUNNER" compile-elf64-obj-code "$MULTI_CTRL_SRC" "$MULTI_CTRL_OBJ" nano_multi_ctrl
+  log "multi.ctrl.obj.bytes=$(bytes_of "$MULTI_CTRL_OBJ")"
+  run_case "link-multi-func-control-flow-obj43" cc "$MULTI_CTRL_C" "$MULTI_CTRL_OBJ" -o "$MULTI_CTRL_EXE"
+  run_case "run-multi-func-control-flow-obj43" bash -c '"$1"; status=$?; test "$status" -eq 43' _ "$MULTI_CTRL_EXE"
+  run_case "tiny-link-multi-func-control-flow-obj43" "$RUNNER" link-elf64-exe "$MULTI_CTRL_LINK_EXE" nano_multi_ctrl "$MULTI_CTRL_OBJ"
+  log "multi.ctrl.tiny.link.bytes=$(bytes_of "$MULTI_CTRL_LINK_EXE")"
+  run_case "run-tiny-linked-multi-func-control-flow43" bash -c '"$1"; status=$?; test "$status" -eq 43' _ "$MULTI_CTRL_LINK_EXE"
   run_case "emit-elf64-obj-call42" "$RUNNER" emit-elf64-obj-call "$CALL42_OBJ" nano_call nano_ext
   log "call42.obj.bytes=$(bytes_of "$CALL42_OBJ")"
   run_case "link-elf64-obj-call42" cc "$CALL42_C" "$CALL42_OBJ" -o "$CALL42_EXE"

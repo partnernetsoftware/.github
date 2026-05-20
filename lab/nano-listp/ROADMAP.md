@@ -63,7 +63,7 @@
 1. 把最小 control flow 子集继续接到机器码 AOT/codegen 路径，逐步缩小静态求值-only 语义。
 2. 继续扩大 bootstrap DSL：在已落地的 `compile/hash/compare/pack-app/inspect-app/run` 基础上，再接更丰富的可验证步骤。
 3. 持续缩小临时依赖：`cosmocc` 只保留为 slice compiler，下一阶段目标是生成 x86_64 slice 的可运行子集。
-4. 继续扩大 typed/AOT 交集：让 `i64`、`bool`、以及后续 `ptr` 子集逐步进入 object/codegen 路径。
+4. 继续扩大 typed/AOT 交集：让 `i64`、`bool`、以及后续 `ptr` 子集逐步进入 object/codegen 路径；先补齐多函数 source AOT。
 
 已完成：
 
@@ -88,7 +88,7 @@
 - `expect` 已支持负数、布尔值和 `null` / `nonnull` 指针断言。
 - `block` / `branch` / `label` 已可编译进 `.lbin` 并由解释执行路径运行。
 - control-flow pure blob 已能走机器码 codegen AOT 路径，覆盖 `aot-elf64-code` / `aot-elf64-obj-code` / `compile-elf64-code`。
-- `compile-elf64-obj-code` 已支持多函数纯 VM source、内部 `call` 和基础 relocation 生成。
+- `compile-elf64-obj-code` 已支持多函数 pure VM source、内部 `call`、基础 relocation，以及 `i64` / `bool` / `branch` / `label` typed/control-flow 子集。
 - 多函数 object 可同时被系统 `cc` 与 nano 自带 tiny linker 链接并运行。
 - `bootstrap` 最小 DSL 已落地，可用 `.lisp` 顺序描述并执行 `compile` / `hash` / `compare` / `pack-app` / `inspect-app` / `run` 子流程。
 - control-flow pure blob 已能走静态求值 AOT 路径，生成 `aot-elf64-exit` / `aot-elf64-obj-ret` 产物。

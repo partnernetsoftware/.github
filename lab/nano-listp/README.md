@@ -92,6 +92,24 @@ typed value 现在支持最小 `i64 / bool / ptr`：
     (expect 43)))
 ```
 
+多函数 source AOT 现在也支持最小 typed/control-flow 子集：
+
+```lisp
+(module
+  (func helper
+    (block
+      (bool true)
+      (branch typed-path)
+      (label typed-path)
+      (i64 -7)
+      (expect -7)
+      (u64 42)))
+  (main
+    (call helper)
+    (add-u64 1)
+    (expect 43)))
+```
+
 bootstrap 子流程现在也可以先用 `.lisp` 描述，再由 nano 自己执行：
 
 ```lisp
@@ -120,7 +138,7 @@ bootstrap 子流程现在也可以先用 `.lisp` 描述，再由 nano 自己执�
 - `aot-elf64-code`：把纯 VM typed/control-flow 子集编译成 x86_64 机器码 ELF。
 - `aot-elf64-obj-code`：把纯 VM typed/control-flow 子集编译成可链接的 ELF64 function object。
 - `compile-elf64-code` / `compile-elf64-obj-code`：直接从 `.lisp` 生成 ELF 或 object，减少外部脚本胶水。
-- `compile-elf64-obj-code` 当前已支持多函数纯 VM 子集、内部 `call` 和基础 relocation 生成。
+- `compile-elf64-obj-code` 当前已支持多函数 pure VM source、内部 `call`、基础 relocation，以及 `i64` / `bool` / `branch` / `label` typed/control-flow 子集。
 - `link-elf64-exe`：链接当前 nano object 子集，输出可运行 x86_64 ELF。
 - `hash`：输出 `.lbin` 的内建 FNV-1a 64-bit hash，用于 deterministic 编译测试。
 - `(expect N)` / `(expect -N)` / `(expect true|false)` / `(expect null|nonnull)`：在 `.lbin` 内断言上一条结果，失败时 runtime 返回非零。

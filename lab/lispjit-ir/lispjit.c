@@ -73,6 +73,12 @@ extern void *cosmo_dlsym(void *handle, const char *symbol);
 #define AOT_STMT_ADD_U64 2u
 #define AOT_STMT_EXPECT_U64 3u
 #define AOT_STMT_CALL_FUNC 4u
+#define AOT_STMT_CONST_I64 5u
+#define AOT_STMT_CONST_BOOL 6u
+#define AOT_STMT_EXPECT_I64 7u
+#define AOT_STMT_EXPECT_BOOL 8u
+#define AOT_STMT_BRANCH_BOOL 9u
+#define AOT_STMT_LABEL 10u
 
 #define BOOTSTRAP_STEP_COMPILE 1u
 #define BOOTSTRAP_STEP_HASH 2u
@@ -669,15 +675,53 @@ static int parse_aot_body_items(const char **p, AotFunc *f) {
       if (!ok) return 0;
       continue;
     }
-    if (strcmp(head, "u64") == 0 || strcmp(head, "add-u64") == 0 ||
-        strcmp(head, "expect") == 0) {
+    if (strcmp(head, "branch") == 0) {
+      char *label = parse_atom(p);
+      ok = label && eat(p, ')') &&
+           aot_add_stmt(f, AOT_STMT_BRANCH_BOOL, 0, label);
+      if (!ok) free(label);
+    } else if (strcmp(head, "label") == 0) {
+      char *label = parse_atom(p);
+      ok = label && eat(p, ')') &&
+           aot_add_stmt(f, AOT_STMT_LABEL, 0, label);
+      if (!ok) free(label);
+    } else if (strcmp(head, "u64") == 0 || strcmp(head, "add-u64") == 0 ||
+               strcmp(head, "i64") == 0) {
       char *value = parse_atom(p);
       uint64_t imm = 0;
+      int64_t i64 = 0;
       uint32_t kind = strcmp(head, "u64") == 0 ? AOT_STMT_CONST_U64 :
                       strcmp(head, "add-u64") == 0 ? AOT_STMT_ADD_U64 :
-                      AOT_STMT_EXPECT_U64;
-      ok = value && parse_u64_atom(value, &imm) && eat(p, ')') &&
-           aot_add_stmt(f, kind, imm, NULL);
+                      AOT_STMT_CONST_I64;
+      if (strcmp(head, "i64") == 0) {
+        ok = value && parse_i64_atom(value, &i64) && eat(p, ')') &&
+             aot_add_stmt(f, kind, (uint64_t)i64, NULL);
+      } else {
+        ok = value && parse_u64_atom(value, &imm) && eat(p, ')') &&
+             aot_add_stmt(f, kind, imm, NULL);
+      }
+      free(value);
+    } else if (strcmp(head, "bool") == 0) {
+      char *value = parse_atom(p);
+      int boolean = 0;
+      ok = value && parse_bool_atom(value, &boolean) && eat(p, ')') &&
+           aot_add_stmt(f, AOT_STMT_CONST_BOOL, (uint64_t)boolean, NULL);
+      free(value);
+    } else if (strcmp(head, "expect") == 0) {
+      char *value = parse_atom(p);
+      uint64_t imm = 0;
+      int64_t i64 = 0;
+      int boolean = 0;
+      if (value && parse_bool_atom(value, &boolean)) {
+        ok = eat(p, ')') &&
+             aot_add_stmt(f, AOT_STMT_EXPECT_BOOL, (uint64_t)boolean, NULL);
+      } else if (value && parse_i64_atom(value, &i64) && i64 < 0) {
+        ok = eat(p, ')') &&
+             aot_add_stmt(f, AOT_STMT_EXPECT_I64, (uint64_t)i64, NULL);
+      } else {
+        ok = value && parse_u64_atom(value, &imm) && eat(p, ')') &&
+             aot_add_stmt(f, AOT_STMT_EXPECT_U64, imm, NULL);
+      }
       free(value);
     } else if (strcmp(head, "call") == 0) {
       char *target = parse_atom(p);
@@ -2782,6 +2826,31 @@ static int compile_pure_u64_blob_to_x86_ret(const Blob *b, Buf *code) {
   return compile_pure_blob_to_x86(b, code, 0);
 }
 
+static int aot_build_label_table(const AotFunc *func, LabelDef **out_labels,
+                                 size_t *out_label_count, uint32_t *out_emitted_stmts) {
+  LabelDef *labels = (LabelDef *)calloc(func->stmt_count ? func->stmt_count : 1, sizeof(*labels));
+  size_t label_count = 0;
+  uint32_t emitted = 0;
+  if (!labels) return 0;
+  for (size_t i = 0; i < func->stmt_count; ++i) {
+    const AotStmt *stmt = &func->stmts[i];
+    if (stmt->kind == AOT_STMT_LABEL) {
+      if (find_label(labels, label_count, stmt->target_name) >= 0) {
+        fprintf(stderr, "duplicate.label=%s\n", stmt->target_name);
+        free(labels);
+        return 0;
+      }
+      labels[label_count++] = (LabelDef){stmt->target_name, emitted};
+    } else {
+      emitted++;
+    }
+  }
+  *out_labels = labels;
+  *out_label_count = label_count;
+  *out_emitted_stmts = emitted;
+  return 1;
+}
+
 static void free_buf_array(Buf *bufs, size_t count) {
   if (!bufs) return;
   for (size_t i = 0; i < count; ++i) free(bufs[i].data);
@@ -2790,38 +2859,116 @@ static void free_buf_array(Buf *bufs, size_t count) {
 
 static int compile_aot_func_to_x86_ret(const AotFunc *func, Buf *code, Buf *call_patches) {
   int saw_ret = 0;
+  int last_kind = 0;
   Buf expect_patches = {0};
+  Buf branch_patches = {0};
+  LabelDef *labels = NULL;
+  size_t label_count = 0;
+  uint32_t emitted_stmts = 0;
+  uint32_t emitted_pc = 0;
+  uint32_t *pc_offs = NULL;
+  if (!aot_build_label_table(func, &labels, &label_count, &emitted_stmts)) return 0;
+  pc_offs = (uint32_t *)calloc((size_t)emitted_stmts + 1, sizeof(*pc_offs));
+  if (!pc_offs) goto fail;
   for (size_t i = 0; i < func->stmt_count; ++i) {
     const AotStmt *stmt = &func->stmts[i];
-    if (stmt->imm > UINT32_MAX) {
-      free(expect_patches.data);
-      return 0;
+    uint32_t patch_off = 0;
+    if (stmt->kind == AOT_STMT_LABEL) continue;
+    pc_offs[emitted_pc++] = (uint32_t)code->len;
+    if (stmt->kind == AOT_STMT_CONST_U64 || stmt->kind == AOT_STMT_ADD_U64 ||
+        stmt->kind == AOT_STMT_EXPECT_U64) {
+      if (stmt->imm > UINT32_MAX) goto fail;
     }
     if (stmt->kind == AOT_STMT_CONST_U64) {
       unsigned char mov_eax[5] = {0xb8, 0, 0, 0, 0};
       wr32(mov_eax + 1, (uint32_t)stmt->imm);
       buf_put(code, mov_eax, sizeof(mov_eax));
+      last_kind = VAL_U64;
+    } else if (stmt->kind == AOT_STMT_CONST_I64) {
+      int64_t imm_i64 = (int64_t)stmt->imm;
+      if (imm_i64 < INT32_MIN || imm_i64 > INT32_MAX) goto fail;
+      {
+        unsigned char mov_eax[5] = {0xb8, 0, 0, 0, 0};
+        wr32(mov_eax + 1, (uint32_t)(int32_t)imm_i64);
+        buf_put(code, mov_eax, sizeof(mov_eax));
+      }
+      last_kind = VAL_I64;
+    } else if (stmt->kind == AOT_STMT_CONST_BOOL) {
+      unsigned char mov_eax[5] = {0xb8, 0, 0, 0, 0};
+      wr32(mov_eax + 1, stmt->imm ? 1u : 0u);
+      buf_put(code, mov_eax, sizeof(mov_eax));
+      last_kind = VAL_BOOL;
     } else if (stmt->kind == AOT_STMT_ADD_U64) {
+      if (last_kind != VAL_U64) goto fail;
       unsigned char add_eax[5] = {0x05, 0, 0, 0, 0};
       wr32(add_eax + 1, (uint32_t)stmt->imm);
       buf_put(code, add_eax, sizeof(add_eax));
     } else if (stmt->kind == AOT_STMT_EXPECT_U64) {
+      if (last_kind != VAL_U64) goto fail;
       unsigned char cmp_eax[5] = {0x3d, 0, 0, 0, 0};
       unsigned char jne_fail[6] = {0x0f, 0x85, 0, 0, 0, 0};
-      uint32_t patch_off = (uint32_t)(code->len + sizeof(cmp_eax) + 2);
+      patch_off = (uint32_t)(code->len + sizeof(cmp_eax) + 2);
       wr32(cmp_eax + 1, (uint32_t)stmt->imm);
       buf_put(code, cmp_eax, sizeof(cmp_eax));
       buf_put(code, jne_fail, sizeof(jne_fail));
       buf_put32(&expect_patches, patch_off);
+    } else if (stmt->kind == AOT_STMT_EXPECT_I64) {
+      int64_t imm_i64 = (int64_t)stmt->imm;
+      if (last_kind != VAL_I64 || imm_i64 < INT32_MIN || imm_i64 > INT32_MAX) goto fail;
+      {
+        unsigned char cmp_eax[5] = {0x3d, 0, 0, 0, 0};
+        unsigned char jne_fail[6] = {0x0f, 0x85, 0, 0, 0, 0};
+        patch_off = (uint32_t)(code->len + sizeof(cmp_eax) + 2);
+        wr32(cmp_eax + 1, (uint32_t)(int32_t)imm_i64);
+        buf_put(code, cmp_eax, sizeof(cmp_eax));
+        buf_put(code, jne_fail, sizeof(jne_fail));
+        buf_put32(&expect_patches, patch_off);
+      }
+    } else if (stmt->kind == AOT_STMT_EXPECT_BOOL) {
+      if (last_kind != VAL_BOOL) goto fail;
+      {
+        unsigned char cmp_eax[5] = {0x3d, 0, 0, 0, 0};
+        unsigned char jne_fail[6] = {0x0f, 0x85, 0, 0, 0, 0};
+        patch_off = (uint32_t)(code->len + sizeof(cmp_eax) + 2);
+        wr32(cmp_eax + 1, stmt->imm ? 1u : 0u);
+        buf_put(code, cmp_eax, sizeof(cmp_eax));
+        buf_put(code, jne_fail, sizeof(jne_fail));
+        buf_put32(&expect_patches, patch_off);
+      }
+    } else if (stmt->kind == AOT_STMT_BRANCH_BOOL) {
+      int label_idx = -1;
+      PcPatch patch = {0};
+      if (last_kind != VAL_BOOL) goto fail;
+      label_idx = find_label(labels, label_count, stmt->target_name);
+      if (label_idx < 0) {
+        fprintf(stderr, "missing.label=%s\n", stmt->target_name);
+        goto fail;
+      }
+      {
+        unsigned char test_eax[2] = {0x85, 0xc0};
+        unsigned char jne_target[6] = {0x0f, 0x85, 0, 0, 0, 0};
+        buf_put(code, test_eax, sizeof(test_eax));
+        patch.patch_off = (uint32_t)(code->len + 2);
+        patch.target_pc = labels[label_idx].pc;
+        buf_put(code, jne_target, sizeof(jne_target));
+        buf_put(&branch_patches, &patch, sizeof(patch));
+      }
     } else if (stmt->kind == AOT_STMT_CALL_FUNC) {
       unsigned char call_rel32[5] = {0xe8, 0, 0, 0, 0};
       AotCallPatch patch = {(uint32_t)(code->len + 1), stmt->target_name};
       buf_put(code, call_rel32, sizeof(call_rel32));
       buf_put(call_patches, &patch, sizeof(patch));
+      last_kind = VAL_U64;
     } else {
-      free(expect_patches.data);
-      return 0;
+      goto fail;
     }
+  }
+  if (!emitted_stmts) goto fail;
+  pc_offs[emitted_stmts] = (uint32_t)code->len;
+  for (size_t i = 0; i < branch_patches.len; i += sizeof(PcPatch)) {
+    const PcPatch *patch = (const PcPatch *)(branch_patches.data + i);
+    int64_t rel = (int64_t)pc_offs[patch->target_pc] - (int64_t)(patch->patch_off + 4);
+    wr32(code->data + patch->patch_off, (uint32_t)(int32_t)rel);
   }
   if (func->stmt_count) {
     unsigned char ret = 0xc3;
@@ -2838,8 +2985,18 @@ static int compile_aot_func_to_x86_ret(const AotFunc *func, Buf *code, Buf *call
       wr32(code->data + patch_off, (uint32_t)(int32_t)rel);
     }
   }
+  free(labels);
+  free(pc_offs);
   free(expect_patches.data);
+  free(branch_patches.data);
   return saw_ret;
+
+fail:
+  free(labels);
+  free(pc_offs);
+  free(expect_patches.data);
+  free(branch_patches.data);
+  return 0;
 }
 
 static int compile_aot_module_to_elf64_obj(const AotModule *m, const char *out_path,
