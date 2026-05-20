@@ -28,6 +28,7 @@
 ./nano-lisp-jit.com link-expect-exit 2 dup.elf nano_call call.o ext.o dup.o
 ./nano-lisp-jit.com run-expect-exit arithmetic.elf 42
 ./nano-lisp-jit.com hash strlen.lbin
+./nano-lisp-jit.com file-size strlen.lbin
 ./nano-lisp-jit.com compare strlen.lbin strlen-repeat.lbin
 ./nano-lisp-jit.com resolve --quiet strlen.lbin
 ./nano-lisp-jit.com run-bootstrap-plan samples/bootstrap-smoke.lisp
@@ -160,6 +161,7 @@ bootstrap DSL 也能描述一条最小 AOT/codegen/tiny-link 构建图，不需�
 - `compile`：解析 `.lisp`，输出 `.lbin` portable blob。
 - `dump`：查看 blob header、import、const、instruction 数量。
 - `compare`：比较两个 blob 字节是否完全一致，用于 deterministic 编译测试。
+- `file-size`：输出任意文件字节数，脚本报告不再依赖 `wc -c`。
 - `run-expect-exit`：运行 ELF 并断言退出码，供 native smoke 和 bootstrap DSL 复用。
 - `link-expect-exit`：执行 tiny linker 并断言失败码，用于 duplicate-symbol 等负向 linker smoke。
 - `resolve`：验证 `.lbin` import table 的动态库和符号可解析；运行时会把解析到的函数地址放进当前 `ptr` typed value，适合全量 libc 导入测试或指针断言。
