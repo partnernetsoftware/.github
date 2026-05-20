@@ -118,6 +118,12 @@ bootstrap 子流程现在也可以先用 `.lisp` 描述，再由 nano 自己执�
 
 ```lisp
 (bootstrap
+  (compile "lab/nano-lisp-jit/samples/arithmetic.lisp" "lab/nano-lisp-jit/.build/bootstrap-smoke-arithmetic.lbin")
+  (hash "lab/nano-lisp-jit/.build/bootstrap-smoke-arithmetic.lbin")
+  (run "lab/nano-lisp-jit/.build/bootstrap-smoke-arithmetic.lbin")
+  (compile "lab/nano-lisp-jit/samples/typed-values.lisp" "lab/nano-lisp-jit/.build/bootstrap-smoke-typed-values.lbin")
+  (resolve-quiet "lab/nano-lisp-jit/.build/bootstrap-smoke-typed-values.lbin")
+  (run "lab/nano-lisp-jit/.build/bootstrap-smoke-typed-values.lbin")
   (compile "lab/nano-lisp-jit/samples/libc-smoke.lisp" "lab/nano-lisp-jit/.build/bootstrap-smoke.lbin")
   (hash "lab/nano-lisp-jit/.build/bootstrap-smoke.lbin")
   (compile "lab/nano-lisp-jit/samples/libc-smoke.lisp" "lab/nano-lisp-jit/.build/bootstrap-smoke-repeat.lbin")
