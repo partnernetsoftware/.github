@@ -72,6 +72,7 @@
 - deterministic `.lbin` hash/byte compare 测试。
 - `compare` CLI 已替代系统 `cmp` 执行 deterministic blob 对比。
 - `file-size` CLI 已替代 nano-lisp-jit smoke 报告中的 `wc -c` 字节统计。
+- `file-hash` CLI 已替代 `nano-jit.com` 报告中的 `sha256sum` 外部 hash。
 - `run-expect-exit` CLI 已替代 native AOT smoke 中的 shell 退出码包装。
 - `link-expect-exit` CLI 已替代 duplicate-symbol linker 负向 smoke 的 shell 包装。
 - `(expect N)` 断言 op，smoke `.lbin` 可自证关键 FFI/JIT 结果。

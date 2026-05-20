@@ -2148,6 +2148,18 @@ static int cmd_file_size(const char *path) {
   return 0;
 }
 
+static int cmd_file_hash(const char *path) {
+  size_t n = 0;
+  unsigned char *data = read_file(path, &n);
+  if (!data) {
+    fprintf(stderr, "file-hash=read_fail path=%s\n", path);
+    return 1;
+  }
+  printf("%016llx\n", (unsigned long long)fnv1a64(data, n));
+  free(data);
+  return 0;
+}
+
 static int compare_files(const char *left_path, const char *right_path, const char *label) {
   size_t left_n = 0;
   size_t right_n = 0;
@@ -3963,6 +3975,7 @@ static void usage(const char *argv0) {
   fprintf(stderr, "  %s dump program.%s\n", argv0, BLOB_EXT);
   fprintf(stderr, "  %s hash program.%s\n", argv0, BLOB_EXT);
   fprintf(stderr, "  %s file-size path\n", argv0);
+  fprintf(stderr, "  %s file-hash path\n", argv0);
   fprintf(stderr, "  %s compare left.%s right.%s\n", argv0, BLOB_EXT, BLOB_EXT);
   fprintf(stderr, "  %s resolve [--quiet] program.%s\n", argv0, BLOB_EXT);
   fprintf(stderr, "  %s run-bootstrap-plan plan.lisp\n", argv0);
@@ -4033,6 +4046,9 @@ int main(int argc, char **argv) {
   }
   if (argc >= 2 && strcmp(argv[1], "file-size") == 0 && argc == 3) {
     return cmd_file_size(argv[2]);
+  }
+  if (argc >= 2 && strcmp(argv[1], "file-hash") == 0 && argc == 3) {
+    return cmd_file_hash(argv[2]);
   }
   if (argc >= 2 && strcmp(argv[1], "compare") == 0 && argc == 4) {
     return cmd_compare(argv[2], argv[3]);
