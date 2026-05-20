@@ -1,0 +1,24 @@
+; Control-flow smoke: exercise block grouping plus taken/not-taken boolean branches.
+(module
+  (main
+    (block
+      (bool true)
+      (branch taken)
+      (u64 1)
+      (expect 999)
+      (label taken)
+      (i64 -7)
+      (expect -7))
+    (block
+      (bool false)
+      (branch skipped)
+      (u64 42)
+      (expect 42)
+      (bool true)
+      (branch done)
+      (label skipped)
+      (u64 1)
+      (expect 999)
+      (label done)
+      (bool true)
+      (expect true))))

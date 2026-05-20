@@ -7,13 +7,16 @@ BUILD_DIR="$LAB_DIR/.build"
 SRC="$LAB_DIR/samples/strlen.lisp"
 ARITH_SRC="$LAB_DIR/samples/arithmetic.lisp"
 TYPED_SRC="$LAB_DIR/samples/typed-values.lisp"
+CTRL_SRC="$LAB_DIR/samples/control-flow.lisp"
 SMOKE_SRC="$LAB_DIR/samples/libc-smoke.lisp"
 BLOB="$BUILD_DIR/strlen.lbin"
 BLOB_REPEAT="$BUILD_DIR/strlen-repeat.lbin"
 ARITH_BLOB="$BUILD_DIR/arithmetic.lbin"
 TYPED_BLOB="$BUILD_DIR/typed-values.lbin"
+CTRL_BLOB="$BUILD_DIR/control-flow.lbin"
 BAD_ARITH_SRC="$BUILD_DIR/arithmetic-bad.lisp"
 BAD_ARITH_BLOB="$BUILD_DIR/arithmetic-bad.lbin"
+CTRL_CODE="$BUILD_DIR/control-flow-code.elf"
 SMOKE_BLOB="$BUILD_DIR/libc-smoke.lbin"
 LIBC_SRC="$BUILD_DIR/libc-resolve.lisp"
 LIBC_BLOB="$BUILD_DIR/libc-resolve.lbin"
@@ -114,6 +117,8 @@ log "arithmetic.source.path=$ARITH_SRC"
 log "arithmetic.source.bytes=$(bytes_of "$ARITH_SRC")"
 log "typed.source.path=$TYPED_SRC"
 log "typed.source.bytes=$(bytes_of "$TYPED_SRC")"
+log "control.source.path=$CTRL_SRC"
+log "control.source.bytes=$(bytes_of "$CTRL_SRC")"
 log "smoke.source.path=$SMOKE_SRC"
 log "smoke.source.bytes=$(bytes_of "$SMOKE_SRC")"
 
@@ -148,6 +153,11 @@ log "typed.blob.bytes=$(bytes_of "$TYPED_BLOB")"
 
 run_case "execute-typed-values-lbin" "$RUNNER" run "$TYPED_BLOB"
 
+run_case "compile-control-flow-lbin" "$RUNNER" compile "$CTRL_SRC" "$CTRL_BLOB"
+log "control.blob.bytes=$(bytes_of "$CTRL_BLOB")"
+
+run_case "execute-control-flow-lbin" "$RUNNER" run "$CTRL_BLOB"
+
 if [ "$(uname -m)" = "x86_64" ] || [ "$(uname -m)" = "amd64" ]; then
   run_case "emit-elf64-exit42" "$RUNNER" emit-elf64-exit "$EXIT42" 42
   log "exit42.bytes=$(bytes_of "$EXIT42")"
@@ -161,6 +171,7 @@ if [ "$(uname -m)" = "x86_64" ] || [ "$(uname -m)" = "amd64" ]; then
   run_case "compile-bad-arithmetic-lbin" "$RUNNER" compile "$BAD_ARITH_SRC" "$BAD_ARITH_BLOB"
   run_case "aot-bad-arithmetic-elf64-code" "$RUNNER" aot-elf64-code "$BAD_ARITH_BLOB" "$BAD_ARITH_CODE"
   run_case "run-aot-bad-arithmetic-expect125" bash -c '"$1"; status=$?; test "$status" -eq 125' _ "$BAD_ARITH_CODE"
+  run_case "aot-control-flow-unsupported" bash -c 'if "$1" aot-elf64-code "$2" "$3"; then exit 1; else test "$?" -eq 2; fi' _ "$RUNNER" "$CTRL_BLOB" "$CTRL_CODE"
   run_case "emit-elf64-obj-ret42" "$RUNNER" emit-elf64-obj-ret "$RET42_OBJ" nano_ret 42
   log "ret42.obj.bytes=$(bytes_of "$RET42_OBJ")"
   run_case "link-elf64-obj-ret42" cc "$RET42_C" "$RET42_OBJ" -o "$RET42_EXE"

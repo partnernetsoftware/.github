@@ -60,8 +60,8 @@
 
 下一步优先级：
 
-1. 扩展 control flow：`block`、`branch`、`label`，让 `.lbin` 可表达更接近真实编译器的流程。
-2. 扩展 AOT object backend：从单函数推进到多函数、内部 call、基础 relocation 生成。
+1. 扩展 AOT object backend：从单函数推进到多函数、内部 call、基础 relocation 生成。
+2. 把最小 control flow 子集继续接到 AOT/静态求值路径，逐步缩小 runtime-only 语义。
 3. 开始 tiny self-host 描述：用 `.lisp` 描述 bootstrap pipeline 的一部分，逐步替代 shell。
 4. 持续缩小临时依赖：`cosmocc` 只保留为 slice compiler，下一阶段目标是生成 x86_64 slice 的可运行子集。
 
@@ -86,3 +86,5 @@
 - ELF/object/linker 内部 API 已抽象成可复用 helper，减少 section/symbol/rela 写入与解析重复。
 - typed value 已覆盖 `i64`、`bool`、`ptr` 基础值；`resolve` 会产出 `ptr` 值。
 - `expect` 已支持负数、布尔值和 `null` / `nonnull` 指针断言。
+- `block` / `branch` / `label` 已可编译进 `.lbin` 并由解释执行路径运行。
+- control-flow 程序在当前 AOT 子集上会显式报 `unsupported_blob`，避免 silent wrong code。

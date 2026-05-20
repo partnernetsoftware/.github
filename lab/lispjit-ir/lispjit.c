@@ -54,6 +54,7 @@ extern void *cosmo_dlsym(void *handle, const char *symbol);
 #define OP_EXPECT_I64 12u
 #define OP_EXPECT_BOOL 13u
 #define OP_EXPECT_PTR 14u
+#define OP_BRANCH_BOOL 15u
 
 #define SRC_FORM_CALL 1u
 #define SRC_FORM_RESOLVE 2u
@@ -65,6 +66,8 @@ extern void *cosmo_dlsym(void *handle, const char *symbol);
 #define SRC_FORM_EXPECT_I64 8u
 #define SRC_FORM_EXPECT_BOOL 9u
 #define SRC_FORM_EXPECT_PTR 10u
+#define SRC_FORM_BRANCH 11u
+#define SRC_FORM_LABEL 12u
 
 typedef uint64_t (*jit_entry_fn)(void);
 typedef int (*ffi_i32_ptr_fn)(const char *);
@@ -124,6 +127,11 @@ typedef struct {
   size_t instr_off;
   size_t string_off;
 } Blob;
+
+typedef struct {
+  const char *name;
+  uint32_t pc;
+} LabelDef;
 
 typedef enum {
   VAL_U64 = 1,
@@ -536,21 +544,35 @@ static int parse_const_form(const char **p, Module *m) {
   return add_const(m, name, value);
 }
 
-static int parse_main_form(const char **p, Module *m) {
+static int parse_main_items(const char **p, Module *m) {
   while (1) {
     skip_ws(p);
     if (**p == ')') {
       (*p)++;
-      return m->instr_count > 0;
+      return 1;
     }
     if (!eat(p, '(')) return 0;
     char *head = parse_atom(p);
     if (!head) return 0;
     int ok = 0;
+    if (strcmp(head, "block") == 0) {
+      ok = parse_main_items(p, m);
+      free(head);
+      if (!ok) return 0;
+      continue;
+    }
     if (strcmp(head, "resolve") == 0) {
       char *import_name = parse_atom(p);
       ok = import_name && eat(p, ')') &&
            add_instr(m, SRC_FORM_RESOLVE, import_name, NULL, NULL, 0);
+    } else if (strcmp(head, "branch") == 0) {
+      char *label_name = parse_atom(p);
+      ok = label_name && eat(p, ')') &&
+           add_instr(m, SRC_FORM_BRANCH, label_name, NULL, NULL, 0);
+    } else if (strcmp(head, "label") == 0) {
+      char *label_name = parse_atom(p);
+      ok = label_name && eat(p, ')') &&
+           add_instr(m, SRC_FORM_LABEL, label_name, NULL, NULL, 0);
     } else if (strcmp(head, "u64") == 0 || strcmp(head, "add-u64") == 0 ||
                strcmp(head, "i64") == 0) {
       char *value = parse_atom(p);
@@ -615,6 +637,10 @@ static int parse_main_form(const char **p, Module *m) {
   }
 }
 
+static int parse_main_form(const char **p, Module *m) {
+  return parse_main_items(p, m) && m->instr_count > 0;
+}
+
 static int parse_module(const char *src, Module *m) {
   const char *p = src;
   if (!eat(&p, '(')) return 0;
@@ -674,12 +700,47 @@ static uint32_t pack_const_pair(uint32_t a, uint32_t b) {
   return a | (b << 16);
 }
 
+static int find_label(const LabelDef *labels, size_t label_count, const char *name) {
+  for (size_t i = 0; i < label_count; ++i) {
+    if (strcmp(labels[i].name, name) == 0) return (int)i;
+  }
+  return -1;
+}
+
+static int build_label_table(const Module *m, LabelDef **out_labels, size_t *out_label_count,
+                             uint32_t *out_emitted_instrs) {
+  LabelDef *labels = (LabelDef *)calloc(m->instr_count ? m->instr_count : 1, sizeof(*labels));
+  size_t label_count = 0;
+  uint32_t emitted = 0;
+  if (!labels) return 0;
+  for (size_t i = 0; i < m->instr_count; ++i) {
+    const InstrDef *in = &m->instrs[i];
+    if (in->form == SRC_FORM_LABEL) {
+      if (find_label(labels, label_count, in->import_name) >= 0) {
+        fprintf(stderr, "duplicate.label=%s\n", in->import_name);
+        free(labels);
+        return 0;
+      }
+      labels[label_count++] = (LabelDef){in->import_name, emitted};
+    } else {
+      emitted++;
+    }
+  }
+  *out_labels = labels;
+  *out_label_count = label_count;
+  *out_emitted_instrs = emitted;
+  return 1;
+}
+
 static unsigned char *compile_module(const Module *m, size_t *out_n) {
   Buf out = {0};
   Buf imports = {0};
   Buf consts = {0};
   Buf instrs = {0};
   Buf strings = {0};
+  LabelDef *labels = NULL;
+  size_t label_count = 0;
+  uint32_t emitted_instrs = 0;
 
   for (size_t i = 0; i < m->import_count; ++i) {
     buf_put32(&imports, add_string(&strings, m->imports[i].lib));
@@ -695,8 +756,16 @@ static unsigned char *compile_module(const Module *m, size_t *out_n) {
     buf_put32(&consts, 0);
   }
 
+  if (!build_label_table(m, &labels, &label_count, &emitted_instrs)) {
+    free(imports.data);
+    free(consts.data);
+    free(strings.data);
+    return NULL;
+  }
+
   for (size_t i = 0; i < m->instr_count; ++i) {
     const InstrDef *in = &m->instrs[i];
+    if (in->form == SRC_FORM_LABEL) continue;
     if (in->form == SRC_FORM_CONST_U64 || in->form == SRC_FORM_ADD_U64 ||
         in->form == SRC_FORM_CONST_I64) {
       uint8_t op = in->form == SRC_FORM_CONST_U64 ? OP_CONST_U64 :
@@ -728,34 +797,86 @@ static unsigned char *compile_module(const Module *m, size_t *out_n) {
       emit_instr(&instrs, OP_EXPECT_PTR, (uint32_t)in->imm, 0);
       continue;
     }
+    if (in->form == SRC_FORM_BRANCH) {
+      int label_idx = find_label(labels, label_count, in->import_name);
+      if (label_idx < 0) {
+        fprintf(stderr, "missing.label=%s\n", in->import_name);
+        free(imports.data);
+        free(consts.data);
+        free(instrs.data);
+        free(strings.data);
+        free(labels);
+        return NULL;
+      }
+      emit_instr(&instrs, OP_BRANCH_BOOL, labels[label_idx].pc, 0);
+      continue;
+    }
     int import_idx = find_import(m, in->import_name);
-    if (import_idx < 0) return NULL;
+    if (import_idx < 0) {
+      free(imports.data);
+      free(consts.data);
+      free(instrs.data);
+      free(strings.data);
+      free(labels);
+      return NULL;
+    }
     if (in->form == SRC_FORM_RESOLVE) {
       emit_instr(&instrs, OP_RESOLVE_IMPORT, (uint32_t)import_idx, 0);
       continue;
     }
     uint32_t sig = m->imports[import_idx].sig;
     if (sig == SIG_I32_VOID) {
-      if (in->const_name || in->const2_name) return NULL;
+      if (in->const_name || in->const2_name) {
+        free(imports.data);
+        free(consts.data);
+        free(instrs.data);
+        free(strings.data);
+        free(labels);
+        return NULL;
+      }
       emit_instr(&instrs, OP_CALL_IMPORT_VOID, (uint32_t)import_idx, 0);
     } else if (sig == SIG_I32_I32) {
       int32_t imm = 0;
       if (!in->const_name || in->const2_name || !parse_i32_atom(in->const_name, &imm)) {
+        free(imports.data);
+        free(consts.data);
+        free(instrs.data);
+        free(strings.data);
+        free(labels);
         return NULL;
       }
       emit_instr(&instrs, OP_CALL_IMPORT_IMM, (uint32_t)import_idx, (uint32_t)imm);
     } else if (sig == SIG_U64_PTR || sig == SIG_I32_PTR) {
       int const_idx = in->const_name ? find_const(m, in->const_name) : -1;
-      if (const_idx < 0 || in->const2_name) return NULL;
+      if (const_idx < 0 || in->const2_name) {
+        free(imports.data);
+        free(consts.data);
+        free(instrs.data);
+        free(strings.data);
+        free(labels);
+        return NULL;
+      }
       emit_instr(&instrs, OP_CALL_IMPORT_CONST, (uint32_t)import_idx, (uint32_t)const_idx);
     } else if (sig == SIG_I32_PTR_PTR) {
       int const_idx = in->const_name ? find_const(m, in->const_name) : -1;
       int const2_idx = in->const2_name ? find_const(m, in->const2_name) : -1;
-      if (const_idx < 0 || const2_idx < 0) return NULL;
+      if (const_idx < 0 || const2_idx < 0) {
+        free(imports.data);
+        free(consts.data);
+        free(instrs.data);
+        free(strings.data);
+        free(labels);
+        return NULL;
+      }
       emit_instr(&instrs, OP_CALL_IMPORT_CONST2, (uint32_t)import_idx,
                  pack_const_pair((uint32_t)const_idx, (uint32_t)const2_idx));
     } else {
       fprintf(stderr, "signature.not_callable=%s\n", sig_name(sig));
+      free(imports.data);
+      free(consts.data);
+      free(instrs.data);
+      free(strings.data);
+      free(labels);
       return NULL;
     }
   }
@@ -767,7 +888,7 @@ static unsigned char *compile_module(const Module *m, size_t *out_n) {
   buf_put32(&out, 0);
   buf_put32(&out, (uint32_t)m->import_count);
   buf_put32(&out, (uint32_t)m->const_count);
-  buf_put32(&out, (uint32_t)(m->instr_count + 1));
+  buf_put32(&out, emitted_instrs + 1);
   buf_put32(&out, (uint32_t)strings.len);
   buf_put(&out, imports.data, imports.len);
   buf_put(&out, consts.data, consts.len);
@@ -778,6 +899,7 @@ static unsigned char *compile_module(const Module *m, size_t *out_n) {
   free(consts.data);
   free(instrs.data);
   free(strings.data);
+  free(labels);
   *out_n = out.len;
   return out.data;
 }
@@ -1034,7 +1156,8 @@ static int resolve_blob(const Blob *b, int quiet) {
 
 static int execute_blob(const Blob *b) {
   Value last = value_u64(0);
-  for (uint32_t pc = 0; pc < b->instr_count; ++pc) {
+  uint32_t pc = 0;
+  while (pc < b->instr_count) {
     const unsigned char *ins = instr_row(b, pc);
     if (!ins) return 10;
     uint8_t op = ins[0];
@@ -1053,6 +1176,7 @@ static int execute_blob(const Blob *b) {
       if (rc != 0) return rc;
       last = value_ptr(ri.fn);
       printf("resolve.%u=%s:%s sig=%s ok\n", pc, ri.lib, ri.sym, sig_name(ri.sig));
+      pc++;
       continue;
     }
     if (op == OP_EXPECT_U64) {
@@ -1065,6 +1189,7 @@ static int execute_blob(const Blob *b) {
         return 19;
       }
       printf("expect.%u=ok expected=%llu\n", pc, (unsigned long long)expected);
+      pc++;
       continue;
     }
     if (op == OP_EXPECT_I64) {
@@ -1076,6 +1201,7 @@ static int execute_blob(const Blob *b) {
         return 19;
       }
       printf("expect.%u=ok expected=%lld\n", pc, (long long)expected);
+      pc++;
       continue;
     }
     if (op == OP_EXPECT_BOOL) {
@@ -1086,6 +1212,7 @@ static int execute_blob(const Blob *b) {
         return 19;
       }
       printf("expect.%u=ok expected=%s\n", pc, arg0 ? "true" : "false");
+      pc++;
       continue;
     }
     if (op == OP_EXPECT_PTR) {
@@ -1096,6 +1223,22 @@ static int execute_blob(const Blob *b) {
         return 19;
       }
       printf("expect.%u=ok expected=%s\n", pc, arg0 ? "nonnull" : "null");
+      pc++;
+      continue;
+    }
+    if (op == OP_BRANCH_BOOL) {
+      if (last.kind != VAL_BOOL) {
+        fprintf(stderr, "type.branch=%u actual=", pc);
+        print_value(stderr, last);
+        fprintf(stderr, "\n");
+        return 21;
+      }
+      if (arg0 >= b->instr_count) {
+        fprintf(stderr, "branch.%u=bad_target %u\n", pc, arg0);
+        return 22;
+      }
+      printf("branch.%u=%s target=%u\n", pc, last.bits ? "taken" : "not-taken", arg0);
+      pc = last.bits ? arg0 : pc + 1;
       continue;
     }
     if (op == OP_CONST_U64) {
@@ -1103,6 +1246,7 @@ static int execute_blob(const Blob *b) {
       printf("u64.%u=", pc);
       print_value(stdout, last);
       printf("\n");
+      pc++;
       continue;
     }
     if (op == OP_CONST_I64) {
@@ -1110,6 +1254,7 @@ static int execute_blob(const Blob *b) {
       printf("i64.%u=", pc);
       print_value(stdout, last);
       printf("\n");
+      pc++;
       continue;
     }
     if (op == OP_CONST_BOOL) {
@@ -1117,6 +1262,7 @@ static int execute_blob(const Blob *b) {
       printf("bool.%u=", pc);
       print_value(stdout, last);
       printf("\n");
+      pc++;
       continue;
     }
     if (op == OP_ADD_U64) {
@@ -1130,6 +1276,7 @@ static int execute_blob(const Blob *b) {
       printf("add-u64.%u=", pc);
       print_value(stdout, last);
       printf("\n");
+      pc++;
       continue;
     }
     rc = resolve_import_ref(b, arg0, &ri);
@@ -1152,6 +1299,7 @@ static int execute_blob(const Blob *b) {
     printf("call.%u=%s:%s result=", pc, ri.lib, ri.sym);
     print_value(stdout, last);
     printf("\n");
+    pc++;
   }
   fprintf(stderr, "missing.ret\n");
   return 18;

@@ -63,6 +63,21 @@ typed value 现在支持最小 `i64 / bool / ptr`：
     (expect nonnull)))
 ```
 
+控制流当前支持最小 `block / branch / label`，`branch` 读取上一条 `bool`：
+
+```lisp
+(module
+  (main
+    (block
+      (bool true)
+      (branch taken)
+      (u64 1)
+      (expect 999)
+      (label taken)
+      (i64 -7)
+      (expect -7))))
+```
+
 ## 当前能力
 
 - `compile`：解析 `.lisp`，输出 `.lbin` portable blob。
@@ -83,6 +98,7 @@ typed value 现在支持最小 `i64 / bool / ptr`：
 - `hash`：输出 `.lbin` 的内建 FNV-1a 64-bit hash，用于 deterministic 编译测试。
 - `(expect N)` / `(expect -N)` / `(expect true|false)` / `(expect null|nonnull)`：在 `.lbin` 内断言上一条结果，失败时 runtime 返回非零。
 - `(u64 N)` / `(add-u64 N)` / `(i64 N)` / `(bool true|false)`：最小 typed VM 内核，不依赖 FFI。
+- `block` / `branch label` / `label`：最小解释执行控制流；当前 AOT 仍只支持线性纯 VM 子集，遇到分支会明确报 `unsupported_blob`。
 - `pack-app`：把 runtime slices 和 `.lbin` 打进一个多架构 `.com` 应用，运行时直接从自身容器执行内嵌 blob。
 - 当前签名：`addr`、`u64(ptr)`、`i32(ptr)`、`i32(ptr,ptr)`、`i32()`、`i32(i32)`。
 - `u64(ptr)` 仍走 x86_64/aarch64 JIT call stub；其他安全 smoke 签名先用 typed C call。
