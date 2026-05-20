@@ -2162,6 +2162,169 @@ static int cmd_file_hash(const char *path) {
   return 0;
 }
 
+static int str_cmp_ptr(const void *a, const void *b) {
+  const char *const *sa = (const char *const *)a;
+  const char *const *sb = (const char *const *)b;
+  return strcmp(*sa, *sb);
+}
+
+static int ident_char_ok(char c) {
+  return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') ||
+         (c >= '0' && c <= '9') || c == '_';
+}
+
+static char *libc_ident(const char *name, size_t index) {
+  size_t n = strlen(name);
+  char suffix[32];
+  int suffix_n = snprintf(suffix, sizeof(suffix), "_%zu", index);
+  int needs_prefix = n == 0 || (name[0] >= '0' && name[0] <= '9');
+  size_t out_n = (needs_prefix ? 4u : 0u) + n + (size_t)suffix_n + 1u;
+  char *out = (char *)malloc(out_n);
+  if (!out) return NULL;
+  size_t pos = 0;
+  if (needs_prefix) {
+    memcpy(out + pos, "sym_", 4);
+    pos += 4;
+  }
+  for (size_t i = 0; i < n; ++i) out[pos++] = ident_char_ok(name[i]) ? name[i] : '_';
+  memcpy(out + pos, suffix, (size_t)suffix_n + 1u);
+  return out;
+}
+
+static int symbol_vec_push(char ***items, size_t *count, size_t *cap, const char *sym) {
+  if (*count == *cap) {
+    size_t next = *cap ? *cap * 2u : 256u;
+    char **grown = (char **)realloc(*items, next * sizeof(**items));
+    if (!grown) return 0;
+    *items = grown;
+    *cap = next;
+  }
+  (*items)[*count] = dup_cstr(sym);
+  if (!(*items)[*count]) return 0;
+  *count += 1u;
+  return 1;
+}
+
+static const char *default_libc_path(void) {
+  static const char *candidates[] = {
+    "/lib/x86_64-linux-gnu/libc.so.6",
+    "/lib64/libc.so.6",
+    "/usr/lib/libc.so.6",
+    "/usr/lib64/libc.so.6",
+    NULL
+  };
+  for (size_t i = 0; candidates[i]; ++i) {
+    FILE *f = fopen(candidates[i], "rb");
+    if (f) {
+      fclose(f);
+      return candidates[i];
+    }
+  }
+  return candidates[0];
+}
+
+static int cmd_gen_libc_resolve(const char *libc_path, const char *out_path) {
+#if defined(_WIN32)
+  (void)libc_path;
+  (void)out_path;
+  fprintf(stderr, "gen-libc-resolve=unsupported_platform\n");
+  return 2;
+#else
+  if (!libc_path || !libc_path[0]) libc_path = default_libc_path();
+  if (strchr(libc_path, '\'') || strchr(libc_path, '\n')) {
+    fprintf(stderr, "gen-libc-resolve=bad_libc_path\n");
+    return 2;
+  }
+  char cmd[1024];
+  int cmd_n = snprintf(cmd, sizeof(cmd), "nm -D --defined-only '%s'", libc_path);
+  if (cmd_n < 0 || (size_t)cmd_n >= sizeof(cmd)) {
+    fprintf(stderr, "gen-libc-resolve=command_too_long\n");
+    return 2;
+  }
+  FILE *pipe = popen(cmd, "r");
+  if (!pipe) {
+    fprintf(stderr, "gen-libc-resolve=nm_fail\n");
+    return 2;
+  }
+  char **symbols = NULL;
+  size_t symbol_count = 0;
+  size_t symbol_cap = 0;
+  char line[4096];
+  int rc = 0;
+  while (fgets(line, sizeof(line), pipe)) {
+    char *tok = strtok(line, " \t\r\n");
+    char *raw = NULL;
+    while (tok) {
+      raw = tok;
+      tok = strtok(NULL, " \t\r\n");
+    }
+    if (!raw) continue;
+    char *at = strchr(raw, '@');
+    if (at && !(at[1] == '@')) continue;
+    if (at) *at = 0;
+    if (strncmp(raw, "GLIBC_", 6) == 0 || strncmp(raw, "GCC_", 4) == 0 || raw[0] == 0) continue;
+    if (!symbol_vec_push(&symbols, &symbol_count, &symbol_cap, raw)) {
+      rc = 2;
+      break;
+    }
+  }
+  int nm_status = pclose(pipe);
+  if (nm_status != 0 && rc == 0) {
+    fprintf(stderr, "gen-libc-resolve=nm_exit status=%d\n", nm_status);
+    rc = 2;
+  }
+  if (rc == 0) {
+    qsort(symbols, symbol_count, sizeof(*symbols), str_cmp_ptr);
+    FILE *out = fopen(out_path, "wb");
+    if (!out) {
+      fprintf(stderr, "gen-libc-resolve=write_fail path=%s\n", out_path);
+      rc = 3;
+    } else {
+      fprintf(out, "; Generated resolver manifest. It resolves exported libc symbols as addresses only.\n");
+      fprintf(out, "(module\n");
+      size_t emitted = 0;
+      for (size_t i = 0; i < symbol_count; ++i) {
+        if (i > 0 && strcmp(symbols[i], symbols[i - 1]) == 0) continue;
+        char *name = libc_ident(symbols[i], emitted);
+        if (!name) {
+          rc = 2;
+          break;
+        }
+        fprintf(out, "  (import %s \"libc\" \"%s\" \"addr\")\n", name, symbols[i]);
+        free(name);
+        emitted++;
+      }
+      fprintf(out, "  (main\n");
+      emitted = 0;
+      for (size_t i = 0; i < symbol_count; ++i) {
+        if (i > 0 && strcmp(symbols[i], symbols[i - 1]) == 0) continue;
+        char *name = libc_ident(symbols[i], emitted);
+        if (!name) {
+          rc = 2;
+          break;
+        }
+        fprintf(out, "    (resolve %s)\n", name);
+        free(name);
+        emitted++;
+      }
+      fprintf(out, "  ))\n");
+      if (fclose(out) != 0 && rc == 0) {
+        fprintf(stderr, "gen-libc-resolve=close_fail path=%s\n", out_path);
+        rc = 3;
+      }
+      if (rc == 0) {
+        printf("libc.path=%s\n", libc_path);
+        printf("symbols=%zu\n", emitted);
+        printf("output=%s\n", out_path);
+      }
+    }
+  }
+  for (size_t i = 0; i < symbol_count; ++i) free(symbols[i]);
+  free(symbols);
+  return rc;
+#endif
+}
+
 static int compare_files(const char *left_path, const char *right_path, const char *label) {
   size_t left_n = 0;
   size_t right_n = 0;
@@ -3981,6 +4144,7 @@ static void usage(const char *argv0) {
   fprintf(stderr, "  %s hash program.%s\n", argv0, BLOB_EXT);
   fprintf(stderr, "  %s file-size path\n", argv0);
   fprintf(stderr, "  %s file-hash path\n", argv0);
+  fprintf(stderr, "  %s gen-libc-resolve [libc.so] output.%s\n", argv0, SOURCE_EXT);
   fprintf(stderr, "  %s compare left.%s right.%s\n", argv0, BLOB_EXT, BLOB_EXT);
   fprintf(stderr, "  %s resolve [--quiet] program.%s\n", argv0, BLOB_EXT);
   fprintf(stderr, "  %s run-bootstrap-plan plan.lisp\n", argv0);
@@ -4054,6 +4218,10 @@ int main(int argc, char **argv) {
   }
   if (argc >= 2 && strcmp(argv[1], "file-hash") == 0 && argc == 3) {
     return cmd_file_hash(argv[2]);
+  }
+  if (argc >= 2 && strcmp(argv[1], "gen-libc-resolve") == 0) {
+    if (argc == 3) return cmd_gen_libc_resolve(NULL, argv[2]);
+    if (argc == 4) return cmd_gen_libc_resolve(argv[2], argv[3]);
   }
   if (argc >= 2 && strcmp(argv[1], "compare") == 0 && argc == 4) {
     return cmd_compare(argv[2], argv[3]);

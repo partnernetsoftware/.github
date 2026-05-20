@@ -346,7 +346,7 @@ run_case "nano-jit-inspect-smoke-app" "$BUILD_DIR/nano-jit.com" inspect-app "$SM
   echo "libc-smoke-app.com.fnv1a64=$(hash_of "$SMOKE_APP")"
 } | tee -a "$REPORT"
 run_case "nano-jit-run-smoke-app" "$SMOKE_APP"
-run_case "generate-libc-resolve-manifest" python3 "$LAB_DIR/gen_libc_resolve.py" "$RESOLVE_SRC"
+run_case "generate-libc-resolve-manifest" "$BUILD_DIR/nano-jit.com" gen-libc-resolve "$RESOLVE_SRC"
 run_case "nano-jit-compile-libc-resolve" "$BUILD_DIR/nano-jit.com" compile "$RESOLVE_SRC" "$RESOLVE_BLOB"
 run_case "nano-jit-resolve-libc" "$BUILD_DIR/nano-jit.com" resolve --quiet "$RESOLVE_BLOB"
 

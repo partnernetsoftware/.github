@@ -234,15 +234,15 @@ log "smoke.blob.bytes=$(bytes_of "$SMOKE_BLOB")"
 
 run_case "execute-libc-smoke-lbin" "$RUNNER" run "$SMOKE_BLOB"
 
-if command -v nm >/dev/null 2>&1 && command -v python3 >/dev/null 2>&1; then
-  run_case "generate-libc-resolve-manifest" python3 "$LAB_DIR/gen_libc_resolve.py" "$LIBC_SRC"
+if command -v nm >/dev/null 2>&1; then
+  run_case "generate-libc-resolve-manifest" "$RUNNER" gen-libc-resolve "$LIBC_SRC"
   run_case "compile-libc-resolve-lbin" "$RUNNER" compile "$LIBC_SRC" "$LIBC_BLOB"
   log "libc.resolve.blob.bytes=$(bytes_of "$LIBC_BLOB")"
   run_case "resolve-libc-imports" "$RUNNER" resolve --quiet "$LIBC_BLOB"
 else
   log ""
   log "## resolve-libc-imports"
-  log "skip: need python3 and nm"
+  log "skip: need nm"
 fi
 
 log ""
