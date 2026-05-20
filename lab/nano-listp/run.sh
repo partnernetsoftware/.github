@@ -7,6 +7,7 @@ BUILD_DIR="$LAB_DIR/.build"
 SRC="$LAB_DIR/samples/strlen.lisp"
 SMOKE_SRC="$LAB_DIR/samples/libc-smoke.lisp"
 BLOB="$BUILD_DIR/strlen.lbin"
+BLOB_REPEAT="$BUILD_DIR/strlen-repeat.lbin"
 SMOKE_BLOB="$BUILD_DIR/libc-smoke.lbin"
 LIBC_SRC="$BUILD_DIR/libc-resolve.lisp"
 LIBC_BLOB="$BUILD_DIR/libc-resolve.lbin"
@@ -47,6 +48,15 @@ log "native.runtime.bytes=$(bytes_of "$RUNNER")"
 
 run_case "compile-lisp-to-lbin" "$RUNNER" compile "$SRC" "$BLOB"
 log "blob.bytes=$(bytes_of "$BLOB")"
+
+run_case "compile-lisp-to-lbin-repeat" "$RUNNER" compile "$SRC" "$BLOB_REPEAT"
+log "blob.repeat.bytes=$(bytes_of "$BLOB_REPEAT")"
+
+run_case "hash-lbin" "$RUNNER" hash "$BLOB"
+
+run_case "hash-lbin-repeat" "$RUNNER" hash "$BLOB_REPEAT"
+
+run_case "compare-deterministic-lbin" cmp "$BLOB" "$BLOB_REPEAT"
 
 run_case "dump-lbin" "$RUNNER" dump "$BLOB"
 
