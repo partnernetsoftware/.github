@@ -1104,10 +1104,11 @@ static int cmd_inspect_app(const char *container_path) {
   return 2;
 }
 
-static int emit_elf64_exit_file(const char *out_path, uint8_t exit_code) {
-  enum { EHDR = 64, PHDR = 56, CODE_OFF = 120, CODE_N = 12, FILE_N = 132 };
-  unsigned char out[FILE_N];
-  memset(out, 0, sizeof(out));
+static int emit_elf64_code_file(const char *out_path, const unsigned char *code, size_t code_n) {
+  enum { EHDR = 64, PHDR = 56, CODE_OFF = 120 };
+  size_t file_n = CODE_OFF + code_n;
+  unsigned char *out = (unsigned char *)calloc(1, file_n);
+  if (!out) return 0;
 
   /* ELF64 little-endian executable with one RX PT_LOAD segment. */
   out[0] = 0x7f;
@@ -1132,22 +1133,26 @@ static int emit_elf64_exit_file(const char *out_path, uint8_t exit_code) {
   wr64(ph + 8, 0);
   wr64(ph + 16, 0x400000u);
   wr64(ph + 24, 0x400000u);
-  wr64(ph + 32, FILE_N);
-  wr64(ph + 40, FILE_N);
+  wr64(ph + 32, file_n);
+  wr64(ph + 40, file_n);
   wr64(ph + 48, 0x1000);
 
-  unsigned char *code = out + CODE_OFF;
+  memcpy(out + CODE_OFF, code, code_n);
+  int ok = write_file(out_path, out, file_n) && make_executable(out_path);
+  free(out);
+  return ok;
+}
+
+static int emit_elf64_exit_file(const char *out_path, uint8_t exit_code) {
+  unsigned char code[12];
+  memset(code, 0, sizeof(code));
   code[0] = 0xb8;
   wr32(code + 1, 60);
   code[5] = 0xbf;
   wr32(code + 6, (uint32_t)exit_code);
   code[10] = 0x0f;
   code[11] = 0x05;
-
-  if (!write_file(out_path, out, sizeof(out)) || !make_executable(out_path)) {
-    return 0;
-  }
-  return 1;
+  return emit_elf64_code_file(out_path, code, sizeof(code));
 }
 
 static int cmd_emit_elf64_exit(const char *out_path, const char *code_s) {
@@ -1213,6 +1218,67 @@ static int cmd_aot_elf64_exit(const char *blob_path, const char *out_path) {
   printf("aot.elf64.output=%s\n", out_path);
   printf("aot.elf64.bytes=%d\n", 132);
   printf("aot.elf64.exit=%llu\n", (unsigned long long)(result & 0xffu));
+  return 0;
+}
+
+static int compile_pure_u64_blob_to_x86_exit(const Blob *b, Buf *code) {
+  uint64_t last = 0;
+  int saw_ret = 0;
+  for (uint32_t pc = 0; pc < b->instr_count; ++pc) {
+    const unsigned char *ins = instr_row(b, pc);
+    if (!ins) return 0;
+    uint8_t op = ins[0];
+    uint32_t arg0 = rd32(ins + 4);
+    uint32_t arg1 = rd32(ins + 8);
+    uint64_t imm = (uint64_t)arg0 | ((uint64_t)arg1 << 32);
+    if (op == OP_CONST_U64) {
+      unsigned char mov_edi[5] = {0xbf, 0, 0, 0, 0};
+      wr32(mov_edi + 1, (uint32_t)imm);
+      buf_put(code, mov_edi, sizeof(mov_edi));
+      last = imm;
+    } else if (op == OP_ADD_U64) {
+      unsigned char add_edi[6] = {0x81, 0xc7, 0, 0, 0, 0};
+      wr32(add_edi + 2, (uint32_t)imm);
+      buf_put(code, add_edi, sizeof(add_edi));
+      last += imm;
+    } else if (op == OP_EXPECT_U64) {
+      if (last != imm) return 0;
+    } else if (op == OP_RET_LAST) {
+      unsigned char exit_syscall[7] = {0xb8, 0x3c, 0, 0, 0, 0x0f, 0x05};
+      buf_put(code, exit_syscall, sizeof(exit_syscall));
+      saw_ret = 1;
+      break;
+    } else {
+      return 0;
+    }
+  }
+  return saw_ret;
+}
+
+static int cmd_aot_elf64_code(const char *blob_path, const char *out_path) {
+  Blob b;
+  unsigned char *owned = NULL;
+  Buf code = {0};
+  if (!blob_load_path(blob_path, &b, &owned)) {
+    fprintf(stderr, "blob=parse_fail path=%s\n", blob_path);
+    return 1;
+  }
+  int ok = compile_pure_u64_blob_to_x86_exit(&b, &code);
+  free(owned);
+  if (!ok) {
+    free(code.data);
+    fprintf(stderr, "aot-elf64-code=unsupported_blob\n");
+    return 2;
+  }
+  if (!emit_elf64_code_file(out_path, code.data, code.len)) {
+    free(code.data);
+    fprintf(stderr, "aot-elf64-code=write_fail path=%s\n", out_path);
+    return 3;
+  }
+  printf("aot.code.output=%s\n", out_path);
+  printf("aot.code.bytes=%zu\n", 120 + code.len);
+  printf("aot.code.x86.bytes=%zu\n", code.len);
+  free(code.data);
   return 0;
 }
 
@@ -1384,6 +1450,7 @@ static void usage(const char *argv0) {
   fprintf(stderr, "  %s inspect-app container.com\n", argv0);
   fprintf(stderr, "  %s emit-elf64-exit output.elf exit_code\n", argv0);
   fprintf(stderr, "  %s aot-elf64-exit input.%s output.elf\n", argv0, BLOB_EXT);
+  fprintf(stderr, "  %s aot-elf64-code input.%s output.elf\n", argv0, BLOB_EXT);
   fprintf(stderr, "  %s dump program.%s\n", argv0, BLOB_EXT);
   fprintf(stderr, "  %s hash program.%s\n", argv0, BLOB_EXT);
   fprintf(stderr, "  %s resolve [--quiet] program.%s\n", argv0, BLOB_EXT);
@@ -1409,6 +1476,9 @@ int main(int argc, char **argv) {
   }
   if (argc >= 2 && strcmp(argv[1], "aot-elf64-exit") == 0 && argc == 4) {
     return cmd_aot_elf64_exit(argv[2], argv[3]);
+  }
+  if (argc >= 2 && strcmp(argv[1], "aot-elf64-code") == 0 && argc == 4) {
+    return cmd_aot_elf64_code(argv[2], argv[3]);
   }
   if (argc >= 2 && strcmp(argv[1], "dump") == 0 && argc == 3) {
     return cmd_dump(argv[2]);

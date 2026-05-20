@@ -75,3 +75,4 @@
 - `i32(i32)` FFI 签名，smoke 覆盖 `abs(-42) -> 42`。
 - `emit-elf64-exit` tiny ELF writer，直接生成可运行 x86_64 Linux ELF。
 - `aot-elf64-exit` 可把纯 VM `.lbin` 静态求值并生成 ELF。
+- `aot-elf64-code` 可把纯 VM 算术 op 编译为 x86_64 机器码 ELF。
