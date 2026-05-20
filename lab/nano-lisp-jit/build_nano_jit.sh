@@ -33,8 +33,8 @@ bytes_of() {
   "$BUILD_DIR/nano-jit.com" file-size "$1"
 }
 
-sha256_of() {
-  sha256sum "$1" | awk '{print $1}'
+hash_of() {
+  "$BUILD_DIR/nano-jit.com" file-hash "$1"
 }
 
 run_case() {
@@ -258,11 +258,11 @@ run_case "self-pack-nano-jit-com" "$PACKER" pack-ape \
 
 {
   echo "nano-jit.com.bytes=$(bytes_of "$BUILD_DIR/nano-jit.com")"
-  echo "nano-jit.com.sha256=$(sha256_of "$BUILD_DIR/nano-jit.com")"
+  echo "nano-jit.com.fnv1a64=$(hash_of "$BUILD_DIR/nano-jit.com")"
   echo "nano-jit.x86_64.bytes=$(bytes_of "$BUILD_DIR/nano-jit.x86_64")"
-  echo "nano-jit.x86_64.sha256=$(sha256_of "$BUILD_DIR/nano-jit.x86_64")"
+  echo "nano-jit.x86_64.fnv1a64=$(hash_of "$BUILD_DIR/nano-jit.x86_64")"
   echo "nano-jit.aarch64.bytes=$(bytes_of "$BUILD_DIR/nano-jit.aarch64")"
-  echo "nano-jit.aarch64.sha256=$(sha256_of "$BUILD_DIR/nano-jit.aarch64")"
+  echo "nano-jit.aarch64.fnv1a64=$(hash_of "$BUILD_DIR/nano-jit.aarch64")"
 } | tee -a "$REPORT"
 
 run_case "nano-jit-compile-smoke" "$BUILD_DIR/nano-jit.com" compile "$SMOKE_SRC" "$SMOKE_BLOB"
@@ -337,7 +337,7 @@ run_case "nano-jit-pack-smoke-app" "$BUILD_DIR/nano-jit.com" pack-app \
 run_case "nano-jit-inspect-smoke-app" "$BUILD_DIR/nano-jit.com" inspect-app "$SMOKE_APP"
 {
   echo "libc-smoke-app.com.bytes=$(bytes_of "$SMOKE_APP")"
-  echo "libc-smoke-app.com.sha256=$(sha256_of "$SMOKE_APP")"
+  echo "libc-smoke-app.com.fnv1a64=$(hash_of "$SMOKE_APP")"
 } | tee -a "$REPORT"
 run_case "nano-jit-run-smoke-app" "$SMOKE_APP"
 run_case "generate-libc-resolve-manifest" python3 "$LAB_DIR/gen_libc_resolve.py" "$RESOLVE_SRC"
