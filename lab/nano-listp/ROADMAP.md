@@ -75,7 +75,7 @@
 - `i32(i32)` FFI 签名，smoke 覆盖 `abs(-42) -> 42`。
 - `emit-elf64-exit` tiny ELF writer，直接生成可运行 x86_64 Linux ELF。
 - `aot-elf64-exit` 可把纯 VM `.lbin` 静态求值并生成 ELF。
-- `aot-elf64-code` 可把纯 VM 算术 op 编译为 x86_64 机器码 ELF。
+- `aot-elf64-code` 可把纯 VM typed/control-flow 子集编译为 x86_64 机器码 ELF。
 - `emit-elf64-obj-ret` 可生成带 section/symbol table 的 ELF64 relocatable object。
 - `emit-elf64-obj-call` 可生成带 `.rela.text` 的 ELF64 object，验证外部符号 relocation。
 - `aot-elf64-obj-ret` 可把纯 VM `.lbin` 编译为可链接 ELF64 function object。
@@ -87,7 +87,7 @@
 - typed value 已覆盖 `i64`、`bool`、`ptr` 基础值；`resolve` 会产出 `ptr` 值。
 - `expect` 已支持负数、布尔值和 `null` / `nonnull` 指针断言。
 - `block` / `branch` / `label` 已可编译进 `.lbin` 并由解释执行路径运行。
-- control-flow 程序在当前 AOT 子集上会显式报 `unsupported_blob`，避免 silent wrong code。
+- control-flow pure blob 已能走机器码 codegen AOT 路径，覆盖 `aot-elf64-code` / `aot-elf64-obj-code` / `compile-elf64-code`。
 - `compile-elf64-obj-code` 已支持多函数纯 VM source、内部 `call` 和基础 relocation 生成。
 - 多函数 object 可同时被系统 `cc` 与 nano 自带 tiny linker 链接并运行。
 - `bootstrap` 最小 DSL 已落地，可用 `.lisp` 顺序描述并执行 `compile` / `hash` / `compare` / `pack-app` / `inspect-app` / `run` 子流程。

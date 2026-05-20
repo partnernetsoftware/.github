@@ -23,6 +23,11 @@ CTRL_EXIT="$BUILD_DIR/control-flow-aot.elf"
 CTRL_OBJ="$BUILD_DIR/control_flow_obj.o"
 CTRL_OBJ_C="$BUILD_DIR/control_flow_main.c"
 CTRL_OBJ_EXE="$BUILD_DIR/control_flow_obj"
+CTRL_CODE_OBJ="$BUILD_DIR/control_flow_code_obj.o"
+CTRL_CODE_OBJ_C="$BUILD_DIR/control_flow_code_main.c"
+CTRL_CODE_OBJ_EXE="$BUILD_DIR/control_flow_code_obj"
+CTRL_LINK_EXE="$BUILD_DIR/control_flow_linked"
+CTRL_DIRECT_EXE="$BUILD_DIR/control_flow_direct"
 MULTI_OBJ="$BUILD_DIR/multi_func.o"
 MULTI_C="$BUILD_DIR/multi_func_main.c"
 MULTI_EXE="$BUILD_DIR/multi_func"
@@ -104,6 +109,12 @@ cat > "$CTRL_OBJ_C" <<'EOF'
 extern int nano_ctrl(void);
 int main(void) {
   return nano_ctrl();
+}
+EOF
+cat > "$CTRL_CODE_OBJ_C" <<'EOF'
+extern int nano_ctrl_code(void);
+int main(void) {
+  return nano_ctrl_code();
 }
 EOF
 cat > "$MULTI_C" <<'EOF'
@@ -204,7 +215,15 @@ if [ "$(uname -m)" = "x86_64" ] || [ "$(uname -m)" = "amd64" ]; then
   run_case "aot-control-flow-elf64-obj-ret1" "$RUNNER" aot-elf64-obj-ret "$CTRL_BLOB" "$CTRL_OBJ" nano_ctrl
   run_case "link-aot-control-flow-obj1" cc "$CTRL_OBJ_C" "$CTRL_OBJ" -o "$CTRL_OBJ_EXE"
   run_case "run-aot-control-flow-obj1" bash -c '"$1"; status=$?; test "$status" -eq 1' _ "$CTRL_OBJ_EXE"
-  run_case "aot-control-flow-unsupported" bash -c 'if "$1" aot-elf64-code "$2" "$3"; then exit 1; else test "$?" -eq 2; fi' _ "$RUNNER" "$CTRL_BLOB" "$CTRL_CODE"
+  run_case "aot-control-flow-elf64-code1" "$RUNNER" aot-elf64-code "$CTRL_BLOB" "$CTRL_CODE"
+  run_case "run-aot-control-flow-code1" bash -c '"$1"; status=$?; test "$status" -eq 1' _ "$CTRL_CODE"
+  run_case "aot-control-flow-elf64-obj-code1" "$RUNNER" aot-elf64-obj-code "$CTRL_BLOB" "$CTRL_CODE_OBJ" nano_ctrl_code
+  run_case "link-aot-control-flow-obj-code1" cc "$CTRL_CODE_OBJ_C" "$CTRL_CODE_OBJ" -o "$CTRL_CODE_OBJ_EXE"
+  run_case "run-aot-control-flow-obj-code1" bash -c '"$1"; status=$?; test "$status" -eq 1' _ "$CTRL_CODE_OBJ_EXE"
+  run_case "tiny-link-aot-control-flow-obj-code1" "$RUNNER" link-elf64-exe "$CTRL_LINK_EXE" nano_ctrl_code "$CTRL_CODE_OBJ"
+  run_case "run-tiny-linked-control-flow1" bash -c '"$1"; status=$?; test "$status" -eq 1' _ "$CTRL_LINK_EXE"
+  run_case "compile-control-flow-elf64-code1" "$RUNNER" compile-elf64-code "$CTRL_SRC" "$CTRL_DIRECT_EXE"
+  run_case "run-direct-compiled-control-flow1" bash -c '"$1"; status=$?; test "$status" -eq 1' _ "$CTRL_DIRECT_EXE"
   run_case "emit-elf64-obj-ret42" "$RUNNER" emit-elf64-obj-ret "$RET42_OBJ" nano_ret 42
   log "ret42.obj.bytes=$(bytes_of "$RET42_OBJ")"
   run_case "link-elf64-obj-ret42" cc "$RET42_C" "$RET42_OBJ" -o "$RET42_EXE"

@@ -70,6 +70,11 @@ CTRL_EXIT="$BUILD_DIR/control-flow-aot.elf"
 CTRL_OBJ="$BUILD_DIR/control_flow_obj.o"
 CTRL_OBJ_C="$BUILD_DIR/control_flow_main.c"
 CTRL_OBJ_EXE="$BUILD_DIR/control_flow_obj"
+CTRL_CODE_OBJ="$BUILD_DIR/control_flow_code_obj.o"
+CTRL_CODE_OBJ_C="$BUILD_DIR/control_flow_code_main.c"
+CTRL_CODE_OBJ_EXE="$BUILD_DIR/control_flow_code_obj"
+CTRL_LINK_EXE="$BUILD_DIR/control_flow_linked"
+CTRL_DIRECT_EXE="$BUILD_DIR/control_flow_direct"
 MULTI_OBJ="$BUILD_DIR/multi_func.o"
 MULTI_C="$BUILD_DIR/multi_func_main.c"
 MULTI_EXE="$BUILD_DIR/multi_func"
@@ -149,6 +154,12 @@ cat > "$CTRL_OBJ_C" <<'EOF'
 extern int nano_ctrl(void);
 int main(void) {
   return nano_ctrl();
+}
+EOF
+cat > "$CTRL_CODE_OBJ_C" <<'EOF'
+extern int nano_ctrl_code(void);
+int main(void) {
+  return nano_ctrl_code();
 }
 EOF
 cat > "$MULTI_C" <<'EOF'
@@ -246,7 +257,15 @@ run_case "nano-jit-run-aot-control-flow-exit1" bash -c '"$1"; status=$?; test "$
 run_case "nano-jit-aot-control-flow-elf64-obj-ret1" "$BUILD_DIR/nano-jit.com" aot-elf64-obj-ret "$CTRL_BLOB" "$CTRL_OBJ" nano_ctrl
 run_case "nano-jit-link-aot-control-flow-obj1" cc "$CTRL_OBJ_C" "$CTRL_OBJ" -o "$CTRL_OBJ_EXE"
 run_case "nano-jit-run-aot-control-flow-obj1" bash -c '"$1"; status=$?; test "$status" -eq 1' _ "$CTRL_OBJ_EXE"
-run_case "nano-jit-aot-control-flow-unsupported" bash -c 'if "$1" aot-elf64-code "$2" "$3"; then exit 1; else test "$?" -eq 2; fi' _ "$BUILD_DIR/nano-jit.com" "$CTRL_BLOB" "$CTRL_CODE"
+run_case "nano-jit-aot-control-flow-elf64-code1" "$BUILD_DIR/nano-jit.com" aot-elf64-code "$CTRL_BLOB" "$CTRL_CODE"
+run_case "nano-jit-run-aot-control-flow-code1" bash -c '"$1"; status=$?; test "$status" -eq 1' _ "$CTRL_CODE"
+run_case "nano-jit-aot-control-flow-elf64-obj-code1" "$BUILD_DIR/nano-jit.com" aot-elf64-obj-code "$CTRL_BLOB" "$CTRL_CODE_OBJ" nano_ctrl_code
+run_case "nano-jit-link-aot-control-flow-obj-code1" cc "$CTRL_CODE_OBJ_C" "$CTRL_CODE_OBJ" -o "$CTRL_CODE_OBJ_EXE"
+run_case "nano-jit-run-aot-control-flow-obj-code1" bash -c '"$1"; status=$?; test "$status" -eq 1' _ "$CTRL_CODE_OBJ_EXE"
+run_case "nano-jit-tiny-link-aot-control-flow-obj-code1" "$BUILD_DIR/nano-jit.com" link-elf64-exe "$CTRL_LINK_EXE" nano_ctrl_code "$CTRL_CODE_OBJ"
+run_case "nano-jit-run-tiny-linked-control-flow1" bash -c '"$1"; status=$?; test "$status" -eq 1' _ "$CTRL_LINK_EXE"
+run_case "nano-jit-compile-control-flow-elf64-code1" "$BUILD_DIR/nano-jit.com" compile-elf64-code "$CTRL_SRC" "$CTRL_DIRECT_EXE"
+run_case "nano-jit-run-direct-compiled-control-flow1" bash -c '"$1"; status=$?; test "$status" -eq 1' _ "$CTRL_DIRECT_EXE"
 run_case "nano-jit-emit-elf64-obj-ret42" "$BUILD_DIR/nano-jit.com" emit-elf64-obj-ret "$RET42_OBJ" nano_ret 42
 run_case "nano-jit-link-elf64-obj-ret42" cc "$RET42_C" "$RET42_OBJ" -o "$RET42_EXE"
 run_case "nano-jit-run-elf64-obj-ret42" bash -c '"$1"; status=$?; test "$status" -eq 42' _ "$RET42_EXE"

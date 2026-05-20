@@ -2585,122 +2585,201 @@ static int cmd_aot_elf64_obj_ret(const char *blob_path, const char *out_path, co
   return 0;
 }
 
-static int compile_pure_u64_blob_to_x86_exit(const Blob *b, Buf *code) {
+typedef struct {
+  uint32_t patch_off;
+  uint32_t target_pc;
+} PcPatch;
+
+static int compile_pure_blob_to_x86(const Blob *b, Buf *code, int exit_style) {
   int saw_ret = 0;
+  int last_kind = 0;
   Buf expect_patches = {0};
+  Buf branch_patches = {0};
+  uint32_t *pc_offs = (uint32_t *)calloc(b->instr_count ? b->instr_count : 1, sizeof(*pc_offs));
+  if (!pc_offs) return 0;
   for (uint32_t pc = 0; pc < b->instr_count; ++pc) {
     const unsigned char *ins = instr_row(b, pc);
-    if (!ins) {
-      free(expect_patches.data);
-      return 0;
-    }
-    uint8_t op = ins[0];
-    uint32_t arg0 = rd32(ins + 4);
-    uint32_t arg1 = rd32(ins + 8);
-    uint64_t imm = (uint64_t)arg0 | ((uint64_t)arg1 << 32);
-    if (imm > UINT32_MAX) {
-      free(expect_patches.data);
-      return 0;
-    }
+    uint8_t op = 0;
+    uint32_t arg0 = 0;
+    uint32_t arg1 = 0;
+    int64_t imm_i64 = 0;
+    uint64_t imm_u64 = 0;
+    if (!ins) goto fail;
+    pc_offs[pc] = (uint32_t)code->len;
+    op = ins[0];
+    arg0 = rd32(ins + 4);
+    arg1 = rd32(ins + 8);
+    imm_u64 = (uint64_t)arg0 | ((uint64_t)arg1 << 32);
+    imm_i64 = (int64_t)imm_u64;
     if (op == OP_CONST_U64) {
-      unsigned char mov_edi[5] = {0xbf, 0, 0, 0, 0};
-      wr32(mov_edi + 1, (uint32_t)imm);
-      buf_put(code, mov_edi, sizeof(mov_edi));
+      if (imm_u64 > UINT32_MAX) goto fail;
+      if (exit_style) {
+        unsigned char mov_edi[5] = {0xbf, 0, 0, 0, 0};
+        wr32(mov_edi + 1, (uint32_t)imm_u64);
+        buf_put(code, mov_edi, sizeof(mov_edi));
+      } else {
+        unsigned char mov_eax[5] = {0xb8, 0, 0, 0, 0};
+        wr32(mov_eax + 1, (uint32_t)imm_u64);
+        buf_put(code, mov_eax, sizeof(mov_eax));
+      }
+      last_kind = VAL_U64;
+    } else if (op == OP_CONST_I64) {
+      if (imm_i64 < INT32_MIN || imm_i64 > INT32_MAX) goto fail;
+      if (exit_style) {
+        unsigned char mov_edi[5] = {0xbf, 0, 0, 0, 0};
+        wr32(mov_edi + 1, (uint32_t)(int32_t)imm_i64);
+        buf_put(code, mov_edi, sizeof(mov_edi));
+      } else {
+        unsigned char mov_eax[5] = {0xb8, 0, 0, 0, 0};
+        wr32(mov_eax + 1, (uint32_t)(int32_t)imm_i64);
+        buf_put(code, mov_eax, sizeof(mov_eax));
+      }
+      last_kind = VAL_I64;
+    } else if (op == OP_CONST_BOOL) {
+      if (exit_style) {
+        unsigned char mov_edi[5] = {0xbf, 0, 0, 0, 0};
+        wr32(mov_edi + 1, arg0 ? 1u : 0u);
+        buf_put(code, mov_edi, sizeof(mov_edi));
+      } else {
+        unsigned char mov_eax[5] = {0xb8, 0, 0, 0, 0};
+        wr32(mov_eax + 1, arg0 ? 1u : 0u);
+        buf_put(code, mov_eax, sizeof(mov_eax));
+      }
+      last_kind = VAL_BOOL;
     } else if (op == OP_ADD_U64) {
-      unsigned char add_edi[6] = {0x81, 0xc7, 0, 0, 0, 0};
-      wr32(add_edi + 2, (uint32_t)imm);
-      buf_put(code, add_edi, sizeof(add_edi));
-    } else if (op == OP_EXPECT_U64) {
-      unsigned char cmp_edi[6] = {0x81, 0xff, 0, 0, 0, 0};
-      unsigned char jne_fail[6] = {0x0f, 0x85, 0, 0, 0, 0};
-      uint32_t patch_off = (uint32_t)(code->len + sizeof(cmp_edi) + 2);
-      wr32(cmp_edi + 2, (uint32_t)imm);
-      buf_put(code, cmp_edi, sizeof(cmp_edi));
-      buf_put(code, jne_fail, sizeof(jne_fail));
-      buf_put32(&expect_patches, patch_off);
+      if (last_kind != VAL_U64 || imm_u64 > UINT32_MAX) goto fail;
+      if (exit_style) {
+        unsigned char add_edi[6] = {0x81, 0xc7, 0, 0, 0, 0};
+        wr32(add_edi + 2, (uint32_t)imm_u64);
+        buf_put(code, add_edi, sizeof(add_edi));
+      } else {
+        unsigned char add_eax[5] = {0x05, 0, 0, 0, 0};
+        wr32(add_eax + 1, (uint32_t)imm_u64);
+        buf_put(code, add_eax, sizeof(add_eax));
+      }
+    } else if (op == OP_EXPECT_U64 || op == OP_EXPECT_I64 || op == OP_EXPECT_BOOL) {
+      uint32_t patch_off = 0;
+      if (op == OP_EXPECT_U64) {
+        if (last_kind != VAL_U64) goto fail;
+        if (imm_u64 > UINT32_MAX) goto fail;
+        if (exit_style) {
+          unsigned char cmp_edi[6] = {0x81, 0xff, 0, 0, 0, 0};
+          wr32(cmp_edi + 2, (uint32_t)imm_u64);
+          patch_off = (uint32_t)(code->len + sizeof(cmp_edi) + 2);
+          buf_put(code, cmp_edi, sizeof(cmp_edi));
+        } else {
+          unsigned char cmp_eax[5] = {0x3d, 0, 0, 0, 0};
+          wr32(cmp_eax + 1, (uint32_t)imm_u64);
+          patch_off = (uint32_t)(code->len + sizeof(cmp_eax) + 2);
+          buf_put(code, cmp_eax, sizeof(cmp_eax));
+        }
+      } else if (op == OP_EXPECT_I64) {
+        if (last_kind != VAL_I64) goto fail;
+        if (imm_i64 < INT32_MIN || imm_i64 > INT32_MAX) goto fail;
+        if (exit_style) {
+          unsigned char cmp_edi[6] = {0x81, 0xff, 0, 0, 0, 0};
+          wr32(cmp_edi + 2, (uint32_t)(int32_t)imm_i64);
+          patch_off = (uint32_t)(code->len + sizeof(cmp_edi) + 2);
+          buf_put(code, cmp_edi, sizeof(cmp_edi));
+        } else {
+          unsigned char cmp_eax[5] = {0x3d, 0, 0, 0, 0};
+          wr32(cmp_eax + 1, (uint32_t)(int32_t)imm_i64);
+          patch_off = (uint32_t)(code->len + sizeof(cmp_eax) + 2);
+          buf_put(code, cmp_eax, sizeof(cmp_eax));
+        }
+      } else {
+        if (last_kind != VAL_BOOL) goto fail;
+        if (exit_style) {
+          unsigned char cmp_edi[6] = {0x81, 0xff, 0, 0, 0, 0};
+          wr32(cmp_edi + 2, arg0 ? 1u : 0u);
+          patch_off = (uint32_t)(code->len + sizeof(cmp_edi) + 2);
+          buf_put(code, cmp_edi, sizeof(cmp_edi));
+        } else {
+          unsigned char cmp_eax[5] = {0x3d, 0, 0, 0, 0};
+          wr32(cmp_eax + 1, arg0 ? 1u : 0u);
+          patch_off = (uint32_t)(code->len + sizeof(cmp_eax) + 2);
+          buf_put(code, cmp_eax, sizeof(cmp_eax));
+        }
+      }
+      {
+        unsigned char jne_fail[6] = {0x0f, 0x85, 0, 0, 0, 0};
+        buf_put(code, jne_fail, sizeof(jne_fail));
+        buf_put32(&expect_patches, patch_off);
+      }
+    } else if (op == OP_BRANCH_BOOL) {
+      PcPatch patch = {0};
+      if (last_kind != VAL_BOOL || arg0 >= b->instr_count) goto fail;
+      if (exit_style) {
+        unsigned char test_edi[2] = {0x85, 0xff};
+        buf_put(code, test_edi, sizeof(test_edi));
+      } else {
+        unsigned char test_eax[2] = {0x85, 0xc0};
+        buf_put(code, test_eax, sizeof(test_eax));
+      }
+      {
+        unsigned char jne_target[6] = {0x0f, 0x85, 0, 0, 0, 0};
+        patch.patch_off = (uint32_t)(code->len + 2);
+        patch.target_pc = arg0;
+        buf_put(code, jne_target, sizeof(jne_target));
+        buf_put(&branch_patches, &patch, sizeof(patch));
+      }
     } else if (op == OP_RET_LAST) {
-      unsigned char exit_syscall[7] = {0xb8, 0x3c, 0, 0, 0, 0x0f, 0x05};
-      buf_put(code, exit_syscall, sizeof(exit_syscall));
+      if (exit_style) {
+        unsigned char exit_syscall[7] = {0xb8, 0x3c, 0, 0, 0, 0x0f, 0x05};
+        buf_put(code, exit_syscall, sizeof(exit_syscall));
+      } else {
+        unsigned char ret = 0xc3;
+        buf_put(code, &ret, 1);
+      }
       saw_ret = 1;
       break;
     } else {
-      free(expect_patches.data);
-      return 0;
+      goto fail;
     }
   }
-  if (saw_ret && expect_patches.len) {
+  if (!saw_ret) goto fail;
+  for (size_t i = 0; i < branch_patches.len; i += sizeof(PcPatch)) {
+    const PcPatch *patch = (const PcPatch *)(branch_patches.data + i);
+    int64_t rel = (int64_t)pc_offs[patch->target_pc] - (int64_t)(patch->patch_off + 4);
+    wr32(code->data + patch->patch_off, (uint32_t)(int32_t)rel);
+  }
+  if (expect_patches.len) {
     size_t fail_off = code->len;
-    unsigned char fail_exit[12] = {
-      0xbf, 125, 0, 0, 0,
-      0xb8, 0x3c, 0, 0, 0,
-      0x0f, 0x05
-    };
-    buf_put(code, fail_exit, sizeof(fail_exit));
+    if (exit_style) {
+      unsigned char fail_exit[12] = {
+        0xbf, 125, 0, 0, 0,
+        0xb8, 0x3c, 0, 0, 0,
+        0x0f, 0x05
+      };
+      buf_put(code, fail_exit, sizeof(fail_exit));
+    } else {
+      unsigned char fail_ret[6] = {0xb8, 125, 0, 0, 0, 0xc3};
+      buf_put(code, fail_ret, sizeof(fail_ret));
+    }
     for (size_t i = 0; i < expect_patches.len; i += 4) {
       uint32_t patch_off = rd32(expect_patches.data + i);
       int64_t rel = (int64_t)fail_off - (int64_t)(patch_off + 4);
       wr32(code->data + patch_off, (uint32_t)(int32_t)rel);
     }
   }
+  free(pc_offs);
   free(expect_patches.data);
-  return saw_ret;
+  free(branch_patches.data);
+  return 1;
+
+fail:
+  free(pc_offs);
+  free(expect_patches.data);
+  free(branch_patches.data);
+  return 0;
+}
+
+static int compile_pure_u64_blob_to_x86_exit(const Blob *b, Buf *code) {
+  return compile_pure_blob_to_x86(b, code, 1);
 }
 
 static int compile_pure_u64_blob_to_x86_ret(const Blob *b, Buf *code) {
-  int saw_ret = 0;
-  Buf expect_patches = {0};
-  for (uint32_t pc = 0; pc < b->instr_count; ++pc) {
-    const unsigned char *ins = instr_row(b, pc);
-    if (!ins) {
-      free(expect_patches.data);
-      return 0;
-    }
-    uint8_t op = ins[0];
-    uint32_t arg0 = rd32(ins + 4);
-    uint32_t arg1 = rd32(ins + 8);
-    uint64_t imm = (uint64_t)arg0 | ((uint64_t)arg1 << 32);
-    if (imm > UINT32_MAX) {
-      free(expect_patches.data);
-      return 0;
-    }
-    if (op == OP_CONST_U64) {
-      unsigned char mov_eax[5] = {0xb8, 0, 0, 0, 0};
-      wr32(mov_eax + 1, (uint32_t)imm);
-      buf_put(code, mov_eax, sizeof(mov_eax));
-    } else if (op == OP_ADD_U64) {
-      unsigned char add_eax[5] = {0x05, 0, 0, 0, 0};
-      wr32(add_eax + 1, (uint32_t)imm);
-      buf_put(code, add_eax, sizeof(add_eax));
-    } else if (op == OP_EXPECT_U64) {
-      unsigned char cmp_eax[5] = {0x3d, 0, 0, 0, 0};
-      unsigned char jne_fail[6] = {0x0f, 0x85, 0, 0, 0, 0};
-      uint32_t patch_off = (uint32_t)(code->len + sizeof(cmp_eax) + 2);
-      wr32(cmp_eax + 1, (uint32_t)imm);
-      buf_put(code, cmp_eax, sizeof(cmp_eax));
-      buf_put(code, jne_fail, sizeof(jne_fail));
-      buf_put32(&expect_patches, patch_off);
-    } else if (op == OP_RET_LAST) {
-      unsigned char ret = 0xc3;
-      buf_put(code, &ret, 1);
-      saw_ret = 1;
-      break;
-    } else {
-      free(expect_patches.data);
-      return 0;
-    }
-  }
-  if (saw_ret && expect_patches.len) {
-    size_t fail_off = code->len;
-    unsigned char fail_ret[6] = {0xb8, 125, 0, 0, 0, 0xc3};
-    buf_put(code, fail_ret, sizeof(fail_ret));
-    for (size_t i = 0; i < expect_patches.len; i += 4) {
-      uint32_t patch_off = rd32(expect_patches.data + i);
-      int64_t rel = (int64_t)fail_off - (int64_t)(patch_off + 4);
-      wr32(code->data + patch_off, (uint32_t)(int32_t)rel);
-    }
-  }
-  free(expect_patches.data);
-  return saw_ret;
+  return compile_pure_blob_to_x86(b, code, 0);
 }
 
 static void free_buf_array(Buf *bufs, size_t count) {
