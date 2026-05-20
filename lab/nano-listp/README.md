@@ -22,6 +22,7 @@
 ./nano-listp.com aot-elf64-obj-code arithmetic.lbin arithmetic-code.o nano_arith_code
 ./nano-listp.com compile-elf64-code arithmetic.lisp arithmetic.elf
 ./nano-listp.com compile-elf64-obj-code arithmetic.lisp arithmetic.o nano_arith_direct
+./nano-listp.com compile-elf64-exe multi-func.lisp multi-func.elf nano_multi_entry
 ./nano-listp.com link-elf64-exe arithmetic.elf nano_arith_code arithmetic-code.o [more.o...]
 ./nano-listp.com hash strlen.lbin
 ./nano-listp.com resolve --quiet strlen.lbin
@@ -144,7 +145,7 @@ bootstrap DSL 也能描述一条最小 AOT/codegen/tiny-link 构建图，不需�
 - `compile`：解析 `.lisp`，输出 `.lbin` portable blob。
 - `dump`：查看 blob header、import、const、instruction 数量。
 - `resolve`：验证 `.lbin` import table 的动态库和符号可解析；运行时会把解析到的函数地址放进当前 `ptr` typed value，适合全量 libc 导入测试或指针断言。
-- `run-bootstrap-plan`：读取最小 bootstrap DSL，顺序执行 `compile` / `hash` / `compare` / `resolve-quiet` / `pack-app` / `inspect-app` / `run` / `emit-elf64-exit` / `emit-elf64-obj-ret` / `emit-elf64-obj-call` / `aot-elf64-exit` / `aot-elf64-obj-ret` / `aot-elf64-code` / `aot-elf64-obj-code` / `compile-elf64-code` / `compile-elf64-obj-code` / `link-elf64-exe` / `link-expect-exit` / `run-expect-exit` 子流程，开始把 shell 片段迁到 `.lisp` 描述。
+- `run-bootstrap-plan`：读取最小 bootstrap DSL，顺序执行 `compile` / `hash` / `compare` / `resolve-quiet` / `pack-app` / `inspect-app` / `run` / `emit-elf64-exit` / `emit-elf64-obj-ret` / `emit-elf64-obj-call` / `aot-elf64-exit` / `aot-elf64-obj-ret` / `aot-elf64-code` / `aot-elf64-obj-code` / `compile-elf64-code` / `compile-elf64-obj-code` / `compile-elf64-exe` / `link-elf64-exe` / `link-expect-exit` / `run-expect-exit` 子流程，开始把 shell 片段迁到 `.lisp` 描述。
 - `run`：解析 `.lbin`，通过 `dlopen`/`dlsym` 找系统符号，执行 main 指令流。
 - `run-embedded`：从 `.com` 容器内按 payload 偏移直接读取并执行内嵌 blob。
 - `inspect-app`：读取 AOT app manifest，输出 runtime slice 和 blob 的 offset/size。
@@ -157,6 +158,7 @@ bootstrap DSL 也能描述一条最小 AOT/codegen/tiny-link 构建图，不需�
 - `aot-elf64-obj-code`：把纯 VM typed/control-flow 子集编译成可链接的 ELF64 function object。
 - `compile-elf64-code` / `compile-elf64-obj-code`：直接从 `.lisp` 生成 ELF 或 object，减少外部脚本胶水。
 - `compile-elf64-obj-code` 当前已支持多函数 pure VM source、内部 `call`、基础 relocation，以及 `i64` / `bool` / `branch` / `label` typed/control-flow 子集。
+- `compile-elf64-exe`：直接从多函数 pure VM source 生成可运行 ELF，内部复用 object backend 和 tiny linker。
 - `link-elf64-exe`：链接当前 nano object 子集，支持 `input.o...` 多 object，输出可运行 x86_64 ELF。
 - `hash`：输出 `.lbin` 的内建 FNV-1a 64-bit hash，用于 deterministic 编译测试。
 - `(expect N)` / `(expect -N)` / `(expect true|false)` / `(expect null|nonnull)`：在 `.lbin` 内断言上一条结果，失败时 runtime 返回非零。

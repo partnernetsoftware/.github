@@ -101,6 +101,7 @@ extern void *cosmo_dlsym(void *handle, const char *symbol);
 #define BOOTSTRAP_STEP_EMIT_ELF64_OBJ_CALL 17u
 #define BOOTSTRAP_STEP_LINK_EXPECT_EXIT 18u
 #define BOOTSTRAP_STEP_RESOLVE_QUIET 19u
+#define BOOTSTRAP_STEP_COMPILE_ELF64_EXE 20u
 
 typedef uint64_t (*jit_entry_fn)(void);
 typedef int (*ffi_i32_ptr_fn)(const char *);
@@ -884,6 +885,7 @@ static int parse_bootstrap_plan(const char *src, BootstrapPlan *plan) {
     } else if (strcmp(head, "aot-elf64-obj-ret") == 0 ||
                strcmp(head, "aot-elf64-obj-code") == 0 ||
                strcmp(head, "compile-elf64-obj-code") == 0 ||
+               strcmp(head, "compile-elf64-exe") == 0 ||
                strcmp(head, "emit-elf64-obj-call") == 0) {
       char *arg0 = parse_string(&p);
       char *arg1 = parse_string(&p);
@@ -894,6 +896,8 @@ static int parse_bootstrap_plan(const char *src, BootstrapPlan *plan) {
                       BOOTSTRAP_STEP_AOT_ELF64_OBJ_CODE :
                       strcmp(head, "compile-elf64-obj-code") == 0 ?
                       BOOTSTRAP_STEP_COMPILE_ELF64_OBJ_CODE :
+                      strcmp(head, "compile-elf64-exe") == 0 ?
+                      BOOTSTRAP_STEP_COMPILE_ELF64_EXE :
                       BOOTSTRAP_STEP_EMIT_ELF64_OBJ_CALL;
       int ok = arg0 && arg1 && arg2 && eat(&p, ')') &&
                bootstrap_add_step(plan, kind, arg0, arg1, arg2, NULL);
@@ -2018,15 +2022,17 @@ static int cmd_aot_elf64_obj_code(const char *blob_path, const char *out_path,
 static int cmd_compile_elf64_code(const char *src_path, const char *out_path);
 static int cmd_compile_elf64_obj_code(const char *src_path, const char *out_path,
                                       const char *symbol);
+static int cmd_compile_elf64_exe(const char *src_path, const char *out_path,
+                                 const char *symbol);
 static int cmd_emit_elf64_obj_ret(const char *out_path, const char *symbol,
                                   const char *value_s);
 static int cmd_emit_elf64_obj_call(const char *out_path, const char *local,
                                    const char *external);
 static int cmd_link_elf64_exe(int argc, char **argv);
 
-static int bootstrap_run_link_elf64_exe(const char *out_path, const char *entry_name,
-                                        const char *first_obj, char **extra_args,
-                                        size_t extra_arg_count) {
+static int run_link_elf64_exe(const char *out_path, const char *entry_name,
+                              const char *first_obj, char **extra_args,
+                              size_t extra_arg_count) {
   size_t obj_count = 1 + extra_arg_count;
   size_t link_argc = 4 + obj_count;
   char **link_argv = (char **)calloc(link_argc, sizeof(*link_argv));
@@ -2106,6 +2112,9 @@ static int cmd_run_bootstrap_plan(const char *plan_path) {
     } else if (step->kind == BOOTSTRAP_STEP_COMPILE_ELF64_OBJ_CODE) {
       printf("bootstrap-step.%zu=compile-elf64-obj-code\n", i);
       rc = cmd_compile_elf64_obj_code(step->arg0, step->arg1, step->arg2);
+    } else if (step->kind == BOOTSTRAP_STEP_COMPILE_ELF64_EXE) {
+      printf("bootstrap-step.%zu=compile-elf64-exe\n", i);
+      rc = cmd_compile_elf64_exe(step->arg0, step->arg1, step->arg2);
     } else if (step->kind == BOOTSTRAP_STEP_EMIT_ELF64_OBJ_RET) {
       printf("bootstrap-step.%zu=emit-elf64-obj-ret\n", i);
       rc = cmd_emit_elf64_obj_ret(step->arg0, step->arg1, step->arg2);
@@ -2114,8 +2123,8 @@ static int cmd_run_bootstrap_plan(const char *plan_path) {
       rc = cmd_emit_elf64_obj_call(step->arg0, step->arg1, step->arg2);
     } else if (step->kind == BOOTSTRAP_STEP_LINK_ELF64_EXE) {
       printf("bootstrap-step.%zu=link-elf64-exe\n", i);
-      rc = bootstrap_run_link_elf64_exe(step->arg0, step->arg1, step->arg2,
-                                        step->extra_args, step->extra_arg_count);
+      rc = run_link_elf64_exe(step->arg0, step->arg1, step->arg2,
+                              step->extra_args, step->extra_arg_count);
     } else if (step->kind == BOOTSTRAP_STEP_LINK_EXPECT_EXIT) {
       size_t expected = 0;
       printf("bootstrap-step.%zu=link-expect-exit\n", i);
@@ -2123,8 +2132,8 @@ static int cmd_run_bootstrap_plan(const char *plan_path) {
         fprintf(stderr, "bootstrap-link-expect-exit=bad_expected\n");
         rc = 2;
       } else {
-        int link_rc = bootstrap_run_link_elf64_exe(step->arg1, step->arg2, step->arg3,
-                                                  step->extra_args, step->extra_arg_count);
+        int link_rc = run_link_elf64_exe(step->arg1, step->arg2, step->arg3,
+                                         step->extra_args, step->extra_arg_count);
         if ((size_t)link_rc != expected) {
           fprintf(stderr, "bootstrap-link-expect-exit=unexpected expected=%zu actual=%d\n",
                   expected, link_rc);
@@ -3498,6 +3507,46 @@ static int cmd_compile_elf64_obj_code(const char *src_path, const char *out_path
   return 0;
 }
 
+static int cmd_compile_elf64_exe(const char *src_path, const char *out_path,
+                                 const char *symbol) {
+  size_t src_n = 0;
+  unsigned char *src = read_file(src_path, &src_n);
+  AotModule m = {0};
+  size_t tmp_n = strlen(out_path) + 7;
+  char *tmp_obj = (char *)malloc(tmp_n);
+  int rc = 0;
+  if (!symbol[0] || !tmp_obj) {
+    fprintf(stderr, "compile-elf64-exe=bad_args\n");
+    free(src);
+    free(tmp_obj);
+    return 1;
+  }
+  snprintf(tmp_obj, tmp_n, "%s.tmp.o", out_path);
+  if (!src || !parse_aot_module((const char *)src, &m)) {
+    fprintf(stderr, "compile-elf64-exe=compile_fail\n");
+    rc = 1;
+    goto done;
+  }
+  if (!compile_aot_module_to_elf64_obj(&m, tmp_obj, symbol)) {
+    fprintf(stderr, "compile-elf64-exe=unsupported_source\n");
+    rc = 2;
+    goto done;
+  }
+  rc = run_link_elf64_exe(out_path, symbol, tmp_obj, NULL, 0);
+  if (rc == 0) {
+    printf("compile.elf64.exe.output=%s\n", out_path);
+    printf("compile.elf64.exe.symbol=%s\n", symbol);
+    printf("compile.elf64.exe.mode=multi-func\n");
+  }
+
+done:
+  if (tmp_obj) remove(tmp_obj);
+  free(tmp_obj);
+  free(src);
+  aot_module_free(&m);
+  return rc;
+}
+
 static int is_elf(const unsigned char *data, size_t n) {
   return n >= 4 && data[0] == 0x7f && data[1] == 'E' && data[2] == 'L' && data[3] == 'F';
 }
@@ -3673,6 +3722,7 @@ static void usage(const char *argv0) {
   fprintf(stderr, "  %s aot-elf64-obj-code input.%s output.o symbol\n", argv0, BLOB_EXT);
   fprintf(stderr, "  %s compile-elf64-code input.%s output.elf\n", argv0, SOURCE_EXT);
   fprintf(stderr, "  %s compile-elf64-obj-code input.%s output.o symbol\n", argv0, SOURCE_EXT);
+  fprintf(stderr, "  %s compile-elf64-exe input.%s output.elf entry_symbol\n", argv0, SOURCE_EXT);
   fprintf(stderr, "  %s link-elf64-exe output.elf entry_symbol input.o...\n", argv0);
   fprintf(stderr, "  %s dump program.%s\n", argv0, BLOB_EXT);
   fprintf(stderr, "  %s hash program.%s\n", argv0, BLOB_EXT);
@@ -3721,6 +3771,9 @@ int main(int argc, char **argv) {
   }
   if (argc >= 2 && strcmp(argv[1], "compile-elf64-obj-code") == 0 && argc == 5) {
     return cmd_compile_elf64_obj_code(argv[2], argv[3], argv[4]);
+  }
+  if (argc >= 2 && strcmp(argv[1], "compile-elf64-exe") == 0 && argc == 5) {
+    return cmd_compile_elf64_exe(argv[2], argv[3], argv[4]);
   }
   if (argc >= 2 && strcmp(argv[1], "link-elf64-exe") == 0) {
     return cmd_link_elf64_exe(argc, argv);
