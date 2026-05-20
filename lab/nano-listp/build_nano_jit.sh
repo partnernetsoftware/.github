@@ -70,6 +70,10 @@ ARITH_CODE_OBJ="$BUILD_DIR/arithmetic_code_obj.o"
 ARITH_CODE_OBJ_C="$BUILD_DIR/arithmetic_code_obj_main.c"
 ARITH_CODE_OBJ_EXE="$BUILD_DIR/arithmetic_code_obj"
 ARITH_LINK_EXE="$BUILD_DIR/arithmetic_linked"
+ARITH_DIRECT_EXE="$BUILD_DIR/arithmetic_direct"
+ARITH_DIRECT_OBJ="$BUILD_DIR/arithmetic_direct.o"
+ARITH_DIRECT_OBJ_C="$BUILD_DIR/arithmetic_direct_main.c"
+ARITH_DIRECT_OBJ_EXE="$BUILD_DIR/arithmetic_direct_obj"
 CALL42_OBJ="$BUILD_DIR/nano_call42.o"
 CALL42_CALLEE_OBJ="$BUILD_DIR/nano_ext42.o"
 CALL42_LINK_EXE="$BUILD_DIR/nano_call42_linked"
@@ -108,6 +112,12 @@ cat > "$ARITH_CODE_OBJ_C" <<'EOF'
 extern int nano_arith_code(void);
 int main(void) {
   return nano_arith_code();
+}
+EOF
+cat > "$ARITH_DIRECT_OBJ_C" <<'EOF'
+extern int nano_arith_direct(void);
+int main(void) {
+  return nano_arith_direct();
 }
 EOF
 cat > "$CALL42_C" <<'EOF'
@@ -199,6 +209,11 @@ run_case "nano-jit-link-aot-arithmetic-obj-code42" cc "$ARITH_CODE_OBJ_C" "$ARIT
 run_case "nano-jit-run-aot-arithmetic-obj-code42" bash -c '"$1"; status=$?; test "$status" -eq 42' _ "$ARITH_CODE_OBJ_EXE"
 run_case "nano-jit-tiny-link-aot-arithmetic-obj-code42" "$BUILD_DIR/nano-jit.com" link-elf64-exe "$ARITH_LINK_EXE" nano_arith_code "$ARITH_CODE_OBJ"
 run_case "nano-jit-run-tiny-linked-arithmetic42" bash -c '"$1"; status=$?; test "$status" -eq 42' _ "$ARITH_LINK_EXE"
+run_case "nano-jit-compile-arithmetic-elf64-code42" "$BUILD_DIR/nano-jit.com" compile-elf64-code "$ARITH_SRC" "$ARITH_DIRECT_EXE"
+run_case "nano-jit-run-direct-compiled-arithmetic42" bash -c '"$1"; status=$?; test "$status" -eq 42' _ "$ARITH_DIRECT_EXE"
+run_case "nano-jit-compile-arithmetic-elf64-obj-code42" "$BUILD_DIR/nano-jit.com" compile-elf64-obj-code "$ARITH_SRC" "$ARITH_DIRECT_OBJ" nano_arith_direct
+run_case "nano-jit-link-direct-compiled-arithmetic-obj42" cc "$ARITH_DIRECT_OBJ_C" "$ARITH_DIRECT_OBJ" -o "$ARITH_DIRECT_OBJ_EXE"
+run_case "nano-jit-run-direct-compiled-arithmetic-obj42" bash -c '"$1"; status=$?; test "$status" -eq 42' _ "$ARITH_DIRECT_OBJ_EXE"
 run_case "nano-jit-emit-elf64-obj-call42" "$BUILD_DIR/nano-jit.com" emit-elf64-obj-call "$CALL42_OBJ" nano_call nano_ext
 run_case "nano-jit-link-elf64-obj-call42" cc "$CALL42_C" "$CALL42_OBJ" -o "$CALL42_EXE"
 run_case "nano-jit-run-elf64-obj-call42" bash -c '"$1"; status=$?; test "$status" -eq 42' _ "$CALL42_EXE"
