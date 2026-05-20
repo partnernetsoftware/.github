@@ -37,7 +37,7 @@ const PREVIEW_LINES = 80;
 const SHELL_COMMS = new Set(["bash", "zsh", "sh", "fish", "dash", "tmux", "-bash", "-zsh"]);
 
 const TUI_CONFIG = {
-  VERSION: '0.5.0',
+  VERSION: '0.5.2',
   VIEWER_SESSION: `__tui_viewer__`,
   TUI_KEYTABLE: "tui_empty",
   REMARK_KEY: "@remark",
@@ -370,8 +370,10 @@ interface IMultiplexerBackend {
   capturePaneText(target: string, startN: number, endArg?: string): string;
   sendKeys(target: string, text: string): unknown;
   sendKeysLiteral(target: string, text: string): unknown;
+  loadBufferFromText(text: string): unknown;
   loadBuffer(target: string, file: string): unknown;
   pasteBuffer(target: string): unknown;
+  sendKeysEnter(target: string): unknown;
 
   // ── 选项 ──
   getGlobalOption(key: string): string;
@@ -421,6 +423,8 @@ function tmux(args: string[], opts?: { missingOk?: boolean; unsetOk?: boolean })
   return out.stdout.toString();
 }
 
+const TMUX_PASTE_BUF = `tui_v2_${process.pid}`;
+
 const tmuxApi: IMultiplexerBackend = {
   // sessions / windows
   listSessions: (fmt = "#{session_name}"): string[] =>
@@ -457,14 +461,25 @@ const tmuxApi: IMultiplexerBackend = {
     }
     return r.stdout?.toString() || "";
   },
-  sendKeys: (target: string, text: string) =>
-    Bun.spawnSync([tmuxBin(), "send-keys", "-t", target, "-l", text, "Enter"]),
-  sendKeysLiteral: (target: string, text: string) =>
-    Bun.spawnSync([tmuxBin(), "send-keys", "-t", target, "-l", text]),
+  sendKeys: (target: string, text: string) => {
+    tmuxApi.loadBufferFromText(text);
+    tmuxApi.pasteBuffer(target);
+    tmuxApi.sendKeysEnter(target);
+  },
+  sendKeysLiteral: (target: string, text: string) => {
+    tmuxApi.loadBufferFromText(text);
+    tmuxApi.pasteBuffer(target);
+  },
+  loadBufferFromText: (text: string) =>
+    Bun.spawnSync([tmuxBin(), "load-buffer", "-b", TMUX_PASTE_BUF, "-"], {
+      stdin: Buffer.from(text, "utf8"),
+    }),
   loadBuffer: (target: string, file: string) =>
-    Bun.spawnSync([tmuxBin(), "load-buffer", "-b", `tui_v2_${process.pid}`, file]),
+    Bun.spawnSync([tmuxBin(), "load-buffer", "-b", TMUX_PASTE_BUF, file]),
   pasteBuffer: (target: string) =>
-    Bun.spawnSync([tmuxBin(), "paste-buffer", "-d", "-b", `tui_v2_${process.pid}`, "-t", target]),
+    Bun.spawnSync([tmuxBin(), "paste-buffer", "-d", "-b", TMUX_PASTE_BUF, "-t", target]),
+  sendKeysEnter: (target: string) =>
+    Bun.spawnSync([tmuxBin(), "send-keys", "-t", target, "Enter"]),
   // options
   getGlobalOption: (key: string): string =>
     tmux(["show-options", "-gv", key]).trim(),
@@ -733,12 +748,13 @@ function opKillWindow(spec: string): void {
   tmuxApi.killWindow(target);
 }
 
-/** 向 window 注入文本（默认带 Enter）；CLI send / 驾驶 i 共用 */
+/** 向 window 注入文本（默认带 Enter）；CLI send / 驾驶 i 共用。paste-buffer 发正文，Enter 单独 send-keys（同 smux） */
 function injectToWindow(specOrTarget: string, text: string, opts?: { enter?: boolean }): void {
   const target = resolveTarget(specOrTarget);
   if (!text) throw new Error("消息为空");
-  if (opts?.enter === false) tmuxApi.sendKeysLiteral(target, text);
-  else tmuxApi.sendKeys(target, text);
+  tmuxApi.loadBufferFromText(text);
+  tmuxApi.pasteBuffer(target);
+  if (opts?.enter !== false) tmuxApi.sendKeysEnter(target);
 }
 
 /** load-buffer + paste-buffer；CLI paste / 驾驶 P 共用 */
@@ -2023,14 +2039,14 @@ function toggleSessionCollapse(sess: string): void {
   render();
 }
 
-function driveCursorWindow(): TreeNode | null {
+function cursorWindow(): TreeNode | null {
   const node = state.tree[state.cursor];
   return node?.type === "window" ? node : null;
 }
 
-/** 驾驶 i：向当前 window 注入文本（默认 Enter；末尾 \\ 仅字面不发送 Enter） */
-function driveSendPrompt(): void {
-  const node = driveCursorWindow();
+/** i：向当前 window 注入文本（默认 Enter；末尾 \\ 仅字面不发送 Enter） */
+function sendPrompt(): void {
+  const node = cursorWindow();
   if (!node) return;
   const spec = node.target;
   startInput(`send → ${spec} (\\ 结尾不 Enter)`, (raw) => {
@@ -2046,8 +2062,7 @@ function driveSendPrompt(): void {
     }
     try {
       injectToWindow(spec, body, { enter: !noEnter });
-      void refreshDriveSnapshots(true);
-      schedulePreview({ delay: 300, driveOnly: true });
+      refreshAll();
     } catch {
       /* tmux 不可达时静默 */
     }
@@ -2055,9 +2070,9 @@ function driveSendPrompt(): void {
   });
 }
 
-/** 驾驶 P：paste-buffer 粘贴文件到当前 window */
-function drivePastePrompt(): void {
-  const node = driveCursorWindow();
+/** P：paste-buffer 粘贴文件到当前 window */
+function pastePrompt(): void {
+  const node = cursorWindow();
   if (!node) return;
   const spec = node.target;
   startInput(`paste → ${spec}  文件路径`, (raw) => {
@@ -2072,8 +2087,7 @@ function drivePastePrompt(): void {
     }
     try {
       pasteFileToWindow(spec, path);
-      void refreshDriveSnapshots(true);
-      schedulePreview({ delay: 300, driveOnly: true });
+      refreshAll();
     } catch {
       /* 文件不存在等 */
     }
@@ -2330,7 +2344,8 @@ function renderFooter(cols: number, rows: number): void {
     const hint = " Space折 · i发 · P贴 · Enter进舱";
     screen.write(screen.gold(padVis(truncVis(hint, cols - 1), cols - 1)));
   } else {
-    screen.write(screen.gold(" ".repeat(cols - 1)));
+    const hint = " i发 · P贴 · Enter进舱";
+    screen.write(screen.gold(padVis(truncVis(hint, cols - 1), cols - 1)));
   }
 }
 
@@ -2572,15 +2587,12 @@ const TUI_NAV: { help: string; match: (s: string) => boolean; run: () => void }[
 const TUI_INSTANT: TuiInstantSpec[] = [
   { key: "f", help: "f:刷", run: refreshAll },
   { key: "o", help: "o:模式", run: toggleUiMode },
+  { key: "i", help: "i:发", run: sendPrompt },
+  { key: "P", help: "P:贴", run: pastePrompt },
 ];
 
 let TUI_PROMPTS: TuiPromptSpec[] = [];
 let TUI_KEYBINDS: { help: string; match: (s: string) => boolean; run: () => void }[] = [];
-
-const TUI_DRIVE_INSTANT: TuiInstantSpec[] = [
-  { key: "i", help: "i:发", run: driveSendPrompt },
-  { key: "P", help: "P:贴", run: drivePastePrompt },
-];
 
 function buildTuiKeybinds(): { help: string; match: (s: string) => boolean; run: () => void }[] {
   return [
@@ -2594,11 +2606,6 @@ function buildTuiKeybinds(): { help: string; match: (s: string) => boolean; run:
       help: i.help,
       match: (s: string) => s === i.key,
       run: i.run,
-    })),
-    ...TUI_DRIVE_INSTANT.map((i) => ({
-      help: i.help,
-      match: (s: string) => s === i.key,
-      run: () => { if (state.uiMode === "drive") i.run(); },
     })),
   ];
 }
