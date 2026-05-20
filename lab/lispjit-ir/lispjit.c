@@ -99,6 +99,8 @@ extern void *cosmo_dlsym(void *handle, const char *symbol);
 #define BOOTSTRAP_STEP_AOT_ELF64_OBJ_RET 15u
 #define BOOTSTRAP_STEP_EMIT_ELF64_OBJ_RET 16u
 #define BOOTSTRAP_STEP_EMIT_ELF64_OBJ_CALL 17u
+#define BOOTSTRAP_STEP_LINK_EXPECT_EXIT 18u
+#define BOOTSTRAP_STEP_RESOLVE_QUIET 19u
 
 typedef uint64_t (*jit_entry_fn)(void);
 typedef int (*ffi_i32_ptr_fn)(const char *);
@@ -947,6 +949,39 @@ static int parse_bootstrap_plan(const char *src, BootstrapPlan *plan) {
         free(head);
         return 0;
       }
+    } else if (strcmp(head, "link-expect-exit") == 0) {
+      char *arg0 = parse_atom(&p);
+      char *arg1 = parse_string(&p);
+      char *arg2 = parse_string(&p);
+      char *arg3 = parse_string(&p);
+      char **extra_args = NULL;
+      size_t extra_arg_count = 0;
+      size_t extra_arg_cap = 0;
+      int ok = arg0 && arg1 && arg2 && arg3;
+      while (ok) {
+        skip_ws(&p);
+        if (*p == ')') break;
+        char *arg = parse_string(&p);
+        if (!arg || !bootstrap_push_string_arg(&extra_args, &extra_arg_count,
+                                               &extra_arg_cap, arg)) {
+          free(arg);
+          ok = 0;
+          break;
+        }
+      }
+      ok = ok && eat(&p, ')') &&
+           bootstrap_add_step_extra(plan, BOOTSTRAP_STEP_LINK_EXPECT_EXIT,
+                                    arg0, arg1, arg2, arg3,
+                                    extra_args, extra_arg_count);
+      if (!ok) {
+        free(arg0);
+        free(arg1);
+        free(arg2);
+        free(arg3);
+        bootstrap_free_string_array(extra_args, extra_arg_count);
+        free(head);
+        return 0;
+      }
     } else if (strcmp(head, "pack-app") == 0) {
       char *arg0 = parse_string(&p);
       char *arg1 = parse_string(&p);
@@ -971,9 +1006,12 @@ static int parse_bootstrap_plan(const char *src, BootstrapPlan *plan) {
         free(head);
         return 0;
       }
-    } else if (strcmp(head, "hash") == 0 || strcmp(head, "run") == 0) {
+    } else if (strcmp(head, "hash") == 0 || strcmp(head, "run") == 0 ||
+               strcmp(head, "resolve-quiet") == 0) {
       char *arg0 = parse_string(&p);
-      uint32_t kind = strcmp(head, "hash") == 0 ? BOOTSTRAP_STEP_HASH : BOOTSTRAP_STEP_RUN;
+      uint32_t kind = strcmp(head, "hash") == 0 ? BOOTSTRAP_STEP_HASH :
+                      strcmp(head, "run") == 0 ? BOOTSTRAP_STEP_RUN :
+                      BOOTSTRAP_STEP_RESOLVE_QUIET;
       int ok = arg0 && eat(&p, ')') && bootstrap_add_step(plan, kind, arg0, NULL, NULL, NULL);
       if (!ok) {
         free(arg0);
@@ -1986,6 +2024,27 @@ static int cmd_emit_elf64_obj_call(const char *out_path, const char *local,
                                    const char *external);
 static int cmd_link_elf64_exe(int argc, char **argv);
 
+static int bootstrap_run_link_elf64_exe(const char *out_path, const char *entry_name,
+                                        const char *first_obj, char **extra_args,
+                                        size_t extra_arg_count) {
+  size_t obj_count = 1 + extra_arg_count;
+  size_t link_argc = 4 + obj_count;
+  char **link_argv = (char **)calloc(link_argc, sizeof(*link_argv));
+  int rc = 2;
+  if (!link_argv) return rc;
+  link_argv[0] = (char *)"run-bootstrap-plan";
+  link_argv[1] = (char *)"link-elf64-exe";
+  link_argv[2] = (char *)out_path;
+  link_argv[3] = (char *)entry_name;
+  link_argv[4] = (char *)first_obj;
+  for (size_t i = 0; i < extra_arg_count; ++i) {
+    link_argv[5 + i] = extra_args[i];
+  }
+  rc = cmd_link_elf64_exe((int)link_argc, link_argv);
+  free(link_argv);
+  return rc;
+}
+
 static int cmd_run_bootstrap_plan(const char *plan_path) {
   size_t n = 0;
   unsigned char *src = read_file(plan_path, &n);
@@ -2055,23 +2114,29 @@ static int cmd_run_bootstrap_plan(const char *plan_path) {
       rc = cmd_emit_elf64_obj_call(step->arg0, step->arg1, step->arg2);
     } else if (step->kind == BOOTSTRAP_STEP_LINK_ELF64_EXE) {
       printf("bootstrap-step.%zu=link-elf64-exe\n", i);
-      size_t obj_count = 1 + step->extra_arg_count;
-      size_t link_argc = 4 + obj_count;
-      char **link_argv = (char **)calloc(link_argc, sizeof(*link_argv));
-      if (!link_argv) {
+      rc = bootstrap_run_link_elf64_exe(step->arg0, step->arg1, step->arg2,
+                                        step->extra_args, step->extra_arg_count);
+    } else if (step->kind == BOOTSTRAP_STEP_LINK_EXPECT_EXIT) {
+      size_t expected = 0;
+      printf("bootstrap-step.%zu=link-expect-exit\n", i);
+      if (!parse_size_arg(step->arg0, &expected) || expected > 255) {
+        fprintf(stderr, "bootstrap-link-expect-exit=bad_expected\n");
         rc = 2;
       } else {
-        link_argv[0] = (char *)"run-bootstrap-plan";
-        link_argv[1] = (char *)"link-elf64-exe";
-        link_argv[2] = step->arg0;
-        link_argv[3] = step->arg1;
-        link_argv[4] = step->arg2;
-        for (size_t j = 0; j < step->extra_arg_count; ++j) {
-          link_argv[5 + j] = step->extra_args[j];
+        int link_rc = bootstrap_run_link_elf64_exe(step->arg1, step->arg2, step->arg3,
+                                                  step->extra_args, step->extra_arg_count);
+        if ((size_t)link_rc != expected) {
+          fprintf(stderr, "bootstrap-link-expect-exit=unexpected expected=%zu actual=%d\n",
+                  expected, link_rc);
+          rc = 2;
+        } else {
+          printf("bootstrap-link-expect-exit.ok=%zu\n", expected);
+          rc = 0;
         }
-        rc = cmd_link_elf64_exe((int)link_argc, link_argv);
-        free(link_argv);
       }
+    } else if (step->kind == BOOTSTRAP_STEP_RESOLVE_QUIET) {
+      printf("bootstrap-step.%zu=resolve-quiet\n", i);
+      rc = cmd_resolve(step->arg0, 1);
     } else if (step->kind == BOOTSTRAP_STEP_RUN_EXPECT_EXIT) {
       printf("bootstrap-step.%zu=run-expect-exit\n", i);
       rc = run_executable_expect_exit(step->arg0, step->arg1);
@@ -2093,7 +2158,6 @@ static int cmd_run_bootstrap_plan(const char *plan_path) {
   bootstrap_plan_free(&plan);
   return rc;
 }
-
 static int cmd_inspect_app(const char *container_path) {
   size_t n = 0;
   unsigned char *data = read_file(container_path, &n);

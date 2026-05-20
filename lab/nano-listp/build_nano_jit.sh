@@ -60,7 +60,7 @@ CTRL_SRC="$LAB_DIR/samples/control-flow.lisp"
 CTRL_BLOB="$BUILD_DIR/control-flow.lbin"
 MULTI_SRC="$LAB_DIR/samples/multi-func.lisp"
 MULTI_CTRL_SRC="$LAB_DIR/samples/multi-func-control-flow.lisp"
-BAD_ARITH_SRC="$BUILD_DIR/arithmetic-bad.lisp"
+BAD_ARITH_SRC="$LAB_DIR/samples/arithmetic-bad.lisp"
 BAD_ARITH_BLOB="$BUILD_DIR/arithmetic-bad.lbin"
 EXIT42="$BUILD_DIR/exit42.elf"
 ARITH_EXIT="$BUILD_DIR/arithmetic-aot.elf"
@@ -115,13 +115,6 @@ REPORT="$BUILD_DIR/bootstrap-report.txt"
 
 mkdir -p "$BUILD_DIR"
 : > "$REPORT"
-cat > "$BAD_ARITH_SRC" <<'EOF'
-(module
-  (main
-    (u64 40)
-    (add-u64 2)
-    (expect 43)))
-EOF
 cat > "$RET42_C" <<'EOF'
 extern int nano_ret(void);
 int main(void) {
@@ -182,29 +175,59 @@ EOF
 cat > "$BOOTSTRAP_PLAN" <<EOF
 (bootstrap
   (compile "$SMOKE_SRC" "$BUILD_DIR/bootstrap-smoke.lbin")
+  (resolve-quiet "$BUILD_DIR/bootstrap-smoke.lbin")
   (hash "$BUILD_DIR/bootstrap-smoke.lbin")
   (compile "$SMOKE_SRC" "$BUILD_DIR/bootstrap-smoke-repeat.lbin")
   (compare "$BUILD_DIR/bootstrap-smoke.lbin" "$BUILD_DIR/bootstrap-smoke-repeat.lbin")
   (pack-app "$BUILD_DIR/bootstrap-smoke.com" "$BUILD_DIR/nano-jit.x86_64" "$BUILD_DIR/nano-jit.aarch64" "$BUILD_DIR/bootstrap-smoke.lbin")
   (inspect-app "$BUILD_DIR/bootstrap-smoke.com")
   (run "$BUILD_DIR/bootstrap-smoke.lbin")
+  (emit-elf64-exit "$BUILD_DIR/bootstrap-aot-exit42.elf" 42)
+  (run-expect-exit "$BUILD_DIR/bootstrap-aot-exit42.elf" 42)
   (compile "$ARITH_SRC" "$BUILD_DIR/bootstrap-aot-arithmetic.lbin")
+  (compile "$BAD_ARITH_SRC" "$BUILD_DIR/bootstrap-aot-arithmetic-bad.lbin")
   (aot-elf64-exit "$BUILD_DIR/bootstrap-aot-arithmetic.lbin" "$BUILD_DIR/bootstrap-aot-arithmetic-exit.elf")
   (run-expect-exit "$BUILD_DIR/bootstrap-aot-arithmetic-exit.elf" 42)
   (aot-elf64-code "$BUILD_DIR/bootstrap-aot-arithmetic.lbin" "$BUILD_DIR/bootstrap-aot-arithmetic-code.elf")
   (run-expect-exit "$BUILD_DIR/bootstrap-aot-arithmetic-code.elf" 42)
+  (aot-elf64-code "$BUILD_DIR/bootstrap-aot-arithmetic-bad.lbin" "$BUILD_DIR/bootstrap-aot-arithmetic-bad-code.elf")
+  (run-expect-exit "$BUILD_DIR/bootstrap-aot-arithmetic-bad-code.elf" 125)
+  (compile "$CTRL_SRC" "$BUILD_DIR/bootstrap-aot-control-flow.lbin")
+  (aot-elf64-exit "$BUILD_DIR/bootstrap-aot-control-flow.lbin" "$BUILD_DIR/bootstrap-aot-control-flow-exit.elf")
+  (run-expect-exit "$BUILD_DIR/bootstrap-aot-control-flow-exit.elf" 1)
+  (aot-elf64-code "$BUILD_DIR/bootstrap-aot-control-flow.lbin" "$BUILD_DIR/bootstrap-aot-control-flow-code.elf")
+  (run-expect-exit "$BUILD_DIR/bootstrap-aot-control-flow-code.elf" 1)
   (compile-elf64-code "$CTRL_SRC" "$BUILD_DIR/bootstrap-aot-control-flow.elf")
   (run-expect-exit "$BUILD_DIR/bootstrap-aot-control-flow.elf" 1)
   (aot-elf64-obj-ret "$BUILD_DIR/bootstrap-aot-arithmetic.lbin" "$BUILD_DIR/bootstrap-aot-arithmetic-ret.o" "nano_bootstrap_arith_ret")
   (link-elf64-exe "$BUILD_DIR/bootstrap-aot-arithmetic-ret-linked" "nano_bootstrap_arith_ret" "$BUILD_DIR/bootstrap-aot-arithmetic-ret.o")
   (run-expect-exit "$BUILD_DIR/bootstrap-aot-arithmetic-ret-linked" 42)
+  (aot-elf64-obj-ret "$BUILD_DIR/bootstrap-aot-control-flow.lbin" "$BUILD_DIR/bootstrap-aot-control-flow-ret.o" "nano_bootstrap_ctrl_ret")
+  (link-elf64-exe "$BUILD_DIR/bootstrap-aot-control-flow-ret-linked" "nano_bootstrap_ctrl_ret" "$BUILD_DIR/bootstrap-aot-control-flow-ret.o")
+  (run-expect-exit "$BUILD_DIR/bootstrap-aot-control-flow-ret-linked" 1)
+  (aot-elf64-obj-code "$BUILD_DIR/bootstrap-aot-control-flow.lbin" "$BUILD_DIR/bootstrap-aot-control-flow-code.o" "nano_bootstrap_ctrl_code")
+  (link-elf64-exe "$BUILD_DIR/bootstrap-aot-control-flow-code-linked" "nano_bootstrap_ctrl_code" "$BUILD_DIR/bootstrap-aot-control-flow-code.o")
+  (run-expect-exit "$BUILD_DIR/bootstrap-aot-control-flow-code-linked" 1)
+  (aot-elf64-obj-code "$BUILD_DIR/bootstrap-aot-arithmetic.lbin" "$BUILD_DIR/bootstrap-aot-arithmetic-code.o" "nano_bootstrap_arith_code")
+  (link-elf64-exe "$BUILD_DIR/bootstrap-aot-arithmetic-code-linked" "nano_bootstrap_arith_code" "$BUILD_DIR/bootstrap-aot-arithmetic-code.o")
+  (run-expect-exit "$BUILD_DIR/bootstrap-aot-arithmetic-code-linked" 42)
+  (compile-elf64-code "$ARITH_SRC" "$BUILD_DIR/bootstrap-aot-arithmetic-direct.elf")
+  (run-expect-exit "$BUILD_DIR/bootstrap-aot-arithmetic-direct.elf" 42)
+  (compile-elf64-obj-code "$ARITH_SRC" "$BUILD_DIR/bootstrap-aot-arithmetic-direct.o" "nano_bootstrap_arith_direct")
+  (link-elf64-exe "$BUILD_DIR/bootstrap-aot-arithmetic-direct-linked" "nano_bootstrap_arith_direct" "$BUILD_DIR/bootstrap-aot-arithmetic-direct.o")
+  (run-expect-exit "$BUILD_DIR/bootstrap-aot-arithmetic-direct-linked" 42)
+  (compile-elf64-obj-code "$MULTI_SRC" "$BUILD_DIR/bootstrap-aot-multi.o" "nano_bootstrap_multi")
+  (link-elf64-exe "$BUILD_DIR/bootstrap-aot-multi-linked" "nano_bootstrap_multi" "$BUILD_DIR/bootstrap-aot-multi.o")
+  (run-expect-exit "$BUILD_DIR/bootstrap-aot-multi-linked" 43)
   (compile-elf64-obj-code "$MULTI_CTRL_SRC" "$BUILD_DIR/bootstrap-aot-multi-ctrl.o" "nano_bootstrap_multi_ctrl")
   (link-elf64-exe "$BUILD_DIR/bootstrap-aot-multi-ctrl-linked" "nano_bootstrap_multi_ctrl" "$BUILD_DIR/bootstrap-aot-multi-ctrl.o")
   (run-expect-exit "$BUILD_DIR/bootstrap-aot-multi-ctrl-linked" 43)
   (emit-elf64-obj-call "$BUILD_DIR/bootstrap-aot-call42.o" "nano_bootstrap_call" "nano_bootstrap_ext")
   (emit-elf64-obj-ret "$BUILD_DIR/bootstrap-aot-ext42.o" "nano_bootstrap_ext" 42)
   (link-elf64-exe "$BUILD_DIR/bootstrap-aot-call42-linked" "nano_bootstrap_call" "$BUILD_DIR/bootstrap-aot-call42.o" "$BUILD_DIR/bootstrap-aot-ext42.o")
-  (run-expect-exit "$BUILD_DIR/bootstrap-aot-call42-linked" 42))
+  (run-expect-exit "$BUILD_DIR/bootstrap-aot-call42-linked" 42)
+  (emit-elf64-obj-ret "$BUILD_DIR/bootstrap-aot-dup42.o" "nano_bootstrap_ext" 7)
+  (link-expect-exit 2 "$BUILD_DIR/bootstrap-aot-dup-should-fail" "nano_bootstrap_call" "$BUILD_DIR/bootstrap-aot-call42.o" "$BUILD_DIR/bootstrap-aot-ext42.o" "$BUILD_DIR/bootstrap-aot-dup42.o"))
 EOF
 
 if [ ! -x "$X86_CC" ] || [ ! -x "$ARM_CC" ]; then

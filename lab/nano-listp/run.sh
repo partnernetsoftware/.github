@@ -18,7 +18,7 @@ BLOB_REPEAT="$BUILD_DIR/strlen-repeat.lbin"
 ARITH_BLOB="$BUILD_DIR/arithmetic.lbin"
 TYPED_BLOB="$BUILD_DIR/typed-values.lbin"
 CTRL_BLOB="$BUILD_DIR/control-flow.lbin"
-BAD_ARITH_SRC="$BUILD_DIR/arithmetic-bad.lisp"
+BAD_ARITH_SRC="$LAB_DIR/samples/arithmetic-bad.lisp"
 BAD_ARITH_BLOB="$BUILD_DIR/arithmetic-bad.lbin"
 CTRL_CODE="$BUILD_DIR/control-flow-code.elf"
 CTRL_EXIT="$BUILD_DIR/control-flow-aot.elf"
@@ -71,13 +71,6 @@ NANO_C="$ROOT_DIR/lab/lispjit-ir/lispjit.c"
 
 mkdir -p "$BUILD_DIR"
 : > "$RESULTS"
-cat > "$BAD_ARITH_SRC" <<'EOF'
-(module
-  (main
-    (u64 40)
-    (add-u64 2)
-    (expect 43)))
-EOF
 cat > "$RET42_C" <<'EOF'
 extern int nano_ret(void);
 int main(void) {

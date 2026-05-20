@@ -128,13 +128,15 @@ bootstrap DSL 也能描述一条最小 AOT/codegen/tiny-link 构建图，不需�
   (compile "lab/nano-listp/samples/arithmetic.lisp" "lab/nano-listp/.build/bootstrap-aot-arithmetic.lbin")
   (aot-elf64-code "lab/nano-listp/.build/bootstrap-aot-arithmetic.lbin" "lab/nano-listp/.build/bootstrap-aot-arithmetic-code.elf")
   (run-expect-exit "lab/nano-listp/.build/bootstrap-aot-arithmetic-code.elf" 42)
-  (compile-elf64-obj-code "lab/nano-listp/samples/multi-func-control-flow.lisp" "lab/nano-listp/.build/bootstrap-aot-multi-ctrl.o" "nano_bootstrap_multi_ctrl")
-  (link-elf64-exe "lab/nano-listp/.build/bootstrap-aot-multi-ctrl-linked" "nano_bootstrap_multi_ctrl" "lab/nano-listp/.build/bootstrap-aot-multi-ctrl.o")
-  (run-expect-exit "lab/nano-listp/.build/bootstrap-aot-multi-ctrl-linked" 43)
+  (compile "lab/nano-listp/samples/arithmetic-bad.lisp" "lab/nano-listp/.build/bootstrap-aot-arithmetic-bad.lbin")
+  (aot-elf64-code "lab/nano-listp/.build/bootstrap-aot-arithmetic-bad.lbin" "lab/nano-listp/.build/bootstrap-aot-arithmetic-bad-code.elf")
+  (run-expect-exit "lab/nano-listp/.build/bootstrap-aot-arithmetic-bad-code.elf" 125)
   (emit-elf64-obj-call "lab/nano-listp/.build/bootstrap-aot-call42.o" "nano_bootstrap_call" "nano_bootstrap_ext")
   (emit-elf64-obj-ret "lab/nano-listp/.build/bootstrap-aot-ext42.o" "nano_bootstrap_ext" 42)
   (link-elf64-exe "lab/nano-listp/.build/bootstrap-aot-call42-linked" "nano_bootstrap_call" "lab/nano-listp/.build/bootstrap-aot-call42.o" "lab/nano-listp/.build/bootstrap-aot-ext42.o")
-  (run-expect-exit "lab/nano-listp/.build/bootstrap-aot-call42-linked" 42))
+  (run-expect-exit "lab/nano-listp/.build/bootstrap-aot-call42-linked" 42)
+  (emit-elf64-obj-ret "lab/nano-listp/.build/bootstrap-aot-dup42.o" "nano_bootstrap_ext" 7)
+  (link-expect-exit 2 "lab/nano-listp/.build/bootstrap-aot-dup-should-fail" "nano_bootstrap_call" "lab/nano-listp/.build/bootstrap-aot-call42.o" "lab/nano-listp/.build/bootstrap-aot-ext42.o" "lab/nano-listp/.build/bootstrap-aot-dup42.o"))
 ```
 
 ## 当前能力
@@ -142,7 +144,7 @@ bootstrap DSL 也能描述一条最小 AOT/codegen/tiny-link 构建图，不需�
 - `compile`：解析 `.lisp`，输出 `.lbin` portable blob。
 - `dump`：查看 blob header、import、const、instruction 数量。
 - `resolve`：验证 `.lbin` import table 的动态库和符号可解析；运行时会把解析到的函数地址放进当前 `ptr` typed value，适合全量 libc 导入测试或指针断言。
-- `run-bootstrap-plan`：读取最小 bootstrap DSL，顺序执行 `compile` / `hash` / `compare` / `pack-app` / `inspect-app` / `run` / `emit-elf64-exit` / `emit-elf64-obj-ret` / `emit-elf64-obj-call` / `aot-elf64-exit` / `aot-elf64-obj-ret` / `aot-elf64-code` / `aot-elf64-obj-code` / `compile-elf64-code` / `compile-elf64-obj-code` / `link-elf64-exe` / `run-expect-exit` 子流程，开始把 shell 片段迁到 `.lisp` 描述。
+- `run-bootstrap-plan`：读取最小 bootstrap DSL，顺序执行 `compile` / `hash` / `compare` / `resolve-quiet` / `pack-app` / `inspect-app` / `run` / `emit-elf64-exit` / `emit-elf64-obj-ret` / `emit-elf64-obj-call` / `aot-elf64-exit` / `aot-elf64-obj-ret` / `aot-elf64-code` / `aot-elf64-obj-code` / `compile-elf64-code` / `compile-elf64-obj-code` / `link-elf64-exe` / `link-expect-exit` / `run-expect-exit` 子流程，开始把 shell 片段迁到 `.lisp` 描述。
 - `run`：解析 `.lbin`，通过 `dlopen`/`dlsym` 找系统符号，执行 main 指令流。
 - `run-embedded`：从 `.com` 容器内按 payload 偏移直接读取并执行内嵌 blob。
 - `inspect-app`：读取 AOT app manifest，输出 runtime slice 和 blob 的 offset/size。
