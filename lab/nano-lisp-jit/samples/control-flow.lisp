@@ -8,7 +8,12 @@
       (expect 999)
       (label taken)
       (i64 -7)
-      (expect -7))
+      (expect -7)
+      (eq-i64 -7)
+      (branch eq-taken)
+      (u64 1)
+      (expect 999)
+      (label eq-taken))
     (block
       (bool false)
       (branch skipped)
