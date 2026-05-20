@@ -25,6 +25,7 @@
 ./nano-lisp-jit.com compile-elf64-obj-code arithmetic.lisp arithmetic.o nano_arith_direct
 ./nano-lisp-jit.com compile-elf64-exe multi-func.lisp multi-func.elf nano_multi_entry
 ./nano-lisp-jit.com link-elf64-exe arithmetic.elf nano_arith_code arithmetic-code.o [more.o...]
+./nano-lisp-jit.com link-expect-exit 2 dup.elf nano_call call.o ext.o dup.o
 ./nano-lisp-jit.com run-expect-exit arithmetic.elf 42
 ./nano-lisp-jit.com hash strlen.lbin
 ./nano-lisp-jit.com compare strlen.lbin strlen-repeat.lbin
@@ -160,6 +161,7 @@ bootstrap DSL 也能描述一条最小 AOT/codegen/tiny-link 构建图，不需�
 - `dump`：查看 blob header、import、const、instruction 数量。
 - `compare`：比较两个 blob 字节是否完全一致，用于 deterministic 编译测试。
 - `run-expect-exit`：运行 ELF 并断言退出码，供 native smoke 和 bootstrap DSL 复用。
+- `link-expect-exit`：执行 tiny linker 并断言失败码，用于 duplicate-symbol 等负向 linker smoke。
 - `resolve`：验证 `.lbin` import table 的动态库和符号可解析；运行时会把解析到的函数地址放进当前 `ptr` typed value，适合全量 libc 导入测试或指针断言。
 - `run-bootstrap-plan`：读取最小 bootstrap DSL，顺序执行 `compile` / `dump` / `hash` / `compare` / `resolve-quiet` / `pack-app` / `inspect-app` / `run-app` / `run` / `emit-elf64-exit` / `emit-elf64-obj-ret` / `emit-elf64-obj-call` / `aot-elf64-exit` / `aot-elf64-obj-ret` / `aot-elf64-code` / `aot-elf64-obj-code` / `compile-elf64-code` / `compile-elf64-obj-code` / `compile-elf64-exe` / `link-elf64-exe` / `link-expect-exit` / `run-expect-exit` 子流程，开始把 shell 片段迁到 `.lisp` 描述。
 - `run`：解析 `.lbin`，通过 `dlopen`/`dlsym` 找系统符号，执行 main 指令流。

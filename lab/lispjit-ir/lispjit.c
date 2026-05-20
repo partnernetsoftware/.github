@@ -2180,6 +2180,7 @@ static int cmd_emit_elf64_obj_ret(const char *out_path, const char *symbol,
 static int cmd_emit_elf64_obj_call(const char *out_path, const char *local,
                                    const char *external);
 static int cmd_link_elf64_exe(int argc, char **argv);
+static int cmd_link_expect_exit(int argc, char **argv);
 
 static int run_link_elf64_exe(const char *out_path, const char *entry_name,
                               const char *first_obj, char **extra_args,
@@ -2200,6 +2201,25 @@ static int run_link_elf64_exe(const char *out_path, const char *entry_name,
   rc = cmd_link_elf64_exe((int)link_argc, link_argv);
   free(link_argv);
   return rc;
+}
+
+static int check_link_expect_exit(const char *expected_s, const char *out_path,
+                                  const char *entry_name, const char *first_obj,
+                                  char **extra_args, size_t extra_arg_count,
+                                  const char *label) {
+  size_t expected = 0;
+  if (!parse_size_arg(expected_s, &expected) || expected > 255) {
+    fprintf(stderr, "%s=bad_expected\n", label);
+    return 2;
+  }
+  int link_rc = run_link_elf64_exe(out_path, entry_name, first_obj,
+                                   extra_args, extra_arg_count);
+  if ((size_t)link_rc != expected) {
+    fprintf(stderr, "%s=unexpected expected=%zu actual=%d\n", label, expected, link_rc);
+    return 2;
+  }
+  printf("%s.ok=%zu\n", label, expected);
+  return 0;
 }
 
 static int cmd_run_bootstrap_plan(const char *plan_path) {
@@ -2264,23 +2284,10 @@ static int cmd_run_bootstrap_plan(const char *plan_path) {
       rc = run_link_elf64_exe(step->arg0, step->arg1, step->arg2,
                               step->extra_args, step->extra_arg_count);
     } else if (step->kind == BOOTSTRAP_STEP_LINK_EXPECT_EXIT) {
-      size_t expected = 0;
       printf("bootstrap-step.%zu=link-expect-exit\n", i);
-      if (!parse_size_arg(step->arg0, &expected) || expected > 255) {
-        fprintf(stderr, "bootstrap-link-expect-exit=bad_expected\n");
-        rc = 2;
-      } else {
-        int link_rc = run_link_elf64_exe(step->arg1, step->arg2, step->arg3,
-                                         step->extra_args, step->extra_arg_count);
-        if ((size_t)link_rc != expected) {
-          fprintf(stderr, "bootstrap-link-expect-exit=unexpected expected=%zu actual=%d\n",
-                  expected, link_rc);
-          rc = 2;
-        } else {
-          printf("bootstrap-link-expect-exit.ok=%zu\n", expected);
-          rc = 0;
-        }
-      }
+      rc = check_link_expect_exit(step->arg0, step->arg1, step->arg2, step->arg3,
+                                  step->extra_args, step->extra_arg_count,
+                                  "bootstrap-link-expect-exit");
     } else if (step->kind == BOOTSTRAP_STEP_RESOLVE_QUIET) {
       printf("bootstrap-step.%zu=resolve-quiet\n", i);
       rc = cmd_resolve(step->arg0, 1);
@@ -2894,6 +2901,18 @@ static int cmd_link_elf64_exe(int argc, char **argv) {
 done:
   link_cleanup(owned, owned_n, objs, obj_count, syms, &code);
   return rc;
+}
+
+static int cmd_link_expect_exit(int argc, char **argv) {
+  if (argc < 6) {
+    fprintf(stderr, "link-expect-exit=bad_args\n");
+    return 1;
+  }
+  char **extra_args = argc > 6 ? &argv[6] : NULL;
+  size_t extra_arg_count = argc > 6 ? (size_t)(argc - 6) : 0;
+  return check_link_expect_exit(argv[2], argv[3], argv[4], argv[5],
+                                extra_args, extra_arg_count,
+                                "link-expect-exit");
 }
 
 static int emit_elf64_exit_file(const char *out_path, uint8_t exit_code) {
@@ -3912,6 +3931,7 @@ static void usage(const char *argv0) {
   fprintf(stderr, "  %s compile-elf64-obj-code input.%s output.o symbol\n", argv0, SOURCE_EXT);
   fprintf(stderr, "  %s compile-elf64-exe input.%s output.elf entry_symbol\n", argv0, SOURCE_EXT);
   fprintf(stderr, "  %s link-elf64-exe output.elf entry_symbol input.o...\n", argv0);
+  fprintf(stderr, "  %s link-expect-exit expected output.elf entry_symbol input.o...\n", argv0);
   fprintf(stderr, "  %s run-expect-exit executable expected_exit\n", argv0);
   fprintf(stderr, "  %s dump program.%s\n", argv0, BLOB_EXT);
   fprintf(stderr, "  %s hash program.%s\n", argv0, BLOB_EXT);
@@ -3970,6 +3990,9 @@ int main(int argc, char **argv) {
   }
   if (argc >= 2 && strcmp(argv[1], "link-elf64-exe") == 0) {
     return cmd_link_elf64_exe(argc, argv);
+  }
+  if (argc >= 2 && strcmp(argv[1], "link-expect-exit") == 0) {
+    return cmd_link_expect_exit(argc, argv);
   }
   if (argc >= 2 && strcmp(argv[1], "run-expect-exit") == 0 && argc == 4) {
     return run_executable_expect_exit(argv[2], argv[3]);
