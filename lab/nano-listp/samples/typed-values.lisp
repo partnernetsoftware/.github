@@ -1,0 +1,10 @@
+; Typed value smoke: signed integer, bool, and pointer result from resolve.
+(module
+  (import strlen "libc" "strlen" "u64(ptr)")
+  (main
+    (i64 -42)
+    (expect -42)
+    (bool true)
+    (expect true)
+    (resolve strlen)
+    (expect nonnull)))

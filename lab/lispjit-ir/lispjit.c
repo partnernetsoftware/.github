@@ -49,12 +49,35 @@ extern void *cosmo_dlsym(void *handle, const char *symbol);
 #define OP_CONST_U64 7u
 #define OP_ADD_U64 8u
 #define OP_CALL_IMPORT_IMM 9u
+#define OP_CONST_I64 10u
+#define OP_CONST_BOOL 11u
+#define OP_EXPECT_I64 12u
+#define OP_EXPECT_BOOL 13u
+#define OP_EXPECT_PTR 14u
+#define OP_BRANCH_BOOL 15u
 
 #define SRC_FORM_CALL 1u
 #define SRC_FORM_RESOLVE 2u
 #define SRC_FORM_EXPECT 3u
 #define SRC_FORM_CONST_U64 4u
 #define SRC_FORM_ADD_U64 5u
+#define SRC_FORM_CONST_I64 6u
+#define SRC_FORM_CONST_BOOL 7u
+#define SRC_FORM_EXPECT_I64 8u
+#define SRC_FORM_EXPECT_BOOL 9u
+#define SRC_FORM_EXPECT_PTR 10u
+#define SRC_FORM_BRANCH 11u
+#define SRC_FORM_LABEL 12u
+
+#define AOT_STMT_CONST_U64 1u
+#define AOT_STMT_ADD_U64 2u
+#define AOT_STMT_EXPECT_U64 3u
+#define AOT_STMT_CALL_FUNC 4u
+
+#define BOOTSTRAP_STEP_COMPILE 1u
+#define BOOTSTRAP_STEP_HASH 2u
+#define BOOTSTRAP_STEP_RUN 3u
+#define BOOTSTRAP_STEP_COMPARE 4u
 
 typedef uint64_t (*jit_entry_fn)(void);
 typedef int (*ffi_i32_ptr_fn)(const char *);
@@ -95,6 +118,43 @@ typedef struct {
 } Module;
 
 typedef struct {
+  uint32_t kind;
+  uint64_t imm;
+  char *target_name;
+} AotStmt;
+
+typedef struct {
+  char *name;
+  int is_global;
+  AotStmt *stmts;
+  size_t stmt_count;
+  size_t stmt_cap;
+} AotFunc;
+
+typedef struct {
+  AotFunc *funcs;
+  size_t func_count;
+  size_t func_cap;
+} AotModule;
+
+typedef struct {
+  uint32_t patch_off;
+  const char *target_name;
+} AotCallPatch;
+
+typedef struct {
+  uint32_t kind;
+  char *arg0;
+  char *arg1;
+} BootstrapStep;
+
+typedef struct {
+  BootstrapStep *steps;
+  size_t step_count;
+  size_t step_cap;
+} BootstrapPlan;
+
+typedef struct {
   unsigned char *data;
   size_t len;
   size_t cap;
@@ -114,6 +174,23 @@ typedef struct {
   size_t instr_off;
   size_t string_off;
 } Blob;
+
+typedef struct {
+  const char *name;
+  uint32_t pc;
+} LabelDef;
+
+typedef enum {
+  VAL_U64 = 1,
+  VAL_I64 = 2,
+  VAL_BOOL = 3,
+  VAL_PTR = 4,
+} ValueKind;
+
+typedef struct {
+  ValueKind kind;
+  uint64_t bits;
+} Value;
 
 static uint32_t rd32(const unsigned char *p) {
   return ((uint32_t)p[0]) |
@@ -150,6 +227,74 @@ static void wr64(unsigned char *p, uint64_t v) {
   for (int i = 0; i < 8; ++i) {
     p[i] = (unsigned char)((v >> (i * 8)) & 0xff);
   }
+}
+
+static Value value_u64(uint64_t v) {
+  Value out = {VAL_U64, v};
+  return out;
+}
+
+static Value value_i64(int64_t v) {
+  Value out = {VAL_I64, (uint64_t)v};
+  return out;
+}
+
+static Value value_bool(int v) {
+  Value out = {VAL_BOOL, v ? 1u : 0u};
+  return out;
+}
+
+static Value value_ptr(const void *p) {
+  Value out = {VAL_PTR, (uint64_t)(uintptr_t)p};
+  return out;
+}
+
+static int value_expect_u64(Value v, uint64_t expected) {
+  if (v.kind == VAL_U64) return v.bits == expected;
+  if (v.kind == VAL_I64 && (int64_t)v.bits >= 0) return v.bits == expected;
+  return 0;
+}
+
+static int value_expect_i64(Value v, int64_t expected) {
+  if (v.kind == VAL_I64) return (int64_t)v.bits == expected;
+  if (v.kind == VAL_U64 && expected >= 0) return v.bits == (uint64_t)expected;
+  return 0;
+}
+
+static int value_expect_bool(Value v, int expected) {
+  return v.kind == VAL_BOOL && (!!v.bits) == !!expected;
+}
+
+static int value_expect_ptr(Value v, int nonnull) {
+  return v.kind == VAL_PTR && ((v.bits != 0) == !!nonnull);
+}
+
+static int value_add_u64(Value *v, uint64_t rhs) {
+  if (v->kind != VAL_U64) return 0;
+  v->bits += rhs;
+  return 1;
+}
+
+static void print_value(FILE *out, Value v) {
+  switch (v.kind) {
+    case VAL_U64:
+      fprintf(out, "%llu", (unsigned long long)v.bits);
+      return;
+    case VAL_I64:
+      fprintf(out, "%lld", (long long)(int64_t)v.bits);
+      return;
+    case VAL_BOOL:
+      fprintf(out, "%s", v.bits ? "true" : "false");
+      return;
+    case VAL_PTR:
+      if (!v.bits) {
+        fprintf(out, "null");
+      } else {
+        fprintf(out, "0x%llx", (unsigned long long)v.bits);
+      }
+      return;
+  }
+  fprintf(out, "<?>");
 }
 
 static uint32_t parse_sig_id(const char *sig) {
@@ -203,6 +348,14 @@ static uint32_t add_string(Buf *strings, const char *s) {
   uint32_t off = (uint32_t)strings->len;
   buf_put(strings, s, strlen(s) + 1);
   return off;
+}
+
+static char *dup_cstr(const char *s) {
+  size_t n = strlen(s) + 1;
+  char *out = (char *)malloc(n);
+  if (!out) return NULL;
+  memcpy(out, s, n);
+  return out;
 }
 
 static unsigned char *read_file(const char *path, size_t *out_size) {
@@ -339,6 +492,25 @@ static void module_free(Module *m) {
   free(m->instrs);
 }
 
+static void aot_module_free(AotModule *m) {
+  for (size_t i = 0; i < m->func_count; ++i) {
+    free(m->funcs[i].name);
+    for (size_t j = 0; j < m->funcs[i].stmt_count; ++j) {
+      free(m->funcs[i].stmts[j].target_name);
+    }
+    free(m->funcs[i].stmts);
+  }
+  free(m->funcs);
+}
+
+static void bootstrap_plan_free(BootstrapPlan *plan) {
+  for (size_t i = 0; i < plan->step_count; ++i) {
+    free(plan->steps[i].arg0);
+    free(plan->steps[i].arg1);
+  }
+  free(plan->steps);
+}
+
 static int add_import(Module *m, char *name, char *lib, char *symbol, char *sig) {
   uint32_t sig_id = parse_sig_id(sig);
   if (sig_id == UINT32_MAX) {
@@ -382,6 +554,42 @@ static int add_instr(Module *m, uint32_t form, char *import_name, char *const_na
   return 1;
 }
 
+static AotFunc *aot_add_func(AotModule *m, char *name, int is_global) {
+  if (m->func_count == m->func_cap) {
+    size_t next = m->func_cap ? m->func_cap * 2 : 4;
+    AotFunc *p = (AotFunc *)realloc(m->funcs, next * sizeof(*p));
+    if (!p) return NULL;
+    m->funcs = p;
+    m->func_cap = next;
+  }
+  m->funcs[m->func_count] = (AotFunc){name, is_global, NULL, 0, 0};
+  return &m->funcs[m->func_count++];
+}
+
+static int aot_add_stmt(AotFunc *f, uint32_t kind, uint64_t imm, char *target_name) {
+  if (f->stmt_count == f->stmt_cap) {
+    size_t next = f->stmt_cap ? f->stmt_cap * 2 : 8;
+    AotStmt *p = (AotStmt *)realloc(f->stmts, next * sizeof(*p));
+    if (!p) return 0;
+    f->stmts = p;
+    f->stmt_cap = next;
+  }
+  f->stmts[f->stmt_count++] = (AotStmt){kind, imm, target_name};
+  return 1;
+}
+
+static int bootstrap_add_step(BootstrapPlan *plan, uint32_t kind, char *arg0, char *arg1) {
+  if (plan->step_count == plan->step_cap) {
+    size_t next = plan->step_cap ? plan->step_cap * 2 : 4;
+    BootstrapStep *p = (BootstrapStep *)realloc(plan->steps, next * sizeof(*p));
+    if (!p) return 0;
+    plan->steps = p;
+    plan->step_cap = next;
+  }
+  plan->steps[plan->step_count++] = (BootstrapStep){kind, arg0, arg1};
+  return 1;
+}
+
 static int parse_u64_atom(const char *s, uint64_t *out) {
   char *end = NULL;
   unsigned long long v = strtoull(s, &end, 10);
@@ -390,12 +598,185 @@ static int parse_u64_atom(const char *s, uint64_t *out) {
   return (unsigned long long)*out == v;
 }
 
+static int parse_i64_atom(const char *s, int64_t *out) {
+  char *end = NULL;
+  long long v = strtoll(s, &end, 10);
+  if (!s || !s[0] || !end || *end) return 0;
+  *out = (int64_t)v;
+  return 1;
+}
+
 static int parse_i32_atom(const char *s, int32_t *out) {
   char *end = NULL;
   long v = strtol(s, &end, 10);
   if (!s || !s[0] || !end || *end || v < INT32_MIN || v > INT32_MAX) return 0;
   *out = (int32_t)v;
   return 1;
+}
+
+static int parse_bool_atom(const char *s, int *out) {
+  if (strcmp(s, "true") == 0) {
+    *out = 1;
+    return 1;
+  }
+  if (strcmp(s, "false") == 0) {
+    *out = 0;
+    return 1;
+  }
+  return 0;
+}
+
+static int parse_expect_ptr_atom(const char *s, int *out) {
+  if (strcmp(s, "nonnull") == 0) {
+    *out = 1;
+    return 1;
+  }
+  if (strcmp(s, "null") == 0) {
+    *out = 0;
+    return 1;
+  }
+  return 0;
+}
+
+static int aot_find_func(const AotModule *m, const char *name) {
+  for (size_t i = 0; i < m->func_count; ++i) {
+    if (strcmp(m->funcs[i].name, name) == 0) return (int)i;
+  }
+  return -1;
+}
+
+static int parse_aot_body_items(const char **p, AotFunc *f) {
+  while (1) {
+    skip_ws(p);
+    if (**p == ')') {
+      (*p)++;
+      return f->stmt_count > 0;
+    }
+    if (!eat(p, '(')) return 0;
+    char *head = parse_atom(p);
+    if (!head) return 0;
+    int ok = 0;
+    if (strcmp(head, "block") == 0) {
+      ok = parse_aot_body_items(p, f);
+      free(head);
+      if (!ok) return 0;
+      continue;
+    }
+    if (strcmp(head, "u64") == 0 || strcmp(head, "add-u64") == 0 ||
+        strcmp(head, "expect") == 0) {
+      char *value = parse_atom(p);
+      uint64_t imm = 0;
+      uint32_t kind = strcmp(head, "u64") == 0 ? AOT_STMT_CONST_U64 :
+                      strcmp(head, "add-u64") == 0 ? AOT_STMT_ADD_U64 :
+                      AOT_STMT_EXPECT_U64;
+      ok = value && parse_u64_atom(value, &imm) && eat(p, ')') &&
+           aot_add_stmt(f, kind, imm, NULL);
+      free(value);
+    } else if (strcmp(head, "call") == 0) {
+      char *target = parse_atom(p);
+      skip_ws(p);
+      ok = target && **p == ')' && eat(p, ')') &&
+           aot_add_stmt(f, AOT_STMT_CALL_FUNC, 0, target);
+      if (!ok) free(target);
+    }
+    free(head);
+    if (!ok) return 0;
+  }
+}
+
+static int parse_aot_module(const char *src, AotModule *m) {
+  const char *p = src;
+  int saw_main = 0;
+  if (!eat(&p, '(')) return 0;
+  char *module = parse_atom(&p);
+  if (!module || strcmp(module, "module") != 0) {
+    free(module);
+    return 0;
+  }
+  free(module);
+  while (1) {
+    skip_ws(&p);
+    if (*p == ')') {
+      p++;
+      skip_ws(&p);
+      return *p == 0 && saw_main;
+    }
+    if (!eat(&p, '(')) return 0;
+    char *head = parse_atom(&p);
+    char *name = NULL;
+    AotFunc *func = NULL;
+    int ok = 0;
+    if (!head) return 0;
+    if (strcmp(head, "main") == 0) {
+      if (saw_main || aot_find_func(m, "main") >= 0) {
+        free(head);
+        return 0;
+      }
+      name = dup_cstr("main");
+      func = name ? aot_add_func(m, name, 1) : NULL;
+      ok = func && parse_aot_body_items(&p, func);
+      saw_main = ok;
+    } else if (strcmp(head, "func") == 0) {
+      name = parse_atom(&p);
+      if (!name || !name[0] || aot_find_func(m, name) >= 0 || strcmp(name, "main") == 0) {
+        free(name);
+        free(head);
+        return 0;
+      }
+      func = aot_add_func(m, name, 0);
+      ok = func && parse_aot_body_items(&p, func);
+    }
+    free(head);
+    if (!ok) return 0;
+  }
+}
+
+static int parse_bootstrap_plan(const char *src, BootstrapPlan *plan) {
+  const char *p = src;
+  if (!eat(&p, '(')) return 0;
+  char *head = parse_atom(&p);
+  if (!head || strcmp(head, "bootstrap") != 0) {
+    free(head);
+    return 0;
+  }
+  free(head);
+  while (1) {
+    skip_ws(&p);
+    if (*p == ')') {
+      p++;
+      skip_ws(&p);
+      return *p == 0 && plan->step_count > 0;
+    }
+    if (!eat(&p, '(')) return 0;
+    head = parse_atom(&p);
+    if (!head) return 0;
+    if (strcmp(head, "compile") == 0 || strcmp(head, "compare") == 0) {
+      char *arg0 = parse_string(&p);
+      char *arg1 = parse_string(&p);
+      uint32_t kind = strcmp(head, "compile") == 0 ? BOOTSTRAP_STEP_COMPILE : BOOTSTRAP_STEP_COMPARE;
+      int ok = arg0 && arg1 && eat(&p, ')') &&
+               bootstrap_add_step(plan, kind, arg0, arg1);
+      if (!ok) {
+        free(arg0);
+        free(arg1);
+        free(head);
+        return 0;
+      }
+    } else if (strcmp(head, "hash") == 0 || strcmp(head, "run") == 0) {
+      char *arg0 = parse_string(&p);
+      uint32_t kind = strcmp(head, "hash") == 0 ? BOOTSTRAP_STEP_HASH : BOOTSTRAP_STEP_RUN;
+      int ok = arg0 && eat(&p, ')') && bootstrap_add_step(plan, kind, arg0, NULL);
+      if (!ok) {
+        free(arg0);
+        free(head);
+        return 0;
+      }
+    } else {
+      free(head);
+      return 0;
+    }
+    free(head);
+  }
 }
 
 static int parse_import_form(const char **p, Module *m) {
@@ -414,33 +795,76 @@ static int parse_const_form(const char **p, Module *m) {
   return add_const(m, name, value);
 }
 
-static int parse_main_form(const char **p, Module *m) {
+static int parse_main_items(const char **p, Module *m) {
   while (1) {
     skip_ws(p);
     if (**p == ')') {
       (*p)++;
-      return m->instr_count > 0;
+      return 1;
     }
     if (!eat(p, '(')) return 0;
     char *head = parse_atom(p);
     if (!head) return 0;
     int ok = 0;
+    if (strcmp(head, "block") == 0) {
+      ok = parse_main_items(p, m);
+      free(head);
+      if (!ok) return 0;
+      continue;
+    }
     if (strcmp(head, "resolve") == 0) {
       char *import_name = parse_atom(p);
       ok = import_name && eat(p, ')') &&
            add_instr(m, SRC_FORM_RESOLVE, import_name, NULL, NULL, 0);
-    } else if (strcmp(head, "u64") == 0 || strcmp(head, "add-u64") == 0) {
+    } else if (strcmp(head, "branch") == 0) {
+      char *label_name = parse_atom(p);
+      ok = label_name && eat(p, ')') &&
+           add_instr(m, SRC_FORM_BRANCH, label_name, NULL, NULL, 0);
+    } else if (strcmp(head, "label") == 0) {
+      char *label_name = parse_atom(p);
+      ok = label_name && eat(p, ')') &&
+           add_instr(m, SRC_FORM_LABEL, label_name, NULL, NULL, 0);
+    } else if (strcmp(head, "u64") == 0 || strcmp(head, "add-u64") == 0 ||
+               strcmp(head, "i64") == 0) {
       char *value = parse_atom(p);
       uint64_t imm = 0;
-      uint32_t form = strcmp(head, "u64") == 0 ? SRC_FORM_CONST_U64 : SRC_FORM_ADD_U64;
-      ok = value && parse_u64_atom(value, &imm) && eat(p, ')') &&
-           add_instr(m, form, NULL, NULL, NULL, imm);
+      int64_t i64 = 0;
+      uint32_t form = strcmp(head, "u64") == 0 ? SRC_FORM_CONST_U64 :
+                      strcmp(head, "add-u64") == 0 ? SRC_FORM_ADD_U64 :
+                      SRC_FORM_CONST_I64;
+      if (strcmp(head, "i64") == 0) {
+        ok = value && parse_i64_atom(value, &i64) && eat(p, ')') &&
+             add_instr(m, form, NULL, NULL, NULL, (uint64_t)i64);
+      } else {
+        ok = value && parse_u64_atom(value, &imm) && eat(p, ')') &&
+             add_instr(m, form, NULL, NULL, NULL, imm);
+      }
+      free(value);
+    } else if (strcmp(head, "bool") == 0) {
+      char *value = parse_atom(p);
+      int boolean = 0;
+      ok = value && parse_bool_atom(value, &boolean) && eat(p, ')') &&
+           add_instr(m, SRC_FORM_CONST_BOOL, NULL, NULL, NULL, (uint64_t)boolean);
       free(value);
     } else if (strcmp(head, "expect") == 0) {
       char *value = parse_atom(p);
       uint64_t expected = 0;
-      ok = value && parse_u64_atom(value, &expected) && eat(p, ')') &&
-           add_instr(m, SRC_FORM_EXPECT, NULL, NULL, NULL, expected);
+      int64_t expected_i64 = 0;
+      int boolean = 0;
+      int ptr_state = 0;
+      if (value && parse_bool_atom(value, &boolean)) {
+        ok = eat(p, ')') &&
+             add_instr(m, SRC_FORM_EXPECT_BOOL, NULL, NULL, NULL, (uint64_t)boolean);
+      } else if (value && parse_expect_ptr_atom(value, &ptr_state)) {
+        ok = eat(p, ')') &&
+             add_instr(m, SRC_FORM_EXPECT_PTR, NULL, NULL, NULL, (uint64_t)ptr_state);
+      } else if (value && parse_i64_atom(value, &expected_i64) && expected_i64 < 0) {
+        ok = eat(p, ')') &&
+             add_instr(m, SRC_FORM_EXPECT_I64, NULL, NULL, NULL, (uint64_t)expected_i64);
+      } else {
+        ok = value && parse_u64_atom(value, &expected) && eat(p, ')') &&
+             add_instr(m, SRC_FORM_EXPECT, NULL, NULL, NULL, expected);
+      }
       free(value);
     } else if (strcmp(head, "call") == 0) {
       char *import_name = parse_atom(p);
@@ -462,6 +886,10 @@ static int parse_main_form(const char **p, Module *m) {
     free(head);
     if (!ok) return 0;
   }
+}
+
+static int parse_main_form(const char **p, Module *m) {
+  return parse_main_items(p, m) && m->instr_count > 0;
 }
 
 static int parse_module(const char *src, Module *m) {
@@ -523,12 +951,47 @@ static uint32_t pack_const_pair(uint32_t a, uint32_t b) {
   return a | (b << 16);
 }
 
+static int find_label(const LabelDef *labels, size_t label_count, const char *name) {
+  for (size_t i = 0; i < label_count; ++i) {
+    if (strcmp(labels[i].name, name) == 0) return (int)i;
+  }
+  return -1;
+}
+
+static int build_label_table(const Module *m, LabelDef **out_labels, size_t *out_label_count,
+                             uint32_t *out_emitted_instrs) {
+  LabelDef *labels = (LabelDef *)calloc(m->instr_count ? m->instr_count : 1, sizeof(*labels));
+  size_t label_count = 0;
+  uint32_t emitted = 0;
+  if (!labels) return 0;
+  for (size_t i = 0; i < m->instr_count; ++i) {
+    const InstrDef *in = &m->instrs[i];
+    if (in->form == SRC_FORM_LABEL) {
+      if (find_label(labels, label_count, in->import_name) >= 0) {
+        fprintf(stderr, "duplicate.label=%s\n", in->import_name);
+        free(labels);
+        return 0;
+      }
+      labels[label_count++] = (LabelDef){in->import_name, emitted};
+    } else {
+      emitted++;
+    }
+  }
+  *out_labels = labels;
+  *out_label_count = label_count;
+  *out_emitted_instrs = emitted;
+  return 1;
+}
+
 static unsigned char *compile_module(const Module *m, size_t *out_n) {
   Buf out = {0};
   Buf imports = {0};
   Buf consts = {0};
   Buf instrs = {0};
   Buf strings = {0};
+  LabelDef *labels = NULL;
+  size_t label_count = 0;
+  uint32_t emitted_instrs = 0;
 
   for (size_t i = 0; i < m->import_count; ++i) {
     buf_put32(&imports, add_string(&strings, m->imports[i].lib));
@@ -544,11 +1007,23 @@ static unsigned char *compile_module(const Module *m, size_t *out_n) {
     buf_put32(&consts, 0);
   }
 
+  if (!build_label_table(m, &labels, &label_count, &emitted_instrs)) {
+    free(imports.data);
+    free(consts.data);
+    free(strings.data);
+    return NULL;
+  }
+
   for (size_t i = 0; i < m->instr_count; ++i) {
     const InstrDef *in = &m->instrs[i];
-    if (in->form == SRC_FORM_CONST_U64 || in->form == SRC_FORM_ADD_U64) {
-      emit_instr(&instrs, in->form == SRC_FORM_CONST_U64 ? OP_CONST_U64 : OP_ADD_U64,
-                 (uint32_t)(in->imm & 0xffffffffu), (uint32_t)(in->imm >> 32));
+    if (in->form == SRC_FORM_LABEL) continue;
+    if (in->form == SRC_FORM_CONST_U64 || in->form == SRC_FORM_ADD_U64 ||
+        in->form == SRC_FORM_CONST_I64) {
+      uint8_t op = in->form == SRC_FORM_CONST_U64 ? OP_CONST_U64 :
+                   in->form == SRC_FORM_ADD_U64 ? OP_ADD_U64 :
+                   OP_CONST_I64;
+      emit_instr(&instrs, op, (uint32_t)(in->imm & 0xffffffffu),
+                 (uint32_t)(in->imm >> 32));
       continue;
     }
     if (in->form == SRC_FORM_EXPECT) {
@@ -556,34 +1031,103 @@ static unsigned char *compile_module(const Module *m, size_t *out_n) {
                  (uint32_t)(in->imm >> 32));
       continue;
     }
+    if (in->form == SRC_FORM_CONST_BOOL) {
+      emit_instr(&instrs, OP_CONST_BOOL, (uint32_t)in->imm, 0);
+      continue;
+    }
+    if (in->form == SRC_FORM_EXPECT_I64) {
+      emit_instr(&instrs, OP_EXPECT_I64, (uint32_t)(in->imm & 0xffffffffu),
+                 (uint32_t)(in->imm >> 32));
+      continue;
+    }
+    if (in->form == SRC_FORM_EXPECT_BOOL) {
+      emit_instr(&instrs, OP_EXPECT_BOOL, (uint32_t)in->imm, 0);
+      continue;
+    }
+    if (in->form == SRC_FORM_EXPECT_PTR) {
+      emit_instr(&instrs, OP_EXPECT_PTR, (uint32_t)in->imm, 0);
+      continue;
+    }
+    if (in->form == SRC_FORM_BRANCH) {
+      int label_idx = find_label(labels, label_count, in->import_name);
+      if (label_idx < 0) {
+        fprintf(stderr, "missing.label=%s\n", in->import_name);
+        free(imports.data);
+        free(consts.data);
+        free(instrs.data);
+        free(strings.data);
+        free(labels);
+        return NULL;
+      }
+      emit_instr(&instrs, OP_BRANCH_BOOL, labels[label_idx].pc, 0);
+      continue;
+    }
     int import_idx = find_import(m, in->import_name);
-    if (import_idx < 0) return NULL;
+    if (import_idx < 0) {
+      free(imports.data);
+      free(consts.data);
+      free(instrs.data);
+      free(strings.data);
+      free(labels);
+      return NULL;
+    }
     if (in->form == SRC_FORM_RESOLVE) {
       emit_instr(&instrs, OP_RESOLVE_IMPORT, (uint32_t)import_idx, 0);
       continue;
     }
     uint32_t sig = m->imports[import_idx].sig;
     if (sig == SIG_I32_VOID) {
-      if (in->const_name || in->const2_name) return NULL;
+      if (in->const_name || in->const2_name) {
+        free(imports.data);
+        free(consts.data);
+        free(instrs.data);
+        free(strings.data);
+        free(labels);
+        return NULL;
+      }
       emit_instr(&instrs, OP_CALL_IMPORT_VOID, (uint32_t)import_idx, 0);
     } else if (sig == SIG_I32_I32) {
       int32_t imm = 0;
       if (!in->const_name || in->const2_name || !parse_i32_atom(in->const_name, &imm)) {
+        free(imports.data);
+        free(consts.data);
+        free(instrs.data);
+        free(strings.data);
+        free(labels);
         return NULL;
       }
       emit_instr(&instrs, OP_CALL_IMPORT_IMM, (uint32_t)import_idx, (uint32_t)imm);
     } else if (sig == SIG_U64_PTR || sig == SIG_I32_PTR) {
       int const_idx = in->const_name ? find_const(m, in->const_name) : -1;
-      if (const_idx < 0 || in->const2_name) return NULL;
+      if (const_idx < 0 || in->const2_name) {
+        free(imports.data);
+        free(consts.data);
+        free(instrs.data);
+        free(strings.data);
+        free(labels);
+        return NULL;
+      }
       emit_instr(&instrs, OP_CALL_IMPORT_CONST, (uint32_t)import_idx, (uint32_t)const_idx);
     } else if (sig == SIG_I32_PTR_PTR) {
       int const_idx = in->const_name ? find_const(m, in->const_name) : -1;
       int const2_idx = in->const2_name ? find_const(m, in->const2_name) : -1;
-      if (const_idx < 0 || const2_idx < 0) return NULL;
+      if (const_idx < 0 || const2_idx < 0) {
+        free(imports.data);
+        free(consts.data);
+        free(instrs.data);
+        free(strings.data);
+        free(labels);
+        return NULL;
+      }
       emit_instr(&instrs, OP_CALL_IMPORT_CONST2, (uint32_t)import_idx,
                  pack_const_pair((uint32_t)const_idx, (uint32_t)const2_idx));
     } else {
       fprintf(stderr, "signature.not_callable=%s\n", sig_name(sig));
+      free(imports.data);
+      free(consts.data);
+      free(instrs.data);
+      free(strings.data);
+      free(labels);
       return NULL;
     }
   }
@@ -595,7 +1139,7 @@ static unsigned char *compile_module(const Module *m, size_t *out_n) {
   buf_put32(&out, 0);
   buf_put32(&out, (uint32_t)m->import_count);
   buf_put32(&out, (uint32_t)m->const_count);
-  buf_put32(&out, (uint32_t)(m->instr_count + 1));
+  buf_put32(&out, emitted_instrs + 1);
   buf_put32(&out, (uint32_t)strings.len);
   buf_put(&out, imports.data, imports.len);
   buf_put(&out, consts.data, consts.len);
@@ -606,6 +1150,7 @@ static unsigned char *compile_module(const Module *m, size_t *out_n) {
   free(consts.data);
   free(instrs.data);
   free(strings.data);
+  free(labels);
   *out_n = out.len;
   return out.data;
 }
@@ -798,49 +1343,49 @@ static const char *const_string_ref(const Blob *b, uint32_t idx) {
   return blob_string(b, rd32(con + 4));
 }
 
-static int call_import1(const RuntimeImport *ri, const char *arg, uint64_t *out) {
+static int call_import1(const RuntimeImport *ri, const char *arg, Value *out) {
   if (!arg) return 13;
   if (ri->sig == SIG_U64_PTR) {
     size_t code_n = 0;
     void *entry = emit_u64_ptr_call(ri->fn, arg, &code_n);
     if (!entry) return 16;
-    *out = ((jit_entry_fn)entry)();
+    *out = value_u64(((jit_entry_fn)entry)());
     fprintf(stderr, "jit.code.bytes=%zu\n", code_n);
     return 0;
   }
   if (ri->sig == SIG_I32_PTR) {
-    *out = (uint64_t)(int64_t)((ffi_i32_ptr_fn)ri->fn)(arg);
+    *out = value_i64((int64_t)((ffi_i32_ptr_fn)ri->fn)(arg));
     return 0;
   }
   fprintf(stderr, "signature.arg_mismatch=%s\n", sig_name(ri->sig));
   return 17;
 }
 
-static int call_import2(const RuntimeImport *ri, const char *arg0, const char *arg1, uint64_t *out) {
+static int call_import2(const RuntimeImport *ri, const char *arg0, const char *arg1, Value *out) {
   if (!arg0 || !arg1) return 13;
   if (ri->sig != SIG_I32_PTR_PTR) {
     fprintf(stderr, "signature.arg_mismatch=%s\n", sig_name(ri->sig));
     return 17;
   }
-  *out = (uint64_t)(int64_t)((ffi_i32_ptr_ptr_fn)ri->fn)(arg0, arg1);
+  *out = value_i64((int64_t)((ffi_i32_ptr_ptr_fn)ri->fn)(arg0, arg1));
   return 0;
 }
 
-static int call_import0(const RuntimeImport *ri, uint64_t *out) {
+static int call_import0(const RuntimeImport *ri, Value *out) {
   if (ri->sig != SIG_I32_VOID) {
     fprintf(stderr, "signature.arg_mismatch=%s\n", sig_name(ri->sig));
     return 17;
   }
-  *out = (uint64_t)(int64_t)((ffi_i32_void_fn)ri->fn)();
+  *out = value_i64((int64_t)((ffi_i32_void_fn)ri->fn)());
   return 0;
 }
 
-static int call_import_i32(const RuntimeImport *ri, int32_t arg, uint64_t *out) {
+static int call_import_i32(const RuntimeImport *ri, int32_t arg, Value *out) {
   if (ri->sig != SIG_I32_I32) {
     fprintf(stderr, "signature.arg_mismatch=%s\n", sig_name(ri->sig));
     return 17;
   }
-  *out = (uint64_t)(int64_t)((ffi_i32_i32_fn)ri->fn)((int)arg);
+  *out = value_i64((int64_t)((ffi_i32_i32_fn)ri->fn)((int)arg));
   return 0;
 }
 
@@ -861,8 +1406,9 @@ static int resolve_blob(const Blob *b, int quiet) {
 }
 
 static int execute_blob(const Blob *b) {
-  uint64_t last = 0;
-  for (uint32_t pc = 0; pc < b->instr_count; ++pc) {
+  Value last = value_u64(0);
+  uint32_t pc = 0;
+  while (pc < b->instr_count) {
     const unsigned char *ins = instr_row(b, pc);
     if (!ins) return 10;
     uint8_t op = ins[0];
@@ -871,34 +1417,117 @@ static int execute_blob(const Blob *b) {
     RuntimeImport ri = {0};
     int rc = 0;
     if (op == OP_RET_LAST) {
-      printf("ret=%llu\n", (unsigned long long)last);
+      printf("ret=");
+      print_value(stdout, last);
+      printf("\n");
       return 0;
     }
     if (op == OP_RESOLVE_IMPORT) {
       rc = resolve_import_ref(b, arg0, &ri);
       if (rc != 0) return rc;
+      last = value_ptr(ri.fn);
       printf("resolve.%u=%s:%s sig=%s ok\n", pc, ri.lib, ri.sym, sig_name(ri.sig));
+      pc++;
       continue;
     }
     if (op == OP_EXPECT_U64) {
       uint64_t expected = (uint64_t)arg0 | ((uint64_t)arg1 << 32);
-      if (last != expected) {
-        fprintf(stderr, "expect.%u=fail expected=%llu actual=%llu\n", pc,
-                (unsigned long long)expected, (unsigned long long)last);
+      if (!value_expect_u64(last, expected)) {
+        fprintf(stderr, "expect.%u=fail expected=%llu actual=", pc,
+                (unsigned long long)expected);
+        print_value(stderr, last);
+        fprintf(stderr, "\n");
         return 19;
       }
       printf("expect.%u=ok expected=%llu\n", pc, (unsigned long long)expected);
+      pc++;
+      continue;
+    }
+    if (op == OP_EXPECT_I64) {
+      int64_t expected = (int64_t)((uint64_t)arg0 | ((uint64_t)arg1 << 32));
+      if (!value_expect_i64(last, expected)) {
+        fprintf(stderr, "expect.%u=fail expected=%lld actual=", pc, (long long)expected);
+        print_value(stderr, last);
+        fprintf(stderr, "\n");
+        return 19;
+      }
+      printf("expect.%u=ok expected=%lld\n", pc, (long long)expected);
+      pc++;
+      continue;
+    }
+    if (op == OP_EXPECT_BOOL) {
+      if (!value_expect_bool(last, (int)arg0)) {
+        fprintf(stderr, "expect.%u=fail expected=%s actual=", pc, arg0 ? "true" : "false");
+        print_value(stderr, last);
+        fprintf(stderr, "\n");
+        return 19;
+      }
+      printf("expect.%u=ok expected=%s\n", pc, arg0 ? "true" : "false");
+      pc++;
+      continue;
+    }
+    if (op == OP_EXPECT_PTR) {
+      if (!value_expect_ptr(last, (int)arg0)) {
+        fprintf(stderr, "expect.%u=fail expected=%s actual=", pc, arg0 ? "nonnull" : "null");
+        print_value(stderr, last);
+        fprintf(stderr, "\n");
+        return 19;
+      }
+      printf("expect.%u=ok expected=%s\n", pc, arg0 ? "nonnull" : "null");
+      pc++;
+      continue;
+    }
+    if (op == OP_BRANCH_BOOL) {
+      if (last.kind != VAL_BOOL) {
+        fprintf(stderr, "type.branch=%u actual=", pc);
+        print_value(stderr, last);
+        fprintf(stderr, "\n");
+        return 21;
+      }
+      if (arg0 >= b->instr_count) {
+        fprintf(stderr, "branch.%u=bad_target %u\n", pc, arg0);
+        return 22;
+      }
+      printf("branch.%u=%s target=%u\n", pc, last.bits ? "taken" : "not-taken", arg0);
+      pc = last.bits ? arg0 : pc + 1;
       continue;
     }
     if (op == OP_CONST_U64) {
-      last = (uint64_t)arg0 | ((uint64_t)arg1 << 32);
-      printf("u64.%u=%llu\n", pc, (unsigned long long)last);
+      last = value_u64((uint64_t)arg0 | ((uint64_t)arg1 << 32));
+      printf("u64.%u=", pc);
+      print_value(stdout, last);
+      printf("\n");
+      pc++;
+      continue;
+    }
+    if (op == OP_CONST_I64) {
+      last = value_i64((int64_t)((uint64_t)arg0 | ((uint64_t)arg1 << 32)));
+      printf("i64.%u=", pc);
+      print_value(stdout, last);
+      printf("\n");
+      pc++;
+      continue;
+    }
+    if (op == OP_CONST_BOOL) {
+      last = value_bool((int)arg0);
+      printf("bool.%u=", pc);
+      print_value(stdout, last);
+      printf("\n");
+      pc++;
       continue;
     }
     if (op == OP_ADD_U64) {
       uint64_t rhs = (uint64_t)arg0 | ((uint64_t)arg1 << 32);
-      last += rhs;
-      printf("add-u64.%u=%llu\n", pc, (unsigned long long)last);
+      if (!value_add_u64(&last, rhs)) {
+        fprintf(stderr, "type.add-u64=%u actual=", pc);
+        print_value(stderr, last);
+        fprintf(stderr, "\n");
+        return 20;
+      }
+      printf("add-u64.%u=", pc);
+      print_value(stdout, last);
+      printf("\n");
+      pc++;
       continue;
     }
     rc = resolve_import_ref(b, arg0, &ri);
@@ -918,8 +1547,10 @@ static int execute_blob(const Blob *b) {
       return 11;
     }
     if (rc != 0) return rc;
-    printf("call.%u=%s:%s result=%llu\n", pc, ri.lib, ri.sym,
-           (unsigned long long)last);
+    printf("call.%u=%s:%s result=", pc, ri.lib, ri.sym);
+    print_value(stdout, last);
+    printf("\n");
+    pc++;
   }
   fprintf(stderr, "missing.ret\n");
   return 18;
@@ -1080,6 +1711,59 @@ static int cmd_resolve(const char *blob_path, int quiet) {
   return rc;
 }
 
+static int cmd_run_bootstrap_plan(const char *plan_path) {
+  size_t n = 0;
+  unsigned char *src = read_file(plan_path, &n);
+  BootstrapPlan plan = {0};
+  int rc = 0;
+  if (!src || !parse_bootstrap_plan((const char *)src, &plan)) {
+    fprintf(stderr, "bootstrap-plan=parse_fail path=%s\n", plan_path);
+    free(src);
+    bootstrap_plan_free(&plan);
+    return 1;
+  }
+  printf("bootstrap-plan.path=%s\n", plan_path);
+  printf("bootstrap-plan.steps=%zu\n", plan.step_count);
+  for (size_t i = 0; i < plan.step_count; ++i) {
+    const BootstrapStep *step = &plan.steps[i];
+    if (step->kind == BOOTSTRAP_STEP_COMPILE) {
+      printf("bootstrap-step.%zu=compile\n", i);
+      rc = cmd_compile(step->arg0, step->arg1);
+    } else if (step->kind == BOOTSTRAP_STEP_COMPARE) {
+      size_t left_n = 0;
+      size_t right_n = 0;
+      unsigned char *left = NULL;
+      unsigned char *right = NULL;
+      printf("bootstrap-step.%zu=compare\n", i);
+      left = read_file(step->arg0, &left_n);
+      right = read_file(step->arg1, &right_n);
+      if (!left || !right) {
+        fprintf(stderr, "bootstrap-compare=read_fail\n");
+        rc = 2;
+      } else if (left_n != right_n || memcmp(left, right, left_n) != 0) {
+        fprintf(stderr, "bootstrap-compare=diff left=%s right=%s\n", step->arg0, step->arg1);
+        rc = 2;
+      } else {
+        printf("bootstrap-compare.ok bytes=%zu\n", left_n);
+      }
+      free(left);
+      free(right);
+    } else if (step->kind == BOOTSTRAP_STEP_HASH) {
+      printf("bootstrap-step.%zu=hash\n", i);
+      rc = cmd_hash(step->arg0);
+    } else if (step->kind == BOOTSTRAP_STEP_RUN) {
+      printf("bootstrap-step.%zu=run\n", i);
+      rc = cmd_run(step->arg0);
+    } else {
+      rc = 2;
+    }
+    if (rc != 0) break;
+  }
+  free(src);
+  bootstrap_plan_free(&plan);
+  return rc;
+}
+
 static int cmd_inspect_app(const char *container_path) {
   size_t n = 0;
   unsigned char *data = read_file(container_path, &n);
@@ -1119,47 +1803,84 @@ static int cmd_inspect_app(const char *container_path) {
   return 2;
 }
 
-static int emit_elf64_code_file(const char *out_path, const unsigned char *code, size_t code_n) {
-  enum { EHDR = 64, PHDR = 56, CODE_OFF = 120 };
-  size_t file_n = CODE_OFF + code_n;
-  unsigned char *out = (unsigned char *)calloc(1, file_n);
-  if (!out) return 0;
-
-  /* ELF64 little-endian executable with one RX PT_LOAD segment. */
-  out[0] = 0x7f;
-  out[1] = 'E';
-  out[2] = 'L';
-  out[3] = 'F';
-  out[4] = 2;
-  out[5] = 1;
-  out[6] = 1;
-  wr16(out + 16, 2);
-  wr16(out + 18, 62);
-  wr32(out + 20, 1);
-  wr64(out + 24, 0x400000u + CODE_OFF);
-  wr64(out + 32, EHDR);
-  wr16(out + 52, EHDR);
-  wr16(out + 54, PHDR);
-  wr16(out + 56, 1);
-
-  unsigned char *ph = out + EHDR;
-  wr32(ph + 0, 1);
-  wr32(ph + 4, 5);
-  wr64(ph + 8, 0);
-  wr64(ph + 16, 0x400000u);
-  wr64(ph + 24, 0x400000u);
-  wr64(ph + 32, file_n);
-  wr64(ph + 40, file_n);
-  wr64(ph + 48, 0x1000);
-
-  memcpy(out + CODE_OFF, code, code_n);
-  int ok = write_file(out_path, out, file_n) && make_executable(out_path);
-  free(out);
-  return ok;
-}
-
 static size_t align_up_size(size_t n, size_t a) {
   return (n + a - 1) & ~(a - 1);
+}
+
+enum {
+  ELF64_EHDR_SIZE = 64,
+  ELF64_PHDR_SIZE = 56,
+  ELF64_SHDR_SIZE = 64,
+  ELF64_SYM_SIZE = 24,
+  ELF64_RELA_SIZE = 24,
+  ELF64_EXEC_CODE_OFF = ELF64_EHDR_SIZE + ELF64_PHDR_SIZE,
+};
+
+#define ELF64_EXEC_BASE 0x400000u
+#define ELF64_MACHINE_X86_64 62u
+
+typedef struct {
+  const char *name;
+  uint8_t info;
+  uint16_t shndx;
+  uint64_t value;
+  uint64_t size;
+} Elf64ObjSymbol;
+
+typedef struct {
+  uint64_t offset;
+  uint32_t sym_idx;
+  uint32_t type;
+  int64_t addend;
+} Elf64ObjRela;
+
+static void wr_elf64_ident(unsigned char *p) {
+  memset(p, 0, 16);
+  p[0] = 0x7f;
+  p[1] = 'E';
+  p[2] = 'L';
+  p[3] = 'F';
+  p[4] = 2;
+  p[5] = 1;
+  p[6] = 1;
+}
+
+static void wr_elf64_ehdr_exec(unsigned char *p, uint64_t entry, uint64_t phoff, uint16_t phnum) {
+  wr_elf64_ident(p);
+  wr16(p + 16, 2);
+  wr16(p + 18, ELF64_MACHINE_X86_64);
+  wr32(p + 20, 1);
+  wr64(p + 24, entry);
+  wr64(p + 32, phoff);
+  wr16(p + 52, ELF64_EHDR_SIZE);
+  wr16(p + 54, ELF64_PHDR_SIZE);
+  wr16(p + 56, phnum);
+}
+
+static void wr_elf64_ehdr_reloc(unsigned char *p, uint64_t shoff, uint16_t shnum,
+                                uint16_t shstrndx) {
+  wr_elf64_ident(p);
+  wr16(p + 16, 1);
+  wr16(p + 18, ELF64_MACHINE_X86_64);
+  wr32(p + 20, 1);
+  wr64(p + 40, shoff);
+  wr16(p + 52, ELF64_EHDR_SIZE);
+  wr16(p + 58, ELF64_SHDR_SIZE);
+  wr16(p + 60, shnum);
+  wr16(p + 62, shstrndx);
+}
+
+static void wr_elf64_phdr(unsigned char *p, uint32_t type, uint32_t flags, uint64_t off,
+                          uint64_t vaddr, uint64_t paddr, uint64_t filesz,
+                          uint64_t memsz, uint64_t align) {
+  wr32(p + 0, type);
+  wr32(p + 4, flags);
+  wr64(p + 8, off);
+  wr64(p + 16, vaddr);
+  wr64(p + 24, paddr);
+  wr64(p + 32, filesz);
+  wr64(p + 40, memsz);
+  wr64(p + 48, align);
 }
 
 static void wr_elf64_shdr(unsigned char *p, uint32_t name, uint32_t type, uint64_t flags,
@@ -1177,60 +1898,145 @@ static void wr_elf64_shdr(unsigned char *p, uint32_t name, uint32_t type, uint64
   wr64(p + 56, entsize);
 }
 
-static int emit_elf64_obj_text_file(const char *out_path, const char *symbol,
-                                    const unsigned char *text, size_t text_n) {
-  static const unsigned char shstr[] = "\0.text\0.shstrtab\0.symtab\0.strtab\0.note.GNU-stack";
-  size_t sym_len = strlen(symbol);
-  size_t strtab_n = 1 + sym_len + 1;
+static void wr_elf64_sym(unsigned char *p, uint32_t name, uint8_t info, uint16_t shndx,
+                         uint64_t value, uint64_t size) {
+  memset(p, 0, ELF64_SYM_SIZE);
+  wr32(p + 0, name);
+  p[4] = info;
+  wr16(p + 6, shndx);
+  wr64(p + 8, value);
+  wr64(p + 16, size);
+}
 
-  size_t off_text = 64;
-  size_t off_shstr = off_text + text_n;
-  size_t off_strtab = off_shstr + sizeof(shstr);
-  size_t off_symtab = align_up_size(off_strtab + strtab_n, 8);
-  size_t symtab_n = 48;
-  size_t off_shdr = align_up_size(off_symtab + symtab_n, 8);
-  size_t file_n = off_shdr + 6 * 64;
+static void wr_elf64_rela(unsigned char *p, uint64_t off, uint32_t sym_idx, uint32_t type,
+                          int64_t addend) {
+  wr64(p + 0, off);
+  wr64(p + 8, ((uint64_t)sym_idx << 32) | type);
+  wr64(p + 16, (uint64_t)addend);
+}
+
+static int emit_elf64_exec_rx_file(const char *out_path, const unsigned char *code,
+                                   size_t code_n) {
+  size_t file_n = ELF64_EXEC_CODE_OFF + code_n;
   unsigned char *out = (unsigned char *)calloc(1, file_n);
   if (!out) return 0;
 
-  out[0] = 0x7f;
-  out[1] = 'E';
-  out[2] = 'L';
-  out[3] = 'F';
-  out[4] = 2;
-  out[5] = 1;
-  out[6] = 1;
-  wr16(out + 16, 1);
-  wr16(out + 18, 62);
-  wr32(out + 20, 1);
-  wr64(out + 40, off_shdr);
-  wr16(out + 52, 64);
-  wr16(out + 58, 64);
-  wr16(out + 60, 6);
-  wr16(out + 62, 2);
+  wr_elf64_ehdr_exec(out, ELF64_EXEC_BASE + ELF64_EXEC_CODE_OFF, ELF64_EHDR_SIZE, 1);
+  wr_elf64_phdr(out + ELF64_EHDR_SIZE, 1, 5, 0, ELF64_EXEC_BASE, ELF64_EXEC_BASE,
+                file_n, file_n, 0x1000);
 
-  memcpy(out + off_text, text, text_n);
-  memcpy(out + off_shstr, shstr, sizeof(shstr));
-  out[off_strtab] = 0;
-  memcpy(out + off_strtab + 1, symbol, sym_len + 1);
-
-  unsigned char *sym = out + off_symtab + 24;
-  wr32(sym + 0, 1);
-  sym[4] = 0x12;
-  wr16(sym + 6, 1);
-  wr64(sym + 8, 0);
-  wr64(sym + 16, text_n);
-
-  unsigned char *sh = out + off_shdr;
-  wr_elf64_shdr(sh + 1 * 64, 1, 1, 0x6, 0, off_text, text_n, 0, 0, 16, 0);
-  wr_elf64_shdr(sh + 2 * 64, 7, 3, 0, 0, off_shstr, sizeof(shstr), 0, 0, 1, 0);
-  wr_elf64_shdr(sh + 3 * 64, 17, 2, 0, 0, off_symtab, symtab_n, 4, 1, 8, 24);
-  wr_elf64_shdr(sh + 4 * 64, 25, 3, 0, 0, off_strtab, strtab_n, 0, 0, 1, 0);
-  wr_elf64_shdr(sh + 5 * 64, 33, 1, 0, 0, 0, 0, 0, 0, 1, 0);
-
-  int ok = write_file(out_path, out, file_n);
+  memcpy(out + ELF64_EXEC_CODE_OFF, code, code_n);
+  int ok = write_file(out_path, out, file_n) && make_executable(out_path);
   free(out);
   return ok;
+}
+
+static int elf64_obj_local_info(const Elf64ObjSymbol *syms, size_t sym_count, uint32_t *out) {
+  size_t local_count = 0;
+  size_t i = 0;
+  while (i < sym_count && (syms[i].info >> 4) == 0) {
+    local_count++;
+    i++;
+  }
+  for (; i < sym_count; ++i) {
+    if ((syms[i].info >> 4) == 0) return 0;
+  }
+  *out = (uint32_t)(1 + local_count);
+  return 1;
+}
+
+static int emit_elf64_obj_file(const char *out_path, const unsigned char *text, size_t text_n,
+                               const Elf64ObjSymbol *syms, size_t sym_count,
+                               const Elf64ObjRela *relas, size_t rela_count) {
+  static const unsigned char shstr_no_rela[] =
+    "\0.text\0.shstrtab\0.symtab\0.strtab\0.note.GNU-stack";
+  static const unsigned char shstr_with_rela[] =
+    "\0.text\0.rela.text\0.shstrtab\0.symtab\0.strtab\0.note.GNU-stack";
+  const unsigned char *shstr = rela_count ? shstr_with_rela : shstr_no_rela;
+  size_t shstr_n = rela_count ? sizeof(shstr_with_rela) : sizeof(shstr_no_rela);
+  uint16_t shnum = rela_count ? 7 : 6;
+  uint16_t shstrndx = rela_count ? 3 : 2;
+  uint32_t symtab_link = rela_count ? 5 : 4;
+  uint32_t text_name = 1;
+  uint32_t rela_name = 7;
+  uint32_t shstr_name = rela_count ? 18 : 7;
+  uint32_t symtab_name = rela_count ? 28 : 17;
+  uint32_t strtab_name = rela_count ? 36 : 25;
+  uint32_t note_name = rela_count ? 44 : 33;
+  size_t strtab_n = 1;
+  uint32_t *name_offs = NULL;
+  unsigned char *out = NULL;
+  uint32_t symtab_info = 0;
+  int ok = 0;
+
+  if (!elf64_obj_local_info(syms, sym_count, &symtab_info)) return 0;
+  name_offs = (uint32_t *)calloc(sym_count ? sym_count : 1, sizeof(*name_offs));
+  if (!name_offs) return 0;
+  for (size_t i = 0; i < sym_count; ++i) {
+    name_offs[i] = (uint32_t)strtab_n;
+    strtab_n += strlen(syms[i].name) + 1;
+  }
+
+  size_t off_text = ELF64_EHDR_SIZE;
+  size_t rela_n = rela_count * ELF64_RELA_SIZE;
+  size_t off_rela = rela_count ? align_up_size(off_text + text_n, 8) : 0;
+  size_t off_shstr = rela_count ? off_rela + rela_n : off_text + text_n;
+  size_t off_strtab = off_shstr + shstr_n;
+  size_t off_symtab = align_up_size(off_strtab + strtab_n, 8);
+  size_t symtab_n = (sym_count + 1) * ELF64_SYM_SIZE;
+  size_t off_shdr = align_up_size(off_symtab + symtab_n, 8);
+  size_t file_n = off_shdr + (size_t)shnum * ELF64_SHDR_SIZE;
+  out = (unsigned char *)calloc(1, file_n);
+  if (!out) goto done;
+
+  wr_elf64_ehdr_reloc(out, off_shdr, shnum, shstrndx);
+  memcpy(out + off_text, text, text_n);
+  for (size_t i = 0; i < rela_count; ++i) {
+    wr_elf64_rela(out + off_rela + i * ELF64_RELA_SIZE, relas[i].offset, relas[i].sym_idx,
+                  relas[i].type, relas[i].addend);
+  }
+  memcpy(out + off_shstr, shstr, shstr_n);
+  out[off_strtab] = 0;
+  for (size_t i = 0; i < sym_count; ++i) {
+    size_t name_n = strlen(syms[i].name) + 1;
+    memcpy(out + off_strtab + name_offs[i], syms[i].name, name_n);
+    wr_elf64_sym(out + off_symtab + (i + 1) * ELF64_SYM_SIZE, name_offs[i], syms[i].info,
+                 syms[i].shndx, syms[i].value, syms[i].size);
+  }
+
+  unsigned char *sh = out + off_shdr;
+  wr_elf64_shdr(sh + 1 * ELF64_SHDR_SIZE, text_name, 1, 0x6, 0, off_text, text_n, 0, 0, 16, 0);
+  if (rela_count) {
+    wr_elf64_shdr(sh + 2 * ELF64_SHDR_SIZE, rela_name, 4, 0, 0, off_rela, rela_n, 4, 1, 8,
+                  ELF64_RELA_SIZE);
+  }
+  wr_elf64_shdr(sh + (size_t)shstrndx * ELF64_SHDR_SIZE, shstr_name, 3, 0, 0, off_shstr,
+                shstr_n, 0, 0, 1, 0);
+  wr_elf64_shdr(sh + (size_t)(rela_count ? 4 : 3) * ELF64_SHDR_SIZE, symtab_name, 2, 0, 0,
+                off_symtab, symtab_n, symtab_link, symtab_info, 8, ELF64_SYM_SIZE);
+  wr_elf64_shdr(sh + (size_t)(rela_count ? 5 : 4) * ELF64_SHDR_SIZE, strtab_name, 3, 0, 0,
+                off_strtab, strtab_n, 0, 0, 1, 0);
+  wr_elf64_shdr(sh + (size_t)(rela_count ? 6 : 5) * ELF64_SHDR_SIZE, note_name, 1, 0, 0, 0, 0,
+                0, 0, 1, 0);
+
+  ok = write_file(out_path, out, file_n);
+
+done:
+  free(out);
+  free(name_offs);
+  return ok;
+}
+
+static int emit_elf64_code_file(const char *out_path, const unsigned char *code, size_t code_n) {
+  return emit_elf64_exec_rx_file(out_path, code, code_n);
+}
+
+static int emit_elf64_obj_text_file(const char *out_path, const char *symbol,
+                                    const unsigned char *text, size_t text_n) {
+  const Elf64ObjSymbol syms[] = {
+    {symbol, 0x12, 1, 0, text_n},
+  };
+  return emit_elf64_obj_file(out_path, text, text_n, syms, 1, NULL, 0);
 }
 
 static int emit_elf64_obj_ret_file(const char *out_path, const char *symbol, uint32_t value) {
@@ -1240,75 +2046,15 @@ static int emit_elf64_obj_ret_file(const char *out_path, const char *symbol, uin
 }
 
 static int emit_elf64_obj_call_file(const char *out_path, const char *local, const char *external) {
-  static const unsigned char shstr[] =
-    "\0.text\0.rela.text\0.shstrtab\0.symtab\0.strtab\0.note.GNU-stack";
-  size_t local_len = strlen(local);
-  size_t external_len = strlen(external);
-  size_t local_name = 1;
-  size_t external_name = local_name + local_len + 1;
-  size_t strtab_n = 1 + local_len + 1 + external_len + 1;
   unsigned char text[6] = {0xe8, 0, 0, 0, 0, 0xc3};
-  unsigned char rela[24] = {0};
-  wr64(rela + 0, 1);
-  wr64(rela + 8, ((uint64_t)2 << 32) | 4);
-  wr64(rela + 16, (uint64_t)(int64_t)-4);
-
-  size_t off_text = 64;
-  size_t off_rela = align_up_size(off_text + sizeof(text), 8);
-  size_t off_shstr = off_rela + sizeof(rela);
-  size_t off_strtab = off_shstr + sizeof(shstr);
-  size_t off_symtab = align_up_size(off_strtab + strtab_n, 8);
-  size_t symtab_n = 72;
-  size_t off_shdr = align_up_size(off_symtab + symtab_n, 8);
-  size_t file_n = off_shdr + 7 * 64;
-  unsigned char *out = (unsigned char *)calloc(1, file_n);
-  if (!out) return 0;
-
-  out[0] = 0x7f;
-  out[1] = 'E';
-  out[2] = 'L';
-  out[3] = 'F';
-  out[4] = 2;
-  out[5] = 1;
-  out[6] = 1;
-  wr16(out + 16, 1);
-  wr16(out + 18, 62);
-  wr32(out + 20, 1);
-  wr64(out + 40, off_shdr);
-  wr16(out + 52, 64);
-  wr16(out + 58, 64);
-  wr16(out + 60, 7);
-  wr16(out + 62, 3);
-
-  memcpy(out + off_text, text, sizeof(text));
-  memcpy(out + off_rela, rela, sizeof(rela));
-  memcpy(out + off_shstr, shstr, sizeof(shstr));
-  out[off_strtab] = 0;
-  memcpy(out + off_strtab + local_name, local, local_len + 1);
-  memcpy(out + off_strtab + external_name, external, external_len + 1);
-
-  unsigned char *sym_local = out + off_symtab + 24;
-  wr32(sym_local + 0, (uint32_t)local_name);
-  sym_local[4] = 0x12;
-  wr16(sym_local + 6, 1);
-  wr64(sym_local + 8, 0);
-  wr64(sym_local + 16, sizeof(text));
-  unsigned char *sym_external = out + off_symtab + 48;
-  wr32(sym_external + 0, (uint32_t)external_name);
-  sym_external[4] = 0x12;
-  wr16(sym_external + 6, 0);
-
-  unsigned char *sh = out + off_shdr;
-  wr_elf64_shdr(sh + 1 * 64, 1, 1, 0x6, 0, off_text, sizeof(text), 0, 0, 16, 0);
-  wr_elf64_shdr(sh + 2 * 64, 7, 4, 0, 0, off_rela, sizeof(rela), 4, 1, 8, 24);
-  wr_elf64_shdr(sh + 3 * 64, 18, 3, 0, 0, off_shstr, sizeof(shstr), 0, 0, 1, 0);
-  wr_elf64_shdr(sh + 4 * 64, 28, 2, 0, 0, off_symtab, symtab_n, 5, 1, 8, 24);
-  wr_elf64_shdr(sh + 5 * 64, 36, 3, 0, 0, off_strtab, strtab_n, 0, 0, 1, 0);
-  wr_elf64_shdr(sh + 6 * 64, 44, 1, 0, 0, 0, 0, 0, 0, 1, 0);
-
-  int ok = write_file(out_path, out, file_n);
-  free(out);
-  return ok;
+  const Elf64ObjSymbol syms[] = {
+    {local, 0x12, 1, 0, sizeof(text)},
+    {external, 0x12, 0, 0, 0},
+  };
+  const Elf64ObjRela relas[] = {
+    {1, 2, 4, -4},
+  };
+  return emit_elf64_obj_file(out_path, text, sizeof(text), syms, 2, relas, 1);
 }
 
 typedef struct {
@@ -1348,16 +2094,44 @@ static const char *elf_str(const unsigned char *tab, size_t tab_n, uint32_t off)
   return memchr(s, 0, tab_n - off) ? s : NULL;
 }
 
+static const unsigned char *elf_sym_row(const ElfObj *o, size_t idx) {
+  return idx < o->sym_count ? o->symtab + idx * ELF64_SYM_SIZE : NULL;
+}
+
+static const char *elf_sym_name(const ElfObj *o, size_t idx) {
+  const unsigned char *sym = elf_sym_row(o, idx);
+  return sym ? elf_str(o->strtab, o->strtab_size, rd32(sym)) : NULL;
+}
+
+static uint8_t elf_sym_binding(const ElfObj *o, size_t idx) {
+  const unsigned char *sym = elf_sym_row(o, idx);
+  return sym ? (uint8_t)(sym[4] >> 4) : 0;
+}
+
+static uint16_t elf_sym_shndx(const ElfObj *o, size_t idx) {
+  const unsigned char *sym = elf_sym_row(o, idx);
+  return sym ? rd16(sym + 6) : 0;
+}
+
+static uint64_t elf_sym_value(const ElfObj *o, size_t idx) {
+  const unsigned char *sym = elf_sym_row(o, idx);
+  return sym ? rd64(sym + 8) : 0;
+}
+
+static const unsigned char *elf_rela_row(const ElfObj *o, size_t idx) {
+  return idx < o->rela_count ? o->rela + idx * ELF64_RELA_SIZE : NULL;
+}
+
 static int parse_elf_obj(const unsigned char *data, size_t size, ElfObj *o) {
-  if (!is_elf(data, size) || size < 64 || rd16(data + 16) != 1 ||
-      rd16(data + 18) != 62) {
+  if (!is_elf(data, size) || size < ELF64_EHDR_SIZE || rd16(data + 16) != 1 ||
+      rd16(data + 18) != ELF64_MACHINE_X86_64) {
     return 0;
   }
   uint64_t shoff = rd64(data + 40);
   uint16_t shentsize = rd16(data + 58);
   uint16_t shnum = rd16(data + 60);
   uint16_t shstrndx = rd16(data + 62);
-  if (shentsize < 64 || shoff > size || shnum > (size - shoff) / shentsize ||
+  if (shentsize < ELF64_SHDR_SIZE || shoff > size || shnum > (size - shoff) / shentsize ||
       shstrndx >= shnum) {
     return 0;
   }
@@ -1390,7 +2164,7 @@ static int parse_elf_obj(const unsigned char *data, size_t size, ElfObj *o) {
       o->text_size = (size_t)n;
     } else if (type == 2) {
       uint64_t entsize = rd64(sh + 56);
-      if (entsize != 24 || link >= shnum) return 0;
+      if (entsize != ELF64_SYM_SIZE || link >= shnum) return 0;
       const unsigned char *str_sh = elf_section(o, (uint16_t)link);
       uint64_t str_off = rd64(str_sh + 24);
       uint64_t str_n = rd64(str_sh + 32);
@@ -1401,7 +2175,7 @@ static int parse_elf_obj(const unsigned char *data, size_t size, ElfObj *o) {
       o->strtab_size = (size_t)str_n;
     } else if (type == 4 && strcmp(name, ".rela.text") == 0) {
       uint64_t entsize = rd64(sh + 56);
-      if (entsize != 24 || info >= shnum) return 0;
+      if (entsize != ELF64_RELA_SIZE || info >= shnum) return 0;
       o->rela = data + off;
       o->rela_count = (size_t)(n / entsize);
     }
@@ -1438,6 +2212,70 @@ static int link_rel32_checked(int64_t rel, uint32_t *out) {
   return 1;
 }
 
+static int link_add_text_symbols(const ElfObj *o, size_t obj_idx, LinkSym **syms,
+                                 size_t *sym_count, size_t *sym_cap) {
+  for (size_t s = 1; s < o->sym_count; ++s) {
+    const char *name = elf_sym_name(o, s);
+    uint64_t existing = 0;
+    if (elf_sym_shndx(o, s) != o->text_idx || elf_sym_binding(o, s) == 0 ||
+        !name || !name[0]) continue;
+    if (link_find_sym(*syms, *sym_count, name, &existing)) {
+      fprintf(stderr, "link-elf64-exe=duplicate_symbol symbol=%s\n", name);
+      return 0;
+    }
+    if (*sym_count == *sym_cap) {
+      size_t next = *sym_cap ? *sym_cap * 2 : 8;
+      LinkSym *p = (LinkSym *)realloc(*syms, next * sizeof(*p));
+      if (!p) return 0;
+      *syms = p;
+      *sym_cap = next;
+    }
+    (*syms)[(*sym_count)++] =
+      (LinkSym){name, obj_idx, ELF64_EXEC_BASE + ELF64_EXEC_CODE_OFF + o->out_off + elf_sym_value(o, s)};
+  }
+  return 1;
+}
+
+static int link_apply_relocations(Buf *code, const ElfObj *o, const LinkSym *syms,
+                                  size_t sym_count) {
+  uint32_t rel32 = 0;
+  for (size_t r = 0; r < o->rela_count; ++r) {
+    const unsigned char *rela = elf_rela_row(o, r);
+    uint64_t r_off = rd64(rela);
+    uint64_t r_info = rd64(rela + 8);
+    int64_t addend = (int64_t)rd64(rela + 16);
+    uint32_t type = (uint32_t)r_info;
+    uint32_t sym_idx = (uint32_t)(r_info >> 32);
+    const char *name = NULL;
+    uint64_t target = 0;
+    if (type != 4 || sym_idx >= o->sym_count || r_off > o->text_size - 4) {
+      fprintf(stderr, "link-elf64-exe=unsupported_reloc\n");
+      return 0;
+    }
+    if (elf_sym_binding(o, sym_idx) == 0) {
+      if (elf_sym_shndx(o, sym_idx) != o->text_idx) {
+        fprintf(stderr, "link-elf64-exe=unsupported_local_reloc\n");
+        return 0;
+      }
+      target = ELF64_EXEC_BASE + ELF64_EXEC_CODE_OFF + o->out_off + elf_sym_value(o, sym_idx);
+    } else {
+      name = elf_sym_name(o, sym_idx);
+      if (!name || !link_find_sym(syms, sym_count, name, &target)) {
+        fprintf(stderr, "link-elf64-exe=symbol_missing symbol=%s\n", name ? name : "?");
+        return 0;
+      }
+    }
+    uint64_t place = ELF64_EXEC_BASE + ELF64_EXEC_CODE_OFF + o->out_off + r_off;
+    int64_t rel = (int64_t)target + addend - (int64_t)place;
+    if (!link_rel32_checked(rel, &rel32)) {
+      fprintf(stderr, "link-elf64-exe=reloc_out_of_range symbol=%s\n", name);
+      return 0;
+    }
+    wr32(code->data + o->out_off + r_off, rel32);
+  }
+  return 1;
+}
+
 static int cmd_link_elf64_exe(int argc, char **argv) {
   if (argc < 5) {
     fprintf(stderr, "link-elf64-exe=bad_args\n");
@@ -1465,27 +2303,7 @@ static int cmd_link_elf64_exe(int argc, char **argv) {
     }
     objs[i].out_off = code_off;
     code_off += objs[i].text_size;
-
-    for (size_t s = 1; s < objs[i].sym_count; ++s) {
-      const unsigned char *sym = objs[i].symtab + s * 24;
-      uint16_t shndx = rd16(sym + 6);
-      if (shndx != objs[i].text_idx) continue;
-      const char *name = elf_str(objs[i].strtab, objs[i].strtab_size, rd32(sym));
-      if (!name || !name[0]) continue;
-      uint64_t existing = 0;
-      if (link_find_sym(syms, sym_count, name, &existing)) {
-        fprintf(stderr, "link-elf64-exe=duplicate_symbol symbol=%s\n", name);
-        goto done;
-      }
-      if (sym_count == sym_cap) {
-        size_t next = sym_cap ? sym_cap * 2 : 8;
-        LinkSym *p = (LinkSym *)realloc(syms, next * sizeof(*p));
-        if (!p) goto done;
-        syms = p;
-        sym_cap = next;
-      }
-      syms[sym_count++] = (LinkSym){name, (size_t)i, 0x400000u + 120 + objs[i].out_off + rd64(sym + 8)};
-    }
+    if (!link_add_text_symbols(&objs[i], (size_t)i, &syms, &sym_count, &sym_cap)) goto done;
   }
 
   unsigned char entry_stub[14] = {
@@ -1505,7 +2323,7 @@ static int cmd_link_elf64_exe(int argc, char **argv) {
     rc = 3;
     goto done;
   }
-  int64_t entry_rel = (int64_t)entry_addr - (int64_t)(0x400000u + 120 + 5);
+  int64_t entry_rel = (int64_t)entry_addr - (int64_t)(ELF64_EXEC_BASE + ELF64_EXEC_CODE_OFF + 5);
   uint32_t rel32 = 0;
   if (!link_rel32_checked(entry_rel, &rel32)) {
     fprintf(stderr, "link-elf64-exe=entry_out_of_range symbol=%s\n", entry_name);
@@ -1515,35 +2333,9 @@ static int cmd_link_elf64_exe(int argc, char **argv) {
   wr32(code.data + 1, rel32);
 
   for (int i = 0; i < obj_count; ++i) {
-    const ElfObj *o = &objs[i];
-    for (size_t r = 0; r < o->rela_count; ++r) {
-      const unsigned char *rela = o->rela + r * 24;
-      uint64_t r_off = rd64(rela);
-      uint64_t r_info = rd64(rela + 8);
-      int64_t addend = (int64_t)rd64(rela + 16);
-      uint32_t type = (uint32_t)r_info;
-      uint32_t sym_idx = (uint32_t)(r_info >> 32);
-      if (type != 4 || sym_idx >= o->sym_count || r_off > o->text_size - 4) {
-        fprintf(stderr, "link-elf64-exe=unsupported_reloc\n");
-        rc = 4;
-        goto done;
-      }
-      const unsigned char *sym = o->symtab + (size_t)sym_idx * 24;
-      const char *name = elf_str(o->strtab, o->strtab_size, rd32(sym));
-      uint64_t target = 0;
-      if (!name || !link_find_sym(syms, sym_count, name, &target)) {
-        fprintf(stderr, "link-elf64-exe=symbol_missing symbol=%s\n", name ? name : "?");
-        rc = 4;
-        goto done;
-      }
-      uint64_t place = 0x400000u + 120 + o->out_off + r_off;
-      int64_t rel = (int64_t)target + addend - (int64_t)place;
-      if (!link_rel32_checked(rel, &rel32)) {
-        fprintf(stderr, "link-elf64-exe=reloc_out_of_range symbol=%s\n", name);
-        rc = 4;
-        goto done;
-      }
-      wr32(code.data + o->out_off + r_off, rel32);
+    if (!link_apply_relocations(&code, &objs[i], syms, sym_count)) {
+      rc = 4;
+      goto done;
     }
   }
 
@@ -1622,21 +2414,72 @@ static int cmd_emit_elf64_obj_call(const char *out_path, const char *local, cons
   return 0;
 }
 
-static int eval_pure_u64_blob(const Blob *b, uint64_t *out) {
-  uint64_t last = 0;
-  for (uint32_t pc = 0; pc < b->instr_count; ++pc) {
+static int value_to_exit_code(Value v, uint8_t *out) {
+  if (v.kind == VAL_U64 || v.kind == VAL_BOOL) {
+    *out = (uint8_t)(v.bits & 0xffu);
+    return 1;
+  }
+  if (v.kind == VAL_I64) {
+    *out = (uint8_t)((int64_t)v.bits & 0xff);
+    return 1;
+  }
+  return 0;
+}
+
+static int value_to_obj_ret_u32(Value v, uint32_t *out) {
+  if (v.kind == VAL_BOOL) {
+    *out = (uint32_t)v.bits;
+    return 1;
+  }
+  if (v.kind == VAL_U64 && v.bits <= UINT32_MAX) {
+    *out = (uint32_t)v.bits;
+    return 1;
+  }
+  if (v.kind == VAL_I64) {
+    int64_t signed_v = (int64_t)v.bits;
+    if (signed_v < INT32_MIN || signed_v > INT32_MAX) return 0;
+    *out = (uint32_t)(int32_t)signed_v;
+    return 1;
+  }
+  return 0;
+}
+
+static int eval_pure_blob(const Blob *b, Value *out) {
+  Value last = value_u64(0);
+  uint32_t pc = 0;
+  while (pc < b->instr_count) {
     const unsigned char *ins = instr_row(b, pc);
     if (!ins) return 0;
     uint8_t op = ins[0];
     uint32_t arg0 = rd32(ins + 4);
     uint32_t arg1 = rd32(ins + 8);
     if (op == OP_CONST_U64) {
-      last = (uint64_t)arg0 | ((uint64_t)arg1 << 32);
+      last = value_u64((uint64_t)arg0 | ((uint64_t)arg1 << 32));
+      pc++;
+    } else if (op == OP_CONST_I64) {
+      last = value_i64((int64_t)((uint64_t)arg0 | ((uint64_t)arg1 << 32)));
+      pc++;
+    } else if (op == OP_CONST_BOOL) {
+      last = value_bool((int)arg0);
+      pc++;
     } else if (op == OP_ADD_U64) {
-      last += (uint64_t)arg0 | ((uint64_t)arg1 << 32);
+      uint64_t rhs = (uint64_t)arg0 | ((uint64_t)arg1 << 32);
+      if (!value_add_u64(&last, rhs)) return 0;
+      pc++;
     } else if (op == OP_EXPECT_U64) {
       uint64_t expected = (uint64_t)arg0 | ((uint64_t)arg1 << 32);
-      if (last != expected) return 0;
+      if (!value_expect_u64(last, expected)) return 0;
+      pc++;
+    } else if (op == OP_EXPECT_I64) {
+      int64_t expected = (int64_t)((uint64_t)arg0 | ((uint64_t)arg1 << 32));
+      if (!value_expect_i64(last, expected)) return 0;
+      pc++;
+    } else if (op == OP_EXPECT_BOOL) {
+      if (!value_expect_bool(last, (int)arg0)) return 0;
+      pc++;
+    } else if (op == OP_BRANCH_BOOL) {
+      if (last.kind != VAL_BOOL || arg0 >= b->instr_count) return 0;
+      pc = last.bits ? arg0 : pc + 1;
     } else if (op == OP_RET_LAST) {
       *out = last;
       return 1;
@@ -1650,31 +2493,33 @@ static int eval_pure_u64_blob(const Blob *b, uint64_t *out) {
 static int cmd_aot_elf64_exit(const char *blob_path, const char *out_path) {
   Blob b;
   unsigned char *owned = NULL;
-  uint64_t result = 0;
+  Value result = value_u64(0);
+  uint8_t exit_code = 0;
   if (!blob_load_path(blob_path, &b, &owned)) {
     fprintf(stderr, "blob=parse_fail path=%s\n", blob_path);
     return 1;
   }
-  if (!eval_pure_u64_blob(&b, &result)) {
+  if (!eval_pure_blob(&b, &result) || !value_to_exit_code(result, &exit_code)) {
     fprintf(stderr, "aot-elf64-exit=unsupported_blob\n");
     free(owned);
     return 2;
   }
   free(owned);
-  if (!emit_elf64_exit_file(out_path, (uint8_t)(result & 0xffu))) {
+  if (!emit_elf64_exit_file(out_path, exit_code)) {
     fprintf(stderr, "aot-elf64-exit=write_fail path=%s\n", out_path);
     return 3;
   }
   printf("aot.elf64.output=%s\n", out_path);
   printf("aot.elf64.bytes=%d\n", 132);
-  printf("aot.elf64.exit=%llu\n", (unsigned long long)(result & 0xffu));
+  printf("aot.elf64.exit=%u\n", (unsigned)exit_code);
   return 0;
 }
 
 static int cmd_aot_elf64_obj_ret(const char *blob_path, const char *out_path, const char *symbol) {
   Blob b;
   unsigned char *owned = NULL;
-  uint64_t result = 0;
+  Value result = value_u64(0);
+  uint32_t ret_value = 0;
   if (!symbol[0]) {
     fprintf(stderr, "aot-elf64-obj-ret=bad_symbol\n");
     return 1;
@@ -1683,19 +2528,19 @@ static int cmd_aot_elf64_obj_ret(const char *blob_path, const char *out_path, co
     fprintf(stderr, "blob=parse_fail path=%s\n", blob_path);
     return 1;
   }
-  if (!eval_pure_u64_blob(&b, &result) || result > UINT32_MAX) {
+  if (!eval_pure_blob(&b, &result) || !value_to_obj_ret_u32(result, &ret_value)) {
     fprintf(stderr, "aot-elf64-obj-ret=unsupported_blob\n");
     free(owned);
     return 2;
   }
   free(owned);
-  if (!emit_elf64_obj_ret_file(out_path, symbol, (uint32_t)result)) {
+  if (!emit_elf64_obj_ret_file(out_path, symbol, ret_value)) {
     fprintf(stderr, "aot-elf64-obj-ret=write_fail path=%s\n", out_path);
     return 3;
   }
   printf("aot.obj.output=%s\n", out_path);
   printf("aot.obj.symbol=%s\n", symbol);
-  printf("aot.obj.ret=%llu\n", (unsigned long long)result);
+  printf("aot.obj.ret=%u\n", ret_value);
   return 0;
 }
 
@@ -1817,6 +2662,139 @@ static int compile_pure_u64_blob_to_x86_ret(const Blob *b, Buf *code) {
   return saw_ret;
 }
 
+static void free_buf_array(Buf *bufs, size_t count) {
+  if (!bufs) return;
+  for (size_t i = 0; i < count; ++i) free(bufs[i].data);
+  free(bufs);
+}
+
+static int compile_aot_func_to_x86_ret(const AotFunc *func, Buf *code, Buf *call_patches) {
+  int saw_ret = 0;
+  Buf expect_patches = {0};
+  for (size_t i = 0; i < func->stmt_count; ++i) {
+    const AotStmt *stmt = &func->stmts[i];
+    if (stmt->imm > UINT32_MAX) {
+      free(expect_patches.data);
+      return 0;
+    }
+    if (stmt->kind == AOT_STMT_CONST_U64) {
+      unsigned char mov_eax[5] = {0xb8, 0, 0, 0, 0};
+      wr32(mov_eax + 1, (uint32_t)stmt->imm);
+      buf_put(code, mov_eax, sizeof(mov_eax));
+    } else if (stmt->kind == AOT_STMT_ADD_U64) {
+      unsigned char add_eax[5] = {0x05, 0, 0, 0, 0};
+      wr32(add_eax + 1, (uint32_t)stmt->imm);
+      buf_put(code, add_eax, sizeof(add_eax));
+    } else if (stmt->kind == AOT_STMT_EXPECT_U64) {
+      unsigned char cmp_eax[5] = {0x3d, 0, 0, 0, 0};
+      unsigned char jne_fail[6] = {0x0f, 0x85, 0, 0, 0, 0};
+      uint32_t patch_off = (uint32_t)(code->len + sizeof(cmp_eax) + 2);
+      wr32(cmp_eax + 1, (uint32_t)stmt->imm);
+      buf_put(code, cmp_eax, sizeof(cmp_eax));
+      buf_put(code, jne_fail, sizeof(jne_fail));
+      buf_put32(&expect_patches, patch_off);
+    } else if (stmt->kind == AOT_STMT_CALL_FUNC) {
+      unsigned char call_rel32[5] = {0xe8, 0, 0, 0, 0};
+      AotCallPatch patch = {(uint32_t)(code->len + 1), stmt->target_name};
+      buf_put(code, call_rel32, sizeof(call_rel32));
+      buf_put(call_patches, &patch, sizeof(patch));
+    } else {
+      free(expect_patches.data);
+      return 0;
+    }
+  }
+  if (func->stmt_count) {
+    unsigned char ret = 0xc3;
+    buf_put(code, &ret, 1);
+    saw_ret = 1;
+  }
+  if (saw_ret && expect_patches.len) {
+    size_t fail_off = code->len;
+    unsigned char fail_ret[6] = {0xb8, 125, 0, 0, 0, 0xc3};
+    buf_put(code, fail_ret, sizeof(fail_ret));
+    for (size_t i = 0; i < expect_patches.len; i += 4) {
+      uint32_t patch_off = rd32(expect_patches.data + i);
+      int64_t rel = (int64_t)fail_off - (int64_t)(patch_off + 4);
+      wr32(code->data + patch_off, (uint32_t)(int32_t)rel);
+    }
+  }
+  free(expect_patches.data);
+  return saw_ret;
+}
+
+static int compile_aot_module_to_elf64_obj(const AotModule *m, const char *out_path,
+                                           const char *entry_symbol) {
+  Buf *codes = NULL;
+  Buf *call_patches = NULL;
+  size_t *text_offs = NULL;
+  uint32_t *func_sym_idx = NULL;
+  Elf64ObjSymbol *syms = NULL;
+  Elf64ObjRela *relas = NULL;
+  Buf text = {0};
+  size_t local_count = 0;
+  size_t rela_count = 0;
+  int ok = 0;
+
+  if (!entry_symbol[0] || !m->func_count) return 0;
+  for (size_t i = 0; i < m->func_count; ++i) {
+    if (m->funcs[i].is_global) continue;
+    local_count++;
+    if (strcmp(m->funcs[i].name, entry_symbol) == 0) return 0;
+  }
+
+  codes = (Buf *)calloc(m->func_count, sizeof(*codes));
+  call_patches = (Buf *)calloc(m->func_count, sizeof(*call_patches));
+  text_offs = (size_t *)calloc(m->func_count, sizeof(*text_offs));
+  func_sym_idx = (uint32_t *)calloc(m->func_count, sizeof(*func_sym_idx));
+  syms = (Elf64ObjSymbol *)calloc(m->func_count, sizeof(*syms));
+  if (!codes || !call_patches || !text_offs || !func_sym_idx || !syms) goto done;
+
+  for (size_t i = 0; i < m->func_count; ++i) {
+    if (!compile_aot_func_to_x86_ret(&m->funcs[i], &codes[i], &call_patches[i])) goto done;
+    text_offs[i] = text.len;
+    buf_put(&text, codes[i].data, codes[i].len);
+  }
+
+  for (size_t i = 0, next = 1; i < m->func_count; ++i) {
+    if (m->funcs[i].is_global) continue;
+    syms[next - 1] = (Elf64ObjSymbol){m->funcs[i].name, 0x02, 1, text_offs[i], codes[i].len};
+    func_sym_idx[i] = (uint32_t)next++;
+  }
+  for (size_t i = 0, next = (uint32_t)local_count + 1; i < m->func_count; ++i) {
+    if (!m->funcs[i].is_global) continue;
+    syms[next - 1] = (Elf64ObjSymbol){entry_symbol, 0x12, 1, text_offs[i], codes[i].len};
+    func_sym_idx[i] = (uint32_t)next++;
+  }
+
+  for (size_t i = 0; i < m->func_count; ++i) {
+    rela_count += call_patches[i].len / sizeof(AotCallPatch);
+  }
+  relas = rela_count ? (Elf64ObjRela *)calloc(rela_count, sizeof(*relas)) : NULL;
+  if (rela_count && !relas) goto done;
+
+  for (size_t i = 0, rela_idx = 0; i < m->func_count; ++i) {
+    for (size_t off = 0; off < call_patches[i].len; off += sizeof(AotCallPatch), rela_idx++) {
+      const AotCallPatch *patch = (const AotCallPatch *)(call_patches[i].data + off);
+      int target_idx = aot_find_func(m, patch->target_name);
+      if (target_idx < 0) goto done;
+      relas[rela_idx] =
+        (Elf64ObjRela){text_offs[i] + patch->patch_off, func_sym_idx[target_idx], 4, -4};
+    }
+  }
+
+  ok = emit_elf64_obj_file(out_path, text.data, text.len, syms, m->func_count, relas, rela_count);
+
+done:
+  free_buf_array(codes, m->func_count);
+  free_buf_array(call_patches, m->func_count);
+  free(text.data);
+  free(text_offs);
+  free(func_sym_idx);
+  free(syms);
+  free(relas);
+  return ok;
+}
+
 static int cmd_aot_elf64_code(const char *blob_path, const char *out_path) {
   Blob b;
   unsigned char *owned = NULL;
@@ -1907,36 +2885,30 @@ static int cmd_aot_elf64_obj_code(const char *blob_path, const char *out_path,
 
 static int cmd_compile_elf64_obj_code(const char *src_path, const char *out_path,
                                       const char *symbol) {
-  size_t blob_n = 0;
-  unsigned char *blob_data = compile_source_path_to_blob(src_path, &blob_n);
-  Blob b;
-  Buf code = {0};
+  size_t src_n = 0;
+  unsigned char *src = read_file(src_path, &src_n);
+  AotModule m = {0};
   if (!symbol[0]) {
     fprintf(stderr, "compile-elf64-obj-code=bad_symbol\n");
-    free(blob_data);
     return 1;
   }
-  if (!blob_data || !blob_init(&b, blob_data, blob_n)) {
+  if (!src || !parse_aot_module((const char *)src, &m)) {
     fprintf(stderr, "compile-elf64-obj-code=compile_fail\n");
-    free(blob_data);
+    free(src);
+    aot_module_free(&m);
     return 1;
   }
-  int ok = compile_pure_u64_blob_to_x86_ret(&b, &code);
-  free(blob_data);
-  if (!ok) {
-    free(code.data);
+  if (!compile_aot_module_to_elf64_obj(&m, out_path, symbol)) {
     fprintf(stderr, "compile-elf64-obj-code=unsupported_source\n");
+    free(src);
+    aot_module_free(&m);
     return 2;
   }
-  if (!emit_elf64_obj_text_file(out_path, symbol, code.data, code.len)) {
-    free(code.data);
-    fprintf(stderr, "compile-elf64-obj-code=write_fail path=%s\n", out_path);
-    return 3;
-  }
+  free(src);
+  aot_module_free(&m);
   printf("compile.obj.code.output=%s\n", out_path);
   printf("compile.obj.code.symbol=%s\n", symbol);
-  printf("compile.obj.code.x86.bytes=%zu\n", code.len);
-  free(code.data);
+  printf("compile.obj.code.mode=multi-func\n");
   return 0;
 }
 
@@ -2119,6 +3091,7 @@ static void usage(const char *argv0) {
   fprintf(stderr, "  %s dump program.%s\n", argv0, BLOB_EXT);
   fprintf(stderr, "  %s hash program.%s\n", argv0, BLOB_EXT);
   fprintf(stderr, "  %s resolve [--quiet] program.%s\n", argv0, BLOB_EXT);
+  fprintf(stderr, "  %s run-bootstrap-plan plan.lisp\n", argv0);
   fprintf(stderr, "  %s pack-ape output.com x86_64.elf aarch64.elf\n", argv0);
   fprintf(stderr, "  %s pack-app output.com x86_64.elf aarch64.elf program.%s\n", argv0, BLOB_EXT);
 }
@@ -2175,6 +3148,9 @@ int main(int argc, char **argv) {
   if (argc >= 2 && strcmp(argv[1], "resolve") == 0) {
     if (argc == 3) return cmd_resolve(argv[2], 0);
     if (argc == 4 && strcmp(argv[2], "--quiet") == 0) return cmd_resolve(argv[3], 1);
+  }
+  if (argc >= 2 && strcmp(argv[1], "run-bootstrap-plan") == 0 && argc == 3) {
+    return cmd_run_bootstrap_plan(argv[2]);
   }
   if (argc >= 2 && strcmp(argv[1], "pack-ape") == 0 && argc == 5) {
     return cmd_pack_ape(argv[2], argv[3], argv[4]);
