@@ -163,6 +163,8 @@ cat > "$BOOTSTRAP_PLAN" <<EOF
   (hash "$BUILD_DIR/bootstrap-smoke.lbin")
   (compile "$SMOKE_SRC" "$BUILD_DIR/bootstrap-smoke-repeat.lbin")
   (compare "$BUILD_DIR/bootstrap-smoke.lbin" "$BUILD_DIR/bootstrap-smoke-repeat.lbin")
+  (pack-app "$BUILD_DIR/bootstrap-smoke.com" "$BUILD_DIR/nano-jit.x86_64" "$BUILD_DIR/nano-jit.aarch64" "$BUILD_DIR/bootstrap-smoke.lbin")
+  (inspect-app "$BUILD_DIR/bootstrap-smoke.com")
   (run "$BUILD_DIR/bootstrap-smoke.lbin"))
 EOF
 

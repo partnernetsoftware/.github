@@ -109,6 +109,7 @@ bootstrap 子流程现在也可以先用 `.lisp` 描述，再由 nano 自己执�
 - `dump`：查看 blob header、import、const、instruction 数量。
 - `resolve`：验证 `.lbin` import table 的动态库和符号可解析；运行时会把解析到的函数地址放进当前 `ptr` typed value，适合全量 libc 导入测试或指针断言。
 - `run-bootstrap-plan`：读取最小 bootstrap DSL，顺序执行 `compile` / `hash` / `compare` / `run` 子流程，开始把 shell 片段迁到 `.lisp` 描述。
+- `run-bootstrap-plan`：读取最小 bootstrap DSL，顺序执行 `compile` / `hash` / `compare` / `pack-app` / `inspect-app` / `run` 子流程，开始把 shell 片段迁到 `.lisp` 描述。
 - `run`：解析 `.lbin`，通过 `dlopen`/`dlsym` 找系统符号，执行 main 指令流。
 - `run-embedded`：从 `.com` 容器内按 payload 偏移直接读取并执行内嵌 blob。
 - `inspect-app`：读取 AOT app manifest，输出 runtime slice 和 blob 的 offset/size。
@@ -127,7 +128,7 @@ bootstrap 子流程现在也可以先用 `.lisp` 描述，再由 nano 自己执�
 - `(u64 N)` / `(add-u64 N)` / `(i64 N)` / `(bool true|false)`：最小 typed VM 内核，不依赖 FFI。
 - `block` / `branch label` / `label`：最小控制流；当前静态求值 AOT（`aot-elf64-exit` / `aot-elf64-obj-ret`）已支持该子集，但机器码 codegen 路径 `aot-elf64-code` 仍会对分支程序明确报 `unsupported_blob`。
 - `func` + `main`：当前仅在 `compile-elf64-obj-code` 的纯 VM AOT source 路径支持；helper 函数默认生成为 object 内部 local symbol。
-- `bootstrap`：当前最小 DSL 支持 `compile` / `hash` / `compare` / `run` 四类步骤，作为 shell bootstrap 的第一块可执行描述。
+- `bootstrap`：当前最小 DSL 支持 `compile` / `hash` / `compare` / `pack-app` / `inspect-app` / `run` 六类步骤，作为 shell bootstrap 的第一块可执行描述。
 - `pack-app`：把 runtime slices 和 `.lbin` 打进一个多架构 `.com` 应用，运行时直接从自身容器执行内嵌 blob。
 - 当前签名：`addr`、`u64(ptr)`、`i32(ptr)`、`i32(ptr,ptr)`、`i32()`、`i32(i32)`。
 - `u64(ptr)` 仍走 x86_64/aarch64 JIT call stub；其他安全 smoke 签名先用 typed C call。

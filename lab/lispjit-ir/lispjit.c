@@ -78,6 +78,8 @@ extern void *cosmo_dlsym(void *handle, const char *symbol);
 #define BOOTSTRAP_STEP_HASH 2u
 #define BOOTSTRAP_STEP_RUN 3u
 #define BOOTSTRAP_STEP_COMPARE 4u
+#define BOOTSTRAP_STEP_PACK_APP 5u
+#define BOOTSTRAP_STEP_INSPECT_APP 6u
 
 typedef uint64_t (*jit_entry_fn)(void);
 typedef int (*ffi_i32_ptr_fn)(const char *);
@@ -146,6 +148,8 @@ typedef struct {
   uint32_t kind;
   char *arg0;
   char *arg1;
+  char *arg2;
+  char *arg3;
 } BootstrapStep;
 
 typedef struct {
@@ -507,6 +511,8 @@ static void bootstrap_plan_free(BootstrapPlan *plan) {
   for (size_t i = 0; i < plan->step_count; ++i) {
     free(plan->steps[i].arg0);
     free(plan->steps[i].arg1);
+    free(plan->steps[i].arg2);
+    free(plan->steps[i].arg3);
   }
   free(plan->steps);
 }
@@ -578,7 +584,8 @@ static int aot_add_stmt(AotFunc *f, uint32_t kind, uint64_t imm, char *target_na
   return 1;
 }
 
-static int bootstrap_add_step(BootstrapPlan *plan, uint32_t kind, char *arg0, char *arg1) {
+static int bootstrap_add_step(BootstrapPlan *plan, uint32_t kind, char *arg0, char *arg1,
+                              char *arg2, char *arg3) {
   if (plan->step_count == plan->step_cap) {
     size_t next = plan->step_cap ? plan->step_cap * 2 : 4;
     BootstrapStep *p = (BootstrapStep *)realloc(plan->steps, next * sizeof(*p));
@@ -586,7 +593,7 @@ static int bootstrap_add_step(BootstrapPlan *plan, uint32_t kind, char *arg0, ch
     plan->steps = p;
     plan->step_cap = next;
   }
-  plan->steps[plan->step_count++] = (BootstrapStep){kind, arg0, arg1};
+  plan->steps[plan->step_count++] = (BootstrapStep){kind, arg0, arg1, arg2, arg3};
   return 1;
 }
 
@@ -755,17 +762,41 @@ static int parse_bootstrap_plan(const char *src, BootstrapPlan *plan) {
       char *arg1 = parse_string(&p);
       uint32_t kind = strcmp(head, "compile") == 0 ? BOOTSTRAP_STEP_COMPILE : BOOTSTRAP_STEP_COMPARE;
       int ok = arg0 && arg1 && eat(&p, ')') &&
-               bootstrap_add_step(plan, kind, arg0, arg1);
+               bootstrap_add_step(plan, kind, arg0, arg1, NULL, NULL);
       if (!ok) {
         free(arg0);
         free(arg1);
         free(head);
         return 0;
       }
+    } else if (strcmp(head, "pack-app") == 0) {
+      char *arg0 = parse_string(&p);
+      char *arg1 = parse_string(&p);
+      char *arg2 = parse_string(&p);
+      char *arg3 = parse_string(&p);
+      int ok = arg0 && arg1 && arg2 && arg3 && eat(&p, ')') &&
+               bootstrap_add_step(plan, BOOTSTRAP_STEP_PACK_APP, arg0, arg1, arg2, arg3);
+      if (!ok) {
+        free(arg0);
+        free(arg1);
+        free(arg2);
+        free(arg3);
+        free(head);
+        return 0;
+      }
+    } else if (strcmp(head, "inspect-app") == 0) {
+      char *arg0 = parse_string(&p);
+      int ok = arg0 && eat(&p, ')') &&
+               bootstrap_add_step(plan, BOOTSTRAP_STEP_INSPECT_APP, arg0, NULL, NULL, NULL);
+      if (!ok) {
+        free(arg0);
+        free(head);
+        return 0;
+      }
     } else if (strcmp(head, "hash") == 0 || strcmp(head, "run") == 0) {
       char *arg0 = parse_string(&p);
       uint32_t kind = strcmp(head, "hash") == 0 ? BOOTSTRAP_STEP_HASH : BOOTSTRAP_STEP_RUN;
-      int ok = arg0 && eat(&p, ')') && bootstrap_add_step(plan, kind, arg0, NULL);
+      int ok = arg0 && eat(&p, ')') && bootstrap_add_step(plan, kind, arg0, NULL, NULL, NULL);
       if (!ok) {
         free(arg0);
         free(head);
@@ -1711,6 +1742,10 @@ static int cmd_resolve(const char *blob_path, int quiet) {
   return rc;
 }
 
+static int cmd_inspect_app(const char *container_path);
+static int cmd_pack_app(const char *out_path, const char *x86_path, const char *arm_path,
+                        const char *blob_path);
+
 static int cmd_run_bootstrap_plan(const char *plan_path) {
   size_t n = 0;
   unsigned char *src = read_file(plan_path, &n);
@@ -1751,6 +1786,12 @@ static int cmd_run_bootstrap_plan(const char *plan_path) {
     } else if (step->kind == BOOTSTRAP_STEP_HASH) {
       printf("bootstrap-step.%zu=hash\n", i);
       rc = cmd_hash(step->arg0);
+    } else if (step->kind == BOOTSTRAP_STEP_PACK_APP) {
+      printf("bootstrap-step.%zu=pack-app\n", i);
+      rc = cmd_pack_app(step->arg0, step->arg1, step->arg2, step->arg3);
+    } else if (step->kind == BOOTSTRAP_STEP_INSPECT_APP) {
+      printf("bootstrap-step.%zu=inspect-app\n", i);
+      rc = cmd_inspect_app(step->arg0);
     } else if (step->kind == BOOTSTRAP_STEP_RUN) {
       printf("bootstrap-step.%zu=run\n", i);
       rc = cmd_run(step->arg0);
