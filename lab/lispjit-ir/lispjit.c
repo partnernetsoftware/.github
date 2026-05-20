@@ -7,21 +7,51 @@
 #include <windows.h>
 #else
 #include <dlfcn.h>
+#include <sys/stat.h>
 #include <sys/mman.h>
 #endif
 
-#define LJ_MAGIC "LJIRB1"
+#if defined(__COSMOPOLITAN__)
+extern void *cosmo_dlopen(const char *filename, int flags);
+extern void *cosmo_dlsym(void *handle, const char *symbol);
+#endif
+
 #define HEADER_SIZE 32u
 #define IMPORT_SIZE 16u
 #define CONST_SIZE 16u
 #define INSTR_SIZE 12u
 
+#ifdef NANO_LISTP
+#define OUTPUT_MAGIC_INIT {'L', 'B', 'I', 'N', '0', '1', 0, 0}
+#define OUTPUT_FORMAT "lbin"
+#define SOURCE_EXT "lisp"
+#define BLOB_EXT "lbin"
+#else
+#define OUTPUT_MAGIC_INIT {'L', 'J', 'I', 'R', 'B', '1', 0, 0}
+#define OUTPUT_FORMAT "ljir"
+#define SOURCE_EXT "lispir"
+#define BLOB_EXT "ljir"
+#endif
+
+#define SIG_ADDR 0u
 #define SIG_U64_PTR 1u
+#define SIG_I32_PTR 2u
+#define SIG_I32_PTR_PTR 3u
+#define SIG_I32_VOID 4u
 #define CONST_STRING 1u
 #define OP_CALL_IMPORT_CONST 1u
 #define OP_RET_LAST 2u
+#define OP_CALL_IMPORT_CONST2 3u
+#define OP_RESOLVE_IMPORT 4u
+#define OP_CALL_IMPORT_VOID 5u
+
+#define SRC_FORM_CALL 1u
+#define SRC_FORM_RESOLVE 2u
 
 typedef uint64_t (*jit_entry_fn)(void);
+typedef int (*ffi_i32_ptr_fn)(const char *);
+typedef int (*ffi_i32_ptr_ptr_fn)(const char *, const char *);
+typedef int (*ffi_i32_void_fn)(void);
 
 typedef struct {
   char *name;
@@ -36,14 +66,22 @@ typedef struct {
 } ConstDef;
 
 typedef struct {
+  uint32_t form;
+  char *import_name;
+  char *const_name;
+  char *const2_name;
+} InstrDef;
+
+typedef struct {
   ImportDef *imports;
   size_t import_count;
   size_t import_cap;
   ConstDef *consts;
   size_t const_count;
   size_t const_cap;
-  char *main_import;
-  char *main_const;
+  InstrDef *instrs;
+  size_t instr_count;
+  size_t instr_cap;
 } Module;
 
 typedef struct {
@@ -55,6 +93,7 @@ typedef struct {
 typedef struct {
   unsigned char *data;
   size_t size;
+  uint32_t format;
   uint32_t version;
   uint32_t import_count;
   uint32_t const_count;
@@ -80,11 +119,24 @@ static void wr32(unsigned char *p, uint32_t v) {
   p[3] = (unsigned char)((v >> 24) & 0xff);
 }
 
-static char *xstrdup(const char *s) {
-  size_t n = strlen(s) + 1;
-  char *out = (char *)malloc(n);
-  if (out) memcpy(out, s, n);
-  return out;
+static uint32_t parse_sig_id(const char *sig) {
+  if (strcmp(sig, "addr") == 0) return SIG_ADDR;
+  if (strcmp(sig, "u64(ptr)") == 0) return SIG_U64_PTR;
+  if (strcmp(sig, "i32(ptr)") == 0) return SIG_I32_PTR;
+  if (strcmp(sig, "i32(ptr,ptr)") == 0) return SIG_I32_PTR_PTR;
+  if (strcmp(sig, "i32()") == 0) return SIG_I32_VOID;
+  return UINT32_MAX;
+}
+
+static const char *sig_name(uint32_t sig) {
+  switch (sig) {
+    case SIG_ADDR: return "addr";
+    case SIG_U64_PTR: return "u64(ptr)";
+    case SIG_I32_PTR: return "i32(ptr)";
+    case SIG_I32_PTR_PTR: return "i32(ptr,ptr)";
+    case SIG_I32_VOID: return "i32()";
+    default: return "unknown";
+  }
 }
 
 static void buf_reserve(Buf *b, size_t add) {
@@ -153,6 +205,15 @@ static int write_file(const char *path, const unsigned char *data, size_t n) {
   int ok = fwrite(data, 1, n, f) == n;
   fclose(f);
   return ok;
+}
+
+static int make_executable(const char *path) {
+#if defined(_WIN32)
+  (void)path;
+  return 1;
+#else
+  return chmod(path, 0755) == 0;
+#endif
 }
 
 static void skip_ws(const char **p) {
@@ -224,14 +285,19 @@ static void module_free(Module *m) {
     free(m->consts[i].name);
     free(m->consts[i].value);
   }
+  for (size_t i = 0; i < m->instr_count; ++i) {
+    free(m->instrs[i].import_name);
+    free(m->instrs[i].const_name);
+    free(m->instrs[i].const2_name);
+  }
   free(m->imports);
   free(m->consts);
-  free(m->main_import);
-  free(m->main_const);
+  free(m->instrs);
 }
 
 static int add_import(Module *m, char *name, char *lib, char *symbol, char *sig) {
-  if (strcmp(sig, "u64(ptr)") != 0) {
+  uint32_t sig_id = parse_sig_id(sig);
+  if (sig_id == UINT32_MAX) {
     fprintf(stderr, "unsupported.signature=%s\n", sig);
     return 0;
   }
@@ -242,7 +308,7 @@ static int add_import(Module *m, char *name, char *lib, char *symbol, char *sig)
     m->imports = p;
     m->import_cap = next;
   }
-  m->imports[m->import_count++] = (ImportDef){name, lib, symbol, SIG_U64_PTR};
+  m->imports[m->import_count++] = (ImportDef){name, lib, symbol, sig_id};
   free(sig);
   return 1;
 }
@@ -256,6 +322,18 @@ static int add_const(Module *m, char *name, char *value) {
     m->const_cap = next;
   }
   m->consts[m->const_count++] = (ConstDef){name, value};
+  return 1;
+}
+
+static int add_instr(Module *m, uint32_t form, char *import_name, char *const_name, char *const2_name) {
+  if (m->instr_count == m->instr_cap) {
+    size_t next = m->instr_cap ? m->instr_cap * 2 : 4;
+    InstrDef *p = (InstrDef *)realloc(m->instrs, next * sizeof(*p));
+    if (!p) return 0;
+    m->instrs = p;
+    m->instr_cap = next;
+  }
+  m->instrs[m->instr_count++] = (InstrDef){form, import_name, const_name, const2_name};
   return 1;
 }
 
@@ -276,18 +354,40 @@ static int parse_const_form(const char **p, Module *m) {
 }
 
 static int parse_main_form(const char **p, Module *m) {
-  char *call = NULL;
-  if (!eat(p, '(')) return 0;
-  call = parse_atom(p);
-  if (!call || strcmp(call, "call") != 0) {
-    free(call);
-    return 0;
+  while (1) {
+    skip_ws(p);
+    if (**p == ')') {
+      (*p)++;
+      return m->instr_count > 0;
+    }
+    if (!eat(p, '(')) return 0;
+    char *head = parse_atom(p);
+    if (!head) return 0;
+    int ok = 0;
+    if (strcmp(head, "resolve") == 0) {
+      char *import_name = parse_atom(p);
+      ok = import_name && eat(p, ')') &&
+           add_instr(m, SRC_FORM_RESOLVE, import_name, NULL, NULL);
+    } else if (strcmp(head, "call") == 0) {
+      char *import_name = parse_atom(p);
+      char *const_name = NULL;
+      char *const2_name = NULL;
+      if (import_name) {
+        skip_ws(p);
+        if (**p != ')') {
+          const_name = parse_atom(p);
+          skip_ws(p);
+          if (**p != ')') {
+            const2_name = parse_atom(p);
+          }
+        }
+      }
+      ok = import_name && eat(p, ')') &&
+           add_instr(m, SRC_FORM_CALL, import_name, const_name, const2_name);
+    }
+    free(head);
+    if (!ok) return 0;
   }
-  free(call);
-  m->main_import = parse_atom(p);
-  m->main_const = parse_atom(p);
-  if (!m->main_import || !m->main_const || !eat(p, ')') || !eat(p, ')')) return 0;
-  return 1;
 }
 
 static int parse_module(const char *src, Module *m) {
@@ -305,7 +405,7 @@ static int parse_module(const char *src, Module *m) {
     if (*p == ')') {
       p++;
       skip_ws(&p);
-      return *p == 0 && m->main_import && m->main_const;
+      return *p == 0 && m->instr_count > 0;
     }
     if (!eat(&p, '(')) return 0;
     char *head = parse_atom(&p);
@@ -333,11 +433,23 @@ static int find_const(const Module *m, const char *name) {
   return -1;
 }
 
-static unsigned char *compile_module(const Module *m, size_t *out_n) {
-  int main_import = find_import(m, m->main_import);
-  int main_const = find_const(m, m->main_const);
-  if (main_import < 0 || main_const < 0) return NULL;
+static void emit_instr(Buf *instrs, uint8_t op, uint32_t arg0, uint32_t arg1) {
+  unsigned char pad[3] = {0, 0, 0};
+  buf_put(instrs, &op, 1);
+  buf_put(instrs, pad, 3);
+  buf_put32(instrs, arg0);
+  buf_put32(instrs, arg1);
+}
 
+static uint32_t pack_const_pair(uint32_t a, uint32_t b) {
+  if (a > 0xffffu || b > 0xffffu) {
+    fprintf(stderr, "const.index=too_large_for_pair\n");
+    exit(1);
+  }
+  return a | (b << 16);
+}
+
+static unsigned char *compile_module(const Module *m, size_t *out_n) {
   Buf out = {0};
   Buf imports = {0};
   Buf consts = {0};
@@ -358,25 +470,42 @@ static unsigned char *compile_module(const Module *m, size_t *out_n) {
     buf_put32(&consts, 0);
   }
 
-  unsigned char op = OP_CALL_IMPORT_CONST;
-  buf_put(&instrs, &op, 1);
-  unsigned char pad[3] = {0, 0, 0};
-  buf_put(&instrs, pad, 3);
-  buf_put32(&instrs, (uint32_t)main_import);
-  buf_put32(&instrs, (uint32_t)main_const);
-  op = OP_RET_LAST;
-  buf_put(&instrs, &op, 1);
-  buf_put(&instrs, pad, 3);
-  buf_put32(&instrs, 0);
-  buf_put32(&instrs, 0);
+  for (size_t i = 0; i < m->instr_count; ++i) {
+    const InstrDef *in = &m->instrs[i];
+    int import_idx = find_import(m, in->import_name);
+    if (import_idx < 0) return NULL;
+    if (in->form == SRC_FORM_RESOLVE) {
+      emit_instr(&instrs, OP_RESOLVE_IMPORT, (uint32_t)import_idx, 0);
+      continue;
+    }
+    uint32_t sig = m->imports[import_idx].sig;
+    if (sig == SIG_I32_VOID) {
+      if (in->const_name || in->const2_name) return NULL;
+      emit_instr(&instrs, OP_CALL_IMPORT_VOID, (uint32_t)import_idx, 0);
+    } else if (sig == SIG_U64_PTR || sig == SIG_I32_PTR) {
+      int const_idx = in->const_name ? find_const(m, in->const_name) : -1;
+      if (const_idx < 0 || in->const2_name) return NULL;
+      emit_instr(&instrs, OP_CALL_IMPORT_CONST, (uint32_t)import_idx, (uint32_t)const_idx);
+    } else if (sig == SIG_I32_PTR_PTR) {
+      int const_idx = in->const_name ? find_const(m, in->const_name) : -1;
+      int const2_idx = in->const2_name ? find_const(m, in->const2_name) : -1;
+      if (const_idx < 0 || const2_idx < 0) return NULL;
+      emit_instr(&instrs, OP_CALL_IMPORT_CONST2, (uint32_t)import_idx,
+                 pack_const_pair((uint32_t)const_idx, (uint32_t)const2_idx));
+    } else {
+      fprintf(stderr, "signature.not_callable=%s\n", sig_name(sig));
+      return NULL;
+    }
+  }
+  emit_instr(&instrs, OP_RET_LAST, 0, 0);
 
-  unsigned char magic[8] = {'L', 'J', 'I', 'R', 'B', '1', 0, 0};
+  unsigned char magic[8] = OUTPUT_MAGIC_INIT;
   buf_put(&out, magic, 8);
   buf_put32(&out, 1);
   buf_put32(&out, 0);
   buf_put32(&out, (uint32_t)m->import_count);
   buf_put32(&out, (uint32_t)m->const_count);
-  buf_put32(&out, 2);
+  buf_put32(&out, (uint32_t)(m->instr_count + 1));
   buf_put32(&out, (uint32_t)strings.len);
   buf_put(&out, imports.data, imports.len);
   buf_put(&out, consts.data, consts.len);
@@ -396,8 +525,16 @@ static int checked_span(size_t size, size_t off, size_t count, size_t each) {
 }
 
 static int blob_init(Blob *b, unsigned char *data, size_t size) {
-  static const unsigned char magic[8] = {'L', 'J', 'I', 'R', 'B', '1', 0, 0};
-  if (size < HEADER_SIZE || memcmp(data, magic, sizeof(magic)) != 0) return 0;
+  static const unsigned char lbin_magic[8] = {'L', 'B', 'I', 'N', '0', '1', 0, 0};
+  static const unsigned char ljir_magic[8] = {'L', 'J', 'I', 'R', 'B', '1', 0, 0};
+  if (size < HEADER_SIZE) return 0;
+  if (memcmp(data, lbin_magic, sizeof(lbin_magic)) == 0) {
+    b->format = 1;
+  } else if (memcmp(data, ljir_magic, sizeof(ljir_magic)) == 0) {
+    b->format = 2;
+  } else {
+    return 0;
+  }
   b->data = data;
   b->size = size;
   b->version = rd32(data + 8);
@@ -442,6 +579,14 @@ static void *open_named_library(const char *name) {
     return h ? h : LoadLibraryA("msvcrt.dll");
   }
   return LoadLibraryA(name);
+#elif defined(__COSMOPOLITAN__)
+  if (strcmp(name, "libc") == 0) {
+    void *h = cosmo_dlopen(NULL, RTLD_LAZY);
+    if (h) return h;
+    h = cosmo_dlopen("libc.so.6", RTLD_LAZY);
+    return h ? h : cosmo_dlopen("libc.so", RTLD_LAZY);
+  }
+  return cosmo_dlopen(name, RTLD_LAZY);
 #else
   if (strcmp(name, "libc") == 0) {
 #if defined(__APPLE__)
@@ -458,6 +603,8 @@ static void *open_named_library(const char *name) {
 static void *load_symbol(void *handle, const char *name) {
 #if defined(_WIN32)
   return (void *)GetProcAddress((HMODULE)handle, name);
+#elif defined(__COSMOPOLITAN__)
+  return cosmo_dlsym(handle, name);
 #else
   return dlsym(handle, name);
 #endif
@@ -527,47 +674,137 @@ static int blob_load_path(const char *path, Blob *b, unsigned char **owned) {
   return 1;
 }
 
-static int execute_blob(const Blob *b) {
-  if (b->instr_count != 2) {
-    fprintf(stderr, "unsupported.ir_shape=instruction_count\n");
-    return 10;
-  }
-  const unsigned char *call = instr_row(b, 0);
-  const unsigned char *ret = instr_row(b, 1);
-  if (!call || !ret || call[0] != OP_CALL_IMPORT_CONST || ret[0] != OP_RET_LAST) {
-    fprintf(stderr, "unsupported.ir_shape=ops\n");
-    return 11;
-  }
+typedef struct {
+  const char *lib;
+  const char *sym;
+  uint32_t sig;
+  void *handle;
+  void *fn;
+} RuntimeImport;
 
-  const unsigned char *imp = import_row(b, rd32(call + 4));
-  const unsigned char *con = const_row(b, rd32(call + 8));
-  if (!imp || !con) return 12;
-  const char *lib = blob_string(b, rd32(imp));
-  const char *sym = blob_string(b, rd32(imp + 4));
-  const char *arg = blob_string(b, rd32(con + 4));
-  if (!lib || !sym || !arg || rd32(imp + 8) != SIG_U64_PTR || rd32(con) != CONST_STRING) {
-    return 13;
-  }
-
-  void *handle = open_named_library(lib);
-  if (!handle) {
-    fprintf(stderr, "ffi.open=fail lib=%s\n", lib);
+static int resolve_import_ref(const Blob *b, uint32_t idx, RuntimeImport *out) {
+  const unsigned char *imp = import_row(b, idx);
+  if (!imp) return 12;
+  out->lib = blob_string(b, rd32(imp));
+  out->sym = blob_string(b, rd32(imp + 4));
+  out->sig = rd32(imp + 8);
+  if (!out->lib || !out->sym) return 13;
+  out->handle = open_named_library(out->lib);
+  if (!out->handle) {
+    fprintf(stderr, "ffi.open=fail lib=%s\n", out->lib);
     return 14;
   }
-  void *fn = load_symbol(handle, sym);
-  if (!fn) {
-    fprintf(stderr, "ffi.symbol=fail symbol=%s\n", sym);
+  out->fn = load_symbol(out->handle, out->sym);
+  if (!out->fn) {
+    fprintf(stderr, "ffi.symbol=fail symbol=%s\n", out->sym);
     return 15;
   }
-  size_t code_n = 0;
-  void *entry = emit_u64_ptr_call(fn, arg, &code_n);
-  if (!entry) return 16;
-  printf("%llu\n", (unsigned long long)((jit_entry_fn)entry)());
-  fprintf(stderr, "jit.code.bytes=%zu\n", code_n);
   return 0;
 }
 
+static const char *const_string_ref(const Blob *b, uint32_t idx) {
+  const unsigned char *con = const_row(b, idx);
+  if (!con || rd32(con) != CONST_STRING) return NULL;
+  return blob_string(b, rd32(con + 4));
+}
+
+static int call_import1(const RuntimeImport *ri, const char *arg, uint64_t *out) {
+  if (!arg) return 13;
+  if (ri->sig == SIG_U64_PTR) {
+    size_t code_n = 0;
+    void *entry = emit_u64_ptr_call(ri->fn, arg, &code_n);
+    if (!entry) return 16;
+    *out = ((jit_entry_fn)entry)();
+    fprintf(stderr, "jit.code.bytes=%zu\n", code_n);
+    return 0;
+  }
+  if (ri->sig == SIG_I32_PTR) {
+    *out = (uint64_t)(int64_t)((ffi_i32_ptr_fn)ri->fn)(arg);
+    return 0;
+  }
+  fprintf(stderr, "signature.arg_mismatch=%s\n", sig_name(ri->sig));
+  return 17;
+}
+
+static int call_import2(const RuntimeImport *ri, const char *arg0, const char *arg1, uint64_t *out) {
+  if (!arg0 || !arg1) return 13;
+  if (ri->sig != SIG_I32_PTR_PTR) {
+    fprintf(stderr, "signature.arg_mismatch=%s\n", sig_name(ri->sig));
+    return 17;
+  }
+  *out = (uint64_t)(int64_t)((ffi_i32_ptr_ptr_fn)ri->fn)(arg0, arg1);
+  return 0;
+}
+
+static int call_import0(const RuntimeImport *ri, uint64_t *out) {
+  if (ri->sig != SIG_I32_VOID) {
+    fprintf(stderr, "signature.arg_mismatch=%s\n", sig_name(ri->sig));
+    return 17;
+  }
+  *out = (uint64_t)(int64_t)((ffi_i32_void_fn)ri->fn)();
+  return 0;
+}
+
+static int resolve_blob(const Blob *b, int quiet) {
+  uint32_t ok = 0;
+  for (uint32_t i = 0; i < b->import_count; ++i) {
+    RuntimeImport ri = {0};
+    int rc = resolve_import_ref(b, i, &ri);
+    if (rc != 0) return rc;
+    ok++;
+    if (!quiet) {
+      printf("resolve.%u=%s:%s sig=%s ok\n", i, ri.lib, ri.sym, sig_name(ri.sig));
+    }
+  }
+  printf("resolve.imports=%u\n", b->import_count);
+  printf("resolve.ok=%u\n", ok);
+  return 0;
+}
+
+static int execute_blob(const Blob *b) {
+  uint64_t last = 0;
+  for (uint32_t pc = 0; pc < b->instr_count; ++pc) {
+    const unsigned char *ins = instr_row(b, pc);
+    if (!ins) return 10;
+    uint8_t op = ins[0];
+    uint32_t arg0 = rd32(ins + 4);
+    uint32_t arg1 = rd32(ins + 8);
+    RuntimeImport ri = {0};
+    int rc = 0;
+    if (op == OP_RET_LAST) {
+      printf("ret=%llu\n", (unsigned long long)last);
+      return 0;
+    }
+    if (op == OP_RESOLVE_IMPORT) {
+      rc = resolve_import_ref(b, arg0, &ri);
+      if (rc != 0) return rc;
+      printf("resolve.%u=%s:%s sig=%s ok\n", pc, ri.lib, ri.sym, sig_name(ri.sig));
+      continue;
+    }
+    rc = resolve_import_ref(b, arg0, &ri);
+    if (rc != 0) return rc;
+    if (op == OP_CALL_IMPORT_CONST) {
+      rc = call_import1(&ri, const_string_ref(b, arg1), &last);
+    } else if (op == OP_CALL_IMPORT_CONST2) {
+      uint32_t c0 = arg1 & 0xffffu;
+      uint32_t c1 = arg1 >> 16;
+      rc = call_import2(&ri, const_string_ref(b, c0), const_string_ref(b, c1), &last);
+    } else if (op == OP_CALL_IMPORT_VOID) {
+      rc = call_import0(&ri, &last);
+    } else {
+      fprintf(stderr, "unsupported.op=%u\n", op);
+      return 11;
+    }
+    if (rc != 0) return rc;
+    printf("call.%u=%s:%s result=%llu\n", pc, ri.lib, ri.sym,
+           (unsigned long long)last);
+  }
+  fprintf(stderr, "missing.ret\n");
+  return 18;
+}
+
 static int dump_blob(const Blob *b) {
+  printf("blob.format=%s\n", b->format == 1 ? "lbin" : "legacy-ljir");
   printf("blob.version=%u\n", b->version);
   printf("blob.imports=%u\n", b->import_count);
   printf("blob.consts=%u\n", b->const_count);
@@ -575,8 +812,9 @@ static int dump_blob(const Blob *b) {
   printf("blob.strings=%u\n", b->string_size);
   for (uint32_t i = 0; i < b->import_count; ++i) {
     const unsigned char *r = import_row(b, i);
-    printf("import.%u=%s:%s sig=%u\n", i, blob_string(b, rd32(r)),
-           blob_string(b, rd32(r + 4)), rd32(r + 8));
+    uint32_t sig = rd32(r + 8);
+    printf("import.%u=%s:%s sig=%s(%u)\n", i, blob_string(b, rd32(r)),
+           blob_string(b, rd32(r + 4)), sig_name(sig), sig);
   }
   return 0;
 }
@@ -604,6 +842,7 @@ static int cmd_compile(const char *src_path, const char *out_path) {
     module_free(&m);
     return 3;
   }
+  printf("blob.format=%s\n", OUTPUT_FORMAT);
   printf("blob.bytes=%zu\n", blob_n);
   printf("blob.path=%s\n", out_path);
   free(src);
@@ -636,11 +875,95 @@ static int cmd_dump(const char *blob_path) {
   return rc;
 }
 
+static int cmd_resolve(const char *blob_path, int quiet) {
+  Blob b;
+  unsigned char *owned = NULL;
+  if (!blob_load_path(blob_path, &b, &owned)) {
+    fprintf(stderr, "blob=parse_fail path=%s\n", blob_path);
+    return 1;
+  }
+  int rc = resolve_blob(&b, quiet);
+  free(owned);
+  return rc;
+}
+
+static int is_elf(const unsigned char *data, size_t n) {
+  return n >= 4 && data[0] == 0x7f && data[1] == 'E' && data[2] == 'L' && data[3] == 'F';
+}
+
+static int cmd_pack_ape(const char *out_path, const char *x86_path, const char *arm_path) {
+  size_t x86_n = 0;
+  size_t arm_n = 0;
+  unsigned char *x86 = read_file(x86_path, &x86_n);
+  unsigned char *arm = read_file(arm_path, &arm_n);
+  if (!x86 || !arm || !is_elf(x86, x86_n) || !is_elf(arm, arm_n)) {
+    fprintf(stderr, "pack-ape=input_not_elf\n");
+    free(x86);
+    free(arm);
+    return 1;
+  }
+
+  const char *stub_fmt =
+      "#!/bin/sh\n"
+      "set -eu\n"
+      "arch=\"$(uname -m)\"\n"
+      "case \"$arch\" in\n"
+      "  x86_64|amd64) off=0; size=%zu; suffix=x86_64 ;;\n"
+      "  aarch64|arm64) off=%zu; size=%zu; suffix=aarch64 ;;\n"
+      "  *) echo \"nano pack-ape: unsupported arch $arch\" >&2; exit 126 ;;\n"
+      "esac\n"
+      "payload_line=$(awk '/^__NANO_APE_PAYLOAD_BELOW__$/ { print NR + 1; exit }' \"$0\")\n"
+      "if [ -z \"${payload_line:-}\" ]; then echo \"nano pack-ape: payload marker missing\" >&2; exit 126; fi\n"
+      "tmp=\"${TMPDIR:-/tmp}/nano-ape-$$-$suffix\"\n"
+      "trap 'rm -f \"$tmp\"' EXIT HUP INT TERM\n"
+      "tail -n +\"$payload_line\" \"$0\" | dd bs=1 skip=\"$off\" count=\"$size\" of=\"$tmp\" 2>/dev/null\n"
+      "chmod +x \"$tmp\"\n"
+      "exec \"$tmp\" \"$@\"\n"
+      "exit 127\n"
+      "__NANO_APE_PAYLOAD_BELOW__\n";
+
+  int stub_n = snprintf(NULL, 0, stub_fmt, x86_n, x86_n, arm_n);
+  if (stub_n < 0) {
+    free(x86);
+    free(arm);
+    return 2;
+  }
+  char *stub = (char *)malloc((size_t)stub_n + 1);
+  if (!stub) {
+    free(x86);
+    free(arm);
+    return 2;
+  }
+  snprintf(stub, (size_t)stub_n + 1, stub_fmt, x86_n, x86_n, arm_n);
+
+  Buf out = {0};
+  buf_put(&out, stub, (size_t)stub_n);
+  buf_put(&out, x86, x86_n);
+  buf_put(&out, arm, arm_n);
+  int ok = write_file(out_path, out.data, out.len) && make_executable(out_path);
+  if (ok) {
+    printf("pack-ape.output=%s\n", out_path);
+    printf("pack-ape.bytes=%zu\n", out.len);
+    printf("pack-ape.x86_64.bytes=%zu\n", x86_n);
+    printf("pack-ape.aarch64.bytes=%zu\n", arm_n);
+  } else {
+    fprintf(stderr, "pack-ape=write_fail path=%s\n", out_path);
+  }
+
+  free(stub);
+  free(out.data);
+  free(x86);
+  free(arm);
+  return ok ? 0 : 3;
+}
+
 static void usage(const char *argv0) {
   fprintf(stderr, "usage:\n");
-  fprintf(stderr, "  %s compile input.lispir output.ljir\n", argv0);
-  fprintf(stderr, "  %s run program.ljir\n", argv0);
-  fprintf(stderr, "  %s dump program.ljir\n", argv0);
+  fprintf(stderr, "  %s compile input.%s output.%s\n", argv0, SOURCE_EXT, BLOB_EXT);
+  fprintf(stderr, "  %s run program.%s\n", argv0, BLOB_EXT);
+  fprintf(stderr, "  %s dump program.%s\n", argv0, BLOB_EXT);
+  fprintf(stderr, "  %s resolve [--quiet] program.%s\n", argv0, BLOB_EXT);
+  fprintf(stderr, "  %s pack-ape output.com x86_64.elf aarch64.elf\n", argv0);
 }
 
 int main(int argc, char **argv) {
@@ -652,6 +975,13 @@ int main(int argc, char **argv) {
   }
   if (argc >= 2 && strcmp(argv[1], "dump") == 0 && argc == 3) {
     return cmd_dump(argv[2]);
+  }
+  if (argc >= 2 && strcmp(argv[1], "resolve") == 0) {
+    if (argc == 3) return cmd_resolve(argv[2], 0);
+    if (argc == 4 && strcmp(argv[2], "--quiet") == 0) return cmd_resolve(argv[3], 1);
+  }
+  if (argc >= 2 && strcmp(argv[1], "pack-ape") == 0 && argc == 5) {
+    return cmd_pack_ape(argv[2], argv[3], argv[4]);
   }
   usage(argv[0]);
   return 2;
