@@ -2124,6 +2124,27 @@ static int cmd_hash(const char *blob_path) {
   return 0;
 }
 
+static int cmd_file_size(const char *path) {
+  FILE *f = fopen(path, "rb");
+  if (!f) {
+    fprintf(stderr, "file-size=read_fail path=%s\n", path);
+    return 1;
+  }
+  if (fseek(f, 0, SEEK_END) != 0) {
+    fclose(f);
+    fprintf(stderr, "file-size=seek_fail path=%s\n", path);
+    return 1;
+  }
+  long n = ftell(f);
+  fclose(f);
+  if (n < 0) {
+    fprintf(stderr, "file-size=tell_fail path=%s\n", path);
+    return 1;
+  }
+  printf("%ld\n", n);
+  return 0;
+}
+
 static int compare_files(const char *left_path, const char *right_path, const char *label) {
   size_t left_n = 0;
   size_t right_n = 0;
@@ -3935,6 +3956,7 @@ static void usage(const char *argv0) {
   fprintf(stderr, "  %s run-expect-exit executable expected_exit\n", argv0);
   fprintf(stderr, "  %s dump program.%s\n", argv0, BLOB_EXT);
   fprintf(stderr, "  %s hash program.%s\n", argv0, BLOB_EXT);
+  fprintf(stderr, "  %s file-size path\n", argv0);
   fprintf(stderr, "  %s compare left.%s right.%s\n", argv0, BLOB_EXT, BLOB_EXT);
   fprintf(stderr, "  %s resolve [--quiet] program.%s\n", argv0, BLOB_EXT);
   fprintf(stderr, "  %s run-bootstrap-plan plan.lisp\n", argv0);
@@ -4002,6 +4024,9 @@ int main(int argc, char **argv) {
   }
   if (argc >= 2 && strcmp(argv[1], "hash") == 0 && argc == 3) {
     return cmd_hash(argv[2]);
+  }
+  if (argc >= 2 && strcmp(argv[1], "file-size") == 0 && argc == 3) {
+    return cmd_file_size(argv[2]);
   }
   if (argc >= 2 && strcmp(argv[1], "compare") == 0 && argc == 4) {
     return cmd_compare(argv[2], argv[3]);

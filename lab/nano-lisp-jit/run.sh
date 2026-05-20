@@ -71,7 +71,7 @@ log() {
 }
 
 bytes_of() {
-  wc -c < "$1" | tr -d ' '
+  "$RUNNER" file-size "$1"
 }
 
 run_case() {
@@ -86,6 +86,9 @@ run_case() {
 }
 
 log "# nano-lisp-jit .lisp to .lbin probe"
+
+run_case "build-native-nano-lisp-jit" cc -DNANO_LISP_JIT -Os -s "$NANO_C" -ldl -o "$RUNNER"
+
 log "source.path=$SRC"
 log "source.bytes=$(bytes_of "$SRC")"
 log "arithmetic.source.path=$ARITH_SRC"
@@ -106,8 +109,6 @@ log "bootstrap.aot.source.path=$BOOTSTRAP_AOT_SRC"
 log "bootstrap.aot.source.bytes=$(bytes_of "$BOOTSTRAP_AOT_SRC")"
 log "smoke.source.path=$SMOKE_SRC"
 log "smoke.source.bytes=$(bytes_of "$SMOKE_SRC")"
-
-run_case "build-native-nano-lisp-jit" cc -DNANO_LISP_JIT -Os -s "$NANO_C" -ldl -o "$RUNNER"
 log "native.runtime.bytes=$(bytes_of "$RUNNER")"
 
 run_case "compile-lisp-to-lbin" "$RUNNER" compile "$SRC" "$BLOB"

@@ -30,7 +30,7 @@ discover_cosmo_bin() {
 }
 
 bytes_of() {
-  wc -c < "$1" | tr -d ' '
+  "$BUILD_DIR/nano-jit.com" file-size "$1"
 }
 
 sha256_of() {
