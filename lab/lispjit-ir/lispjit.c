@@ -66,6 +66,9 @@ extern void *cosmo_dlsym(void *handle, const char *symbol);
 #define OP_NE_I64 22u
 #define OP_LE_I64 23u
 #define OP_GE_I64 24u
+#define OP_NOT_BOOL 25u
+#define OP_AND_BOOL 26u
+#define OP_OR_BOOL 27u
 
 #define SRC_FORM_CALL 1u
 #define SRC_FORM_RESOLVE 2u
@@ -88,6 +91,9 @@ extern void *cosmo_dlsym(void *handle, const char *symbol);
 #define SRC_FORM_NE_I64 19u
 #define SRC_FORM_LE_I64 20u
 #define SRC_FORM_GE_I64 21u
+#define SRC_FORM_NOT_BOOL 22u
+#define SRC_FORM_AND_BOOL 23u
+#define SRC_FORM_OR_BOOL 24u
 
 #define AOT_STMT_CONST_U64 1u
 #define AOT_STMT_ADD_U64 2u
@@ -108,6 +114,9 @@ extern void *cosmo_dlsym(void *handle, const char *symbol);
 #define AOT_STMT_NE_I64 17u
 #define AOT_STMT_LE_I64 18u
 #define AOT_STMT_GE_I64 19u
+#define AOT_STMT_NOT_BOOL 20u
+#define AOT_STMT_AND_BOOL 21u
+#define AOT_STMT_OR_BOOL 22u
 
 #define BOOTSTRAP_STEP_COMPILE 1u
 #define BOOTSTRAP_STEP_HASH 2u
@@ -394,6 +403,24 @@ static int value_ge_i64(Value *v, int64_t rhs) {
   uint64_t lhs_ordered = v->bits ^ 0x8000000000000000ull;
   uint64_t rhs_ordered = (uint64_t)rhs ^ 0x8000000000000000ull;
   *v = value_bool(lhs_ordered >= rhs_ordered);
+  return 1;
+}
+
+static int value_not_bool(Value *v) {
+  if (v->kind != VAL_BOOL) return 0;
+  *v = value_bool(!v->bits);
+  return 1;
+}
+
+static int value_and_bool(Value *v, int rhs) {
+  if (v->kind != VAL_BOOL) return 0;
+  *v = value_bool(v->bits && rhs);
+  return 1;
+}
+
+static int value_or_bool(Value *v, int rhs) {
+  if (v->kind != VAL_BOOL) return 0;
+  *v = value_bool(v->bits || rhs);
   return 1;
 }
 
@@ -867,6 +894,15 @@ static int parse_aot_body_items(const char **p, AotFunc *f) {
       ok = value && parse_bool_atom(value, &boolean) && eat(p, ')') &&
            aot_add_stmt(f, AOT_STMT_CONST_BOOL, (uint64_t)boolean, NULL);
       free(value);
+    } else if (strcmp(head, "not-bool") == 0) {
+      ok = eat(p, ')') && aot_add_stmt(f, AOT_STMT_NOT_BOOL, 0, NULL);
+    } else if (strcmp(head, "and-bool") == 0 || strcmp(head, "or-bool") == 0) {
+      char *value = parse_atom(p);
+      int boolean = 0;
+      uint32_t kind = strcmp(head, "and-bool") == 0 ? AOT_STMT_AND_BOOL : AOT_STMT_OR_BOOL;
+      ok = value && parse_bool_atom(value, &boolean) && eat(p, ')') &&
+           aot_add_stmt(f, kind, (uint64_t)boolean, NULL);
+      free(value);
     } else if (strcmp(head, "expect") == 0) {
       char *value = parse_atom(p);
       uint64_t imm = 0;
@@ -1234,6 +1270,15 @@ static int parse_main_items(const char **p, Module *m) {
       ok = value && parse_bool_atom(value, &boolean) && eat(p, ')') &&
            add_instr(m, SRC_FORM_CONST_BOOL, NULL, NULL, NULL, (uint64_t)boolean);
       free(value);
+    } else if (strcmp(head, "not-bool") == 0) {
+      ok = eat(p, ')') && add_instr(m, SRC_FORM_NOT_BOOL, NULL, NULL, NULL, 0);
+    } else if (strcmp(head, "and-bool") == 0 || strcmp(head, "or-bool") == 0) {
+      char *value = parse_atom(p);
+      int boolean = 0;
+      uint32_t form = strcmp(head, "and-bool") == 0 ? SRC_FORM_AND_BOOL : SRC_FORM_OR_BOOL;
+      ok = value && parse_bool_atom(value, &boolean) && eat(p, ')') &&
+           add_instr(m, form, NULL, NULL, NULL, (uint64_t)boolean);
+      free(value);
     } else if (strcmp(head, "expect") == 0) {
       char *value = parse_atom(p);
       uint64_t expected = 0;
@@ -1434,6 +1479,18 @@ static unsigned char *compile_module(const Module *m, size_t *out_n) {
     }
     if (in->form == SRC_FORM_CONST_BOOL) {
       emit_instr(&instrs, OP_CONST_BOOL, (uint32_t)in->imm, 0);
+      continue;
+    }
+    if (in->form == SRC_FORM_NOT_BOOL) {
+      emit_instr(&instrs, OP_NOT_BOOL, 0, 0);
+      continue;
+    }
+    if (in->form == SRC_FORM_AND_BOOL) {
+      emit_instr(&instrs, OP_AND_BOOL, (uint32_t)in->imm, 0);
+      continue;
+    }
+    if (in->form == SRC_FORM_OR_BOOL) {
+      emit_instr(&instrs, OP_OR_BOOL, (uint32_t)in->imm, 0);
       continue;
     }
     if (in->form == SRC_FORM_EXPECT_I64) {
@@ -1912,6 +1969,45 @@ static int execute_blob(const Blob *b) {
     if (op == OP_CONST_BOOL) {
       last = value_bool((int)arg0);
       printf("bool.%u=", pc);
+      print_value(stdout, last);
+      printf("\n");
+      pc++;
+      continue;
+    }
+    if (op == OP_NOT_BOOL) {
+      if (!value_not_bool(&last)) {
+        fprintf(stderr, "type.not-bool=%u actual=", pc);
+        print_value(stderr, last);
+        fprintf(stderr, "\n");
+        return 20;
+      }
+      printf("not-bool.%u=", pc);
+      print_value(stdout, last);
+      printf("\n");
+      pc++;
+      continue;
+    }
+    if (op == OP_AND_BOOL) {
+      if (!value_and_bool(&last, (int)arg0)) {
+        fprintf(stderr, "type.and-bool=%u actual=", pc);
+        print_value(stderr, last);
+        fprintf(stderr, "\n");
+        return 20;
+      }
+      printf("and-bool.%u=", pc);
+      print_value(stdout, last);
+      printf("\n");
+      pc++;
+      continue;
+    }
+    if (op == OP_OR_BOOL) {
+      if (!value_or_bool(&last, (int)arg0)) {
+        fprintf(stderr, "type.or-bool=%u actual=", pc);
+        print_value(stderr, last);
+        fprintf(stderr, "\n");
+        return 20;
+      }
+      printf("or-bool.%u=", pc);
       print_value(stdout, last);
       printf("\n");
       pc++;
@@ -3481,6 +3577,15 @@ static int eval_pure_blob(const Blob *b, Value *out) {
     } else if (op == OP_CONST_BOOL) {
       last = value_bool((int)arg0);
       pc++;
+    } else if (op == OP_NOT_BOOL) {
+      if (!value_not_bool(&last)) return 0;
+      pc++;
+    } else if (op == OP_AND_BOOL) {
+      if (!value_and_bool(&last, (int)arg0)) return 0;
+      pc++;
+    } else if (op == OP_OR_BOOL) {
+      if (!value_or_bool(&last, (int)arg0)) return 0;
+      pc++;
     } else if (op == OP_ADD_U64) {
       uint64_t rhs = (uint64_t)arg0 | ((uint64_t)arg1 << 32);
       if (!value_add_u64(&last, rhs)) return 0;
@@ -3660,6 +3765,33 @@ static int compile_pure_blob_to_x86(const Blob *b, Buf *code, int exit_style) {
         buf_put(code, mov_eax, sizeof(mov_eax));
       }
       last_kind = VAL_BOOL;
+    } else if (op == OP_NOT_BOOL) {
+      if (last_kind != VAL_BOOL) goto fail;
+      if (exit_style) {
+        unsigned char xor_edi_1[3] = {0x83, 0xf7, 0x01};
+        buf_put(code, xor_edi_1, sizeof(xor_edi_1));
+      } else {
+        unsigned char xor_eax_1[3] = {0x83, 0xf0, 0x01};
+        buf_put(code, xor_eax_1, sizeof(xor_eax_1));
+      }
+    } else if (op == OP_AND_BOOL) {
+      if (last_kind != VAL_BOOL || arg0 > 1u) goto fail;
+      if (exit_style) {
+        unsigned char and_edi_imm[3] = {0x83, 0xe7, (unsigned char)arg0};
+        buf_put(code, and_edi_imm, sizeof(and_edi_imm));
+      } else {
+        unsigned char and_eax_imm[3] = {0x83, 0xe0, (unsigned char)arg0};
+        buf_put(code, and_eax_imm, sizeof(and_eax_imm));
+      }
+    } else if (op == OP_OR_BOOL) {
+      if (last_kind != VAL_BOOL || arg0 > 1u) goto fail;
+      if (exit_style) {
+        unsigned char or_edi_imm[3] = {0x83, 0xcf, (unsigned char)arg0};
+        buf_put(code, or_edi_imm, sizeof(or_edi_imm));
+      } else {
+        unsigned char or_eax_imm[3] = {0x83, 0xc8, (unsigned char)arg0};
+        buf_put(code, or_eax_imm, sizeof(or_eax_imm));
+      }
     } else if (op == OP_ADD_U64) {
       if (last_kind != VAL_U64 || imm_u64 > UINT32_MAX) goto fail;
       if (exit_style) {
@@ -4030,6 +4162,18 @@ static int compile_aot_func_to_x86_ret(const AotFunc *func, Buf *code, Buf *call
       wr32(mov_eax + 1, stmt->imm ? 1u : 0u);
       buf_put(code, mov_eax, sizeof(mov_eax));
       last_kind = VAL_BOOL;
+    } else if (stmt->kind == AOT_STMT_NOT_BOOL) {
+      if (last_kind != VAL_BOOL) goto fail;
+      unsigned char xor_eax_1[3] = {0x83, 0xf0, 0x01};
+      buf_put(code, xor_eax_1, sizeof(xor_eax_1));
+    } else if (stmt->kind == AOT_STMT_AND_BOOL) {
+      if (last_kind != VAL_BOOL || stmt->imm > 1u) goto fail;
+      unsigned char and_eax_imm[3] = {0x83, 0xe0, (unsigned char)stmt->imm};
+      buf_put(code, and_eax_imm, sizeof(and_eax_imm));
+    } else if (stmt->kind == AOT_STMT_OR_BOOL) {
+      if (last_kind != VAL_BOOL || stmt->imm > 1u) goto fail;
+      unsigned char or_eax_imm[3] = {0x83, 0xc8, (unsigned char)stmt->imm};
+      buf_put(code, or_eax_imm, sizeof(or_eax_imm));
     } else if (stmt->kind == AOT_STMT_ADD_U64) {
       if (last_kind != VAL_U64) goto fail;
       unsigned char add_eax[5] = {0x05, 0, 0, 0, 0};
