@@ -38,6 +38,7 @@ extern void *cosmo_dlsym(void *handle, const char *symbol);
 #define SIG_I32_PTR 2u
 #define SIG_I32_PTR_PTR 3u
 #define SIG_I32_VOID 4u
+#define SIG_I32_I32 5u
 #define CONST_STRING 1u
 #define OP_CALL_IMPORT_CONST 1u
 #define OP_RET_LAST 2u
@@ -47,6 +48,7 @@ extern void *cosmo_dlsym(void *handle, const char *symbol);
 #define OP_EXPECT_U64 6u
 #define OP_CONST_U64 7u
 #define OP_ADD_U64 8u
+#define OP_CALL_IMPORT_IMM 9u
 
 #define SRC_FORM_CALL 1u
 #define SRC_FORM_RESOLVE 2u
@@ -58,6 +60,7 @@ typedef uint64_t (*jit_entry_fn)(void);
 typedef int (*ffi_i32_ptr_fn)(const char *);
 typedef int (*ffi_i32_ptr_ptr_fn)(const char *, const char *);
 typedef int (*ffi_i32_void_fn)(void);
+typedef int (*ffi_i32_i32_fn)(int);
 
 typedef struct {
   char *name;
@@ -132,6 +135,7 @@ static uint32_t parse_sig_id(const char *sig) {
   if (strcmp(sig, "i32(ptr)") == 0) return SIG_I32_PTR;
   if (strcmp(sig, "i32(ptr,ptr)") == 0) return SIG_I32_PTR_PTR;
   if (strcmp(sig, "i32()") == 0) return SIG_I32_VOID;
+  if (strcmp(sig, "i32(i32)") == 0) return SIG_I32_I32;
   return UINT32_MAX;
 }
 
@@ -142,6 +146,7 @@ static const char *sig_name(uint32_t sig) {
     case SIG_I32_PTR: return "i32(ptr)";
     case SIG_I32_PTR_PTR: return "i32(ptr,ptr)";
     case SIG_I32_VOID: return "i32()";
+    case SIG_I32_I32: return "i32(i32)";
     default: return "unknown";
   }
 }
@@ -362,6 +367,14 @@ static int parse_u64_atom(const char *s, uint64_t *out) {
   return (unsigned long long)*out == v;
 }
 
+static int parse_i32_atom(const char *s, int32_t *out) {
+  char *end = NULL;
+  long v = strtol(s, &end, 10);
+  if (!s || !s[0] || !end || *end || v < INT32_MIN || v > INT32_MAX) return 0;
+  *out = (int32_t)v;
+  return 1;
+}
+
 static int parse_import_form(const char **p, Module *m) {
   char *name = parse_atom(p);
   char *lib = parse_string(p);
@@ -530,6 +543,12 @@ static unsigned char *compile_module(const Module *m, size_t *out_n) {
     if (sig == SIG_I32_VOID) {
       if (in->const_name || in->const2_name) return NULL;
       emit_instr(&instrs, OP_CALL_IMPORT_VOID, (uint32_t)import_idx, 0);
+    } else if (sig == SIG_I32_I32) {
+      int32_t imm = 0;
+      if (!in->const_name || in->const2_name || !parse_i32_atom(in->const_name, &imm)) {
+        return NULL;
+      }
+      emit_instr(&instrs, OP_CALL_IMPORT_IMM, (uint32_t)import_idx, (uint32_t)imm);
     } else if (sig == SIG_U64_PTR || sig == SIG_I32_PTR) {
       int const_idx = in->const_name ? find_const(m, in->const_name) : -1;
       if (const_idx < 0 || in->const2_name) return NULL;
@@ -793,6 +812,15 @@ static int call_import0(const RuntimeImport *ri, uint64_t *out) {
   return 0;
 }
 
+static int call_import_i32(const RuntimeImport *ri, int32_t arg, uint64_t *out) {
+  if (ri->sig != SIG_I32_I32) {
+    fprintf(stderr, "signature.arg_mismatch=%s\n", sig_name(ri->sig));
+    return 17;
+  }
+  *out = (uint64_t)(int64_t)((ffi_i32_i32_fn)ri->fn)((int)arg);
+  return 0;
+}
+
 static int resolve_blob(const Blob *b, int quiet) {
   uint32_t ok = 0;
   for (uint32_t i = 0; i < b->import_count; ++i) {
@@ -860,6 +888,8 @@ static int execute_blob(const Blob *b) {
       rc = call_import2(&ri, const_string_ref(b, c0), const_string_ref(b, c1), &last);
     } else if (op == OP_CALL_IMPORT_VOID) {
       rc = call_import0(&ri, &last);
+    } else if (op == OP_CALL_IMPORT_IMM) {
+      rc = call_import_i32(&ri, (int32_t)arg1, &last);
     } else {
       fprintf(stderr, "unsupported.op=%u\n", op);
       return 11;
