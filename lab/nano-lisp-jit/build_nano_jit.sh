@@ -113,6 +113,7 @@ cat > "$BOOTSTRAP_PLAN" <<EOF
   (compare "$BUILD_DIR/bootstrap-smoke.lbin" "$BUILD_DIR/bootstrap-smoke-repeat.lbin")
   (pack-app "$BUILD_DIR/bootstrap-smoke.com" "$BUILD_DIR/nano-jit.x86_64" "$BUILD_DIR/nano-jit.aarch64" "$BUILD_DIR/bootstrap-smoke.lbin")
   (inspect-app "$BUILD_DIR/bootstrap-smoke.com")
+  (run-app "$BUILD_DIR/bootstrap-smoke.com")
   (run "$BUILD_DIR/bootstrap-smoke.lbin")
   (emit-elf64-exit "$BUILD_DIR/bootstrap-aot-exit42.elf" 42)
   (run-expect-exit "$BUILD_DIR/bootstrap-aot-exit42.elf" 42)
