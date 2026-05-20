@@ -63,7 +63,7 @@
 1. 给 AOT `.com` 增加结构化 manifest 和 `inspect-app`。
 2. 扩展 VM typed value，减少 shell 输出比对。
 3. 扩展 safe libc call suite。
-4. 开始实现 tiny ELF writer，为替换 slice compiler 做准备。
+4. 扩展 tiny ELF writer，从 `exit` 程序推进到函数/section/relocation。
 
 已完成：
 
@@ -73,3 +73,4 @@
 - `(expect N)` 断言 op，smoke `.lbin` 可自证关键 FFI/JIT 结果。
 - `(u64 N)` / `(add-u64 N)` 纯 VM 算术 smoke，不依赖 FFI/libc。
 - `i32(i32)` FFI 签名，smoke 覆盖 `abs(-42) -> 42`。
+- `emit-elf64-exit` tiny ELF writer，直接生成可运行 x86_64 Linux ELF。

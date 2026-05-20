@@ -122,11 +122,22 @@ static uint32_t rd32(const unsigned char *p) {
          ((uint32_t)p[3] << 24);
 }
 
+static void wr16(unsigned char *p, uint16_t v) {
+  p[0] = (unsigned char)(v & 0xff);
+  p[1] = (unsigned char)((v >> 8) & 0xff);
+}
+
 static void wr32(unsigned char *p, uint32_t v) {
   p[0] = (unsigned char)(v & 0xff);
   p[1] = (unsigned char)((v >> 8) & 0xff);
   p[2] = (unsigned char)((v >> 16) & 0xff);
   p[3] = (unsigned char)((v >> 24) & 0xff);
+}
+
+static void wr64(unsigned char *p, uint64_t v) {
+  for (int i = 0; i < 8; ++i) {
+    p[i] = (unsigned char)((v >> (i * 8)) & 0xff);
+  }
 }
 
 static uint32_t parse_sig_id(const char *sig) {
@@ -1093,6 +1104,63 @@ static int cmd_inspect_app(const char *container_path) {
   return 2;
 }
 
+static int cmd_emit_elf64_exit(const char *out_path, const char *code_s) {
+  size_t code_arg = 0;
+  if (!parse_size_arg(code_s, &code_arg) || code_arg > 255) {
+    fprintf(stderr, "emit-elf64-exit=bad_exit_code\n");
+    return 1;
+  }
+
+  enum { EHDR = 64, PHDR = 56, CODE_OFF = 120, CODE_N = 12, FILE_N = 132 };
+  unsigned char out[FILE_N];
+  memset(out, 0, sizeof(out));
+
+  /* ELF64 little-endian executable with one RX PT_LOAD segment. */
+  out[0] = 0x7f;
+  out[1] = 'E';
+  out[2] = 'L';
+  out[3] = 'F';
+  out[4] = 2;
+  out[5] = 1;
+  out[6] = 1;
+  wr16(out + 16, 2);
+  wr16(out + 18, 62);
+  wr32(out + 20, 1);
+  wr64(out + 24, 0x400000u + CODE_OFF);
+  wr64(out + 32, EHDR);
+  wr16(out + 52, EHDR);
+  wr16(out + 54, PHDR);
+  wr16(out + 56, 1);
+
+  unsigned char *ph = out + EHDR;
+  wr32(ph + 0, 1);
+  wr32(ph + 4, 5);
+  wr64(ph + 8, 0);
+  wr64(ph + 16, 0x400000u);
+  wr64(ph + 24, 0x400000u);
+  wr64(ph + 32, FILE_N);
+  wr64(ph + 40, FILE_N);
+  wr64(ph + 48, 0x1000);
+
+  unsigned char *code = out + CODE_OFF;
+  code[0] = 0xb8;
+  wr32(code + 1, 60);
+  code[5] = 0xbf;
+  wr32(code + 6, (uint32_t)code_arg);
+  code[10] = 0x0f;
+  code[11] = 0x05;
+
+  if (!write_file(out_path, out, sizeof(out)) || !make_executable(out_path)) {
+    fprintf(stderr, "emit-elf64-exit=write_fail path=%s\n", out_path);
+    return 2;
+  }
+  printf("elf64.output=%s\n", out_path);
+  printf("elf64.bytes=%zu\n", sizeof(out));
+  printf("elf64.entry=0x%llx\n", (unsigned long long)(0x400000u + CODE_OFF));
+  printf("elf64.exit=%zu\n", code_arg);
+  return 0;
+}
+
 static int is_elf(const unsigned char *data, size_t n) {
   return n >= 4 && data[0] == 0x7f && data[1] == 'E' && data[2] == 'L' && data[3] == 'F';
 }
@@ -1259,6 +1327,7 @@ static void usage(const char *argv0) {
   fprintf(stderr, "  %s run program.%s\n", argv0, BLOB_EXT);
   fprintf(stderr, "  %s run-embedded container.com blob_offset blob_size\n", argv0);
   fprintf(stderr, "  %s inspect-app container.com\n", argv0);
+  fprintf(stderr, "  %s emit-elf64-exit output.elf exit_code\n", argv0);
   fprintf(stderr, "  %s dump program.%s\n", argv0, BLOB_EXT);
   fprintf(stderr, "  %s hash program.%s\n", argv0, BLOB_EXT);
   fprintf(stderr, "  %s resolve [--quiet] program.%s\n", argv0, BLOB_EXT);
@@ -1278,6 +1347,9 @@ int main(int argc, char **argv) {
   }
   if (argc >= 2 && strcmp(argv[1], "inspect-app") == 0 && argc == 3) {
     return cmd_inspect_app(argv[2]);
+  }
+  if (argc >= 2 && strcmp(argv[1], "emit-elf64-exit") == 0 && argc == 4) {
+    return cmd_emit_elf64_exit(argv[2], argv[3]);
   }
   if (argc >= 2 && strcmp(argv[1], "dump") == 0 && argc == 3) {
     return cmd_dump(argv[2]);

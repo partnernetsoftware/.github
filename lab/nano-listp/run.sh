@@ -13,6 +13,7 @@ ARITH_BLOB="$BUILD_DIR/arithmetic.lbin"
 SMOKE_BLOB="$BUILD_DIR/libc-smoke.lbin"
 LIBC_SRC="$BUILD_DIR/libc-resolve.lisp"
 LIBC_BLOB="$BUILD_DIR/libc-resolve.lbin"
+EXIT42="$BUILD_DIR/exit42.elf"
 RUNNER="$BUILD_DIR/nano-listp"
 RESULTS="$BUILD_DIR/results.txt"
 NANO_C="$ROOT_DIR/lab/lispjit-ir/lispjit.c"
@@ -72,6 +73,16 @@ log "arithmetic.blob.bytes=$(bytes_of "$ARITH_BLOB")"
 run_case "hash-arithmetic-lbin" "$RUNNER" hash "$ARITH_BLOB"
 
 run_case "execute-arithmetic-lbin" "$RUNNER" run "$ARITH_BLOB"
+
+if [ "$(uname -m)" = "x86_64" ] || [ "$(uname -m)" = "amd64" ]; then
+  run_case "emit-elf64-exit42" "$RUNNER" emit-elf64-exit "$EXIT42" 42
+  log "exit42.bytes=$(bytes_of "$EXIT42")"
+  run_case "run-elf64-exit42" bash -c '"$1"; status=$?; test "$status" -eq 42' _ "$EXIT42"
+else
+  log ""
+  log "## run-elf64-exit42"
+  log "skip: host is not x86_64"
+fi
 
 run_case "compile-libc-smoke-lbin" "$RUNNER" compile "$SMOKE_SRC" "$SMOKE_BLOB"
 log "smoke.blob.bytes=$(bytes_of "$SMOKE_BLOB")"
