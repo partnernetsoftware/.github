@@ -2,6 +2,8 @@
 
 目标：生成跨架构可执行的 `nano-listp.com`，把极小 Lisp-like 源码编译为 portable `.lbin` blob，并在运行时只加载 `.lbin` 执行。
 
+长期目标：推进到可自举的 `nano-jit.com`：用 Lisp/IR 驱动 FFI、JIT、AOT，最终自己编译自己并生成多架构可运行 APE。
+
 ## CLI
 
 ```bash
@@ -37,8 +39,10 @@ cd /workspace
 bash lab/nano-listp/run.sh
 bash lab/nano-listp/build_cosmo.sh
 bash lab/nano-listp/build_nano_ape.sh
+bash lab/nano-listp/build_nano_jit.sh
 ```
 
 `build_cosmo.sh` 输出 `lab/nano-listp/.build/nano-listp.com`，包含 x86_64 和 aarch64 APE 切片。
 默认构建使用 `-mtiny`、section GC 和禁用 unwind/stack protector 的 size profile；当前实测 `nano-listp.com` 约 462KB。
 `build_nano_ape.sh` 使用刚编出的 `nano-listp` 自身执行 `pack-ape`，打包 x86_64/aarch64 ELF，不调用 `cosmocc` 的 `apelink`；`nano_apelink.py` 仅保留作参考实现。
+`build_nano_jit.sh` 生成 `nano-jit.com` 并写出 `bootstrap-report.txt`；当前仍临时使用 `cosmocc` 编译架构切片，但 `.com` 打包和 blob 自测由 `nano-jit` 自己完成。
