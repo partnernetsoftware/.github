@@ -863,6 +863,61 @@ static int cmd_run(const char *blob_path) {
   return rc;
 }
 
+static int parse_size_arg(const char *s, size_t *out) {
+  char *end = NULL;
+  unsigned long long v = strtoull(s, &end, 10);
+  if (!s[0] || !end || *end) return 0;
+  *out = (size_t)v;
+  return (unsigned long long)*out == v;
+}
+
+static int find_payload_start(const unsigned char *data, size_t n, const char *marker,
+                              size_t *out) {
+  size_t marker_n = strlen(marker);
+  if (marker_n + 1 > n) return 0;
+  for (size_t i = 0; i + marker_n < n; ++i) {
+    int line_start = i == 0 || data[i - 1] == '\n';
+    if (line_start && data[i + marker_n] == '\n' &&
+        memcmp(data + i, marker, marker_n) == 0) {
+      *out = i + marker_n + 1;
+      return 1;
+    }
+  }
+  return 0;
+}
+
+static int cmd_run_embedded(const char *container_path, const char *off_s, const char *size_s) {
+  size_t rel_off = 0;
+  size_t blob_n = 0;
+  size_t container_n = 0;
+  size_t payload_start = 0;
+  if (!parse_size_arg(off_s, &rel_off) || !parse_size_arg(size_s, &blob_n)) {
+    fprintf(stderr, "run-embedded=bad_offset_or_size\n");
+    return 1;
+  }
+  unsigned char *container = read_file(container_path, &container_n);
+  if (!container) {
+    fprintf(stderr, "read=fail path=%s\n", container_path);
+    return 1;
+  }
+  if (!find_payload_start(container, container_n, "__NANO_APP_PAYLOAD_BELOW__", &payload_start) ||
+      rel_off > container_n - payload_start ||
+      blob_n > container_n - payload_start - rel_off) {
+    fprintf(stderr, "run-embedded=payload_bounds\n");
+    free(container);
+    return 2;
+  }
+  Blob b;
+  if (!blob_init(&b, container + payload_start + rel_off, blob_n)) {
+    fprintf(stderr, "run-embedded=blob_parse_fail\n");
+    free(container);
+    return 3;
+  }
+  int rc = execute_blob(&b);
+  free(container);
+  return rc;
+}
+
 static int cmd_dump(const char *blob_path) {
   Blob b;
   unsigned char *owned = NULL;
@@ -989,12 +1044,10 @@ static int cmd_pack_app(const char *out_path, const char *x86_path, const char *
       "payload_line=$(awk '/^__NANO_APP_PAYLOAD_BELOW__$/ { print NR + 1; exit }' \"$0\")\n"
       "if [ -z \"${payload_line:-}\" ]; then echo \"nano pack-app: payload marker missing\" >&2; exit 126; fi\n"
       "tmp_exe=\"${TMPDIR:-/tmp}/nano-app-$$-$suffix\"\n"
-      "tmp_blob=\"${TMPDIR:-/tmp}/nano-app-$$.lbin\"\n"
-      "trap 'rm -f \"$tmp_exe\" \"$tmp_blob\"' EXIT HUP INT TERM\n"
+      "trap 'rm -f \"$tmp_exe\"' EXIT HUP INT TERM\n"
       "tail -n +\"$payload_line\" \"$0\" | dd bs=1 skip=\"$exe_off\" count=\"$exe_size\" of=\"$tmp_exe\" 2>/dev/null\n"
-      "tail -n +\"$payload_line\" \"$0\" | dd bs=1 skip=\"$blob_off\" count=\"$blob_size\" of=\"$tmp_blob\" 2>/dev/null\n"
       "chmod +x \"$tmp_exe\"\n"
-      "exec \"$tmp_exe\" run \"$tmp_blob\"\n"
+      "exec \"$tmp_exe\" run-embedded \"$0\" \"$blob_off\" \"$blob_size\"\n"
       "exit 127\n"
       "__NANO_APP_PAYLOAD_BELOW__\n";
 
@@ -1042,6 +1095,7 @@ static void usage(const char *argv0) {
   fprintf(stderr, "usage:\n");
   fprintf(stderr, "  %s compile input.%s output.%s\n", argv0, SOURCE_EXT, BLOB_EXT);
   fprintf(stderr, "  %s run program.%s\n", argv0, BLOB_EXT);
+  fprintf(stderr, "  %s run-embedded container.com blob_offset blob_size\n", argv0);
   fprintf(stderr, "  %s dump program.%s\n", argv0, BLOB_EXT);
   fprintf(stderr, "  %s resolve [--quiet] program.%s\n", argv0, BLOB_EXT);
   fprintf(stderr, "  %s pack-ape output.com x86_64.elf aarch64.elf\n", argv0);
@@ -1054,6 +1108,9 @@ int main(int argc, char **argv) {
   }
   if (argc >= 2 && strcmp(argv[1], "run") == 0 && argc == 3) {
     return cmd_run(argv[2]);
+  }
+  if (argc >= 2 && strcmp(argv[1], "run-embedded") == 0 && argc == 5) {
+    return cmd_run_embedded(argv[2], argv[3], argv[4]);
   }
   if (argc >= 2 && strcmp(argv[1], "dump") == 0 && argc == 3) {
     return cmd_dump(argv[2]);
