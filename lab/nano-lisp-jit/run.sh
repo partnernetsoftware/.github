@@ -65,7 +65,7 @@ CALL42_LINK_EXE="$BUILD_DIR/nano_call42_linked"
 DUP42_OBJ="$BUILD_DIR/nano_dup42.o"
 CALL42_C="$BUILD_DIR/nano_call42_main.c"
 CALL42_EXE="$BUILD_DIR/nano_call42"
-RUNNER="$BUILD_DIR/nano-listp"
+RUNNER="$BUILD_DIR/nano-lisp-jit"
 RESULTS="$BUILD_DIR/results.txt"
 NANO_C="$ROOT_DIR/lab/lispjit-ir/lispjit.c"
 
@@ -148,7 +148,7 @@ run_case() {
   return "$status"
 }
 
-log "# nano-listp .lisp to .lbin probe"
+log "# nano-lisp-jit .lisp to .lbin probe"
 log "source.path=$SRC"
 log "source.bytes=$(bytes_of "$SRC")"
 log "arithmetic.source.path=$ARITH_SRC"
@@ -168,7 +168,7 @@ log "bootstrap.aot.source.bytes=$(bytes_of "$BOOTSTRAP_AOT_SRC")"
 log "smoke.source.path=$SMOKE_SRC"
 log "smoke.source.bytes=$(bytes_of "$SMOKE_SRC")"
 
-run_case "build-native-nano-listp" cc -DNANO_LISTP -Os -s "$NANO_C" -ldl -o "$RUNNER"
+run_case "build-native-nano-lisp-jit" cc -DNANO_LISP_JIT -Os -s "$NANO_C" -ldl -o "$RUNNER"
 log "native.runtime.bytes=$(bytes_of "$RUNNER")"
 
 run_case "compile-lisp-to-lbin" "$RUNNER" compile "$SRC" "$BLOB"

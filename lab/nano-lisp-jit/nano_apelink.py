@@ -35,7 +35,7 @@ def read(path: str) -> bytes:
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description="tiny stage0 APE packer for nano-listp")
+    ap = argparse.ArgumentParser(description="tiny stage0 APE packer for nano-lisp-jit")
     ap.add_argument("-o", "--output", required=True)
     ap.add_argument("--x86_64", required=True)
     ap.add_argument("--aarch64", required=True)

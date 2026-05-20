@@ -242,7 +242,7 @@ if [ ! -x "$X86_CC" ] || [ ! -x "$ARM_CC" ]; then
 fi
 
 COMMON=(
-  -DNANO_LISTP
+  -DNANO_LISP_JIT
   -Os
   -mtiny
   -ffunction-sections
