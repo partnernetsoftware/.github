@@ -54,6 +54,7 @@ BUILD_DIR="$LAB_DIR/.build/nano-jit"
 NANO_C="$ROOT_DIR/lab/lispjit-ir/lispjit.c"
 SMOKE_SRC="$LAB_DIR/samples/libc-smoke.lisp"
 SMOKE_BLOB="$BUILD_DIR/libc-smoke.lbin"
+SMOKE_APP="$BUILD_DIR/libc-smoke-app.com"
 RESOLVE_SRC="$BUILD_DIR/libc-resolve.lisp"
 RESOLVE_BLOB="$BUILD_DIR/libc-resolve.lbin"
 REPORT="$BUILD_DIR/bootstrap-report.txt"
@@ -119,6 +120,16 @@ run_case "self-pack-nano-jit-com" "$PACKER" pack-ape \
 
 run_case "nano-jit-compile-smoke" "$BUILD_DIR/nano-jit.com" compile "$SMOKE_SRC" "$SMOKE_BLOB"
 run_case "nano-jit-run-smoke" "$BUILD_DIR/nano-jit.com" run "$SMOKE_BLOB"
+run_case "nano-jit-pack-smoke-app" "$BUILD_DIR/nano-jit.com" pack-app \
+  "$SMOKE_APP" \
+  "$BUILD_DIR/nano-jit.x86_64" \
+  "$BUILD_DIR/nano-jit.aarch64" \
+  "$SMOKE_BLOB"
+{
+  echo "libc-smoke-app.com.bytes=$(bytes_of "$SMOKE_APP")"
+  echo "libc-smoke-app.com.sha256=$(sha256_of "$SMOKE_APP")"
+} | tee -a "$REPORT"
+run_case "nano-jit-run-smoke-app" "$SMOKE_APP"
 run_case "generate-libc-resolve-manifest" python3 "$LAB_DIR/gen_libc_resolve.py" "$RESOLVE_SRC"
 run_case "nano-jit-compile-libc-resolve" "$BUILD_DIR/nano-jit.com" compile "$RESOLVE_SRC" "$RESOLVE_BLOB"
 run_case "nano-jit-resolve-libc" "$BUILD_DIR/nano-jit.com" resolve --quiet "$RESOLVE_BLOB"
