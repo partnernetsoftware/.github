@@ -44,9 +44,11 @@ extern void *cosmo_dlsym(void *handle, const char *symbol);
 #define OP_CALL_IMPORT_CONST2 3u
 #define OP_RESOLVE_IMPORT 4u
 #define OP_CALL_IMPORT_VOID 5u
+#define OP_EXPECT_U64 6u
 
 #define SRC_FORM_CALL 1u
 #define SRC_FORM_RESOLVE 2u
+#define SRC_FORM_EXPECT 3u
 
 typedef uint64_t (*jit_entry_fn)(void);
 typedef int (*ffi_i32_ptr_fn)(const char *);
@@ -70,6 +72,7 @@ typedef struct {
   char *import_name;
   char *const_name;
   char *const2_name;
+  uint64_t imm;
 } InstrDef;
 
 typedef struct {
@@ -334,7 +337,8 @@ static int add_const(Module *m, char *name, char *value) {
   return 1;
 }
 
-static int add_instr(Module *m, uint32_t form, char *import_name, char *const_name, char *const2_name) {
+static int add_instr(Module *m, uint32_t form, char *import_name, char *const_name,
+                     char *const2_name, uint64_t imm) {
   if (m->instr_count == m->instr_cap) {
     size_t next = m->instr_cap ? m->instr_cap * 2 : 4;
     InstrDef *p = (InstrDef *)realloc(m->instrs, next * sizeof(*p));
@@ -342,8 +346,16 @@ static int add_instr(Module *m, uint32_t form, char *import_name, char *const_na
     m->instrs = p;
     m->instr_cap = next;
   }
-  m->instrs[m->instr_count++] = (InstrDef){form, import_name, const_name, const2_name};
+  m->instrs[m->instr_count++] = (InstrDef){form, import_name, const_name, const2_name, imm};
   return 1;
+}
+
+static int parse_u64_atom(const char *s, uint64_t *out) {
+  char *end = NULL;
+  unsigned long long v = strtoull(s, &end, 10);
+  if (!s || !s[0] || !end || *end) return 0;
+  *out = (uint64_t)v;
+  return (unsigned long long)*out == v;
 }
 
 static int parse_import_form(const char **p, Module *m) {
@@ -376,7 +388,13 @@ static int parse_main_form(const char **p, Module *m) {
     if (strcmp(head, "resolve") == 0) {
       char *import_name = parse_atom(p);
       ok = import_name && eat(p, ')') &&
-           add_instr(m, SRC_FORM_RESOLVE, import_name, NULL, NULL);
+           add_instr(m, SRC_FORM_RESOLVE, import_name, NULL, NULL, 0);
+    } else if (strcmp(head, "expect") == 0) {
+      char *value = parse_atom(p);
+      uint64_t expected = 0;
+      ok = value && parse_u64_atom(value, &expected) && eat(p, ')') &&
+           add_instr(m, SRC_FORM_EXPECT, NULL, NULL, NULL, expected);
+      free(value);
     } else if (strcmp(head, "call") == 0) {
       char *import_name = parse_atom(p);
       char *const_name = NULL;
@@ -392,7 +410,7 @@ static int parse_main_form(const char **p, Module *m) {
         }
       }
       ok = import_name && eat(p, ')') &&
-           add_instr(m, SRC_FORM_CALL, import_name, const_name, const2_name);
+           add_instr(m, SRC_FORM_CALL, import_name, const_name, const2_name, 0);
     }
     free(head);
     if (!ok) return 0;
@@ -481,6 +499,11 @@ static unsigned char *compile_module(const Module *m, size_t *out_n) {
 
   for (size_t i = 0; i < m->instr_count; ++i) {
     const InstrDef *in = &m->instrs[i];
+    if (in->form == SRC_FORM_EXPECT) {
+      emit_instr(&instrs, OP_EXPECT_U64, (uint32_t)(in->imm & 0xffffffffu),
+                 (uint32_t)(in->imm >> 32));
+      continue;
+    }
     int import_idx = find_import(m, in->import_name);
     if (import_idx < 0) return NULL;
     if (in->form == SRC_FORM_RESOLVE) {
@@ -788,6 +811,16 @@ static int execute_blob(const Blob *b) {
       rc = resolve_import_ref(b, arg0, &ri);
       if (rc != 0) return rc;
       printf("resolve.%u=%s:%s sig=%s ok\n", pc, ri.lib, ri.sym, sig_name(ri.sig));
+      continue;
+    }
+    if (op == OP_EXPECT_U64) {
+      uint64_t expected = (uint64_t)arg0 | ((uint64_t)arg1 << 32);
+      if (last != expected) {
+        fprintf(stderr, "expect.%u=fail expected=%llu actual=%llu\n", pc,
+                (unsigned long long)expected, (unsigned long long)last);
+        return 19;
+      }
+      printf("expect.%u=ok expected=%llu\n", pc, (unsigned long long)expected);
       continue;
     }
     rc = resolve_import_ref(b, arg0, &ri);

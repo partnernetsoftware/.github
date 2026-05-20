@@ -70,3 +70,4 @@
 - AOT app 直接从 `.com` payload 读取内嵌 blob 执行。
 - AOT app 结构化 manifest 和 `inspect-app`。
 - deterministic `.lbin` hash/byte compare 测试。
+- `(expect N)` 断言 op，smoke `.lbin` 可自证关键 FFI/JIT 结果。

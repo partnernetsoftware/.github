@@ -24,7 +24,9 @@
 (module
   (import strlen "libc" "strlen" "u64(ptr)")
   (const arg "ffi")
-  (main (call strlen arg)))
+  (main
+    (call strlen arg)
+    (expect 3)))
 ```
 
 ## 当前能力
@@ -36,6 +38,7 @@
 - `run-embedded`：从 `.com` 容器内按 payload 偏移直接读取并执行内嵌 blob。
 - `inspect-app`：读取 AOT app manifest，输出 runtime slice 和 blob 的 offset/size。
 - `hash`：输出 `.lbin` 的内建 FNV-1a 64-bit hash，用于 deterministic 编译测试。
+- `(expect N)`：在 `.lbin` 内断言上一条调用结果，失败时 runtime 返回非零。
 - `pack-app`：把 runtime slices 和 `.lbin` 打进一个多架构 `.com` 应用，运行时直接从自身容器执行内嵌 blob。
 - 当前签名：`addr`、`u64(ptr)`、`i32(ptr)`、`i32(ptr,ptr)`、`i32()`。
 - `u64(ptr)` 仍走 x86_64/aarch64 JIT call stub；其他安全 smoke 签名先用 typed C call。
