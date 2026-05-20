@@ -62,6 +62,8 @@ ARITH_I64_LINK_EXE="$BUILD_DIR/arithmetic_i64_linked"
 ARITH_LINK_EXE="$BUILD_DIR/arithmetic_linked"
 ARITH_DIRECT_EXE="$BUILD_DIR/arithmetic_direct"
 ARITH_I64_DIRECT_EXE="$BUILD_DIR/arithmetic_i64_direct"
+ARITH_I64_DIRECT_OBJ="$BUILD_DIR/arithmetic_i64_direct.o"
+ARITH_I64_DIRECT_LINK_EXE="$BUILD_DIR/arithmetic_i64_direct_linked"
 ARITH_DIRECT_OBJ="$BUILD_DIR/arithmetic_direct.o"
 ARITH_DIRECT_OBJ_C="$BUILD_DIR/arithmetic_direct_main.c"
 ARITH_DIRECT_OBJ_EXE="$BUILD_DIR/arithmetic_direct_obj"
@@ -273,6 +275,9 @@ if [ "$(uname -m)" = "x86_64" ] || [ "$(uname -m)" = "amd64" ]; then
   run_case "run-direct-compiled-arithmetic42" bash -c '"$1"; status=$?; test "$status" -eq 42' _ "$ARITH_DIRECT_EXE"
   run_case "compile-arithmetic-i64-elf64-code42" "$RUNNER" compile-elf64-code "$ARITH_I64_SRC" "$ARITH_I64_DIRECT_EXE"
   run_case "run-direct-compiled-arithmetic-i64-42" bash -c '"$1"; status=$?; test "$status" -eq 42' _ "$ARITH_I64_DIRECT_EXE"
+  run_case "compile-arithmetic-i64-elf64-obj-code42" "$RUNNER" compile-elf64-obj-code "$ARITH_I64_SRC" "$ARITH_I64_DIRECT_OBJ" nano_arith_i64_direct
+  run_case "tiny-link-direct-compiled-arithmetic-i64-obj42" "$RUNNER" link-elf64-exe "$ARITH_I64_DIRECT_LINK_EXE" nano_arith_i64_direct "$ARITH_I64_DIRECT_OBJ"
+  run_case "run-tiny-linked-direct-arithmetic-i64-obj42" bash -c '"$1"; status=$?; test "$status" -eq 42' _ "$ARITH_I64_DIRECT_LINK_EXE"
   run_case "compile-arithmetic-elf64-obj-code42" "$RUNNER" compile-elf64-obj-code "$ARITH_SRC" "$ARITH_DIRECT_OBJ" nano_arith_direct
   run_case "link-direct-compiled-arithmetic-obj42" cc "$ARITH_DIRECT_OBJ_C" "$ARITH_DIRECT_OBJ" -o "$ARITH_DIRECT_OBJ_EXE"
   run_case "run-direct-compiled-arithmetic-obj42" bash -c '"$1"; status=$?; test "$status" -eq 42' _ "$ARITH_DIRECT_OBJ_EXE"

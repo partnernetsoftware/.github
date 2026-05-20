@@ -58,6 +58,7 @@ extern void *cosmo_dlsym(void *handle, const char *symbol);
 #define OP_EXPECT_PTR 14u
 #define OP_BRANCH_BOOL 15u
 #define OP_ADD_I64 16u
+#define OP_SUB_I64 17u
 
 #define SRC_FORM_CALL 1u
 #define SRC_FORM_RESOLVE 2u
@@ -72,6 +73,7 @@ extern void *cosmo_dlsym(void *handle, const char *symbol);
 #define SRC_FORM_BRANCH 11u
 #define SRC_FORM_LABEL 12u
 #define SRC_FORM_ADD_I64 13u
+#define SRC_FORM_SUB_I64 14u
 
 #define AOT_STMT_CONST_U64 1u
 #define AOT_STMT_ADD_U64 2u
@@ -84,6 +86,7 @@ extern void *cosmo_dlsym(void *handle, const char *symbol);
 #define AOT_STMT_BRANCH_BOOL 9u
 #define AOT_STMT_LABEL 10u
 #define AOT_STMT_ADD_I64 11u
+#define AOT_STMT_SUB_I64 12u
 
 #define BOOTSTRAP_STEP_COMPILE 1u
 #define BOOTSTRAP_STEP_HASH 2u
@@ -309,6 +312,12 @@ static int value_add_u64(Value *v, uint64_t rhs) {
 static int value_add_i64(Value *v, int64_t rhs) {
   if (v->kind != VAL_I64) return 0;
   v->bits += (uint64_t)rhs;
+  return 1;
+}
+
+static int value_sub_i64(Value *v, int64_t rhs) {
+  if (v->kind != VAL_I64) return 0;
+  v->bits -= (uint64_t)rhs;
   return 1;
 }
 
@@ -744,15 +753,18 @@ static int parse_aot_body_items(const char **p, AotFunc *f) {
            aot_add_stmt(f, AOT_STMT_LABEL, 0, label);
       if (!ok) free(label);
     } else if (strcmp(head, "u64") == 0 || strcmp(head, "add-u64") == 0 ||
-               strcmp(head, "i64") == 0 || strcmp(head, "add-i64") == 0) {
+               strcmp(head, "i64") == 0 || strcmp(head, "add-i64") == 0 ||
+               strcmp(head, "sub-i64") == 0) {
       char *value = parse_atom(p);
       uint64_t imm = 0;
       int64_t i64 = 0;
       uint32_t kind = strcmp(head, "u64") == 0 ? AOT_STMT_CONST_U64 :
                       strcmp(head, "add-u64") == 0 ? AOT_STMT_ADD_U64 :
                       strcmp(head, "i64") == 0 ? AOT_STMT_CONST_I64 :
-                      AOT_STMT_ADD_I64;
-      if (strcmp(head, "i64") == 0 || strcmp(head, "add-i64") == 0) {
+                      strcmp(head, "add-i64") == 0 ? AOT_STMT_ADD_I64 :
+                      AOT_STMT_SUB_I64;
+      if (strcmp(head, "i64") == 0 || strcmp(head, "add-i64") == 0 ||
+          strcmp(head, "sub-i64") == 0) {
         ok = value && parse_i64_atom(value, &i64) && eat(p, ')') &&
              aot_add_stmt(f, kind, (uint64_t)i64, NULL);
       } else {
@@ -1086,15 +1098,18 @@ static int parse_main_items(const char **p, Module *m) {
       ok = label_name && eat(p, ')') &&
            add_instr(m, SRC_FORM_LABEL, label_name, NULL, NULL, 0);
     } else if (strcmp(head, "u64") == 0 || strcmp(head, "add-u64") == 0 ||
-               strcmp(head, "i64") == 0 || strcmp(head, "add-i64") == 0) {
+               strcmp(head, "i64") == 0 || strcmp(head, "add-i64") == 0 ||
+               strcmp(head, "sub-i64") == 0) {
       char *value = parse_atom(p);
       uint64_t imm = 0;
       int64_t i64 = 0;
       uint32_t form = strcmp(head, "u64") == 0 ? SRC_FORM_CONST_U64 :
                       strcmp(head, "add-u64") == 0 ? SRC_FORM_ADD_U64 :
                       strcmp(head, "i64") == 0 ? SRC_FORM_CONST_I64 :
-                      SRC_FORM_ADD_I64;
-      if (strcmp(head, "i64") == 0 || strcmp(head, "add-i64") == 0) {
+                      strcmp(head, "add-i64") == 0 ? SRC_FORM_ADD_I64 :
+                      SRC_FORM_SUB_I64;
+      if (strcmp(head, "i64") == 0 || strcmp(head, "add-i64") == 0 ||
+          strcmp(head, "sub-i64") == 0) {
         ok = value && parse_i64_atom(value, &i64) && eat(p, ')') &&
              add_instr(m, form, NULL, NULL, NULL, (uint64_t)i64);
       } else {
@@ -1280,11 +1295,13 @@ static unsigned char *compile_module(const Module *m, size_t *out_n) {
     const InstrDef *in = &m->instrs[i];
     if (in->form == SRC_FORM_LABEL) continue;
     if (in->form == SRC_FORM_CONST_U64 || in->form == SRC_FORM_ADD_U64 ||
-        in->form == SRC_FORM_CONST_I64 || in->form == SRC_FORM_ADD_I64) {
+        in->form == SRC_FORM_CONST_I64 || in->form == SRC_FORM_ADD_I64 ||
+        in->form == SRC_FORM_SUB_I64) {
       uint8_t op = in->form == SRC_FORM_CONST_U64 ? OP_CONST_U64 :
                    in->form == SRC_FORM_ADD_U64 ? OP_ADD_U64 :
                    in->form == SRC_FORM_CONST_I64 ? OP_CONST_I64 :
-                   OP_ADD_I64;
+                   in->form == SRC_FORM_ADD_I64 ? OP_ADD_I64 :
+                   OP_SUB_I64;
       emit_instr(&instrs, op, (uint32_t)(in->imm & 0xffffffffu),
                  (uint32_t)(in->imm >> 32));
       continue;
@@ -1802,6 +1819,20 @@ static int execute_blob(const Blob *b) {
         return 20;
       }
       printf("add-i64.%u=", pc);
+      print_value(stdout, last);
+      printf("\n");
+      pc++;
+      continue;
+    }
+    if (op == OP_SUB_I64) {
+      int64_t rhs = (int64_t)((uint64_t)arg0 | ((uint64_t)arg1 << 32));
+      if (!value_sub_i64(&last, rhs)) {
+        fprintf(stderr, "type.sub-i64=%u actual=", pc);
+        print_value(stderr, last);
+        fprintf(stderr, "\n");
+        return 20;
+      }
+      printf("sub-i64.%u=", pc);
       print_value(stdout, last);
       printf("\n");
       pc++;
@@ -2899,6 +2930,10 @@ static int eval_pure_blob(const Blob *b, Value *out) {
       int64_t rhs = (int64_t)((uint64_t)arg0 | ((uint64_t)arg1 << 32));
       if (!value_add_i64(&last, rhs)) return 0;
       pc++;
+    } else if (op == OP_SUB_I64) {
+      int64_t rhs = (int64_t)((uint64_t)arg0 | ((uint64_t)arg1 << 32));
+      if (!value_sub_i64(&last, rhs)) return 0;
+      pc++;
     } else if (op == OP_EXPECT_U64) {
       uint64_t expected = (uint64_t)arg0 | ((uint64_t)arg1 << 32);
       if (!value_expect_u64(last, expected)) return 0;
@@ -3060,11 +3095,23 @@ static int compile_pure_blob_to_x86(const Blob *b, Buf *code, int exit_style) {
         wr32(add_eax + 1, (uint32_t)(int32_t)imm_i64);
         buf_put(code, add_eax, sizeof(add_eax));
       }
+    } else if (op == OP_SUB_I64) {
+      if (last_kind != VAL_I64 || imm_i64 < INT32_MIN || imm_i64 > INT32_MAX) goto fail;
+      if (exit_style) {
+        unsigned char sub_edi[6] = {0x81, 0xef, 0, 0, 0, 0};
+        wr32(sub_edi + 2, (uint32_t)(int32_t)imm_i64);
+        buf_put(code, sub_edi, sizeof(sub_edi));
+      } else {
+        unsigned char sub_eax[5] = {0x2d, 0, 0, 0, 0};
+        wr32(sub_eax + 1, (uint32_t)(int32_t)imm_i64);
+        buf_put(code, sub_eax, sizeof(sub_eax));
+      }
     } else if (op == OP_EXPECT_U64 || op == OP_EXPECT_I64 || op == OP_EXPECT_BOOL) {
       uint32_t patch_off = 0;
       if (op == OP_EXPECT_U64) {
-        if (last_kind != VAL_U64) goto fail;
+        if (last_kind != VAL_U64 && last_kind != VAL_I64) goto fail;
         if (imm_u64 > UINT32_MAX) goto fail;
+        if (last_kind == VAL_I64 && imm_u64 > INT32_MAX) goto fail;
         if (exit_style) {
           unsigned char cmp_edi[6] = {0x81, 0xff, 0, 0, 0, 0};
           wr32(cmp_edi + 2, (uint32_t)imm_u64);
@@ -3238,7 +3285,7 @@ static int compile_aot_func_to_x86_ret(const AotFunc *func, Buf *code, Buf *call
         stmt->kind == AOT_STMT_EXPECT_U64) {
       if (stmt->imm > UINT32_MAX) goto fail;
     }
-    if (stmt->kind == AOT_STMT_ADD_I64) {
+    if (stmt->kind == AOT_STMT_ADD_I64 || stmt->kind == AOT_STMT_SUB_I64) {
       int64_t imm_i64 = (int64_t)stmt->imm;
       if (imm_i64 < INT32_MIN || imm_i64 > INT32_MAX) goto fail;
     }
@@ -3272,8 +3319,15 @@ static int compile_aot_func_to_x86_ret(const AotFunc *func, Buf *code, Buf *call
       unsigned char add_eax[5] = {0x05, 0, 0, 0, 0};
       wr32(add_eax + 1, (uint32_t)(int32_t)imm_i64);
       buf_put(code, add_eax, sizeof(add_eax));
+    } else if (stmt->kind == AOT_STMT_SUB_I64) {
+      int64_t imm_i64 = (int64_t)stmt->imm;
+      if (last_kind != VAL_I64) goto fail;
+      unsigned char sub_eax[5] = {0x2d, 0, 0, 0, 0};
+      wr32(sub_eax + 1, (uint32_t)(int32_t)imm_i64);
+      buf_put(code, sub_eax, sizeof(sub_eax));
     } else if (stmt->kind == AOT_STMT_EXPECT_U64) {
-      if (last_kind != VAL_U64) goto fail;
+      if (last_kind != VAL_U64 && last_kind != VAL_I64) goto fail;
+      if (last_kind == VAL_I64 && stmt->imm > INT32_MAX) goto fail;
       unsigned char cmp_eax[5] = {0x3d, 0, 0, 0, 0};
       unsigned char jne_fail[6] = {0x0f, 0x85, 0, 0, 0, 0};
       patch_off = (uint32_t)(code->len + sizeof(cmp_eax) + 2);
