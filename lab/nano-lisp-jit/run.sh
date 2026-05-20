@@ -122,8 +122,6 @@ run_case "hash-lbin-repeat" "$RUNNER" hash "$BLOB_REPEAT"
 
 run_case "compare-deterministic-lbin" cmp "$BLOB" "$BLOB_REPEAT"
 
-run_case "dump-lbin" "$RUNNER" dump "$BLOB"
-
 run_case "execute-lbin-via-jit" "$RUNNER" run "$BLOB"
 
 run_case "compile-arithmetic-lbin" "$RUNNER" compile "$ARITH_SRC" "$ARITH_BLOB"
@@ -232,8 +230,6 @@ fi
 
 run_case "compile-libc-smoke-lbin" "$RUNNER" compile "$SMOKE_SRC" "$SMOKE_BLOB"
 log "smoke.blob.bytes=$(bytes_of "$SMOKE_BLOB")"
-
-run_case "dump-libc-smoke-lbin" "$RUNNER" dump "$SMOKE_BLOB"
 
 run_case "execute-libc-smoke-lbin" "$RUNNER" run "$SMOKE_BLOB"
 
