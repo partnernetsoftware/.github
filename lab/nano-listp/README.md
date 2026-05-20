@@ -14,6 +14,7 @@
 ./nano-listp.com run-embedded app.com blob_offset blob_size
 ./nano-listp.com inspect-app app.com
 ./nano-listp.com emit-elf64-exit exit42.elf 42
+./nano-listp.com aot-elf64-exit arithmetic.lbin arithmetic.elf
 ./nano-listp.com hash strlen.lbin
 ./nano-listp.com resolve --quiet strlen.lbin
 ./nano-listp.com pack-app app.com nano-jit.x86_64 nano-jit.aarch64 strlen.lbin
@@ -49,6 +50,7 @@
 - `run-embedded`：从 `.com` 容器内按 payload 偏移直接读取并执行内嵌 blob。
 - `inspect-app`：读取 AOT app manifest，输出 runtime slice 和 blob 的 offset/size。
 - `emit-elf64-exit`：直接写最小 x86_64 Linux ELF，可作为替换 slice compiler 的第一块。
+- `aot-elf64-exit`：静态求值纯 VM `.lbin`，直接生成对应 exit code 的 ELF。
 - `hash`：输出 `.lbin` 的内建 FNV-1a 64-bit hash，用于 deterministic 编译测试。
 - `(expect N)`：在 `.lbin` 内断言上一条调用结果，失败时 runtime 返回非零。
 - `(u64 N)` / `(add-u64 N)`：最小 typed VM 算术内核，不依赖 FFI。

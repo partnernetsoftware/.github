@@ -14,6 +14,7 @@ SMOKE_BLOB="$BUILD_DIR/libc-smoke.lbin"
 LIBC_SRC="$BUILD_DIR/libc-resolve.lisp"
 LIBC_BLOB="$BUILD_DIR/libc-resolve.lbin"
 EXIT42="$BUILD_DIR/exit42.elf"
+ARITH_EXIT="$BUILD_DIR/arithmetic-aot.elf"
 RUNNER="$BUILD_DIR/nano-listp"
 RESULTS="$BUILD_DIR/results.txt"
 NANO_C="$ROOT_DIR/lab/lispjit-ir/lispjit.c"
@@ -78,6 +79,9 @@ if [ "$(uname -m)" = "x86_64" ] || [ "$(uname -m)" = "amd64" ]; then
   run_case "emit-elf64-exit42" "$RUNNER" emit-elf64-exit "$EXIT42" 42
   log "exit42.bytes=$(bytes_of "$EXIT42")"
   run_case "run-elf64-exit42" bash -c '"$1"; status=$?; test "$status" -eq 42' _ "$EXIT42"
+  run_case "aot-arithmetic-elf64-exit42" "$RUNNER" aot-elf64-exit "$ARITH_BLOB" "$ARITH_EXIT"
+  log "arithmetic.aot.bytes=$(bytes_of "$ARITH_EXIT")"
+  run_case "run-aot-arithmetic-exit42" bash -c '"$1"; status=$?; test "$status" -eq 42' _ "$ARITH_EXIT"
 else
   log ""
   log "## run-elf64-exit42"
