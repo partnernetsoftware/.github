@@ -39,3 +39,4 @@ bash lab/nano-listp/build_cosmo.sh
 ```
 
 `build_cosmo.sh` 输出 `lab/nano-listp/.build/nano-listp.com`，包含 x86_64 和 aarch64 APE 切片。
+默认构建使用 `-mtiny`、section GC 和禁用 unwind/stack protector 的 size profile；当前实测 `nano-listp.com` 约 462KB。

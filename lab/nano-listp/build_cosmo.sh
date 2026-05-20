@@ -49,7 +49,19 @@ if [ ! -x "$X86_CC" ] || [ ! -x "$ARM_CC" ] || [ ! -x "$APELINK" ]; then
   exit 2
 fi
 
-COMMON=(-DNANO_LISTP -Os "$NANO_C")
+COMMON=(
+  -DNANO_LISTP
+  -Os
+  -mtiny
+  -ffunction-sections
+  -fdata-sections
+  -Wl,--gc-sections
+  -fno-unwind-tables
+  -fno-asynchronous-unwind-tables
+  -fno-stack-protector
+  -fno-ident
+  "$NANO_C"
+)
 
 echo "[nano-listp] build x86_64"
 "$X86_CC" "${COMMON[@]}" -o "$BUILD_DIR/nano-listp.x86_64"
