@@ -45,10 +45,14 @@ extern void *cosmo_dlsym(void *handle, const char *symbol);
 #define OP_RESOLVE_IMPORT 4u
 #define OP_CALL_IMPORT_VOID 5u
 #define OP_EXPECT_U64 6u
+#define OP_CONST_U64 7u
+#define OP_ADD_U64 8u
 
 #define SRC_FORM_CALL 1u
 #define SRC_FORM_RESOLVE 2u
 #define SRC_FORM_EXPECT 3u
+#define SRC_FORM_CONST_U64 4u
+#define SRC_FORM_ADD_U64 5u
 
 typedef uint64_t (*jit_entry_fn)(void);
 typedef int (*ffi_i32_ptr_fn)(const char *);
@@ -389,6 +393,13 @@ static int parse_main_form(const char **p, Module *m) {
       char *import_name = parse_atom(p);
       ok = import_name && eat(p, ')') &&
            add_instr(m, SRC_FORM_RESOLVE, import_name, NULL, NULL, 0);
+    } else if (strcmp(head, "u64") == 0 || strcmp(head, "add-u64") == 0) {
+      char *value = parse_atom(p);
+      uint64_t imm = 0;
+      uint32_t form = strcmp(head, "u64") == 0 ? SRC_FORM_CONST_U64 : SRC_FORM_ADD_U64;
+      ok = value && parse_u64_atom(value, &imm) && eat(p, ')') &&
+           add_instr(m, form, NULL, NULL, NULL, imm);
+      free(value);
     } else if (strcmp(head, "expect") == 0) {
       char *value = parse_atom(p);
       uint64_t expected = 0;
@@ -499,6 +510,11 @@ static unsigned char *compile_module(const Module *m, size_t *out_n) {
 
   for (size_t i = 0; i < m->instr_count; ++i) {
     const InstrDef *in = &m->instrs[i];
+    if (in->form == SRC_FORM_CONST_U64 || in->form == SRC_FORM_ADD_U64) {
+      emit_instr(&instrs, in->form == SRC_FORM_CONST_U64 ? OP_CONST_U64 : OP_ADD_U64,
+                 (uint32_t)(in->imm & 0xffffffffu), (uint32_t)(in->imm >> 32));
+      continue;
+    }
     if (in->form == SRC_FORM_EXPECT) {
       emit_instr(&instrs, OP_EXPECT_U64, (uint32_t)(in->imm & 0xffffffffu),
                  (uint32_t)(in->imm >> 32));
@@ -821,6 +837,17 @@ static int execute_blob(const Blob *b) {
         return 19;
       }
       printf("expect.%u=ok expected=%llu\n", pc, (unsigned long long)expected);
+      continue;
+    }
+    if (op == OP_CONST_U64) {
+      last = (uint64_t)arg0 | ((uint64_t)arg1 << 32);
+      printf("u64.%u=%llu\n", pc, (unsigned long long)last);
+      continue;
+    }
+    if (op == OP_ADD_U64) {
+      uint64_t rhs = (uint64_t)arg0 | ((uint64_t)arg1 << 32);
+      last += rhs;
+      printf("add-u64.%u=%llu\n", pc, (unsigned long long)last);
       continue;
     }
     rc = resolve_import_ref(b, arg0, &ri);

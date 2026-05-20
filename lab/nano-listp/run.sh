@@ -5,9 +5,11 @@ LAB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$LAB_DIR/../.." && pwd)"
 BUILD_DIR="$LAB_DIR/.build"
 SRC="$LAB_DIR/samples/strlen.lisp"
+ARITH_SRC="$LAB_DIR/samples/arithmetic.lisp"
 SMOKE_SRC="$LAB_DIR/samples/libc-smoke.lisp"
 BLOB="$BUILD_DIR/strlen.lbin"
 BLOB_REPEAT="$BUILD_DIR/strlen-repeat.lbin"
+ARITH_BLOB="$BUILD_DIR/arithmetic.lbin"
 SMOKE_BLOB="$BUILD_DIR/libc-smoke.lbin"
 LIBC_SRC="$BUILD_DIR/libc-resolve.lisp"
 LIBC_BLOB="$BUILD_DIR/libc-resolve.lbin"
@@ -40,6 +42,8 @@ run_case() {
 log "# nano-listp .lisp to .lbin probe"
 log "source.path=$SRC"
 log "source.bytes=$(bytes_of "$SRC")"
+log "arithmetic.source.path=$ARITH_SRC"
+log "arithmetic.source.bytes=$(bytes_of "$ARITH_SRC")"
 log "smoke.source.path=$SMOKE_SRC"
 log "smoke.source.bytes=$(bytes_of "$SMOKE_SRC")"
 
@@ -61,6 +65,13 @@ run_case "compare-deterministic-lbin" cmp "$BLOB" "$BLOB_REPEAT"
 run_case "dump-lbin" "$RUNNER" dump "$BLOB"
 
 run_case "execute-lbin-via-jit" "$RUNNER" run "$BLOB"
+
+run_case "compile-arithmetic-lbin" "$RUNNER" compile "$ARITH_SRC" "$ARITH_BLOB"
+log "arithmetic.blob.bytes=$(bytes_of "$ARITH_BLOB")"
+
+run_case "hash-arithmetic-lbin" "$RUNNER" hash "$ARITH_BLOB"
+
+run_case "execute-arithmetic-lbin" "$RUNNER" run "$ARITH_BLOB"
 
 run_case "compile-libc-smoke-lbin" "$RUNNER" compile "$SMOKE_SRC" "$SMOKE_BLOB"
 log "smoke.blob.bytes=$(bytes_of "$SMOKE_BLOB")"
