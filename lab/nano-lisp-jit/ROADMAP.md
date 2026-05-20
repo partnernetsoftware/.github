@@ -83,6 +83,7 @@
 - `link-elf64-exe` 可链接当前 nano object 子集，初步替代系统 linker。
 - `compile-elf64-code` / `compile-elf64-obj-code` 可直接从 `.lisp` 生成 ELF/object。
 - tiny linker 支持多 object、`R_X86_64_PLT32` relocation、重复符号拒绝和 rel32 范围检查。
+- native/container AOT object 验证已从系统 `cc` linker oracle 迁到 nano `link-elf64-exe`。
 - ELF/object/linker 内部 API 已抽象成可复用 helper，减少 section/symbol/rela 写入与解析重复。
 - typed value 已覆盖 `i64`、`bool`、`ptr` 基础值；`resolve` 会产出 `ptr` 值。
 - typed 算术已覆盖 `add-i64` / `sub-i64`，进入解释执行、静态求值 AOT 和 x86_64 codegen/object 路径。
