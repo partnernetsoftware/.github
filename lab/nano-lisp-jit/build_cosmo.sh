@@ -50,7 +50,7 @@ if [ ! -x "$X86_CC" ] || [ ! -x "$ARM_CC" ] || [ ! -x "$APELINK" ]; then
 fi
 
 COMMON=(
-  -DNANO_LISTP
+  -DNANO_LISP_JIT
   -Os
   -mtiny
   -ffunction-sections
@@ -63,20 +63,20 @@ COMMON=(
   "$NANO_C"
 )
 
-echo "[nano-listp] build x86_64"
-"$X86_CC" "${COMMON[@]}" -o "$BUILD_DIR/nano-listp.x86_64"
+echo "[nano-lisp-jit] build x86_64"
+"$X86_CC" "${COMMON[@]}" -o "$BUILD_DIR/nano-lisp-jit.x86_64"
 
-echo "[nano-listp] build aarch64"
-"$ARM_CC" "${COMMON[@]}" -o "$BUILD_DIR/nano-listp.aarch64"
+echo "[nano-lisp-jit] build aarch64"
+"$ARM_CC" "${COMMON[@]}" -o "$BUILD_DIR/nano-lisp-jit.aarch64"
 
-echo "[nano-listp] link APE fat binary"
+echo "[nano-lisp-jit] link APE fat binary"
 "$APELINK" \
   -s \
   -l "$COSMO_BIN/ape-x86_64.elf" \
   -l "$COSMO_BIN/ape-aarch64.elf" \
   -M "$COSMO_BIN/ape-m1.c" \
-  -o "$BUILD_DIR/nano-listp.com" \
-  "$BUILD_DIR/nano-listp.x86_64" \
-  "$BUILD_DIR/nano-listp.aarch64"
+  -o "$BUILD_DIR/nano-lisp-jit.com" \
+  "$BUILD_DIR/nano-lisp-jit.x86_64" \
+  "$BUILD_DIR/nano-lisp-jit.aarch64"
 
-ls -l "$BUILD_DIR"/nano-listp.*
+ls -l "$BUILD_DIR"/nano-lisp-jit.*

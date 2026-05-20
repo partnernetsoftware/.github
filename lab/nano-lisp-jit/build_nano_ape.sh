@@ -45,7 +45,7 @@ if [ ! -x "$X86_CC" ] || [ ! -x "$ARM_CC" ]; then
 fi
 
 COMMON=(
-  -DNANO_LISTP
+  -DNANO_LISP_JIT
   -Os
   -mtiny
   -ffunction-sections
@@ -60,14 +60,14 @@ COMMON=(
 )
 
 echo "[nano-ape] build stripped x86_64 slice"
-"$X86_CC" "${COMMON[@]}" -o "$BUILD_DIR/nano-listp.x86_64"
+"$X86_CC" "${COMMON[@]}" -o "$BUILD_DIR/nano-lisp-jit.x86_64"
 
 echo "[nano-ape] build stripped aarch64 slice"
-"$ARM_CC" "${COMMON[@]}" -o "$BUILD_DIR/nano-listp.aarch64"
+"$ARM_CC" "${COMMON[@]}" -o "$BUILD_DIR/nano-lisp-jit.aarch64"
 
 case "$(uname -m)" in
-  x86_64|amd64) PACKER="$BUILD_DIR/nano-listp.x86_64" ;;
-  aarch64|arm64) PACKER="$BUILD_DIR/nano-listp.aarch64" ;;
+  x86_64|amd64) PACKER="$BUILD_DIR/nano-lisp-jit.x86_64" ;;
+  aarch64|arm64) PACKER="$BUILD_DIR/nano-lisp-jit.aarch64" ;;
   *)
     echo "host.arch=unsupported_for_self_pack"
     exit 2
@@ -76,8 +76,8 @@ esac
 
 echo "[nano-ape] pack without cosmocc apelink"
 "$PACKER" pack-ape \
-  "$BUILD_DIR/nano-listp.com" \
-  "$BUILD_DIR/nano-listp.x86_64" \
-  "$BUILD_DIR/nano-listp.aarch64"
+  "$BUILD_DIR/nano-lisp-jit.com" \
+  "$BUILD_DIR/nano-lisp-jit.x86_64" \
+  "$BUILD_DIR/nano-lisp-jit.aarch64"
 
-ls -l "$BUILD_DIR"/nano-listp.*
+ls -l "$BUILD_DIR"/nano-lisp-jit.*

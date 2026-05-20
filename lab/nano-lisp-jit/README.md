@@ -1,6 +1,6 @@
-# nano-listp
+# nano-lisp-jit
 
-目标：生成跨架构可执行的 `nano-listp.com`，把极小 Lisp-like 源码编译为 portable `.lbin` blob，并在运行时只加载 `.lbin` 执行。
+目标：生成跨架构可执行的 `nano-lisp-jit.com`，把极小 Lisp-like 源码编译为 portable `.lbin` blob，并在运行时只加载 `.lbin` 执行。
 
 长期目标：推进到可自举的 `nano-jit.com`：用 Lisp/IR 驱动 FFI、JIT、AOT，最终自己编译自己并生成多架构可运行 APE。
 路线图见 `ROADMAP.md`。
@@ -8,25 +8,26 @@
 ## CLI
 
 ```bash
-./nano-listp.com compile samples/strlen.lisp strlen.lbin
-./nano-listp.com dump strlen.lbin
-./nano-listp.com run strlen.lbin
-./nano-listp.com run-embedded app.com blob_offset blob_size
-./nano-listp.com inspect-app app.com
-./nano-listp.com emit-elf64-exit exit42.elf 42
-./nano-listp.com emit-elf64-obj-ret nano_ret42.o nano_ret 42
-./nano-listp.com emit-elf64-obj-call nano_call42.o nano_call nano_ext
-./nano-listp.com aot-elf64-exit arithmetic.lbin arithmetic.elf
-./nano-listp.com aot-elf64-obj-ret arithmetic.lbin arithmetic.o nano_arith
-./nano-listp.com aot-elf64-code arithmetic.lbin arithmetic-code.elf
-./nano-listp.com aot-elf64-obj-code arithmetic.lbin arithmetic-code.o nano_arith_code
-./nano-listp.com compile-elf64-code arithmetic.lisp arithmetic.elf
-./nano-listp.com compile-elf64-obj-code arithmetic.lisp arithmetic.o nano_arith_direct
-./nano-listp.com link-elf64-exe arithmetic.elf nano_arith_code arithmetic-code.o
-./nano-listp.com hash strlen.lbin
-./nano-listp.com resolve --quiet strlen.lbin
-./nano-listp.com run-bootstrap-plan samples/bootstrap-smoke.lisp
-./nano-listp.com pack-app app.com nano-jit.x86_64 nano-jit.aarch64 strlen.lbin
+./nano-lisp-jit.com compile samples/strlen.lisp strlen.lbin
+./nano-lisp-jit.com dump strlen.lbin
+./nano-lisp-jit.com run strlen.lbin
+./nano-lisp-jit.com run-embedded app.com blob_offset blob_size
+./nano-lisp-jit.com inspect-app app.com
+./nano-lisp-jit.com emit-elf64-exit exit42.elf 42
+./nano-lisp-jit.com emit-elf64-obj-ret nano_ret42.o nano_ret 42
+./nano-lisp-jit.com emit-elf64-obj-call nano_call42.o nano_call nano_ext
+./nano-lisp-jit.com aot-elf64-exit arithmetic.lbin arithmetic.elf
+./nano-lisp-jit.com aot-elf64-obj-ret arithmetic.lbin arithmetic.o nano_arith
+./nano-lisp-jit.com aot-elf64-code arithmetic.lbin arithmetic-code.elf
+./nano-lisp-jit.com aot-elf64-obj-code arithmetic.lbin arithmetic-code.o nano_arith_code
+./nano-lisp-jit.com compile-elf64-code arithmetic.lisp arithmetic.elf
+./nano-lisp-jit.com compile-elf64-obj-code arithmetic.lisp arithmetic.o nano_arith_direct
+./nano-lisp-jit.com compile-elf64-exe multi-func.lisp multi-func.elf nano_multi_entry
+./nano-lisp-jit.com link-elf64-exe arithmetic.elf nano_arith_code arithmetic-code.o [more.o...]
+./nano-lisp-jit.com hash strlen.lbin
+./nano-lisp-jit.com resolve --quiet strlen.lbin
+./nano-lisp-jit.com run-bootstrap-plan samples/bootstrap-smoke.lisp
+./nano-lisp-jit.com pack-app app.com nano-jit.x86_64 nano-jit.aarch64 strlen.lbin
 ```
 
 当前 `.lisp` 语法沿用最小 module DSL：
@@ -114,23 +115,29 @@ bootstrap 子流程现在也可以先用 `.lisp` 描述，再由 nano 自己执�
 
 ```lisp
 (bootstrap
-  (compile "lab/nano-listp/samples/libc-smoke.lisp" "lab/nano-listp/.build/bootstrap-smoke.lbin")
-  (hash "lab/nano-listp/.build/bootstrap-smoke.lbin")
-  (compile "lab/nano-listp/samples/libc-smoke.lisp" "lab/nano-listp/.build/bootstrap-smoke-repeat.lbin")
-  (compare "lab/nano-listp/.build/bootstrap-smoke.lbin" "lab/nano-listp/.build/bootstrap-smoke-repeat.lbin")
-  (run "lab/nano-listp/.build/bootstrap-smoke.lbin"))
+  (compile "lab/nano-lisp-jit/samples/libc-smoke.lisp" "lab/nano-lisp-jit/.build/bootstrap-smoke.lbin")
+  (hash "lab/nano-lisp-jit/.build/bootstrap-smoke.lbin")
+  (compile "lab/nano-lisp-jit/samples/libc-smoke.lisp" "lab/nano-lisp-jit/.build/bootstrap-smoke-repeat.lbin")
+  (compare "lab/nano-lisp-jit/.build/bootstrap-smoke.lbin" "lab/nano-lisp-jit/.build/bootstrap-smoke-repeat.lbin")
+  (run "lab/nano-lisp-jit/.build/bootstrap-smoke.lbin"))
 ```
 
 bootstrap DSL 也能描述一条最小 AOT/codegen/tiny-link 构建图，不需要外部 `cc/ld`：
 
 ```lisp
 (bootstrap
-  (compile "lab/nano-listp/samples/arithmetic.lisp" "lab/nano-listp/.build/bootstrap-aot-arithmetic.lbin")
-  (aot-elf64-code "lab/nano-listp/.build/bootstrap-aot-arithmetic.lbin" "lab/nano-listp/.build/bootstrap-aot-arithmetic-code.elf")
-  (run-expect-exit "lab/nano-listp/.build/bootstrap-aot-arithmetic-code.elf" 42)
-  (compile-elf64-obj-code "lab/nano-listp/samples/multi-func-control-flow.lisp" "lab/nano-listp/.build/bootstrap-aot-multi-ctrl.o" "nano_bootstrap_multi_ctrl")
-  (link-elf64-exe "lab/nano-listp/.build/bootstrap-aot-multi-ctrl-linked" "nano_bootstrap_multi_ctrl" "lab/nano-listp/.build/bootstrap-aot-multi-ctrl.o")
-  (run-expect-exit "lab/nano-listp/.build/bootstrap-aot-multi-ctrl-linked" 43))
+  (compile "lab/nano-lisp-jit/samples/arithmetic.lisp" "lab/nano-lisp-jit/.build/bootstrap-aot-arithmetic.lbin")
+  (aot-elf64-code "lab/nano-lisp-jit/.build/bootstrap-aot-arithmetic.lbin" "lab/nano-lisp-jit/.build/bootstrap-aot-arithmetic-code.elf")
+  (run-expect-exit "lab/nano-lisp-jit/.build/bootstrap-aot-arithmetic-code.elf" 42)
+  (compile "lab/nano-lisp-jit/samples/arithmetic-bad.lisp" "lab/nano-lisp-jit/.build/bootstrap-aot-arithmetic-bad.lbin")
+  (aot-elf64-code "lab/nano-lisp-jit/.build/bootstrap-aot-arithmetic-bad.lbin" "lab/nano-lisp-jit/.build/bootstrap-aot-arithmetic-bad-code.elf")
+  (run-expect-exit "lab/nano-lisp-jit/.build/bootstrap-aot-arithmetic-bad-code.elf" 125)
+  (emit-elf64-obj-call "lab/nano-lisp-jit/.build/bootstrap-aot-call42.o" "nano_bootstrap_call" "nano_bootstrap_ext")
+  (emit-elf64-obj-ret "lab/nano-lisp-jit/.build/bootstrap-aot-ext42.o" "nano_bootstrap_ext" 42)
+  (link-elf64-exe "lab/nano-lisp-jit/.build/bootstrap-aot-call42-linked" "nano_bootstrap_call" "lab/nano-lisp-jit/.build/bootstrap-aot-call42.o" "lab/nano-lisp-jit/.build/bootstrap-aot-ext42.o")
+  (run-expect-exit "lab/nano-lisp-jit/.build/bootstrap-aot-call42-linked" 42)
+  (emit-elf64-obj-ret "lab/nano-lisp-jit/.build/bootstrap-aot-dup42.o" "nano_bootstrap_ext" 7)
+  (link-expect-exit 2 "lab/nano-lisp-jit/.build/bootstrap-aot-dup-should-fail" "nano_bootstrap_call" "lab/nano-lisp-jit/.build/bootstrap-aot-call42.o" "lab/nano-lisp-jit/.build/bootstrap-aot-ext42.o" "lab/nano-lisp-jit/.build/bootstrap-aot-dup42.o"))
 ```
 
 ## 当前能力
@@ -138,7 +145,7 @@ bootstrap DSL 也能描述一条最小 AOT/codegen/tiny-link 构建图，不需�
 - `compile`：解析 `.lisp`，输出 `.lbin` portable blob。
 - `dump`：查看 blob header、import、const、instruction 数量。
 - `resolve`：验证 `.lbin` import table 的动态库和符号可解析；运行时会把解析到的函数地址放进当前 `ptr` typed value，适合全量 libc 导入测试或指针断言。
-- `run-bootstrap-plan`：读取最小 bootstrap DSL，顺序执行 `compile` / `hash` / `compare` / `pack-app` / `inspect-app` / `run` / `emit-elf64-exit` / `aot-elf64-exit` / `aot-elf64-code` / `aot-elf64-obj-code` / `compile-elf64-code` / `compile-elf64-obj-code` / `link-elf64-exe` / `run-expect-exit` 子流程，开始把 shell 片段迁到 `.lisp` 描述。
+- `run-bootstrap-plan`：读取最小 bootstrap DSL，顺序执行 `compile` / `hash` / `compare` / `resolve-quiet` / `pack-app` / `inspect-app` / `run` / `emit-elf64-exit` / `emit-elf64-obj-ret` / `emit-elf64-obj-call` / `aot-elf64-exit` / `aot-elf64-obj-ret` / `aot-elf64-code` / `aot-elf64-obj-code` / `compile-elf64-code` / `compile-elf64-obj-code` / `compile-elf64-exe` / `link-elf64-exe` / `link-expect-exit` / `run-expect-exit` 子流程，开始把 shell 片段迁到 `.lisp` 描述。
 - `run`：解析 `.lbin`，通过 `dlopen`/`dlsym` 找系统符号，执行 main 指令流。
 - `run-embedded`：从 `.com` 容器内按 payload 偏移直接读取并执行内嵌 blob。
 - `inspect-app`：读取 AOT app manifest，输出 runtime slice 和 blob 的 offset/size。
@@ -151,7 +158,8 @@ bootstrap DSL 也能描述一条最小 AOT/codegen/tiny-link 构建图，不需�
 - `aot-elf64-obj-code`：把纯 VM typed/control-flow 子集编译成可链接的 ELF64 function object。
 - `compile-elf64-code` / `compile-elf64-obj-code`：直接从 `.lisp` 生成 ELF 或 object，减少外部脚本胶水。
 - `compile-elf64-obj-code` 当前已支持多函数 pure VM source、内部 `call`、基础 relocation，以及 `i64` / `bool` / `branch` / `label` typed/control-flow 子集。
-- `link-elf64-exe`：链接当前 nano object 子集，输出可运行 x86_64 ELF。
+- `compile-elf64-exe`：直接从多函数 pure VM source 生成可运行 ELF，内部复用 object backend 和 tiny linker。
+- `link-elf64-exe`：链接当前 nano object 子集，支持 `input.o...` 多 object，输出可运行 x86_64 ELF。
 - `hash`：输出 `.lbin` 的内建 FNV-1a 64-bit hash，用于 deterministic 编译测试。
 - `(expect N)` / `(expect -N)` / `(expect true|false)` / `(expect null|nonnull)`：在 `.lbin` 内断言上一条结果，失败时 runtime 返回非零。
 - `(u64 N)` / `(add-u64 N)` / `(i64 N)` / `(bool true|false)`：最小 typed VM 内核，不依赖 FFI。
@@ -167,13 +175,13 @@ bootstrap DSL 也能描述一条最小 AOT/codegen/tiny-link 构建图，不需�
 
 ```bash
 cd /workspace
-bash lab/nano-listp/run.sh
-bash lab/nano-listp/build_cosmo.sh
-bash lab/nano-listp/build_nano_ape.sh
-bash lab/nano-listp/build_nano_jit.sh
+bash lab/nano-lisp-jit/run.sh
+bash lab/nano-lisp-jit/build_cosmo.sh
+bash lab/nano-lisp-jit/build_nano_ape.sh
+bash lab/nano-lisp-jit/build_nano_jit.sh
 ```
 
-`build_cosmo.sh` 输出 `lab/nano-listp/.build/nano-listp.com`，包含 x86_64 和 aarch64 APE 切片。
-默认构建使用 `-mtiny`、section GC 和禁用 unwind/stack protector 的 size profile；当前实测 `nano-listp.com` 约 462KB。
-`build_nano_ape.sh` 使用刚编出的 `nano-listp` 自身执行 `pack-ape`，打包 x86_64/aarch64 ELF，不调用 `cosmocc` 的 `apelink`；`nano_apelink.py` 仅保留作参考实现。
+`build_cosmo.sh` 输出 `lab/nano-lisp-jit/.build/nano-lisp-jit.com`，包含 x86_64 和 aarch64 APE 切片。
+默认构建使用 `-mtiny`、section GC 和禁用 unwind/stack protector 的 size profile；当前实测 `nano-lisp-jit.com` 约 462KB。
+`build_nano_ape.sh` 使用刚编出的 `nano-lisp-jit` 自身执行 `pack-ape`，打包 x86_64/aarch64 ELF，不调用 `cosmocc` 的 `apelink`；`nano_apelink.py` 仅保留作参考实现。
 `build_nano_jit.sh` 生成 `nano-jit.com` 并写出 `bootstrap-report.txt`；当前仍临时使用 `cosmocc` 编译架构切片，但 `.com` 打包、AOT app 打包和 blob 自测由 `nano-jit` 自己完成。
