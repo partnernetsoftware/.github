@@ -153,73 +153,73 @@ run_case "execute-control-flow-lbin" "$RUNNER" run "$CTRL_BLOB"
 if [ "$(uname -m)" = "x86_64" ] || [ "$(uname -m)" = "amd64" ]; then
   run_case "emit-elf64-exit42" "$RUNNER" emit-elf64-exit "$EXIT42" 42
   log "exit42.bytes=$(bytes_of "$EXIT42")"
-  run_case "run-elf64-exit42" bash -c '"$1"; status=$?; test "$status" -eq 42' _ "$EXIT42"
+  run_case "run-elf64-exit42" "$RUNNER" run-expect-exit "$EXIT42" 42
   run_case "aot-arithmetic-elf64-exit42" "$RUNNER" aot-elf64-exit "$ARITH_BLOB" "$ARITH_EXIT"
   log "arithmetic.aot.bytes=$(bytes_of "$ARITH_EXIT")"
-  run_case "run-aot-arithmetic-exit42" bash -c '"$1"; status=$?; test "$status" -eq 42' _ "$ARITH_EXIT"
+  run_case "run-aot-arithmetic-exit42" "$RUNNER" run-expect-exit "$ARITH_EXIT" 42
   run_case "aot-arithmetic-elf64-code42" "$RUNNER" aot-elf64-code "$ARITH_BLOB" "$ARITH_CODE"
   log "arithmetic.codegen.bytes=$(bytes_of "$ARITH_CODE")"
-  run_case "run-aot-arithmetic-code42" bash -c '"$1"; status=$?; test "$status" -eq 42' _ "$ARITH_CODE"
+  run_case "run-aot-arithmetic-code42" "$RUNNER" run-expect-exit "$ARITH_CODE" 42
   run_case "aot-arithmetic-i64-elf64-code42" "$RUNNER" aot-elf64-code "$ARITH_I64_BLOB" "$ARITH_I64_CODE"
-  run_case "run-aot-arithmetic-i64-code42" bash -c '"$1"; status=$?; test "$status" -eq 42' _ "$ARITH_I64_CODE"
+  run_case "run-aot-arithmetic-i64-code42" "$RUNNER" run-expect-exit "$ARITH_I64_CODE" 42
   run_case "compile-bad-arithmetic-lbin" "$RUNNER" compile "$BAD_ARITH_SRC" "$BAD_ARITH_BLOB"
   run_case "aot-bad-arithmetic-elf64-code" "$RUNNER" aot-elf64-code "$BAD_ARITH_BLOB" "$BAD_ARITH_CODE"
-  run_case "run-aot-bad-arithmetic-expect125" bash -c '"$1"; status=$?; test "$status" -eq 125' _ "$BAD_ARITH_CODE"
+  run_case "run-aot-bad-arithmetic-expect125" "$RUNNER" run-expect-exit "$BAD_ARITH_CODE" 125
   run_case "aot-control-flow-elf64-exit1" "$RUNNER" aot-elf64-exit "$CTRL_BLOB" "$CTRL_EXIT"
-  run_case "run-aot-control-flow-exit1" bash -c '"$1"; status=$?; test "$status" -eq 1' _ "$CTRL_EXIT"
+  run_case "run-aot-control-flow-exit1" "$RUNNER" run-expect-exit "$CTRL_EXIT" 1
   run_case "aot-control-flow-elf64-obj-ret1" "$RUNNER" aot-elf64-obj-ret "$CTRL_BLOB" "$CTRL_OBJ" nano_ctrl
   run_case "link-aot-control-flow-obj1" "$RUNNER" link-elf64-exe "$CTRL_OBJ_EXE" nano_ctrl "$CTRL_OBJ"
-  run_case "run-aot-control-flow-obj1" bash -c '"$1"; status=$?; test "$status" -eq 1' _ "$CTRL_OBJ_EXE"
+  run_case "run-aot-control-flow-obj1" "$RUNNER" run-expect-exit "$CTRL_OBJ_EXE" 1
   run_case "aot-control-flow-elf64-code1" "$RUNNER" aot-elf64-code "$CTRL_BLOB" "$CTRL_CODE"
-  run_case "run-aot-control-flow-code1" bash -c '"$1"; status=$?; test "$status" -eq 1' _ "$CTRL_CODE"
+  run_case "run-aot-control-flow-code1" "$RUNNER" run-expect-exit "$CTRL_CODE" 1
   run_case "aot-control-flow-elf64-obj-code1" "$RUNNER" aot-elf64-obj-code "$CTRL_BLOB" "$CTRL_CODE_OBJ" nano_ctrl_code
   run_case "tiny-link-aot-control-flow-obj-code1" "$RUNNER" link-elf64-exe "$CTRL_LINK_EXE" nano_ctrl_code "$CTRL_CODE_OBJ"
-  run_case "run-tiny-linked-control-flow1" bash -c '"$1"; status=$?; test "$status" -eq 1' _ "$CTRL_LINK_EXE"
+  run_case "run-tiny-linked-control-flow1" "$RUNNER" run-expect-exit "$CTRL_LINK_EXE" 1
   run_case "compile-control-flow-elf64-code1" "$RUNNER" compile-elf64-code "$CTRL_SRC" "$CTRL_DIRECT_EXE"
-  run_case "run-direct-compiled-control-flow1" bash -c '"$1"; status=$?; test "$status" -eq 1' _ "$CTRL_DIRECT_EXE"
+  run_case "run-direct-compiled-control-flow1" "$RUNNER" run-expect-exit "$CTRL_DIRECT_EXE" 1
   run_case "emit-elf64-obj-ret42" "$RUNNER" emit-elf64-obj-ret "$RET42_OBJ" nano_ret 42
   log "ret42.obj.bytes=$(bytes_of "$RET42_OBJ")"
   run_case "link-elf64-obj-ret42" "$RUNNER" link-elf64-exe "$RET42_EXE" nano_ret "$RET42_OBJ"
-  run_case "run-elf64-obj-ret42" bash -c '"$1"; status=$?; test "$status" -eq 42' _ "$RET42_EXE"
+  run_case "run-elf64-obj-ret42" "$RUNNER" run-expect-exit "$RET42_EXE" 42
   run_case "aot-arithmetic-elf64-obj-ret42" "$RUNNER" aot-elf64-obj-ret "$ARITH_BLOB" "$ARITH_OBJ" nano_arith
   log "arithmetic.obj.bytes=$(bytes_of "$ARITH_OBJ")"
   run_case "link-aot-arithmetic-obj-ret42" "$RUNNER" link-elf64-exe "$ARITH_OBJ_EXE" nano_arith "$ARITH_OBJ"
-  run_case "run-aot-arithmetic-obj-ret42" bash -c '"$1"; status=$?; test "$status" -eq 42' _ "$ARITH_OBJ_EXE"
+  run_case "run-aot-arithmetic-obj-ret42" "$RUNNER" run-expect-exit "$ARITH_OBJ_EXE" 42
   run_case "aot-arithmetic-elf64-obj-code42" "$RUNNER" aot-elf64-obj-code "$ARITH_BLOB" "$ARITH_CODE_OBJ" nano_arith_code
   log "arithmetic.code.obj.bytes=$(bytes_of "$ARITH_CODE_OBJ")"
   run_case "tiny-link-aot-arithmetic-obj-code42" "$RUNNER" link-elf64-exe "$ARITH_LINK_EXE" nano_arith_code "$ARITH_CODE_OBJ"
   log "arithmetic.tiny.link.bytes=$(bytes_of "$ARITH_LINK_EXE")"
-  run_case "run-tiny-linked-arithmetic42" bash -c '"$1"; status=$?; test "$status" -eq 42' _ "$ARITH_LINK_EXE"
+  run_case "run-tiny-linked-arithmetic42" "$RUNNER" run-expect-exit "$ARITH_LINK_EXE" 42
   run_case "aot-arithmetic-i64-elf64-obj-code42" "$RUNNER" aot-elf64-obj-code "$ARITH_I64_BLOB" "$ARITH_I64_CODE_OBJ" nano_arith_i64_code
   run_case "tiny-link-aot-arithmetic-i64-obj-code42" "$RUNNER" link-elf64-exe "$ARITH_I64_LINK_EXE" nano_arith_i64_code "$ARITH_I64_CODE_OBJ"
-  run_case "run-tiny-linked-arithmetic-i64-42" bash -c '"$1"; status=$?; test "$status" -eq 42' _ "$ARITH_I64_LINK_EXE"
+  run_case "run-tiny-linked-arithmetic-i64-42" "$RUNNER" run-expect-exit "$ARITH_I64_LINK_EXE" 42
   run_case "compile-arithmetic-elf64-code42" "$RUNNER" compile-elf64-code "$ARITH_SRC" "$ARITH_DIRECT_EXE"
   log "arithmetic.direct.bytes=$(bytes_of "$ARITH_DIRECT_EXE")"
-  run_case "run-direct-compiled-arithmetic42" bash -c '"$1"; status=$?; test "$status" -eq 42' _ "$ARITH_DIRECT_EXE"
+  run_case "run-direct-compiled-arithmetic42" "$RUNNER" run-expect-exit "$ARITH_DIRECT_EXE" 42
   run_case "compile-arithmetic-i64-elf64-code42" "$RUNNER" compile-elf64-code "$ARITH_I64_SRC" "$ARITH_I64_DIRECT_EXE"
-  run_case "run-direct-compiled-arithmetic-i64-42" bash -c '"$1"; status=$?; test "$status" -eq 42' _ "$ARITH_I64_DIRECT_EXE"
+  run_case "run-direct-compiled-arithmetic-i64-42" "$RUNNER" run-expect-exit "$ARITH_I64_DIRECT_EXE" 42
   run_case "compile-arithmetic-i64-elf64-obj-code42" "$RUNNER" compile-elf64-obj-code "$ARITH_I64_SRC" "$ARITH_I64_DIRECT_OBJ" nano_arith_i64_direct
   run_case "tiny-link-direct-compiled-arithmetic-i64-obj42" "$RUNNER" link-elf64-exe "$ARITH_I64_DIRECT_LINK_EXE" nano_arith_i64_direct "$ARITH_I64_DIRECT_OBJ"
-  run_case "run-tiny-linked-direct-arithmetic-i64-obj42" bash -c '"$1"; status=$?; test "$status" -eq 42' _ "$ARITH_I64_DIRECT_LINK_EXE"
+  run_case "run-tiny-linked-direct-arithmetic-i64-obj42" "$RUNNER" run-expect-exit "$ARITH_I64_DIRECT_LINK_EXE" 42
   run_case "compile-arithmetic-elf64-obj-code42" "$RUNNER" compile-elf64-obj-code "$ARITH_SRC" "$ARITH_DIRECT_OBJ" nano_arith_direct
   run_case "link-direct-compiled-arithmetic-obj42" "$RUNNER" link-elf64-exe "$ARITH_DIRECT_OBJ_EXE" nano_arith_direct "$ARITH_DIRECT_OBJ"
-  run_case "run-direct-compiled-arithmetic-obj42" bash -c '"$1"; status=$?; test "$status" -eq 42' _ "$ARITH_DIRECT_OBJ_EXE"
+  run_case "run-direct-compiled-arithmetic-obj42" "$RUNNER" run-expect-exit "$ARITH_DIRECT_OBJ_EXE" 42
   run_case "compile-multi-func-elf64-obj43" "$RUNNER" compile-elf64-obj-code "$MULTI_SRC" "$MULTI_OBJ" nano_multi_entry
   log "multi.obj.bytes=$(bytes_of "$MULTI_OBJ")"
   run_case "tiny-link-multi-func-obj43" "$RUNNER" link-elf64-exe "$MULTI_LINK_EXE" nano_multi_entry "$MULTI_OBJ"
   log "multi.tiny.link.bytes=$(bytes_of "$MULTI_LINK_EXE")"
-  run_case "run-tiny-linked-multi-func43" bash -c '"$1"; status=$?; test "$status" -eq 43' _ "$MULTI_LINK_EXE"
+  run_case "run-tiny-linked-multi-func43" "$RUNNER" run-expect-exit "$MULTI_LINK_EXE" 43
   run_case "compile-multi-func-control-flow-elf64-obj43" "$RUNNER" compile-elf64-obj-code "$MULTI_CTRL_SRC" "$MULTI_CTRL_OBJ" nano_multi_ctrl
   log "multi.ctrl.obj.bytes=$(bytes_of "$MULTI_CTRL_OBJ")"
   run_case "tiny-link-multi-func-control-flow-obj43" "$RUNNER" link-elf64-exe "$MULTI_CTRL_LINK_EXE" nano_multi_ctrl "$MULTI_CTRL_OBJ"
   log "multi.ctrl.tiny.link.bytes=$(bytes_of "$MULTI_CTRL_LINK_EXE")"
-  run_case "run-tiny-linked-multi-func-control-flow43" bash -c '"$1"; status=$?; test "$status" -eq 43' _ "$MULTI_CTRL_LINK_EXE"
+  run_case "run-tiny-linked-multi-func-control-flow43" "$RUNNER" run-expect-exit "$MULTI_CTRL_LINK_EXE" 43
   run_case "emit-elf64-obj-call42" "$RUNNER" emit-elf64-obj-call "$CALL42_OBJ" nano_call nano_ext
   log "call42.obj.bytes=$(bytes_of "$CALL42_OBJ")"
   run_case "emit-elf64-obj-callee42" "$RUNNER" emit-elf64-obj-ret "$CALL42_CALLEE_OBJ" nano_ext 42
   run_case "tiny-link-elf64-obj-call42" "$RUNNER" link-elf64-exe "$CALL42_LINK_EXE" nano_call "$CALL42_OBJ" "$CALL42_CALLEE_OBJ"
   log "call42.tiny.link.bytes=$(bytes_of "$CALL42_LINK_EXE")"
-  run_case "run-tiny-linked-call42" bash -c '"$1"; status=$?; test "$status" -eq 42' _ "$CALL42_LINK_EXE"
+  run_case "run-tiny-linked-call42" "$RUNNER" run-expect-exit "$CALL42_LINK_EXE" 42
   run_case "emit-elf64-obj-duplicate-nano-ext" "$RUNNER" emit-elf64-obj-ret "$DUP42_OBJ" nano_ext 7
   run_case "tiny-link-reject-duplicate-symbol" bash -c 'if "$1" link-elf64-exe "$2" nano_call "$3" "$4" "$5"; then exit 1; else test "$?" -eq 2; fi' _ "$RUNNER" "$BUILD_DIR/dup_should_fail" "$CALL42_OBJ" "$CALL42_CALLEE_OBJ" "$DUP42_OBJ"
 else

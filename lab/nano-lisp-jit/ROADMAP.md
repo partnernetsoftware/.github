@@ -71,6 +71,7 @@
 - AOT app 结构化 manifest、`inspect-app` 和 `run-app`。
 - deterministic `.lbin` hash/byte compare 测试。
 - `compare` CLI 已替代系统 `cmp` 执行 deterministic blob 对比。
+- `run-expect-exit` CLI 已替代 native AOT smoke 中的 shell 退出码包装。
 - `(expect N)` 断言 op，smoke `.lbin` 可自证关键 FFI/JIT 结果。
 - `(u64 N)` / `(add-u64 N)` 纯 VM 算术 smoke，不依赖 FFI/libc。
 - `i32(i32)` FFI 签名，smoke 覆盖 `abs(-42) -> 42`。
