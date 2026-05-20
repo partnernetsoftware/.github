@@ -265,52 +265,52 @@ run_case "nano-jit-run-bootstrap-plan" "$BUILD_DIR/nano-jit.com" run-bootstrap-p
 run_case "nano-jit-compile-control-flow" "$BUILD_DIR/nano-jit.com" compile "$CTRL_SRC" "$CTRL_BLOB"
 run_case "nano-jit-run-control-flow" "$BUILD_DIR/nano-jit.com" run "$CTRL_BLOB"
 run_case "nano-jit-emit-elf64-exit42" "$BUILD_DIR/nano-jit.com" emit-elf64-exit "$EXIT42" 42
-run_case "nano-jit-run-elf64-exit42" bash -c '"$1"; status=$?; test "$status" -eq 42' _ "$EXIT42"
+run_case "nano-jit-run-elf64-exit42" "$BUILD_DIR/nano-jit.com" run-expect-exit "$EXIT42" 42
 run_case "nano-jit-aot-arithmetic-elf64-exit42" "$BUILD_DIR/nano-jit.com" aot-elf64-exit "$ARITH_BLOB" "$ARITH_EXIT"
-run_case "nano-jit-run-aot-arithmetic-exit42" bash -c '"$1"; status=$?; test "$status" -eq 42' _ "$ARITH_EXIT"
+run_case "nano-jit-run-aot-arithmetic-exit42" "$BUILD_DIR/nano-jit.com" run-expect-exit "$ARITH_EXIT" 42
 run_case "nano-jit-aot-arithmetic-elf64-code42" "$BUILD_DIR/nano-jit.com" aot-elf64-code "$ARITH_BLOB" "$ARITH_CODE"
-run_case "nano-jit-run-aot-arithmetic-code42" bash -c '"$1"; status=$?; test "$status" -eq 42' _ "$ARITH_CODE"
+run_case "nano-jit-run-aot-arithmetic-code42" "$BUILD_DIR/nano-jit.com" run-expect-exit "$ARITH_CODE" 42
 run_case "nano-jit-aot-arithmetic-i64-elf64-code42" "$BUILD_DIR/nano-jit.com" aot-elf64-code "$ARITH_I64_BLOB" "$ARITH_I64_CODE"
-run_case "nano-jit-run-aot-arithmetic-i64-code42" bash -c '"$1"; status=$?; test "$status" -eq 42' _ "$ARITH_I64_CODE"
+run_case "nano-jit-run-aot-arithmetic-i64-code42" "$BUILD_DIR/nano-jit.com" run-expect-exit "$ARITH_I64_CODE" 42
 run_case "nano-jit-compile-bad-arithmetic" "$BUILD_DIR/nano-jit.com" compile "$BAD_ARITH_SRC" "$BAD_ARITH_BLOB"
 run_case "nano-jit-aot-bad-arithmetic-elf64-code" "$BUILD_DIR/nano-jit.com" aot-elf64-code "$BAD_ARITH_BLOB" "$BAD_ARITH_CODE"
-run_case "nano-jit-run-aot-bad-arithmetic-expect125" bash -c '"$1"; status=$?; test "$status" -eq 125' _ "$BAD_ARITH_CODE"
+run_case "nano-jit-run-aot-bad-arithmetic-expect125" "$BUILD_DIR/nano-jit.com" run-expect-exit "$BAD_ARITH_CODE" 125
 run_case "nano-jit-aot-control-flow-elf64-exit1" "$BUILD_DIR/nano-jit.com" aot-elf64-exit "$CTRL_BLOB" "$CTRL_EXIT"
-run_case "nano-jit-run-aot-control-flow-exit1" bash -c '"$1"; status=$?; test "$status" -eq 1' _ "$CTRL_EXIT"
+run_case "nano-jit-run-aot-control-flow-exit1" "$BUILD_DIR/nano-jit.com" run-expect-exit "$CTRL_EXIT" 1
 run_case "nano-jit-aot-control-flow-elf64-obj-ret1" "$BUILD_DIR/nano-jit.com" aot-elf64-obj-ret "$CTRL_BLOB" "$CTRL_OBJ" nano_ctrl
 run_case "nano-jit-link-aot-control-flow-obj1" "$BUILD_DIR/nano-jit.com" link-elf64-exe "$CTRL_OBJ_EXE" nano_ctrl "$CTRL_OBJ"
-run_case "nano-jit-run-aot-control-flow-obj1" bash -c '"$1"; status=$?; test "$status" -eq 1' _ "$CTRL_OBJ_EXE"
+run_case "nano-jit-run-aot-control-flow-obj1" "$BUILD_DIR/nano-jit.com" run-expect-exit "$CTRL_OBJ_EXE" 1
 run_case "nano-jit-aot-control-flow-elf64-code1" "$BUILD_DIR/nano-jit.com" aot-elf64-code "$CTRL_BLOB" "$CTRL_CODE"
-run_case "nano-jit-run-aot-control-flow-code1" bash -c '"$1"; status=$?; test "$status" -eq 1' _ "$CTRL_CODE"
+run_case "nano-jit-run-aot-control-flow-code1" "$BUILD_DIR/nano-jit.com" run-expect-exit "$CTRL_CODE" 1
 run_case "nano-jit-aot-control-flow-elf64-obj-code1" "$BUILD_DIR/nano-jit.com" aot-elf64-obj-code "$CTRL_BLOB" "$CTRL_CODE_OBJ" nano_ctrl_code
 run_case "nano-jit-tiny-link-aot-control-flow-obj-code1" "$BUILD_DIR/nano-jit.com" link-elf64-exe "$CTRL_LINK_EXE" nano_ctrl_code "$CTRL_CODE_OBJ"
-run_case "nano-jit-run-tiny-linked-control-flow1" bash -c '"$1"; status=$?; test "$status" -eq 1' _ "$CTRL_LINK_EXE"
+run_case "nano-jit-run-tiny-linked-control-flow1" "$BUILD_DIR/nano-jit.com" run-expect-exit "$CTRL_LINK_EXE" 1
 run_case "nano-jit-compile-control-flow-elf64-code1" "$BUILD_DIR/nano-jit.com" compile-elf64-code "$CTRL_SRC" "$CTRL_DIRECT_EXE"
-run_case "nano-jit-run-direct-compiled-control-flow1" bash -c '"$1"; status=$?; test "$status" -eq 1' _ "$CTRL_DIRECT_EXE"
+run_case "nano-jit-run-direct-compiled-control-flow1" "$BUILD_DIR/nano-jit.com" run-expect-exit "$CTRL_DIRECT_EXE" 1
 run_case "nano-jit-emit-elf64-obj-ret42" "$BUILD_DIR/nano-jit.com" emit-elf64-obj-ret "$RET42_OBJ" nano_ret 42
 run_case "nano-jit-link-elf64-obj-ret42" "$BUILD_DIR/nano-jit.com" link-elf64-exe "$RET42_EXE" nano_ret "$RET42_OBJ"
-run_case "nano-jit-run-elf64-obj-ret42" bash -c '"$1"; status=$?; test "$status" -eq 42' _ "$RET42_EXE"
+run_case "nano-jit-run-elf64-obj-ret42" "$BUILD_DIR/nano-jit.com" run-expect-exit "$RET42_EXE" 42
 run_case "nano-jit-aot-arithmetic-elf64-obj-ret42" "$BUILD_DIR/nano-jit.com" aot-elf64-obj-ret "$ARITH_BLOB" "$ARITH_OBJ" nano_arith
 run_case "nano-jit-link-aot-arithmetic-obj-ret42" "$BUILD_DIR/nano-jit.com" link-elf64-exe "$ARITH_OBJ_EXE" nano_arith "$ARITH_OBJ"
-run_case "nano-jit-run-aot-arithmetic-obj-ret42" bash -c '"$1"; status=$?; test "$status" -eq 42' _ "$ARITH_OBJ_EXE"
+run_case "nano-jit-run-aot-arithmetic-obj-ret42" "$BUILD_DIR/nano-jit.com" run-expect-exit "$ARITH_OBJ_EXE" 42
 run_case "nano-jit-aot-arithmetic-elf64-obj-code42" "$BUILD_DIR/nano-jit.com" aot-elf64-obj-code "$ARITH_BLOB" "$ARITH_CODE_OBJ" nano_arith_code
 run_case "nano-jit-tiny-link-aot-arithmetic-obj-code42" "$BUILD_DIR/nano-jit.com" link-elf64-exe "$ARITH_LINK_EXE" nano_arith_code "$ARITH_CODE_OBJ"
-run_case "nano-jit-run-tiny-linked-arithmetic42" bash -c '"$1"; status=$?; test "$status" -eq 42' _ "$ARITH_LINK_EXE"
+run_case "nano-jit-run-tiny-linked-arithmetic42" "$BUILD_DIR/nano-jit.com" run-expect-exit "$ARITH_LINK_EXE" 42
 run_case "nano-jit-compile-arithmetic-elf64-code42" "$BUILD_DIR/nano-jit.com" compile-elf64-code "$ARITH_SRC" "$ARITH_DIRECT_EXE"
-run_case "nano-jit-run-direct-compiled-arithmetic42" bash -c '"$1"; status=$?; test "$status" -eq 42' _ "$ARITH_DIRECT_EXE"
+run_case "nano-jit-run-direct-compiled-arithmetic42" "$BUILD_DIR/nano-jit.com" run-expect-exit "$ARITH_DIRECT_EXE" 42
 run_case "nano-jit-compile-arithmetic-elf64-obj-code42" "$BUILD_DIR/nano-jit.com" compile-elf64-obj-code "$ARITH_SRC" "$ARITH_DIRECT_OBJ" nano_arith_direct
 run_case "nano-jit-link-direct-compiled-arithmetic-obj42" "$BUILD_DIR/nano-jit.com" link-elf64-exe "$ARITH_DIRECT_OBJ_EXE" nano_arith_direct "$ARITH_DIRECT_OBJ"
-run_case "nano-jit-run-direct-compiled-arithmetic-obj42" bash -c '"$1"; status=$?; test "$status" -eq 42' _ "$ARITH_DIRECT_OBJ_EXE"
+run_case "nano-jit-run-direct-compiled-arithmetic-obj42" "$BUILD_DIR/nano-jit.com" run-expect-exit "$ARITH_DIRECT_OBJ_EXE" 42
 run_case "nano-jit-compile-multi-func-elf64-obj43" "$BUILD_DIR/nano-jit.com" compile-elf64-obj-code "$MULTI_SRC" "$MULTI_OBJ" nano_multi_entry
 run_case "nano-jit-tiny-link-multi-func-obj43" "$BUILD_DIR/nano-jit.com" link-elf64-exe "$MULTI_LINK_EXE" nano_multi_entry "$MULTI_OBJ"
-run_case "nano-jit-run-tiny-linked-multi-func43" bash -c '"$1"; status=$?; test "$status" -eq 43' _ "$MULTI_LINK_EXE"
+run_case "nano-jit-run-tiny-linked-multi-func43" "$BUILD_DIR/nano-jit.com" run-expect-exit "$MULTI_LINK_EXE" 43
 run_case "nano-jit-compile-multi-func-control-flow-elf64-obj43" "$BUILD_DIR/nano-jit.com" compile-elf64-obj-code "$MULTI_CTRL_SRC" "$MULTI_CTRL_OBJ" nano_multi_ctrl
 run_case "nano-jit-tiny-link-multi-func-control-flow-obj43" "$BUILD_DIR/nano-jit.com" link-elf64-exe "$MULTI_CTRL_LINK_EXE" nano_multi_ctrl "$MULTI_CTRL_OBJ"
-run_case "nano-jit-run-tiny-linked-multi-func-control-flow43" bash -c '"$1"; status=$?; test "$status" -eq 43' _ "$MULTI_CTRL_LINK_EXE"
+run_case "nano-jit-run-tiny-linked-multi-func-control-flow43" "$BUILD_DIR/nano-jit.com" run-expect-exit "$MULTI_CTRL_LINK_EXE" 43
 run_case "nano-jit-emit-elf64-obj-call42" "$BUILD_DIR/nano-jit.com" emit-elf64-obj-call "$CALL42_OBJ" nano_call nano_ext
 run_case "nano-jit-emit-elf64-obj-callee42" "$BUILD_DIR/nano-jit.com" emit-elf64-obj-ret "$CALL42_CALLEE_OBJ" nano_ext 42
 run_case "nano-jit-tiny-link-elf64-obj-call42" "$BUILD_DIR/nano-jit.com" link-elf64-exe "$CALL42_LINK_EXE" nano_call "$CALL42_OBJ" "$CALL42_CALLEE_OBJ"
-run_case "nano-jit-run-tiny-linked-call42" bash -c '"$1"; status=$?; test "$status" -eq 42' _ "$CALL42_LINK_EXE"
+run_case "nano-jit-run-tiny-linked-call42" "$BUILD_DIR/nano-jit.com" run-expect-exit "$CALL42_LINK_EXE" 42
 run_case "nano-jit-emit-elf64-obj-duplicate-nano-ext" "$BUILD_DIR/nano-jit.com" emit-elf64-obj-ret "$DUP42_OBJ" nano_ext 7
 run_case "nano-jit-tiny-link-reject-duplicate-symbol" bash -c 'if "$1" link-elf64-exe "$2" nano_call "$3" "$4" "$5"; then exit 1; else test "$?" -eq 2; fi' _ "$BUILD_DIR/nano-jit.com" "$BUILD_DIR/dup_should_fail" "$CALL42_OBJ" "$CALL42_CALLEE_OBJ" "$DUP42_OBJ"
 run_case "nano-jit-compile-smoke-repeat" "$BUILD_DIR/nano-jit.com" compile "$SMOKE_SRC" "$SMOKE_BLOB_REPEAT"

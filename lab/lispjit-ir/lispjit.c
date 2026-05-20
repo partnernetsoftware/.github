@@ -3912,6 +3912,7 @@ static void usage(const char *argv0) {
   fprintf(stderr, "  %s compile-elf64-obj-code input.%s output.o symbol\n", argv0, SOURCE_EXT);
   fprintf(stderr, "  %s compile-elf64-exe input.%s output.elf entry_symbol\n", argv0, SOURCE_EXT);
   fprintf(stderr, "  %s link-elf64-exe output.elf entry_symbol input.o...\n", argv0);
+  fprintf(stderr, "  %s run-expect-exit executable expected_exit\n", argv0);
   fprintf(stderr, "  %s dump program.%s\n", argv0, BLOB_EXT);
   fprintf(stderr, "  %s hash program.%s\n", argv0, BLOB_EXT);
   fprintf(stderr, "  %s compare left.%s right.%s\n", argv0, BLOB_EXT, BLOB_EXT);
@@ -3969,6 +3970,9 @@ int main(int argc, char **argv) {
   }
   if (argc >= 2 && strcmp(argv[1], "link-elf64-exe") == 0) {
     return cmd_link_elf64_exe(argc, argv);
+  }
+  if (argc >= 2 && strcmp(argv[1], "run-expect-exit") == 0 && argc == 4) {
+    return run_executable_expect_exit(argv[2], argv[3]);
   }
   if (argc >= 2 && strcmp(argv[1], "dump") == 0 && argc == 3) {
     return cmd_dump(argv[2]);
