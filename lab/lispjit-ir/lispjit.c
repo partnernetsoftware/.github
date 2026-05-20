@@ -1104,13 +1104,7 @@ static int cmd_inspect_app(const char *container_path) {
   return 2;
 }
 
-static int cmd_emit_elf64_exit(const char *out_path, const char *code_s) {
-  size_t code_arg = 0;
-  if (!parse_size_arg(code_s, &code_arg) || code_arg > 255) {
-    fprintf(stderr, "emit-elf64-exit=bad_exit_code\n");
-    return 1;
-  }
-
+static int emit_elf64_exit_file(const char *out_path, uint8_t exit_code) {
   enum { EHDR = 64, PHDR = 56, CODE_OFF = 120, CODE_N = 12, FILE_N = 132 };
   unsigned char out[FILE_N];
   memset(out, 0, sizeof(out));
@@ -1146,18 +1140,79 @@ static int cmd_emit_elf64_exit(const char *out_path, const char *code_s) {
   code[0] = 0xb8;
   wr32(code + 1, 60);
   code[5] = 0xbf;
-  wr32(code + 6, (uint32_t)code_arg);
+  wr32(code + 6, (uint32_t)exit_code);
   code[10] = 0x0f;
   code[11] = 0x05;
 
   if (!write_file(out_path, out, sizeof(out)) || !make_executable(out_path)) {
+    return 0;
+  }
+  return 1;
+}
+
+static int cmd_emit_elf64_exit(const char *out_path, const char *code_s) {
+  size_t code_arg = 0;
+  if (!parse_size_arg(code_s, &code_arg) || code_arg > 255) {
+    fprintf(stderr, "emit-elf64-exit=bad_exit_code\n");
+    return 1;
+  }
+  if (!emit_elf64_exit_file(out_path, (uint8_t)code_arg)) {
     fprintf(stderr, "emit-elf64-exit=write_fail path=%s\n", out_path);
     return 2;
   }
   printf("elf64.output=%s\n", out_path);
-  printf("elf64.bytes=%zu\n", sizeof(out));
-  printf("elf64.entry=0x%llx\n", (unsigned long long)(0x400000u + CODE_OFF));
+  printf("elf64.bytes=%d\n", 132);
+  printf("elf64.entry=0x%llx\n", (unsigned long long)(0x400000u + 120));
   printf("elf64.exit=%zu\n", code_arg);
+  return 0;
+}
+
+static int eval_pure_u64_blob(const Blob *b, uint64_t *out) {
+  uint64_t last = 0;
+  for (uint32_t pc = 0; pc < b->instr_count; ++pc) {
+    const unsigned char *ins = instr_row(b, pc);
+    if (!ins) return 0;
+    uint8_t op = ins[0];
+    uint32_t arg0 = rd32(ins + 4);
+    uint32_t arg1 = rd32(ins + 8);
+    if (op == OP_CONST_U64) {
+      last = (uint64_t)arg0 | ((uint64_t)arg1 << 32);
+    } else if (op == OP_ADD_U64) {
+      last += (uint64_t)arg0 | ((uint64_t)arg1 << 32);
+    } else if (op == OP_EXPECT_U64) {
+      uint64_t expected = (uint64_t)arg0 | ((uint64_t)arg1 << 32);
+      if (last != expected) return 0;
+    } else if (op == OP_RET_LAST) {
+      *out = last;
+      return 1;
+    } else {
+      return 0;
+    }
+  }
+  return 0;
+}
+
+static int cmd_aot_elf64_exit(const char *blob_path, const char *out_path) {
+  Blob b;
+  unsigned char *owned = NULL;
+  uint64_t result = 0;
+  if (!blob_load_path(blob_path, &b, &owned)) {
+    fprintf(stderr, "blob=parse_fail path=%s\n", blob_path);
+    return 1;
+  }
+  if (!eval_pure_u64_blob(&b, &result)) {
+    fprintf(stderr, "aot-elf64-exit=unsupported_blob\n");
+    free(owned);
+    return 2;
+  }
+  free(owned);
+  if (!emit_elf64_exit_file(out_path, (uint8_t)(result & 0xffu))) {
+    fprintf(stderr, "aot-elf64-exit=write_fail path=%s\n", out_path);
+    return 3;
+  }
+  printf("aot.elf64.output=%s\n", out_path);
+  printf("aot.elf64.bytes=%d\n", 132);
+  printf("aot.elf64.exit=%llu\n", (unsigned long long)(result & 0xffu));
   return 0;
 }
 
@@ -1328,6 +1383,7 @@ static void usage(const char *argv0) {
   fprintf(stderr, "  %s run-embedded container.com blob_offset blob_size\n", argv0);
   fprintf(stderr, "  %s inspect-app container.com\n", argv0);
   fprintf(stderr, "  %s emit-elf64-exit output.elf exit_code\n", argv0);
+  fprintf(stderr, "  %s aot-elf64-exit input.%s output.elf\n", argv0, BLOB_EXT);
   fprintf(stderr, "  %s dump program.%s\n", argv0, BLOB_EXT);
   fprintf(stderr, "  %s hash program.%s\n", argv0, BLOB_EXT);
   fprintf(stderr, "  %s resolve [--quiet] program.%s\n", argv0, BLOB_EXT);
@@ -1350,6 +1406,9 @@ int main(int argc, char **argv) {
   }
   if (argc >= 2 && strcmp(argv[1], "emit-elf64-exit") == 0 && argc == 4) {
     return cmd_emit_elf64_exit(argv[2], argv[3]);
+  }
+  if (argc >= 2 && strcmp(argv[1], "aot-elf64-exit") == 0 && argc == 4) {
+    return cmd_aot_elf64_exit(argv[2], argv[3]);
   }
   if (argc >= 2 && strcmp(argv[1], "dump") == 0 && argc == 3) {
     return cmd_dump(argv[2]);

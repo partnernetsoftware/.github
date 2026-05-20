@@ -74,3 +74,4 @@
 - `(u64 N)` / `(add-u64 N)` 纯 VM 算术 smoke，不依赖 FFI/libc。
 - `i32(i32)` FFI 签名，smoke 覆盖 `abs(-42) -> 42`。
 - `emit-elf64-exit` tiny ELF writer，直接生成可运行 x86_64 Linux ELF。
+- `aot-elf64-exit` 可把纯 VM `.lbin` 静态求值并生成 ELF。
