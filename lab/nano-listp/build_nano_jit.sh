@@ -60,6 +60,9 @@ EXIT42="$BUILD_DIR/exit42.elf"
 ARITH_EXIT="$BUILD_DIR/arithmetic-aot.elf"
 ARITH_CODE="$BUILD_DIR/arithmetic-code.elf"
 BAD_ARITH_CODE="$BUILD_DIR/arithmetic-bad-code.elf"
+RET42_OBJ="$BUILD_DIR/nano_ret42.o"
+RET42_C="$BUILD_DIR/nano_ret42_main.c"
+RET42_EXE="$BUILD_DIR/nano_ret42"
 SMOKE_SRC="$LAB_DIR/samples/libc-smoke.lisp"
 SMOKE_BLOB="$BUILD_DIR/libc-smoke.lbin"
 SMOKE_BLOB_REPEAT="$BUILD_DIR/libc-smoke-repeat.lbin"
@@ -76,6 +79,12 @@ cat > "$BAD_ARITH_SRC" <<'EOF'
     (u64 40)
     (add-u64 2)
     (expect 43)))
+EOF
+cat > "$RET42_C" <<'EOF'
+extern int nano_ret(void);
+int main(void) {
+  return nano_ret();
+}
 EOF
 
 if [ ! -x "$X86_CC" ] || [ ! -x "$ARM_CC" ]; then
@@ -146,6 +155,9 @@ run_case "nano-jit-run-aot-arithmetic-code42" bash -c '"$1"; status=$?; test "$s
 run_case "nano-jit-compile-bad-arithmetic" "$BUILD_DIR/nano-jit.com" compile "$BAD_ARITH_SRC" "$BAD_ARITH_BLOB"
 run_case "nano-jit-aot-bad-arithmetic-elf64-code" "$BUILD_DIR/nano-jit.com" aot-elf64-code "$BAD_ARITH_BLOB" "$BAD_ARITH_CODE"
 run_case "nano-jit-run-aot-bad-arithmetic-expect125" bash -c '"$1"; status=$?; test "$status" -eq 125' _ "$BAD_ARITH_CODE"
+run_case "nano-jit-emit-elf64-obj-ret42" "$BUILD_DIR/nano-jit.com" emit-elf64-obj-ret "$RET42_OBJ" nano_ret 42
+run_case "nano-jit-link-elf64-obj-ret42" cc "$RET42_C" "$RET42_OBJ" -o "$RET42_EXE"
+run_case "nano-jit-run-elf64-obj-ret42" bash -c '"$1"; status=$?; test "$status" -eq 42' _ "$RET42_EXE"
 run_case "nano-jit-compile-smoke-repeat" "$BUILD_DIR/nano-jit.com" compile "$SMOKE_SRC" "$SMOKE_BLOB_REPEAT"
 run_case "nano-jit-hash-smoke" "$BUILD_DIR/nano-jit.com" hash "$SMOKE_BLOB"
 run_case "nano-jit-hash-smoke-repeat" "$BUILD_DIR/nano-jit.com" hash "$SMOKE_BLOB_REPEAT"

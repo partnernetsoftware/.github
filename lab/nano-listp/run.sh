@@ -19,6 +19,9 @@ EXIT42="$BUILD_DIR/exit42.elf"
 ARITH_EXIT="$BUILD_DIR/arithmetic-aot.elf"
 ARITH_CODE="$BUILD_DIR/arithmetic-code.elf"
 BAD_ARITH_CODE="$BUILD_DIR/arithmetic-bad-code.elf"
+RET42_OBJ="$BUILD_DIR/nano_ret42.o"
+RET42_C="$BUILD_DIR/nano_ret42_main.c"
+RET42_EXE="$BUILD_DIR/nano_ret42"
 RUNNER="$BUILD_DIR/nano-listp"
 RESULTS="$BUILD_DIR/results.txt"
 NANO_C="$ROOT_DIR/lab/lispjit-ir/lispjit.c"
@@ -31,6 +34,12 @@ cat > "$BAD_ARITH_SRC" <<'EOF'
     (u64 40)
     (add-u64 2)
     (expect 43)))
+EOF
+cat > "$RET42_C" <<'EOF'
+extern int nano_ret(void);
+int main(void) {
+  return nano_ret();
+}
 EOF
 
 log() {
@@ -99,6 +108,10 @@ if [ "$(uname -m)" = "x86_64" ] || [ "$(uname -m)" = "amd64" ]; then
   run_case "compile-bad-arithmetic-lbin" "$RUNNER" compile "$BAD_ARITH_SRC" "$BAD_ARITH_BLOB"
   run_case "aot-bad-arithmetic-elf64-code" "$RUNNER" aot-elf64-code "$BAD_ARITH_BLOB" "$BAD_ARITH_CODE"
   run_case "run-aot-bad-arithmetic-expect125" bash -c '"$1"; status=$?; test "$status" -eq 125' _ "$BAD_ARITH_CODE"
+  run_case "emit-elf64-obj-ret42" "$RUNNER" emit-elf64-obj-ret "$RET42_OBJ" nano_ret 42
+  log "ret42.obj.bytes=$(bytes_of "$RET42_OBJ")"
+  run_case "link-elf64-obj-ret42" cc "$RET42_C" "$RET42_OBJ" -o "$RET42_EXE"
+  run_case "run-elf64-obj-ret42" bash -c '"$1"; status=$?; test "$status" -eq 42' _ "$RET42_EXE"
 else
   log ""
   log "## run-elf64-exit42"
