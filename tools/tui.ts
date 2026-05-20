@@ -350,6 +350,7 @@ interface IMultiplexerBackend {
 
   // ── 键绑定 ──
   bindKey(table: string | null, key: string, cmd: string): unknown;
+  unbindKey(table: string | null, key: string): unknown;
   unbindKeyRoot(key: string): unknown;
 
   // ── raw fallback ──
@@ -452,6 +453,8 @@ const tmuxApi: IMultiplexerBackend = {
   // key bindings
   bindKey: (table: string | null, key: string, cmd: string) =>
     table ? tmux(["bind-key", "-T", table, key, cmd]) : tmux(["bind-key", "-n", key, cmd]),
+  unbindKey: (table: string | null, key: string) =>
+    table ? tmux(["unbind-key", "-T", table, key]) : tmux(["unbind-key", "-n", key]),
   unbindKeyRoot: (key: string) => tmux(["unbind-key", "-n", key]),
   // raw fallback for special list cases
   rawSpawnSync: (args: string[]) =>
@@ -2190,10 +2193,13 @@ const installDetachKeys = () => {
   tmuxApi.bindKey(TUI_CONFIG.TUI_KEYTABLE, "M-Left", "detach-client");
   tmuxApi.bindKey(null, "C-Left", "detach-client");
   tmuxApi.bindKey(null, "M-Left", "detach-client");
+  // 沉浸式顶栏 status-left「返回」区：鼠标左键同 detach
+  tmuxApi.bindKey("root", "MouseDown1StatusLeft", "detach-client");
 };
 const uninstallDetachKeys = () => {
   tmuxApi.unbindKeyRoot("C-Left");
   tmuxApi.unbindKeyRoot("M-Left");
+  tmuxApi.unbindKey("root", "MouseDown1StatusLeft");
 };
 
 // PART:outer-mouse
@@ -2463,8 +2469,8 @@ function createViewer(sess: string, idx?: string) {
     `'${tb}' set-option -t '${v}' mouse on`,
     `'${tb}' set-option -t '${v}' status-position top`,
     `'${tb}' set-option -t '${v}' status on`,
-    `'${tb}' set-option -t '${v}' status-left ' #[bold]ctrl-左: 返回 '`,
-    `'${tb}' set-option -t '${v}' status-left-length 30`,
+    `'${tb}' set-option -t '${v}' status-left ' #[bold]ctrl-左·点击: 返回 '`,
+    `'${tb}' set-option -t '${v}' status-left-length 36`,
     `'${tb}' set-option -t '${v}' status-right '驾驶分舱:${cabin} '`,
     `'${tb}' set-option -t '${v}' window-status-format ''`,
     `'${tb}' set-option -t '${v}' window-status-current-format ''`,
