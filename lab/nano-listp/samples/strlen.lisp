@@ -3,4 +3,6 @@
 (module
   (import strlen "libc" "strlen" "u64(ptr)")
   (const arg "ffi")
-  (main (call strlen arg)))
+  (main
+    (call strlen arg)
+    (expect 3)))
