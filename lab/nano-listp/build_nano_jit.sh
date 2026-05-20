@@ -195,9 +195,16 @@ cat > "$BOOTSTRAP_PLAN" <<EOF
   (run-expect-exit "$BUILD_DIR/bootstrap-aot-arithmetic-code.elf" 42)
   (compile-elf64-code "$CTRL_SRC" "$BUILD_DIR/bootstrap-aot-control-flow.elf")
   (run-expect-exit "$BUILD_DIR/bootstrap-aot-control-flow.elf" 1)
+  (aot-elf64-obj-ret "$BUILD_DIR/bootstrap-aot-arithmetic.lbin" "$BUILD_DIR/bootstrap-aot-arithmetic-ret.o" "nano_bootstrap_arith_ret")
+  (link-elf64-exe "$BUILD_DIR/bootstrap-aot-arithmetic-ret-linked" "nano_bootstrap_arith_ret" "$BUILD_DIR/bootstrap-aot-arithmetic-ret.o")
+  (run-expect-exit "$BUILD_DIR/bootstrap-aot-arithmetic-ret-linked" 42)
   (compile-elf64-obj-code "$MULTI_CTRL_SRC" "$BUILD_DIR/bootstrap-aot-multi-ctrl.o" "nano_bootstrap_multi_ctrl")
   (link-elf64-exe "$BUILD_DIR/bootstrap-aot-multi-ctrl-linked" "nano_bootstrap_multi_ctrl" "$BUILD_DIR/bootstrap-aot-multi-ctrl.o")
-  (run-expect-exit "$BUILD_DIR/bootstrap-aot-multi-ctrl-linked" 43))
+  (run-expect-exit "$BUILD_DIR/bootstrap-aot-multi-ctrl-linked" 43)
+  (emit-elf64-obj-call "$BUILD_DIR/bootstrap-aot-call42.o" "nano_bootstrap_call" "nano_bootstrap_ext")
+  (emit-elf64-obj-ret "$BUILD_DIR/bootstrap-aot-ext42.o" "nano_bootstrap_ext" 42)
+  (link-elf64-exe "$BUILD_DIR/bootstrap-aot-call42-linked" "nano_bootstrap_call" "$BUILD_DIR/bootstrap-aot-call42.o" "$BUILD_DIR/bootstrap-aot-ext42.o")
+  (run-expect-exit "$BUILD_DIR/bootstrap-aot-call42-linked" 42))
 EOF
 
 if [ ! -x "$X86_CC" ] || [ ! -x "$ARM_CC" ]; then
