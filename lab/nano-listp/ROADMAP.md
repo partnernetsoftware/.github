@@ -60,12 +60,10 @@
 
 下一步优先级：
 
-1. 抽象 ELF/object/linker 代码：把 section、symbol、relocation 写入和解析整理成小型内部 API。
-2. 扩展 VM typed value：`i64`、`bool`、`ptr`，并让 assert 支持更多类型。
-3. 扩展 control flow：`block`、`branch`、`label`，让 `.lbin` 可表达更接近真实编译器的流程。
-4. 扩展 AOT object backend：从单函数推进到多函数、内部 call、基础 relocation 生成。
-5. 开始 tiny self-host 描述：用 `.lisp` 描述 bootstrap pipeline 的一部分，逐步替代 shell。
-6. 持续缩小临时依赖：`cosmocc` 只保留为 slice compiler，下一阶段目标是生成 x86_64 slice 的可运行子集。
+1. 扩展 control flow：`block`、`branch`、`label`，让 `.lbin` 可表达更接近真实编译器的流程。
+2. 扩展 AOT object backend：从单函数推进到多函数、内部 call、基础 relocation 生成。
+3. 开始 tiny self-host 描述：用 `.lisp` 描述 bootstrap pipeline 的一部分，逐步替代 shell。
+4. 持续缩小临时依赖：`cosmocc` 只保留为 slice compiler，下一阶段目标是生成 x86_64 slice 的可运行子集。
 
 已完成：
 
@@ -85,3 +83,6 @@
 - `link-elf64-exe` 可链接当前 nano object 子集，初步替代系统 linker。
 - `compile-elf64-code` / `compile-elf64-obj-code` 可直接从 `.lisp` 生成 ELF/object。
 - tiny linker 支持多 object、`R_X86_64_PLT32` relocation、重复符号拒绝和 rel32 范围检查。
+- ELF/object/linker 内部 API 已抽象成可复用 helper，减少 section/symbol/rela 写入与解析重复。
+- typed value 已覆盖 `i64`、`bool`、`ptr` 基础值；`resolve` 会产出 `ptr` 值。
+- `expect` 已支持负数、布尔值和 `null` / `nonnull` 指针断言。

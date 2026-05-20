@@ -49,11 +49,25 @@
     (expect 42)))
 ```
 
+typed value 现在支持最小 `i64 / bool / ptr`：
+
+```lisp
+(module
+  (import strlen "libc" "strlen" "u64(ptr)")
+  (main
+    (i64 -42)
+    (expect -42)
+    (bool true)
+    (expect true)
+    (resolve strlen)
+    (expect nonnull)))
+```
+
 ## 当前能力
 
 - `compile`：解析 `.lisp`，输出 `.lbin` portable blob。
 - `dump`：查看 blob header、import、const、instruction 数量。
-- `resolve`：只验证 `.lbin` import table 的动态库和符号可解析，不调用函数；适合全量 libc 导入测试。
+- `resolve`：验证 `.lbin` import table 的动态库和符号可解析；运行时会把解析到的函数地址放进当前 `ptr` typed value，适合全量 libc 导入测试或指针断言。
 - `run`：解析 `.lbin`，通过 `dlopen`/`dlsym` 找系统符号，执行 main 指令流。
 - `run-embedded`：从 `.com` 容器内按 payload 偏移直接读取并执行内嵌 blob。
 - `inspect-app`：读取 AOT app manifest，输出 runtime slice 和 blob 的 offset/size。
@@ -67,8 +81,8 @@
 - `compile-elf64-code` / `compile-elf64-obj-code`：直接从 `.lisp` 生成 ELF 或 object，减少外部脚本胶水。
 - `link-elf64-exe`：链接当前 nano object 子集，输出可运行 x86_64 ELF。
 - `hash`：输出 `.lbin` 的内建 FNV-1a 64-bit hash，用于 deterministic 编译测试。
-- `(expect N)`：在 `.lbin` 内断言上一条调用结果，失败时 runtime 返回非零。
-- `(u64 N)` / `(add-u64 N)`：最小 typed VM 算术内核，不依赖 FFI。
+- `(expect N)` / `(expect -N)` / `(expect true|false)` / `(expect null|nonnull)`：在 `.lbin` 内断言上一条结果，失败时 runtime 返回非零。
+- `(u64 N)` / `(add-u64 N)` / `(i64 N)` / `(bool true|false)`：最小 typed VM 内核，不依赖 FFI。
 - `pack-app`：把 runtime slices 和 `.lbin` 打进一个多架构 `.com` 应用，运行时直接从自身容器执行内嵌 blob。
 - 当前签名：`addr`、`u64(ptr)`、`i32(ptr)`、`i32(ptr,ptr)`、`i32()`、`i32(i32)`。
 - `u64(ptr)` 仍走 x86_64/aarch64 JIT call stub；其他安全 smoke 签名先用 typed C call。

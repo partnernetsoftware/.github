@@ -6,10 +6,12 @@ ROOT_DIR="$(cd "$LAB_DIR/../.." && pwd)"
 BUILD_DIR="$LAB_DIR/.build"
 SRC="$LAB_DIR/samples/strlen.lisp"
 ARITH_SRC="$LAB_DIR/samples/arithmetic.lisp"
+TYPED_SRC="$LAB_DIR/samples/typed-values.lisp"
 SMOKE_SRC="$LAB_DIR/samples/libc-smoke.lisp"
 BLOB="$BUILD_DIR/strlen.lbin"
 BLOB_REPEAT="$BUILD_DIR/strlen-repeat.lbin"
 ARITH_BLOB="$BUILD_DIR/arithmetic.lbin"
+TYPED_BLOB="$BUILD_DIR/typed-values.lbin"
 BAD_ARITH_SRC="$BUILD_DIR/arithmetic-bad.lisp"
 BAD_ARITH_BLOB="$BUILD_DIR/arithmetic-bad.lbin"
 SMOKE_BLOB="$BUILD_DIR/libc-smoke.lbin"
@@ -110,6 +112,8 @@ log "source.path=$SRC"
 log "source.bytes=$(bytes_of "$SRC")"
 log "arithmetic.source.path=$ARITH_SRC"
 log "arithmetic.source.bytes=$(bytes_of "$ARITH_SRC")"
+log "typed.source.path=$TYPED_SRC"
+log "typed.source.bytes=$(bytes_of "$TYPED_SRC")"
 log "smoke.source.path=$SMOKE_SRC"
 log "smoke.source.bytes=$(bytes_of "$SMOKE_SRC")"
 
@@ -138,6 +142,11 @@ log "arithmetic.blob.bytes=$(bytes_of "$ARITH_BLOB")"
 run_case "hash-arithmetic-lbin" "$RUNNER" hash "$ARITH_BLOB"
 
 run_case "execute-arithmetic-lbin" "$RUNNER" run "$ARITH_BLOB"
+
+run_case "compile-typed-values-lbin" "$RUNNER" compile "$TYPED_SRC" "$TYPED_BLOB"
+log "typed.blob.bytes=$(bytes_of "$TYPED_BLOB")"
+
+run_case "execute-typed-values-lbin" "$RUNNER" run "$TYPED_BLOB"
 
 if [ "$(uname -m)" = "x86_64" ] || [ "$(uname -m)" = "amd64" ]; then
   run_case "emit-elf64-exit42" "$RUNNER" emit-elf64-exit "$EXIT42" 42

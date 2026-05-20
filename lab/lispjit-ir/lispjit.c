@@ -49,12 +49,22 @@ extern void *cosmo_dlsym(void *handle, const char *symbol);
 #define OP_CONST_U64 7u
 #define OP_ADD_U64 8u
 #define OP_CALL_IMPORT_IMM 9u
+#define OP_CONST_I64 10u
+#define OP_CONST_BOOL 11u
+#define OP_EXPECT_I64 12u
+#define OP_EXPECT_BOOL 13u
+#define OP_EXPECT_PTR 14u
 
 #define SRC_FORM_CALL 1u
 #define SRC_FORM_RESOLVE 2u
 #define SRC_FORM_EXPECT 3u
 #define SRC_FORM_CONST_U64 4u
 #define SRC_FORM_ADD_U64 5u
+#define SRC_FORM_CONST_I64 6u
+#define SRC_FORM_CONST_BOOL 7u
+#define SRC_FORM_EXPECT_I64 8u
+#define SRC_FORM_EXPECT_BOOL 9u
+#define SRC_FORM_EXPECT_PTR 10u
 
 typedef uint64_t (*jit_entry_fn)(void);
 typedef int (*ffi_i32_ptr_fn)(const char *);
@@ -115,6 +125,18 @@ typedef struct {
   size_t string_off;
 } Blob;
 
+typedef enum {
+  VAL_U64 = 1,
+  VAL_I64 = 2,
+  VAL_BOOL = 3,
+  VAL_PTR = 4,
+} ValueKind;
+
+typedef struct {
+  ValueKind kind;
+  uint64_t bits;
+} Value;
+
 static uint32_t rd32(const unsigned char *p) {
   return ((uint32_t)p[0]) |
          ((uint32_t)p[1] << 8) |
@@ -150,6 +172,74 @@ static void wr64(unsigned char *p, uint64_t v) {
   for (int i = 0; i < 8; ++i) {
     p[i] = (unsigned char)((v >> (i * 8)) & 0xff);
   }
+}
+
+static Value value_u64(uint64_t v) {
+  Value out = {VAL_U64, v};
+  return out;
+}
+
+static Value value_i64(int64_t v) {
+  Value out = {VAL_I64, (uint64_t)v};
+  return out;
+}
+
+static Value value_bool(int v) {
+  Value out = {VAL_BOOL, v ? 1u : 0u};
+  return out;
+}
+
+static Value value_ptr(const void *p) {
+  Value out = {VAL_PTR, (uint64_t)(uintptr_t)p};
+  return out;
+}
+
+static int value_expect_u64(Value v, uint64_t expected) {
+  if (v.kind == VAL_U64) return v.bits == expected;
+  if (v.kind == VAL_I64 && (int64_t)v.bits >= 0) return v.bits == expected;
+  return 0;
+}
+
+static int value_expect_i64(Value v, int64_t expected) {
+  if (v.kind == VAL_I64) return (int64_t)v.bits == expected;
+  if (v.kind == VAL_U64 && expected >= 0) return v.bits == (uint64_t)expected;
+  return 0;
+}
+
+static int value_expect_bool(Value v, int expected) {
+  return v.kind == VAL_BOOL && (!!v.bits) == !!expected;
+}
+
+static int value_expect_ptr(Value v, int nonnull) {
+  return v.kind == VAL_PTR && ((v.bits != 0) == !!nonnull);
+}
+
+static int value_add_u64(Value *v, uint64_t rhs) {
+  if (v->kind != VAL_U64) return 0;
+  v->bits += rhs;
+  return 1;
+}
+
+static void print_value(FILE *out, Value v) {
+  switch (v.kind) {
+    case VAL_U64:
+      fprintf(out, "%llu", (unsigned long long)v.bits);
+      return;
+    case VAL_I64:
+      fprintf(out, "%lld", (long long)(int64_t)v.bits);
+      return;
+    case VAL_BOOL:
+      fprintf(out, "%s", v.bits ? "true" : "false");
+      return;
+    case VAL_PTR:
+      if (!v.bits) {
+        fprintf(out, "null");
+      } else {
+        fprintf(out, "0x%llx", (unsigned long long)v.bits);
+      }
+      return;
+  }
+  fprintf(out, "<?>");
 }
 
 static uint32_t parse_sig_id(const char *sig) {
@@ -390,12 +480,44 @@ static int parse_u64_atom(const char *s, uint64_t *out) {
   return (unsigned long long)*out == v;
 }
 
+static int parse_i64_atom(const char *s, int64_t *out) {
+  char *end = NULL;
+  long long v = strtoll(s, &end, 10);
+  if (!s || !s[0] || !end || *end) return 0;
+  *out = (int64_t)v;
+  return 1;
+}
+
 static int parse_i32_atom(const char *s, int32_t *out) {
   char *end = NULL;
   long v = strtol(s, &end, 10);
   if (!s || !s[0] || !end || *end || v < INT32_MIN || v > INT32_MAX) return 0;
   *out = (int32_t)v;
   return 1;
+}
+
+static int parse_bool_atom(const char *s, int *out) {
+  if (strcmp(s, "true") == 0) {
+    *out = 1;
+    return 1;
+  }
+  if (strcmp(s, "false") == 0) {
+    *out = 0;
+    return 1;
+  }
+  return 0;
+}
+
+static int parse_expect_ptr_atom(const char *s, int *out) {
+  if (strcmp(s, "nonnull") == 0) {
+    *out = 1;
+    return 1;
+  }
+  if (strcmp(s, "null") == 0) {
+    *out = 0;
+    return 1;
+  }
+  return 0;
 }
 
 static int parse_import_form(const char **p, Module *m) {
@@ -429,18 +551,47 @@ static int parse_main_form(const char **p, Module *m) {
       char *import_name = parse_atom(p);
       ok = import_name && eat(p, ')') &&
            add_instr(m, SRC_FORM_RESOLVE, import_name, NULL, NULL, 0);
-    } else if (strcmp(head, "u64") == 0 || strcmp(head, "add-u64") == 0) {
+    } else if (strcmp(head, "u64") == 0 || strcmp(head, "add-u64") == 0 ||
+               strcmp(head, "i64") == 0) {
       char *value = parse_atom(p);
       uint64_t imm = 0;
-      uint32_t form = strcmp(head, "u64") == 0 ? SRC_FORM_CONST_U64 : SRC_FORM_ADD_U64;
-      ok = value && parse_u64_atom(value, &imm) && eat(p, ')') &&
-           add_instr(m, form, NULL, NULL, NULL, imm);
+      int64_t i64 = 0;
+      uint32_t form = strcmp(head, "u64") == 0 ? SRC_FORM_CONST_U64 :
+                      strcmp(head, "add-u64") == 0 ? SRC_FORM_ADD_U64 :
+                      SRC_FORM_CONST_I64;
+      if (strcmp(head, "i64") == 0) {
+        ok = value && parse_i64_atom(value, &i64) && eat(p, ')') &&
+             add_instr(m, form, NULL, NULL, NULL, (uint64_t)i64);
+      } else {
+        ok = value && parse_u64_atom(value, &imm) && eat(p, ')') &&
+             add_instr(m, form, NULL, NULL, NULL, imm);
+      }
+      free(value);
+    } else if (strcmp(head, "bool") == 0) {
+      char *value = parse_atom(p);
+      int boolean = 0;
+      ok = value && parse_bool_atom(value, &boolean) && eat(p, ')') &&
+           add_instr(m, SRC_FORM_CONST_BOOL, NULL, NULL, NULL, (uint64_t)boolean);
       free(value);
     } else if (strcmp(head, "expect") == 0) {
       char *value = parse_atom(p);
       uint64_t expected = 0;
-      ok = value && parse_u64_atom(value, &expected) && eat(p, ')') &&
-           add_instr(m, SRC_FORM_EXPECT, NULL, NULL, NULL, expected);
+      int64_t expected_i64 = 0;
+      int boolean = 0;
+      int ptr_state = 0;
+      if (value && parse_bool_atom(value, &boolean)) {
+        ok = eat(p, ')') &&
+             add_instr(m, SRC_FORM_EXPECT_BOOL, NULL, NULL, NULL, (uint64_t)boolean);
+      } else if (value && parse_expect_ptr_atom(value, &ptr_state)) {
+        ok = eat(p, ')') &&
+             add_instr(m, SRC_FORM_EXPECT_PTR, NULL, NULL, NULL, (uint64_t)ptr_state);
+      } else if (value && parse_i64_atom(value, &expected_i64) && expected_i64 < 0) {
+        ok = eat(p, ')') &&
+             add_instr(m, SRC_FORM_EXPECT_I64, NULL, NULL, NULL, (uint64_t)expected_i64);
+      } else {
+        ok = value && parse_u64_atom(value, &expected) && eat(p, ')') &&
+             add_instr(m, SRC_FORM_EXPECT, NULL, NULL, NULL, expected);
+      }
       free(value);
     } else if (strcmp(head, "call") == 0) {
       char *import_name = parse_atom(p);
@@ -546,14 +697,35 @@ static unsigned char *compile_module(const Module *m, size_t *out_n) {
 
   for (size_t i = 0; i < m->instr_count; ++i) {
     const InstrDef *in = &m->instrs[i];
-    if (in->form == SRC_FORM_CONST_U64 || in->form == SRC_FORM_ADD_U64) {
-      emit_instr(&instrs, in->form == SRC_FORM_CONST_U64 ? OP_CONST_U64 : OP_ADD_U64,
-                 (uint32_t)(in->imm & 0xffffffffu), (uint32_t)(in->imm >> 32));
+    if (in->form == SRC_FORM_CONST_U64 || in->form == SRC_FORM_ADD_U64 ||
+        in->form == SRC_FORM_CONST_I64) {
+      uint8_t op = in->form == SRC_FORM_CONST_U64 ? OP_CONST_U64 :
+                   in->form == SRC_FORM_ADD_U64 ? OP_ADD_U64 :
+                   OP_CONST_I64;
+      emit_instr(&instrs, op, (uint32_t)(in->imm & 0xffffffffu),
+                 (uint32_t)(in->imm >> 32));
       continue;
     }
     if (in->form == SRC_FORM_EXPECT) {
       emit_instr(&instrs, OP_EXPECT_U64, (uint32_t)(in->imm & 0xffffffffu),
                  (uint32_t)(in->imm >> 32));
+      continue;
+    }
+    if (in->form == SRC_FORM_CONST_BOOL) {
+      emit_instr(&instrs, OP_CONST_BOOL, (uint32_t)in->imm, 0);
+      continue;
+    }
+    if (in->form == SRC_FORM_EXPECT_I64) {
+      emit_instr(&instrs, OP_EXPECT_I64, (uint32_t)(in->imm & 0xffffffffu),
+                 (uint32_t)(in->imm >> 32));
+      continue;
+    }
+    if (in->form == SRC_FORM_EXPECT_BOOL) {
+      emit_instr(&instrs, OP_EXPECT_BOOL, (uint32_t)in->imm, 0);
+      continue;
+    }
+    if (in->form == SRC_FORM_EXPECT_PTR) {
+      emit_instr(&instrs, OP_EXPECT_PTR, (uint32_t)in->imm, 0);
       continue;
     }
     int import_idx = find_import(m, in->import_name);
@@ -798,49 +970,49 @@ static const char *const_string_ref(const Blob *b, uint32_t idx) {
   return blob_string(b, rd32(con + 4));
 }
 
-static int call_import1(const RuntimeImport *ri, const char *arg, uint64_t *out) {
+static int call_import1(const RuntimeImport *ri, const char *arg, Value *out) {
   if (!arg) return 13;
   if (ri->sig == SIG_U64_PTR) {
     size_t code_n = 0;
     void *entry = emit_u64_ptr_call(ri->fn, arg, &code_n);
     if (!entry) return 16;
-    *out = ((jit_entry_fn)entry)();
+    *out = value_u64(((jit_entry_fn)entry)());
     fprintf(stderr, "jit.code.bytes=%zu\n", code_n);
     return 0;
   }
   if (ri->sig == SIG_I32_PTR) {
-    *out = (uint64_t)(int64_t)((ffi_i32_ptr_fn)ri->fn)(arg);
+    *out = value_i64((int64_t)((ffi_i32_ptr_fn)ri->fn)(arg));
     return 0;
   }
   fprintf(stderr, "signature.arg_mismatch=%s\n", sig_name(ri->sig));
   return 17;
 }
 
-static int call_import2(const RuntimeImport *ri, const char *arg0, const char *arg1, uint64_t *out) {
+static int call_import2(const RuntimeImport *ri, const char *arg0, const char *arg1, Value *out) {
   if (!arg0 || !arg1) return 13;
   if (ri->sig != SIG_I32_PTR_PTR) {
     fprintf(stderr, "signature.arg_mismatch=%s\n", sig_name(ri->sig));
     return 17;
   }
-  *out = (uint64_t)(int64_t)((ffi_i32_ptr_ptr_fn)ri->fn)(arg0, arg1);
+  *out = value_i64((int64_t)((ffi_i32_ptr_ptr_fn)ri->fn)(arg0, arg1));
   return 0;
 }
 
-static int call_import0(const RuntimeImport *ri, uint64_t *out) {
+static int call_import0(const RuntimeImport *ri, Value *out) {
   if (ri->sig != SIG_I32_VOID) {
     fprintf(stderr, "signature.arg_mismatch=%s\n", sig_name(ri->sig));
     return 17;
   }
-  *out = (uint64_t)(int64_t)((ffi_i32_void_fn)ri->fn)();
+  *out = value_i64((int64_t)((ffi_i32_void_fn)ri->fn)());
   return 0;
 }
 
-static int call_import_i32(const RuntimeImport *ri, int32_t arg, uint64_t *out) {
+static int call_import_i32(const RuntimeImport *ri, int32_t arg, Value *out) {
   if (ri->sig != SIG_I32_I32) {
     fprintf(stderr, "signature.arg_mismatch=%s\n", sig_name(ri->sig));
     return 17;
   }
-  *out = (uint64_t)(int64_t)((ffi_i32_i32_fn)ri->fn)((int)arg);
+  *out = value_i64((int64_t)((ffi_i32_i32_fn)ri->fn)((int)arg));
   return 0;
 }
 
@@ -861,7 +1033,7 @@ static int resolve_blob(const Blob *b, int quiet) {
 }
 
 static int execute_blob(const Blob *b) {
-  uint64_t last = 0;
+  Value last = value_u64(0);
   for (uint32_t pc = 0; pc < b->instr_count; ++pc) {
     const unsigned char *ins = instr_row(b, pc);
     if (!ins) return 10;
@@ -871,34 +1043,93 @@ static int execute_blob(const Blob *b) {
     RuntimeImport ri = {0};
     int rc = 0;
     if (op == OP_RET_LAST) {
-      printf("ret=%llu\n", (unsigned long long)last);
+      printf("ret=");
+      print_value(stdout, last);
+      printf("\n");
       return 0;
     }
     if (op == OP_RESOLVE_IMPORT) {
       rc = resolve_import_ref(b, arg0, &ri);
       if (rc != 0) return rc;
+      last = value_ptr(ri.fn);
       printf("resolve.%u=%s:%s sig=%s ok\n", pc, ri.lib, ri.sym, sig_name(ri.sig));
       continue;
     }
     if (op == OP_EXPECT_U64) {
       uint64_t expected = (uint64_t)arg0 | ((uint64_t)arg1 << 32);
-      if (last != expected) {
-        fprintf(stderr, "expect.%u=fail expected=%llu actual=%llu\n", pc,
-                (unsigned long long)expected, (unsigned long long)last);
+      if (!value_expect_u64(last, expected)) {
+        fprintf(stderr, "expect.%u=fail expected=%llu actual=", pc,
+                (unsigned long long)expected);
+        print_value(stderr, last);
+        fprintf(stderr, "\n");
         return 19;
       }
       printf("expect.%u=ok expected=%llu\n", pc, (unsigned long long)expected);
       continue;
     }
+    if (op == OP_EXPECT_I64) {
+      int64_t expected = (int64_t)((uint64_t)arg0 | ((uint64_t)arg1 << 32));
+      if (!value_expect_i64(last, expected)) {
+        fprintf(stderr, "expect.%u=fail expected=%lld actual=", pc, (long long)expected);
+        print_value(stderr, last);
+        fprintf(stderr, "\n");
+        return 19;
+      }
+      printf("expect.%u=ok expected=%lld\n", pc, (long long)expected);
+      continue;
+    }
+    if (op == OP_EXPECT_BOOL) {
+      if (!value_expect_bool(last, (int)arg0)) {
+        fprintf(stderr, "expect.%u=fail expected=%s actual=", pc, arg0 ? "true" : "false");
+        print_value(stderr, last);
+        fprintf(stderr, "\n");
+        return 19;
+      }
+      printf("expect.%u=ok expected=%s\n", pc, arg0 ? "true" : "false");
+      continue;
+    }
+    if (op == OP_EXPECT_PTR) {
+      if (!value_expect_ptr(last, (int)arg0)) {
+        fprintf(stderr, "expect.%u=fail expected=%s actual=", pc, arg0 ? "nonnull" : "null");
+        print_value(stderr, last);
+        fprintf(stderr, "\n");
+        return 19;
+      }
+      printf("expect.%u=ok expected=%s\n", pc, arg0 ? "nonnull" : "null");
+      continue;
+    }
     if (op == OP_CONST_U64) {
-      last = (uint64_t)arg0 | ((uint64_t)arg1 << 32);
-      printf("u64.%u=%llu\n", pc, (unsigned long long)last);
+      last = value_u64((uint64_t)arg0 | ((uint64_t)arg1 << 32));
+      printf("u64.%u=", pc);
+      print_value(stdout, last);
+      printf("\n");
+      continue;
+    }
+    if (op == OP_CONST_I64) {
+      last = value_i64((int64_t)((uint64_t)arg0 | ((uint64_t)arg1 << 32)));
+      printf("i64.%u=", pc);
+      print_value(stdout, last);
+      printf("\n");
+      continue;
+    }
+    if (op == OP_CONST_BOOL) {
+      last = value_bool((int)arg0);
+      printf("bool.%u=", pc);
+      print_value(stdout, last);
+      printf("\n");
       continue;
     }
     if (op == OP_ADD_U64) {
       uint64_t rhs = (uint64_t)arg0 | ((uint64_t)arg1 << 32);
-      last += rhs;
-      printf("add-u64.%u=%llu\n", pc, (unsigned long long)last);
+      if (!value_add_u64(&last, rhs)) {
+        fprintf(stderr, "type.add-u64=%u actual=", pc);
+        print_value(stderr, last);
+        fprintf(stderr, "\n");
+        return 20;
+      }
+      printf("add-u64.%u=", pc);
+      print_value(stdout, last);
+      printf("\n");
       continue;
     }
     rc = resolve_import_ref(b, arg0, &ri);
@@ -918,8 +1149,9 @@ static int execute_blob(const Blob *b) {
       return 11;
     }
     if (rc != 0) return rc;
-    printf("call.%u=%s:%s result=%llu\n", pc, ri.lib, ri.sym,
-           (unsigned long long)last);
+    printf("call.%u=%s:%s result=", pc, ri.lib, ri.sym);
+    print_value(stdout, last);
+    printf("\n");
   }
   fprintf(stderr, "missing.ret\n");
   return 18;
