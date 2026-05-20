@@ -22,6 +22,9 @@ BAD_ARITH_CODE="$BUILD_DIR/arithmetic-bad-code.elf"
 RET42_OBJ="$BUILD_DIR/nano_ret42.o"
 RET42_C="$BUILD_DIR/nano_ret42_main.c"
 RET42_EXE="$BUILD_DIR/nano_ret42"
+ARITH_OBJ="$BUILD_DIR/arithmetic_obj.o"
+ARITH_OBJ_C="$BUILD_DIR/arithmetic_obj_main.c"
+ARITH_OBJ_EXE="$BUILD_DIR/arithmetic_obj"
 CALL42_OBJ="$BUILD_DIR/nano_call42.o"
 CALL42_C="$BUILD_DIR/nano_call42_main.c"
 CALL42_EXE="$BUILD_DIR/nano_call42"
@@ -42,6 +45,12 @@ cat > "$RET42_C" <<'EOF'
 extern int nano_ret(void);
 int main(void) {
   return nano_ret();
+}
+EOF
+cat > "$ARITH_OBJ_C" <<'EOF'
+extern int nano_arith(void);
+int main(void) {
+  return nano_arith();
 }
 EOF
 cat > "$CALL42_C" <<'EOF'
@@ -124,6 +133,10 @@ if [ "$(uname -m)" = "x86_64" ] || [ "$(uname -m)" = "amd64" ]; then
   log "ret42.obj.bytes=$(bytes_of "$RET42_OBJ")"
   run_case "link-elf64-obj-ret42" cc "$RET42_C" "$RET42_OBJ" -o "$RET42_EXE"
   run_case "run-elf64-obj-ret42" bash -c '"$1"; status=$?; test "$status" -eq 42' _ "$RET42_EXE"
+  run_case "aot-arithmetic-elf64-obj-ret42" "$RUNNER" aot-elf64-obj-ret "$ARITH_BLOB" "$ARITH_OBJ" nano_arith
+  log "arithmetic.obj.bytes=$(bytes_of "$ARITH_OBJ")"
+  run_case "link-aot-arithmetic-obj-ret42" cc "$ARITH_OBJ_C" "$ARITH_OBJ" -o "$ARITH_OBJ_EXE"
+  run_case "run-aot-arithmetic-obj-ret42" bash -c '"$1"; status=$?; test "$status" -eq 42' _ "$ARITH_OBJ_EXE"
   run_case "emit-elf64-obj-call42" "$RUNNER" emit-elf64-obj-call "$CALL42_OBJ" nano_call nano_ext
   log "call42.obj.bytes=$(bytes_of "$CALL42_OBJ")"
   run_case "link-elf64-obj-call42" cc "$CALL42_C" "$CALL42_OBJ" -o "$CALL42_EXE"

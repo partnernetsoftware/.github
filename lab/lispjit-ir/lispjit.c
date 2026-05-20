@@ -1400,6 +1400,34 @@ static int cmd_aot_elf64_exit(const char *blob_path, const char *out_path) {
   return 0;
 }
 
+static int cmd_aot_elf64_obj_ret(const char *blob_path, const char *out_path, const char *symbol) {
+  Blob b;
+  unsigned char *owned = NULL;
+  uint64_t result = 0;
+  if (!symbol[0]) {
+    fprintf(stderr, "aot-elf64-obj-ret=bad_symbol\n");
+    return 1;
+  }
+  if (!blob_load_path(blob_path, &b, &owned)) {
+    fprintf(stderr, "blob=parse_fail path=%s\n", blob_path);
+    return 1;
+  }
+  if (!eval_pure_u64_blob(&b, &result) || result > UINT32_MAX) {
+    fprintf(stderr, "aot-elf64-obj-ret=unsupported_blob\n");
+    free(owned);
+    return 2;
+  }
+  free(owned);
+  if (!emit_elf64_obj_ret_file(out_path, symbol, (uint32_t)result)) {
+    fprintf(stderr, "aot-elf64-obj-ret=write_fail path=%s\n", out_path);
+    return 3;
+  }
+  printf("aot.obj.output=%s\n", out_path);
+  printf("aot.obj.symbol=%s\n", symbol);
+  printf("aot.obj.ret=%llu\n", (unsigned long long)result);
+  return 0;
+}
+
 static int compile_pure_u64_blob_to_x86_exit(const Blob *b, Buf *code) {
   int saw_ret = 0;
   Buf expect_patches = {0};
@@ -1658,6 +1686,7 @@ static void usage(const char *argv0) {
   fprintf(stderr, "  %s emit-elf64-obj-ret output.o symbol value\n", argv0);
   fprintf(stderr, "  %s emit-elf64-obj-call output.o local_symbol external_symbol\n", argv0);
   fprintf(stderr, "  %s aot-elf64-exit input.%s output.elf\n", argv0, BLOB_EXT);
+  fprintf(stderr, "  %s aot-elf64-obj-ret input.%s output.o symbol\n", argv0, BLOB_EXT);
   fprintf(stderr, "  %s aot-elf64-code input.%s output.elf\n", argv0, BLOB_EXT);
   fprintf(stderr, "  %s dump program.%s\n", argv0, BLOB_EXT);
   fprintf(stderr, "  %s hash program.%s\n", argv0, BLOB_EXT);
@@ -1690,6 +1719,9 @@ int main(int argc, char **argv) {
   }
   if (argc >= 2 && strcmp(argv[1], "aot-elf64-exit") == 0 && argc == 4) {
     return cmd_aot_elf64_exit(argv[2], argv[3]);
+  }
+  if (argc >= 2 && strcmp(argv[1], "aot-elf64-obj-ret") == 0 && argc == 5) {
+    return cmd_aot_elf64_obj_ret(argv[2], argv[3], argv[4]);
   }
   if (argc >= 2 && strcmp(argv[1], "aot-elf64-code") == 0 && argc == 4) {
     return cmd_aot_elf64_code(argv[2], argv[3]);
