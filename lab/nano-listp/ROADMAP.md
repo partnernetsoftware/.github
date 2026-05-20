@@ -60,7 +60,7 @@
 
 下一步优先级：
 
-1. 把最小 control flow 子集继续接到 AOT/静态求值路径，逐步缩小 runtime-only 语义。
+1. 把最小 control flow 子集继续接到机器码 AOT/codegen 路径，逐步缩小静态求值-only 语义。
 2. 扩大 bootstrap DSL：在已落地的 `compile/hash/run` 之外，继续接 `compare`、`pack-app`、`inspect-app` 等可验证步骤。
 3. 持续缩小临时依赖：`cosmocc` 只保留为 slice compiler，下一阶段目标是生成 x86_64 slice 的可运行子集。
 4. 继续扩大 typed/AOT 交集：让 `i64`、`bool`、以及后续 `ptr` 子集逐步进入 object/codegen 路径。
@@ -91,3 +91,4 @@
 - `compile-elf64-obj-code` 已支持多函数纯 VM source、内部 `call` 和基础 relocation 生成。
 - 多函数 object 可同时被系统 `cc` 与 nano 自带 tiny linker 链接并运行。
 - `bootstrap` 最小 DSL 已落地，可用 `.lisp` 顺序描述并执行 `compile` / `hash` / `run` 子流程。
+- control-flow pure blob 已能走静态求值 AOT 路径，生成 `aot-elf64-exit` / `aot-elf64-obj-ret` 产物。

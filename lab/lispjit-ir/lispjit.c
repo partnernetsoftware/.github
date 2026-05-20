@@ -2393,21 +2393,72 @@ static int cmd_emit_elf64_obj_call(const char *out_path, const char *local, cons
   return 0;
 }
 
-static int eval_pure_u64_blob(const Blob *b, uint64_t *out) {
-  uint64_t last = 0;
-  for (uint32_t pc = 0; pc < b->instr_count; ++pc) {
+static int value_to_exit_code(Value v, uint8_t *out) {
+  if (v.kind == VAL_U64 || v.kind == VAL_BOOL) {
+    *out = (uint8_t)(v.bits & 0xffu);
+    return 1;
+  }
+  if (v.kind == VAL_I64) {
+    *out = (uint8_t)((int64_t)v.bits & 0xff);
+    return 1;
+  }
+  return 0;
+}
+
+static int value_to_obj_ret_u32(Value v, uint32_t *out) {
+  if (v.kind == VAL_BOOL) {
+    *out = (uint32_t)v.bits;
+    return 1;
+  }
+  if (v.kind == VAL_U64 && v.bits <= UINT32_MAX) {
+    *out = (uint32_t)v.bits;
+    return 1;
+  }
+  if (v.kind == VAL_I64) {
+    int64_t signed_v = (int64_t)v.bits;
+    if (signed_v < INT32_MIN || signed_v > INT32_MAX) return 0;
+    *out = (uint32_t)(int32_t)signed_v;
+    return 1;
+  }
+  return 0;
+}
+
+static int eval_pure_blob(const Blob *b, Value *out) {
+  Value last = value_u64(0);
+  uint32_t pc = 0;
+  while (pc < b->instr_count) {
     const unsigned char *ins = instr_row(b, pc);
     if (!ins) return 0;
     uint8_t op = ins[0];
     uint32_t arg0 = rd32(ins + 4);
     uint32_t arg1 = rd32(ins + 8);
     if (op == OP_CONST_U64) {
-      last = (uint64_t)arg0 | ((uint64_t)arg1 << 32);
+      last = value_u64((uint64_t)arg0 | ((uint64_t)arg1 << 32));
+      pc++;
+    } else if (op == OP_CONST_I64) {
+      last = value_i64((int64_t)((uint64_t)arg0 | ((uint64_t)arg1 << 32)));
+      pc++;
+    } else if (op == OP_CONST_BOOL) {
+      last = value_bool((int)arg0);
+      pc++;
     } else if (op == OP_ADD_U64) {
-      last += (uint64_t)arg0 | ((uint64_t)arg1 << 32);
+      uint64_t rhs = (uint64_t)arg0 | ((uint64_t)arg1 << 32);
+      if (!value_add_u64(&last, rhs)) return 0;
+      pc++;
     } else if (op == OP_EXPECT_U64) {
       uint64_t expected = (uint64_t)arg0 | ((uint64_t)arg1 << 32);
-      if (last != expected) return 0;
+      if (!value_expect_u64(last, expected)) return 0;
+      pc++;
+    } else if (op == OP_EXPECT_I64) {
+      int64_t expected = (int64_t)((uint64_t)arg0 | ((uint64_t)arg1 << 32));
+      if (!value_expect_i64(last, expected)) return 0;
+      pc++;
+    } else if (op == OP_EXPECT_BOOL) {
+      if (!value_expect_bool(last, (int)arg0)) return 0;
+      pc++;
+    } else if (op == OP_BRANCH_BOOL) {
+      if (last.kind != VAL_BOOL || arg0 >= b->instr_count) return 0;
+      pc = last.bits ? arg0 : pc + 1;
     } else if (op == OP_RET_LAST) {
       *out = last;
       return 1;
@@ -2421,31 +2472,33 @@ static int eval_pure_u64_blob(const Blob *b, uint64_t *out) {
 static int cmd_aot_elf64_exit(const char *blob_path, const char *out_path) {
   Blob b;
   unsigned char *owned = NULL;
-  uint64_t result = 0;
+  Value result = value_u64(0);
+  uint8_t exit_code = 0;
   if (!blob_load_path(blob_path, &b, &owned)) {
     fprintf(stderr, "blob=parse_fail path=%s\n", blob_path);
     return 1;
   }
-  if (!eval_pure_u64_blob(&b, &result)) {
+  if (!eval_pure_blob(&b, &result) || !value_to_exit_code(result, &exit_code)) {
     fprintf(stderr, "aot-elf64-exit=unsupported_blob\n");
     free(owned);
     return 2;
   }
   free(owned);
-  if (!emit_elf64_exit_file(out_path, (uint8_t)(result & 0xffu))) {
+  if (!emit_elf64_exit_file(out_path, exit_code)) {
     fprintf(stderr, "aot-elf64-exit=write_fail path=%s\n", out_path);
     return 3;
   }
   printf("aot.elf64.output=%s\n", out_path);
   printf("aot.elf64.bytes=%d\n", 132);
-  printf("aot.elf64.exit=%llu\n", (unsigned long long)(result & 0xffu));
+  printf("aot.elf64.exit=%u\n", (unsigned)exit_code);
   return 0;
 }
 
 static int cmd_aot_elf64_obj_ret(const char *blob_path, const char *out_path, const char *symbol) {
   Blob b;
   unsigned char *owned = NULL;
-  uint64_t result = 0;
+  Value result = value_u64(0);
+  uint32_t ret_value = 0;
   if (!symbol[0]) {
     fprintf(stderr, "aot-elf64-obj-ret=bad_symbol\n");
     return 1;
@@ -2454,19 +2507,19 @@ static int cmd_aot_elf64_obj_ret(const char *blob_path, const char *out_path, co
     fprintf(stderr, "blob=parse_fail path=%s\n", blob_path);
     return 1;
   }
-  if (!eval_pure_u64_blob(&b, &result) || result > UINT32_MAX) {
+  if (!eval_pure_blob(&b, &result) || !value_to_obj_ret_u32(result, &ret_value)) {
     fprintf(stderr, "aot-elf64-obj-ret=unsupported_blob\n");
     free(owned);
     return 2;
   }
   free(owned);
-  if (!emit_elf64_obj_ret_file(out_path, symbol, (uint32_t)result)) {
+  if (!emit_elf64_obj_ret_file(out_path, symbol, ret_value)) {
     fprintf(stderr, "aot-elf64-obj-ret=write_fail path=%s\n", out_path);
     return 3;
   }
   printf("aot.obj.output=%s\n", out_path);
   printf("aot.obj.symbol=%s\n", symbol);
-  printf("aot.obj.ret=%llu\n", (unsigned long long)result);
+  printf("aot.obj.ret=%u\n", ret_value);
   return 0;
 }
 

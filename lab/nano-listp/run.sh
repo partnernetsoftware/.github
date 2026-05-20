@@ -19,6 +19,10 @@ CTRL_BLOB="$BUILD_DIR/control-flow.lbin"
 BAD_ARITH_SRC="$BUILD_DIR/arithmetic-bad.lisp"
 BAD_ARITH_BLOB="$BUILD_DIR/arithmetic-bad.lbin"
 CTRL_CODE="$BUILD_DIR/control-flow-code.elf"
+CTRL_EXIT="$BUILD_DIR/control-flow-aot.elf"
+CTRL_OBJ="$BUILD_DIR/control_flow_obj.o"
+CTRL_OBJ_C="$BUILD_DIR/control_flow_main.c"
+CTRL_OBJ_EXE="$BUILD_DIR/control_flow_obj"
 MULTI_OBJ="$BUILD_DIR/multi_func.o"
 MULTI_C="$BUILD_DIR/multi_func_main.c"
 MULTI_EXE="$BUILD_DIR/multi_func"
@@ -94,6 +98,12 @@ int nano_ext(void) {
 extern int nano_call(void);
 int main(void) {
   return nano_call();
+}
+EOF
+cat > "$CTRL_OBJ_C" <<'EOF'
+extern int nano_ctrl(void);
+int main(void) {
+  return nano_ctrl();
 }
 EOF
 cat > "$MULTI_C" <<'EOF'
@@ -189,6 +199,11 @@ if [ "$(uname -m)" = "x86_64" ] || [ "$(uname -m)" = "amd64" ]; then
   run_case "compile-bad-arithmetic-lbin" "$RUNNER" compile "$BAD_ARITH_SRC" "$BAD_ARITH_BLOB"
   run_case "aot-bad-arithmetic-elf64-code" "$RUNNER" aot-elf64-code "$BAD_ARITH_BLOB" "$BAD_ARITH_CODE"
   run_case "run-aot-bad-arithmetic-expect125" bash -c '"$1"; status=$?; test "$status" -eq 125' _ "$BAD_ARITH_CODE"
+  run_case "aot-control-flow-elf64-exit1" "$RUNNER" aot-elf64-exit "$CTRL_BLOB" "$CTRL_EXIT"
+  run_case "run-aot-control-flow-exit1" bash -c '"$1"; status=$?; test "$status" -eq 1' _ "$CTRL_EXIT"
+  run_case "aot-control-flow-elf64-obj-ret1" "$RUNNER" aot-elf64-obj-ret "$CTRL_BLOB" "$CTRL_OBJ" nano_ctrl
+  run_case "link-aot-control-flow-obj1" cc "$CTRL_OBJ_C" "$CTRL_OBJ" -o "$CTRL_OBJ_EXE"
+  run_case "run-aot-control-flow-obj1" bash -c '"$1"; status=$?; test "$status" -eq 1' _ "$CTRL_OBJ_EXE"
   run_case "aot-control-flow-unsupported" bash -c 'if "$1" aot-elf64-code "$2" "$3"; then exit 1; else test "$?" -eq 2; fi' _ "$RUNNER" "$CTRL_BLOB" "$CTRL_CODE"
   run_case "emit-elf64-obj-ret42" "$RUNNER" emit-elf64-obj-ret "$RET42_OBJ" nano_ret 42
   log "ret42.obj.bytes=$(bytes_of "$RET42_OBJ")"
