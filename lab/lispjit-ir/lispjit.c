@@ -77,6 +77,7 @@ extern void *cosmo_dlsym(void *handle, const char *symbol);
 #define BOOTSTRAP_STEP_COMPILE 1u
 #define BOOTSTRAP_STEP_HASH 2u
 #define BOOTSTRAP_STEP_RUN 3u
+#define BOOTSTRAP_STEP_COMPARE 4u
 
 typedef uint64_t (*jit_entry_fn)(void);
 typedef int (*ffi_i32_ptr_fn)(const char *);
@@ -749,11 +750,12 @@ static int parse_bootstrap_plan(const char *src, BootstrapPlan *plan) {
     if (!eat(&p, '(')) return 0;
     head = parse_atom(&p);
     if (!head) return 0;
-    if (strcmp(head, "compile") == 0) {
+    if (strcmp(head, "compile") == 0 || strcmp(head, "compare") == 0) {
       char *arg0 = parse_string(&p);
       char *arg1 = parse_string(&p);
+      uint32_t kind = strcmp(head, "compile") == 0 ? BOOTSTRAP_STEP_COMPILE : BOOTSTRAP_STEP_COMPARE;
       int ok = arg0 && arg1 && eat(&p, ')') &&
-               bootstrap_add_step(plan, BOOTSTRAP_STEP_COMPILE, arg0, arg1);
+               bootstrap_add_step(plan, kind, arg0, arg1);
       if (!ok) {
         free(arg0);
         free(arg1);
@@ -1727,6 +1729,25 @@ static int cmd_run_bootstrap_plan(const char *plan_path) {
     if (step->kind == BOOTSTRAP_STEP_COMPILE) {
       printf("bootstrap-step.%zu=compile\n", i);
       rc = cmd_compile(step->arg0, step->arg1);
+    } else if (step->kind == BOOTSTRAP_STEP_COMPARE) {
+      size_t left_n = 0;
+      size_t right_n = 0;
+      unsigned char *left = NULL;
+      unsigned char *right = NULL;
+      printf("bootstrap-step.%zu=compare\n", i);
+      left = read_file(step->arg0, &left_n);
+      right = read_file(step->arg1, &right_n);
+      if (!left || !right) {
+        fprintf(stderr, "bootstrap-compare=read_fail\n");
+        rc = 2;
+      } else if (left_n != right_n || memcmp(left, right, left_n) != 0) {
+        fprintf(stderr, "bootstrap-compare=diff left=%s right=%s\n", step->arg0, step->arg1);
+        rc = 2;
+      } else {
+        printf("bootstrap-compare.ok bytes=%zu\n", left_n);
+      }
+      free(left);
+      free(right);
     } else if (step->kind == BOOTSTRAP_STEP_HASH) {
       printf("bootstrap-step.%zu=hash\n", i);
       rc = cmd_hash(step->arg0);

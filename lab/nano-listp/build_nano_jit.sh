@@ -161,6 +161,8 @@ cat > "$BOOTSTRAP_PLAN" <<EOF
 (bootstrap
   (compile "$SMOKE_SRC" "$BUILD_DIR/bootstrap-smoke.lbin")
   (hash "$BUILD_DIR/bootstrap-smoke.lbin")
+  (compile "$SMOKE_SRC" "$BUILD_DIR/bootstrap-smoke-repeat.lbin")
+  (compare "$BUILD_DIR/bootstrap-smoke.lbin" "$BUILD_DIR/bootstrap-smoke-repeat.lbin")
   (run "$BUILD_DIR/bootstrap-smoke.lbin"))
 EOF
 
