@@ -37,7 +37,7 @@ const PREVIEW_LINES = 80;
 const SHELL_COMMS = new Set(["bash", "zsh", "sh", "fish", "dash", "tmux", "-bash", "-zsh"]);
 
 const TUI_CONFIG = {
-  VERSION: '0.4.8',
+  VERSION: '0.4.9',
   VIEWER_SESSION: `__tui_viewer__`,
   TUI_KEYTABLE: "tui_empty",
   REMARK_KEY: "@remark",
@@ -946,7 +946,45 @@ function peelJsonFlag(rest: string[]): { rest: string[]; json: boolean } {
 }
 
 function cliWriteJson(data: unknown): void {
-  process.stdout.write(JSON.stringify(data, null, 2) + "\n");
+  cliWriteStdout(JSON.stringify(data, null, 2) + "\n");
+}
+
+/** pipe/head 关 stdout 时避免 EPIPE 挂死 */
+function cliWriteStdout(text: string): void {
+  if (!process.stdout.write(text)) {
+    process.stdout.once("drain", () => {});
+  }
+}
+
+function sessionWindowCount(tree: TreeNode[], sessIdx: number): number {
+  let wc = 0;
+  for (let j = sessIdx + 1; j < tree.length && tree[j].type === "window"; j++) wc++;
+  return wc;
+}
+
+function countSessionWindows(tree: TreeNode[], sessionName: string): number {
+  let wc = 0;
+  for (const n of tree) {
+    if (n.type === "window" && n.sessionName === sessionName) wc++;
+  }
+  return wc;
+}
+
+type WindowFleetDetail = {
+  winIdx: string;
+  winTarget: string;
+  cap: PaneSnapResult;
+  meta: WindowMeta;
+  proc: ProcInfo | null;
+};
+
+/** status / inspect / 驾驶 meta 同源：一次 paneSnap + windowMeta + proc */
+function windowFleetDetail(n: TreeNode, previewLines: number): WindowFleetDetail {
+  const winIdx = n.target.split(":")[1] ?? "";
+  const winTarget = buildWinTarget(n.sessionName, winIdx);
+  const cap = paneSnap(winTarget, { sync: true, lines: previewLines });
+  const meta = windowMeta(n, undefined, { sync: true, cap });
+  return { winIdx, winTarget, cap, meta, proc: readDriveProc(winTarget) };
 }
 
 function windowNameFromNode(node: TreeNode): string {
@@ -1377,25 +1415,22 @@ function procToCli(proc: ProcInfo | null): CliProcInfo | undefined {
 }
 
 function fleetWindowRow(n: TreeNode, previewLines: number): CliFleetRow {
-  const winIdx = n.target.split(":")[1] ?? "";
+  const d = windowFleetDetail(n, previewLines);
   const ag = n.agent;
-  const winTarget = buildWinTarget(n.sessionName, winIdx);
-  const cap = paneSnap(winTarget, { sync: true, lines: previewLines });
-  const m = windowMeta(n, undefined, { sync: true, cap });
   return {
     type: "window",
     target: n.target,
     session: n.sessionName,
-    windowIndex: winIdx,
+    windowIndex: d.winIdx,
     windowName: windowNameFromNode(n),
     label: n.label,
     remark: n.remark || undefined,
     agent: ag || undefined,
-    unread: m.unread,
+    unread: d.meta.unread,
     inboxPath: ag ? inboxPath(ag) : undefined,
-    previewLastLine: cap.lastLine || undefined,
-    placeholders: { lvl: m.lvl, age: m.age, st: m.alert ? "!" : "—", act: m.act },
-    proc: procToCli(readDriveProc(winTarget)),
+    previewLastLine: d.cap.lastLine || undefined,
+    placeholders: { lvl: d.meta.lvl, age: d.meta.age, st: d.meta.alert ? "!" : "—", act: d.meta.act },
+    proc: procToCli(d.proc),
   };
 }
 
@@ -1411,14 +1446,12 @@ function buildFleetSnapshot(previewLines = 1, sourceTree?: TreeNode[]): CliFleet
   for (let i = 0; i < tree.length; i++) {
     const n = tree[i];
     if (n.type === "session") {
-      let wc = 0;
-      for (let j = i + 1; j < tree.length && tree[j].type === "window"; j++) wc++;
       rows.push({
         type: "session",
         target: n.target,
         session: n.sessionName,
         remark: n.remark || undefined,
-        windowCount: wc,
+        windowCount: sessionWindowCount(tree, i),
       });
       continue;
     }
@@ -1453,33 +1486,25 @@ function buildInspectResult(spec: string, previewLines: number, sourceTree?: Tre
   };
   if (node.type === "session") {
     const tree = sourceTree ?? syncTree();
-    let wc = 0;
-    for (const t of tree) {
-      if (t.type === "window" && t.sessionName === node.sessionName) wc++;
-    }
-    return { ...base, windowCount: wc };
+    return { ...base, windowCount: countSessionWindows(tree, node.sessionName) };
   }
   beginPaneSnapBatch();
   const tree = sourceTree ?? syncTree();
   const full = tree.find((n) => n.type === "window" && n.target === node.target) ?? node;
-  const winIdx = full.target.split(":")[1] ?? "";
-  const ag = full.agent ?? readAgent(full);
-  const m = windowMeta(full, undefined, { sync: true });
-  const winTarget = buildWinTarget(full.sessionName, winIdx);
-  const cap = paneSnap(winTarget, { sync: true, lines: previewLines });
-  const procSnap = readDriveProc(winTarget);
+  const d = windowFleetDetail(full, previewLines);
   endPaneSnapBatch();
+  const ag = full.agent;
   return {
     ...base,
-    windowIndex: winIdx,
+    windowIndex: d.winIdx,
     windowName: windowNameFromNode(full),
     label: full.label,
     agent: ag || undefined,
-    unread: ag ? agentUnreadCount(ag) : 0,
+    unread: d.meta.unread,
     inboxPath: ag ? inboxPath(ag) : undefined,
-    preview: { lines: previewLines, text: cap.text, lastLine: cap.lastLine },
-    placeholders: { lvl: m.lvl, age: m.age, st: m.alert ? "!" : "—", act: m.act },
-    proc: procToCli(procSnap),
+    preview: { lines: previewLines, text: d.cap.text, lastLine: d.cap.lastLine },
+    placeholders: { lvl: d.meta.lvl, age: d.meta.age, st: d.meta.alert ? "!" : "—", act: d.meta.act },
+    proc: procToCli(d.proc),
   };
 }
 
@@ -2469,9 +2494,9 @@ function createViewer(sess: string, idx?: string) {
     `'${tb}' set-option -t '${v}' mouse on`,
     `'${tb}' set-option -t '${v}' status-position top`,
     `'${tb}' set-option -t '${v}' status on`,
-    `'${tb}' set-option -t '${v}' status-left ' #[bold]ctrl-左·点击: 返回 '`,
-    `'${tb}' set-option -t '${v}' status-left-length 36`,
-    `'${tb}' set-option -t '${v}' status-right '驾驶分舱:${cabin} '`,
+    `'${tb}' set-option -t '${v}' status-left ' #[bold]← '`,
+    `'${tb}' set-option -t '${v}' status-left-length 5`,
+    `'${tb}' set-option -t '${v}' status-right 'ctrl-左返回 · 驾驶:${cabin} '`,
     `'${tb}' set-option -t '${v}' window-status-format ''`,
     `'${tb}' set-option -t '${v}' window-status-current-format ''`,
     `'${tb}' set-option -t '${v}' window-status-separator ''`,
@@ -3169,7 +3194,7 @@ function cliHelp(): number {
     "结构化: 任意子命令可加 --json；status/inspect 供 agent 拉车队快照",
     "开发: tui dev [args…] — 保存源码自动重启（TUI_DEV=1）",
   );
-  process.stdout.write(lines.join("\n") + "\n");
+  cliWriteStdout(lines.join("\n") + "\n");
   return 0;
 }
 
@@ -3578,6 +3603,10 @@ function runCli(argv: string[]): number {
 }
 
 // PART:entry
+
+process.stdout.on("error", (err: NodeJS.ErrnoException) => {
+  if (err.code === "EPIPE") process.exit(0);
+});
 
 if (import.meta.main) {
   if (isCliInvocation(process.argv)) {
