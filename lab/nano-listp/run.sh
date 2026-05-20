@@ -22,6 +22,9 @@ BAD_ARITH_CODE="$BUILD_DIR/arithmetic-bad-code.elf"
 RET42_OBJ="$BUILD_DIR/nano_ret42.o"
 RET42_C="$BUILD_DIR/nano_ret42_main.c"
 RET42_EXE="$BUILD_DIR/nano_ret42"
+CALL42_OBJ="$BUILD_DIR/nano_call42.o"
+CALL42_C="$BUILD_DIR/nano_call42_main.c"
+CALL42_EXE="$BUILD_DIR/nano_call42"
 RUNNER="$BUILD_DIR/nano-listp"
 RESULTS="$BUILD_DIR/results.txt"
 NANO_C="$ROOT_DIR/lab/lispjit-ir/lispjit.c"
@@ -39,6 +42,15 @@ cat > "$RET42_C" <<'EOF'
 extern int nano_ret(void);
 int main(void) {
   return nano_ret();
+}
+EOF
+cat > "$CALL42_C" <<'EOF'
+int nano_ext(void) {
+  return 42;
+}
+extern int nano_call(void);
+int main(void) {
+  return nano_call();
 }
 EOF
 
@@ -112,6 +124,10 @@ if [ "$(uname -m)" = "x86_64" ] || [ "$(uname -m)" = "amd64" ]; then
   log "ret42.obj.bytes=$(bytes_of "$RET42_OBJ")"
   run_case "link-elf64-obj-ret42" cc "$RET42_C" "$RET42_OBJ" -o "$RET42_EXE"
   run_case "run-elf64-obj-ret42" bash -c '"$1"; status=$?; test "$status" -eq 42' _ "$RET42_EXE"
+  run_case "emit-elf64-obj-call42" "$RUNNER" emit-elf64-obj-call "$CALL42_OBJ" nano_call nano_ext
+  log "call42.obj.bytes=$(bytes_of "$CALL42_OBJ")"
+  run_case "link-elf64-obj-call42" cc "$CALL42_C" "$CALL42_OBJ" -o "$CALL42_EXE"
+  run_case "run-elf64-obj-call42" bash -c '"$1"; status=$?; test "$status" -eq 42' _ "$CALL42_EXE"
 else
   log ""
   log "## run-elf64-exit42"
