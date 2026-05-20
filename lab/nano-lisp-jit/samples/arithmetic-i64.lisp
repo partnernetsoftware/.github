@@ -17,5 +17,8 @@
     (i64 9)
     (gt-i64 8)
     (expect true)
+    (i64 41)
+    (ne-i64 42)
+    (expect true)
     (i64 42)
     (expect 42)))
