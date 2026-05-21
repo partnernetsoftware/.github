@@ -11,6 +11,14 @@ repo_root() {
 nano_runner() {
   local root
   root="$(repo_root)"
+  if [ -n "${NANO_JIT:-}" ]; then
+    if [ ! -x "$NANO_JIT" ]; then
+      echo "nano: NANO_JIT is not executable: $NANO_JIT" >&2
+      return 2
+    fi
+    printf '%s\n' "$NANO_JIT"
+    return 0
+  fi
   local runner="$root/lab/nano-lisp-jit/.build/nano-lisp-jit"
   if [ ! -x "$runner" ]; then
     echo "nano: building runner via lab/nano-lisp-jit/run.sh (first time)" >&2
