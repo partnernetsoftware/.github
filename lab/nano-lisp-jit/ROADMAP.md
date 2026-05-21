@@ -108,3 +108,29 @@
 - `bootstrap` 最小 DSL 已落地，可用 `.lisp` 顺序描述并执行核心 `.lbin` 样例矩阵、`compile` / `gen-libc-resolve` / `dump` / `file-size` / `file-hash` / `hash` / `compare` / `pack-app` / `inspect-app` / `run-app` / `run` 子流程。
 - `bootstrap` DSL 已可驱动 AOT/codegen/tiny-link executable smoke，覆盖 `emit-elf64-exit`、`emit-elf64-obj-*`、`aot-elf64-*`、`compile-elf64-*`、`file-size` / `file-hash` 产物检查、`resolve-quiet`、多 object `link-elf64-exe`、直接 executable 编译、`compile-expect-exit` / `link-expect-exit` / `run-expect-exit` 失败状态断言，开始把更多 build graph 从 shell 迁入 nano 描述。
 - control-flow pure blob 已能走静态求值 AOT 路径，生成 `aot-elf64-exit` / `aot-elf64-obj-ret` 产物。
+
+## self-bootstrap v1 反思
+
+v1 达成标准：`nano-jit.com` 可 self-pack；核心 `.lisp -> .lbin -> VM/AOT/codegen/object/tiny-link/exe` 路径可由 native 与容器脚本重复验证；typed `i64/bool/ptr`、control-flow、multi-func、多 object、load/store-family、负向编译与链接失败均有自举证据。
+
+设计上做对的部分：
+
+- 把 shell oracle 逐步迁入 bootstrap DSL，测试从“脚本观察输出”变成“工具自己断言状态码和产物”。
+- 优先收紧 x86_64 object/tiny-link 主链路，让 `compile-elf64-exe` 可复用 object backend，而不是另起一条不可验证路径。
+- typed value 只扩展最小可证明闭环，每个 op 同时进入解释、静态 AOT、机器码和负向样例。
+
+实现上暴露的问题：
+
+- `lispjit.c` 仍是单文件大内核，解析、IR、解释、AOT、ELF writer、linker 和 CLI 分层不足。
+- const/data 当前仍附着在 `.text`，靠可写 load segment 支持 store；v2 应拆出 `.rodata/.data` 与明确段权限。
+- object 数据布局依赖“数据跟随 text”的局部 RIP 相对寻址；v2 应支持数据 section、section symbol 和数据 relocation。
+- source AOT 与 blob AOT 仍有细小边界差异，新增语义时必须同时补 checked-in DSL、native runner 与 self-packed runner。
+- bootstrap DSL 仍是线性执行模型，缺少命名产物、依赖图和条件化能力。
+
+v2 建议入口：
+
+1. 拆分 `lispjit.c`：先按 parser/blob/vm/aot_x86/elf/linker/bootstrap 分区或分文件。
+2. 引入 `.rodata/.data` object section，支持 `R_X86_64_PC32` 数据 relocation，再移除 RWX text/data 混合策略。
+3. 扩展函数参数与局部值模型，让 `store/load` 不再只依赖“上一条值”。
+4. 把 bootstrap DSL 从顺序脚本推进到小型 build graph，减少 `run.sh` / `build_nano_jit.sh` 的变量胶水。
+5. 继续缩小 `cosmocc` 角色：先生成更完整 x86_64 slice，再评估 aarch64 slice 的最小 backend。
