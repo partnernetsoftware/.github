@@ -128,6 +128,14 @@ typed value 现在支持最小 `i64 / bool / ptr`：
     (store-u8 103)
     (load-u8)
     (expect 103)
+    (const-ptr word)
+    (store-u16 26729)
+    (load-u16)
+    (expect 26729)
+    (const-ptr word)
+    (store-u32 1819043176)
+    (load-u32)
+    (expect 1819043176)
     (resolve strlen)
     (expect nonnull)
     (is-nonnull-ptr)
@@ -264,6 +272,18 @@ bootstrap DSL 也能描述一条最小 AOT/codegen/tiny-link 构建图，不需�
   (compile-expect-exit 2 compile-elf64-code "lab/nano-lisp-jit/samples/type-error-store-u8-range-bad.lisp" "lab/nano-lisp-jit/.build/bootstrap-aot-type-bad-store-u8-range.elf")
   (compile-expect-exit 2 compile-elf64-obj-code "lab/nano-lisp-jit/samples/type-error-store-u8-range-bad.lisp" "lab/nano-lisp-jit/.build/bootstrap-aot-type-bad-store-u8-range.o" "nano_bootstrap_type_bad_store_u8_range")
   (compile-expect-exit 2 compile-elf64-exe "lab/nano-lisp-jit/samples/type-error-store-u8-range-bad.lisp" "lab/nano-lisp-jit/.build/bootstrap-aot-type-bad-store-u8-range-exe.elf" "nano_bootstrap_type_bad_store_u8_range")
+  (compile-expect-exit 2 compile-elf64-code "lab/nano-lisp-jit/samples/type-error-store-u16-bad.lisp" "lab/nano-lisp-jit/.build/bootstrap-aot-type-bad-store-u16.elf")
+  (compile-expect-exit 2 compile-elf64-obj-code "lab/nano-lisp-jit/samples/type-error-store-u16-bad.lisp" "lab/nano-lisp-jit/.build/bootstrap-aot-type-bad-store-u16.o" "nano_bootstrap_type_bad_store_u16")
+  (compile-expect-exit 2 compile-elf64-exe "lab/nano-lisp-jit/samples/type-error-store-u16-bad.lisp" "lab/nano-lisp-jit/.build/bootstrap-aot-type-bad-store-u16-exe.elf" "nano_bootstrap_type_bad_store_u16")
+  (compile-expect-exit 2 compile-elf64-code "lab/nano-lisp-jit/samples/type-error-store-u16-range-bad.lisp" "lab/nano-lisp-jit/.build/bootstrap-aot-type-bad-store-u16-range.elf")
+  (compile-expect-exit 2 compile-elf64-obj-code "lab/nano-lisp-jit/samples/type-error-store-u16-range-bad.lisp" "lab/nano-lisp-jit/.build/bootstrap-aot-type-bad-store-u16-range.o" "nano_bootstrap_type_bad_store_u16_range")
+  (compile-expect-exit 2 compile-elf64-exe "lab/nano-lisp-jit/samples/type-error-store-u16-range-bad.lisp" "lab/nano-lisp-jit/.build/bootstrap-aot-type-bad-store-u16-range-exe.elf" "nano_bootstrap_type_bad_store_u16_range")
+  (compile-expect-exit 2 compile-elf64-code "lab/nano-lisp-jit/samples/type-error-store-u32-bad.lisp" "lab/nano-lisp-jit/.build/bootstrap-aot-type-bad-store-u32.elf")
+  (compile-expect-exit 2 compile-elf64-obj-code "lab/nano-lisp-jit/samples/type-error-store-u32-bad.lisp" "lab/nano-lisp-jit/.build/bootstrap-aot-type-bad-store-u32.o" "nano_bootstrap_type_bad_store_u32")
+  (compile-expect-exit 2 compile-elf64-exe "lab/nano-lisp-jit/samples/type-error-store-u32-bad.lisp" "lab/nano-lisp-jit/.build/bootstrap-aot-type-bad-store-u32-exe.elf" "nano_bootstrap_type_bad_store_u32")
+  (compile-expect-exit 2 compile-elf64-code "lab/nano-lisp-jit/samples/type-error-store-u32-range-bad.lisp" "lab/nano-lisp-jit/.build/bootstrap-aot-type-bad-store-u32-range.elf")
+  (compile-expect-exit 2 compile-elf64-obj-code "lab/nano-lisp-jit/samples/type-error-store-u32-range-bad.lisp" "lab/nano-lisp-jit/.build/bootstrap-aot-type-bad-store-u32-range.o" "nano_bootstrap_type_bad_store_u32_range")
+  (compile-expect-exit 2 compile-elf64-exe "lab/nano-lisp-jit/samples/type-error-store-u32-range-bad.lisp" "lab/nano-lisp-jit/.build/bootstrap-aot-type-bad-store-u32-range-exe.elf" "nano_bootstrap_type_bad_store_u32_range")
   (link-expect-exit 2 "lab/nano-lisp-jit/.build/bootstrap-aot-dup-should-fail" "nano_bootstrap_call" "lab/nano-lisp-jit/.build/bootstrap-aot-call42.o" "lab/nano-lisp-jit/.build/bootstrap-aot-ext42.o" "lab/nano-lisp-jit/.build/bootstrap-aot-dup42.o"))
 ```
 
@@ -297,7 +317,7 @@ bootstrap DSL 也能描述一条最小 AOT/codegen/tiny-link 构建图，不需�
 - `link-elf64-exe`：链接当前 nano object 子集，支持 `input.o...` 多 object，输出可运行 x86_64 ELF。
 - `hash`：输出 `.lbin` 的内建 FNV-1a 64-bit hash，用于 deterministic 编译测试。
 - `(expect N)` / `(expect -N)` / `(expect true|false)` / `(expect null|nonnull)`：在 `.lbin` 内断言上一条结果，失败时 runtime 返回非零。
-- `(u64 N)` / `(add-u64 N)` / `(i64 N)` / `(add-i64 N)` / `(sub-i64 N)` / `(mul-i64 N)` / `(eq-i64 N)` / `(ne-i64 N)` / `(lt-i64 N)` / `(gt-i64 N)` / `(le-i64 N)` / `(ge-i64 N)` / `(bool true|false)` / `(not-bool)` / `(and-bool true|false)` / `(or-bool true|false)` / `(null-ptr)` / `(const-ptr name)` / `(add-ptr N)` / `(sub-ptr N)` / `(ptr-to-u64)` / `(u64-to-ptr)` / `(load-u8)` / `(load-u16)` / `(load-u32)` / `(store-u8 N)` / `(is-null-ptr)` / `(is-nonnull-ptr)`：最小 typed VM 内核，不依赖 FFI。
+- `(u64 N)` / `(add-u64 N)` / `(i64 N)` / `(add-i64 N)` / `(sub-i64 N)` / `(mul-i64 N)` / `(eq-i64 N)` / `(ne-i64 N)` / `(lt-i64 N)` / `(gt-i64 N)` / `(le-i64 N)` / `(ge-i64 N)` / `(bool true|false)` / `(not-bool)` / `(and-bool true|false)` / `(or-bool true|false)` / `(null-ptr)` / `(const-ptr name)` / `(add-ptr N)` / `(sub-ptr N)` / `(ptr-to-u64)` / `(u64-to-ptr)` / `(load-u8)` / `(load-u16)` / `(load-u32)` / `(store-u8 N)` / `(store-u16 N)` / `(store-u32 N)` / `(is-null-ptr)` / `(is-nonnull-ptr)`：最小 typed VM 内核，不依赖 FFI。
 - `block` / `branch label` / `label`：最小控制流；静态求值 AOT（`aot-elf64-exit` / `aot-elf64-obj-ret`）和机器码 codegen（`aot-elf64-code` / `aot-elf64-obj-code` / `compile-elf64-code`）现在都支持该纯 VM 子集。
 - `func` + `main`：当前在 `compile-elf64-obj-code` / `compile-elf64-exe` 的纯 VM AOT source 路径支持；helper 函数默认生成为 object 内部 local symbol。
 - `bootstrap`：当前最小 DSL 支持 `.lbin` 编译/哈希/比较/运行、AOT ELF/codegen/object 生成、tiny-link、app 打包/检查/运行，以及 typed compile failure / linker failure / runtime failure 退出码断言，作为 shell bootstrap 的第一块可执行描述。

@@ -79,6 +79,10 @@ TYPE_BAD_LOAD_U16_SRC="$LAB_DIR/samples/type-error-load-u16-bad.lisp"
 TYPE_BAD_LOAD_U32_SRC="$LAB_DIR/samples/type-error-load-u32-bad.lisp"
 TYPE_BAD_STORE_U8_SRC="$LAB_DIR/samples/type-error-store-u8-bad.lisp"
 TYPE_BAD_STORE_U8_RANGE_SRC="$LAB_DIR/samples/type-error-store-u8-range-bad.lisp"
+TYPE_BAD_STORE_U16_SRC="$LAB_DIR/samples/type-error-store-u16-bad.lisp"
+TYPE_BAD_STORE_U16_RANGE_SRC="$LAB_DIR/samples/type-error-store-u16-range-bad.lisp"
+TYPE_BAD_STORE_U32_SRC="$LAB_DIR/samples/type-error-store-u32-bad.lisp"
+TYPE_BAD_STORE_U32_RANGE_SRC="$LAB_DIR/samples/type-error-store-u32-range-bad.lisp"
 TYPE_BAD_BRANCH_SRC="$LAB_DIR/samples/type-error-branch-bad.lisp"
 TYPE_BAD_EXPECT_PTR_SRC="$LAB_DIR/samples/type-error-expect-ptr-bad.lisp"
 BAD_ARITH_SRC="$LAB_DIR/samples/arithmetic-bad.lisp"
@@ -284,6 +288,18 @@ cat > "$BOOTSTRAP_PLAN" <<EOF
   (compile-expect-exit 2 compile-elf64-code "$TYPE_BAD_STORE_U8_RANGE_SRC" "$BUILD_DIR/bootstrap-aot-type-bad-store-u8-range.elf")
   (compile-expect-exit 2 compile-elf64-obj-code "$TYPE_BAD_STORE_U8_RANGE_SRC" "$BUILD_DIR/bootstrap-aot-type-bad-store-u8-range.o" "nano_bootstrap_type_bad_store_u8_range")
   (compile-expect-exit 2 compile-elf64-exe "$TYPE_BAD_STORE_U8_RANGE_SRC" "$BUILD_DIR/bootstrap-aot-type-bad-store-u8-range-exe.elf" "nano_bootstrap_type_bad_store_u8_range")
+  (compile-expect-exit 2 compile-elf64-code "$TYPE_BAD_STORE_U16_SRC" "$BUILD_DIR/bootstrap-aot-type-bad-store-u16.elf")
+  (compile-expect-exit 2 compile-elf64-obj-code "$TYPE_BAD_STORE_U16_SRC" "$BUILD_DIR/bootstrap-aot-type-bad-store-u16.o" "nano_bootstrap_type_bad_store_u16")
+  (compile-expect-exit 2 compile-elf64-exe "$TYPE_BAD_STORE_U16_SRC" "$BUILD_DIR/bootstrap-aot-type-bad-store-u16-exe.elf" "nano_bootstrap_type_bad_store_u16")
+  (compile-expect-exit 2 compile-elf64-code "$TYPE_BAD_STORE_U16_RANGE_SRC" "$BUILD_DIR/bootstrap-aot-type-bad-store-u16-range.elf")
+  (compile-expect-exit 2 compile-elf64-obj-code "$TYPE_BAD_STORE_U16_RANGE_SRC" "$BUILD_DIR/bootstrap-aot-type-bad-store-u16-range.o" "nano_bootstrap_type_bad_store_u16_range")
+  (compile-expect-exit 2 compile-elf64-exe "$TYPE_BAD_STORE_U16_RANGE_SRC" "$BUILD_DIR/bootstrap-aot-type-bad-store-u16-range-exe.elf" "nano_bootstrap_type_bad_store_u16_range")
+  (compile-expect-exit 2 compile-elf64-code "$TYPE_BAD_STORE_U32_SRC" "$BUILD_DIR/bootstrap-aot-type-bad-store-u32.elf")
+  (compile-expect-exit 2 compile-elf64-obj-code "$TYPE_BAD_STORE_U32_SRC" "$BUILD_DIR/bootstrap-aot-type-bad-store-u32.o" "nano_bootstrap_type_bad_store_u32")
+  (compile-expect-exit 2 compile-elf64-exe "$TYPE_BAD_STORE_U32_SRC" "$BUILD_DIR/bootstrap-aot-type-bad-store-u32-exe.elf" "nano_bootstrap_type_bad_store_u32")
+  (compile-expect-exit 2 compile-elf64-code "$TYPE_BAD_STORE_U32_RANGE_SRC" "$BUILD_DIR/bootstrap-aot-type-bad-store-u32-range.elf")
+  (compile-expect-exit 2 compile-elf64-obj-code "$TYPE_BAD_STORE_U32_RANGE_SRC" "$BUILD_DIR/bootstrap-aot-type-bad-store-u32-range.o" "nano_bootstrap_type_bad_store_u32_range")
+  (compile-expect-exit 2 compile-elf64-exe "$TYPE_BAD_STORE_U32_RANGE_SRC" "$BUILD_DIR/bootstrap-aot-type-bad-store-u32-range-exe.elf" "nano_bootstrap_type_bad_store_u32_range")
   (compile-expect-exit 2 compile-elf64-code "$TYPE_BAD_BRANCH_SRC" "$BUILD_DIR/bootstrap-aot-type-bad-branch.elf")
   (compile-expect-exit 2 compile-elf64-obj-code "$TYPE_BAD_EXPECT_PTR_SRC" "$BUILD_DIR/bootstrap-aot-type-bad-expect-ptr.o" "nano_bootstrap_type_bad_expect_ptr")
   (emit-elf64-obj-call "$BUILD_DIR/bootstrap-aot-call42.o" "nano_bootstrap_call" "nano_bootstrap_ext")
