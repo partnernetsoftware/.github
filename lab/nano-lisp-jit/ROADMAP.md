@@ -76,6 +76,7 @@
 - `gen-libc-resolve` CLI 已替代 libc resolver manifest 的 Python/`nm` 生成链路。
 - `run-expect-exit` CLI 已替代 native AOT smoke 中的 shell 退出码包装。
 - `link-expect-exit` CLI 已替代 duplicate-symbol linker 负向 smoke 的 shell 包装。
+- `compile-expect-exit` CLI/DSL 已替代递归 local call 等负向 source AOT smoke 的 shell 包装。
 - `(expect N)` 断言 op，smoke `.lbin` 可自证关键 FFI/JIT 结果。
 - `(u64 N)` / `(add-u64 N)` 纯 VM 算术 smoke，不依赖 FFI/libc。
 - `i32(i32)` FFI 签名，smoke 覆盖 `abs(-42) -> 42`。
@@ -100,5 +101,5 @@
 - 多函数 object 可同时被系统 `cc` 与 nano 自带 tiny linker 链接并运行。
 - `compile-elf64-exe` 已可把多函数 pure VM source 直接生成可运行 ELF，内部走 object backend + tiny linker。
 - `bootstrap` 最小 DSL 已落地，可用 `.lisp` 顺序描述并执行核心 `.lbin` 样例矩阵、`compile` / `gen-libc-resolve` / `dump` / `file-size` / `file-hash` / `hash` / `compare` / `pack-app` / `inspect-app` / `run-app` / `run` 子流程。
-- `bootstrap` DSL 已可驱动 AOT/codegen/tiny-link executable smoke，覆盖 `emit-elf64-exit`、`emit-elf64-obj-*`、`aot-elf64-*`、`compile-elf64-*`、`file-size` / `file-hash` 产物检查、`resolve-quiet`、多 object `link-elf64-exe`、直接 executable 编译、失败状态断言和 `run-expect-exit`，开始把更多 build graph 从 shell 迁入 nano 描述。
+- `bootstrap` DSL 已可驱动 AOT/codegen/tiny-link executable smoke，覆盖 `emit-elf64-exit`、`emit-elf64-obj-*`、`aot-elf64-*`、`compile-elf64-*`、`file-size` / `file-hash` 产物检查、`resolve-quiet`、多 object `link-elf64-exe`、直接 executable 编译、`compile-expect-exit` / `link-expect-exit` / `run-expect-exit` 失败状态断言，开始把更多 build graph 从 shell 迁入 nano 描述。
 - control-flow pure blob 已能走静态求值 AOT 路径，生成 `aot-elf64-exit` / `aot-elf64-obj-ret` 产物。

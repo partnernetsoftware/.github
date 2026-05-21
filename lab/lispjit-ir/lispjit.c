@@ -143,6 +143,7 @@ extern void *cosmo_dlsym(void *handle, const char *symbol);
 #define BOOTSTRAP_STEP_FILE_SIZE 23u
 #define BOOTSTRAP_STEP_FILE_HASH 24u
 #define BOOTSTRAP_STEP_GEN_LIBC_RESOLVE 25u
+#define BOOTSTRAP_STEP_COMPILE_EXPECT_EXIT 26u
 
 typedef uint64_t (*jit_entry_fn)(void);
 typedef int (*ffi_i32_ptr_fn)(const char *);
@@ -1122,6 +1123,39 @@ static int parse_bootstrap_plan(const char *src, BootstrapPlan *plan) {
       }
       ok = ok && eat(&p, ')') &&
            bootstrap_add_step_extra(plan, BOOTSTRAP_STEP_LINK_EXPECT_EXIT,
+                                    arg0, arg1, arg2, arg3,
+                                    extra_args, extra_arg_count);
+      if (!ok) {
+        free(arg0);
+        free(arg1);
+        free(arg2);
+        free(arg3);
+        bootstrap_free_string_array(extra_args, extra_arg_count);
+        free(head);
+        return 0;
+      }
+    } else if (strcmp(head, "compile-expect-exit") == 0) {
+      char *arg0 = parse_atom(&p);
+      char *arg1 = parse_atom(&p);
+      char *arg2 = parse_string(&p);
+      char *arg3 = parse_string(&p);
+      char **extra_args = NULL;
+      size_t extra_arg_count = 0;
+      size_t extra_arg_cap = 0;
+      int ok = arg0 && arg1 && arg2 && arg3;
+      while (ok) {
+        skip_ws(&p);
+        if (*p == ')') break;
+        char *arg = parse_string(&p);
+        if (!arg || !bootstrap_push_string_arg(&extra_args, &extra_arg_count,
+                                               &extra_arg_cap, arg)) {
+          free(arg);
+          ok = 0;
+          break;
+        }
+      }
+      ok = ok && eat(&p, ')') &&
+           bootstrap_add_step_extra(plan, BOOTSTRAP_STEP_COMPILE_EXPECT_EXIT,
                                     arg0, arg1, arg2, arg3,
                                     extra_args, extra_arg_count);
       if (!ok) {
@@ -2726,6 +2760,7 @@ static int cmd_emit_elf64_obj_call(const char *out_path, const char *local,
                                    const char *external);
 static int cmd_link_elf64_exe(int argc, char **argv);
 static int cmd_link_expect_exit(int argc, char **argv);
+static int cmd_compile_expect_exit(int argc, char **argv);
 
 static int run_link_elf64_exe(const char *out_path, const char *entry_name,
                               const char *first_obj, char **extra_args,
@@ -2763,6 +2798,48 @@ static int check_link_expect_exit(const char *expected_s, const char *out_path,
     fprintf(stderr, "%s=unexpected expected=%zu actual=%d\n", label, expected, link_rc);
     return 2;
   }
+  printf("%s.ok=%zu\n", label, expected);
+  return 0;
+}
+
+static int run_compile_subcommand(const char *mode, const char *src_path,
+                                  const char *out_path, char **extra_args,
+                                  size_t extra_arg_count) {
+  if (strcmp(mode, "compile-elf64-obj-code") == 0) {
+    if (extra_arg_count != 1) return 1;
+    return cmd_compile_elf64_obj_code(src_path, out_path, extra_args[0]);
+  }
+  if (strcmp(mode, "compile-elf64-exe") == 0) {
+    if (extra_arg_count != 1) return 1;
+    return cmd_compile_elf64_exe(src_path, out_path, extra_args[0]);
+  }
+  if (strcmp(mode, "compile-elf64-code") == 0) {
+    if (extra_arg_count != 0) return 1;
+    return cmd_compile_elf64_code(src_path, out_path);
+  }
+  if (strcmp(mode, "compile") == 0) {
+    if (extra_arg_count != 0) return 1;
+    return cmd_compile(src_path, out_path);
+  }
+  return 1;
+}
+
+static int check_compile_expect_exit(const char *expected_s, const char *mode,
+                                     const char *src_path, const char *out_path,
+                                     char **extra_args, size_t extra_arg_count,
+                                     const char *label) {
+  size_t expected = 0;
+  if (!parse_size_arg(expected_s, &expected) || expected > 255) {
+    fprintf(stderr, "%s=bad_expected\n", label);
+    return 2;
+  }
+  int compile_rc = run_compile_subcommand(mode, src_path, out_path,
+                                          extra_args, extra_arg_count);
+  if ((size_t)compile_rc != expected) {
+    fprintf(stderr, "%s=unexpected expected=%zu actual=%d\n", label, expected, compile_rc);
+    return 2;
+  }
+  printf("%s.mode=%s\n", label, mode);
   printf("%s.ok=%zu\n", label, expected);
   return 0;
 }
@@ -2842,6 +2919,11 @@ static int cmd_run_bootstrap_plan(const char *plan_path) {
       rc = check_link_expect_exit(step->arg0, step->arg1, step->arg2, step->arg3,
                                   step->extra_args, step->extra_arg_count,
                                   "bootstrap-link-expect-exit");
+    } else if (step->kind == BOOTSTRAP_STEP_COMPILE_EXPECT_EXIT) {
+      printf("bootstrap-step.%zu=compile-expect-exit\n", i);
+      rc = check_compile_expect_exit(step->arg0, step->arg1, step->arg2, step->arg3,
+                                     step->extra_args, step->extra_arg_count,
+                                     "bootstrap-compile-expect-exit");
     } else if (step->kind == BOOTSTRAP_STEP_RESOLVE_QUIET) {
       printf("bootstrap-step.%zu=resolve-quiet\n", i);
       rc = cmd_resolve(step->arg0, 1);
@@ -3467,6 +3549,18 @@ static int cmd_link_expect_exit(int argc, char **argv) {
   return check_link_expect_exit(argv[2], argv[3], argv[4], argv[5],
                                 extra_args, extra_arg_count,
                                 "link-expect-exit");
+}
+
+static int cmd_compile_expect_exit(int argc, char **argv) {
+  if (argc < 6) {
+    fprintf(stderr, "compile-expect-exit=bad_args\n");
+    return 1;
+  }
+  char **extra_args = argc > 6 ? &argv[6] : NULL;
+  size_t extra_arg_count = argc > 6 ? (size_t)(argc - 6) : 0;
+  return check_compile_expect_exit(argv[2], argv[3], argv[4], argv[5],
+                                   extra_args, extra_arg_count,
+                                   "compile-expect-exit");
 }
 
 static int emit_elf64_exit_file(const char *out_path, uint8_t exit_code) {
@@ -4845,6 +4939,7 @@ static void usage(const char *argv0) {
   fprintf(stderr, "  %s compile-elf64-code input.%s output.elf\n", argv0, SOURCE_EXT);
   fprintf(stderr, "  %s compile-elf64-obj-code input.%s output.o symbol\n", argv0, SOURCE_EXT);
   fprintf(stderr, "  %s compile-elf64-exe input.%s output.elf entry_symbol\n", argv0, SOURCE_EXT);
+  fprintf(stderr, "  %s compile-expect-exit expected mode input output [symbol]\n", argv0);
   fprintf(stderr, "  %s link-elf64-exe output.elf entry_symbol input.o...\n", argv0);
   fprintf(stderr, "  %s link-expect-exit expected output.elf entry_symbol input.o...\n", argv0);
   fprintf(stderr, "  %s run-expect-exit executable expected_exit\n", argv0);
@@ -4905,6 +5000,9 @@ int main(int argc, char **argv) {
   }
   if (argc >= 2 && strcmp(argv[1], "compile-elf64-exe") == 0 && argc == 5) {
     return cmd_compile_elf64_exe(argv[2], argv[3], argv[4]);
+  }
+  if (argc >= 2 && strcmp(argv[1], "compile-expect-exit") == 0) {
+    return cmd_compile_expect_exit(argc, argv);
   }
   if (argc >= 2 && strcmp(argv[1], "link-elf64-exe") == 0) {
     return cmd_link_elf64_exe(argc, argv);
