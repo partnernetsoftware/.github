@@ -108,20 +108,35 @@ nano-jit continuation after self-bootstrap v1
 │  │  └─ negative: 参数类型、局部未定义、ABI 不支持
 │  └─ 验收
 │     └─ 可表达小型编译器 pass 的核心控制/数据流
-└─ v2: self-hosted slice compiler path
+├─ v2: self-hosted slice compiler path
+│  ├─ 目标
+│  │  ├─ 不只生成 ELF，而是生成能进入 nano APE payload table 的架构 slice
+│  │  ├─ 先 x86_64，后 aarch64
+│  │  └─ 逐步把 cosmocc 从 slice compiler 降级为外部 oracle
+│  ├─ 洋葱 TDD
+│  │  ├─ emit minimal x86_64 slice
+│  │  ├─ pack into nano APE manifest
+│  │  ├─ run selected payload
+│  │  ├─ compare against cosmocc-built slice behavior
+│  │  └─ self-packed nano-jit.com 复验
+│  └─ 验收
+│     ├─ build_nano_jit.sh 可选择 nano-generated x86_64 payload
+│     └─ 下一阶段再补 aarch64 payload generator
+└─ v3+: AI-friendly universal substrate
    ├─ 目标
-   │  ├─ 不只生成 ELF，而是生成能进入 nano APE payload table 的架构 slice
-   │  ├─ 先 x86_64，后 aarch64
-   │  └─ 逐步把 cosmocc 从 slice compiler 降级为外部 oracle
+   │  ├─ nano-jit 不以 JVM/GCC 为能力上限，而是形成自己的可计算世界观
+   │  ├─ 以图灵完备、可读、可验证、AI 友好为核心约束
+   │  └─ 逐步吃下 WASM/JVM/JS/SQL 等外部语义，转译到自身 IR/VM/AOT/APE 体系
    ├─ 洋葱 TDD
-   │  ├─ emit minimal x86_64 slice
-   │  ├─ pack into nano APE manifest
-   │  ├─ run selected payload
-   │  ├─ compare against cosmocc-built slice behavior
-   │  └─ self-packed nano-jit.com 复验
+   │  ├─ import: 先读最小外部格式 fixture
+   │  ├─ lower: 转成 nano IR 或 typed DSL
+   │  ├─ execute: VM 跑通行为等价
+   │  ├─ compile: x86_64 AOT/object/tiny-link 跑通
+   │  ├─ package: 进入 nano APE payload/manifest
+   │  └─ self-host: 用 nano-jit.com 复验同一导入/编译矩阵
    └─ 验收
-      ├─ build_nano_jit.sh 可选择 nano-generated x86_64 payload
-      └─ 下一阶段再补 aarch64 payload generator
+      ├─ 每吞下一种外部语义，都留下 fixture、负向样例、bootstrap DSL 证据
+      └─ v3 之后继续按同一洋葱层扩张，而不是把 v2 当终局
 ```
 
 ### 0. 证据基线
@@ -184,6 +199,7 @@ nano-jit continuation after self-bootstrap v1
 2. 继续扩大 bootstrap DSL：在已落地的 `compile/hash/compare/pack-app/inspect-app/run-app/run` 基础上，再接更丰富的可验证步骤。
 3. 持续缩小临时依赖：`cosmocc` 只保留为 slice compiler，下一阶段目标是生成 x86_64 slice 的可运行子集。
 4. 进入 v2 反思队列：实现类似 Cosmopolitan 的 APE 格式、明确独立数据段权限模型、更多内存布局、更完整 ABI 边界，以及减少 slice compiler 依赖。
+5. 保留 v3+ 扩张方向：把 nano-jit 作为 AI 友好、图灵完备、可自举的独立基石，持续吸收 WASM/JVM/JS/SQL 等外部语义，而不是把 v2 当终点。
 
 已完成：
 
@@ -238,6 +254,7 @@ v1 达成标准：`nano-jit.com` 可 self-pack；核心 `.lisp -> .lbin -> VM/AO
 - v1 的 100% 定义限定在 self-bootstrap 证据闭环：native/container 都能重复生成、链接、运行并断言核心产物。
 - 另一个长期目标是生成类似 Cosmopolitan APE 的跨架构 `.com`：同一个文件内含 loader/识别头、架构选择逻辑、多个架构 payload 与元数据，而不只是生成单架构 ELF。
 - 还没有完成“最终自编译编译器”：`cosmocc` 仍负责架构 slice，v2 才继续缩小这个边界。
+- 现实边界应按 AI 时代重新评估：nano-jit 可以成为独立发展的基石；只要 IR/DSL 保持图灵完备、可读、可验证、AI 友好，就能长期吸收 WASM/JVM/JS/SQL 等外部语义并形成自己的世界观。
 
 设计上做对的部分：
 
@@ -266,6 +283,12 @@ v2 建议入口：
 5. 扩展函数参数与局部值模型，让 `store/load` 不再只依赖“上一条值”。
 6. 把 bootstrap DSL 从顺序脚本推进到小型 build graph，减少 `run.sh` / `build_nano_jit.sh` 的变量胶水。
 7. 继续缩小 `cosmocc` 角色：先生成更完整 x86_64 slice，再评估 aarch64 slice 的最小 backend。
+
+v3+ 扩张原则：
+
+1. 不把 JVM、GCC、WASM、JS runtime 或 SQL engine 当作能力天花板；它们更适合作为可导入、可转译、可验证的外部语义来源。
+2. 每扩张一个世界，都先做最小 fixture：读取格式、lower 到 nano IR/typed DSL、VM 行为等价、AOT/codegen 等价、APE 打包、自举复验。
+3. 保持“AI 友好”作为架构约束：文本格式清晰、错误可解释、测试可局部运行、产物可 inspect，方便未来分身持续扩大能力。
 
 下一分身接续顺序：
 
