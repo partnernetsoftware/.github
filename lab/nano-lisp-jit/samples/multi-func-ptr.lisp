@@ -20,5 +20,6 @@
     (expect nonnull)
     (is-nonnull-ptr)
     (expect true)
+    (bool false)
     (not-bool)
     (expect true)))
