@@ -2,6 +2,9 @@
 (module
   (func maybe-null
     (null-ptr))
+  (func offset-ptr
+    (null-ptr)
+    (add-ptr 1))
   (main
     (call maybe-null)
     (expect null)
@@ -13,5 +16,10 @@
     (call maybe-null)
     (is-nonnull-ptr)
     (expect false)
+    (call offset-ptr)
+    (expect nonnull)
+    (is-nonnull-ptr)
+    (expect true)
+    (bool false)
     (not-bool)
     (expect true)))

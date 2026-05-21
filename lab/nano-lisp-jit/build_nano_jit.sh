@@ -68,6 +68,7 @@ MULTI_CTRL_SRC="$LAB_DIR/samples/multi-func-control-flow.lisp"
 MULTI_PTR_SRC="$LAB_DIR/samples/multi-func-ptr.lisp"
 MULTI_BAD_SRC="$LAB_DIR/samples/multi-func-recursive-bad.lisp"
 TYPE_BAD_PTR_OP_SRC="$LAB_DIR/samples/type-error-ptr-op-bad.lisp"
+TYPE_BAD_ADD_PTR_SRC="$LAB_DIR/samples/type-error-add-ptr-bad.lisp"
 TYPE_BAD_BRANCH_SRC="$LAB_DIR/samples/type-error-branch-bad.lisp"
 TYPE_BAD_EXPECT_PTR_SRC="$LAB_DIR/samples/type-error-expect-ptr-bad.lisp"
 BAD_ARITH_SRC="$LAB_DIR/samples/arithmetic-bad.lisp"
@@ -237,6 +238,7 @@ cat > "$BOOTSTRAP_PLAN" <<EOF
   (compile-expect-exit 2 compile-elf64-code "$TYPE_BAD_PTR_OP_SRC" "$BUILD_DIR/bootstrap-aot-type-bad-ptr-op.elf")
   (compile-expect-exit 2 compile-elf64-obj-code "$TYPE_BAD_PTR_OP_SRC" "$BUILD_DIR/bootstrap-aot-type-bad-ptr-op.o" "nano_bootstrap_type_bad_ptr_op")
   (compile-expect-exit 2 compile-elf64-exe "$TYPE_BAD_PTR_OP_SRC" "$BUILD_DIR/bootstrap-aot-type-bad-ptr-op-direct.elf" "nano_bootstrap_type_bad_ptr_op")
+  (compile-expect-exit 2 compile-elf64-obj-code "$TYPE_BAD_ADD_PTR_SRC" "$BUILD_DIR/bootstrap-aot-type-bad-add-ptr.o" "nano_bootstrap_type_bad_add_ptr")
   (compile-expect-exit 2 compile-elf64-code "$TYPE_BAD_BRANCH_SRC" "$BUILD_DIR/bootstrap-aot-type-bad-branch.elf")
   (compile-expect-exit 2 compile-elf64-obj-code "$TYPE_BAD_EXPECT_PTR_SRC" "$BUILD_DIR/bootstrap-aot-type-bad-expect-ptr.o" "nano_bootstrap_type_bad_expect_ptr")
   (emit-elf64-obj-call "$BUILD_DIR/bootstrap-aot-call42.o" "nano_bootstrap_call" "nano_bootstrap_ext")

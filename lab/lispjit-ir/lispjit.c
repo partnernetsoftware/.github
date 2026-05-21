@@ -72,6 +72,7 @@ extern void *cosmo_dlsym(void *handle, const char *symbol);
 #define OP_NULL_PTR 28u
 #define OP_IS_NULL_PTR 29u
 #define OP_IS_NONNULL_PTR 30u
+#define OP_ADD_PTR 31u
 
 #define SRC_FORM_CALL 1u
 #define SRC_FORM_RESOLVE 2u
@@ -100,6 +101,7 @@ extern void *cosmo_dlsym(void *handle, const char *symbol);
 #define SRC_FORM_NULL_PTR 25u
 #define SRC_FORM_IS_NULL_PTR 26u
 #define SRC_FORM_IS_NONNULL_PTR 27u
+#define SRC_FORM_ADD_PTR 28u
 
 #define AOT_STMT_CONST_U64 1u
 #define AOT_STMT_ADD_U64 2u
@@ -127,6 +129,7 @@ extern void *cosmo_dlsym(void *handle, const char *symbol);
 #define AOT_STMT_IS_NULL_PTR 24u
 #define AOT_STMT_IS_NONNULL_PTR 25u
 #define AOT_STMT_EXPECT_PTR 26u
+#define AOT_STMT_ADD_PTR 27u
 
 #define BOOTSTRAP_STEP_COMPILE 1u
 #define BOOTSTRAP_STEP_HASH 2u
@@ -444,6 +447,12 @@ static int value_is_null_ptr(Value *v) {
 static int value_is_nonnull_ptr(Value *v) {
   if (v->kind != VAL_PTR) return 0;
   *v = value_bool(v->bits != 0);
+  return 1;
+}
+
+static int value_add_ptr(Value *v, uint64_t rhs) {
+  if (v->kind != VAL_PTR) return 0;
+  v->bits += rhs;
   return 1;
 }
 
@@ -919,6 +928,12 @@ static int parse_aot_body_items(const char **p, AotFunc *f) {
       free(value);
     } else if (strcmp(head, "null-ptr") == 0) {
       ok = eat(p, ')') && aot_add_stmt(f, AOT_STMT_NULL_PTR, 0, NULL);
+    } else if (strcmp(head, "add-ptr") == 0) {
+      char *value = parse_atom(p);
+      uint64_t imm = 0;
+      ok = value && parse_u64_atom(value, &imm) && eat(p, ')') &&
+           aot_add_stmt(f, AOT_STMT_ADD_PTR, imm, NULL);
+      free(value);
     } else if (strcmp(head, "is-null-ptr") == 0 ||
                strcmp(head, "is-nonnull-ptr") == 0) {
       uint32_t kind = strcmp(head, "is-null-ptr") == 0 ?
@@ -1340,6 +1355,12 @@ static int parse_main_items(const char **p, Module *m) {
       free(value);
     } else if (strcmp(head, "null-ptr") == 0) {
       ok = eat(p, ')') && add_instr(m, SRC_FORM_NULL_PTR, NULL, NULL, NULL, 0);
+    } else if (strcmp(head, "add-ptr") == 0) {
+      char *value = parse_atom(p);
+      uint64_t imm = 0;
+      ok = value && parse_u64_atom(value, &imm) && eat(p, ')') &&
+           add_instr(m, SRC_FORM_ADD_PTR, NULL, NULL, NULL, imm);
+      free(value);
     } else if (strcmp(head, "is-null-ptr") == 0 ||
                strcmp(head, "is-nonnull-ptr") == 0) {
       uint32_t form = strcmp(head, "is-null-ptr") == 0 ?
@@ -1559,6 +1580,11 @@ static unsigned char *compile_module(const Module *m, size_t *out_n) {
     }
     if (in->form == SRC_FORM_NULL_PTR) {
       emit_instr(&instrs, OP_NULL_PTR, 0, 0);
+      continue;
+    }
+    if (in->form == SRC_FORM_ADD_PTR) {
+      emit_instr(&instrs, OP_ADD_PTR, (uint32_t)(in->imm & 0xffffffffu),
+                 (uint32_t)(in->imm >> 32));
       continue;
     }
     if (in->form == SRC_FORM_IS_NULL_PTR) {
@@ -2065,6 +2091,20 @@ static int execute_blob(const Blob *b) {
     if (op == OP_NULL_PTR) {
       last = value_ptr(NULL);
       printf("null-ptr.%u=", pc);
+      print_value(stdout, last);
+      printf("\n");
+      pc++;
+      continue;
+    }
+    if (op == OP_ADD_PTR) {
+      uint64_t rhs = (uint64_t)arg0 | ((uint64_t)arg1 << 32);
+      if (!value_add_ptr(&last, rhs)) {
+        fprintf(stderr, "type.add-ptr=%u actual=", pc);
+        print_value(stderr, last);
+        fprintf(stderr, "\n");
+        return 20;
+      }
+      printf("add-ptr.%u=", pc);
       print_value(stdout, last);
       printf("\n");
       pc++;
@@ -3762,6 +3802,10 @@ static int eval_pure_blob(const Blob *b, Value *out) {
     } else if (op == OP_NULL_PTR) {
       last = value_ptr(NULL);
       pc++;
+    } else if (op == OP_ADD_PTR) {
+      uint64_t rhs = (uint64_t)arg0 | ((uint64_t)arg1 << 32);
+      if (!value_add_ptr(&last, rhs)) return 0;
+      pc++;
     } else if (op == OP_IS_NULL_PTR) {
       if (!value_is_null_ptr(&last)) return 0;
       pc++;
@@ -3968,6 +4012,17 @@ static int compile_pure_blob_to_x86(const Blob *b, Buf *code, int exit_style) {
         buf_put(code, mov_eax, sizeof(mov_eax));
       }
       last_kind = VAL_PTR;
+    } else if (op == OP_ADD_PTR) {
+      if (last_kind != VAL_PTR || imm_u64 > UINT32_MAX) goto fail;
+      if (exit_style) {
+        unsigned char add_edi[6] = {0x81, 0xc7, 0, 0, 0, 0};
+        wr32(add_edi + 2, (uint32_t)imm_u64);
+        buf_put(code, add_edi, sizeof(add_edi));
+      } else {
+        unsigned char add_eax[5] = {0x05, 0, 0, 0, 0};
+        wr32(add_eax + 1, (uint32_t)imm_u64);
+        buf_put(code, add_eax, sizeof(add_eax));
+      }
     } else if (op == OP_IS_NULL_PTR || op == OP_IS_NONNULL_PTR) {
       if (last_kind != VAL_PTR) goto fail;
       if (exit_style) {
@@ -4366,6 +4421,8 @@ static int infer_aot_func_return_kind(const AotModule *m, size_t func_idx,
       last_kind = VAL_BOOL;
     } else if (stmt->kind == AOT_STMT_NULL_PTR) {
       last_kind = VAL_PTR;
+    } else if (stmt->kind == AOT_STMT_ADD_PTR) {
+      if (last_kind != VAL_PTR) return 0;
     } else if (stmt->kind == AOT_STMT_IS_NULL_PTR ||
                stmt->kind == AOT_STMT_IS_NONNULL_PTR) {
       if (last_kind != VAL_PTR) return 0;
@@ -4446,7 +4503,7 @@ static int compile_aot_func_to_x86_ret(const AotModule *m, const AotFunc *func,
     if (stmt->kind == AOT_STMT_LABEL) continue;
     pc_offs[emitted_pc++] = (uint32_t)code->len;
     if (stmt->kind == AOT_STMT_CONST_U64 || stmt->kind == AOT_STMT_ADD_U64 ||
-        stmt->kind == AOT_STMT_EXPECT_U64) {
+        stmt->kind == AOT_STMT_EXPECT_U64 || stmt->kind == AOT_STMT_ADD_PTR) {
       if (stmt->imm > UINT32_MAX) goto fail;
     }
     if (stmt->kind == AOT_STMT_ADD_I64 || stmt->kind == AOT_STMT_SUB_I64 ||
@@ -4480,6 +4537,13 @@ static int compile_aot_func_to_x86_ret(const AotModule *m, const AotFunc *func,
       unsigned char mov_eax[5] = {0xb8, 0, 0, 0, 0};
       buf_put(code, mov_eax, sizeof(mov_eax));
       last_kind = VAL_PTR;
+    } else if (stmt->kind == AOT_STMT_ADD_PTR) {
+      if (last_kind != VAL_PTR) goto fail;
+      {
+        unsigned char add_eax[5] = {0x05, 0, 0, 0, 0};
+        wr32(add_eax + 1, (uint32_t)stmt->imm);
+        buf_put(code, add_eax, sizeof(add_eax));
+      }
     } else if (stmt->kind == AOT_STMT_IS_NULL_PTR ||
                stmt->kind == AOT_STMT_IS_NONNULL_PTR) {
       if (last_kind != VAL_PTR) goto fail;
