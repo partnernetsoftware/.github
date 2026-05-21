@@ -2846,6 +2846,109 @@ static int manifest_find_size(const unsigned char *data, size_t n,
   return 0;
 }
 
+static int manifest_has_complete_block(const unsigned char *data, size_t n) {
+  int in_manifest = 0;
+  size_t pos = 0;
+  while (pos < n) {
+    size_t line_start = pos;
+    while (pos < n && data[pos] != '\n') pos++;
+    size_t line_n = pos - line_start;
+    if (pos < n && data[pos] == '\n') pos++;
+    if (line_n == sizeof(NANO_MANIFEST_BEGIN) - 1 &&
+        memcmp(data + line_start, NANO_MANIFEST_BEGIN, sizeof(NANO_MANIFEST_BEGIN) - 1) == 0) {
+      in_manifest = 1;
+      continue;
+    }
+    if (in_manifest && line_n == sizeof(NANO_MANIFEST_END) - 1 &&
+        memcmp(data + line_start, NANO_MANIFEST_END, sizeof(NANO_MANIFEST_END) - 1) == 0) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
+static int manifest_find_string(const unsigned char *data, size_t n,
+                                const char *key, char *out, size_t out_n) {
+  int in_manifest = 0;
+  size_t pos = 0;
+  size_t key_n = strlen(key);
+  if (out_n == 0) return 0;
+  while (pos < n) {
+    size_t line_start = pos;
+    while (pos < n && data[pos] != '\n') pos++;
+    size_t line_n = pos - line_start;
+    if (pos < n && data[pos] == '\n') pos++;
+    if (line_n == sizeof(NANO_MANIFEST_BEGIN) - 1 &&
+        memcmp(data + line_start, NANO_MANIFEST_BEGIN, sizeof(NANO_MANIFEST_BEGIN) - 1) == 0) {
+      in_manifest = 1;
+      continue;
+    }
+    if (line_n == sizeof(NANO_MANIFEST_END) - 1 &&
+        memcmp(data + line_start, NANO_MANIFEST_END, sizeof(NANO_MANIFEST_END) - 1) == 0) {
+      return 0;
+    }
+    if (in_manifest && line_n > 2 + key_n && data[line_start] == '#' &&
+        data[line_start + 1] == ' ' &&
+        memcmp(data + line_start + 2, key, key_n) == 0 &&
+        data[line_start + 2 + key_n] == '=') {
+      size_t value_n = line_n - 3 - key_n;
+      if (value_n >= out_n) return 0;
+      memcpy(out, data + line_start + 3 + key_n, value_n);
+      out[value_n] = '\0';
+      return 1;
+    }
+  }
+  return 0;
+}
+
+static int validate_payload_slice_bounds(size_t payload_n, size_t off, size_t slice_n) {
+  return off <= payload_n && slice_n <= payload_n - off;
+}
+
+static int validate_ape_v1_manifest(const unsigned char *data, size_t n,
+                                    const char *error_prefix) {
+  char container[32];
+  size_t x86_off = 0;
+  size_t x86_size = 0;
+  size_t arm_off = 0;
+  size_t arm_size = 0;
+  size_t payload_start = 0;
+  if (!manifest_has_complete_block(data, n)) {
+    fprintf(stderr, "%s=manifest_missing\n", error_prefix);
+    return 2;
+  }
+  if (!manifest_find_string(data, n, "nano.container", container, sizeof(container))) {
+    fprintf(stderr, "%s=manifest_key_missing key=nano.container\n", error_prefix);
+    return 2;
+  }
+  if (strcmp(container, "ape-v1") != 0) {
+    fprintf(stderr, "%s=bad_container expected=ape-v1 got=%s\n", error_prefix, container);
+    return 2;
+  }
+  if (!manifest_find_size(data, n, "nano.slice.x86_64.offset", &x86_off) ||
+      !manifest_find_size(data, n, "nano.slice.x86_64.size", &x86_size) ||
+      !manifest_find_size(data, n, "nano.slice.aarch64.offset", &arm_off) ||
+      !manifest_find_size(data, n, "nano.slice.aarch64.size", &arm_size)) {
+    fprintf(stderr, "%s=manifest_key_missing key=nano.slice\n", error_prefix);
+    return 2;
+  }
+  if (!find_payload_start(data, n, NANO_APE_PAYLOAD_MARKER, &payload_start)) {
+    fprintf(stderr, "%s=payload_marker_missing\n", error_prefix);
+    return 2;
+  }
+  size_t payload_n = n - payload_start;
+  if (!validate_payload_slice_bounds(payload_n, x86_off, x86_size) ||
+      !validate_payload_slice_bounds(payload_n, arm_off, arm_size)) {
+    fprintf(stderr, "%s=payload_bounds\n", error_prefix);
+    return 2;
+  }
+  if (x86_off != 0 || arm_off != x86_off + x86_size) {
+    fprintf(stderr, "%s=payload_layout\n", error_prefix);
+    return 2;
+  }
+  return 0;
+}
+
 static int cmd_run_app(const char *container_path) {
   size_t n = 0;
   size_t blob_off = 0;
@@ -3478,6 +3581,15 @@ static int cmd_inspect_app(const char *container_path) {
 }
 
 static int cmd_inspect_ape(const char *container_path) {
+  size_t n = 0;
+  unsigned char *data = read_file(container_path, &n);
+  if (!data) {
+    fprintf(stderr, "read=fail path=%s\n", container_path);
+    return 1;
+  }
+  int rc = validate_ape_v1_manifest(data, n, "inspect-ape");
+  free(data);
+  if (rc != 0) return rc;
   return cmd_inspect_manifest(container_path, "inspect-ape");
 }
 

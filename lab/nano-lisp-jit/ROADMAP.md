@@ -26,9 +26,10 @@ evolution loop
 │  ├─ 把调试经验写回 ROADMAP / README / samples
 │  └─ 把外部 oracle 逐步迁入 nano 自己的断言
 ├─ 4. 路线进化
-│  ├─ v1.5 先吸收消费者反馈，再收紧格式与数据段
-│  ├─ v2 扩大编译器与运行时能力
-│  └─ v3+ 吸收 WASM/JVM/JS/SQL 等外部语义
+│  ├─ v1.5 先吸收消费者反馈，再收紧格式与数据段；实现载体仍主要是 C
+│  ├─ v2 前半继续 C 侧等价分层，后半让新 pass / build graph 开始 Lisp-first
+│  ├─ v2.5 形成自托管 slice 与 build graph 闭环，新能力默认走 Lisp/IR
+│  └─ v3+ 默认不改 C，吸收 WASM/JVM/JS/SQL 等外部语义
 └─ 5. 自信开工
    ├─ 每一圈只选最小可证明切片
    ├─ 样例 -> native -> bootstrap DSL -> self-packed -> commit/merge
@@ -80,6 +81,32 @@ nano-lisp-jit / nano-jit self-bootstrap v1
    └─ v1 = 100%; v2 starts from APE format, data sections, decomposition, ABI, build graph
 ```
 
+### 实现载体演进：C -> Lisp-first -> 默认不改 C
+
+```text
+implementation substrate
+├─ v1.5
+│  ├─ 仍以 `lispjit.c` 为主实现面
+│  ├─ 目标是收紧消费者接口、APE manifest、inspect/run 与 data section
+│  └─ 不把 bootstrap DSL 已落地误判为“编译器核心已可不改 C”
+├─ v2 前半
+│  ├─ 继续 C 侧等价重构和能力补齐
+│  ├─ 拆分 parser/blob/vm/aot_x86/elf/linker/ape/bootstrap
+│  └─ `.rodata/.data`、函数模型、ABI descriptor 先用 C 锁语义
+├─ v2 后半
+│  ├─ 新 pass、build graph、自托管 slice path 优先用 `.lisp` / bootstrap DSL 描述
+│  ├─ C 退到引导 runtime、后端 primitive 和兼容层
+│  └─ 每个 Lisp-first 切片必须保留 native + self-packed 证据
+├─ v2.5
+│  ├─ 自托管 slice compiler path 与 build graph 形成闭环
+│  ├─ 新能力默认走 Lisp/IR；改 C 需要写明例外理由和回迁计划
+│  └─ cosmocc / 外部工具降级为 oracle，而不是主实现路径
+└─ v3+
+   ├─ 默认不改 C；C 只保留 bootstrap/runtime/紧急热修边界
+   ├─ 外部语义导入、转译、验证都在 Lisp/IR/APE 层扩展
+   └─ 每次扩张继续按洋葱 TDD 留下 fixture、负向样例和自举证据
+```
+
 ### v1.5 / v2 洋葱 TDD mindmap
 
 ```text
@@ -88,7 +115,8 @@ nano-jit continuation after self-bootstrap v1
 │  ├─ 目标
 │  │  ├─ 从“能 self-pack 的 .com”推进到“nano 自主 APE container”
 │  │  ├─ 明确 loader/header/payload table/arch selection/manifest/hash
-│  │  └─ 保持现有 x86_64/aarch64 slice 产物继续可运行
+│  │  ├─ 保持现有 x86_64/aarch64 slice 产物继续可运行
+│  │  └─ 实现载体仍以 C 为主，不在 v1.5 切换编译器核心语言
 │  ├─ 洋葱 TDD
 │  │  ├─ sample: 最小 APE manifest fixture
 │  │  ├─ CLI: inspect-ape 输出 header、payload table、arch/os、offset/size/hash
@@ -104,7 +132,8 @@ nano-jit continuation after self-bootstrap v1
 │  ├─ 目标
 │  │  ├─ 从 text-embedded data 迁移到 .rodata/.data
 │  │  ├─ 移除 RWX text/data 混合策略
-│  │  └─ 支持 section symbol + R_X86_64_PC32 data relocation
+│  │  ├─ 支持 section symbol + R_X86_64_PC32 data relocation
+│  │  └─ 段权限与 relocation 迁移先在 C 内锁定等价语义
 │  ├─ 洋葱 TDD
 │  │  ├─ sample: const-ptr/load/store 等价旧路径
 │  │  ├─ object: 单 object 数据 relocation
@@ -114,11 +143,12 @@ nano-jit continuation after self-bootstrap v1
 │  └─ 验收
 │     ├─ read-only const 与 writable data 权限分离
 │     └─ 旧 text-embedded 数据路径可删除或降级为兼容层
-├─ v2: compiler/runtime decomposition
+├─ v2 前半: compiler/runtime decomposition
 │  ├─ 目标
 │  │  ├─ 拆分 lispjit.c 单文件大内核
 │  │  ├─ parser/blob/vm/aot_x86/elf/linker/ape/bootstrap 分层
-│  │  └─ 错误码、错误消息、测试 fixture 体系化
+│  │  ├─ 错误码、错误消息、测试 fixture 体系化
+│  │  └─ 以 C 侧等价移动为主，不做语义重写
 │  ├─ 洋葱 TDD
 │  │  ├─ 先锁定所有现有 fixture hash/exit
 │  │  ├─ 小步移动模块，不做语义重写
@@ -126,7 +156,7 @@ nano-jit continuation after self-bootstrap v1
 │  │  └─ 阶段性跑 self-packed container bootstrap
 │  └─ 验收
 │     └─ 重构前后所有 v1/v1.5 证据等价
-├─ v2: richer IR/function model
+├─ v2 前半～中段: richer IR/function model
 │  ├─ 目标
 │  │  ├─ 函数参数、局部变量、显式 value stack 或 SSA-like slots
 │  │  ├─ load/store 不再只依赖上一条值
@@ -139,11 +169,12 @@ nano-jit continuation after self-bootstrap v1
 │  │  └─ negative: 参数类型、局部未定义、ABI 不支持
 │  └─ 验收
 │     └─ 可表达小型编译器 pass 的核心控制/数据流
-├─ v2: self-hosted slice compiler path
+├─ v2 后半: self-hosted slice compiler path
 │  ├─ 目标
 │  │  ├─ 不只生成 ELF，而是生成能进入 nano APE payload table 的架构 slice
 │  │  ├─ 先 x86_64，后 aarch64
-│  │  └─ 逐步把 cosmocc 从 slice compiler 降级为外部 oracle
+│  │  ├─ 逐步把 cosmocc 从 slice compiler 降级为外部 oracle
+│  │  └─ build graph / 新 pass 优先由 `.lisp` 或 bootstrap DSL 描述
 │  ├─ 洋葱 TDD
 │  │  ├─ emit minimal x86_64 slice
 │  │  ├─ pack into nano APE manifest
@@ -153,11 +184,24 @@ nano-jit continuation after self-bootstrap v1
 │  └─ 验收
 │     ├─ build_nano_jit.sh 可选择 nano-generated x86_64 payload
 │     └─ 下一阶段再补 aarch64 payload generator
+├─ v2.5: implementation substrate turning point
+│  ├─ 目标
+│  │  ├─ self-hosted slice compiler path 与 build graph 可闭环复验
+│  │  ├─ 新能力默认从 Lisp/IR 进入，C 只补 primitive 或 bootstrap 边界
+│  │  └─ 改 C 必须在 ROADMAP 写明例外理由、测试证据和回迁计划
+│  ├─ 洋葱 TDD
+│  │  ├─ sample: Lisp 描述一个最小 compiler/build slice
+│  │  ├─ native: 用 C runner 验证同一 slice
+│  │  ├─ self-packed: 用 nano-jit.com 复验同一 slice
+│  │  └─ negative: Lisp-side pass/build graph 错误有稳定失败码
+│  └─ 验收
+│     └─ 新切片评审默认先问“能否用 Lisp/IR 表达”，而不是先改 C
 └─ v3+: AI-friendly universal substrate
    ├─ 目标
    │  ├─ nano-jit 不以 JVM/GCC 为能力上限，而是形成自己的可计算世界观
    │  ├─ 以图灵完备、可读、可验证、AI 友好为核心约束
-   │  └─ 逐步吃下 WASM/JVM/JS/SQL 等外部语义，转译到自身 IR/VM/AOT/APE 体系
+   │  ├─ 逐步吃下 WASM/JVM/JS/SQL 等外部语义，转译到自身 IR/VM/AOT/APE 体系
+   │  └─ 默认不改 C；C 只作为 bootstrap/runtime 与紧急修补边界
    ├─ 洋葱 TDD
    │  ├─ import: 先读最小外部格式 fixture
    │  ├─ lower: 转成 nano IR 或 typed DSL
@@ -210,6 +254,7 @@ nano-jit continuation after self-bootstrap v1
 - 增加 C-subset 或 Lisp-to-IR 编译层，先生成 runtime object/slice 描述。
 - 阶段目标：`nano-jit.com` 读取源码/IR，生成下一代 `.lbin` 或 app。
 - 终局目标：`nano-jit.com` 生成自己的多架构 `nano-jit.com`。
+- 语言策略对齐上文“实现载体演进”：v2 后半开始 Lisp-first，v2.5 形成转折，v3 默认不改 C。
 
 ### 6. 替换外部 slice compiler
 
@@ -317,6 +362,7 @@ v2 建议入口：
 5. 扩展函数参数与局部值模型，让 `store/load` 不再只依赖“上一条值”。
 6. 把 bootstrap DSL 从顺序脚本推进到小型 build graph，减少 `run.sh` / `build_nano_jit.sh` 的变量胶水。
 7. 继续缩小 `cosmocc` 角色：先生成更完整 x86_64 slice，再评估 aarch64 slice 的最小 backend。
+8. 语言载体按阶段推进：v2 前半仍改 C，v2 后半开始 Lisp-first，v2.5 后改 C 必须有例外理由。
 
 v3+ 扩张原则：
 
@@ -339,8 +385,9 @@ v3+ 扩张原则：
 
 1. 先跑 v1 基线，不在不稳定地基上扩大能力。
 2. v1.5 先做消费者可用性收敛，再做格式和证据层收紧：nano APE manifest、inspect/run、数据 section。
-3. v2 再做结构性扩张：模块分层、函数模型、ABI、self-hosted slice path。
-4. 每个切片都必须留下：sample、negative sample、native runner、bootstrap DSL、自举证据、反思记录。
+3. v1.5 与 v2 前半允许且预期改 C；v2 后半新能力优先写 `.lisp` / bootstrap DSL；v2.5 后改 C 必须显式说明。
+4. v2 再做结构性扩张：模块分层、函数模型、ABI、self-hosted slice path。
+5. 每个切片都必须留下：sample、negative sample、native runner、bootstrap DSL、自举证据、反思记录。
 
 第一批 v1.5 切片：
 
