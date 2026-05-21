@@ -43,6 +43,14 @@
 ./nano-lisp-jit.com pack-app app.com nano-jit.x86_64 nano-jit.aarch64 strlen.lbin
 ```
 
+### 消费者集成注意事项
+
+- 外部工具优先通过 `NANO_JIT=/path/to/nano-lisp-jit` 指定 runner；未设置时可沿用仓库内 `lab/nano-lisp-jit/.build/nano-lisp-jit`。
+- `resolve-quiet` 当前是 `(bootstrap ...)` DSL 步骤名；顶层 CLI 用 `resolve --quiet program.lbin`。
+- `run-bootstrap-plan` 的 checked-in 样例默认从 repo root 执行；外部工具若从子目录调用，应传入 repo-root 相对路径或先切到 repo root。
+- `run program.lbin` 的进程退出码等于 VM 最后一条返回值；脚本自测应优先写 `(expect ...)`，或用 `run-expect-exit` 固定断言。
+- `compile-elf64-*` / `aot-elf64-*` 当前面向 x86_64 Linux；跨平台调用方应像 `run.sh` 一样在非 x86_64 host 上跳过。
+
 当前 `.lisp` 语法沿用最小 module DSL：
 
 ```lisp

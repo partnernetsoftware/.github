@@ -9,7 +9,7 @@
 | `tool-exit42/` | `compile-elf64-code` → 退出码 42 |
 | `tool-strlen-check/` | FFI `strlen` + `.lbin` run |
 | `tool-blob-compare/` | 确定性 `compile` / `compare` |
-| `tool-resolve-check/` | `resolve-quiet` + `strlen("x")` |
+| `tool-resolve-check/` | `resolve --quiet` + `strlen("x")` |
 
 共享脚本：`lab/_nano_common.sh`（定位 `nano-lisp-jit/.build/nano-lisp-jit`，必要时触发 `run.sh`）。
 

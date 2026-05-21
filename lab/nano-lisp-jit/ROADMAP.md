@@ -26,7 +26,7 @@ evolution loop
 │  ├─ 把调试经验写回 ROADMAP / README / samples
 │  └─ 把外部 oracle 逐步迁入 nano 自己的断言
 ├─ 4. 路线进化
-│  ├─ v1.5 收紧格式与数据段
+│  ├─ v1.5 先吸收消费者反馈，再收紧格式与数据段
 │  ├─ v2 扩大编译器与运行时能力
 │  └─ v3+ 吸收 WASM/JVM/JS/SQL 等外部语义
 └─ 5. 自信开工
@@ -231,6 +231,7 @@ nano-jit continuation after self-bootstrap v1
 3. 持续缩小临时依赖：`cosmocc` 只保留为 slice compiler，下一阶段目标是生成 x86_64 slice 的可运行子集。
 4. 进入 v2 反思队列：实现类似 Cosmopolitan 的 APE 格式、明确独立数据段权限模型、更多内存布局、更完整 ABI 边界，以及减少 slice compiler 依赖。
 5. 保留 v3+ 扩张方向：把 nano-jit 作为 AI 友好、图灵完备、可自举的独立基石，持续吸收 WASM/JVM/JS/SQL 等外部语义，而不是把 v2 当终点。
+6. 将 lab 消费者反馈纳入 v1.5 slice 0：先收敛 CLI/DSL 命名、runner 定位、repo-root 路径、`run` 退出码语义和 x86_64 skip 说明，再开 APE manifest。
 
 已完成：
 
@@ -326,7 +327,7 @@ v3+ 扩张原则：
 开工原则：
 
 1. 先跑 v1 基线，不在不稳定地基上扩大能力。
-2. v1.5 只做格式和证据层收紧：nano APE manifest、inspect/run、数据 section。
+2. v1.5 先做消费者可用性收敛，再做格式和证据层收紧：nano APE manifest、inspect/run、数据 section。
 3. v2 再做结构性扩张：模块分层、函数模型、ABI、self-hosted slice path。
 4. 每个切片都必须留下：sample、negative sample、native runner、bootstrap DSL、自举证据、反思记录。
 
@@ -334,6 +335,13 @@ v3+ 扩张原则：
 
 ```text
 v1.5 kickoff
+├─ slice 0: consumer feedback closure
+│  ├─ 明确 CLI 与 bootstrap DSL 的命名差异: resolve --quiet vs resolve-quiet
+│  ├─ 文档化 NANO_JIT runner 约定和 repo-root 路径约定
+│  ├─ 明确 run 退出码等于 VM 返回值，脚本自测优先使用 expect/run-expect-exit
+│  ├─ 非 x86_64 host 对 compile-elf64-* 给出可理解 skip/限制说明
+│  ├─ 跑 bash lab/run-lab-tools.sh 作为消费者回归
+│  └─ 目标: 先让外部工具稳定消费 nano-jit，再扩大格式能力
 ├─ slice 1: nano APE manifest spec
 │  ├─ 写最小 header/payload table fixture
 │  ├─ 增加 inspect 输出格式的 golden expectation
@@ -374,7 +382,8 @@ v2 kickoff
 下一分身接续顺序：
 
 1. 先跑 `bash lab/nano-lisp-jit/run.sh` 和 `sudo docker compose -f docker-compose.dev.yml run --rm dev bash lab/nano-lisp-jit/build_nano_jit.sh`，确认 v1 基线仍绿。
-2. 从 v1.5 slice 1 开始：把 APE manifest/header/payload table 写成最小 spec 和 fixture，再用 inspect 测试锁定格式。
-3. 完成 v1.5 pack/inspect/run 三圈后，再进入 v2 `.rodata/.data` section 和数据 relocation。
-4. 数据 section 稳定后再拆 `lispjit.c`，避免格式、权限和大规模移动同时发生。
-5. 每次推进继续保持“目标复盘 -> 样例 -> native runner -> checked-in bootstrap DSL -> self-packed runner -> 反思 -> commit/merge”的洋葱顺序。
+2. 先跑 `bash lab/run-lab-tools.sh`，把 `LAB-USAGE-FEEDBACK.md` 中的问题转成 v1.5 slice 0 的修复或文档约定。
+3. 再从 v1.5 slice 1 开始：把 APE manifest/header/payload table 写成最小 spec 和 fixture，再用 inspect 测试锁定格式。
+4. 完成 v1.5 pack/inspect/run 三圈后，再进入 v2 `.rodata/.data` section 和数据 relocation。
+5. 数据 section 稳定后再拆 `lispjit.c`，避免格式、权限和大规模移动同时发生。
+6. 每次推进继续保持“目标复盘 -> 样例 -> native runner -> checked-in bootstrap DSL -> self-packed runner -> lab consumer regression -> 反思 -> commit/merge”的洋葱顺序。
