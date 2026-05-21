@@ -49,6 +49,8 @@ PTR_LINK_EXE="$BUILD_DIR/ptr_values_linked"
 PTR_DIRECT_EXE="$BUILD_DIR/ptr_values_direct"
 CONST_PTR_EXIT="$BUILD_DIR/const_ptr_load_u8_aot.elf"
 CONST_PTR_CODE="$BUILD_DIR/const_ptr_load_u8_code.elf"
+CONST_PTR_CODE_OBJ="$BUILD_DIR/const_ptr_load_u8_code.o"
+CONST_PTR_LINK_EXE="$BUILD_DIR/const_ptr_load_u8_linked"
 CONST_PTR_DIRECT_EXE="$BUILD_DIR/const_ptr_load_u8_direct"
 MULTI_OBJ="$BUILD_DIR/multi_func.o"
 MULTI_LINK_EXE="$BUILD_DIR/multi_func_linked"
@@ -242,6 +244,9 @@ if [ "$(uname -m)" = "x86_64" ] || [ "$(uname -m)" = "amd64" ]; then
   run_case "run-aot-const-ptr-load-u8-exit1" "$RUNNER" run-expect-exit "$CONST_PTR_EXIT" 1
   run_case "aot-const-ptr-load-u8-elf64-code1" "$RUNNER" aot-elf64-code "$CONST_PTR_BLOB" "$CONST_PTR_CODE"
   run_case "run-aot-const-ptr-load-u8-code1" "$RUNNER" run-expect-exit "$CONST_PTR_CODE" 1
+  run_case "aot-const-ptr-load-u8-elf64-obj-code1" "$RUNNER" aot-elf64-obj-code "$CONST_PTR_BLOB" "$CONST_PTR_CODE_OBJ" nano_const_ptr_code
+  run_case "tiny-link-aot-const-ptr-load-u8-obj-code1" "$RUNNER" link-elf64-exe "$CONST_PTR_LINK_EXE" nano_const_ptr_code "$CONST_PTR_CODE_OBJ"
+  run_case "run-tiny-linked-const-ptr-load-u8-1" "$RUNNER" run-expect-exit "$CONST_PTR_LINK_EXE" 1
   run_case "aot-ptr-values-elf64-code1" "$RUNNER" aot-elf64-code "$PTR_BLOB" "$PTR_CODE"
   run_case "run-aot-ptr-values-code1" "$RUNNER" run-expect-exit "$PTR_CODE" 1
   run_case "aot-ptr-values-elf64-obj-code1" "$RUNNER" aot-elf64-obj-code "$PTR_BLOB" "$PTR_CODE_OBJ" nano_ptr_code

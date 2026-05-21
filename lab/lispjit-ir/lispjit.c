@@ -4236,9 +4236,9 @@ static int compile_pure_blob_to_x86(const Blob *b, Buf *code, int exit_style, Bu
       const char *s = data ? const_string_ref(b, arg0) : NULL;
       if (!s) goto fail;
       {
-        unsigned char movabs[10] = {0x48, exit_style ? 0xbf : 0xb8, 0, 0, 0, 0, 0, 0, 0, 0};
-        DataPatch patch = {(uint32_t)(code->len + 2), (uint32_t)data->len};
-        buf_put(code, movabs, sizeof(movabs));
+        unsigned char lea[7] = {0x48, 0x8d, exit_style ? 0x3d : 0x05, 0, 0, 0, 0};
+        DataPatch patch = {(uint32_t)(code->len + 3), (uint32_t)data->len};
+        buf_put(code, lea, sizeof(lea));
         buf_put(data, s, strlen(s) + 1);
         buf_put(&data_patches, &patch, sizeof(patch));
       }
@@ -4582,10 +4582,12 @@ static int compile_pure_blob_to_x86(const Blob *b, Buf *code, int exit_style, Bu
     }
   }
   if (data_patches.len) {
-    uint64_t data_base = (uint64_t)ELF64_EXEC_BASE + ELF64_EXEC_CODE_OFF + code->len;
     for (size_t i = 0; i < data_patches.len; i += sizeof(DataPatch)) {
       const DataPatch *patch = (const DataPatch *)(data_patches.data + i);
-      patch64(code->data + patch->patch_off, data_base + patch->data_off);
+      int64_t rel = (int64_t)code->len + (int64_t)patch->data_off -
+                    (int64_t)(patch->patch_off + 4);
+      if (rel < INT32_MIN || rel > INT32_MAX) goto fail;
+      wr32(code->data + patch->patch_off, (uint32_t)(int32_t)rel);
     }
   }
   free(pc_offs);
@@ -4606,8 +4608,8 @@ static int compile_pure_u64_blob_to_x86_exit(const Blob *b, Buf *code, Buf *data
   return compile_pure_blob_to_x86(b, code, 1, data);
 }
 
-static int compile_pure_u64_blob_to_x86_ret(const Blob *b, Buf *code) {
-  return compile_pure_blob_to_x86(b, code, 0, NULL);
+static int compile_pure_u64_blob_to_x86_ret(const Blob *b, Buf *code, Buf *data) {
+  return compile_pure_blob_to_x86(b, code, 0, data);
 }
 
 static int aot_build_label_table(const AotFunc *func, LabelDef **out_labels,
@@ -5121,6 +5123,7 @@ static int cmd_aot_elf64_code(const char *blob_path, const char *out_path) {
   unsigned char *owned = NULL;
   Buf code = {0};
   Buf data = {0};
+  Buf data = {0};
   if (!blob_load_path(blob_path, &b, &owned)) {
     fprintf(stderr, "blob=parse_fail path=%s\n", blob_path);
     return 1;
@@ -5195,22 +5198,28 @@ static int cmd_aot_elf64_obj_code(const char *blob_path, const char *out_path,
     fprintf(stderr, "blob=parse_fail path=%s\n", blob_path);
     return 1;
   }
-  int ok = compile_pure_u64_blob_to_x86_ret(&b, &code);
+  int ok = compile_pure_u64_blob_to_x86_ret(&b, &code, &data);
   free(owned);
   if (!ok) {
     free(code.data);
+    free(data.data);
     fprintf(stderr, "aot-elf64-obj-code=unsupported_blob\n");
     return 2;
   }
+  size_t code_n = code.len;
+  if (data.len) buf_put(&code, data.data, data.len);
   if (!emit_elf64_obj_text_file(out_path, symbol, code.data, code.len)) {
     free(code.data);
+    free(data.data);
     fprintf(stderr, "aot-elf64-obj-code=write_fail path=%s\n", out_path);
     return 3;
   }
   printf("aot.obj.code.output=%s\n", out_path);
   printf("aot.obj.code.symbol=%s\n", symbol);
-  printf("aot.obj.code.x86.bytes=%zu\n", code.len);
+  printf("aot.obj.code.x86.bytes=%zu\n", code_n);
+  if (data.len) printf("aot.obj.code.data.bytes=%zu\n", data.len);
   free(code.data);
+  free(data.data);
   return 0;
 }
 
