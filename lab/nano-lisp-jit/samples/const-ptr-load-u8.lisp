@@ -1,12 +1,18 @@
-; Constant string pointer smoke for VM and static AOT memory access.
+; Constant string pointer smoke for VM, AOT, codegen, and object memory access.
 (module
-  (const word "Az")
+  (const word "Az09")
   (main
     (const-ptr word)
     (expect nonnull)
     (const-ptr word)
     (load-u8)
     (expect 65)
+    (const-ptr word)
+    (load-u16)
+    (expect 31297)
+    (const-ptr word)
+    (load-u32)
+    (expect 959478337)
     (const-ptr word)
     (add-ptr 1)
     (load-u8)

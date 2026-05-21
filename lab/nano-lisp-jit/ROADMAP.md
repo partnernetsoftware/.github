@@ -63,7 +63,7 @@
 1. 把最小 control flow 子集继续接到机器码 AOT/codegen 路径，逐步缩小静态求值-only 语义。
 2. 继续扩大 bootstrap DSL：在已落地的 `compile/hash/compare/pack-app/inspect-app/run-app/run` 基础上，再接更丰富的可验证步骤。
 3. 持续缩小临时依赖：`cosmocc` 只保留为 slice compiler，下一阶段目标是生成 x86_64 slice 的可运行子集。
-4. 继续扩大 typed/AOT 交集：让 `i64`、`bool`、`ptr` 子集逐步进入 object/codegen 路径；下一步继续收窄剩余边界：更多内存宽度、store、以及多 object 数据布局。
+4. 继续扩大 typed/AOT 交集：让 `i64`、`bool`、`ptr` 子集逐步进入 object/codegen 路径；下一步继续收窄剩余边界：store、更多内存布局、以及多 object 数据布局。
 
 已完成：
 
@@ -94,8 +94,8 @@
 - ELF/object/linker 内部 API 已抽象成可复用 helper，减少 section/symbol/rela 写入与解析重复。
 - typed value 已覆盖 `i64`、`bool`、`ptr` 基础值；`resolve` 会产出 `ptr` 值。
 - typed 算术/比较已覆盖 `add-i64` / `sub-i64` / `mul-i64` / `eq-i64` / `ne-i64` / `lt-i64` / `gt-i64` / `le-i64` / `ge-i64`，typed bool 逻辑已覆盖 `not-bool` / `and-bool` / `or-bool`，进入解释执行、静态求值 AOT 和 x86_64 codegen/object 路径。
-- 最小 ptr 纯值子集已覆盖 `null-ptr` / `const-ptr` / `add-ptr` / `sub-ptr` / `ptr-to-u64` / `u64-to-ptr` / `load-u8` / `is-null-ptr` / `is-nonnull-ptr`；`const-ptr` / `load-u8` 已进入解释执行、静态 AOT、standalone ELF x86_64 codegen、ELF64 object 与 tiny-link 可执行路径。
-- typed 负向编译 smoke 已覆盖 ptr predicate 误用、branch 非 bool、ptr expect 非 ptr、ptr/u64 cast 误用、`load-u8` 非 ptr，且同一 DSL 会断言 `compile-elf64-code` / `compile-elf64-obj-code` / `compile-elf64-exe` 返回失败码。
+- 最小 ptr 纯值子集已覆盖 `null-ptr` / `const-ptr` / `add-ptr` / `sub-ptr` / `ptr-to-u64` / `u64-to-ptr` / `load-u8` / `load-u16` / `load-u32` / `is-null-ptr` / `is-nonnull-ptr`；`const-ptr` 与 load-family 已进入解释执行、静态 AOT、standalone ELF x86_64 codegen、ELF64 object 与 tiny-link 可执行路径。
+- typed 负向编译 smoke 已覆盖 ptr predicate 误用、branch 非 bool、ptr expect 非 ptr、ptr/u64 cast 误用、load-family 非 ptr，且同一 DSL 会断言 `compile-elf64-code` / `compile-elf64-obj-code` / `compile-elf64-exe` 返回失败码。
 - `expect` 已支持负数、布尔值和 `null` / `nonnull` 指针断言。
 - `block` / `branch` / `label` 已可编译进 `.lbin` 并由解释执行路径运行。
 - control-flow pure blob 已能走机器码 codegen AOT 路径，覆盖 `aot-elf64-code` / `aot-elf64-obj-code` / `compile-elf64-code`。
