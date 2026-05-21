@@ -8,9 +8,11 @@ SRC="$LAB_DIR/samples/strlen.lisp"
 ARITH_SRC="$LAB_DIR/samples/arithmetic.lisp"
 ARITH_I64_SRC="$LAB_DIR/samples/arithmetic-i64.lisp"
 TYPED_SRC="$LAB_DIR/samples/typed-values.lisp"
+PTR_SRC="$LAB_DIR/samples/ptr-values.lisp"
 CTRL_SRC="$LAB_DIR/samples/control-flow.lisp"
 MULTI_SRC="$LAB_DIR/samples/multi-func.lisp"
 MULTI_CTRL_SRC="$LAB_DIR/samples/multi-func-control-flow.lisp"
+MULTI_PTR_SRC="$LAB_DIR/samples/multi-func-ptr.lisp"
 BOOTSTRAP_SRC="$LAB_DIR/samples/bootstrap-smoke.lisp"
 BOOTSTRAP_AOT_SRC="$LAB_DIR/samples/bootstrap-aot-smoke.lisp"
 SMOKE_SRC="$LAB_DIR/samples/libc-smoke.lisp"
@@ -19,6 +21,7 @@ BLOB_REPEAT="$BUILD_DIR/strlen-repeat.lbin"
 ARITH_BLOB="$BUILD_DIR/arithmetic.lbin"
 ARITH_I64_BLOB="$BUILD_DIR/arithmetic-i64.lbin"
 TYPED_BLOB="$BUILD_DIR/typed-values.lbin"
+PTR_BLOB="$BUILD_DIR/ptr-values.lbin"
 CTRL_BLOB="$BUILD_DIR/control-flow.lbin"
 BAD_ARITH_SRC="$LAB_DIR/samples/arithmetic-bad.lisp"
 BAD_ARITH_BLOB="$BUILD_DIR/arithmetic-bad.lbin"
@@ -29,10 +32,18 @@ CTRL_OBJ_EXE="$BUILD_DIR/control_flow_obj"
 CTRL_CODE_OBJ="$BUILD_DIR/control_flow_code_obj.o"
 CTRL_LINK_EXE="$BUILD_DIR/control_flow_linked"
 CTRL_DIRECT_EXE="$BUILD_DIR/control_flow_direct"
+PTR_EXIT="$BUILD_DIR/ptr-values-aot.elf"
+PTR_CODE="$BUILD_DIR/ptr-values-code.elf"
+PTR_CODE_OBJ="$BUILD_DIR/ptr_values_code_obj.o"
+PTR_LINK_EXE="$BUILD_DIR/ptr_values_linked"
+PTR_DIRECT_EXE="$BUILD_DIR/ptr_values_direct"
 MULTI_OBJ="$BUILD_DIR/multi_func.o"
 MULTI_LINK_EXE="$BUILD_DIR/multi_func_linked"
 MULTI_CTRL_OBJ="$BUILD_DIR/multi_func_control.o"
 MULTI_CTRL_LINK_EXE="$BUILD_DIR/multi_func_control_linked"
+MULTI_PTR_OBJ="$BUILD_DIR/multi_func_ptr.o"
+MULTI_PTR_LINK_EXE="$BUILD_DIR/multi_func_ptr_linked"
+MULTI_PTR_DIRECT_EXE="$BUILD_DIR/multi_func_ptr_direct"
 SMOKE_BLOB="$BUILD_DIR/libc-smoke.lbin"
 LIBC_SRC="$BUILD_DIR/libc-resolve.lisp"
 LIBC_BLOB="$BUILD_DIR/libc-resolve.lbin"
@@ -97,12 +108,16 @@ log "arithmetic.i64.source.path=$ARITH_I64_SRC"
 log "arithmetic.i64.source.bytes=$(bytes_of "$ARITH_I64_SRC")"
 log "typed.source.path=$TYPED_SRC"
 log "typed.source.bytes=$(bytes_of "$TYPED_SRC")"
+log "ptr.source.path=$PTR_SRC"
+log "ptr.source.bytes=$(bytes_of "$PTR_SRC")"
 log "control.source.path=$CTRL_SRC"
 log "control.source.bytes=$(bytes_of "$CTRL_SRC")"
 log "multi.source.path=$MULTI_SRC"
 log "multi.source.bytes=$(bytes_of "$MULTI_SRC")"
 log "multi.ctrl.source.path=$MULTI_CTRL_SRC"
 log "multi.ctrl.source.bytes=$(bytes_of "$MULTI_CTRL_SRC")"
+log "multi.ptr.source.path=$MULTI_PTR_SRC"
+log "multi.ptr.source.bytes=$(bytes_of "$MULTI_PTR_SRC")"
 log "bootstrap.source.path=$BOOTSTRAP_SRC"
 log "bootstrap.source.bytes=$(bytes_of "$BOOTSTRAP_SRC")"
 log "bootstrap.aot.source.path=$BOOTSTRAP_AOT_SRC"
@@ -142,6 +157,11 @@ log "typed.blob.bytes=$(bytes_of "$TYPED_BLOB")"
 
 run_case "execute-typed-values-lbin" "$RUNNER" run "$TYPED_BLOB"
 
+run_case "compile-ptr-values-lbin" "$RUNNER" compile "$PTR_SRC" "$PTR_BLOB"
+log "ptr.blob.bytes=$(bytes_of "$PTR_BLOB")"
+
+run_case "execute-ptr-values-lbin" "$RUNNER" run "$PTR_BLOB"
+
 run_case "run-bootstrap-plan" "$RUNNER" run-bootstrap-plan "$BOOTSTRAP_SRC"
 
 run_case "run-bootstrap-aot-plan" "$RUNNER" run-bootstrap-plan "$BOOTSTRAP_AOT_SRC"
@@ -168,6 +188,13 @@ if [ "$(uname -m)" = "x86_64" ] || [ "$(uname -m)" = "amd64" ]; then
   run_case "run-aot-bad-arithmetic-expect125" "$RUNNER" run-expect-exit "$BAD_ARITH_CODE" 125
   run_case "aot-control-flow-elf64-exit1" "$RUNNER" aot-elf64-exit "$CTRL_BLOB" "$CTRL_EXIT"
   run_case "run-aot-control-flow-exit1" "$RUNNER" run-expect-exit "$CTRL_EXIT" 1
+  run_case "aot-ptr-values-elf64-exit1" "$RUNNER" aot-elf64-exit "$PTR_BLOB" "$PTR_EXIT"
+  run_case "run-aot-ptr-values-exit1" "$RUNNER" run-expect-exit "$PTR_EXIT" 1
+  run_case "aot-ptr-values-elf64-code1" "$RUNNER" aot-elf64-code "$PTR_BLOB" "$PTR_CODE"
+  run_case "run-aot-ptr-values-code1" "$RUNNER" run-expect-exit "$PTR_CODE" 1
+  run_case "aot-ptr-values-elf64-obj-code1" "$RUNNER" aot-elf64-obj-code "$PTR_BLOB" "$PTR_CODE_OBJ" nano_ptr_code
+  run_case "tiny-link-aot-ptr-values-obj-code1" "$RUNNER" link-elf64-exe "$PTR_LINK_EXE" nano_ptr_code "$PTR_CODE_OBJ"
+  run_case "run-tiny-linked-ptr-values1" "$RUNNER" run-expect-exit "$PTR_LINK_EXE" 1
   run_case "aot-control-flow-elf64-obj-ret1" "$RUNNER" aot-elf64-obj-ret "$CTRL_BLOB" "$CTRL_OBJ" nano_ctrl
   run_case "link-aot-control-flow-obj1" "$RUNNER" link-elf64-exe "$CTRL_OBJ_EXE" nano_ctrl "$CTRL_OBJ"
   run_case "run-aot-control-flow-obj1" "$RUNNER" run-expect-exit "$CTRL_OBJ_EXE" 1
@@ -178,6 +205,8 @@ if [ "$(uname -m)" = "x86_64" ] || [ "$(uname -m)" = "amd64" ]; then
   run_case "run-tiny-linked-control-flow1" "$RUNNER" run-expect-exit "$CTRL_LINK_EXE" 1
   run_case "compile-control-flow-elf64-code1" "$RUNNER" compile-elf64-code "$CTRL_SRC" "$CTRL_DIRECT_EXE"
   run_case "run-direct-compiled-control-flow1" "$RUNNER" run-expect-exit "$CTRL_DIRECT_EXE" 1
+  run_case "compile-ptr-values-elf64-code1" "$RUNNER" compile-elf64-code "$PTR_SRC" "$PTR_DIRECT_EXE"
+  run_case "run-direct-compiled-ptr-values1" "$RUNNER" run-expect-exit "$PTR_DIRECT_EXE" 1
   run_case "emit-elf64-obj-ret42" "$RUNNER" emit-elf64-obj-ret "$RET42_OBJ" nano_ret 42
   log "ret42.obj.bytes=$(bytes_of "$RET42_OBJ")"
   run_case "link-elf64-obj-ret42" "$RUNNER" link-elf64-exe "$RET42_EXE" nano_ret "$RET42_OBJ"
@@ -215,6 +244,11 @@ if [ "$(uname -m)" = "x86_64" ] || [ "$(uname -m)" = "amd64" ]; then
   run_case "tiny-link-multi-func-control-flow-obj43" "$RUNNER" link-elf64-exe "$MULTI_CTRL_LINK_EXE" nano_multi_ctrl "$MULTI_CTRL_OBJ"
   log "multi.ctrl.tiny.link.bytes=$(bytes_of "$MULTI_CTRL_LINK_EXE")"
   run_case "run-tiny-linked-multi-func-control-flow43" "$RUNNER" run-expect-exit "$MULTI_CTRL_LINK_EXE" 43
+  run_case "compile-multi-func-ptr-elf64-obj1" "$RUNNER" compile-elf64-obj-code "$MULTI_PTR_SRC" "$MULTI_PTR_OBJ" nano_multi_ptr
+  run_case "tiny-link-multi-func-ptr-obj1" "$RUNNER" link-elf64-exe "$MULTI_PTR_LINK_EXE" nano_multi_ptr "$MULTI_PTR_OBJ"
+  run_case "run-tiny-linked-multi-func-ptr1" "$RUNNER" run-expect-exit "$MULTI_PTR_LINK_EXE" 1
+  run_case "compile-multi-func-ptr-elf64-exe1" "$RUNNER" compile-elf64-exe "$MULTI_PTR_SRC" "$MULTI_PTR_DIRECT_EXE" nano_multi_ptr_direct
+  run_case "run-direct-compiled-multi-func-ptr1" "$RUNNER" run-expect-exit "$MULTI_PTR_DIRECT_EXE" 1
   run_case "emit-elf64-obj-call42" "$RUNNER" emit-elf64-obj-call "$CALL42_OBJ" nano_call nano_ext
   log "call42.obj.bytes=$(bytes_of "$CALL42_OBJ")"
   run_case "emit-elf64-obj-callee42" "$RUNNER" emit-elf64-obj-ret "$CALL42_CALLEE_OBJ" nano_ext 42

@@ -95,8 +95,14 @@ typed value 现在支持最小 `i64 / bool / ptr`：
     (expect false)
     (or-bool true)
     (expect true)
+    (null-ptr)
+    (expect null)
+    (is-null-ptr)
+    (expect true)
     (resolve strlen)
-    (expect nonnull)))
+    (expect nonnull)
+    (is-nonnull-ptr)
+    (expect true)))
 ```
 
 控制流当前支持最小 `block / branch / label`，`branch` 读取上一条 `bool`：
@@ -158,6 +164,8 @@ bootstrap 子流程现在也可以先用 `.lisp` 描述，再由 nano 自己执�
   (resolve-quiet "lab/nano-lisp-jit/.build/bootstrap-smoke-typed-values.lbin")
   (file-size "lab/nano-lisp-jit/.build/bootstrap-smoke-typed-values.lbin")
   (run "lab/nano-lisp-jit/.build/bootstrap-smoke-typed-values.lbin")
+  (compile "lab/nano-lisp-jit/samples/ptr-values.lisp" "lab/nano-lisp-jit/.build/bootstrap-smoke-ptr-values.lbin")
+  (run "lab/nano-lisp-jit/.build/bootstrap-smoke-ptr-values.lbin")
   (compile "lab/nano-lisp-jit/samples/libc-smoke.lisp" "lab/nano-lisp-jit/.build/bootstrap-smoke.lbin")
   (hash "lab/nano-lisp-jit/.build/bootstrap-smoke.lbin")
   (compile "lab/nano-lisp-jit/samples/libc-smoke.lisp" "lab/nano-lisp-jit/.build/bootstrap-smoke-repeat.lbin")
@@ -182,6 +190,11 @@ bootstrap DSL 也能描述一条最小 AOT/codegen/tiny-link 构建图，不需�
   (compile "lab/nano-lisp-jit/samples/arithmetic-bad.lisp" "lab/nano-lisp-jit/.build/bootstrap-aot-arithmetic-bad.lbin")
   (aot-elf64-code "lab/nano-lisp-jit/.build/bootstrap-aot-arithmetic-bad.lbin" "lab/nano-lisp-jit/.build/bootstrap-aot-arithmetic-bad-code.elf")
   (run-expect-exit "lab/nano-lisp-jit/.build/bootstrap-aot-arithmetic-bad-code.elf" 125)
+  (compile "lab/nano-lisp-jit/samples/ptr-values.lisp" "lab/nano-lisp-jit/.build/bootstrap-aot-ptr-values.lbin")
+  (aot-elf64-code "lab/nano-lisp-jit/.build/bootstrap-aot-ptr-values.lbin" "lab/nano-lisp-jit/.build/bootstrap-aot-ptr-values-code.elf")
+  (run-expect-exit "lab/nano-lisp-jit/.build/bootstrap-aot-ptr-values-code.elf" 1)
+  (compile-elf64-exe "lab/nano-lisp-jit/samples/multi-func-ptr.lisp" "lab/nano-lisp-jit/.build/bootstrap-aot-multi-ptr-direct.elf" "nano_bootstrap_multi_ptr_direct")
+  (run-expect-exit "lab/nano-lisp-jit/.build/bootstrap-aot-multi-ptr-direct.elf" 1)
   (emit-elf64-obj-call "lab/nano-lisp-jit/.build/bootstrap-aot-call42.o" "nano_bootstrap_call" "nano_bootstrap_ext")
   (emit-elf64-obj-ret "lab/nano-lisp-jit/.build/bootstrap-aot-ext42.o" "nano_bootstrap_ext" 42)
   (link-elf64-exe "lab/nano-lisp-jit/.build/bootstrap-aot-call42-linked" "nano_bootstrap_call" "lab/nano-lisp-jit/.build/bootstrap-aot-call42.o" "lab/nano-lisp-jit/.build/bootstrap-aot-ext42.o")
@@ -214,17 +227,17 @@ bootstrap DSL 也能描述一条最小 AOT/codegen/tiny-link 构建图，不需�
 - `emit-elf64-obj-call`：直接写带 `.rela.text` 的 ELF64 relocatable object，验证外部符号重定位。
 - `aot-elf64-exit`：静态求值纯 VM `.lbin`，直接生成对应 exit code 的 ELF。
 - `aot-elf64-obj-ret`：静态求值纯 VM `.lbin`，生成可链接的 ELF64 function object。
-- `aot-elf64-code`：把纯 VM typed/control-flow 子集编译成 x86_64 机器码 ELF。
-- `aot-elf64-obj-code`：把纯 VM typed/control-flow 子集编译成可链接的 ELF64 function object。
+- `aot-elf64-code`：把纯 VM typed/control-flow/ptr-null 子集编译成 x86_64 机器码 ELF。
+- `aot-elf64-obj-code`：把纯 VM typed/control-flow/ptr-null 子集编译成可链接的 ELF64 function object。
 - `compile-elf64-code` / `compile-elf64-obj-code`：直接从 `.lisp` 生成 ELF 或 object，减少外部脚本胶水。
-- `compile-elf64-obj-code` 当前已支持多函数 pure VM source、内部 `call`、基础 relocation，以及 `i64` / `bool` / `branch` / `label` typed/control-flow 子集。
+- `compile-elf64-obj-code` 当前已支持多函数 pure VM source、内部 `call`、基础 relocation，以及 `i64` / `bool` / `ptr` / `branch` / `label` typed/control-flow 子集。
 - `compile-elf64-exe`：直接从多函数 pure VM source 生成可运行 ELF，内部复用 object backend 和 tiny linker。
 - `link-elf64-exe`：链接当前 nano object 子集，支持 `input.o...` 多 object，输出可运行 x86_64 ELF。
 - `hash`：输出 `.lbin` 的内建 FNV-1a 64-bit hash，用于 deterministic 编译测试。
 - `(expect N)` / `(expect -N)` / `(expect true|false)` / `(expect null|nonnull)`：在 `.lbin` 内断言上一条结果，失败时 runtime 返回非零。
-- `(u64 N)` / `(add-u64 N)` / `(i64 N)` / `(add-i64 N)` / `(sub-i64 N)` / `(mul-i64 N)` / `(eq-i64 N)` / `(ne-i64 N)` / `(lt-i64 N)` / `(gt-i64 N)` / `(le-i64 N)` / `(ge-i64 N)` / `(bool true|false)` / `(not-bool)` / `(and-bool true|false)` / `(or-bool true|false)`：最小 typed VM 内核，不依赖 FFI。
+- `(u64 N)` / `(add-u64 N)` / `(i64 N)` / `(add-i64 N)` / `(sub-i64 N)` / `(mul-i64 N)` / `(eq-i64 N)` / `(ne-i64 N)` / `(lt-i64 N)` / `(gt-i64 N)` / `(le-i64 N)` / `(ge-i64 N)` / `(bool true|false)` / `(not-bool)` / `(and-bool true|false)` / `(or-bool true|false)` / `(null-ptr)` / `(is-null-ptr)` / `(is-nonnull-ptr)`：最小 typed VM 内核，不依赖 FFI。
 - `block` / `branch label` / `label`：最小控制流；静态求值 AOT（`aot-elf64-exit` / `aot-elf64-obj-ret`）和机器码 codegen（`aot-elf64-code` / `aot-elf64-obj-code` / `compile-elf64-code`）现在都支持该纯 VM 子集。
-- `func` + `main`：当前仅在 `compile-elf64-obj-code` 的纯 VM AOT source 路径支持；helper 函数默认生成为 object 内部 local symbol。
+- `func` + `main`：当前在 `compile-elf64-obj-code` / `compile-elf64-exe` 的纯 VM AOT source 路径支持；helper 函数默认生成为 object 内部 local symbol。
 - `bootstrap`：当前最小 DSL 支持 `.lbin` 编译/哈希/比较/运行、AOT ELF/codegen/object 生成、tiny-link、app 打包/检查/运行，以及 `compile-expect-exit` / `link-expect-exit` / `run-expect-exit` 退出码断言，作为 shell bootstrap 的第一块可执行描述。
 - `pack-app`：把 runtime slices 和 `.lbin` 打进一个多架构 `.com` 应用，运行时直接从自身容器执行内嵌 blob。
 - 当前签名：`addr`、`u64(ptr)`、`i32(ptr)`、`i32(ptr,ptr)`、`i32()`、`i32(i32)`。
