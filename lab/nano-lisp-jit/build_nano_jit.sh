@@ -174,6 +174,10 @@ cat > "$BOOTSTRAP_PLAN" <<EOF
   (file-size "$BUILD_DIR/bootstrap-smoke.com")
   (file-hash "$BUILD_DIR/bootstrap-smoke.com")
   (inspect-app "$BUILD_DIR/bootstrap-smoke.com")
+  (pack-ape "$BUILD_DIR/bootstrap-ape.com" "$BUILD_DIR/nano-jit.x86_64" "$BUILD_DIR/nano-jit.aarch64")
+  (file-size "$BUILD_DIR/bootstrap-ape.com")
+  (file-hash "$BUILD_DIR/bootstrap-ape.com")
+  (inspect-ape "$BUILD_DIR/bootstrap-ape.com")
   (run-app "$BUILD_DIR/bootstrap-smoke.com")
   (run "$BUILD_DIR/bootstrap-smoke.lbin")
   (emit-elf64-exit "$BUILD_DIR/bootstrap-aot-exit42.elf" 42)
@@ -364,6 +368,8 @@ run_case "self-pack-nano-jit-com" "$PACKER" pack-ape \
   "$BUILD_DIR/nano-jit.com" \
   "$BUILD_DIR/nano-jit.x86_64" \
   "$BUILD_DIR/nano-jit.aarch64"
+
+run_case "inspect-nano-jit-com" "$PACKER" inspect-ape "$BUILD_DIR/nano-jit.com"
 
 {
   echo "nano-jit.com.bytes=$(bytes_of "$BUILD_DIR/nano-jit.com")"

@@ -80,4 +80,6 @@ echo "[nano-ape] pack without cosmocc apelink"
   "$BUILD_DIR/nano-lisp-jit.x86_64" \
   "$BUILD_DIR/nano-lisp-jit.aarch64"
 
+"$PACKER" inspect-ape "$BUILD_DIR/nano-lisp-jit.com"
+
 ls -l "$BUILD_DIR"/nano-lisp-jit.*
