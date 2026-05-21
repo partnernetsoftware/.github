@@ -22,6 +22,8 @@ TYPE_BAD_U64_TO_PTR_SRC="$LAB_DIR/samples/type-error-u64-to-ptr-bad.lisp"
 TYPE_BAD_LOAD_U8_SRC="$LAB_DIR/samples/type-error-load-u8-bad.lisp"
 TYPE_BAD_LOAD_U16_SRC="$LAB_DIR/samples/type-error-load-u16-bad.lisp"
 TYPE_BAD_LOAD_U32_SRC="$LAB_DIR/samples/type-error-load-u32-bad.lisp"
+TYPE_BAD_STORE_U8_SRC="$LAB_DIR/samples/type-error-store-u8-bad.lisp"
+TYPE_BAD_STORE_U8_RANGE_SRC="$LAB_DIR/samples/type-error-store-u8-range-bad.lisp"
 TYPE_BAD_BRANCH_SRC="$LAB_DIR/samples/type-error-branch-bad.lisp"
 TYPE_BAD_EXPECT_PTR_SRC="$LAB_DIR/samples/type-error-expect-ptr-bad.lisp"
 BOOTSTRAP_SRC="$LAB_DIR/samples/bootstrap-smoke.lisp"
@@ -75,6 +77,10 @@ TYPE_BAD_LOAD_U16_EXE="$BUILD_DIR/type_error_load_u16_bad"
 TYPE_BAD_LOAD_U16_OBJ="$BUILD_DIR/type_error_load_u16_bad.o"
 TYPE_BAD_LOAD_U32_EXE="$BUILD_DIR/type_error_load_u32_bad"
 TYPE_BAD_LOAD_U32_OBJ="$BUILD_DIR/type_error_load_u32_bad.o"
+TYPE_BAD_STORE_U8_EXE="$BUILD_DIR/type_error_store_u8_bad"
+TYPE_BAD_STORE_U8_OBJ="$BUILD_DIR/type_error_store_u8_bad.o"
+TYPE_BAD_STORE_U8_RANGE_EXE="$BUILD_DIR/type_error_store_u8_range_bad"
+TYPE_BAD_STORE_U8_RANGE_OBJ="$BUILD_DIR/type_error_store_u8_range_bad.o"
 TYPE_BAD_BRANCH_EXE="$BUILD_DIR/type_error_branch_bad"
 TYPE_BAD_EXPECT_PTR_OBJ="$BUILD_DIR/type_error_expect_ptr_bad.o"
 SMOKE_BLOB="$BUILD_DIR/libc-smoke.lbin"
@@ -169,6 +175,10 @@ log "type.bad.load.u16.source.path=$TYPE_BAD_LOAD_U16_SRC"
 log "type.bad.load.u16.source.bytes=$(bytes_of "$TYPE_BAD_LOAD_U16_SRC")"
 log "type.bad.load.u32.source.path=$TYPE_BAD_LOAD_U32_SRC"
 log "type.bad.load.u32.source.bytes=$(bytes_of "$TYPE_BAD_LOAD_U32_SRC")"
+log "type.bad.store.u8.source.path=$TYPE_BAD_STORE_U8_SRC"
+log "type.bad.store.u8.source.bytes=$(bytes_of "$TYPE_BAD_STORE_U8_SRC")"
+log "type.bad.store.u8.range.source.path=$TYPE_BAD_STORE_U8_RANGE_SRC"
+log "type.bad.store.u8.range.source.bytes=$(bytes_of "$TYPE_BAD_STORE_U8_RANGE_SRC")"
 log "type.bad.branch.source.path=$TYPE_BAD_BRANCH_SRC"
 log "type.bad.branch.source.bytes=$(bytes_of "$TYPE_BAD_BRANCH_SRC")"
 log "type.bad.expect.ptr.source.path=$TYPE_BAD_EXPECT_PTR_SRC"
@@ -338,6 +348,12 @@ if [ "$(uname -m)" = "x86_64" ] || [ "$(uname -m)" = "amd64" ]; then
   run_case "reject-load-u32-type-error-elf64-code" "$RUNNER" compile-expect-exit 2 compile-elf64-code "$TYPE_BAD_LOAD_U32_SRC" "$TYPE_BAD_LOAD_U32_EXE"
   run_case "reject-load-u32-type-error-elf64-obj" "$RUNNER" compile-expect-exit 2 compile-elf64-obj-code "$TYPE_BAD_LOAD_U32_SRC" "$TYPE_BAD_LOAD_U32_OBJ" nano_type_bad_load_u32
   run_case "reject-load-u32-type-error-elf64-exe" "$RUNNER" compile-expect-exit 2 compile-elf64-exe "$TYPE_BAD_LOAD_U32_SRC" "$TYPE_BAD_LOAD_U32_EXE" nano_type_bad_load_u32
+  run_case "reject-store-u8-type-error-elf64-code" "$RUNNER" compile-expect-exit 2 compile-elf64-code "$TYPE_BAD_STORE_U8_SRC" "$TYPE_BAD_STORE_U8_EXE"
+  run_case "reject-store-u8-type-error-elf64-obj" "$RUNNER" compile-expect-exit 2 compile-elf64-obj-code "$TYPE_BAD_STORE_U8_SRC" "$TYPE_BAD_STORE_U8_OBJ" nano_type_bad_store_u8
+  run_case "reject-store-u8-type-error-elf64-exe" "$RUNNER" compile-expect-exit 2 compile-elf64-exe "$TYPE_BAD_STORE_U8_SRC" "$TYPE_BAD_STORE_U8_EXE" nano_type_bad_store_u8
+  run_case "reject-store-u8-range-error-elf64-code" "$RUNNER" compile-expect-exit 2 compile-elf64-code "$TYPE_BAD_STORE_U8_RANGE_SRC" "$TYPE_BAD_STORE_U8_RANGE_EXE"
+  run_case "reject-store-u8-range-error-elf64-obj" "$RUNNER" compile-expect-exit 2 compile-elf64-obj-code "$TYPE_BAD_STORE_U8_RANGE_SRC" "$TYPE_BAD_STORE_U8_RANGE_OBJ" nano_type_bad_store_u8_range
+  run_case "reject-store-u8-range-error-elf64-exe" "$RUNNER" compile-expect-exit 2 compile-elf64-exe "$TYPE_BAD_STORE_U8_RANGE_SRC" "$TYPE_BAD_STORE_U8_RANGE_EXE" nano_type_bad_store_u8_range
   run_case "reject-branch-type-error-elf64-code" "$RUNNER" compile-expect-exit 2 compile-elf64-code "$TYPE_BAD_BRANCH_SRC" "$TYPE_BAD_BRANCH_EXE"
   run_case "reject-expect-ptr-type-error-elf64-obj" "$RUNNER" compile-expect-exit 2 compile-elf64-obj-code "$TYPE_BAD_EXPECT_PTR_SRC" "$TYPE_BAD_EXPECT_PTR_OBJ" nano_type_bad_expect_ptr
   run_case "emit-elf64-obj-call42" "$RUNNER" emit-elf64-obj-call "$CALL42_OBJ" nano_call nano_ext
