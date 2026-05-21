@@ -18,6 +18,7 @@
 ./nano-lisp-jit.com dump strlen.lbin
 ./nano-lisp-jit.com run strlen.lbin
 ./nano-lisp-jit.com run-embedded app.com blob_offset blob_size
+./nano-lisp-jit.com inspect-ape nano-jit.com
 ./nano-lisp-jit.com inspect-app app.com
 ./nano-lisp-jit.com run-app app.com
 ./nano-lisp-jit.com emit-elf64-exit exit42.elf 42
@@ -42,6 +43,7 @@
 ./nano-lisp-jit.com resolve --quiet strlen.lbin
 ./nano-lisp-jit.com resolve-quiet strlen.lbin
 ./nano-lisp-jit.com run-bootstrap-plan samples/bootstrap-smoke.lisp
+./nano-lisp-jit.com pack-ape nano-jit.com nano-jit.x86_64 nano-jit.aarch64
 ./nano-lisp-jit.com pack-app app.com nano-jit.x86_64 nano-jit.aarch64 strlen.lbin
 ```
 
@@ -225,6 +227,8 @@ bootstrap 子流程现在也可以先用 `.lisp` 描述，再由 nano 自己执�
   (gen-libc-resolve "lab/nano-lisp-jit/.build/bootstrap-libc-resolve.lisp")
   (compile "lab/nano-lisp-jit/.build/bootstrap-libc-resolve.lisp" "lab/nano-lisp-jit/.build/bootstrap-libc-resolve.lbin")
   (resolve-quiet "lab/nano-lisp-jit/.build/bootstrap-libc-resolve.lbin")
+  (pack-ape "lab/nano-lisp-jit/.build/bootstrap-ape.com" "lab/nano-lisp-jit/.build/nano-lisp-jit" "lab/nano-lisp-jit/.build/nano-lisp-jit")
+  (inspect-ape "lab/nano-lisp-jit/.build/bootstrap-ape.com")
   (pack-app "lab/nano-lisp-jit/.build/bootstrap-smoke.com" "lab/nano-lisp-jit/.build/nano-lisp-jit" "lab/nano-lisp-jit/.build/nano-lisp-jit" "lab/nano-lisp-jit/.build/bootstrap-smoke.lbin")
   (inspect-app "lab/nano-lisp-jit/.build/bootstrap-smoke.com")
   (run-app "lab/nano-lisp-jit/.build/bootstrap-smoke.com")
@@ -318,9 +322,10 @@ bootstrap DSL 也能描述一条最小 AOT/codegen/tiny-link 构建图，不需�
 - `link-expect-exit`：执行 tiny linker 并断言失败码，用于 duplicate-symbol 等负向 linker smoke。
 - `compile-expect-exit`：执行编译类子命令并断言失败码，用于递归 local call、typed ptr/bool 误用等负向 source AOT smoke。
 - `resolve`：验证 `.lbin` import table 的动态库和符号可解析；运行时会把解析到的函数地址放进当前 `ptr` typed value，适合全量 libc 导入测试或指针断言。
-- `run-bootstrap-plan`：读取最小 bootstrap DSL，顺序执行 `compile` / `gen-libc-resolve` / `dump` / `file-size` / `file-hash` / `hash` / `compare` / `resolve-quiet` / `pack-app` / `inspect-app` / `run-app` / `run` / `emit-elf64-exit` / `emit-elf64-obj-ret` / `emit-elf64-obj-call` / `aot-elf64-exit` / `aot-elf64-obj-ret` / `aot-elf64-code` / `aot-elf64-obj-code` / `compile-elf64-code` / `compile-elf64-obj-code` / `compile-elf64-exe` / `compile-expect-exit` / `link-elf64-exe` / `link-expect-exit` / `run-expect-exit` 子流程，开始把 shell 片段迁到 `.lisp` 描述。
+- `run-bootstrap-plan`：读取最小 bootstrap DSL，顺序执行 `compile` / `gen-libc-resolve` / `dump` / `file-size` / `file-hash` / `hash` / `compare` / `resolve-quiet` / `pack-ape` / `inspect-ape` / `pack-app` / `inspect-app` / `run-app` / `run` / `emit-elf64-exit` / `emit-elf64-obj-ret` / `emit-elf64-obj-call` / `aot-elf64-exit` / `aot-elf64-obj-ret` / `aot-elf64-code` / `aot-elf64-obj-code` / `compile-elf64-code` / `compile-elf64-obj-code` / `compile-elf64-exe` / `compile-expect-exit` / `link-elf64-exe` / `link-expect-exit` / `run-expect-exit` 子流程，开始把 shell 片段迁到 `.lisp` 描述。
 - `run`：解析 `.lbin`，通过 `dlopen`/`dlsym` 找系统符号，执行 main 指令流。
 - `run-embedded`：从 `.com` 容器内按 payload 偏移直接读取并执行内嵌 blob。
+- `inspect-ape`：读取 nano APE manifest，输出 `ape-v1` container、slice offset 和 size。
 - `inspect-app`：读取 AOT app manifest，输出 runtime slice 和 blob 的 offset/size。
 - `run-app`：读取 AOT app manifest，自动定位并执行 `.com` 内嵌 blob。
 - `emit-elf64-exit`：直接写最小 x86_64 Linux ELF，可作为替换 slice compiler 的第一块。
@@ -340,6 +345,7 @@ bootstrap DSL 也能描述一条最小 AOT/codegen/tiny-link 构建图，不需�
 - `block` / `branch label` / `label`：最小控制流；静态求值 AOT（`aot-elf64-exit` / `aot-elf64-obj-ret`）和机器码 codegen（`aot-elf64-code` / `aot-elf64-obj-code` / `compile-elf64-code`）现在都支持该纯 VM 子集。
 - `func` + `main`：当前在 `compile-elf64-obj-code` / `compile-elf64-exe` 的纯 VM AOT source 路径支持；helper 函数默认生成为 object 内部 local symbol。
 - `bootstrap`：当前最小 DSL 支持 `.lbin` 编译/哈希/比较/运行、AOT ELF/codegen/object 生成、tiny-link、app 打包/检查/运行，以及 typed compile failure / linker failure / runtime failure 退出码断言，作为 shell bootstrap 的第一块可执行描述。
+- `pack-ape`：把 x86_64/aarch64 ELF slice 打进一个 `.com`，写出 `ape-v1` manifest，运行时按 host arch 选择 payload。
 - `pack-app`：把 runtime slices 和 `.lbin` 打进一个多架构 `.com` 应用，运行时直接从自身容器执行内嵌 blob。
 - 当前签名：`addr`、`u64(ptr)`、`i32(ptr)`、`i32(ptr,ptr)`、`i32()`、`i32(i32)`。
 - `u64(ptr)` 仍走 x86_64/aarch64 JIT call stub；其他安全 smoke 签名先用 typed C call。

@@ -186,6 +186,8 @@ extern void *cosmo_dlsym(void *handle, const char *symbol);
 #define BOOTSTRAP_STEP_FILE_HASH 24u
 #define BOOTSTRAP_STEP_GEN_LIBC_RESOLVE 25u
 #define BOOTSTRAP_STEP_COMPILE_EXPECT_EXIT 26u
+#define BOOTSTRAP_STEP_PACK_APE 27u
+#define BOOTSTRAP_STEP_INSPECT_APE 28u
 
 typedef uint64_t (*jit_entry_fn)(void);
 typedef int (*ffi_i32_ptr_fn)(const char *);
@@ -1333,6 +1335,19 @@ static int parse_bootstrap_plan(const char *src, BootstrapPlan *plan) {
         free(head);
         return 0;
       }
+    } else if (strcmp(head, "pack-ape") == 0) {
+      char *arg0 = parse_string(&p);
+      char *arg1 = parse_string(&p);
+      char *arg2 = parse_string(&p);
+      int ok = arg0 && arg1 && arg2 && eat(&p, ')') &&
+               bootstrap_add_step(plan, BOOTSTRAP_STEP_PACK_APE, arg0, arg1, arg2, NULL);
+      if (!ok) {
+        free(arg0);
+        free(arg1);
+        free(arg2);
+        free(head);
+        return 0;
+      }
     } else if (strcmp(head, "pack-app") == 0) {
       char *arg0 = parse_string(&p);
       char *arg1 = parse_string(&p);
@@ -1348,9 +1363,12 @@ static int parse_bootstrap_plan(const char *src, BootstrapPlan *plan) {
         free(head);
         return 0;
       }
-    } else if (strcmp(head, "inspect-app") == 0 || strcmp(head, "run-app") == 0) {
+    } else if (strcmp(head, "inspect-ape") == 0 ||
+               strcmp(head, "inspect-app") == 0 ||
+               strcmp(head, "run-app") == 0) {
       char *arg0 = parse_string(&p);
-      uint32_t kind = strcmp(head, "inspect-app") == 0 ? BOOTSTRAP_STEP_INSPECT_APP :
+      uint32_t kind = strcmp(head, "inspect-ape") == 0 ? BOOTSTRAP_STEP_INSPECT_APE :
+                      strcmp(head, "inspect-app") == 0 ? BOOTSTRAP_STEP_INSPECT_APP :
                       BOOTSTRAP_STEP_RUN_APP;
       int ok = arg0 && eat(&p, ')') &&
                bootstrap_add_step(plan, kind, arg0, NULL, NULL, NULL);
@@ -2744,6 +2762,7 @@ static int parse_size_arg(const char *s, size_t *out) {
 
 static const char NANO_MANIFEST_BEGIN[] = "# nano.manifest.begin";
 static const char NANO_MANIFEST_END[] = "# nano.manifest.end";
+static const char NANO_APE_PAYLOAD_MARKER[] = "__NANO_APE_PAYLOAD_BELOW__";
 static const char NANO_APP_PAYLOAD_MARKER[] = "__NANO_APP_PAYLOAD_BELOW__";
 
 static int find_payload_start(const unsigned char *data, size_t n, const char *marker,
@@ -3198,6 +3217,8 @@ static int cmd_resolve(const char *blob_path, int quiet) {
 }
 
 static int cmd_inspect_app(const char *container_path);
+static int cmd_inspect_ape(const char *container_path);
+static int cmd_pack_ape(const char *out_path, const char *x86_path, const char *arm_path);
 static int cmd_pack_app(const char *out_path, const char *x86_path, const char *arm_path,
                         const char *blob_path);
 static int cmd_emit_elf64_exit(const char *out_path, const char *code_s);
@@ -3388,6 +3409,12 @@ static int cmd_run_bootstrap_plan(const char *plan_path) {
     } else if (step->kind == BOOTSTRAP_STEP_RUN_EXPECT_EXIT) {
       printf("bootstrap-step.%zu=run-expect-exit\n", i);
       rc = run_executable_expect_exit(step->arg0, step->arg1);
+    } else if (step->kind == BOOTSTRAP_STEP_PACK_APE) {
+      printf("bootstrap-step.%zu=pack-ape\n", i);
+      rc = cmd_pack_ape(step->arg0, step->arg1, step->arg2);
+    } else if (step->kind == BOOTSTRAP_STEP_INSPECT_APE) {
+      printf("bootstrap-step.%zu=inspect-ape\n", i);
+      rc = cmd_inspect_ape(step->arg0);
     } else if (step->kind == BOOTSTRAP_STEP_PACK_APP) {
       printf("bootstrap-step.%zu=pack-app\n", i);
       rc = cmd_pack_app(step->arg0, step->arg1, step->arg2, step->arg3);
@@ -3409,7 +3436,7 @@ static int cmd_run_bootstrap_plan(const char *plan_path) {
   bootstrap_plan_free(&plan);
   return rc;
 }
-static int cmd_inspect_app(const char *container_path) {
+static int cmd_inspect_manifest(const char *container_path, const char *error_prefix) {
   size_t n = 0;
   unsigned char *data = read_file(container_path, &n);
   if (!data) {
@@ -3441,9 +3468,17 @@ static int cmd_inspect_app(const char *container_path) {
       fputc('\n', stdout);
     }
   }
-  fprintf(stderr, "inspect-app=manifest_missing\n");
+  fprintf(stderr, "%s=manifest_missing\n", error_prefix);
   free(data);
   return 2;
+}
+
+static int cmd_inspect_app(const char *container_path) {
+  return cmd_inspect_manifest(container_path, "inspect-app");
+}
+
+static int cmd_inspect_ape(const char *container_path) {
+  return cmd_inspect_manifest(container_path, "inspect-ape");
 }
 
 static size_t align_up_size(size_t n, size_t a) {
@@ -5595,6 +5630,13 @@ static int cmd_pack_ape(const char *out_path, const char *x86_path, const char *
       "  aarch64|arm64) off=%zu; size=%zu; suffix=aarch64 ;;\n"
       "  *) echo \"nano pack-ape: unsupported arch $arch\" >&2; exit 126 ;;\n"
       "esac\n"
+      "# nano.manifest.begin\n"
+      "# nano.container=ape-v1\n"
+      "# nano.slice.x86_64.offset=0\n"
+      "# nano.slice.x86_64.size=%zu\n"
+      "# nano.slice.aarch64.offset=%zu\n"
+      "# nano.slice.aarch64.size=%zu\n"
+      "# nano.manifest.end\n"
       "payload_line=$(awk '/^__NANO_APE_PAYLOAD_BELOW__$/ { print NR + 1; exit }' \"$0\")\n"
       "if [ -z \"${payload_line:-}\" ]; then echo \"nano pack-ape: payload marker missing\" >&2; exit 126; fi\n"
       "tmp=\"${TMPDIR:-/tmp}/nano-ape-$$-$suffix\"\n"
@@ -5605,7 +5647,7 @@ static int cmd_pack_ape(const char *out_path, const char *x86_path, const char *
       "exit 127\n"
       "__NANO_APE_PAYLOAD_BELOW__\n";
 
-  int stub_n = snprintf(NULL, 0, stub_fmt, x86_n, x86_n, arm_n);
+  int stub_n = snprintf(NULL, 0, stub_fmt, x86_n, x86_n, arm_n, x86_n, x86_n, arm_n);
   if (stub_n < 0) {
     free(x86);
     free(arm);
@@ -5617,7 +5659,7 @@ static int cmd_pack_ape(const char *out_path, const char *x86_path, const char *
     free(arm);
     return 2;
   }
-  snprintf(stub, (size_t)stub_n + 1, stub_fmt, x86_n, x86_n, arm_n);
+  snprintf(stub, (size_t)stub_n + 1, stub_fmt, x86_n, x86_n, arm_n, x86_n, x86_n, arm_n);
 
   Buf out = {0};
   buf_put(&out, stub, (size_t)stub_n);
@@ -5735,6 +5777,7 @@ static void usage(const char *argv0) {
   fprintf(stderr, "  %s compile input.%s output.%s\n", argv0, SOURCE_EXT, BLOB_EXT);
   fprintf(stderr, "  %s run program.%s\n", argv0, BLOB_EXT);
   fprintf(stderr, "  %s run-embedded container.com blob_offset blob_size\n", argv0);
+  fprintf(stderr, "  %s inspect-ape container.com\n", argv0);
   fprintf(stderr, "  %s inspect-app container.com\n", argv0);
   fprintf(stderr, "  %s run-app container.com\n", argv0);
   fprintf(stderr, "  %s emit-elf64-exit output.elf exit_code\n", argv0);
@@ -5773,6 +5816,9 @@ int main(int argc, char **argv) {
   }
   if (argc >= 2 && strcmp(argv[1], "run-embedded") == 0 && argc == 5) {
     return cmd_run_embedded(argv[2], argv[3], argv[4]);
+  }
+  if (argc >= 2 && strcmp(argv[1], "inspect-ape") == 0 && argc == 3) {
+    return cmd_inspect_ape(argv[2]);
   }
   if (argc >= 2 && strcmp(argv[1], "inspect-app") == 0 && argc == 3) {
     return cmd_inspect_app(argv[2]);
