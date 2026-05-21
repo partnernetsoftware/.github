@@ -78,6 +78,8 @@ extern void *cosmo_dlsym(void *handle, const char *symbol);
 #define OP_U64_TO_PTR 34u
 #define OP_CONST_PTR 35u
 #define OP_LOAD_U8 36u
+#define OP_LOAD_U16 37u
+#define OP_LOAD_U32 38u
 
 #define SRC_FORM_CALL 1u
 #define SRC_FORM_RESOLVE 2u
@@ -112,6 +114,8 @@ extern void *cosmo_dlsym(void *handle, const char *symbol);
 #define SRC_FORM_U64_TO_PTR 31u
 #define SRC_FORM_CONST_PTR 32u
 #define SRC_FORM_LOAD_U8 33u
+#define SRC_FORM_LOAD_U16 34u
+#define SRC_FORM_LOAD_U32 35u
 
 #define AOT_STMT_CONST_U64 1u
 #define AOT_STMT_ADD_U64 2u
@@ -144,6 +148,8 @@ extern void *cosmo_dlsym(void *handle, const char *symbol);
 #define AOT_STMT_PTR_TO_U64 29u
 #define AOT_STMT_U64_TO_PTR 30u
 #define AOT_STMT_LOAD_U8 31u
+#define AOT_STMT_LOAD_U16 32u
+#define AOT_STMT_LOAD_U32 33u
 
 #define BOOTSTRAP_STEP_COMPILE 1u
 #define BOOTSTRAP_STEP_HASH 2u
@@ -492,6 +498,23 @@ static int value_load_u8(Value *v) {
   if (v->kind != VAL_PTR || !v->bits) return 0;
   v->kind = VAL_U64;
   v->bits = (uint64_t)*(const unsigned char *)(uintptr_t)v->bits;
+  return 1;
+}
+
+static int value_load_u16(Value *v) {
+  if (v->kind != VAL_PTR || !v->bits) return 0;
+  const unsigned char *p = (const unsigned char *)(uintptr_t)v->bits;
+  v->kind = VAL_U64;
+  v->bits = (uint64_t)p[0] | ((uint64_t)p[1] << 8);
+  return 1;
+}
+
+static int value_load_u32(Value *v) {
+  if (v->kind != VAL_PTR || !v->bits) return 0;
+  const unsigned char *p = (const unsigned char *)(uintptr_t)v->bits;
+  v->kind = VAL_U64;
+  v->bits = (uint64_t)p[0] | ((uint64_t)p[1] << 8) |
+            ((uint64_t)p[2] << 16) | ((uint64_t)p[3] << 24);
   return 1;
 }
 
@@ -979,8 +1002,12 @@ static int parse_aot_body_items(const char **p, AotFunc *f) {
                       AOT_STMT_PTR_TO_U64 :
                       AOT_STMT_U64_TO_PTR;
       ok = eat(p, ')') && aot_add_stmt(f, kind, 0, NULL);
-    } else if (strcmp(head, "load-u8") == 0) {
-      ok = eat(p, ')') && aot_add_stmt(f, AOT_STMT_LOAD_U8, 0, NULL);
+    } else if (strcmp(head, "load-u8") == 0 || strcmp(head, "load-u16") == 0 ||
+               strcmp(head, "load-u32") == 0) {
+      uint32_t kind = strcmp(head, "load-u8") == 0 ? AOT_STMT_LOAD_U8 :
+                      strcmp(head, "load-u16") == 0 ? AOT_STMT_LOAD_U16 :
+                      AOT_STMT_LOAD_U32;
+      ok = eat(p, ')') && aot_add_stmt(f, kind, 0, NULL);
     } else if (strcmp(head, "is-null-ptr") == 0 ||
                strcmp(head, "is-nonnull-ptr") == 0) {
       uint32_t kind = strcmp(head, "is-null-ptr") == 0 ?
@@ -1418,8 +1445,12 @@ static int parse_main_items(const char **p, Module *m) {
       char *const_name = parse_atom(p);
       ok = const_name && eat(p, ')') &&
            add_instr(m, SRC_FORM_CONST_PTR, NULL, const_name, NULL, 0);
-    } else if (strcmp(head, "load-u8") == 0) {
-      ok = eat(p, ')') && add_instr(m, SRC_FORM_LOAD_U8, NULL, NULL, NULL, 0);
+    } else if (strcmp(head, "load-u8") == 0 || strcmp(head, "load-u16") == 0 ||
+               strcmp(head, "load-u32") == 0) {
+      uint32_t form = strcmp(head, "load-u8") == 0 ? SRC_FORM_LOAD_U8 :
+                      strcmp(head, "load-u16") == 0 ? SRC_FORM_LOAD_U16 :
+                      SRC_FORM_LOAD_U32;
+      ok = eat(p, ')') && add_instr(m, form, NULL, NULL, NULL, 0);
     } else if (strcmp(head, "is-null-ptr") == 0 ||
                strcmp(head, "is-nonnull-ptr") == 0) {
       uint32_t form = strcmp(head, "is-null-ptr") == 0 ?
@@ -1674,6 +1705,14 @@ static unsigned char *compile_module(const Module *m, size_t *out_n) {
     }
     if (in->form == SRC_FORM_LOAD_U8) {
       emit_instr(&instrs, OP_LOAD_U8, 0, 0);
+      continue;
+    }
+    if (in->form == SRC_FORM_LOAD_U16) {
+      emit_instr(&instrs, OP_LOAD_U16, 0, 0);
+      continue;
+    }
+    if (in->form == SRC_FORM_LOAD_U32) {
+      emit_instr(&instrs, OP_LOAD_U32, 0, 0);
       continue;
     }
     if (in->form == SRC_FORM_IS_NULL_PTR) {
@@ -2260,6 +2299,32 @@ static int execute_blob(const Blob *b) {
         return 20;
       }
       printf("load-u8.%u=", pc);
+      print_value(stdout, last);
+      printf("\n");
+      pc++;
+      continue;
+    }
+    if (op == OP_LOAD_U16) {
+      if (!value_load_u16(&last)) {
+        fprintf(stderr, "type.load-u16=%u actual=", pc);
+        print_value(stderr, last);
+        fprintf(stderr, "\n");
+        return 20;
+      }
+      printf("load-u16.%u=", pc);
+      print_value(stdout, last);
+      printf("\n");
+      pc++;
+      continue;
+    }
+    if (op == OP_LOAD_U32) {
+      if (!value_load_u32(&last)) {
+        fprintf(stderr, "type.load-u32=%u actual=", pc);
+        print_value(stderr, last);
+        fprintf(stderr, "\n");
+        return 20;
+      }
+      printf("load-u32.%u=", pc);
       print_value(stdout, last);
       printf("\n");
       pc++;
@@ -3992,6 +4057,12 @@ static int eval_pure_blob(const Blob *b, Value *out) {
     } else if (op == OP_LOAD_U8) {
       if (!value_load_u8(&last)) return 0;
       pc++;
+    } else if (op == OP_LOAD_U16) {
+      if (!value_load_u16(&last)) return 0;
+      pc++;
+    } else if (op == OP_LOAD_U32) {
+      if (!value_load_u32(&last)) return 0;
+      pc++;
     } else if (op == OP_IS_NULL_PTR) {
       if (!value_is_null_ptr(&last)) return 0;
       pc++;
@@ -4251,6 +4322,26 @@ static int compile_pure_blob_to_x86(const Blob *b, Buf *code, int exit_style, Bu
       } else {
         unsigned char movzx_eax_ptr_rax[3] = {0x0f, 0xb6, 0x00};
         buf_put(code, movzx_eax_ptr_rax, sizeof(movzx_eax_ptr_rax));
+      }
+      last_kind = VAL_U64;
+    } else if (op == OP_LOAD_U16) {
+      if (last_kind != VAL_PTR) goto fail;
+      if (exit_style) {
+        unsigned char movzx_edi_word_ptr_rdi[3] = {0x0f, 0xb7, 0x3f};
+        buf_put(code, movzx_edi_word_ptr_rdi, sizeof(movzx_edi_word_ptr_rdi));
+      } else {
+        unsigned char movzx_eax_word_ptr_rax[3] = {0x0f, 0xb7, 0x00};
+        buf_put(code, movzx_eax_word_ptr_rax, sizeof(movzx_eax_word_ptr_rax));
+      }
+      last_kind = VAL_U64;
+    } else if (op == OP_LOAD_U32) {
+      if (last_kind != VAL_PTR) goto fail;
+      if (exit_style) {
+        unsigned char mov_edi_dword_ptr_rdi[2] = {0x8b, 0x3f};
+        buf_put(code, mov_edi_dword_ptr_rdi, sizeof(mov_edi_dword_ptr_rdi));
+      } else {
+        unsigned char mov_eax_dword_ptr_rax[2] = {0x8b, 0x00};
+        buf_put(code, mov_eax_dword_ptr_rax, sizeof(mov_eax_dword_ptr_rax));
       }
       last_kind = VAL_U64;
     } else if (op == OP_IS_NULL_PTR || op == OP_IS_NONNULL_PTR) {
@@ -4670,7 +4761,8 @@ static int infer_aot_func_return_kind(const AotModule *m, size_t func_idx,
     } else if (stmt->kind == AOT_STMT_U64_TO_PTR) {
       if (last_kind != VAL_U64) return 0;
       last_kind = VAL_PTR;
-    } else if (stmt->kind == AOT_STMT_LOAD_U8) {
+    } else if (stmt->kind == AOT_STMT_LOAD_U8 || stmt->kind == AOT_STMT_LOAD_U16 ||
+               stmt->kind == AOT_STMT_LOAD_U32) {
       if (last_kind != VAL_PTR) return 0;
       last_kind = VAL_U64;
     } else if (stmt->kind == AOT_STMT_IS_NULL_PTR ||
@@ -4808,11 +4900,18 @@ static int compile_aot_func_to_x86_ret(const AotModule *m, const AotFunc *func,
     } else if (stmt->kind == AOT_STMT_U64_TO_PTR) {
       if (last_kind != VAL_U64) goto fail;
       last_kind = VAL_PTR;
-    } else if (stmt->kind == AOT_STMT_LOAD_U8) {
+    } else if (stmt->kind == AOT_STMT_LOAD_U8 || stmt->kind == AOT_STMT_LOAD_U16 ||
+               stmt->kind == AOT_STMT_LOAD_U32) {
       if (last_kind != VAL_PTR) goto fail;
-      {
+      if (stmt->kind == AOT_STMT_LOAD_U8) {
         unsigned char movzx_eax_ptr_rax[3] = {0x0f, 0xb6, 0x00};
         buf_put(code, movzx_eax_ptr_rax, sizeof(movzx_eax_ptr_rax));
+      } else if (stmt->kind == AOT_STMT_LOAD_U16) {
+        unsigned char movzx_eax_word_ptr_rax[3] = {0x0f, 0xb7, 0x00};
+        buf_put(code, movzx_eax_word_ptr_rax, sizeof(movzx_eax_word_ptr_rax));
+      } else {
+        unsigned char mov_eax_dword_ptr_rax[2] = {0x8b, 0x00};
+        buf_put(code, mov_eax_dword_ptr_rax, sizeof(mov_eax_dword_ptr_rax));
       }
       last_kind = VAL_U64;
     } else if (stmt->kind == AOT_STMT_IS_NULL_PTR ||
