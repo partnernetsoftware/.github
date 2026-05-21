@@ -16,6 +16,8 @@ MULTI_PTR_SRC="$LAB_DIR/samples/multi-func-ptr.lisp"
 TYPE_BAD_PTR_OP_SRC="$LAB_DIR/samples/type-error-ptr-op-bad.lisp"
 TYPE_BAD_ADD_PTR_SRC="$LAB_DIR/samples/type-error-add-ptr-bad.lisp"
 TYPE_BAD_SUB_PTR_SRC="$LAB_DIR/samples/type-error-sub-ptr-bad.lisp"
+TYPE_BAD_PTR_TO_U64_SRC="$LAB_DIR/samples/type-error-ptr-to-u64-bad.lisp"
+TYPE_BAD_U64_TO_PTR_SRC="$LAB_DIR/samples/type-error-u64-to-ptr-bad.lisp"
 TYPE_BAD_BRANCH_SRC="$LAB_DIR/samples/type-error-branch-bad.lisp"
 TYPE_BAD_EXPECT_PTR_SRC="$LAB_DIR/samples/type-error-expect-ptr-bad.lisp"
 BOOTSTRAP_SRC="$LAB_DIR/samples/bootstrap-smoke.lisp"
@@ -53,6 +55,10 @@ TYPE_BAD_PTR_OP_EXE="$BUILD_DIR/type_error_ptr_op_bad"
 TYPE_BAD_PTR_OP_OBJ="$BUILD_DIR/type_error_ptr_op_bad.o"
 TYPE_BAD_ADD_PTR_OBJ="$BUILD_DIR/type_error_add_ptr_bad.o"
 TYPE_BAD_SUB_PTR_OBJ="$BUILD_DIR/type_error_sub_ptr_bad.o"
+TYPE_BAD_PTR_TO_U64_EXE="$BUILD_DIR/type_error_ptr_to_u64_bad"
+TYPE_BAD_PTR_TO_U64_OBJ="$BUILD_DIR/type_error_ptr_to_u64_bad.o"
+TYPE_BAD_U64_TO_PTR_EXE="$BUILD_DIR/type_error_u64_to_ptr_bad"
+TYPE_BAD_U64_TO_PTR_OBJ="$BUILD_DIR/type_error_u64_to_ptr_bad.o"
 TYPE_BAD_BRANCH_EXE="$BUILD_DIR/type_error_branch_bad"
 TYPE_BAD_EXPECT_PTR_OBJ="$BUILD_DIR/type_error_expect_ptr_bad.o"
 SMOKE_BLOB="$BUILD_DIR/libc-smoke.lbin"
@@ -135,6 +141,10 @@ log "type.bad.add.ptr.source.path=$TYPE_BAD_ADD_PTR_SRC"
 log "type.bad.add.ptr.source.bytes=$(bytes_of "$TYPE_BAD_ADD_PTR_SRC")"
 log "type.bad.sub.ptr.source.path=$TYPE_BAD_SUB_PTR_SRC"
 log "type.bad.sub.ptr.source.bytes=$(bytes_of "$TYPE_BAD_SUB_PTR_SRC")"
+log "type.bad.ptr.to.u64.source.path=$TYPE_BAD_PTR_TO_U64_SRC"
+log "type.bad.ptr.to.u64.source.bytes=$(bytes_of "$TYPE_BAD_PTR_TO_U64_SRC")"
+log "type.bad.u64.to.ptr.source.path=$TYPE_BAD_U64_TO_PTR_SRC"
+log "type.bad.u64.to.ptr.source.bytes=$(bytes_of "$TYPE_BAD_U64_TO_PTR_SRC")"
 log "type.bad.branch.source.path=$TYPE_BAD_BRANCH_SRC"
 log "type.bad.branch.source.bytes=$(bytes_of "$TYPE_BAD_BRANCH_SRC")"
 log "type.bad.expect.ptr.source.path=$TYPE_BAD_EXPECT_PTR_SRC"
@@ -275,6 +285,12 @@ if [ "$(uname -m)" = "x86_64" ] || [ "$(uname -m)" = "amd64" ]; then
   run_case "reject-ptr-op-type-error-elf64-exe" "$RUNNER" compile-expect-exit 2 compile-elf64-exe "$TYPE_BAD_PTR_OP_SRC" "$TYPE_BAD_PTR_OP_EXE" nano_type_bad_ptr_op
   run_case "reject-add-ptr-type-error-elf64-obj" "$RUNNER" compile-expect-exit 2 compile-elf64-obj-code "$TYPE_BAD_ADD_PTR_SRC" "$TYPE_BAD_ADD_PTR_OBJ" nano_type_bad_add_ptr
   run_case "reject-sub-ptr-type-error-elf64-obj" "$RUNNER" compile-expect-exit 2 compile-elf64-obj-code "$TYPE_BAD_SUB_PTR_SRC" "$TYPE_BAD_SUB_PTR_OBJ" nano_type_bad_sub_ptr
+  run_case "reject-ptr-to-u64-type-error-elf64-code" "$RUNNER" compile-expect-exit 2 compile-elf64-code "$TYPE_BAD_PTR_TO_U64_SRC" "$TYPE_BAD_PTR_TO_U64_EXE"
+  run_case "reject-ptr-to-u64-type-error-elf64-obj" "$RUNNER" compile-expect-exit 2 compile-elf64-obj-code "$TYPE_BAD_PTR_TO_U64_SRC" "$TYPE_BAD_PTR_TO_U64_OBJ" nano_type_bad_ptr_to_u64
+  run_case "reject-ptr-to-u64-type-error-elf64-exe" "$RUNNER" compile-expect-exit 2 compile-elf64-exe "$TYPE_BAD_PTR_TO_U64_SRC" "$TYPE_BAD_PTR_TO_U64_EXE" nano_type_bad_ptr_to_u64
+  run_case "reject-u64-to-ptr-type-error-elf64-code" "$RUNNER" compile-expect-exit 2 compile-elf64-code "$TYPE_BAD_U64_TO_PTR_SRC" "$TYPE_BAD_U64_TO_PTR_EXE"
+  run_case "reject-u64-to-ptr-type-error-elf64-obj" "$RUNNER" compile-expect-exit 2 compile-elf64-obj-code "$TYPE_BAD_U64_TO_PTR_SRC" "$TYPE_BAD_U64_TO_PTR_OBJ" nano_type_bad_u64_to_ptr
+  run_case "reject-u64-to-ptr-type-error-elf64-exe" "$RUNNER" compile-expect-exit 2 compile-elf64-exe "$TYPE_BAD_U64_TO_PTR_SRC" "$TYPE_BAD_U64_TO_PTR_EXE" nano_type_bad_u64_to_ptr
   run_case "reject-branch-type-error-elf64-code" "$RUNNER" compile-expect-exit 2 compile-elf64-code "$TYPE_BAD_BRANCH_SRC" "$TYPE_BAD_BRANCH_EXE"
   run_case "reject-expect-ptr-type-error-elf64-obj" "$RUNNER" compile-expect-exit 2 compile-elf64-obj-code "$TYPE_BAD_EXPECT_PTR_SRC" "$TYPE_BAD_EXPECT_PTR_OBJ" nano_type_bad_expect_ptr
   run_case "emit-elf64-obj-call42" "$RUNNER" emit-elf64-obj-call "$CALL42_OBJ" nano_call nano_ext

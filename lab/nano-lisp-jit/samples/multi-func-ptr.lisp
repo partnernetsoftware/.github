@@ -5,6 +5,9 @@
   (func offset-ptr
     (null-ptr)
     (add-ptr 1))
+  (func offset-bits
+    (call offset-ptr)
+    (ptr-to-u64))
   (func roundtrip-ptr
     (null-ptr)
     (add-ptr 8)
@@ -24,6 +27,10 @@
     (expect nonnull)
     (is-nonnull-ptr)
     (expect true)
+    (call offset-bits)
+    (expect 1)
+    (u64-to-ptr)
+    (expect nonnull)
     (call roundtrip-ptr)
     (expect null)
     (is-null-ptr)

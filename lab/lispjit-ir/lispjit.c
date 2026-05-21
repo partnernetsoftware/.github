@@ -74,6 +74,8 @@ extern void *cosmo_dlsym(void *handle, const char *symbol);
 #define OP_IS_NONNULL_PTR 30u
 #define OP_ADD_PTR 31u
 #define OP_SUB_PTR 32u
+#define OP_PTR_TO_U64 33u
+#define OP_U64_TO_PTR 34u
 
 #define SRC_FORM_CALL 1u
 #define SRC_FORM_RESOLVE 2u
@@ -104,6 +106,8 @@ extern void *cosmo_dlsym(void *handle, const char *symbol);
 #define SRC_FORM_IS_NONNULL_PTR 27u
 #define SRC_FORM_ADD_PTR 28u
 #define SRC_FORM_SUB_PTR 29u
+#define SRC_FORM_PTR_TO_U64 30u
+#define SRC_FORM_U64_TO_PTR 31u
 
 #define AOT_STMT_CONST_U64 1u
 #define AOT_STMT_ADD_U64 2u
@@ -133,6 +137,8 @@ extern void *cosmo_dlsym(void *handle, const char *symbol);
 #define AOT_STMT_EXPECT_PTR 26u
 #define AOT_STMT_ADD_PTR 27u
 #define AOT_STMT_SUB_PTR 28u
+#define AOT_STMT_PTR_TO_U64 29u
+#define AOT_STMT_U64_TO_PTR 30u
 
 #define BOOTSTRAP_STEP_COMPILE 1u
 #define BOOTSTRAP_STEP_HASH 2u
@@ -462,6 +468,18 @@ static int value_add_ptr(Value *v, uint64_t rhs) {
 static int value_sub_ptr(Value *v, uint64_t rhs) {
   if (v->kind != VAL_PTR) return 0;
   v->bits -= rhs;
+  return 1;
+}
+
+static int value_ptr_to_u64(Value *v) {
+  if (v->kind != VAL_PTR) return 0;
+  v->kind = VAL_U64;
+  return 1;
+}
+
+static int value_u64_to_ptr(Value *v) {
+  if (v->kind != VAL_U64) return 0;
+  v->kind = VAL_PTR;
   return 1;
 }
 
@@ -944,6 +962,11 @@ static int parse_aot_body_items(const char **p, AotFunc *f) {
       ok = value && parse_u64_atom(value, &imm) && eat(p, ')') &&
            aot_add_stmt(f, kind, imm, NULL);
       free(value);
+    } else if (strcmp(head, "ptr-to-u64") == 0 || strcmp(head, "u64-to-ptr") == 0) {
+      uint32_t kind = strcmp(head, "ptr-to-u64") == 0 ?
+                      AOT_STMT_PTR_TO_U64 :
+                      AOT_STMT_U64_TO_PTR;
+      ok = eat(p, ')') && aot_add_stmt(f, kind, 0, NULL);
     } else if (strcmp(head, "is-null-ptr") == 0 ||
                strcmp(head, "is-nonnull-ptr") == 0) {
       uint32_t kind = strcmp(head, "is-null-ptr") == 0 ?
@@ -1372,6 +1395,11 @@ static int parse_main_items(const char **p, Module *m) {
       ok = value && parse_u64_atom(value, &imm) && eat(p, ')') &&
            add_instr(m, form, NULL, NULL, NULL, imm);
       free(value);
+    } else if (strcmp(head, "ptr-to-u64") == 0 || strcmp(head, "u64-to-ptr") == 0) {
+      uint32_t form = strcmp(head, "ptr-to-u64") == 0 ?
+                      SRC_FORM_PTR_TO_U64 :
+                      SRC_FORM_U64_TO_PTR;
+      ok = eat(p, ')') && add_instr(m, form, NULL, NULL, NULL, 0);
     } else if (strcmp(head, "is-null-ptr") == 0 ||
                strcmp(head, "is-nonnull-ptr") == 0) {
       uint32_t form = strcmp(head, "is-null-ptr") == 0 ?
@@ -1601,6 +1629,14 @@ static unsigned char *compile_module(const Module *m, size_t *out_n) {
     if (in->form == SRC_FORM_SUB_PTR) {
       emit_instr(&instrs, OP_SUB_PTR, (uint32_t)(in->imm & 0xffffffffu),
                  (uint32_t)(in->imm >> 32));
+      continue;
+    }
+    if (in->form == SRC_FORM_PTR_TO_U64) {
+      emit_instr(&instrs, OP_PTR_TO_U64, 0, 0);
+      continue;
+    }
+    if (in->form == SRC_FORM_U64_TO_PTR) {
+      emit_instr(&instrs, OP_U64_TO_PTR, 0, 0);
       continue;
     }
     if (in->form == SRC_FORM_IS_NULL_PTR) {
@@ -2135,6 +2171,32 @@ static int execute_blob(const Blob *b) {
         return 20;
       }
       printf("sub-ptr.%u=", pc);
+      print_value(stdout, last);
+      printf("\n");
+      pc++;
+      continue;
+    }
+    if (op == OP_PTR_TO_U64) {
+      if (!value_ptr_to_u64(&last)) {
+        fprintf(stderr, "type.ptr-to-u64=%u actual=", pc);
+        print_value(stderr, last);
+        fprintf(stderr, "\n");
+        return 20;
+      }
+      printf("ptr-to-u64.%u=", pc);
+      print_value(stdout, last);
+      printf("\n");
+      pc++;
+      continue;
+    }
+    if (op == OP_U64_TO_PTR) {
+      if (!value_u64_to_ptr(&last)) {
+        fprintf(stderr, "type.u64-to-ptr=%u actual=", pc);
+        print_value(stderr, last);
+        fprintf(stderr, "\n");
+        return 20;
+      }
+      printf("u64-to-ptr.%u=", pc);
       print_value(stdout, last);
       printf("\n");
       pc++;
@@ -3840,6 +3902,12 @@ static int eval_pure_blob(const Blob *b, Value *out) {
       uint64_t rhs = (uint64_t)arg0 | ((uint64_t)arg1 << 32);
       if (!value_sub_ptr(&last, rhs)) return 0;
       pc++;
+    } else if (op == OP_PTR_TO_U64) {
+      if (!value_ptr_to_u64(&last)) return 0;
+      pc++;
+    } else if (op == OP_U64_TO_PTR) {
+      if (!value_u64_to_ptr(&last)) return 0;
+      pc++;
     } else if (op == OP_IS_NULL_PTR) {
       if (!value_is_null_ptr(&last)) return 0;
       pc++;
@@ -4068,6 +4136,12 @@ static int compile_pure_blob_to_x86(const Blob *b, Buf *code, int exit_style) {
         wr32(sub_eax + 1, (uint32_t)imm_u64);
         buf_put(code, sub_eax, sizeof(sub_eax));
       }
+    } else if (op == OP_PTR_TO_U64) {
+      if (last_kind != VAL_PTR) goto fail;
+      last_kind = VAL_U64;
+    } else if (op == OP_U64_TO_PTR) {
+      if (last_kind != VAL_U64) goto fail;
+      last_kind = VAL_PTR;
     } else if (op == OP_IS_NULL_PTR || op == OP_IS_NONNULL_PTR) {
       if (last_kind != VAL_PTR) goto fail;
       if (exit_style) {
@@ -4468,6 +4542,12 @@ static int infer_aot_func_return_kind(const AotModule *m, size_t func_idx,
       last_kind = VAL_PTR;
     } else if (stmt->kind == AOT_STMT_ADD_PTR || stmt->kind == AOT_STMT_SUB_PTR) {
       if (last_kind != VAL_PTR) return 0;
+    } else if (stmt->kind == AOT_STMT_PTR_TO_U64) {
+      if (last_kind != VAL_PTR) return 0;
+      last_kind = VAL_U64;
+    } else if (stmt->kind == AOT_STMT_U64_TO_PTR) {
+      if (last_kind != VAL_U64) return 0;
+      last_kind = VAL_PTR;
     } else if (stmt->kind == AOT_STMT_IS_NULL_PTR ||
                stmt->kind == AOT_STMT_IS_NONNULL_PTR) {
       if (last_kind != VAL_PTR) return 0;
@@ -4597,6 +4677,12 @@ static int compile_aot_func_to_x86_ret(const AotModule *m, const AotFunc *func,
         wr32(sub_eax + 1, (uint32_t)stmt->imm);
         buf_put(code, sub_eax, sizeof(sub_eax));
       }
+    } else if (stmt->kind == AOT_STMT_PTR_TO_U64) {
+      if (last_kind != VAL_PTR) goto fail;
+      last_kind = VAL_U64;
+    } else if (stmt->kind == AOT_STMT_U64_TO_PTR) {
+      if (last_kind != VAL_U64) goto fail;
+      last_kind = VAL_PTR;
     } else if (stmt->kind == AOT_STMT_IS_NULL_PTR ||
                stmt->kind == AOT_STMT_IS_NONNULL_PTR) {
       if (last_kind != VAL_PTR) goto fail;
