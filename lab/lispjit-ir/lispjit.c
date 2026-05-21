@@ -5758,6 +5758,7 @@ static void usage(const char *argv0) {
   fprintf(stderr, "  %s gen-libc-resolve [libc.so] output.%s\n", argv0, SOURCE_EXT);
   fprintf(stderr, "  %s compare left.%s right.%s\n", argv0, BLOB_EXT, BLOB_EXT);
   fprintf(stderr, "  %s resolve [--quiet] program.%s\n", argv0, BLOB_EXT);
+  fprintf(stderr, "  %s resolve-quiet program.%s\n", argv0, BLOB_EXT);
   fprintf(stderr, "  %s run-bootstrap-plan plan.lisp\n", argv0);
   fprintf(stderr, "  %s pack-ape output.com x86_64.elf aarch64.elf\n", argv0);
   fprintf(stderr, "  %s pack-app output.com x86_64.elf aarch64.elf program.%s\n", argv0, BLOB_EXT);
@@ -5843,6 +5844,9 @@ int main(int argc, char **argv) {
   if (argc >= 2 && strcmp(argv[1], "resolve") == 0) {
     if (argc == 3) return cmd_resolve(argv[2], 0);
     if (argc == 4 && strcmp(argv[2], "--quiet") == 0) return cmd_resolve(argv[3], 1);
+  }
+  if (argc >= 2 && strcmp(argv[1], "resolve-quiet") == 0 && argc == 3) {
+    return cmd_resolve(argv[2], 1);
   }
   if (argc >= 2 && strcmp(argv[1], "run-bootstrap-plan") == 0 && argc == 3) {
     return cmd_run_bootstrap_plan(argv[2]);

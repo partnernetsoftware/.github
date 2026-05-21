@@ -40,14 +40,15 @@
 ./nano-lisp-jit.com gen-libc-resolve libc-resolve.lisp
 ./nano-lisp-jit.com compare strlen.lbin strlen-repeat.lbin
 ./nano-lisp-jit.com resolve --quiet strlen.lbin
+./nano-lisp-jit.com resolve-quiet strlen.lbin
 ./nano-lisp-jit.com run-bootstrap-plan samples/bootstrap-smoke.lisp
 ./nano-lisp-jit.com pack-app app.com nano-jit.x86_64 nano-jit.aarch64 strlen.lbin
 ```
 
 ### 消费者集成注意事项
 
-- 外部工具优先通过 `NANO_JIT=/path/to/nano-lisp-jit` 指定 runner；未设置时可沿用仓库内 `lab/nano-lisp-jit/.build/nano-lisp-jit`。
-- `resolve-quiet` 当前是 `(bootstrap ...)` DSL 步骤名；顶层 CLI 用 `resolve --quiet program.lbin`。
+- 外部工具优先通过 `NANO_JIT=/path/to/nano-lisp-jit` 指定 runner；`lab/_nano_common.sh` 会优先使用该环境变量，未设置时沿用仓库内 `lab/nano-lisp-jit/.build/nano-lisp-jit`。
+- `resolve-quiet program.lbin` 已作为顶层 CLI alias 接入，等价于 `resolve --quiet program.lbin`；`(resolve-quiet ...)` 仍是 bootstrap DSL 步骤名。
 - `run-bootstrap-plan` 的 checked-in 样例默认从 repo root 执行；外部工具若从子目录调用，应传入 repo-root 相对路径或先切到 repo root。
 - `run program.lbin` 的进程退出码等于 VM 最后一条返回值；脚本自测应优先写 `(expect ...)`，或用 `run-expect-exit` 固定断言。
 - `compile-elf64-*` / `aot-elf64-*` 当前面向 x86_64 Linux；跨平台调用方应像 `run.sh` 一样在非 x86_64 host 上跳过。

@@ -15,6 +15,7 @@
 - 这些反馈已进入 `ROADMAP.md` 的 `v1.5 slice 0: consumer feedback closure`。
 - v1.5 开工顺序调整为：先跑 `bash lab/run-lab-tools.sh`，收敛 CLI/DSL 命名、runner 定位、repo-root 路径、`run` 退出码语义和 x86_64 限制说明，再进入 nano APE manifest。
 - README 已补充消费者集成注意事项；后续若选择实现 CLI alias 或新子命令，应在对应问题条目下标注 commit/PR。
+- v1.5 slice 0 首轮实现：顶层 `resolve-quiet` alias；`lab/_nano_common.sh` 支持 `NANO_JIT` 环境变量覆盖。
 
 ## 问题 1：`resolve-quiet` 仅存在于 bootstrap DSL，不是顶层 CLI 子命令
 
@@ -31,11 +32,15 @@
 
 **消费者规避**：`lab/tool-resolve-check/build.sh` 使用 `resolve --quiet`。
 
+**v1.5 slice 0 处理**：已新增顶层 CLI alias：`nano-lisp-jit resolve-quiet foo.lbin` 等价于 `resolve --quiet foo.lbin`。
+
 ## 问题 2：无安装路径 / 无 `NANO_JIT` 环境变量约定
 
 **现象**：外部项目必须硬编码 `lab/nano-lisp-jit/.build/nano-lisp-jit` 或自行 `cc -DNANO_LISP_JIT lispjit.c`。
 
 **建议**：文档增加「消费者集成」小节：`NANO_JIT` 或 `../../nano-lisp-jit/.build/...` 约定；可选 `make install` 到 `$(prefix)/bin`。
+
+**v1.5 slice 0 处理**：`lab/_nano_common.sh` 已优先读取 `NANO_JIT`；未设置时才回退到仓库内 `.build/nano-lisp-jit`。
 
 ## 问题 3：bootstrap DSL 路径假定仓库根目录
 
