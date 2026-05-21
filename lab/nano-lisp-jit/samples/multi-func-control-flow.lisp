@@ -1,6 +1,12 @@
-; Multi-function source AOT smoke: helper uses typed/control-flow before returning u64.
+; Multi-function source AOT smoke: helper return kinds flow through local calls.
 (module
-  (func helper
+  (func neg-base
+    (i64 -7))
+  (func ready
+    (call neg-base)
+    (lt-i64 0)
+    (and-bool true))
+  (func value
     (block
       (bool true)
       (branch typed-path)
@@ -13,6 +19,14 @@
       (expect false)
       (u64 42)))
   (main
-    (call helper)
+    (call neg-base)
+    (add-i64 -35)
+    (expect -42)
+    (call ready)
+    (branch ready-path)
+    (u64 1)
+    (expect 999)
+    (label ready-path)
+    (call value)
     (add-u64 1)
     (expect 43)))

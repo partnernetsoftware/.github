@@ -4113,7 +4113,79 @@ static void free_buf_array(Buf *bufs, size_t count) {
   free(bufs);
 }
 
-static int compile_aot_func_to_x86_ret(const AotFunc *func, Buf *code, Buf *call_patches) {
+static int infer_aot_func_return_kind(const AotModule *m, size_t func_idx,
+                                      int *return_kinds, uint8_t *states) {
+  const AotFunc *func = &m->funcs[func_idx];
+  int last_kind = 0;
+  if (states[func_idx] == 2) return return_kinds[func_idx] != 0;
+  if (states[func_idx] == 1) return 0;
+  states[func_idx] = 1;
+  for (size_t i = 0; i < func->stmt_count; ++i) {
+    const AotStmt *stmt = &func->stmts[i];
+    if (stmt->kind == AOT_STMT_LABEL) {
+      continue;
+    } else if (stmt->kind == AOT_STMT_CONST_U64) {
+      last_kind = VAL_U64;
+    } else if (stmt->kind == AOT_STMT_CONST_I64) {
+      last_kind = VAL_I64;
+    } else if (stmt->kind == AOT_STMT_CONST_BOOL) {
+      last_kind = VAL_BOOL;
+    } else if (stmt->kind == AOT_STMT_ADD_U64) {
+      if (last_kind != VAL_U64) return 0;
+    } else if (stmt->kind == AOT_STMT_ADD_I64 || stmt->kind == AOT_STMT_SUB_I64 ||
+               stmt->kind == AOT_STMT_MUL_I64) {
+      if (last_kind != VAL_I64) return 0;
+    } else if (stmt->kind == AOT_STMT_EQ_I64 || stmt->kind == AOT_STMT_LT_I64 ||
+               stmt->kind == AOT_STMT_GT_I64 || stmt->kind == AOT_STMT_NE_I64 ||
+               stmt->kind == AOT_STMT_LE_I64 || stmt->kind == AOT_STMT_GE_I64) {
+      if (last_kind != VAL_I64) return 0;
+      last_kind = VAL_BOOL;
+    } else if (stmt->kind == AOT_STMT_NOT_BOOL || stmt->kind == AOT_STMT_AND_BOOL ||
+               stmt->kind == AOT_STMT_OR_BOOL) {
+      if (last_kind != VAL_BOOL) return 0;
+    } else if (stmt->kind == AOT_STMT_EXPECT_U64) {
+      if (last_kind != VAL_U64 && last_kind != VAL_I64) return 0;
+    } else if (stmt->kind == AOT_STMT_EXPECT_I64) {
+      if (last_kind != VAL_I64) return 0;
+    } else if (stmt->kind == AOT_STMT_EXPECT_BOOL || stmt->kind == AOT_STMT_BRANCH_BOOL) {
+      if (last_kind != VAL_BOOL) return 0;
+    } else if (stmt->kind == AOT_STMT_CALL_FUNC) {
+      int target_idx = aot_find_func(m, stmt->target_name);
+      if (target_idx < 0) return 0;
+      if (!infer_aot_func_return_kind(m, (size_t)target_idx, return_kinds, states)) return 0;
+      last_kind = return_kinds[target_idx];
+    } else {
+      return 0;
+    }
+  }
+  if (!last_kind) return 0;
+  return_kinds[func_idx] = last_kind;
+  states[func_idx] = 2;
+  return 1;
+}
+
+static int infer_aot_module_return_kinds(const AotModule *m, int **out_return_kinds) {
+  int *return_kinds = (int *)calloc(m->func_count ? m->func_count : 1, sizeof(*return_kinds));
+  uint8_t *states = (uint8_t *)calloc(m->func_count ? m->func_count : 1, sizeof(*states));
+  if (!return_kinds || !states) {
+    free(return_kinds);
+    free(states);
+    return 0;
+  }
+  for (size_t i = 0; i < m->func_count; ++i) {
+    if (!infer_aot_func_return_kind(m, i, return_kinds, states)) {
+      free(return_kinds);
+      free(states);
+      return 0;
+    }
+  }
+  free(states);
+  *out_return_kinds = return_kinds;
+  return 1;
+}
+
+static int compile_aot_func_to_x86_ret(const AotModule *m, const AotFunc *func,
+                                       const int *return_kinds, Buf *code, Buf *call_patches) {
   int saw_ret = 0;
   int last_kind = 0;
   Buf expect_patches = {0};
@@ -4315,11 +4387,13 @@ static int compile_aot_func_to_x86_ret(const AotFunc *func, Buf *code, Buf *call
         buf_put(&branch_patches, &patch, sizeof(patch));
       }
     } else if (stmt->kind == AOT_STMT_CALL_FUNC) {
+      int target_idx = aot_find_func(m, stmt->target_name);
       unsigned char call_rel32[5] = {0xe8, 0, 0, 0, 0};
       AotCallPatch patch = {(uint32_t)(code->len + 1), stmt->target_name};
+      if (target_idx < 0 || !return_kinds[target_idx]) goto fail;
       buf_put(code, call_rel32, sizeof(call_rel32));
       buf_put(call_patches, &patch, sizeof(patch));
-      last_kind = VAL_U64;
+      last_kind = return_kinds[target_idx];
     } else {
       goto fail;
     }
@@ -4366,6 +4440,7 @@ static int compile_aot_module_to_elf64_obj(const AotModule *m, const char *out_p
   Buf *call_patches = NULL;
   size_t *text_offs = NULL;
   uint32_t *func_sym_idx = NULL;
+  int *return_kinds = NULL;
   Elf64ObjSymbol *syms = NULL;
   Elf64ObjRela *relas = NULL;
   Buf text = {0};
@@ -4380,6 +4455,7 @@ static int compile_aot_module_to_elf64_obj(const AotModule *m, const char *out_p
     if (strcmp(m->funcs[i].name, entry_symbol) == 0) return 0;
   }
 
+  if (!infer_aot_module_return_kinds(m, &return_kinds)) goto done;
   codes = (Buf *)calloc(m->func_count, sizeof(*codes));
   call_patches = (Buf *)calloc(m->func_count, sizeof(*call_patches));
   text_offs = (size_t *)calloc(m->func_count, sizeof(*text_offs));
@@ -4388,7 +4464,8 @@ static int compile_aot_module_to_elf64_obj(const AotModule *m, const char *out_p
   if (!codes || !call_patches || !text_offs || !func_sym_idx || !syms) goto done;
 
   for (size_t i = 0; i < m->func_count; ++i) {
-    if (!compile_aot_func_to_x86_ret(&m->funcs[i], &codes[i], &call_patches[i])) goto done;
+    if (!compile_aot_func_to_x86_ret(m, &m->funcs[i], return_kinds, &codes[i],
+                                     &call_patches[i])) goto done;
     text_offs[i] = text.len;
     buf_put(&text, codes[i].data, codes[i].len);
   }
@@ -4428,6 +4505,7 @@ done:
   free(text.data);
   free(text_offs);
   free(func_sym_idx);
+  free(return_kinds);
   free(syms);
   free(relas);
   return ok;

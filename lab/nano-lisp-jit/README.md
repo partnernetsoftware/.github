@@ -126,21 +126,23 @@ typed value 现在支持最小 `i64 / bool / ptr`：
     (expect 43)))
 ```
 
-多函数 source AOT 现在也支持最小 typed/control-flow 子集：
+多函数 source AOT 现在也支持跨内部 `call` 保留 `i64` / `bool` / `u64` 返回类型：
 
 ```lisp
 (module
-  (func helper
-    (block
-      (bool true)
-      (branch typed-path)
-      (label typed-path)
-      (i64 -7)
-      (expect -7)
-      (u64 42)))
+  (func neg-base
+    (i64 -7))
+  (func ready
+    (call neg-base)
+    (lt-i64 0))
   (main
-    (call helper)
-    (add-u64 1)
+    (call neg-base)
+    (add-i64 -35)
+    (expect -42)
+    (call ready)
+    (branch ready-path)
+    (label ready-path)
+    (u64 43)
     (expect 43)))
 ```
 
