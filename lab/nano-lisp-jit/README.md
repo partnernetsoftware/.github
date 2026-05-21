@@ -188,6 +188,7 @@ bootstrap DSL 也能描述一条最小 AOT/codegen/tiny-link 构建图，不需�
   (run-expect-exit "lab/nano-lisp-jit/.build/bootstrap-aot-call42-linked" 42)
   (emit-elf64-obj-ret "lab/nano-lisp-jit/.build/bootstrap-aot-dup42.o" "nano_bootstrap_ext" 7)
   (compile-expect-exit 2 compile-elf64-obj-code "lab/nano-lisp-jit/samples/multi-func-recursive-bad.lisp" "lab/nano-lisp-jit/.build/bootstrap-aot-recursive-bad.o" "nano_bootstrap_recursive_bad")
+  (compile-expect-exit 2 compile-elf64-exe "lab/nano-lisp-jit/samples/multi-func-recursive-bad.lisp" "lab/nano-lisp-jit/.build/bootstrap-aot-recursive-bad.elf" "nano_bootstrap_recursive_bad")
   (link-expect-exit 2 "lab/nano-lisp-jit/.build/bootstrap-aot-dup-should-fail" "nano_bootstrap_call" "lab/nano-lisp-jit/.build/bootstrap-aot-call42.o" "lab/nano-lisp-jit/.build/bootstrap-aot-ext42.o" "lab/nano-lisp-jit/.build/bootstrap-aot-dup42.o"))
 ```
 
