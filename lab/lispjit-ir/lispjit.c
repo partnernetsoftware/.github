@@ -5123,7 +5123,6 @@ static int cmd_aot_elf64_code(const char *blob_path, const char *out_path) {
   unsigned char *owned = NULL;
   Buf code = {0};
   Buf data = {0};
-  Buf data = {0};
   if (!blob_load_path(blob_path, &b, &owned)) {
     fprintf(stderr, "blob=parse_fail path=%s\n", blob_path);
     return 1;
@@ -5190,6 +5189,7 @@ static int cmd_aot_elf64_obj_code(const char *blob_path, const char *out_path,
   Blob b;
   unsigned char *owned = NULL;
   Buf code = {0};
+  Buf data = {0};
   if (!symbol[0]) {
     fprintf(stderr, "aot-elf64-obj-code=bad_symbol\n");
     return 1;
