@@ -63,7 +63,7 @@
 1. 把最小 control flow 子集继续接到机器码 AOT/codegen 路径，逐步缩小静态求值-only 语义。
 2. 继续扩大 bootstrap DSL：在已落地的 `compile/hash/compare/pack-app/inspect-app/run-app/run` 基础上，再接更丰富的可验证步骤。
 3. 持续缩小临时依赖：`cosmocc` 只保留为 slice compiler，下一阶段目标是生成 x86_64 slice 的可运行子集。
-4. 继续扩大 typed/AOT 交集：让 `i64`、`bool`、以及后续 `ptr` 子集逐步进入 object/codegen 路径；先补齐多函数 source AOT。
+4. 继续扩大 typed/AOT 交集：让 `i64`、`bool`、`ptr` 子集逐步进入 object/codegen 路径；下一步继续扩展 ptr 操作和内存访问。
 
 已完成：
 
@@ -94,10 +94,11 @@
 - ELF/object/linker 内部 API 已抽象成可复用 helper，减少 section/symbol/rela 写入与解析重复。
 - typed value 已覆盖 `i64`、`bool`、`ptr` 基础值；`resolve` 会产出 `ptr` 值。
 - typed 算术/比较已覆盖 `add-i64` / `sub-i64` / `mul-i64` / `eq-i64` / `ne-i64` / `lt-i64` / `gt-i64` / `le-i64` / `ge-i64`，typed bool 逻辑已覆盖 `not-bool` / `and-bool` / `or-bool`，进入解释执行、静态求值 AOT 和 x86_64 codegen/object 路径。
+- 最小 ptr 纯值子集已覆盖 `null-ptr` / `is-null-ptr` / `is-nonnull-ptr`，进入解释执行、静态求值 AOT、x86_64 codegen/object、多函数 local call 返回类型与 direct executable 路径。
 - `expect` 已支持负数、布尔值和 `null` / `nonnull` 指针断言。
 - `block` / `branch` / `label` 已可编译进 `.lbin` 并由解释执行路径运行。
 - control-flow pure blob 已能走机器码 codegen AOT 路径，覆盖 `aot-elf64-code` / `aot-elf64-obj-code` / `compile-elf64-code`。
-- `compile-elf64-obj-code` 已支持多函数 pure VM source、内部 `call`、基础 relocation，以及 `i64` / `bool` / `branch` / `label` typed/control-flow 子集；内部 `call` 会保留 helper 的 `u64` / `i64` / `bool` 返回类型。
+- `compile-elf64-obj-code` 已支持多函数 pure VM source、内部 `call`、基础 relocation，以及 `i64` / `bool` / `ptr` / `branch` / `label` typed/control-flow 子集；内部 `call` 会保留 helper 的 `u64` / `i64` / `bool` / `ptr` 返回类型。
 - 多函数 object 可同时被系统 `cc` 与 nano 自带 tiny linker 链接并运行。
 - `compile-elf64-exe` 已可把多函数 pure VM source 直接生成可运行 ELF，内部走 object backend + tiny linker。
 - `bootstrap` 最小 DSL 已落地，可用 `.lisp` 顺序描述并执行核心 `.lbin` 样例矩阵、`compile` / `gen-libc-resolve` / `dump` / `file-size` / `file-hash` / `hash` / `compare` / `pack-app` / `inspect-app` / `run-app` / `run` 子流程。

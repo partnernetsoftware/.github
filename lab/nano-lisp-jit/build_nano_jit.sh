@@ -59,10 +59,13 @@ ARITH_I64_SRC="$LAB_DIR/samples/arithmetic-i64.lisp"
 ARITH_I64_BLOB="$BUILD_DIR/arithmetic-i64.lbin"
 TYPED_SRC="$LAB_DIR/samples/typed-values.lisp"
 TYPED_BLOB="$BUILD_DIR/typed-values.lbin"
+PTR_SRC="$LAB_DIR/samples/ptr-values.lisp"
+PTR_BLOB="$BUILD_DIR/ptr-values.lbin"
 CTRL_SRC="$LAB_DIR/samples/control-flow.lisp"
 CTRL_BLOB="$BUILD_DIR/control-flow.lbin"
 MULTI_SRC="$LAB_DIR/samples/multi-func.lisp"
 MULTI_CTRL_SRC="$LAB_DIR/samples/multi-func-control-flow.lisp"
+MULTI_PTR_SRC="$LAB_DIR/samples/multi-func-ptr.lisp"
 MULTI_BAD_SRC="$LAB_DIR/samples/multi-func-recursive-bad.lisp"
 BAD_ARITH_SRC="$LAB_DIR/samples/arithmetic-bad.lisp"
 BAD_ARITH_BLOB="$BUILD_DIR/arithmetic-bad.lbin"
@@ -130,6 +133,9 @@ cat > "$BOOTSTRAP_PLAN" <<EOF
   (resolve-quiet "$BUILD_DIR/bootstrap-smoke-typed-values.lbin")
   (file-size "$BUILD_DIR/bootstrap-smoke-typed-values.lbin")
   (run "$BUILD_DIR/bootstrap-smoke-typed-values.lbin")
+  (compile "$PTR_SRC" "$BUILD_DIR/bootstrap-smoke-ptr-values.lbin")
+  (file-size "$BUILD_DIR/bootstrap-smoke-ptr-values.lbin")
+  (run "$BUILD_DIR/bootstrap-smoke-ptr-values.lbin")
   (compile "$SMOKE_SRC" "$BUILD_DIR/bootstrap-smoke.lbin")
   (resolve-quiet "$BUILD_DIR/bootstrap-smoke.lbin")
   (hash "$BUILD_DIR/bootstrap-smoke.lbin")
@@ -173,6 +179,13 @@ cat > "$BOOTSTRAP_PLAN" <<EOF
   (file-size "$BUILD_DIR/bootstrap-aot-control-flow.elf")
   (file-hash "$BUILD_DIR/bootstrap-aot-control-flow.elf")
   (run-expect-exit "$BUILD_DIR/bootstrap-aot-control-flow.elf" 1)
+  (compile "$PTR_SRC" "$BUILD_DIR/bootstrap-aot-ptr-values.lbin")
+  (aot-elf64-exit "$BUILD_DIR/bootstrap-aot-ptr-values.lbin" "$BUILD_DIR/bootstrap-aot-ptr-values-exit.elf")
+  (run-expect-exit "$BUILD_DIR/bootstrap-aot-ptr-values-exit.elf" 1)
+  (aot-elf64-code "$BUILD_DIR/bootstrap-aot-ptr-values.lbin" "$BUILD_DIR/bootstrap-aot-ptr-values-code.elf")
+  (run-expect-exit "$BUILD_DIR/bootstrap-aot-ptr-values-code.elf" 1)
+  (compile-elf64-code "$PTR_SRC" "$BUILD_DIR/bootstrap-aot-ptr-values.elf")
+  (run-expect-exit "$BUILD_DIR/bootstrap-aot-ptr-values.elf" 1)
   (aot-elf64-obj-ret "$BUILD_DIR/bootstrap-aot-arithmetic.lbin" "$BUILD_DIR/bootstrap-aot-arithmetic-ret.o" "nano_bootstrap_arith_ret")
   (link-elf64-exe "$BUILD_DIR/bootstrap-aot-arithmetic-ret-linked" "nano_bootstrap_arith_ret" "$BUILD_DIR/bootstrap-aot-arithmetic-ret.o")
   (file-size "$BUILD_DIR/bootstrap-aot-arithmetic-ret-linked")
@@ -211,6 +224,11 @@ cat > "$BOOTSTRAP_PLAN" <<EOF
   (run-expect-exit "$BUILD_DIR/bootstrap-aot-multi-ctrl-linked" 43)
   (compile-elf64-exe "$MULTI_CTRL_SRC" "$BUILD_DIR/bootstrap-aot-multi-ctrl-direct.elf" "nano_bootstrap_multi_ctrl_direct")
   (run-expect-exit "$BUILD_DIR/bootstrap-aot-multi-ctrl-direct.elf" 43)
+  (compile-elf64-obj-code "$MULTI_PTR_SRC" "$BUILD_DIR/bootstrap-aot-multi-ptr.o" "nano_bootstrap_multi_ptr")
+  (link-elf64-exe "$BUILD_DIR/bootstrap-aot-multi-ptr-linked" "nano_bootstrap_multi_ptr" "$BUILD_DIR/bootstrap-aot-multi-ptr.o")
+  (run-expect-exit "$BUILD_DIR/bootstrap-aot-multi-ptr-linked" 1)
+  (compile-elf64-exe "$MULTI_PTR_SRC" "$BUILD_DIR/bootstrap-aot-multi-ptr-direct.elf" "nano_bootstrap_multi_ptr_direct")
+  (run-expect-exit "$BUILD_DIR/bootstrap-aot-multi-ptr-direct.elf" 1)
   (compile-expect-exit 2 compile-elf64-obj-code "$MULTI_BAD_SRC" "$BUILD_DIR/bootstrap-aot-recursive-bad.o" "nano_bootstrap_recursive_bad")
   (compile-expect-exit 2 compile-elf64-exe "$MULTI_BAD_SRC" "$BUILD_DIR/bootstrap-aot-recursive-bad.elf" "nano_bootstrap_recursive_bad")
   (emit-elf64-obj-call "$BUILD_DIR/bootstrap-aot-call42.o" "nano_bootstrap_call" "nano_bootstrap_ext")
