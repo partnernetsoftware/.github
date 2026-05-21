@@ -82,6 +82,7 @@
   (compile-expect-exit 2 compile-elf64-code "lab/nano-lisp-jit/samples/type-error-ptr-op-bad.lisp" "lab/nano-lisp-jit/.build/bootstrap-aot-type-bad-ptr-op.elf")
   (compile-expect-exit 2 compile-elf64-obj-code "lab/nano-lisp-jit/samples/type-error-ptr-op-bad.lisp" "lab/nano-lisp-jit/.build/bootstrap-aot-type-bad-ptr-op.o" "nano_bootstrap_type_bad_ptr_op")
   (compile-expect-exit 2 compile-elf64-exe "lab/nano-lisp-jit/samples/type-error-ptr-op-bad.lisp" "lab/nano-lisp-jit/.build/bootstrap-aot-type-bad-ptr-op-direct.elf" "nano_bootstrap_type_bad_ptr_op")
+  (compile-expect-exit 2 compile-elf64-obj-code "lab/nano-lisp-jit/samples/type-error-add-ptr-bad.lisp" "lab/nano-lisp-jit/.build/bootstrap-aot-type-bad-add-ptr.o" "nano_bootstrap_type_bad_add_ptr")
   (compile-expect-exit 2 compile-elf64-code "lab/nano-lisp-jit/samples/type-error-branch-bad.lisp" "lab/nano-lisp-jit/.build/bootstrap-aot-type-bad-branch.elf")
   (compile-expect-exit 2 compile-elf64-obj-code "lab/nano-lisp-jit/samples/type-error-expect-ptr-bad.lisp" "lab/nano-lisp-jit/.build/bootstrap-aot-type-bad-expect-ptr.o" "nano_bootstrap_type_bad_expect_ptr")
   (emit-elf64-obj-call "lab/nano-lisp-jit/.build/bootstrap-aot-call42.o" "nano_bootstrap_call" "nano_bootstrap_ext")
