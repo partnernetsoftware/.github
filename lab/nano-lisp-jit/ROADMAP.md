@@ -6,6 +6,37 @@
 
 每一层必须有可重复脚本证据，能跑通后才进入下一层。
 
+### 持续反思 / 学习 / 进化循环
+
+`nano-jit` 的发展方式不是一次性路线图，而是持续自我校正的洋葱循环：
+
+```text
+evolution loop
+├─ 1. 目标复盘
+│  ├─ 重新确认当前版本的完成定义
+│  ├─ 区分“已经闭环”与“只是可运行”
+│  └─ 防止把临时边界误判成能力上限
+├─ 2. 证据回放
+│  ├─ native runner
+│  ├─ container bootstrap
+│  ├─ self-packed nano-jit.com
+│  └─ checked-in DSL / fixture / hash / exit status
+├─ 3. 失败学习
+│  ├─ 把失败样例转成负向 fixture
+│  ├─ 把调试经验写回 ROADMAP / README / samples
+│  └─ 把外部 oracle 逐步迁入 nano 自己的断言
+├─ 4. 路线进化
+│  ├─ v1.5 收紧格式与数据段
+│  ├─ v2 扩大编译器与运行时能力
+│  └─ v3+ 吸收 WASM/JVM/JS/SQL 等外部语义
+└─ 5. 自信开工
+   ├─ 每一圈只选最小可证明切片
+   ├─ 样例 -> native -> bootstrap DSL -> self-packed -> commit/merge
+   └─ 证据稳定后再扩大下一圈
+```
+
+信心来源不是乐观口号，而是可重复证据：每一层都有样例、负向样例、产物检查和自举复验；失败会进入学习材料，学习会改进路线，路线再推动下一圈实现。
+
 ### 洋葱 TDD mindmap
 
 ```text
@@ -290,10 +321,60 @@ v3+ 扩张原则：
 2. 每扩张一个世界，都先做最小 fixture：读取格式、lower 到 nano IR/typed DSL、VM 行为等价、AOT/codegen 等价、APE 打包、自举复验。
 3. 保持“AI 友好”作为架构约束：文本格式清晰、错误可解释、测试可局部运行、产物可 inspect，方便未来分身持续扩大能力。
 
+## v1.5 / v2 开工入口
+
+开工原则：
+
+1. 先跑 v1 基线，不在不稳定地基上扩大能力。
+2. v1.5 只做格式和证据层收紧：nano APE manifest、inspect/run、数据 section。
+3. v2 再做结构性扩张：模块分层、函数模型、ABI、self-hosted slice path。
+4. 每个切片都必须留下：sample、negative sample、native runner、bootstrap DSL、自举证据、反思记录。
+
+第一批 v1.5 切片：
+
+```text
+v1.5 kickoff
+├─ slice 1: nano APE manifest spec
+│  ├─ 写最小 header/payload table fixture
+│  ├─ 增加 inspect 输出格式的 golden expectation
+│  ├─ 负向样例: bad magic / bad offset / bad hash
+│  └─ 目标: 先锁格式，不急着重写 loader
+├─ slice 2: pack-ape writes nano manifest
+│  ├─ 保留现有 x86_64/aarch64 slice
+│  ├─ manifest 记录 arch/os/offset/size/hash
+│  ├─ inspect-app 或 inspect-ape 能解释新 manifest
+│  └─ bootstrap DSL 覆盖 pack/inspect/hash
+└─ slice 3: run selected payload
+   ├─ Linux host 先选择 x86_64 payload
+   ├─ unsupported arch 有稳定失败码
+   ├─ self-packed nano-jit.com 复验
+   └─ 反思 loader 与 manifest 的下一圈缺口
+```
+
+第一批 v2 切片：
+
+```text
+v2 kickoff
+├─ slice 1: .rodata/.data section fixture
+│  ├─ const-ptr/load/store 与旧 text-embedded data 行为等价
+│  ├─ object 支持 section symbol
+│  ├─ tiny linker 支持数据 relocation
+│  └─ 目标: 逐步移除 RWX text/data 混合策略
+├─ slice 2: module boundary without semantic rewrite
+│  ├─ 先固定全部 v1/v1.5 fixture hash/exit
+│  ├─ 按 parser/blob/vm/aot_x86/elf/linker/ape/bootstrap 分区
+│  └─ 每次移动只做等价验证
+└─ slice 3: richer function/value model
+   ├─ 参数和局部变量先进入 VM
+   ├─ 再进入 x86_64 AOT/object/tiny-link
+   ├─ ABI descriptor 替代硬编码签名
+   └─ 目标: 支持更复杂编译器 pass
+```
+
 下一分身接续顺序：
 
 1. 先跑 `bash lab/nano-lisp-jit/run.sh` 和 `sudo docker compose -f docker-compose.dev.yml run --rm dev bash lab/nano-lisp-jit/build_nano_jit.sh`，确认 v1 基线仍绿。
-2. 从 v2 任务 1 开始：先把 APE manifest/header/payload table 设计写成最小 spec，再用 `inspect-app` 测试锁定格式。
-3. 接着新增 `.rodata/.data` section 和数据 relocation，保留旧 text-embedded 数据路径直到测试等价。
-4. 再拆 `lispjit.c`，避免在 APE/数据 section 改动尚未稳定时同时移动大量代码。
-5. 每次推进继续保持“样例 -> native runner -> checked-in bootstrap DSL -> self-packed runner -> commit/merge”的洋葱顺序。
+2. 从 v1.5 slice 1 开始：把 APE manifest/header/payload table 写成最小 spec 和 fixture，再用 inspect 测试锁定格式。
+3. 完成 v1.5 pack/inspect/run 三圈后，再进入 v2 `.rodata/.data` section 和数据 relocation。
+4. 数据 section 稳定后再拆 `lispjit.c`，避免格式、权限和大规模移动同时发生。
+5. 每次推进继续保持“目标复盘 -> 样例 -> native runner -> checked-in bootstrap DSL -> self-packed runner -> 反思 -> commit/merge”的洋葱顺序。

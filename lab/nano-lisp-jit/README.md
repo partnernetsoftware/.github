@@ -3,11 +3,11 @@
 目标：生成跨架构可执行的 `nano-lisp-jit.com`，把极小 Lisp-like 源码编译为 portable `.lbin` blob，并在运行时只加载 `.lbin` 执行。
 
 长期目标：推进到可自举的 `nano-jit.com`：用 Lisp/IR 驱动 FFI、JIT、AOT，最终自己编译自己并生成多架构可运行 APE；v3+ 继续作为 AI 友好、图灵完备、可验证的独立基石，逐步吸收 WASM/JVM/JS/SQL 等外部语义。
-路线图、v1 反思、v1.5/v2/v3+ 洋葱 TDD mindmap 见 `ROADMAP.md`。
+路线图、v1 反思、持续进化循环、v1.5/v2/v3+ 洋葱 TDD mindmap 见 `ROADMAP.md`。
 
 当前状态：self-bootstrap v1 已评估为 `100%`。`nano-jit.com` 已能 self-pack，不调用 `apelink`；纯 VM source 可进入 `.lbin`、解释执行、AOT ELF、ELF64 object、tiny-link executable；typed `i64/bool/ptr`、control-flow、multi-func、多 object、load/store-family 和跨 object 数据 smoke 均有 native/container 自举证据。
 
-下一会话建议从 `ROADMAP.md` 的 `v1.5 / v2 洋葱 TDD mindmap` 继续，优先处理 v1.5 的 nano APE 格式：类似 Cosmopolitan，把跨架构 loader/识别头、多架构 payload table、架构选择逻辑和 manifest 检查做成 nano 自主格式；随后处理 `.rodata/.data` section、数据 relocation、`lispjit.c` 分层、bootstrap DSL build graph，以及 v2 的自托管 slice compiler 路径；v3+ 不把 v2 当终点，而是继续扩大到外部 VM、语言和查询语义的导入/转译/自举验证。
+下一会话建议从 `ROADMAP.md` 的 `v1.5 / v2 开工入口` 继续：先用持续反思/学习/进化循环确认 v1 基线，再从 v1.5 的 nano APE manifest fixture 开工；随后处理 pack/inspect/run、`.rodata/.data` section、数据 relocation、`lispjit.c` 分层、bootstrap DSL build graph，以及 v2 的自托管 slice compiler 路径；v3+ 不把 v2 当终点，而是继续扩大到外部 VM、语言和查询语义的导入/转译/自举验证。
 
 ## CLI
 
