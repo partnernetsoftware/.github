@@ -7,7 +7,7 @@
 
 当前状态：self-bootstrap v1 已评估为 `100%`。`nano-jit.com` 已能 self-pack，不调用 `apelink`；纯 VM source 可进入 `.lbin`、解释执行、AOT ELF、ELF64 object、tiny-link executable；typed `i64/bool/ptr`、control-flow、multi-func、多 object、load/store-family 和跨 object 数据 smoke 均有 native/container 自举证据。
 
-下一会话建议从 `ROADMAP.md` 的 `self-bootstrap v1 反思` 继续，优先处理 v2 的 `.rodata/.data` section、数据 relocation、`lispjit.c` 分层和 bootstrap DSL build graph。
+下一会话建议从 `ROADMAP.md` 的 `self-bootstrap v1 反思` 继续，优先处理 v2 的 nano APE 格式：类似 Cosmopolitan，把跨架构 loader/识别头、多架构 payload table、架构选择逻辑和 manifest 检查做成 nano 自主格式；随后处理 `.rodata/.data` section、数据 relocation、`lispjit.c` 分层和 bootstrap DSL build graph。
 
 ## CLI
 
