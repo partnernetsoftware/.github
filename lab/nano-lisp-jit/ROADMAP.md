@@ -322,6 +322,15 @@ v3+ 扩张原则：
 2. 每扩张一个世界，都先做最小 fixture：读取格式、lower 到 nano IR/typed DSL、VM 行为等价、AOT/codegen 等价、APE 打包、自举复验。
 3. 保持“AI 友好”作为架构约束：文本格式清晰、错误可解释、测试可局部运行、产物可 inspect，方便未来分身持续扩大能力。
 
+## 内存契约与产品化（设计参考）
+
+不替代上文 v1.5/v2 切片，详见 `DESIGN-MEMORY-AND-PRODUCT.md`。
+
+- **Rust 借鉴（轻量）**：不可变默认 + `ptr-ro`/`ptr-mut`、region 边界、slot/移动语义、别名 def-use、`run-borrow-check` 调试模式；**不做**完整 borrow checker。
+- **与 v1.5 对齐**：`.rodata/.data` 即 Rust 式 const/mut 段分离的第一落点。
+- **与 v2 对齐**：局部变量/SSA 后再收紧 load/store 与「上一条值」语义。
+- **产品化命名**：对外总品牌 **NanoJIT**；产物 **Lbin**（`.lbin`）、发行 **Nano APE**（`.com`）；`nano-lisp-jit` 保留为仓库路径名。
+
 ## v1.5 / v2 开工入口
 
 开工原则：

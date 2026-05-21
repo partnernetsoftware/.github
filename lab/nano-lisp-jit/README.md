@@ -5,6 +5,7 @@
 长期目标：推进到可自举的 `nano-jit.com`：用 Lisp/IR 驱动 FFI、JIT、AOT，最终自己编译自己并生成多架构可运行 APE；v3+ 继续作为 AI 友好、图灵完备、可验证的独立基石，逐步吸收 WASM/JVM/JS/SQL 等外部语义。
 路线图、v1 反思、持续进化循环、v1.5/v2/v3+ 洋葱 TDD mindmap 见 `ROADMAP.md`。
 `lab/tool-*` 消费者用法与已知摩擦见 `LAB-USAGE-FEEDBACK.md`。
+内存安全借鉴与产品化命名见 `DESIGN-MEMORY-AND-PRODUCT.md`。
 
 当前状态：self-bootstrap v1 已评估为 `100%`。`nano-jit.com` 已能 self-pack，不调用 `apelink`；纯 VM source 可进入 `.lbin`、解释执行、AOT ELF、ELF64 object、tiny-link executable；typed `i64/bool/ptr`、control-flow、multi-func、多 object、load/store-family 和跨 object 数据 smoke 均有 native/container 自举证据。
 
