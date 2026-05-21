@@ -212,6 +212,7 @@ cat > "$BOOTSTRAP_PLAN" <<EOF
   (compile-elf64-exe "$MULTI_CTRL_SRC" "$BUILD_DIR/bootstrap-aot-multi-ctrl-direct.elf" "nano_bootstrap_multi_ctrl_direct")
   (run-expect-exit "$BUILD_DIR/bootstrap-aot-multi-ctrl-direct.elf" 43)
   (compile-expect-exit 2 compile-elf64-obj-code "$MULTI_BAD_SRC" "$BUILD_DIR/bootstrap-aot-recursive-bad.o" "nano_bootstrap_recursive_bad")
+  (compile-expect-exit 2 compile-elf64-exe "$MULTI_BAD_SRC" "$BUILD_DIR/bootstrap-aot-recursive-bad.elf" "nano_bootstrap_recursive_bad")
   (emit-elf64-obj-call "$BUILD_DIR/bootstrap-aot-call42.o" "nano_bootstrap_call" "nano_bootstrap_ext")
   (emit-elf64-obj-ret "$BUILD_DIR/bootstrap-aot-ext42.o" "nano_bootstrap_ext" 42)
   (link-elf64-exe "$BUILD_DIR/bootstrap-aot-call42-linked" "nano_bootstrap_call" "$BUILD_DIR/bootstrap-aot-call42.o" "$BUILD_DIR/bootstrap-aot-ext42.o")
