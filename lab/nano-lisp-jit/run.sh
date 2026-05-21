@@ -13,6 +13,9 @@ CTRL_SRC="$LAB_DIR/samples/control-flow.lisp"
 MULTI_SRC="$LAB_DIR/samples/multi-func.lisp"
 MULTI_CTRL_SRC="$LAB_DIR/samples/multi-func-control-flow.lisp"
 MULTI_PTR_SRC="$LAB_DIR/samples/multi-func-ptr.lisp"
+TYPE_BAD_PTR_OP_SRC="$LAB_DIR/samples/type-error-ptr-op-bad.lisp"
+TYPE_BAD_BRANCH_SRC="$LAB_DIR/samples/type-error-branch-bad.lisp"
+TYPE_BAD_EXPECT_PTR_SRC="$LAB_DIR/samples/type-error-expect-ptr-bad.lisp"
 BOOTSTRAP_SRC="$LAB_DIR/samples/bootstrap-smoke.lisp"
 BOOTSTRAP_AOT_SRC="$LAB_DIR/samples/bootstrap-aot-smoke.lisp"
 SMOKE_SRC="$LAB_DIR/samples/libc-smoke.lisp"
@@ -44,6 +47,10 @@ MULTI_CTRL_LINK_EXE="$BUILD_DIR/multi_func_control_linked"
 MULTI_PTR_OBJ="$BUILD_DIR/multi_func_ptr.o"
 MULTI_PTR_LINK_EXE="$BUILD_DIR/multi_func_ptr_linked"
 MULTI_PTR_DIRECT_EXE="$BUILD_DIR/multi_func_ptr_direct"
+TYPE_BAD_PTR_OP_EXE="$BUILD_DIR/type_error_ptr_op_bad"
+TYPE_BAD_PTR_OP_OBJ="$BUILD_DIR/type_error_ptr_op_bad.o"
+TYPE_BAD_BRANCH_EXE="$BUILD_DIR/type_error_branch_bad"
+TYPE_BAD_EXPECT_PTR_OBJ="$BUILD_DIR/type_error_expect_ptr_bad.o"
 SMOKE_BLOB="$BUILD_DIR/libc-smoke.lbin"
 LIBC_SRC="$BUILD_DIR/libc-resolve.lisp"
 LIBC_BLOB="$BUILD_DIR/libc-resolve.lbin"
@@ -118,6 +125,12 @@ log "multi.ctrl.source.path=$MULTI_CTRL_SRC"
 log "multi.ctrl.source.bytes=$(bytes_of "$MULTI_CTRL_SRC")"
 log "multi.ptr.source.path=$MULTI_PTR_SRC"
 log "multi.ptr.source.bytes=$(bytes_of "$MULTI_PTR_SRC")"
+log "type.bad.ptr.op.source.path=$TYPE_BAD_PTR_OP_SRC"
+log "type.bad.ptr.op.source.bytes=$(bytes_of "$TYPE_BAD_PTR_OP_SRC")"
+log "type.bad.branch.source.path=$TYPE_BAD_BRANCH_SRC"
+log "type.bad.branch.source.bytes=$(bytes_of "$TYPE_BAD_BRANCH_SRC")"
+log "type.bad.expect.ptr.source.path=$TYPE_BAD_EXPECT_PTR_SRC"
+log "type.bad.expect.ptr.source.bytes=$(bytes_of "$TYPE_BAD_EXPECT_PTR_SRC")"
 log "bootstrap.source.path=$BOOTSTRAP_SRC"
 log "bootstrap.source.bytes=$(bytes_of "$BOOTSTRAP_SRC")"
 log "bootstrap.aot.source.path=$BOOTSTRAP_AOT_SRC"
@@ -249,6 +262,11 @@ if [ "$(uname -m)" = "x86_64" ] || [ "$(uname -m)" = "amd64" ]; then
   run_case "run-tiny-linked-multi-func-ptr1" "$RUNNER" run-expect-exit "$MULTI_PTR_LINK_EXE" 1
   run_case "compile-multi-func-ptr-elf64-exe1" "$RUNNER" compile-elf64-exe "$MULTI_PTR_SRC" "$MULTI_PTR_DIRECT_EXE" nano_multi_ptr_direct
   run_case "run-direct-compiled-multi-func-ptr1" "$RUNNER" run-expect-exit "$MULTI_PTR_DIRECT_EXE" 1
+  run_case "reject-ptr-op-type-error-elf64-code" "$RUNNER" compile-expect-exit 2 compile-elf64-code "$TYPE_BAD_PTR_OP_SRC" "$TYPE_BAD_PTR_OP_EXE"
+  run_case "reject-ptr-op-type-error-elf64-obj" "$RUNNER" compile-expect-exit 2 compile-elf64-obj-code "$TYPE_BAD_PTR_OP_SRC" "$TYPE_BAD_PTR_OP_OBJ" nano_type_bad_ptr_op
+  run_case "reject-ptr-op-type-error-elf64-exe" "$RUNNER" compile-expect-exit 2 compile-elf64-exe "$TYPE_BAD_PTR_OP_SRC" "$TYPE_BAD_PTR_OP_EXE" nano_type_bad_ptr_op
+  run_case "reject-branch-type-error-elf64-code" "$RUNNER" compile-expect-exit 2 compile-elf64-code "$TYPE_BAD_BRANCH_SRC" "$TYPE_BAD_BRANCH_EXE"
+  run_case "reject-expect-ptr-type-error-elf64-obj" "$RUNNER" compile-expect-exit 2 compile-elf64-obj-code "$TYPE_BAD_EXPECT_PTR_SRC" "$TYPE_BAD_EXPECT_PTR_OBJ" nano_type_bad_expect_ptr
   run_case "emit-elf64-obj-call42" "$RUNNER" emit-elf64-obj-call "$CALL42_OBJ" nano_call nano_ext
   log "call42.obj.bytes=$(bytes_of "$CALL42_OBJ")"
   run_case "emit-elf64-obj-callee42" "$RUNNER" emit-elf64-obj-ret "$CALL42_CALLEE_OBJ" nano_ext 42

@@ -202,6 +202,8 @@ bootstrap DSL 也能描述一条最小 AOT/codegen/tiny-link 构建图，不需�
   (emit-elf64-obj-ret "lab/nano-lisp-jit/.build/bootstrap-aot-dup42.o" "nano_bootstrap_ext" 7)
   (compile-expect-exit 2 compile-elf64-obj-code "lab/nano-lisp-jit/samples/multi-func-recursive-bad.lisp" "lab/nano-lisp-jit/.build/bootstrap-aot-recursive-bad.o" "nano_bootstrap_recursive_bad")
   (compile-expect-exit 2 compile-elf64-exe "lab/nano-lisp-jit/samples/multi-func-recursive-bad.lisp" "lab/nano-lisp-jit/.build/bootstrap-aot-recursive-bad.elf" "nano_bootstrap_recursive_bad")
+  (compile-expect-exit 2 compile-elf64-code "lab/nano-lisp-jit/samples/type-error-ptr-op-bad.lisp" "lab/nano-lisp-jit/.build/bootstrap-aot-type-bad-ptr-op.elf")
+  (compile-expect-exit 2 compile-elf64-obj-code "lab/nano-lisp-jit/samples/type-error-expect-ptr-bad.lisp" "lab/nano-lisp-jit/.build/bootstrap-aot-type-bad-expect-ptr.o" "nano_bootstrap_type_bad_expect_ptr")
   (link-expect-exit 2 "lab/nano-lisp-jit/.build/bootstrap-aot-dup-should-fail" "nano_bootstrap_call" "lab/nano-lisp-jit/.build/bootstrap-aot-call42.o" "lab/nano-lisp-jit/.build/bootstrap-aot-ext42.o" "lab/nano-lisp-jit/.build/bootstrap-aot-dup42.o"))
 ```
 
@@ -215,7 +217,7 @@ bootstrap DSL 也能描述一条最小 AOT/codegen/tiny-link 构建图，不需�
 - `gen-libc-resolve`：直接读取 libc ELF `.dynsym` 并生成 resolver manifest，不再依赖 Python/`nm`。
 - `run-expect-exit`：运行 ELF 并断言退出码，供 native smoke 和 bootstrap DSL 复用。
 - `link-expect-exit`：执行 tiny linker 并断言失败码，用于 duplicate-symbol 等负向 linker smoke。
-- `compile-expect-exit`：执行编译类子命令并断言失败码，用于递归 local call 等负向 source AOT smoke。
+- `compile-expect-exit`：执行编译类子命令并断言失败码，用于递归 local call、typed ptr/bool 误用等负向 source AOT smoke。
 - `resolve`：验证 `.lbin` import table 的动态库和符号可解析；运行时会把解析到的函数地址放进当前 `ptr` typed value，适合全量 libc 导入测试或指针断言。
 - `run-bootstrap-plan`：读取最小 bootstrap DSL，顺序执行 `compile` / `gen-libc-resolve` / `dump` / `file-size` / `file-hash` / `hash` / `compare` / `resolve-quiet` / `pack-app` / `inspect-app` / `run-app` / `run` / `emit-elf64-exit` / `emit-elf64-obj-ret` / `emit-elf64-obj-call` / `aot-elf64-exit` / `aot-elf64-obj-ret` / `aot-elf64-code` / `aot-elf64-obj-code` / `compile-elf64-code` / `compile-elf64-obj-code` / `compile-elf64-exe` / `compile-expect-exit` / `link-elf64-exe` / `link-expect-exit` / `run-expect-exit` 子流程，开始把 shell 片段迁到 `.lisp` 描述。
 - `run`：解析 `.lbin`，通过 `dlopen`/`dlsym` 找系统符号，执行 main 指令流。
@@ -238,7 +240,7 @@ bootstrap DSL 也能描述一条最小 AOT/codegen/tiny-link 构建图，不需�
 - `(u64 N)` / `(add-u64 N)` / `(i64 N)` / `(add-i64 N)` / `(sub-i64 N)` / `(mul-i64 N)` / `(eq-i64 N)` / `(ne-i64 N)` / `(lt-i64 N)` / `(gt-i64 N)` / `(le-i64 N)` / `(ge-i64 N)` / `(bool true|false)` / `(not-bool)` / `(and-bool true|false)` / `(or-bool true|false)` / `(null-ptr)` / `(is-null-ptr)` / `(is-nonnull-ptr)`：最小 typed VM 内核，不依赖 FFI。
 - `block` / `branch label` / `label`：最小控制流；静态求值 AOT（`aot-elf64-exit` / `aot-elf64-obj-ret`）和机器码 codegen（`aot-elf64-code` / `aot-elf64-obj-code` / `compile-elf64-code`）现在都支持该纯 VM 子集。
 - `func` + `main`：当前在 `compile-elf64-obj-code` / `compile-elf64-exe` 的纯 VM AOT source 路径支持；helper 函数默认生成为 object 内部 local symbol。
-- `bootstrap`：当前最小 DSL 支持 `.lbin` 编译/哈希/比较/运行、AOT ELF/codegen/object 生成、tiny-link、app 打包/检查/运行，以及 `compile-expect-exit` / `link-expect-exit` / `run-expect-exit` 退出码断言，作为 shell bootstrap 的第一块可执行描述。
+- `bootstrap`：当前最小 DSL 支持 `.lbin` 编译/哈希/比较/运行、AOT ELF/codegen/object 生成、tiny-link、app 打包/检查/运行，以及 typed compile failure / linker failure / runtime failure 退出码断言，作为 shell bootstrap 的第一块可执行描述。
 - `pack-app`：把 runtime slices 和 `.lbin` 打进一个多架构 `.com` 应用，运行时直接从自身容器执行内嵌 blob。
 - 当前签名：`addr`、`u64(ptr)`、`i32(ptr)`、`i32(ptr,ptr)`、`i32()`、`i32(i32)`。
 - `u64(ptr)` 仍走 x86_64/aarch64 JIT call stub；其他安全 smoke 签名先用 typed C call。

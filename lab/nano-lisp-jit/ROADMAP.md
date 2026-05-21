@@ -76,7 +76,7 @@
 - `gen-libc-resolve` CLI 已替代 libc resolver manifest 的 Python/`nm` 生成链路。
 - `run-expect-exit` CLI 已替代 native AOT smoke 中的 shell 退出码包装。
 - `link-expect-exit` CLI 已替代 duplicate-symbol linker 负向 smoke 的 shell 包装。
-- `compile-expect-exit` CLI/DSL 已替代递归 local call 等负向 source AOT smoke 的 shell 包装。
+- `compile-expect-exit` CLI/DSL 已替代递归 local call、typed ptr/bool 误用等负向 source AOT smoke 的 shell 包装。
 - `(expect N)` 断言 op，smoke `.lbin` 可自证关键 FFI/JIT 结果。
 - `(u64 N)` / `(add-u64 N)` 纯 VM 算术 smoke，不依赖 FFI/libc。
 - `i32(i32)` FFI 签名，smoke 覆盖 `abs(-42) -> 42`。
@@ -95,6 +95,7 @@
 - typed value 已覆盖 `i64`、`bool`、`ptr` 基础值；`resolve` 会产出 `ptr` 值。
 - typed 算术/比较已覆盖 `add-i64` / `sub-i64` / `mul-i64` / `eq-i64` / `ne-i64` / `lt-i64` / `gt-i64` / `le-i64` / `ge-i64`，typed bool 逻辑已覆盖 `not-bool` / `and-bool` / `or-bool`，进入解释执行、静态求值 AOT 和 x86_64 codegen/object 路径。
 - 最小 ptr 纯值子集已覆盖 `null-ptr` / `is-null-ptr` / `is-nonnull-ptr`，进入解释执行、静态求值 AOT、x86_64 codegen/object、多函数 local call 返回类型与 direct executable 路径。
+- typed 负向编译 smoke 已覆盖 ptr predicate 误用、branch 非 bool、ptr expect 非 ptr，且同一 DSL 会断言 `compile-elf64-code` / `compile-elf64-obj-code` / `compile-elf64-exe` 返回失败码。
 - `expect` 已支持负数、布尔值和 `null` / `nonnull` 指针断言。
 - `block` / `branch` / `label` 已可编译进 `.lbin` 并由解释执行路径运行。
 - control-flow pure blob 已能走机器码 codegen AOT 路径，覆盖 `aot-elf64-code` / `aot-elf64-obj-code` / `compile-elf64-code`。
