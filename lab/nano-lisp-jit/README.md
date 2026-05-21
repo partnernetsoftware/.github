@@ -3,7 +3,11 @@
 目标：生成跨架构可执行的 `nano-lisp-jit.com`，把极小 Lisp-like 源码编译为 portable `.lbin` blob，并在运行时只加载 `.lbin` 执行。
 
 长期目标：推进到可自举的 `nano-jit.com`：用 Lisp/IR 驱动 FFI、JIT、AOT，最终自己编译自己并生成多架构可运行 APE。
-路线图见 `ROADMAP.md`。
+路线图和 v1 反思见 `ROADMAP.md`。
+
+当前状态：self-bootstrap v1 已评估为 `100%`。`nano-jit.com` 已能 self-pack，不调用 `apelink`；纯 VM source 可进入 `.lbin`、解释执行、AOT ELF、ELF64 object、tiny-link executable；typed `i64/bool/ptr`、control-flow、multi-func、多 object、load/store-family 和跨 object 数据 smoke 均有 native/container 自举证据。
+
+下一会话建议从 `ROADMAP.md` 的 `self-bootstrap v1 反思` 继续，优先处理 v2 的 `.rodata/.data` section、数据 relocation、`lispjit.c` 分层和 bootstrap DSL build graph。
 
 ## CLI
 
