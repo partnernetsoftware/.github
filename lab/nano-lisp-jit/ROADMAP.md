@@ -282,6 +282,7 @@ nano-jit continuation after self-bootstrap v1
 
 - v1.5 slice 0 首轮：顶层 CLI 新增 `resolve-quiet program.lbin` alias，lab 消费者 helper 支持 `NANO_JIT` runner 覆盖，继续用 `bash lab/run-lab-tools.sh` 做消费者回归。
 - v1.5 slice 1 首轮：`pack-ape` 写出 `ape-v1` manifest，新增 `inspect-ape` CLI，bootstrap DSL 支持 `pack-ape` / `inspect-ape`，并加入 checked-in `bootstrap-ape-smoke.lisp`。
+- v1.5 slice 1 第二轮（v1.5 35%）：`inspect-ape` 会校验 `ape-v1` container、必填 slice offset/size、payload marker、payload bounds 与 canonical slice layout；`run.sh` 增加 missing manifest / bad container / bad offset / missing key 负向断言。
 - AOT app 直接从 `.com` payload 读取内嵌 blob 执行。
 - AOT app 结构化 manifest、`inspect-app` 和 `run-app`。
 - `pack-ape` 已能组合 x86_64/aarch64 slice 与 container metadata，形成当前最小 `.com`；但 loader/多架构执行选择仍主要依赖现有 slice/stub 约定，尚未形成 nano 自主的完整 APE loader 格式。

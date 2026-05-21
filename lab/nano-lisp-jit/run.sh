@@ -33,6 +33,10 @@ TYPE_BAD_EXPECT_PTR_SRC="$LAB_DIR/samples/type-error-expect-ptr-bad.lisp"
 BOOTSTRAP_SRC="$LAB_DIR/samples/bootstrap-smoke.lisp"
 BOOTSTRAP_AOT_SRC="$LAB_DIR/samples/bootstrap-aot-smoke.lisp"
 BOOTSTRAP_APE_SRC="$LAB_DIR/samples/bootstrap-ape-smoke.lisp"
+BOOTSTRAP_APE_COM="$BUILD_DIR/bootstrap-ape.com"
+BOOTSTRAP_APE_BAD_CONTAINER="$BUILD_DIR/bootstrap-ape-bad-container.com"
+BOOTSTRAP_APE_BAD_OFFSET="$BUILD_DIR/bootstrap-ape-bad-offset.com"
+BOOTSTRAP_APE_MISSING_KEY="$BUILD_DIR/bootstrap-ape-missing-key.com"
 SMOKE_SRC="$LAB_DIR/samples/libc-smoke.lisp"
 BLOB="$BUILD_DIR/strlen.lbin"
 BLOB_REPEAT="$BUILD_DIR/strlen-repeat.lbin"
@@ -151,6 +155,52 @@ run_case() {
   return "$status"
 }
 
+make_bad_ape_manifests() {
+  python3 - "$BOOTSTRAP_APE_COM" "$BOOTSTRAP_APE_BAD_CONTAINER" \
+    "$BOOTSTRAP_APE_BAD_OFFSET" "$BOOTSTRAP_APE_MISSING_KEY" <<'PY'
+from pathlib import Path
+import sys
+import re
+
+good, bad_container, bad_offset, missing_key = map(Path, sys.argv[1:])
+data = good.read_bytes()
+bad_container.write_bytes(data.replace(
+    b"# nano.container=ape-v1\n",
+    b"# nano.container=app-v1\n",
+))
+bad_offset.write_bytes(re.sub(
+    br"# nano\.slice\.aarch64\.offset=[0-9]+\n",
+    b"# nano.slice.aarch64.offset=999999\n",
+    data,
+    count=1,
+))
+missing_key.write_bytes(re.sub(
+    br"# nano\.slice\.aarch64\.size=[0-9]+\n",
+    b"",
+    data,
+    count=1,
+))
+PY
+}
+
+expect_inspect_ape_failure() {
+  local path="$1"
+  local expected_msg="$2"
+  local out=""
+  local status=0
+  out=$("$RUNNER" inspect-ape "$path" 2>&1 >/dev/null) || status=$?
+  printf 'inspect-ape.path=%s\n' "$path"
+  printf 'inspect-ape.status=%s\n' "$status"
+  printf 'inspect-ape.stderr=%s\n' "$out"
+  if [ "$status" -ne 2 ]; then
+    return 1
+  fi
+  case "$out" in
+    *"$expected_msg"*) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
 log "# nano-lisp-jit .lisp to .lbin probe"
 
 run_case "build-native-nano-lisp-jit" cc -DNANO_LISP_JIT -Os -s "$NANO_C" -ldl -o "$RUNNER"
@@ -263,6 +313,11 @@ run_case "run-bootstrap-plan" "$RUNNER" run-bootstrap-plan "$BOOTSTRAP_SRC"
 run_case "run-bootstrap-aot-plan" "$RUNNER" run-bootstrap-plan "$BOOTSTRAP_AOT_SRC"
 
 run_case "run-bootstrap-ape-plan" "$RUNNER" run-bootstrap-plan "$BOOTSTRAP_APE_SRC"
+run_case "prepare-bad-ape-manifests" make_bad_ape_manifests
+run_case "inspect-ape-reject-missing-manifest" expect_inspect_ape_failure "$BOOTSTRAP_SRC" "manifest_missing"
+run_case "inspect-ape-reject-bad-container" expect_inspect_ape_failure "$BOOTSTRAP_APE_BAD_CONTAINER" "bad_container"
+run_case "inspect-ape-reject-bad-offset" expect_inspect_ape_failure "$BOOTSTRAP_APE_BAD_OFFSET" "payload_bounds"
+run_case "inspect-ape-reject-missing-key" expect_inspect_ape_failure "$BOOTSTRAP_APE_MISSING_KEY" "manifest_key_missing"
 
 run_case "compile-control-flow-lbin" "$RUNNER" compile "$CTRL_SRC" "$CTRL_BLOB"
 log "control.blob.bytes=$(bytes_of "$CTRL_BLOB")"
