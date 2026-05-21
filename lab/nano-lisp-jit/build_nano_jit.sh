@@ -63,6 +63,7 @@ CTRL_SRC="$LAB_DIR/samples/control-flow.lisp"
 CTRL_BLOB="$BUILD_DIR/control-flow.lbin"
 MULTI_SRC="$LAB_DIR/samples/multi-func.lisp"
 MULTI_CTRL_SRC="$LAB_DIR/samples/multi-func-control-flow.lisp"
+MULTI_BAD_SRC="$LAB_DIR/samples/multi-func-recursive-bad.lisp"
 BAD_ARITH_SRC="$LAB_DIR/samples/arithmetic-bad.lisp"
 BAD_ARITH_BLOB="$BUILD_DIR/arithmetic-bad.lbin"
 EXIT42="$BUILD_DIR/exit42.elf"
@@ -210,6 +211,7 @@ cat > "$BOOTSTRAP_PLAN" <<EOF
   (run-expect-exit "$BUILD_DIR/bootstrap-aot-multi-ctrl-linked" 43)
   (compile-elf64-exe "$MULTI_CTRL_SRC" "$BUILD_DIR/bootstrap-aot-multi-ctrl-direct.elf" "nano_bootstrap_multi_ctrl_direct")
   (run-expect-exit "$BUILD_DIR/bootstrap-aot-multi-ctrl-direct.elf" 43)
+  (compile-expect-exit 2 compile-elf64-obj-code "$MULTI_BAD_SRC" "$BUILD_DIR/bootstrap-aot-recursive-bad.o" "nano_bootstrap_recursive_bad")
   (emit-elf64-obj-call "$BUILD_DIR/bootstrap-aot-call42.o" "nano_bootstrap_call" "nano_bootstrap_ext")
   (emit-elf64-obj-ret "$BUILD_DIR/bootstrap-aot-ext42.o" "nano_bootstrap_ext" 42)
   (link-elf64-exe "$BUILD_DIR/bootstrap-aot-call42-linked" "nano_bootstrap_call" "$BUILD_DIR/bootstrap-aot-call42.o" "$BUILD_DIR/bootstrap-aot-ext42.o")

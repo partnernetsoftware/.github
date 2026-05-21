@@ -65,6 +65,7 @@
   (run-expect-exit "lab/nano-lisp-jit/.build/bootstrap-aot-multi-ctrl-linked" 43)
   (compile-elf64-exe "lab/nano-lisp-jit/samples/multi-func-control-flow.lisp" "lab/nano-lisp-jit/.build/bootstrap-aot-multi-ctrl-direct.elf" "nano_bootstrap_multi_ctrl_direct")
   (run-expect-exit "lab/nano-lisp-jit/.build/bootstrap-aot-multi-ctrl-direct.elf" 43)
+  (compile-expect-exit 2 compile-elf64-obj-code "lab/nano-lisp-jit/samples/multi-func-recursive-bad.lisp" "lab/nano-lisp-jit/.build/bootstrap-aot-recursive-bad.o" "nano_bootstrap_recursive_bad")
   (emit-elf64-obj-call "lab/nano-lisp-jit/.build/bootstrap-aot-call42.o" "nano_bootstrap_call" "nano_bootstrap_ext")
   (emit-elf64-obj-ret "lab/nano-lisp-jit/.build/bootstrap-aot-ext42.o" "nano_bootstrap_ext" 42)
   (link-elf64-exe "lab/nano-lisp-jit/.build/bootstrap-aot-call42-linked" "nano_bootstrap_call" "lab/nano-lisp-jit/.build/bootstrap-aot-call42.o" "lab/nano-lisp-jit/.build/bootstrap-aot-ext42.o")
