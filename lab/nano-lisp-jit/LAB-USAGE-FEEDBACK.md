@@ -10,6 +10,12 @@
 - 消费者通过 `lab/_nano_common.sh` 定位 `lab/nano-lisp-jit/.build/nano-lisp-jit`；若缺失可触发 `run.sh` 构建。
 - `lab/run-lab-tools.sh` 聚合：`tool-exit42`、`tool-strlen-check`、`tool-blob-compare`、`tool-resolve-check`。
 
+## 路线响应
+
+- 这些反馈已进入 `ROADMAP.md` 的 `v1.5 slice 0: consumer feedback closure`。
+- v1.5 开工顺序调整为：先跑 `bash lab/run-lab-tools.sh`，收敛 CLI/DSL 命名、runner 定位、repo-root 路径、`run` 退出码语义和 x86_64 限制说明，再进入 nano APE manifest。
+- README 已补充消费者集成注意事项；后续若选择实现 CLI alias 或新子命令，应在对应问题条目下标注 commit/PR。
+
 ## 问题 1：`resolve-quiet` 仅存在于 bootstrap DSL，不是顶层 CLI 子命令
 
 **现象**：`nano-lisp-jit resolve-quiet foo.lbin` 会打印完整 `usage` 并以失败退出（exit 2）。
