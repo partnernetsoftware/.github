@@ -3383,9 +3383,10 @@ static void wr_elf64_rela(unsigned char *p, uint64_t off, uint32_t sym_idx, uint
   wr64(p + 16, (uint64_t)addend);
 }
 
-static int emit_elf64_exec_rx_file(const char *out_path, const unsigned char *code,
-                                   size_t code_n) {
-  size_t file_n = ELF64_EXEC_CODE_OFF + code_n;
+static int emit_elf64_exec_rx_data_file(const char *out_path, const unsigned char *code,
+                                        size_t code_n, const unsigned char *data,
+                                        size_t data_n) {
+  size_t file_n = ELF64_EXEC_CODE_OFF + code_n + data_n;
   unsigned char *out = (unsigned char *)calloc(1, file_n);
   if (!out) return 0;
 
@@ -3394,9 +3395,15 @@ static int emit_elf64_exec_rx_file(const char *out_path, const unsigned char *co
                 file_n, file_n, 0x1000);
 
   memcpy(out + ELF64_EXEC_CODE_OFF, code, code_n);
+  if (data_n) memcpy(out + ELF64_EXEC_CODE_OFF + code_n, data, data_n);
   int ok = write_file(out_path, out, file_n) && make_executable(out_path);
   free(out);
   return ok;
+}
+
+static int emit_elf64_exec_rx_file(const char *out_path, const unsigned char *code,
+                                   size_t code_n) {
+  return emit_elf64_exec_rx_data_file(out_path, code, code_n, NULL, 0);
 }
 
 static int elf64_obj_local_info(const Elf64ObjSymbol *syms, size_t sym_count, uint32_t *out) {
@@ -3497,6 +3504,12 @@ done:
 
 static int emit_elf64_code_file(const char *out_path, const unsigned char *code, size_t code_n) {
   return emit_elf64_exec_rx_file(out_path, code, code_n);
+}
+
+static int emit_elf64_code_data_file(const char *out_path, const unsigned char *code,
+                                     size_t code_n, const unsigned char *data,
+                                     size_t data_n) {
+  return emit_elf64_exec_rx_data_file(out_path, code, code_n, data, data_n);
 }
 
 static int emit_elf64_obj_text_file(const char *out_path, const char *symbol,
@@ -4120,11 +4133,17 @@ typedef struct {
   uint32_t target_pc;
 } PcPatch;
 
-static int compile_pure_blob_to_x86(const Blob *b, Buf *code, int exit_style) {
+typedef struct {
+  uint32_t patch_off;
+  uint32_t data_off;
+} DataPatch;
+
+static int compile_pure_blob_to_x86(const Blob *b, Buf *code, int exit_style, Buf *data) {
   int saw_ret = 0;
   int last_kind = 0;
   Buf expect_patches = {0};
   Buf branch_patches = {0};
+  Buf data_patches = {0};
   uint32_t *pc_offs = (uint32_t *)calloc(b->instr_count ? b->instr_count : 1, sizeof(*pc_offs));
   if (!pc_offs) return 0;
   for (uint32_t pc = 0; pc < b->instr_count; ++pc) {
@@ -4212,6 +4231,17 @@ static int compile_pure_blob_to_x86(const Blob *b, Buf *code, int exit_style) {
       last_kind = VAL_U64;
     } else if (op == OP_U64_TO_PTR) {
       if (last_kind != VAL_U64) goto fail;
+      last_kind = VAL_PTR;
+    } else if (op == OP_CONST_PTR) {
+      const char *s = data ? const_string_ref(b, arg0) : NULL;
+      if (!s) goto fail;
+      {
+        unsigned char movabs[10] = {0x48, exit_style ? 0xbf : 0xb8, 0, 0, 0, 0, 0, 0, 0, 0};
+        DataPatch patch = {(uint32_t)(code->len + 2), (uint32_t)data->len};
+        buf_put(code, movabs, sizeof(movabs));
+        buf_put(data, s, strlen(s) + 1);
+        buf_put(&data_patches, &patch, sizeof(patch));
+      }
       last_kind = VAL_PTR;
     } else if (op == OP_LOAD_U8) {
       if (last_kind != VAL_PTR) goto fail;
@@ -4551,24 +4581,33 @@ static int compile_pure_blob_to_x86(const Blob *b, Buf *code, int exit_style) {
       wr32(code->data + patch_off, (uint32_t)(int32_t)rel);
     }
   }
+  if (data_patches.len) {
+    uint64_t data_base = (uint64_t)ELF64_EXEC_BASE + ELF64_EXEC_CODE_OFF + code->len;
+    for (size_t i = 0; i < data_patches.len; i += sizeof(DataPatch)) {
+      const DataPatch *patch = (const DataPatch *)(data_patches.data + i);
+      patch64(code->data + patch->patch_off, data_base + patch->data_off);
+    }
+  }
   free(pc_offs);
   free(expect_patches.data);
   free(branch_patches.data);
+  free(data_patches.data);
   return 1;
 
 fail:
   free(pc_offs);
   free(expect_patches.data);
   free(branch_patches.data);
+  free(data_patches.data);
   return 0;
 }
 
-static int compile_pure_u64_blob_to_x86_exit(const Blob *b, Buf *code) {
-  return compile_pure_blob_to_x86(b, code, 1);
+static int compile_pure_u64_blob_to_x86_exit(const Blob *b, Buf *code, Buf *data) {
+  return compile_pure_blob_to_x86(b, code, 1, data);
 }
 
 static int compile_pure_u64_blob_to_x86_ret(const Blob *b, Buf *code) {
-  return compile_pure_blob_to_x86(b, code, 0);
+  return compile_pure_blob_to_x86(b, code, 0, NULL);
 }
 
 static int aot_build_label_table(const AotFunc *func, LabelDef **out_labels,
@@ -5081,26 +5120,31 @@ static int cmd_aot_elf64_code(const char *blob_path, const char *out_path) {
   Blob b;
   unsigned char *owned = NULL;
   Buf code = {0};
+  Buf data = {0};
   if (!blob_load_path(blob_path, &b, &owned)) {
     fprintf(stderr, "blob=parse_fail path=%s\n", blob_path);
     return 1;
   }
-  int ok = compile_pure_u64_blob_to_x86_exit(&b, &code);
+  int ok = compile_pure_u64_blob_to_x86_exit(&b, &code, &data);
   free(owned);
   if (!ok) {
     free(code.data);
+    free(data.data);
     fprintf(stderr, "aot-elf64-code=unsupported_blob\n");
     return 2;
   }
-  if (!emit_elf64_code_file(out_path, code.data, code.len)) {
+  if (!emit_elf64_code_data_file(out_path, code.data, code.len, data.data, data.len)) {
     free(code.data);
+    free(data.data);
     fprintf(stderr, "aot-elf64-code=write_fail path=%s\n", out_path);
     return 3;
   }
   printf("aot.code.output=%s\n", out_path);
-  printf("aot.code.bytes=%zu\n", 120 + code.len);
+  printf("aot.code.bytes=%zu\n", 120 + code.len + data.len);
   printf("aot.code.x86.bytes=%zu\n", code.len);
+  if (data.len) printf("aot.code.data.bytes=%zu\n", data.len);
   free(code.data);
+  free(data.data);
   return 0;
 }
 
@@ -5109,27 +5153,32 @@ static int cmd_compile_elf64_code(const char *src_path, const char *out_path) {
   unsigned char *blob_data = compile_source_path_to_blob(src_path, &blob_n);
   Blob b;
   Buf code = {0};
+  Buf data = {0};
   if (!blob_data || !blob_init(&b, blob_data, blob_n)) {
     fprintf(stderr, "compile-elf64-code=compile_fail\n");
     free(blob_data);
     return 1;
   }
-  int ok = compile_pure_u64_blob_to_x86_exit(&b, &code);
+  int ok = compile_pure_u64_blob_to_x86_exit(&b, &code, &data);
   free(blob_data);
   if (!ok) {
     free(code.data);
+    free(data.data);
     fprintf(stderr, "compile-elf64-code=unsupported_source\n");
     return 2;
   }
-  if (!emit_elf64_code_file(out_path, code.data, code.len)) {
+  if (!emit_elf64_code_data_file(out_path, code.data, code.len, data.data, data.len)) {
     free(code.data);
+    free(data.data);
     fprintf(stderr, "compile-elf64-code=write_fail path=%s\n", out_path);
     return 3;
   }
   printf("compile.elf64.output=%s\n", out_path);
-  printf("compile.elf64.bytes=%zu\n", 120 + code.len);
+  printf("compile.elf64.bytes=%zu\n", 120 + code.len + data.len);
   printf("compile.elf64.x86.bytes=%zu\n", code.len);
+  if (data.len) printf("compile.elf64.data.bytes=%zu\n", data.len);
   free(code.data);
+  free(data.data);
   return 0;
 }
 

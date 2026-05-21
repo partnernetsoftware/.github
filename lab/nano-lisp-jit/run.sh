@@ -48,6 +48,8 @@ PTR_CODE_OBJ="$BUILD_DIR/ptr_values_code_obj.o"
 PTR_LINK_EXE="$BUILD_DIR/ptr_values_linked"
 PTR_DIRECT_EXE="$BUILD_DIR/ptr_values_direct"
 CONST_PTR_EXIT="$BUILD_DIR/const_ptr_load_u8_aot.elf"
+CONST_PTR_CODE="$BUILD_DIR/const_ptr_load_u8_code.elf"
+CONST_PTR_DIRECT_EXE="$BUILD_DIR/const_ptr_load_u8_direct"
 MULTI_OBJ="$BUILD_DIR/multi_func.o"
 MULTI_LINK_EXE="$BUILD_DIR/multi_func_linked"
 MULTI_CTRL_OBJ="$BUILD_DIR/multi_func_control.o"
@@ -238,6 +240,8 @@ if [ "$(uname -m)" = "x86_64" ] || [ "$(uname -m)" = "amd64" ]; then
   run_case "run-aot-ptr-values-exit1" "$RUNNER" run-expect-exit "$PTR_EXIT" 1
   run_case "aot-const-ptr-load-u8-elf64-exit1" "$RUNNER" aot-elf64-exit "$CONST_PTR_BLOB" "$CONST_PTR_EXIT"
   run_case "run-aot-const-ptr-load-u8-exit1" "$RUNNER" run-expect-exit "$CONST_PTR_EXIT" 1
+  run_case "aot-const-ptr-load-u8-elf64-code1" "$RUNNER" aot-elf64-code "$CONST_PTR_BLOB" "$CONST_PTR_CODE"
+  run_case "run-aot-const-ptr-load-u8-code1" "$RUNNER" run-expect-exit "$CONST_PTR_CODE" 1
   run_case "aot-ptr-values-elf64-code1" "$RUNNER" aot-elf64-code "$PTR_BLOB" "$PTR_CODE"
   run_case "run-aot-ptr-values-code1" "$RUNNER" run-expect-exit "$PTR_CODE" 1
   run_case "aot-ptr-values-elf64-obj-code1" "$RUNNER" aot-elf64-obj-code "$PTR_BLOB" "$PTR_CODE_OBJ" nano_ptr_code
@@ -255,6 +259,8 @@ if [ "$(uname -m)" = "x86_64" ] || [ "$(uname -m)" = "amd64" ]; then
   run_case "run-direct-compiled-control-flow1" "$RUNNER" run-expect-exit "$CTRL_DIRECT_EXE" 1
   run_case "compile-ptr-values-elf64-code1" "$RUNNER" compile-elf64-code "$PTR_SRC" "$PTR_DIRECT_EXE"
   run_case "run-direct-compiled-ptr-values1" "$RUNNER" run-expect-exit "$PTR_DIRECT_EXE" 1
+  run_case "compile-const-ptr-load-u8-elf64-code1" "$RUNNER" compile-elf64-code "$CONST_PTR_SRC" "$CONST_PTR_DIRECT_EXE"
+  run_case "run-direct-compiled-const-ptr-load-u8-1" "$RUNNER" run-expect-exit "$CONST_PTR_DIRECT_EXE" 1
   run_case "emit-elf64-obj-ret42" "$RUNNER" emit-elf64-obj-ret "$RET42_OBJ" nano_ret 42
   log "ret42.obj.bytes=$(bytes_of "$RET42_OBJ")"
   run_case "link-elf64-obj-ret42" "$RUNNER" link-elf64-exe "$RET42_EXE" nano_ret "$RET42_OBJ"
