@@ -6,6 +6,48 @@
 
 每一层必须有可重复脚本证据，能跑通后才进入下一层。
 
+### 洋葱 TDD mindmap
+
+```text
+nano-lisp-jit / nano-jit self-bootstrap v1
+├─ 0. 证据基线
+│  ├─ native: run.sh
+│  ├─ container: build_nano_jit.sh
+│  └─ 产物证据: bytes / hash / exit status / bootstrap-report
+├─ 1. IR/VM 内核
+│  ├─ deterministic .lbin
+│  ├─ typed value: u64 / i64 / bool / ptr
+│  └─ expect: number / bool / null / nonnull
+├─ 2. FFI/JIT 核心
+│  ├─ libc smoke: strlen / atoi / strcmp / abs / getpid
+│  ├─ resolver-only 全量 libc manifest
+│  └─ typed C call + micro JIT 快路径
+├─ 3. AOT / x86_64 codegen
+│  ├─ aot-elf64-exit
+│  ├─ aot-elf64-code
+│  ├─ compile-elf64-code
+│  └─ control-flow / i64 / bool / ptr 子集
+├─ 4. ELF64 object / tiny linker
+│  ├─ emit-elf64-obj-ret / emit-elf64-obj-call
+│  ├─ aot-elf64-obj-code / compile-elf64-obj-code
+│  ├─ multi-object + R_X86_64_PLT32
+│  └─ duplicate symbol / rel32 range negative smoke
+├─ 5. ptr memory closure
+│  ├─ const-ptr + RIP-relative embedded data
+│  ├─ load-u8/u16/u32
+│  ├─ store-u8/u16/u32
+│  └─ cross-object data smoke: object A calls object B; B reads/writes own data
+├─ 6. bootstrap DSL
+│  ├─ compile / hash / compare / file-size / file-hash
+│  ├─ pack-app / inspect-app / run-app
+│  ├─ compile-expect-exit / link-expect-exit / run-expect-exit
+│  └─ checked-in bootstrap-aot-smoke.lisp mirrors shell coverage
+└─ 7. self-pack / handoff
+   ├─ nano-jit.com self-pack without apelink
+   ├─ native + container evidence passes
+   └─ v1 = 100%; v2 starts from data sections, decomposition, ABI, build graph
+```
+
 ### 0. 证据基线
 
 - `run.sh`：native 编译、`.lisp -> .lbin`、JIT/FFI 执行、全量 libc resolver。
@@ -113,11 +155,18 @@
 
 v1 达成标准：`nano-jit.com` 可 self-pack；核心 `.lisp -> .lbin -> VM/AOT/codegen/object/tiny-link/exe` 路径可由 native 与容器脚本重复验证；typed `i64/bool/ptr`、control-flow、multi-func、多 object、load/store-family、负向编译与链接失败均有自举证据。
 
+目标复盘：
+
+- 原目标不是“做一个完整 Lisp”，而是证明极小 Lisp/IR 能持续替代外部脚本、外部 linker oracle 和部分 shell glue。
+- v1 的 100% 定义限定在 self-bootstrap 证据闭环：native/container 都能重复生成、链接、运行并断言核心产物。
+- 还没有完成“最终自编译编译器”：`cosmocc` 仍负责架构 slice，v2 才继续缩小这个边界。
+
 设计上做对的部分：
 
 - 把 shell oracle 逐步迁入 bootstrap DSL，测试从“脚本观察输出”变成“工具自己断言状态码和产物”。
 - 优先收紧 x86_64 object/tiny-link 主链路，让 `compile-elf64-exe` 可复用 object backend，而不是另起一条不可验证路径。
 - typed value 只扩展最小可证明闭环，每个 op 同时进入解释、静态 AOT、机器码和负向样例。
+- 始终采用洋葱式推进：样例先行，进入 native runner，再进入 bootstrap DSL，最后进入 self-packed `nano-jit.com` 容器自举。
 
 实现上暴露的问题：
 
@@ -126,6 +175,8 @@ v1 达成标准：`nano-jit.com` 可 self-pack；核心 `.lisp -> .lbin -> VM/AO
 - object 数据布局依赖“数据跟随 text”的局部 RIP 相对寻址；v2 应支持数据 section、section symbol 和数据 relocation。
 - source AOT 与 blob AOT 仍有细小边界差异，新增语义时必须同时补 checked-in DSL、native runner 与 self-packed runner。
 - bootstrap DSL 仍是线性执行模型，缺少命名产物、依赖图和条件化能力。
+- typed op 当前是栈顶/上一值风格，缺少局部变量、参数传递和可组合表达式模型。
+- 错误码和错误消息可用但未体系化，后续调试复杂 source 时会拖慢定位。
 
 v2 建议入口：
 
@@ -134,3 +185,10 @@ v2 建议入口：
 3. 扩展函数参数与局部值模型，让 `store/load` 不再只依赖“上一条值”。
 4. 把 bootstrap DSL 从顺序脚本推进到小型 build graph，减少 `run.sh` / `build_nano_jit.sh` 的变量胶水。
 5. 继续缩小 `cosmocc` 角色：先生成更完整 x86_64 slice，再评估 aarch64 slice 的最小 backend。
+
+下一分身接续顺序：
+
+1. 先跑 `bash lab/nano-lisp-jit/run.sh` 和 `sudo docker compose -f docker-compose.dev.yml run --rm dev bash lab/nano-lisp-jit/build_nano_jit.sh`，确认 v1 基线仍绿。
+2. 从 v2 任务 2 开始最稳：新增 `.rodata/.data` section 和数据 relocation，保留旧 text-embedded 数据路径直到测试等价。
+3. 再拆 `lispjit.c`，避免在数据 section 改动尚未稳定时同时移动大量代码。
+4. 每次推进继续保持“样例 -> native runner -> checked-in bootstrap DSL -> self-packed runner -> commit/merge”的洋葱顺序。
