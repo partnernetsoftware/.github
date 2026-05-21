@@ -62,10 +62,29 @@
 
 **建议**：CLI 在非 x86_64 上给出明确 `skip: host is not x86_64` 而非 `compile_fail`。
 
+## 问题 6：`i64` INT64_MIN 无法 codegen/AOT
+
+**现象**：`i64` 普通值（如 42）VM 与 `compile-elf64-code` 均可；含 `INT64_MIN` 时 VM `run` 成功，但 `compile-elf64-code` → `unsupported_source`，`aot-elf64-code` → `unsupported_blob`（`lab/boundary-probes/probes/aot-i64-extremes.lisp`）。
+
+**建议**：文档列出 codegen 支持的 i64 立即数范围；或扩展 x86_64 发射逻辑。
+
+## 问题 7：`(func …)` 不能通过 `compile` 生成 `.lbin`
+
+**现象**：含 `(func helper …)` 的 module 在 `compile` 时 `parse=fail`；同一文件 `compile-elf64-exe` / `compile-elf64-obj-code` 可工作（见 `samples/multi-func.lisp`、`lab/boundary-probes/probes/multi-func-chain.lisp`）。
+
+**建议**：README 明确「多函数仅 source AOT 路径」；或扩展 `.lbin` 格式支持 func 表。
+
+## 问题 8：`func` 单行写法无法解析
+
+**现象**：`(func f (u64 1))` 导致 `parse=fail`；须与 `samples/multi-func.lisp` 一样多行函数体。
+
+**建议**：parser 错误信息区分「未知 token」与「func 体格式」。
+
 ## 未发现问题（本轮）
 
 - 绝对路径 `.lisp` / 输出路径：可正常读写。
 - 首次构建触发完整 `run.sh` 较慢；可考虑 `nano_runner` 只 `cc` 单二进制（后续优化）。
+- `i64` INT64_MIN/MAX、长 `add-u64` 链、4 层 func/控制流：见 `lab/boundary-probes/BOUNDARY-NOTES.md`。
 
 ---
 

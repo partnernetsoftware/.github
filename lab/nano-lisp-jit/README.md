@@ -6,6 +6,7 @@
 路线图、v1 反思、持续进化循环、v1.5/v2/v3+ 洋葱 TDD mindmap 见 `ROADMAP.md`。
 `lab/tool-*` 消费者用法与已知摩擦见 `LAB-USAGE-FEEDBACK.md`。
 内存安全借鉴与产品化命名见 `DESIGN-MEMORY-AND-PRODUCT.md`。
+能力边界探测见 `../boundary-probes/`（`run-probes.sh` → `RESULTS.md`）。
 
 当前状态：self-bootstrap v1 已评估为 `100%`。`nano-jit.com` 已能 self-pack，不调用 `apelink`；纯 VM source 可进入 `.lbin`、解释执行、AOT ELF、ELF64 object、tiny-link executable；typed `i64/bool/ptr`、control-flow、multi-func、多 object、load/store-family 和跨 object 数据 smoke 均有 native/container 自举证据。
 

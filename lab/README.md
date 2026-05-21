@@ -19,3 +19,4 @@ bash lab/run-lab-tools.sh
 
 使用反馈写回：`lab/nano-lisp-jit/LAB-USAGE-FEEDBACK.md`。
 设计与产品化命名：`lab/nano-lisp-jit/DESIGN-MEMORY-AND-PRODUCT.md`。
+能力边界探测：`lab/boundary-probes/`（`run-probes.sh`）。
