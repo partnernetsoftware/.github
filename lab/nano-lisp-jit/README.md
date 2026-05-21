@@ -213,6 +213,8 @@ bootstrap DSL 也能描述一条最小 AOT/codegen/tiny-link 构建图，不需�
   (compile "lab/nano-lisp-jit/samples/const-ptr-load-u8.lisp" "lab/nano-lisp-jit/.build/bootstrap-aot-const-ptr-load-u8.lbin")
   (aot-elf64-exit "lab/nano-lisp-jit/.build/bootstrap-aot-const-ptr-load-u8.lbin" "lab/nano-lisp-jit/.build/bootstrap-aot-const-ptr-load-u8-exit.elf")
   (run-expect-exit "lab/nano-lisp-jit/.build/bootstrap-aot-const-ptr-load-u8-exit.elf" 1)
+  (aot-elf64-code "lab/nano-lisp-jit/.build/bootstrap-aot-const-ptr-load-u8.lbin" "lab/nano-lisp-jit/.build/bootstrap-aot-const-ptr-load-u8-code.elf")
+  (run-expect-exit "lab/nano-lisp-jit/.build/bootstrap-aot-const-ptr-load-u8-code.elf" 1)
   (aot-elf64-code "lab/nano-lisp-jit/.build/bootstrap-aot-ptr-values.lbin" "lab/nano-lisp-jit/.build/bootstrap-aot-ptr-values-code.elf")
   (run-expect-exit "lab/nano-lisp-jit/.build/bootstrap-aot-ptr-values-code.elf" 1)
   (compile-elf64-exe "lab/nano-lisp-jit/samples/multi-func-ptr.lisp" "lab/nano-lisp-jit/.build/bootstrap-aot-multi-ptr-direct.elf" "nano_bootstrap_multi_ptr_direct")
