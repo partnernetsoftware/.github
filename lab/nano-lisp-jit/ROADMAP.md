@@ -49,6 +49,81 @@ nano-lisp-jit / nano-jit self-bootstrap v1
    └─ v1 = 100%; v2 starts from APE format, data sections, decomposition, ABI, build graph
 ```
 
+### v1.5 / v2 洋葱 TDD mindmap
+
+```text
+nano-jit continuation after self-bootstrap v1
+├─ v1.5: APE format stabilization
+│  ├─ 目标
+│  │  ├─ 从“能 self-pack 的 .com”推进到“nano 自主 APE container”
+│  │  ├─ 明确 loader/header/payload table/arch selection/manifest/hash
+│  │  └─ 保持现有 x86_64/aarch64 slice 产物继续可运行
+│  ├─ 洋葱 TDD
+│  │  ├─ sample: 最小 APE manifest fixture
+│  │  ├─ CLI: inspect-ape 输出 header、payload table、arch/os、offset/size/hash
+│  │  ├─ pack: pack-ape 写 nano APE manifest，不只是拼接 slices
+│  │  ├─ run: 当前 host 选择匹配 payload；unsupported arch 有明确失败码
+│  │  ├─ bootstrap DSL: pack/inspect/run/negative 全部进入 checked-in plan
+│  │  └─ self-packed: build_nano_jit.sh 用 nano-jit.com 复验同一矩阵
+│  └─ 验收
+│     ├─ .com 同时含 x86_64/aarch64 payload metadata
+│     ├─ manifest hash/offset/size deterministic
+│     └─ Linux host 至少能选择并执行本机 slice
+├─ v1.5: data/section correctness
+│  ├─ 目标
+│  │  ├─ 从 text-embedded data 迁移到 .rodata/.data
+│  │  ├─ 移除 RWX text/data 混合策略
+│  │  └─ 支持 section symbol + R_X86_64_PC32 data relocation
+│  ├─ 洋葱 TDD
+│  │  ├─ sample: const-ptr/load/store 等价旧路径
+│  │  ├─ object: 单 object 数据 relocation
+│  │  ├─ link: 多 object 数据 relocation
+│  │  ├─ negative: unsupported relocation / bad section index
+│  │  └─ bootstrap: native + self-packed 同步覆盖
+│  └─ 验收
+│     ├─ read-only const 与 writable data 权限分离
+│     └─ 旧 text-embedded 数据路径可删除或降级为兼容层
+├─ v2: compiler/runtime decomposition
+│  ├─ 目标
+│  │  ├─ 拆分 lispjit.c 单文件大内核
+│  │  ├─ parser/blob/vm/aot_x86/elf/linker/ape/bootstrap 分层
+│  │  └─ 错误码、错误消息、测试 fixture 体系化
+│  ├─ 洋葱 TDD
+│  │  ├─ 先锁定所有现有 fixture hash/exit
+│  │  ├─ 小步移动模块，不做语义重写
+│  │  ├─ 每次移动跑 native runner
+│  │  └─ 阶段性跑 self-packed container bootstrap
+│  └─ 验收
+│     └─ 重构前后所有 v1/v1.5 证据等价
+├─ v2: richer IR/function model
+│  ├─ 目标
+│  │  ├─ 函数参数、局部变量、显式 value stack 或 SSA-like slots
+│  │  ├─ load/store 不再只依赖上一条值
+│  │  └─ ABI call descriptor 替代硬编码签名路径
+│  ├─ 洋葱 TDD
+│  │  ├─ sample: 参数传递与局部变量
+│  │  ├─ VM: 解释执行先闭环
+│  │  ├─ AOT/codegen: x86_64 主路径
+│  │  ├─ object/tiny-link: 多函数、多 object
+│  │  └─ negative: 参数类型、局部未定义、ABI 不支持
+│  └─ 验收
+│     └─ 可表达小型编译器 pass 的核心控制/数据流
+└─ v2: self-hosted slice compiler path
+   ├─ 目标
+   │  ├─ 不只生成 ELF，而是生成能进入 nano APE payload table 的架构 slice
+   │  ├─ 先 x86_64，后 aarch64
+   │  └─ 逐步把 cosmocc 从 slice compiler 降级为外部 oracle
+   ├─ 洋葱 TDD
+   │  ├─ emit minimal x86_64 slice
+   │  ├─ pack into nano APE manifest
+   │  ├─ run selected payload
+   │  ├─ compare against cosmocc-built slice behavior
+   │  └─ self-packed nano-jit.com 复验
+   └─ 验收
+      ├─ build_nano_jit.sh 可选择 nano-generated x86_64 payload
+      └─ 下一阶段再补 aarch64 payload generator
+```
+
 ### 0. 证据基线
 
 - `run.sh`：native 编译、`.lisp -> .lbin`、JIT/FFI 执行、全量 libc resolver。
