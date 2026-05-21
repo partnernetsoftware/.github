@@ -44,8 +44,9 @@ nano-lisp-jit / nano-jit self-bootstrap v1
 │  └─ checked-in bootstrap-aot-smoke.lisp mirrors shell coverage
 └─ 7. self-pack / handoff
    ├─ nano-jit.com self-pack without apelink
+   ├─ APE v1: loader stub + x86_64/aarch64 payload container
    ├─ native + container evidence passes
-   └─ v1 = 100%; v2 starts from data sections, decomposition, ABI, build graph
+   └─ v1 = 100%; v2 starts from APE format, data sections, decomposition, ABI, build graph
 ```
 
 ### 0. 证据基线
@@ -107,12 +108,13 @@ nano-lisp-jit / nano-jit self-bootstrap v1
 1. 把最小 control flow 子集继续接到机器码 AOT/codegen 路径，逐步缩小静态求值-only 语义。
 2. 继续扩大 bootstrap DSL：在已落地的 `compile/hash/compare/pack-app/inspect-app/run-app/run` 基础上，再接更丰富的可验证步骤。
 3. 持续缩小临时依赖：`cosmocc` 只保留为 slice compiler，下一阶段目标是生成 x86_64 slice 的可运行子集。
-4. 进入 v2 反思队列：明确独立数据段权限模型、更多内存布局、更完整 ABI 边界，以及减少 slice compiler 依赖。
+4. 进入 v2 反思队列：实现类似 Cosmopolitan 的 APE 格式、明确独立数据段权限模型、更多内存布局、更完整 ABI 边界，以及减少 slice compiler 依赖。
 
 已完成：
 
 - AOT app 直接从 `.com` payload 读取内嵌 blob 执行。
 - AOT app 结构化 manifest、`inspect-app` 和 `run-app`。
+- `pack-ape` 已能组合 x86_64/aarch64 slice 与 container metadata，形成当前最小 `.com`；但 loader/多架构执行选择仍主要依赖现有 slice/stub 约定，尚未形成 nano 自主的完整 APE loader 格式。
 - deterministic `.lbin` hash/byte compare 测试。
 - `compare` CLI 已替代系统 `cmp` 执行 deterministic blob 对比。
 - `file-size` CLI 已替代 nano-lisp-jit smoke 报告中的 `wc -c` 字节统计。
@@ -159,6 +161,7 @@ v1 达成标准：`nano-jit.com` 可 self-pack；核心 `.lisp -> .lbin -> VM/AO
 
 - 原目标不是“做一个完整 Lisp”，而是证明极小 Lisp/IR 能持续替代外部脚本、外部 linker oracle 和部分 shell glue。
 - v1 的 100% 定义限定在 self-bootstrap 证据闭环：native/container 都能重复生成、链接、运行并断言核心产物。
+- 另一个长期目标是生成类似 Cosmopolitan APE 的跨架构 `.com`：同一个文件内含 loader/识别头、架构选择逻辑、多个架构 payload 与元数据，而不只是生成单架构 ELF。
 - 还没有完成“最终自编译编译器”：`cosmocc` 仍负责架构 slice，v2 才继续缩小这个边界。
 
 设计上做对的部分：
@@ -171,6 +174,7 @@ v1 达成标准：`nano-jit.com` 可 self-pack；核心 `.lisp -> .lbin -> VM/AO
 实现上暴露的问题：
 
 - `lispjit.c` 仍是单文件大内核，解析、IR、解释、AOT、ELF writer、linker 和 CLI 分层不足。
+- APE 反思不足：v1 只是 self-pack 和不调用 `apelink`，还没有把 loader/header/payload table/架构选择规则提升为 nano 自主格式。
 - const/data 当前仍附着在 `.text`，靠可写 load segment 支持 store；v2 应拆出 `.rodata/.data` 与明确段权限。
 - object 数据布局依赖“数据跟随 text”的局部 RIP 相对寻址；v2 应支持数据 section、section symbol 和数据 relocation。
 - source AOT 与 blob AOT 仍有细小边界差异，新增语义时必须同时补 checked-in DSL、native runner 与 self-packed runner。
@@ -180,15 +184,18 @@ v1 达成标准：`nano-jit.com` 可 self-pack；核心 `.lisp -> .lbin -> VM/AO
 
 v2 建议入口：
 
-1. 拆分 `lispjit.c`：先按 parser/blob/vm/aot_x86/elf/linker/bootstrap 分区或分文件。
-2. 引入 `.rodata/.data` object section，支持 `R_X86_64_PC32` 数据 relocation，再移除 RWX text/data 混合策略。
-3. 扩展函数参数与局部值模型，让 `store/load` 不再只依赖“上一条值”。
-4. 把 bootstrap DSL 从顺序脚本推进到小型 build graph，减少 `run.sh` / `build_nano_jit.sh` 的变量胶水。
-5. 继续缩小 `cosmocc` 角色：先生成更完整 x86_64 slice，再评估 aarch64 slice 的最小 backend。
+1. 先定义 nano APE v2 格式：loader/header magic、payload table、arch/os 选择字段、offset/size/hash、fallback 行为，以及 inspect/run 验证输出。
+2. 让 `pack-ape` 不只是拼 slice，而是写出 nano 自主的 APE manifest；`inspect-app`/`run-app` 应能解释该 manifest。
+3. 引入 `.rodata/.data` object section，支持 `R_X86_64_PC32` 数据 relocation，再移除 RWX text/data 混合策略。
+4. 拆分 `lispjit.c`：先按 parser/blob/vm/aot_x86/elf/linker/ape/bootstrap 分区或分文件。
+5. 扩展函数参数与局部值模型，让 `store/load` 不再只依赖“上一条值”。
+6. 把 bootstrap DSL 从顺序脚本推进到小型 build graph，减少 `run.sh` / `build_nano_jit.sh` 的变量胶水。
+7. 继续缩小 `cosmocc` 角色：先生成更完整 x86_64 slice，再评估 aarch64 slice 的最小 backend。
 
 下一分身接续顺序：
 
 1. 先跑 `bash lab/nano-lisp-jit/run.sh` 和 `sudo docker compose -f docker-compose.dev.yml run --rm dev bash lab/nano-lisp-jit/build_nano_jit.sh`，确认 v1 基线仍绿。
-2. 从 v2 任务 2 开始最稳：新增 `.rodata/.data` section 和数据 relocation，保留旧 text-embedded 数据路径直到测试等价。
-3. 再拆 `lispjit.c`，避免在数据 section 改动尚未稳定时同时移动大量代码。
-4. 每次推进继续保持“样例 -> native runner -> checked-in bootstrap DSL -> self-packed runner -> commit/merge”的洋葱顺序。
+2. 从 v2 任务 1 开始：先把 APE manifest/header/payload table 设计写成最小 spec，再用 `inspect-app` 测试锁定格式。
+3. 接着新增 `.rodata/.data` section 和数据 relocation，保留旧 text-embedded 数据路径直到测试等价。
+4. 再拆 `lispjit.c`，避免在 APE/数据 section 改动尚未稳定时同时移动大量代码。
+5. 每次推进继续保持“样例 -> native runner -> checked-in bootstrap DSL -> self-packed runner -> commit/merge”的洋葱顺序。
