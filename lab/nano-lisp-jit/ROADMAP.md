@@ -94,7 +94,7 @@
 - ELF/object/linker 内部 API 已抽象成可复用 helper，减少 section/symbol/rela 写入与解析重复。
 - typed value 已覆盖 `i64`、`bool`、`ptr` 基础值；`resolve` 会产出 `ptr` 值。
 - typed 算术/比较已覆盖 `add-i64` / `sub-i64` / `mul-i64` / `eq-i64` / `ne-i64` / `lt-i64` / `gt-i64` / `le-i64` / `ge-i64`，typed bool 逻辑已覆盖 `not-bool` / `and-bool` / `or-bool`，进入解释执行、静态求值 AOT 和 x86_64 codegen/object 路径。
-- 最小 ptr 纯值子集已覆盖 `null-ptr` / `add-ptr` / `is-null-ptr` / `is-nonnull-ptr`，进入解释执行、静态求值 AOT、x86_64 codegen/object、多函数 local call 返回类型与 direct executable 路径。
+- 最小 ptr 纯值子集已覆盖 `null-ptr` / `add-ptr` / `sub-ptr` / `is-null-ptr` / `is-nonnull-ptr`，进入解释执行、静态求值 AOT、x86_64 codegen/object、多函数 local call 返回类型与 direct executable 路径。
 - typed 负向编译 smoke 已覆盖 ptr predicate 误用、branch 非 bool、ptr expect 非 ptr，且同一 DSL 会断言 `compile-elf64-code` / `compile-elf64-obj-code` / `compile-elf64-exe` 返回失败码。
 - `expect` 已支持负数、布尔值和 `null` / `nonnull` 指针断言。
 - `block` / `branch` / `label` 已可编译进 `.lbin` 并由解释执行路径运行。
