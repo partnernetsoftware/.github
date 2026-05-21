@@ -1,6 +1,7 @@
 ; Typed value smoke: signed integer, bool, and pointer result from resolve.
 (module
   (import strlen "libc" "strlen" "u64(ptr)")
+  (const word "ffi")
   (main
     (i64 -42)
     (expect -42)
@@ -32,6 +33,9 @@
     (expect nonnull)
     (is-nonnull-ptr)
     (expect true)
+    (const-ptr word)
+    (load-u8)
+    (expect 102)
     (resolve strlen)
     (expect nonnull)
     (is-nonnull-ptr)
