@@ -61,6 +61,8 @@ TYPED_SRC="$LAB_DIR/samples/typed-values.lisp"
 TYPED_BLOB="$BUILD_DIR/typed-values.lbin"
 PTR_SRC="$LAB_DIR/samples/ptr-values.lisp"
 PTR_BLOB="$BUILD_DIR/ptr-values.lbin"
+CONST_PTR_SRC="$LAB_DIR/samples/const-ptr-load-u8.lisp"
+CONST_PTR_BLOB="$BUILD_DIR/const-ptr-load-u8.lbin"
 CTRL_SRC="$LAB_DIR/samples/control-flow.lisp"
 CTRL_BLOB="$BUILD_DIR/control-flow.lbin"
 MULTI_SRC="$LAB_DIR/samples/multi-func.lisp"
@@ -72,6 +74,7 @@ TYPE_BAD_ADD_PTR_SRC="$LAB_DIR/samples/type-error-add-ptr-bad.lisp"
 TYPE_BAD_SUB_PTR_SRC="$LAB_DIR/samples/type-error-sub-ptr-bad.lisp"
 TYPE_BAD_PTR_TO_U64_SRC="$LAB_DIR/samples/type-error-ptr-to-u64-bad.lisp"
 TYPE_BAD_U64_TO_PTR_SRC="$LAB_DIR/samples/type-error-u64-to-ptr-bad.lisp"
+TYPE_BAD_LOAD_U8_SRC="$LAB_DIR/samples/type-error-load-u8-bad.lisp"
 TYPE_BAD_BRANCH_SRC="$LAB_DIR/samples/type-error-branch-bad.lisp"
 TYPE_BAD_EXPECT_PTR_SRC="$LAB_DIR/samples/type-error-expect-ptr-bad.lisp"
 BAD_ARITH_SRC="$LAB_DIR/samples/arithmetic-bad.lisp"
@@ -143,6 +146,9 @@ cat > "$BOOTSTRAP_PLAN" <<EOF
   (compile "$PTR_SRC" "$BUILD_DIR/bootstrap-smoke-ptr-values.lbin")
   (file-size "$BUILD_DIR/bootstrap-smoke-ptr-values.lbin")
   (run "$BUILD_DIR/bootstrap-smoke-ptr-values.lbin")
+  (compile "$CONST_PTR_SRC" "$BUILD_DIR/bootstrap-smoke-const-ptr-load-u8.lbin")
+  (file-size "$BUILD_DIR/bootstrap-smoke-const-ptr-load-u8.lbin")
+  (run "$BUILD_DIR/bootstrap-smoke-const-ptr-load-u8.lbin")
   (compile "$SMOKE_SRC" "$BUILD_DIR/bootstrap-smoke.lbin")
   (resolve-quiet "$BUILD_DIR/bootstrap-smoke.lbin")
   (hash "$BUILD_DIR/bootstrap-smoke.lbin")
@@ -189,6 +195,9 @@ cat > "$BOOTSTRAP_PLAN" <<EOF
   (compile "$PTR_SRC" "$BUILD_DIR/bootstrap-aot-ptr-values.lbin")
   (aot-elf64-exit "$BUILD_DIR/bootstrap-aot-ptr-values.lbin" "$BUILD_DIR/bootstrap-aot-ptr-values-exit.elf")
   (run-expect-exit "$BUILD_DIR/bootstrap-aot-ptr-values-exit.elf" 1)
+  (compile "$CONST_PTR_SRC" "$BUILD_DIR/bootstrap-aot-const-ptr-load-u8.lbin")
+  (aot-elf64-exit "$BUILD_DIR/bootstrap-aot-const-ptr-load-u8.lbin" "$BUILD_DIR/bootstrap-aot-const-ptr-load-u8-exit.elf")
+  (run-expect-exit "$BUILD_DIR/bootstrap-aot-const-ptr-load-u8-exit.elf" 1)
   (aot-elf64-code "$BUILD_DIR/bootstrap-aot-ptr-values.lbin" "$BUILD_DIR/bootstrap-aot-ptr-values-code.elf")
   (run-expect-exit "$BUILD_DIR/bootstrap-aot-ptr-values-code.elf" 1)
   (compile-elf64-code "$PTR_SRC" "$BUILD_DIR/bootstrap-aot-ptr-values.elf")
@@ -249,6 +258,9 @@ cat > "$BOOTSTRAP_PLAN" <<EOF
   (compile-expect-exit 2 compile-elf64-code "$TYPE_BAD_U64_TO_PTR_SRC" "$BUILD_DIR/bootstrap-aot-type-bad-u64-to-ptr.elf")
   (compile-expect-exit 2 compile-elf64-obj-code "$TYPE_BAD_U64_TO_PTR_SRC" "$BUILD_DIR/bootstrap-aot-type-bad-u64-to-ptr.o" "nano_bootstrap_type_bad_u64_to_ptr")
   (compile-expect-exit 2 compile-elf64-exe "$TYPE_BAD_U64_TO_PTR_SRC" "$BUILD_DIR/bootstrap-aot-type-bad-u64-to-ptr-exe.elf" "nano_bootstrap_type_bad_u64_to_ptr")
+  (compile-expect-exit 2 compile-elf64-code "$TYPE_BAD_LOAD_U8_SRC" "$BUILD_DIR/bootstrap-aot-type-bad-load-u8.elf")
+  (compile-expect-exit 2 compile-elf64-obj-code "$TYPE_BAD_LOAD_U8_SRC" "$BUILD_DIR/bootstrap-aot-type-bad-load-u8.o" "nano_bootstrap_type_bad_load_u8")
+  (compile-expect-exit 2 compile-elf64-exe "$TYPE_BAD_LOAD_U8_SRC" "$BUILD_DIR/bootstrap-aot-type-bad-load-u8-exe.elf" "nano_bootstrap_type_bad_load_u8")
   (compile-expect-exit 2 compile-elf64-code "$TYPE_BAD_BRANCH_SRC" "$BUILD_DIR/bootstrap-aot-type-bad-branch.elf")
   (compile-expect-exit 2 compile-elf64-obj-code "$TYPE_BAD_EXPECT_PTR_SRC" "$BUILD_DIR/bootstrap-aot-type-bad-expect-ptr.o" "nano_bootstrap_type_bad_expect_ptr")
   (emit-elf64-obj-call "$BUILD_DIR/bootstrap-aot-call42.o" "nano_bootstrap_call" "nano_bootstrap_ext")

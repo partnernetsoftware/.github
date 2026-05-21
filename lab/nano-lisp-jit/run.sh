@@ -9,6 +9,7 @@ ARITH_SRC="$LAB_DIR/samples/arithmetic.lisp"
 ARITH_I64_SRC="$LAB_DIR/samples/arithmetic-i64.lisp"
 TYPED_SRC="$LAB_DIR/samples/typed-values.lisp"
 PTR_SRC="$LAB_DIR/samples/ptr-values.lisp"
+CONST_PTR_SRC="$LAB_DIR/samples/const-ptr-load-u8.lisp"
 CTRL_SRC="$LAB_DIR/samples/control-flow.lisp"
 MULTI_SRC="$LAB_DIR/samples/multi-func.lisp"
 MULTI_CTRL_SRC="$LAB_DIR/samples/multi-func-control-flow.lisp"
@@ -18,6 +19,7 @@ TYPE_BAD_ADD_PTR_SRC="$LAB_DIR/samples/type-error-add-ptr-bad.lisp"
 TYPE_BAD_SUB_PTR_SRC="$LAB_DIR/samples/type-error-sub-ptr-bad.lisp"
 TYPE_BAD_PTR_TO_U64_SRC="$LAB_DIR/samples/type-error-ptr-to-u64-bad.lisp"
 TYPE_BAD_U64_TO_PTR_SRC="$LAB_DIR/samples/type-error-u64-to-ptr-bad.lisp"
+TYPE_BAD_LOAD_U8_SRC="$LAB_DIR/samples/type-error-load-u8-bad.lisp"
 TYPE_BAD_BRANCH_SRC="$LAB_DIR/samples/type-error-branch-bad.lisp"
 TYPE_BAD_EXPECT_PTR_SRC="$LAB_DIR/samples/type-error-expect-ptr-bad.lisp"
 BOOTSTRAP_SRC="$LAB_DIR/samples/bootstrap-smoke.lisp"
@@ -29,6 +31,7 @@ ARITH_BLOB="$BUILD_DIR/arithmetic.lbin"
 ARITH_I64_BLOB="$BUILD_DIR/arithmetic-i64.lbin"
 TYPED_BLOB="$BUILD_DIR/typed-values.lbin"
 PTR_BLOB="$BUILD_DIR/ptr-values.lbin"
+CONST_PTR_BLOB="$BUILD_DIR/const-ptr-load-u8.lbin"
 CTRL_BLOB="$BUILD_DIR/control-flow.lbin"
 BAD_ARITH_SRC="$LAB_DIR/samples/arithmetic-bad.lisp"
 BAD_ARITH_BLOB="$BUILD_DIR/arithmetic-bad.lbin"
@@ -44,6 +47,7 @@ PTR_CODE="$BUILD_DIR/ptr-values-code.elf"
 PTR_CODE_OBJ="$BUILD_DIR/ptr_values_code_obj.o"
 PTR_LINK_EXE="$BUILD_DIR/ptr_values_linked"
 PTR_DIRECT_EXE="$BUILD_DIR/ptr_values_direct"
+CONST_PTR_EXIT="$BUILD_DIR/const_ptr_load_u8_aot.elf"
 MULTI_OBJ="$BUILD_DIR/multi_func.o"
 MULTI_LINK_EXE="$BUILD_DIR/multi_func_linked"
 MULTI_CTRL_OBJ="$BUILD_DIR/multi_func_control.o"
@@ -59,6 +63,8 @@ TYPE_BAD_PTR_TO_U64_EXE="$BUILD_DIR/type_error_ptr_to_u64_bad"
 TYPE_BAD_PTR_TO_U64_OBJ="$BUILD_DIR/type_error_ptr_to_u64_bad.o"
 TYPE_BAD_U64_TO_PTR_EXE="$BUILD_DIR/type_error_u64_to_ptr_bad"
 TYPE_BAD_U64_TO_PTR_OBJ="$BUILD_DIR/type_error_u64_to_ptr_bad.o"
+TYPE_BAD_LOAD_U8_EXE="$BUILD_DIR/type_error_load_u8_bad"
+TYPE_BAD_LOAD_U8_OBJ="$BUILD_DIR/type_error_load_u8_bad.o"
 TYPE_BAD_BRANCH_EXE="$BUILD_DIR/type_error_branch_bad"
 TYPE_BAD_EXPECT_PTR_OBJ="$BUILD_DIR/type_error_expect_ptr_bad.o"
 SMOKE_BLOB="$BUILD_DIR/libc-smoke.lbin"
@@ -127,6 +133,8 @@ log "typed.source.path=$TYPED_SRC"
 log "typed.source.bytes=$(bytes_of "$TYPED_SRC")"
 log "ptr.source.path=$PTR_SRC"
 log "ptr.source.bytes=$(bytes_of "$PTR_SRC")"
+log "const.ptr.source.path=$CONST_PTR_SRC"
+log "const.ptr.source.bytes=$(bytes_of "$CONST_PTR_SRC")"
 log "control.source.path=$CTRL_SRC"
 log "control.source.bytes=$(bytes_of "$CTRL_SRC")"
 log "multi.source.path=$MULTI_SRC"
@@ -145,6 +153,8 @@ log "type.bad.ptr.to.u64.source.path=$TYPE_BAD_PTR_TO_U64_SRC"
 log "type.bad.ptr.to.u64.source.bytes=$(bytes_of "$TYPE_BAD_PTR_TO_U64_SRC")"
 log "type.bad.u64.to.ptr.source.path=$TYPE_BAD_U64_TO_PTR_SRC"
 log "type.bad.u64.to.ptr.source.bytes=$(bytes_of "$TYPE_BAD_U64_TO_PTR_SRC")"
+log "type.bad.load.u8.source.path=$TYPE_BAD_LOAD_U8_SRC"
+log "type.bad.load.u8.source.bytes=$(bytes_of "$TYPE_BAD_LOAD_U8_SRC")"
 log "type.bad.branch.source.path=$TYPE_BAD_BRANCH_SRC"
 log "type.bad.branch.source.bytes=$(bytes_of "$TYPE_BAD_BRANCH_SRC")"
 log "type.bad.expect.ptr.source.path=$TYPE_BAD_EXPECT_PTR_SRC"
@@ -193,6 +203,11 @@ log "ptr.blob.bytes=$(bytes_of "$PTR_BLOB")"
 
 run_case "execute-ptr-values-lbin" "$RUNNER" run "$PTR_BLOB"
 
+run_case "compile-const-ptr-load-u8-lbin" "$RUNNER" compile "$CONST_PTR_SRC" "$CONST_PTR_BLOB"
+log "const.ptr.blob.bytes=$(bytes_of "$CONST_PTR_BLOB")"
+
+run_case "execute-const-ptr-load-u8-lbin" "$RUNNER" run "$CONST_PTR_BLOB"
+
 run_case "run-bootstrap-plan" "$RUNNER" run-bootstrap-plan "$BOOTSTRAP_SRC"
 
 run_case "run-bootstrap-aot-plan" "$RUNNER" run-bootstrap-plan "$BOOTSTRAP_AOT_SRC"
@@ -221,6 +236,8 @@ if [ "$(uname -m)" = "x86_64" ] || [ "$(uname -m)" = "amd64" ]; then
   run_case "run-aot-control-flow-exit1" "$RUNNER" run-expect-exit "$CTRL_EXIT" 1
   run_case "aot-ptr-values-elf64-exit1" "$RUNNER" aot-elf64-exit "$PTR_BLOB" "$PTR_EXIT"
   run_case "run-aot-ptr-values-exit1" "$RUNNER" run-expect-exit "$PTR_EXIT" 1
+  run_case "aot-const-ptr-load-u8-elf64-exit1" "$RUNNER" aot-elf64-exit "$CONST_PTR_BLOB" "$CONST_PTR_EXIT"
+  run_case "run-aot-const-ptr-load-u8-exit1" "$RUNNER" run-expect-exit "$CONST_PTR_EXIT" 1
   run_case "aot-ptr-values-elf64-code1" "$RUNNER" aot-elf64-code "$PTR_BLOB" "$PTR_CODE"
   run_case "run-aot-ptr-values-code1" "$RUNNER" run-expect-exit "$PTR_CODE" 1
   run_case "aot-ptr-values-elf64-obj-code1" "$RUNNER" aot-elf64-obj-code "$PTR_BLOB" "$PTR_CODE_OBJ" nano_ptr_code
@@ -291,6 +308,9 @@ if [ "$(uname -m)" = "x86_64" ] || [ "$(uname -m)" = "amd64" ]; then
   run_case "reject-u64-to-ptr-type-error-elf64-code" "$RUNNER" compile-expect-exit 2 compile-elf64-code "$TYPE_BAD_U64_TO_PTR_SRC" "$TYPE_BAD_U64_TO_PTR_EXE"
   run_case "reject-u64-to-ptr-type-error-elf64-obj" "$RUNNER" compile-expect-exit 2 compile-elf64-obj-code "$TYPE_BAD_U64_TO_PTR_SRC" "$TYPE_BAD_U64_TO_PTR_OBJ" nano_type_bad_u64_to_ptr
   run_case "reject-u64-to-ptr-type-error-elf64-exe" "$RUNNER" compile-expect-exit 2 compile-elf64-exe "$TYPE_BAD_U64_TO_PTR_SRC" "$TYPE_BAD_U64_TO_PTR_EXE" nano_type_bad_u64_to_ptr
+  run_case "reject-load-u8-type-error-elf64-code" "$RUNNER" compile-expect-exit 2 compile-elf64-code "$TYPE_BAD_LOAD_U8_SRC" "$TYPE_BAD_LOAD_U8_EXE"
+  run_case "reject-load-u8-type-error-elf64-obj" "$RUNNER" compile-expect-exit 2 compile-elf64-obj-code "$TYPE_BAD_LOAD_U8_SRC" "$TYPE_BAD_LOAD_U8_OBJ" nano_type_bad_load_u8
+  run_case "reject-load-u8-type-error-elf64-exe" "$RUNNER" compile-expect-exit 2 compile-elf64-exe "$TYPE_BAD_LOAD_U8_SRC" "$TYPE_BAD_LOAD_U8_EXE" nano_type_bad_load_u8
   run_case "reject-branch-type-error-elf64-code" "$RUNNER" compile-expect-exit 2 compile-elf64-code "$TYPE_BAD_BRANCH_SRC" "$TYPE_BAD_BRANCH_EXE"
   run_case "reject-expect-ptr-type-error-elf64-obj" "$RUNNER" compile-expect-exit 2 compile-elf64-obj-code "$TYPE_BAD_EXPECT_PTR_SRC" "$TYPE_BAD_EXPECT_PTR_OBJ" nano_type_bad_expect_ptr
   run_case "emit-elf64-obj-call42" "$RUNNER" emit-elf64-obj-call "$CALL42_OBJ" nano_call nano_ext
