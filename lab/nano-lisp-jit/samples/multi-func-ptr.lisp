@@ -5,6 +5,10 @@
   (func offset-ptr
     (null-ptr)
     (add-ptr 1))
+  (func roundtrip-ptr
+    (null-ptr)
+    (add-ptr 8)
+    (sub-ptr 8))
   (main
     (call maybe-null)
     (expect null)
@@ -19,6 +23,10 @@
     (call offset-ptr)
     (expect nonnull)
     (is-nonnull-ptr)
+    (expect true)
+    (call roundtrip-ptr)
+    (expect null)
+    (is-null-ptr)
     (expect true)
     (bool false)
     (not-bool)
