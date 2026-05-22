@@ -3371,6 +3371,8 @@ static const char *elf64_phdr_flags_name(uint32_t flags) {
   return "other";
 }
 
+static int cmd_inspect_elf64_obj(const char *path);
+
 static int cmd_inspect_elf64_exe(const char *path) {
   enum { INSPECT_ELF64_EHDR_SIZE = 64, INSPECT_ELF64_PHDR_SIZE = 56 };
   size_t n = 0;
@@ -4283,7 +4285,6 @@ typedef struct {
 } LinkLayout;
 
 static int is_elf(const unsigned char *data, size_t n);
-static int cmd_inspect_elf64_obj(const char *path);
 
 static const unsigned char *elf_section(const ElfObj *o, uint16_t idx) {
   if (!idx || idx >= o->shnum) return NULL;
@@ -6051,7 +6052,6 @@ static int cmd_aot_elf64_code(const char *blob_path, const char *out_path) {
   unsigned char *owned = NULL;
   Buf code = {0};
   Buf data = {0};
-  Buf data_patches = {0};
   if (!blob_load_path(blob_path, &b, &owned)) {
     fprintf(stderr, "blob=parse_fail path=%s\n", blob_path);
     return 1;
@@ -6125,6 +6125,7 @@ static int cmd_aot_elf64_obj_code(const char *blob_path, const char *out_path,
   unsigned char *owned = NULL;
   Buf code = {0};
   Buf data = {0};
+  Buf data_patches = {0};
   if (!symbol[0]) {
     fprintf(stderr, "aot-elf64-obj-code=bad_symbol\n");
     return 1;
