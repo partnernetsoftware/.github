@@ -168,22 +168,31 @@ nano-jit continuation after self-bootstrap v1
 │     ├─ skip 无汇总计数（PASS/SKIP/FAIL 统计）
 │     └─ cosmocc-less CI 依赖 oracle self-pack，与「真 .com 矩阵」仍有差距
 └─ v3+: AI-friendly universal substrate（kickoff）
+   ├─ 反思 · 自举语义分层（用户期望：v3 起脱离 C、Lisp 编自己）
+   │  ├─ A 层（已有，v1 签收）：用户 `.lisp` → `.lbin`/AOT；`nano-jit.com` self-pack 不调用 `apelink`
+   │  ├─ B 层（未达成）：编译器本体由 Lisp 描述并生成 slice，而非 `cc`/`cosmocc` 编 `lispjit.c`
+   │  ├─ 当前链：`lispjit.c` ──cc/cosmo──► `nano-jit.x86_64` ──► `(compile 用户.lisp …)`（只编用户，不编自己）
+   │  ├─ v3 表内 slice0/3 ≠ B；B 对应 ROADMAP §5 编译器自举 + §6 去 cosmocc，单列 **slice 4**
+   │  └─ 验收 B：固定极小 seed 后，构建矩阵由 self-packed runner 从 Lisp 构建图生成下一代 `.com`
    ├─ 目标
    │  ├─ VM：`OP_CALL_FUNC` + `(func …)` module 形态（对齐 AOT 参数模型）
    │  ├─ slice：aarch64 `NANO_SLICE_COMPILER=native` 或独立后端，去掉 oracle duplicate
    │  ├─ pack/loader：bare 默认可选；纯 ELF loader 分层（exec 层 vs 解析层）
+   │  ├─ slice 4：Lisp 构建图描述 slice/link/pack（C-subset 或 IR→ELF），逐步替换 `lispjit.c` 外壳
    │  └─ 外部语义（WASM/JS/SQL）仍以 fixture→lower→VM 为先
    ├─ 洋葱 TDD
    │  ├─ slice 0: `OP_CALL_FUNC` VM + `func-call-smoke.lisp` + run.sh
-   │  ├─ slice 1: AOT/VM 参数 arity 负向统一错误码
+   │  ├─ slice 1: AOT/VM 参数 arity 负向统一 exit 2（`ERROR-CODES.md`）
    │  ├─ slice 2: aarch64 native slice（非 duplicate oracle）
-   │  ├─ slice 3: bootstrap 覆盖 `NANO_PACK_APE_MODE` + skip 统计
+   │  ├─ slice 3: bootstrap 覆盖 `NANO_PACK_APE_MODE` + skip 统计 + self-packed 新语义复验
+   │  ├─ slice 4: compiler-in-lisp — 最小 `(build-slice …)` / Lisp 构建图 → 替换 stage0 `cc lispjit.c`
    │  ├─ import/lower/execute/compile/package/self-host（延续 v2 mindmap）
-   │  └─ 每步 native + self-packed 复验
+   │  └─ 每步 native + self-packed 复验（含 v3 新 fixture，不单跑 `run.sh` native）
    └─ 验收
       ├─ v2/v2.5 fixture 不退化
       ├─ 真 multi-arch `.com` 或文档化 aarch64 缺口
-      └─ v3 进度表可追踪（非 scoped 空话）
+      ├─ `func-param-*-bad`：VM `compile` 与 AOT 同为 exit 2
+      └─ v3 进度表可追踪（区分 A/B 自举层，非 scoped 空话）
 ├─ v2.5: v2 反思收口（把 scoped 缺口变成可测切片）
 │  ├─ 反思 · 设计（v2 发现的问题）
 │  │  ├─ scoped 100% 与 mindmap 脱节：「richer IR/VM 参数」只落了 AOT 单 `(param i64)`，VM 仍无参
@@ -244,11 +253,12 @@ nano-jit continuation after self-bootstrap v1
 | 切片 | 状态 | 说明 |
 |------|------|------|
 | slice 0 VM `OP_CALL_FUNC` | **100%** | `OP_CALL_FUNC` + `(func …)`/`(call …)`；`func-call-vm-smoke.lisp` + `run.sh` |
-| slice 1 错误码/arity | **0%** | VM/AOT 负向统一错误码 |
+| slice 1 错误码/arity | **~80%** | VM `compile` exit 2 + `func-param-*-bad`；表见 [`v3/ERROR-CODES.md`](v3/ERROR-CODES.md) |
 | slice 2 aarch64 native slice | **0%** | `NANO_SLICE_COMPILER=native` 真 aarch64，非 x86 duplicate oracle |
-| slice 3 证据/bootstrap | **~70%** | `run_end_summary` PASS/SKIP/FAIL；`bootstrap-v3-pack-bare.lisp`；`build_nano_jit.sh`→`skip_registry` |
+| slice 3 证据/bootstrap | **~75%** | skip 汇总、bare bootstrap、`build_nano_jit` func-call self-pack smoke |
+| slice 4 compiler-in-lisp（B 层自举） | **0%** | Lisp 构建图替换 `cc lispjit.c`；见 mindmap slice 4 |
 
-**v3 整体**：**~30%** — slice0 签收；slice3 证据层进行中；见 [`v3/README.md`](v3/README.md)。
+**v3 整体**：**~40%** — A 层自举保持；B 层（Lisp 编编译器）未开工；见 [`v3/README.md`](v3/README.md)。
 
 ### 0. 证据基线
 

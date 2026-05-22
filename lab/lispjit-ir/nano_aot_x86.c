@@ -1619,9 +1619,15 @@ static int cmd_aot_elf64_code(const char *blob_path, const char *out_path) {
 
 static int cmd_compile_elf64_code(const char *src_path, const char *out_path) {
   size_t blob_n = 0;
-  unsigned char *blob_data = compile_source_path_to_blob(src_path, &blob_n);
+  int compile_rc = 3;
+  unsigned char *blob_data = compile_source_path_to_blob(src_path, &blob_n, &compile_rc);
   Blob b;
   if (!blob_data || !blob_init(&b, blob_data, blob_n)) {
+    if (compile_rc == 2) {
+      fprintf(stderr, "compile-elf64-code=unsupported_source\n");
+      free(blob_data);
+      return 2;
+    }
     fprintf(stderr, "compile-elf64-code=compile_fail\n");
     free(blob_data);
     return 1;

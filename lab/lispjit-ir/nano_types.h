@@ -89,6 +89,8 @@
 #define SRC_FORM_STORE_U16 37u
 #define SRC_FORM_STORE_U32 38u
 #define SRC_FORM_CALL_FUNC 39u
+#define SRC_FORM_PARAM_I64 40u
+#define SRC_FORM_LOAD_ARG_I64 41u
 
 #define AOT_STMT_CONST_U64 1u
 #define AOT_STMT_ADD_U64 2u
@@ -194,6 +196,7 @@ typedef struct {
   InstrDef *instrs;
   size_t instr_count;
   size_t instr_cap;
+  int param_count;
 } VmFuncDef;
 
 typedef struct {

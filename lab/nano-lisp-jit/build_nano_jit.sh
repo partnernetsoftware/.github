@@ -476,6 +476,17 @@ if [ "$AARCH64_SLICE_SKIPPED" = 1 ]; then
     "$PACKER" compile "$ARITH_SRC" "$BUILD_DIR/native-smoke-arithmetic.lbin"
   run_case "native-x86-slice-run-arithmetic" \
     "$PACKER" run "$BUILD_DIR/native-smoke-arithmetic.lbin"
+  FUNC_CALL_VM_SMOKE_SRC="$LAB_DIR/samples/func-call-vm-smoke.lisp"
+  run_case "native-x86-slice-compile-func-call-vm-smoke" \
+    "$PACKER" compile "$FUNC_CALL_VM_SMOKE_SRC" "$BUILD_DIR/native-smoke-func-call-vm.lbin"
+  run_case "native-x86-slice-run-func-call-vm-smoke" \
+    "$PACKER" run "$BUILD_DIR/native-smoke-func-call-vm.lbin"
+  run_case "native-x86-slice-reject-func-param-missing-param-lbin" \
+    "$PACKER" compile-expect-exit 2 compile "$FUNC_PARAM_MISSING_PARAM_BAD_SRC" \
+    "$BUILD_DIR/native-func-param-missing-param-bad.lbin"
+  run_case "native-x86-slice-reject-func-param-call-no-arg-lbin" \
+    "$PACKER" compile-expect-exit 2 compile "$FUNC_PARAM_CALL_NO_ARG_BAD_SRC" \
+    "$BUILD_DIR/native-func-param-call-no-arg-bad.lbin"
   run_case "run-bootstrap-v25-native-selfpack" \
     bash -c "cd \"$ROOT_DIR\" && \"$PACKER\" run-bootstrap-plan \"$BOOTSTRAP_V25_NATIVE_SELFPACK\""
   {

@@ -92,6 +92,8 @@ FUNC_PARAM_MISSING_PARAM_BAD_OBJ="$BUILD_DIR/func_param_missing_param_bad.o"
 FUNC_PARAM_MISSING_PARAM_BAD_EXE="$BUILD_DIR/func_param_missing_param_bad"
 FUNC_PARAM_CALL_NO_ARG_BAD_OBJ="$BUILD_DIR/func_param_call_no_arg_bad.o"
 FUNC_PARAM_CALL_NO_ARG_BAD_EXE="$BUILD_DIR/func_param_call_no_arg_bad"
+FUNC_PARAM_MISSING_PARAM_BAD_LBIN="$BUILD_DIR/func_param_missing_param_bad.lbin"
+FUNC_PARAM_CALL_NO_ARG_BAD_LBIN="$BUILD_DIR/func_param_call_no_arg_bad.lbin"
 TYPE_BAD_PTR_OP_EXE="$BUILD_DIR/type_error_ptr_op_bad"
 TYPE_BAD_PTR_OP_OBJ="$BUILD_DIR/type_error_ptr_op_bad.o"
 TYPE_BAD_ADD_PTR_OBJ="$BUILD_DIR/type_error_add_ptr_bad.o"
@@ -540,6 +542,8 @@ if [ "$(uname -m)" = "x86_64" ] || [ "$(uname -m)" = "amd64" ]; then
   run_case "reject-func-param-missing-param-elf64-exe" "$RUNNER" compile-expect-exit 2 compile-elf64-exe "$FUNC_PARAM_MISSING_PARAM_BAD_SRC" "$FUNC_PARAM_MISSING_PARAM_BAD_EXE" nano_func_param_missing_param_bad
   run_case "reject-func-param-call-no-arg-elf64-obj" "$RUNNER" compile-expect-exit 2 compile-elf64-obj-code "$FUNC_PARAM_CALL_NO_ARG_BAD_SRC" "$FUNC_PARAM_CALL_NO_ARG_BAD_OBJ" nano_func_param_call_no_arg_bad
   run_case "reject-func-param-call-no-arg-elf64-exe" "$RUNNER" compile-expect-exit 2 compile-elf64-exe "$FUNC_PARAM_CALL_NO_ARG_BAD_SRC" "$FUNC_PARAM_CALL_NO_ARG_BAD_EXE" nano_func_param_call_no_arg_bad
+  run_case "reject-func-param-missing-param-vm-lbin" "$RUNNER" compile-expect-exit 2 compile "$FUNC_PARAM_MISSING_PARAM_BAD_SRC" "$FUNC_PARAM_MISSING_PARAM_BAD_LBIN"
+  run_case "reject-func-param-call-no-arg-vm-lbin" "$RUNNER" compile-expect-exit 2 compile "$FUNC_PARAM_CALL_NO_ARG_BAD_SRC" "$FUNC_PARAM_CALL_NO_ARG_BAD_LBIN"
   run_case "reject-ptr-op-type-error-elf64-code" "$RUNNER" compile-expect-exit 2 compile-elf64-code "$TYPE_BAD_PTR_OP_SRC" "$TYPE_BAD_PTR_OP_EXE"
   run_case "reject-ptr-op-type-error-elf64-obj" "$RUNNER" compile-expect-exit 2 compile-elf64-obj-code "$TYPE_BAD_PTR_OP_SRC" "$TYPE_BAD_PTR_OP_OBJ" nano_type_bad_ptr_op
   run_case "reject-ptr-op-type-error-elf64-exe" "$RUNNER" compile-expect-exit 2 compile-elf64-exe "$TYPE_BAD_PTR_OP_SRC" "$TYPE_BAD_PTR_OP_EXE" nano_type_bad_ptr_op

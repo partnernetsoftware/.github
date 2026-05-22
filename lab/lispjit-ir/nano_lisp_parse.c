@@ -165,7 +165,7 @@ static VmFuncDef *vm_add_func(Module *m, char *name) {
     m->funcs = p;
     m->func_cap = next;
   }
-  m->funcs[m->func_count] = (VmFuncDef){name, NULL, 0, 0};
+  m->funcs[m->func_count] = (VmFuncDef){name, NULL, 0, 0, 0};
   return &m->funcs[m->func_count++];
 }
 
@@ -326,8 +326,8 @@ static int find_import(const Module *m, const char *name) {
   return -1;
 }
 
-static int parse_body_items(const char **p, Module *m, InstrDef **instrs, size_t *instr_count,
-                            size_t *instr_cap) {
+static int parse_body_items(const char **p, Module *m, VmFuncDef *func_ctx, InstrDef **instrs,
+                            size_t *instr_count, size_t *instr_cap) {
   while (1) {
     skip_ws(p);
     if (**p == ')') {
@@ -339,7 +339,7 @@ static int parse_body_items(const char **p, Module *m, InstrDef **instrs, size_t
     if (!head) return 0;
     int ok = 0;
     if (strcmp(head, "block") == 0) {
-      ok = parse_body_items(p, m, instrs, instr_count, instr_cap);
+      ok = parse_body_items(p, m, func_ctx, instrs, instr_count, instr_cap);
       free(head);
       if (!ok) return 0;
       continue;
@@ -464,6 +464,20 @@ static int parse_body_items(const char **p, Module *m, InstrDef **instrs, size_t
              add_body_instr(instrs, instr_count, instr_cap, SRC_FORM_EXPECT, NULL, NULL, NULL, expected);
       }
       free(value);
+    } else if (strcmp(head, "param") == 0) {
+      char *type = parse_atom(p);
+      ok = func_ctx && type && strcmp(type, "i64") == 0 && func_ctx->param_count < 2 && eat(p, ')');
+      if (ok) {
+        func_ctx->param_count++;
+        ok = add_body_instr(instrs, instr_count, instr_cap, SRC_FORM_PARAM_I64, NULL, NULL, NULL, 0);
+      }
+      free(type);
+    } else if (strcmp(head, "load-arg-i64") == 0) {
+      char *value = parse_atom(p);
+      uint64_t idx = 0;
+      ok = func_ctx && value && parse_u64_atom(value, &idx) && eat(p, ')') &&
+           add_body_instr(instrs, instr_count, instr_cap, SRC_FORM_LOAD_ARG_I64, NULL, NULL, NULL, idx);
+      free(value);
     } else if (strcmp(head, "call") == 0) {
       char *target = parse_atom(p);
       char *const_name = NULL;
@@ -498,7 +512,7 @@ static int parse_body_items(const char **p, Module *m, InstrDef **instrs, size_t
 }
 
 static int parse_main_form(const char **p, Module *m) {
-  return parse_body_items(p, m, &m->instrs, &m->instr_count, &m->instr_cap) &&
+  return parse_body_items(p, m, NULL, &m->instrs, &m->instr_count, &m->instr_cap) &&
          m->instr_count > 0;
 }
 
@@ -511,7 +525,7 @@ static int parse_func_form(const char **p, Module *m) {
   }
   func = vm_add_func(m, name);
   if (!func) return 0;
-  return parse_body_items(p, m, &func->instrs, &func->instr_count, &func->instr_cap) &&
+  return parse_body_items(p, m, func, &func->instrs, &func->instr_count, &func->instr_cap) &&
          func->instr_count > 0;
 }
 
@@ -630,7 +644,11 @@ static int compile_instr_buf(const Module *m, const InstrDef *instrs, size_t cou
                              LabelDef *labels, size_t label_count, Buf *out_instrs) {
   for (size_t i = 0; i < count; ++i) {
     const InstrDef *in = &instrs[i];
-    if (in->form == SRC_FORM_LABEL) continue;
+    if (in->form == SRC_FORM_LABEL || in->form == SRC_FORM_PARAM_I64) continue;
+    if (in->form == SRC_FORM_LOAD_ARG_I64) {
+      fprintf(stderr, "compile=unsupported_source reason=load_arg_not_lowered\n");
+      return 0;
+    }
     if (in->form == SRC_FORM_CONST_U64 || in->form == SRC_FORM_ADD_U64 ||
         in->form == SRC_FORM_CONST_I64 || in->form == SRC_FORM_ADD_I64 ||
         in->form == SRC_FORM_SUB_I64 || in->form == SRC_FORM_MUL_I64 ||
@@ -803,6 +821,67 @@ static int compile_instr_buf(const Module *m, const InstrDef *instrs, size_t cou
                  pack_const_pair((uint32_t)const_idx, (uint32_t)const2_idx));
     } else {
       fprintf(stderr, "signature.not_callable=%s\n", sig_name(sig));
+      return 0;
+    }
+  }
+  return 1;
+}
+
+static int infer_vm_body(const Module *m, const InstrDef *instrs, size_t count,
+                         int func_param_count) {
+  uint8_t last_kind = 0;
+  for (size_t i = 0; i < count; ++i) {
+    const InstrDef *in = &instrs[i];
+    if (in->form == SRC_FORM_LABEL || in->form == SRC_FORM_PARAM_I64) {
+      continue;
+    }
+    if (in->form == SRC_FORM_LOAD_ARG_I64) {
+      if (!func_param_count || in->imm >= (uint64_t)func_param_count) {
+        fprintf(stderr, "compile=unsupported_source reason=load_arg_i64\n");
+        return 0;
+      }
+      last_kind = VAL_I64;
+      continue;
+    }
+    if (in->form == SRC_FORM_CONST_I64 || in->form == SRC_FORM_ADD_I64) {
+      last_kind = VAL_I64;
+      continue;
+    }
+    if (in->form == SRC_FORM_CONST_U64 || in->form == SRC_FORM_ADD_U64) {
+      last_kind = VAL_U64;
+      continue;
+    }
+    if (in->form == SRC_FORM_CALL_FUNC) {
+      int target_idx = in->import_name ? vm_find_func(m, in->import_name) : -1;
+      if (target_idx < 0) {
+        fprintf(stderr, "compile=unsupported_source reason=call_target\n");
+        return 0;
+      }
+      if (m->funcs[target_idx].param_count > 0 && last_kind != VAL_I64) {
+        fprintf(stderr, "compile=unsupported_source reason=call_arity\n");
+        return 0;
+      }
+      last_kind = VAL_I64;
+      continue;
+    }
+    if (in->form == SRC_FORM_EXPECT || in->form == SRC_FORM_EXPECT_I64) {
+      if (last_kind != VAL_I64 && in->form == SRC_FORM_EXPECT_I64) {
+        fprintf(stderr, "compile=unsupported_source reason=expect_kind\n");
+        return 0;
+      }
+      continue;
+    }
+  }
+  return 1;
+}
+
+int infer_vm_module(const Module *m) {
+  if (!infer_vm_body(m, m->instrs, m->instr_count, 0)) {
+    return 0;
+  }
+  for (size_t fi = 0; fi < m->func_count; ++fi) {
+    const VmFuncDef *func = &m->funcs[fi];
+    if (!infer_vm_body(m, func->instrs, func->instr_count, func->param_count)) {
       return 0;
     }
   }
