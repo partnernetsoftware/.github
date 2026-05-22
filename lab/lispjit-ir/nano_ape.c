@@ -19,8 +19,8 @@ typedef struct {
 static int parse_ape_manifest(const unsigned char *data, size_t n, NanoApeManifest *m,
                               const char *error_prefix) {
   memset(m, 0, sizeof(*m));
-  if (!find_payload_start(data, n, NANO_APE_PAYLOAD_MARKER, &m->payload_start)) {
-    fprintf(stderr, "%s=payload_marker_missing\n", error_prefix);
+  if (!find_nano_ape_payload_start(data, n, &m->payload_start)) {
+    fprintf(stderr, "%s=payload_region_missing\n", error_prefix);
     return 2;
   }
   int in_manifest = 0;
@@ -313,8 +313,8 @@ static int cmd_run_ape(const char *container_path, const char *force_arch) {
     return 1;
   }
   size_t payload_start = 0;
-  if (!find_payload_start(data, n, NANO_APE_PAYLOAD_MARKER, &payload_start)) {
-    fprintf(stderr, "run-ape=payload_marker_missing\n");
+  if (!find_nano_ape_payload_start(data, n, &payload_start)) {
+    fprintf(stderr, "run-ape=payload_region_missing\n");
     free(data);
     return 2;
   }
@@ -411,8 +411,8 @@ static int cmd_inspect_ape(const char *container_path) {
     return 1;
   }
   size_t payload_start = 0;
-  if (!find_payload_start(data, n, NANO_APE_PAYLOAD_MARKER, &payload_start)) {
-    fprintf(stderr, "inspect-ape=payload_marker_missing\n");
+  if (!find_nano_ape_payload_start(data, n, &payload_start)) {
+    fprintf(stderr, "inspect-ape=payload_region_missing\n");
     free(data);
     return 2;
   }
@@ -447,6 +447,61 @@ static int cmd_inspect_ape(const char *container_path) {
   }
   return rc;
 }
+static int pack_ape_v2_payload(Buf *out, const unsigned char *x86, size_t x86_n,
+                               const unsigned char *arm, size_t arm_n) {
+  uint64_t x86_hash = fnv1a64(x86, x86_n);
+  uint64_t arm_hash = fnv1a64(arm, arm_n);
+  uint16_t v2_slice_count = 2;
+  size_t v2_hdr_bytes = nano_ape_v2_header_bytes(v2_slice_count);
+  NanoApeV2SliceRow v2_rows[2] = {
+      {NANO_APE_V2_ARCH_X86_64, NANO_APE_V2_OS_LINUX, 0, 0, x86_n, x86_hash},
+      {NANO_APE_V2_ARCH_AARCH64, NANO_APE_V2_OS_LINUX, 0, x86_n, arm_n, arm_hash},
+  };
+  unsigned char v2_hdr[128];
+  ssize_t v2_hdr_n = emit_nano_ape_v2_header(v2_hdr, sizeof(v2_hdr), v2_slice_count, v2_rows);
+  if (v2_hdr_n < 0 || (size_t)v2_hdr_n != v2_hdr_bytes) return 2;
+  buf_put(out, v2_hdr, (size_t)v2_hdr_n);
+  buf_put(out, x86, x86_n);
+  buf_put(out, arm, arm_n);
+  return 0;
+}
+
+static int cmd_pack_ape_bare(const char *out_path, const char *x86_path, const char *arm_path) {
+  size_t x86_n = 0;
+  size_t arm_n = 0;
+  unsigned char *x86 = read_file(x86_path, &x86_n);
+  unsigned char *arm = read_file(arm_path, &arm_n);
+  if (!x86 || !arm || !is_elf(x86, x86_n) || !is_elf(arm, arm_n)) {
+    fprintf(stderr, "pack-ape-bare=input_not_elf\n");
+    free(x86);
+    free(arm);
+    return 1;
+  }
+  Buf out = {0};
+  int rc = pack_ape_v2_payload(&out, x86, x86_n, arm, arm_n);
+  free(x86);
+  free(arm);
+  if (rc != 0) {
+    free(out.data);
+    return rc;
+  }
+  size_t v2_hdr_bytes = nano_ape_v2_header_bytes(2);
+  int ok = write_file(out_path, out.data, out.len);
+  if (ok) {
+    printf("pack-ape-bare.output=%s\n", out_path);
+    printf("pack-ape-bare.container=ape-v2\n");
+    printf("pack-ape-bare.mode=bare\n");
+    printf("pack-ape-bare.header_bytes=%zu\n", v2_hdr_bytes);
+    printf("pack-ape-bare.bytes=%zu\n", out.len);
+    printf("pack-ape-bare.x86_64.bytes=%zu\n", x86_n);
+    printf("pack-ape-bare.aarch64.bytes=%zu\n", arm_n);
+  } else {
+    fprintf(stderr, "pack-ape-bare=write_fail path=%s\n", out_path);
+  }
+  free(out.data);
+  return ok ? 0 : 3;
+}
+
 static int cmd_pack_ape(const char *out_path, const char *x86_path, const char *arm_path) {
   size_t x86_n = 0;
   size_t arm_n = 0;
@@ -518,24 +573,15 @@ static int cmd_pack_ape(const char *out_path, const char *x86_path, const char *
            v2_hdr_bytes, x86_n, (unsigned long long)x86_hash, arm_payload_off, arm_n,
            (unsigned long long)arm_hash);
 
-  NanoApeV2SliceRow v2_rows[2] = {
-      {NANO_APE_V2_ARCH_X86_64, NANO_APE_V2_OS_LINUX, 0, 0, x86_n, x86_hash},
-      {NANO_APE_V2_ARCH_AARCH64, NANO_APE_V2_OS_LINUX, 0, x86_n, arm_n, arm_hash},
-  };
-  unsigned char v2_hdr[128];
-  ssize_t v2_hdr_n = emit_nano_ape_v2_header(v2_hdr, sizeof(v2_hdr), v2_slice_count, v2_rows);
-  if (v2_hdr_n < 0 || (size_t)v2_hdr_n != v2_hdr_bytes) {
+  Buf out = {0};
+  buf_put(&out, stub, (size_t)stub_n);
+  if (pack_ape_v2_payload(&out, x86, x86_n, arm, arm_n) != 0) {
     free(stub);
     free(x86);
     free(arm);
+    free(out.data);
     return 2;
   }
-
-  Buf out = {0};
-  buf_put(&out, stub, (size_t)stub_n);
-  buf_put(&out, v2_hdr, (size_t)v2_hdr_n);
-  buf_put(&out, x86, x86_n);
-  buf_put(&out, arm, arm_n);
   int ok = write_file(out_path, out.data, out.len) && make_executable(out_path);
   if (ok) {
     printf("pack-ape.output=%s\n", out_path);

@@ -41,9 +41,18 @@ def strip_manifest(data: bytes) -> bytes:
 
 def payload_start(data: bytes) -> int:
     idx = data.find(MARKER)
-    if idx < 0:
-        raise SystemExit(f"missing payload marker: {MARKER!r}")
-    return idx + len(MARKER)
+    if idx >= 0:
+        return idx + len(MARKER)
+    last: int | None = None
+    i = 0
+    while i + len(V2_MAGIC) <= len(data):
+        if i == 0 or data[i - 1] == 0x0A:
+            if data[i : i + len(V2_MAGIC)] == V2_MAGIC:
+                last = i
+        i += 1
+    if last is None:
+        raise SystemExit("missing ape payload (marker or v2 magic)")
+    return last
 
 
 def patch_at(data: bytes, off: int, chunk: bytes) -> bytes:
@@ -101,6 +110,15 @@ def v1_legacy_from_v2_pack(data: bytes) -> bytes:
     return head + payload
 
 
+def bare_from_v2_pack(data: bytes) -> bytes:
+    """Mode B: v2 header + ELF slices only (no shell stub / marker)."""
+    ps = payload_start(data)
+    if data[ps : ps + len(V2_MAGIC)] != V2_MAGIC:
+        raise SystemExit("bare: missing ape-v2 magic at payload_start")
+    header_bytes = struct.unpack_from("<H", data, ps + 14)[0]
+    return data[ps : ps + header_bytes] + data[ps + header_bytes :]
+
+
 def write_v2_fixtures(base: bytes, out_dir: Path, prefix: str) -> None:
     no_manifest = strip_manifest(base)
     write_bytes(out_dir / f"{prefix}no-manifest.com", corrupt_v2_magic(no_manifest))
@@ -122,6 +140,9 @@ def main() -> int:
     base = read_bytes(src)
     write_v2_fixtures(base, out_dir, "ape-")
     write_v2_fixtures(base, out_dir, "ape-v2-")
+    bare = bare_from_v2_pack(base)
+    write_bytes(out_dir / "ape-v2-bare.com", bare)
+    write_v2_fixtures(bare, out_dir, "ape-v2-bare-")
     write_bytes(out_dir / "ape-v1-legacy.com", v1_legacy_from_v2_pack(base))
     print(f"ape.fixtures.dir={out_dir}")
     return 0

@@ -342,7 +342,44 @@ if [ -f "$APE_V2_COM" ]; then
     skip_case "run-ape-v2-native-exit42" "host is not Linux x86_64 (uname -s=$(uname -s) -m=$(uname -m))"
     skip_case "run-ape-v2-memfd-loader-smoke" "host is not Linux x86_64 (uname -s=$(uname -s) -m=$(uname -m))"
   fi
+  APE_V2_BARE_COM="$BUILD_DIR/bootstrap-ape-v2-bare.com"
+  if [ -f "$APE_V2_BARE_COM" ]; then
+    run_case "inspect-ape-bare-v2" bash -c '
+      out=$("'"$RUNNER"'" inspect-ape "'"$APE_V2_BARE_COM"'" 2>&1) || true
+      printf "%s\n" "$out"
+      printf "%s\n" "$out" | grep -q "inspect-ape.container=ape-v2"
+    '
+    if host_is_linux_x86_64; then
+      run_case "run-ape-bare-v2-exit42" "$RUNNER" run-ape-expect-exit "$APE_V2_BARE_COM" 42
+      run_case "run-ape-bare-v2-memfd-loader-smoke" bash -c '
+        out=$("'"$RUNNER"'" run-ape "'"$APE_V2_BARE_COM"'" 2>&1) || true
+        printf "%s\n" "$out"
+        printf "%s\n" "$out" | grep -q "run-ape.container=ape-v2"
+        printf "%s\n" "$out" | grep -q "run-ape.loader=memfd"
+        printf "%s\n" "$out" | grep -q "run-ape.exit=42"
+      '
+    else
+      skip_case "run-ape-bare-v2-exit42" "host is not Linux x86_64 (uname -s=$(uname -s) -m=$(uname -m))"
+      skip_case "run-ape-bare-v2-memfd-loader-smoke" "host is not Linux x86_64 (uname -s=$(uname -s) -m=$(uname -m))"
+    fi
+  else
+    skip_case "inspect-ape-bare-v2" "bootstrap-ape-v2-bare.com missing after plan"
+    skip_case "run-ape-bare-v2-exit42" "bootstrap-ape-v2-bare.com missing after plan"
+    skip_case "run-ape-bare-v2-memfd-loader-smoke" "bootstrap-ape-v2-bare.com missing after plan"
+  fi
   run_case "make-ape-v2-negative-fixtures" python3 "$LAB_DIR/make_ape_fixtures.py" "$APE_V2_COM" "$BUILD_DIR"
+  if [ -f "$BUILD_DIR/ape-v2-bare.com" ]; then
+    run_case "inspect-ape-v2-bare-fixture" bash -c '
+      out=$("'"$RUNNER"'" inspect-ape "'"$BUILD_DIR/ape-v2-bare.com"'" 2>&1) || true
+      printf "%s\n" "$out"
+      printf "%s\n" "$out" | grep -q "inspect-ape.container=ape-v2"
+    '
+    if host_is_linux_x86_64; then
+      run_case "run-ape-v2-bare-fixture-exit42" "$RUNNER" run-ape-expect-exit "$BUILD_DIR/ape-v2-bare.com" 42
+    else
+      skip_case "run-ape-v2-bare-fixture-exit42" "host is not Linux x86_64"
+    fi
+  fi
   BOOTSTRAP_APE_V2_NEG_SRC="$LAB_DIR/samples/bootstrap-ape-v2-negative.lisp"
   run_case "run-bootstrap-ape-v2-negative-plan" "$RUNNER" run-bootstrap-plan "$BOOTSTRAP_APE_V2_NEG_SRC"
 else

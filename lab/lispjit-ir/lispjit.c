@@ -194,6 +194,7 @@ extern void *cosmo_dlsym(void *handle, const char *symbol);
 #define BOOTSTRAP_STEP_RUN_APE 29u
 #define BOOTSTRAP_STEP_INSPECT_EXPECT_EXIT 30u
 #define BOOTSTRAP_STEP_RUN_APE_EXPECT_EXIT 31u
+#define BOOTSTRAP_STEP_PACK_APE_BARE 32u
 
 typedef uint64_t (*jit_entry_fn)(void);
 typedef int (*ffi_i32_ptr_fn)(const char *);
@@ -778,6 +779,7 @@ static void usage(const char *argv0) {
   fprintf(stderr, "  %s resolve-quiet program.%s\n", argv0, BLOB_EXT);
   fprintf(stderr, "  %s run-bootstrap-plan plan.lisp\n", argv0);
   fprintf(stderr, "  %s pack-ape output.com x86_64.elf aarch64.elf\n", argv0);
+  fprintf(stderr, "  %s pack-ape-bare output.ape x86_64.elf aarch64.elf\n", argv0);
   fprintf(stderr, "  %s pack-app output.com x86_64.elf aarch64.elf program.%s\n", argv0, BLOB_EXT);
 }
 
@@ -888,6 +890,9 @@ int main(int argc, char **argv) {
   }
   if (argc >= 2 && strcmp(argv[1], "pack-ape") == 0 && argc == 5) {
     return cmd_pack_ape(argv[2], argv[3], argv[4]);
+  }
+  if (argc >= 2 && strcmp(argv[1], "pack-ape-bare") == 0 && argc == 5) {
+    return cmd_pack_ape_bare(argv[2], argv[3], argv[4]);
   }
   if (argc >= 2 && strcmp(argv[1], "pack-app") == 0 && argc == 6) {
     return cmd_pack_app(argv[2], argv[3], argv[4], argv[5]);
