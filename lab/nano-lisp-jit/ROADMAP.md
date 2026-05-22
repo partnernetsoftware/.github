@@ -245,18 +245,18 @@ nano-jit continuation after self-bootstrap v1
 下一圈（v2 kickoff）：
 
 1. **APE v2**（slice 1 **100% scoped**）+ **hybrid loader**（~50%）：`run-ape` 原生读 v2；`pack-ape` stub 优先 `NANO_JIT`/`nano-lisp-jit run-ape`。
-2. **`lispjit.c` 模块边界**（slice 2 **~80%**）：+`nano_aot_x86.c`；`lispjit.c` ~3.1k 行；待拆 parser/bootstrap。
+2. **`lispjit.c` 模块边界**（slice 2 **~90%**）：+`nano_lisp_parse.c`；`lispjit.c` ~2.1k 行；待拆 bootstrap planner。
 
 ### v2 总完成度（工程向）
 
 | 轨道 | 状态 | 说明 |
 |------|------|------|
 | APE v2 格式 + inspect/run | **100%** scoped | slice 1 签收 |
-| 模块拆分 | **~80%** | manifest/ape/elf64/blob_vm/aot_x86 |
+| 模块拆分 | **~90%** | manifest/ape/elf64/blob_vm/aot_x86/lisp_parse |
 | 进程内 loader（无 shell） | **~50%** | CLI 原生 + stub 委托 `run-ape`；真 ELF loader 未做 |
 | ABI / 参数 / 自托管 slice | **0%** | slice 3+ |
 
-**v2 整体（全目标）**：约 **65%** — 模块主体已拆，parser/ABI/纯 ELF loader 待做。
+**v2 整体（全目标）**：约 **72%** — 主内核已高度模块化；ABI 与纯 ELF loader 为剩余大头。
 
 **远程 `main`**：每次 merge 在 commit message 中标注上述整体完成度百分比。
 

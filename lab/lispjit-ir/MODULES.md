@@ -13,4 +13,6 @@ Build remains one translation unit: `cc lispjit.c` includes submodules below.
 | `nano_blob_vm.c` | lbin/ljir parse bounds, VM `execute_blob`, dump/hash/resolve/run CLI |
 | `nano_aot_x86.c` | Pure-blob + AOT x86 codegen, `aot-elf64-*`, `eval_pure_blob` |
 
-Next extractions (fixture-locked): `nano_parse.c` (lisp/lispir parser + `compile`), `nano_bootstrap.c`.
+| `nano_lisp_parse.c` | lbin/ljir parser, `compile_module`, `compile` path helpers |
+
+Next extractions (fixture-locked): `nano_bootstrap.c` (plan DSL + `run-bootstrap-plan`).
