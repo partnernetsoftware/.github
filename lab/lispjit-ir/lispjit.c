@@ -4062,7 +4062,7 @@ static int emit_elf64_exec_rx_data_file(const char *out_path, const unsigned cha
                   ELF64_EXEC_BASE + data_off, ELF64_EXEC_BASE + data_off,
                   data_n, data_n, 1);
   } else {
-    wr_elf64_phdr(out + ELF64_EHDR_SIZE, 1, 5, 0, ELF64_EXEC_BASE, ELF64_EXEC_BASE,
+    wr_elf64_phdr(out + ELF64_EHDR_SIZE, 1, 7, 0, ELF64_EXEC_BASE, ELF64_EXEC_BASE,
                   file_n, file_n, 0x1000);
   }
 
