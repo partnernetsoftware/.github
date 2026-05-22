@@ -1,4 +1,193 @@
 /* Included from lispjit.c — blob/AOT x86 codegen and aot-elf64 CLI. */
+
+static int parse_aot_body_items(const char **p, AotFunc *f) {
+  while (1) {
+    skip_ws(p);
+    if (**p == ')') {
+      (*p)++;
+      return f->stmt_count > 0;
+    }
+    if (!eat(p, '(')) return 0;
+    char *head = parse_atom(p);
+    if (!head) return 0;
+    int ok = 0;
+    if (strcmp(head, "block") == 0) {
+      ok = parse_aot_body_items(p, f);
+      free(head);
+      if (!ok) return 0;
+      continue;
+    }
+    if (strcmp(head, "branch") == 0) {
+      char *label = parse_atom(p);
+      ok = label && eat(p, ')') &&
+           aot_add_stmt(f, AOT_STMT_BRANCH_BOOL, 0, label);
+      if (!ok) free(label);
+    } else if (strcmp(head, "label") == 0) {
+      char *label = parse_atom(p);
+      ok = label && eat(p, ')') &&
+           aot_add_stmt(f, AOT_STMT_LABEL, 0, label);
+      if (!ok) free(label);
+    } else if (strcmp(head, "u64") == 0 || strcmp(head, "add-u64") == 0 ||
+               strcmp(head, "i64") == 0 || strcmp(head, "add-i64") == 0 ||
+               strcmp(head, "sub-i64") == 0 || strcmp(head, "mul-i64") == 0 ||
+               strcmp(head, "eq-i64") == 0 || strcmp(head, "lt-i64") == 0 ||
+               strcmp(head, "gt-i64") == 0 || strcmp(head, "ne-i64") == 0 ||
+               strcmp(head, "le-i64") == 0 || strcmp(head, "ge-i64") == 0) {
+      char *value = parse_atom(p);
+      uint64_t imm = 0;
+      int64_t i64 = 0;
+      uint32_t kind = strcmp(head, "u64") == 0 ? AOT_STMT_CONST_U64 :
+                      strcmp(head, "add-u64") == 0 ? AOT_STMT_ADD_U64 :
+                      strcmp(head, "i64") == 0 ? AOT_STMT_CONST_I64 :
+                      strcmp(head, "add-i64") == 0 ? AOT_STMT_ADD_I64 :
+                      strcmp(head, "sub-i64") == 0 ? AOT_STMT_SUB_I64 :
+                      strcmp(head, "mul-i64") == 0 ? AOT_STMT_MUL_I64 :
+                      strcmp(head, "eq-i64") == 0 ? AOT_STMT_EQ_I64 :
+                      strcmp(head, "lt-i64") == 0 ? AOT_STMT_LT_I64 :
+                      strcmp(head, "gt-i64") == 0 ? AOT_STMT_GT_I64 :
+                      strcmp(head, "ne-i64") == 0 ? AOT_STMT_NE_I64 :
+                      strcmp(head, "le-i64") == 0 ? AOT_STMT_LE_I64 :
+                      AOT_STMT_GE_I64;
+      if (strcmp(head, "i64") == 0 || strcmp(head, "add-i64") == 0 ||
+          strcmp(head, "sub-i64") == 0 || strcmp(head, "mul-i64") == 0 ||
+          strcmp(head, "eq-i64") == 0 || strcmp(head, "lt-i64") == 0 ||
+          strcmp(head, "gt-i64") == 0 || strcmp(head, "ne-i64") == 0 ||
+          strcmp(head, "le-i64") == 0 || strcmp(head, "ge-i64") == 0) {
+        ok = value && parse_i64_atom(value, &i64) && eat(p, ')') &&
+             aot_add_stmt(f, kind, (uint64_t)i64, NULL);
+      } else {
+        ok = value && parse_u64_atom(value, &imm) && eat(p, ')') &&
+             aot_add_stmt(f, kind, imm, NULL);
+      }
+      free(value);
+    } else if (strcmp(head, "bool") == 0) {
+      char *value = parse_atom(p);
+      int boolean = 0;
+      ok = value && parse_bool_atom(value, &boolean) && eat(p, ')') &&
+           aot_add_stmt(f, AOT_STMT_CONST_BOOL, (uint64_t)boolean, NULL);
+      free(value);
+    } else if (strcmp(head, "null-ptr") == 0) {
+      ok = eat(p, ')') && aot_add_stmt(f, AOT_STMT_NULL_PTR, 0, NULL);
+    } else if (strcmp(head, "add-ptr") == 0 || strcmp(head, "sub-ptr") == 0) {
+      char *value = parse_atom(p);
+      uint64_t imm = 0;
+      uint32_t kind = strcmp(head, "add-ptr") == 0 ? AOT_STMT_ADD_PTR : AOT_STMT_SUB_PTR;
+      ok = value && parse_u64_atom(value, &imm) && eat(p, ')') &&
+           aot_add_stmt(f, kind, imm, NULL);
+      free(value);
+    } else if (strcmp(head, "ptr-to-u64") == 0 || strcmp(head, "u64-to-ptr") == 0) {
+      uint32_t kind = strcmp(head, "ptr-to-u64") == 0 ?
+                      AOT_STMT_PTR_TO_U64 :
+                      AOT_STMT_U64_TO_PTR;
+      ok = eat(p, ')') && aot_add_stmt(f, kind, 0, NULL);
+    } else if (strcmp(head, "load-u8") == 0 || strcmp(head, "load-u16") == 0 ||
+               strcmp(head, "load-u32") == 0) {
+      uint32_t kind = strcmp(head, "load-u8") == 0 ? AOT_STMT_LOAD_U8 :
+                      strcmp(head, "load-u16") == 0 ? AOT_STMT_LOAD_U16 :
+                      AOT_STMT_LOAD_U32;
+      ok = eat(p, ')') && aot_add_stmt(f, kind, 0, NULL);
+    } else if (strcmp(head, "store-u8") == 0 || strcmp(head, "store-u16") == 0 ||
+               strcmp(head, "store-u32") == 0) {
+      char *value = parse_atom(p);
+      uint64_t imm = 0;
+      uint32_t kind = strcmp(head, "store-u8") == 0 ? AOT_STMT_STORE_U8 :
+                      strcmp(head, "store-u16") == 0 ? AOT_STMT_STORE_U16 :
+                      AOT_STMT_STORE_U32;
+      ok = value && parse_u64_atom(value, &imm) && eat(p, ')') &&
+           aot_add_stmt(f, kind, imm, NULL);
+      free(value);
+    } else if (strcmp(head, "is-null-ptr") == 0 ||
+               strcmp(head, "is-nonnull-ptr") == 0) {
+      uint32_t kind = strcmp(head, "is-null-ptr") == 0 ?
+                      AOT_STMT_IS_NULL_PTR :
+                      AOT_STMT_IS_NONNULL_PTR;
+      ok = eat(p, ')') && aot_add_stmt(f, kind, 0, NULL);
+    } else if (strcmp(head, "not-bool") == 0) {
+      ok = eat(p, ')') && aot_add_stmt(f, AOT_STMT_NOT_BOOL, 0, NULL);
+    } else if (strcmp(head, "and-bool") == 0 || strcmp(head, "or-bool") == 0) {
+      char *value = parse_atom(p);
+      int boolean = 0;
+      uint32_t kind = strcmp(head, "and-bool") == 0 ? AOT_STMT_AND_BOOL : AOT_STMT_OR_BOOL;
+      ok = value && parse_bool_atom(value, &boolean) && eat(p, ')') &&
+           aot_add_stmt(f, kind, (uint64_t)boolean, NULL);
+      free(value);
+    } else if (strcmp(head, "expect") == 0) {
+      char *value = parse_atom(p);
+      uint64_t imm = 0;
+      int64_t i64 = 0;
+      int boolean = 0;
+      int ptr_state = 0;
+      if (value && parse_bool_atom(value, &boolean)) {
+        ok = eat(p, ')') &&
+             aot_add_stmt(f, AOT_STMT_EXPECT_BOOL, (uint64_t)boolean, NULL);
+      } else if (value && parse_expect_ptr_atom(value, &ptr_state)) {
+        ok = eat(p, ')') &&
+             aot_add_stmt(f, AOT_STMT_EXPECT_PTR, (uint64_t)ptr_state, NULL);
+      } else if (value && parse_i64_atom(value, &i64) && i64 < 0) {
+        ok = eat(p, ')') &&
+             aot_add_stmt(f, AOT_STMT_EXPECT_I64, (uint64_t)i64, NULL);
+      } else {
+        ok = value && parse_u64_atom(value, &imm) && eat(p, ')') &&
+             aot_add_stmt(f, AOT_STMT_EXPECT_U64, imm, NULL);
+      }
+      free(value);
+    } else if (strcmp(head, "call") == 0) {
+      char *target = parse_atom(p);
+      skip_ws(p);
+      ok = target && **p == ')' && eat(p, ')') &&
+           aot_add_stmt(f, AOT_STMT_CALL_FUNC, 0, target);
+      if (!ok) free(target);
+    }
+    free(head);
+    if (!ok) return 0;
+  }
+}
+static int parse_aot_module(const char *src, AotModule *m) {
+  const char *p = src;
+  int saw_main = 0;
+  if (!eat(&p, '(')) return 0;
+  char *module = parse_atom(&p);
+  if (!module || strcmp(module, "module") != 0) {
+    free(module);
+    return 0;
+  }
+  free(module);
+  while (1) {
+    skip_ws(&p);
+    if (*p == ')') {
+      p++;
+      skip_ws(&p);
+      return *p == 0 && saw_main;
+    }
+    if (!eat(&p, '(')) return 0;
+    char *head = parse_atom(&p);
+    char *name = NULL;
+    AotFunc *func = NULL;
+    int ok = 0;
+    if (!head) return 0;
+    if (strcmp(head, "main") == 0) {
+      if (saw_main || aot_find_func(m, "main") >= 0) {
+        free(head);
+        return 0;
+      }
+      name = dup_cstr("main");
+      func = name ? aot_add_func(m, name, 1) : NULL;
+      ok = func && parse_aot_body_items(&p, func);
+      saw_main = ok;
+    } else if (strcmp(head, "func") == 0) {
+      name = parse_atom(&p);
+      if (!name || !name[0] || aot_find_func(m, name) >= 0 || strcmp(name, "main") == 0) {
+        free(name);
+        free(head);
+        return 0;
+      }
+      func = aot_add_func(m, name, 0);
+      ok = func && parse_aot_body_items(&p, func);
+    }
+    free(head);
+    if (!ok) return 0;
+  }
+}
 static int value_to_exit_code(Value v, uint8_t *out) {
   if (v.kind == VAL_U64 || v.kind == VAL_BOOL) {
     *out = (uint8_t)(v.bits & 0xffu);
