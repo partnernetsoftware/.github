@@ -62,14 +62,40 @@ hash_of() {
   "$tool" file-hash "$1"
 }
 
+BUILD_PASS=0
+BUILD_FAIL=0
+BUILD_SKIP=0
+
 run_case() {
   local name="$1"
   shift
   printf '\n## %s\n' "$name" | tee -a "$REPORT"
+  set +e
   "$@" 2>&1 | tee -a "$REPORT"
   local status="${PIPESTATUS[0]}"
+  set -e
   printf 'exit.status=%s\n' "$status" | tee -a "$REPORT"
+  if [ "$status" -eq 0 ]; then
+    BUILD_PASS=$((BUILD_PASS + 1))
+  else
+    BUILD_FAIL=$((BUILD_FAIL + 1))
+  fi
   return "$status"
+}
+
+build_skip_case() {
+  local name="$1"
+  local reason="$2"
+  BUILD_SKIP=$((BUILD_SKIP + 1))
+  printf '\n## SKIP %s\n' "$name" | tee -a "$REPORT"
+  printf '%s\n' "$reason" | tee -a "$REPORT"
+}
+
+build_end_summary() {
+  printf '\n# build summary\n' | tee -a "$REPORT"
+  printf 'build.pass=%s\n' "$BUILD_PASS" | tee -a "$REPORT"
+  printf 'build.skip=%s\n' "$BUILD_SKIP" | tee -a "$REPORT"
+  printf 'build.fail=%s\n' "$BUILD_FAIL" | tee -a "$REPORT"
 }
 
 COSMO_BIN="$(discover_cosmo_bin)"
@@ -418,7 +444,12 @@ case "$NANO_SLICE_COMPILER" in
       echo "slice.aarch64.mode=cosmo" | tee -a "$REPORT"
     elif aarch64_cross_cc_available; then
       ARM_CROSS="$(aarch64_cross_cc)"
-      run_case "build-aarch64-slice-cross" "$ARM_CROSS" -DNANO_LISP_JIT -Os -s "$NANO_C" -ldl \
+      AARCH64_STATIC_FLAGS="-DNANO_LISP_JIT -Os -s"
+      if has_qemu_aarch64; then
+        AARCH64_STATIC_FLAGS="$AARCH64_STATIC_FLAGS -static"
+        echo "slice.aarch64.link=static-for-qemu" | tee -a "$REPORT"
+      fi
+      run_case "build-aarch64-slice-cross" "$ARM_CROSS" $AARCH64_STATIC_FLAGS "$NANO_C" -ldl \
         -o "$BUILD_DIR/nano-jit.aarch64"
       {
         echo "slice.aarch64.compiler=$ARM_CROSS"
@@ -427,6 +458,19 @@ case "$NANO_SLICE_COMPILER" in
       run_case "verify-aarch64-slice-elf" bash -c '
         file -b "'"$BUILD_DIR/nano-jit.aarch64"'" | grep -q "ARM aarch64"
       '
+      if has_qemu_aarch64; then
+        QEMU_AARCH64="$(qemu_aarch64_cmd)"
+        run_case "qemu-aarch64-slice-compile-arithmetic" bash -c '
+          "'"$QEMU_AARCH64"'" "'"$BUILD_DIR/nano-jit.aarch64"'" compile "'"$ARITH_SRC"'" \
+            "'"$BUILD_DIR/native-aarch64-arithmetic.lbin"'"
+        '
+        run_case "qemu-aarch64-slice-run-arithmetic" bash -c '
+          "'"$QEMU_AARCH64"'" "'"$BUILD_DIR/nano-jit.aarch64"'" run \
+            "'"$BUILD_DIR/native-aarch64-arithmetic.lbin"'"
+        '
+      else
+        build_skip_case "qemu-aarch64-slice-smoke" "qemu-aarch64-static not installed"
+      fi
     else
       {
         printf '\n## build-aarch64-slice\n'
@@ -560,12 +604,14 @@ if [ "$(uname -m)" = "x86_64" ] || [ "$(uname -m)" = "amd64" ]; then
     printf "%s\n" "$out"
     printf "%s\n" "$out" | grep -q "run-ape.arch="
   '
-  if command -v qemu-aarch64-static >/dev/null 2>&1 || command -v qemu-aarch64 >/dev/null 2>&1; then
+  if has_qemu_aarch64; then
     run_case "run-ape-nano-jit-com-aarch64-smoke" bash -c '
       out=$("'"$PACKER"'" run-ape "'"$BUILD_DIR/nano-jit.com"'" aarch64 2>&1) || true
       printf "%s\n" "$out"
       printf "%s\n" "$out" | grep -q "run-ape.force_arch=aarch64"
     '
+  else
+    build_skip_case "run-ape-nano-jit-com-aarch64-smoke" "qemu-aarch64 not available"
   fi
 fi
 
@@ -601,6 +647,17 @@ run_case "nano-jit-compile-arithmetic" "$BUILD_DIR/nano-jit.com" compile "$ARITH
 run_case "nano-jit-run-arithmetic" "$BUILD_DIR/nano-jit.com" run "$ARITH_BLOB"
 run_case "nano-jit-compile-arithmetic-i64" "$BUILD_DIR/nano-jit.com" compile "$ARITH_I64_SRC" "$ARITH_I64_BLOB"
 run_case "nano-jit-run-arithmetic-i64" "$BUILD_DIR/nano-jit.com" run "$ARITH_I64_BLOB"
+FUNC_CALL_VM_SMOKE_SRC="$LAB_DIR/samples/func-call-vm-smoke.lisp"
+run_case "nano-jit-selfpack-compile-func-call-vm-smoke" \
+  "$BUILD_DIR/nano-jit.com" compile "$FUNC_CALL_VM_SMOKE_SRC" "$BUILD_DIR/selfpack-func-call-vm.lbin"
+run_case "nano-jit-selfpack-run-func-call-vm-smoke" \
+  "$BUILD_DIR/nano-jit.com" run "$BUILD_DIR/selfpack-func-call-vm.lbin"
+run_case "nano-jit-selfpack-compile-func-param-vm-i64" \
+  "$BUILD_DIR/nano-jit.com" compile "$FUNC_PARAM_VM_I64_SRC" "$BUILD_DIR/selfpack-func-param-vm-i64.lbin"
+run_case "nano-jit-selfpack-run-func-param-vm-i64" \
+  "$BUILD_DIR/nano-jit.com" run "$BUILD_DIR/selfpack-func-param-vm-i64.lbin"
+run_case "nano-jit-selfpack-run-bootstrap-v3-vm-matrix" \
+  bash -c "cd \"$ROOT_DIR\" && \"$BUILD_DIR/nano-jit.com\" run-bootstrap-plan \"$BOOTSTRAP_V3_VM_MATRIX\""
 run_case "nano-jit-compile-typed-values" "$BUILD_DIR/nano-jit.com" compile "$TYPED_SRC" "$TYPED_BLOB"
 run_case "nano-jit-run-typed-values" "$BUILD_DIR/nano-jit.com" run "$TYPED_BLOB"
 run_case "nano-jit-run-bootstrap-plan" "$BUILD_DIR/nano-jit.com" run-bootstrap-plan "$BOOTSTRAP_PLAN"
@@ -682,5 +739,9 @@ run_case "generate-libc-resolve-manifest" "$BUILD_DIR/nano-jit.com" gen-libc-res
 run_case "nano-jit-compile-libc-resolve" "$BUILD_DIR/nano-jit.com" compile "$RESOLVE_SRC" "$RESOLVE_BLOB"
 run_case "nano-jit-resolve-libc" "$BUILD_DIR/nano-jit.com" resolve --quiet "$RESOLVE_BLOB"
 
+build_end_summary
 echo "bootstrap.report=$REPORT" | tee -a "$REPORT"
 ls -l "$BUILD_DIR"/nano-jit.*
+if [ "$BUILD_FAIL" -gt 0 ]; then
+  exit 1
+fi

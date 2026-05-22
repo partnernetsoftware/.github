@@ -45,6 +45,7 @@ BOOTSTRAP_DATA_NEG_SRC="$LAB_DIR/samples/bootstrap-data-negative.lisp"
 BOOTSTRAP_V25_NATIVE_SELFPACK_SRC="$LAB_DIR/samples/bootstrap-v25-native-selfpack.lisp"
 BOOTSTRAP_V3_PACK_BARE_SRC="$LAB_DIR/samples/bootstrap-v3-pack-bare.lisp"
 BOOTSTRAP_V3_BUILD_SLICE_SRC="$LAB_DIR/samples/bootstrap-v3-build-slice.lisp"
+BOOTSTRAP_V3_BUILD_GRAPH_SRC="$LAB_DIR/samples/bootstrap-v3-build-graph.lisp"
 FUNC_CALL_VM_SMOKE_SRC="$LAB_DIR/samples/func-call-vm-smoke.lisp"
 FUNC_CALL_VM_SMOKE_BLOB="$BUILD_DIR/func-call-vm-smoke.lbin"
 FUNC_PARAM_VM_I64_SRC="$LAB_DIR/samples/func-param-vm-i64.lisp"
@@ -175,9 +176,7 @@ bytes_of() {
 # shellcheck source=skip_registry.sh
 source "$LAB_DIR/skip_registry.sh"
 
-has_qemu_aarch64() {
-  command -v qemu-aarch64-static >/dev/null 2>&1 || command -v qemu-aarch64 >/dev/null 2>&1
-}
+# has_qemu_aarch64 from skip_registry.sh
 
 log "# nano-lisp-jit .lisp to .lbin probe"
 
@@ -677,6 +676,19 @@ else
   skip_case "inspect-ape-v3-bare-env" "bootstrap-v3-pack-bare.com missing after plan"
   skip_case "run-ape-v3-bare-env-exit42" "bootstrap-v3-pack-bare.com missing after plan"
 fi
+
+# --- bootstrap-v3 build-graph (slice4 Lisp-orchestrated stage0) ---
+log "bootstrap.v3.build.graph.source.path=$BOOTSTRAP_V3_BUILD_GRAPH_SRC"
+run_case "run-bootstrap-v3-build-graph-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V3_BUILD_GRAPH_SRC"'" 2>&1) || true
+  printf "%s\n" "$out"
+  printf "%s\n" "$out" | grep -q "bootstrap-step.*=build-slice"
+  h0=$(printf "%s\n" "$out" | grep -E "^[0-9a-f]{16}$" | sed -n "1p")
+  h1=$(printf "%s\n" "$out" | grep -E "^[0-9a-f]{16}$" | sed -n "2p")
+  printf "graph.x86.hash=%s\n" "$h0"
+  printf "graph.aarch64.hash=%s\n" "$h1"
+  [ -n "$h0" ] && [ -n "$h1" ] && [ "$h0" != "$h1" ]
+'
 
 # --- bootstrap-v3 build-slice plan (slice4 stage0 bridge) ---
 log "bootstrap.v3.build.slice.source.path=$BOOTSTRAP_V3_BUILD_SLICE_SRC"

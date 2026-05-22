@@ -35,6 +35,18 @@ host_is_linux_x86_64() {
   [ "$(uname -s)" = "Linux" ] && { [ "$(uname -m)" = "x86_64" ] || [ "$(uname -m)" = "amd64" ]; }
 }
 
+has_qemu_aarch64() {
+  command -v qemu-aarch64-static >/dev/null 2>&1 || command -v qemu-aarch64 >/dev/null 2>&1
+}
+
+qemu_aarch64_cmd() {
+  if command -v qemu-aarch64-static >/dev/null 2>&1; then
+    command -v qemu-aarch64-static
+  else
+    command -v qemu-aarch64
+  fi
+}
+
 cosmocc_bin_usable() {
   local bin="${1:-}"
   [ -n "$bin" ] && [ -x "$bin/x86_64-unknown-cosmo-cc" ] && [ -x "$bin/aarch64-unknown-cosmo-cc" ]

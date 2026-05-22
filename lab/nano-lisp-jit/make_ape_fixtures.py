@@ -42,7 +42,9 @@ def strip_manifest(data: bytes) -> bytes:
 def payload_start(data: bytes) -> int:
     idx = data.find(MARKER)
     if idx >= 0:
-        return idx + len(MARKER)
+        ps = idx + len(MARKER)
+        if data[ps : ps + len(V2_MAGIC)] == V2_MAGIC:
+            return ps
     last: int | None = None
     i = 0
     while i + len(V2_MAGIC) <= len(data):

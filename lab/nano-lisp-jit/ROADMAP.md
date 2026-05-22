@@ -193,6 +193,11 @@ nano-jit continuation after self-bootstrap v1
       ├─ 真 multi-arch `.com` 或文档化 aarch64 缺口
       ├─ `func-param-*-bad`：VM `compile` 与 AOT 同为 exit 2
       └─ v3 进度表可追踪（区分 A/B 自举层，非 scoped 空话）
+├─ v3 core 反思（slice 0–3 scoped 100%）
+│  ├─ 设计：A/B 自举分层；VM/AOT 参数与 exit 2 统一
+│  ├─ 实现：PARAM 不计入 PC；cross aarch64 + qemu static smoke
+│  ├─ 测试：self-packed v3 矩阵 + build.pass/skip/fail
+│  └─ 下一圈：slice 4 B 层 — Lisp 出 slice，见 [`v3/REFLECTION.md`](v3/REFLECTION.md)
 ├─ v2.5: v2 反思收口（把 scoped 缺口变成可测切片）
 │  ├─ 反思 · 设计（v2 发现的问题）
 │  │  ├─ scoped 100% 与 mindmap 脱节：「richer IR/VM 参数」只落了 AOT 单 `(param i64)`，VM 仍无参
@@ -254,11 +259,12 @@ nano-jit continuation after self-bootstrap v1
 |------|------|------|
 | slice 0 VM `OP_CALL_FUNC` | **100%** | `OP_CALL_FUNC` + `(func …)`/`(call …)`；`func-call-vm-smoke.lisp` + `run.sh` |
 | slice 1 错误码/arity | **100%** | VM `load-arg-i64` + `func-param-vm-i64`；AOT/VM 负向 exit 2；[`v3/ERROR-CODES.md`](v3/ERROR-CODES.md) |
-| slice 2 aarch64 native slice | **~70%** scoped | `aarch64-linux-gnu-gcc` cross；`slice.aarch64.mode=native-cross`；hash 与 x86 分离 |
-| slice 3 证据/bootstrap | **~90%** | VM matrix + build-slice plan + payload hash distinct |
-| slice 4 compiler-in-lisp（B 层自举） | **~25%** | bootstrap `(build-slice …)` stage0-bridge；[`BUILD-SLICE.md`](v3/BUILD-SLICE.md) |
+| slice 2 aarch64 native slice | **100%** scoped | cross gcc + static/qemu compile/run smoke；非 x86 duplicate |
+| slice 3 证据/bootstrap | **100%** | self-pack v3 VM 矩阵 + `build.pass/skip/fail` + hash distinct |
+| slice 4 compiler-in-lisp（B 层自举） | **~40%** | `build-slice` + `bootstrap-v3-build-graph`；仍 stage0 cc |
 
-**v3 整体**：**~65%** — 真双架构 slice（cross）；B 层仍为 cc 桥接；见 [`v3/README.md`](v3/README.md)。
+**v3 core（slice 0–3）**：**100%（scoped）** — 反思见 [`v3/REFLECTION.md`](v3/REFLECTION.md)。  
+**v3 整体（含 B 层 slice 4）**：**~85%** — B 层未脱离 `cc`；见 [`v3/README.md`](v3/README.md)。
 
 ### 0. 证据基线
 
