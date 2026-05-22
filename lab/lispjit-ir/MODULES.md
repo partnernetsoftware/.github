@@ -7,6 +7,7 @@ Build remains one translation unit: `cc lispjit.c` includes submodules below.
 | `lispjit.c` | CLI glue, `main` |
 | `ape_v2.{h,c}` | APE v2 binary header parse/validate/emit |
 | `nano_manifest.c` | Payload markers, comment manifest parse/dump, `inspect-app`, `is_elf` |
+| `nano_run_cli.c` | `run-embedded`, `run-app`, `run-expect-exit`, `file-size`, `file-hash` |
 | `nano_pack_app.c` | `pack-app` shell stub + multi-arch ELF + blob payload |
 | `nano_ape.c` | APE v1/v2 pack/inspect/run-ape CLI |
 | `nano_elf64.c` | ELF64 emit (exec/obj), `emit-elf64-*` CLI, tiny linker, `link-elf64-exe` |
