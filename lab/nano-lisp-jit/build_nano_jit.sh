@@ -29,12 +29,42 @@ discover_cosmo_bin() {
   printf '%s\n' "$ROOT_DIR/third_party/cosmocc/bin"
 }
 
+NANO_SLICE_COMPILER="${NANO_SLICE_COMPILER:-cosmo}"
+
+host_is_linux_x86_64() {
+  [ "$(uname -s)" = "Linux" ] && { [ "$(uname -m)" = "x86_64" ] || [ "$(uname -m)" = "amd64" ]; }
+}
+
+cosmocc_usable() {
+  [ -x "$X86_CC" ] && [ -x "$ARM_CC" ]
+}
+
+slice_tool() {
+  if [ -f "$BUILD_DIR/nano-jit.com" ]; then
+    printf '%s\n' "$BUILD_DIR/nano-jit.com"
+  elif [ -x "$BUILD_DIR/nano-jit.x86_64" ]; then
+    printf '%s\n' "$BUILD_DIR/nano-jit.x86_64"
+  else
+    return 1
+  fi
+}
+
 bytes_of() {
-  "$BUILD_DIR/nano-jit.com" file-size "$1"
+  local tool
+  tool="$(slice_tool)" || {
+    stat -c%s "$1"
+    return
+  }
+  "$tool" file-size "$1"
 }
 
 hash_of() {
-  "$BUILD_DIR/nano-jit.com" file-hash "$1"
+  local tool
+  tool="$(slice_tool)" || {
+    printf '0\n'
+    return
+  }
+  "$tool" file-hash "$1"
 }
 
 run_case() {
@@ -333,13 +363,6 @@ cat > "$BOOTSTRAP_PLAN" <<EOF
   (link-expect-exit 2 "$BUILD_DIR/bootstrap-aot-dup-should-fail" "nano_bootstrap_call" "$BUILD_DIR/bootstrap-aot-call42.o" "$BUILD_DIR/bootstrap-aot-ext42.o" "$BUILD_DIR/bootstrap-aot-dup42.o"))
 EOF
 
-if [ ! -x "$X86_CC" ] || [ ! -x "$ARM_CC" ]; then
-  echo "cosmocc=missing"
-  echo "searched=$COSMO_BIN"
-  echo "need=x86_64-unknown-cosmo-cc,aarch64-unknown-cosmo-cc"
-  exit 2
-fi
-
 COMMON=(
   -DNANO_LISP_JIT
   -Os
@@ -355,16 +378,98 @@ COMMON=(
   "$NANO_C"
 )
 
+AARCH64_SLICE_SKIPPED=0
+
 {
   echo "# nano-jit bootstrap"
   echo "stage=0"
   echo "goal=self-pack-multi-arch-com"
-  echo "cosmocc.role=temporary-slice-compiler"
+  echo "slice.compiler.mode=$NANO_SLICE_COMPILER"
   echo "apelink.role=not-used"
 } | tee -a "$REPORT"
 
-run_case "build-x86_64-slice" "$X86_CC" "${COMMON[@]}" -o "$BUILD_DIR/nano-jit.x86_64"
-run_case "build-aarch64-slice" "$ARM_CC" "${COMMON[@]}" -o "$BUILD_DIR/nano-jit.aarch64"
+case "$NANO_SLICE_COMPILER" in
+  native)
+    if ! host_is_linux_x86_64; then
+      {
+        echo "native.slice=unsupported"
+        echo "native.slice.host=$(uname -s)/$(uname -m)"
+        echo "native.slice.need=Linux/x86_64"
+      } | tee -a "$REPORT"
+      exit 2
+    fi
+    if ! command -v cc >/dev/null 2>&1; then
+      echo "native.slice=cc_missing" | tee -a "$REPORT"
+      exit 2
+    fi
+    {
+      echo "slice.compiler=native"
+      echo "cosmocc.role=aarch64-slice-only-if-present"
+    } | tee -a "$REPORT"
+    run_case "build-x86_64-slice" cc -DNANO_LISP_JIT -Os -s "$NANO_C" -ldl -o "$BUILD_DIR/nano-jit.x86_64"
+    if cosmocc_usable; then
+      run_case "build-aarch64-slice" "$ARM_CC" "${COMMON[@]}" -o "$BUILD_DIR/nano-jit.aarch64"
+    else
+      {
+        printf '\n## build-aarch64-slice\n'
+        echo "slice.aarch64=skipped"
+        echo "slice.aarch64.reason=cosmocc_missing"
+        echo "slice.aarch64.need=aarch64-unknown-cosmo-cc"
+        echo "searched=$COSMO_BIN"
+        echo "exit.status=0"
+      } | tee -a "$REPORT"
+      AARCH64_SLICE_SKIPPED=1
+    fi
+    ;;
+  cosmo)
+    if ! cosmocc_usable; then
+      {
+        echo "cosmocc=missing"
+        echo "searched=$COSMO_BIN"
+        echo "need=x86_64-unknown-cosmo-cc,aarch64-unknown-cosmo-cc"
+        echo "hint=set NANO_SLICE_COMPILER=native on Linux x86_64 with host cc"
+      } | tee -a "$REPORT"
+      exit 2
+    fi
+    {
+      echo "slice.compiler=cosmo"
+      echo "cosmocc.role=temporary-slice-compiler"
+    } | tee -a "$REPORT"
+    run_case "build-x86_64-slice" "$X86_CC" "${COMMON[@]}" -o "$BUILD_DIR/nano-jit.x86_64"
+    run_case "build-aarch64-slice" "$ARM_CC" "${COMMON[@]}" -o "$BUILD_DIR/nano-jit.aarch64"
+    ;;
+  *)
+    {
+      echo "slice.compiler=invalid"
+      echo "slice.compiler.value=$NANO_SLICE_COMPILER"
+      echo "slice.compiler.allowed=native,cosmo"
+    } | tee -a "$REPORT"
+    exit 2
+    ;;
+esac
+
+if [ "$AARCH64_SLICE_SKIPPED" = 1 ]; then
+  PACKER="$BUILD_DIR/nano-jit.x86_64"
+  {
+    printf '\n## self-pack-nano-jit-com\n'
+    echo "self-pack=skipped"
+    echo "self-pack.reason=aarch64_slice_unavailable"
+    echo "exit.status=0"
+  } | tee -a "$REPORT"
+  run_case "native-x86-slice-compile-arithmetic" \
+    "$PACKER" compile "$ARITH_SRC" "$BUILD_DIR/native-smoke-arithmetic.lbin"
+  run_case "native-x86-slice-run-arithmetic" \
+    "$PACKER" run "$BUILD_DIR/native-smoke-arithmetic.lbin"
+  {
+    echo "nano-jit.x86_64.bytes=$(bytes_of "$BUILD_DIR/nano-jit.x86_64")"
+    echo "nano-jit.x86_64.fnv1a64=$(hash_of "$BUILD_DIR/nano-jit.x86_64")"
+    echo "nano-jit.aarch64.bytes=0"
+    echo "nano-jit.aarch64.fnv1a64=0"
+  } | tee -a "$REPORT"
+  echo "bootstrap.report=$REPORT" | tee -a "$REPORT"
+  ls -l "$BUILD_DIR"/nano-jit.x86_64
+  exit 0
+fi
 
 case "$(uname -m)" in
   x86_64|amd64) PACKER="$BUILD_DIR/nano-jit.x86_64" ;;
