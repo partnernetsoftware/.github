@@ -4,14 +4,15 @@ Build remains one translation unit: `cc lispjit.c` includes submodules below.
 
 | File | Role |
 |------|------|
-| `lispjit.c` | CLI glue, `parse_aot_module`, emit-elf64 stubs, `pack-app`, `main` |
+| `lispjit.c` | CLI glue, `parse_aot_module`, `main` |
 | `ape_v2.{h,c}` | APE v2 binary header parse/validate/emit |
 | `nano_manifest.c` | Payload markers, comment manifest parse/dump, `inspect-app`, `is_elf` |
+| `nano_pack_app.c` | `pack-app` shell stub + multi-arch ELF + blob payload |
 | `nano_ape.c` | APE v1/v2 pack/inspect/run-ape CLI |
-| `nano_elf64.c` | ELF64 emit (exec/obj), tiny linker, `link-elf64-exe` |
+| `nano_elf64.c` | ELF64 emit (exec/obj), `emit-elf64-*` CLI, tiny linker, `link-elf64-exe` |
 | `nano_blob_vm.c` | VM `execute_blob`, dump/hash/resolve/run CLI |
 | `nano_aot_x86.c` | Pure-blob + AOT x86 codegen, `aot-elf64-*`, `eval_pure_blob` |
 | `nano_lisp_parse.c` | lbin/ljir parser, `compile_module`, `compile` path helpers |
 | `nano_bootstrap.c` | Bootstrap plan DSL parse, expect-exit helpers, `run-bootstrap-plan` |
 
-Next extractions (fixture-locked): move `parse_aot_module` + `pack-app` out of `lispjit.c`; in-process ELF loader (Mode B).
+Next extractions (fixture-locked): move `parse_aot_module` out of `lispjit.c`; in-process ELF loader (Mode B).
