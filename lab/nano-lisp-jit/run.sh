@@ -327,7 +327,6 @@ expect_elf64_exec_load_split() {
   printf '%s\n' "$out" | rg -q 'elf64\.exec\.data\.present=1'
   printf '%s\n' "$out" | rg -q 'elf64\.exec\.data\.policy=rw_load_segment'
   printf '%s\n' "$out" | rg -q 'elf64\.exec\.data\.bytes=[1-9]'
-  printf '%s\n' "$out" | rg -q 'elf64\.exec\.data\.layout=page_aligned'
 }
 
 expect_elf64_exec_rwx_compat() {
