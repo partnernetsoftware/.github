@@ -10,6 +10,7 @@ ARITH_I64_SRC="$LAB_DIR/samples/arithmetic-i64.lisp"
 TYPED_SRC="$LAB_DIR/samples/typed-values.lisp"
 PTR_SRC="$LAB_DIR/samples/ptr-values.lisp"
 CONST_PTR_SRC="$LAB_DIR/samples/const-ptr-load-u8.lisp"
+CONST_PTR_LOAD_ONLY_SRC="$LAB_DIR/samples/const-ptr-load-only.lisp"
 CTRL_SRC="$LAB_DIR/samples/control-flow.lisp"
 MULTI_SRC="$LAB_DIR/samples/multi-func.lisp"
 MULTI_CTRL_SRC="$LAB_DIR/samples/multi-func-control-flow.lisp"
@@ -48,6 +49,7 @@ ARITH_I64_BLOB="$BUILD_DIR/arithmetic-i64.lbin"
 TYPED_BLOB="$BUILD_DIR/typed-values.lbin"
 PTR_BLOB="$BUILD_DIR/ptr-values.lbin"
 CONST_PTR_BLOB="$BUILD_DIR/const-ptr-load-u8.lbin"
+CONST_PTR_LOAD_ONLY_BLOB="$BUILD_DIR/const-ptr-load-only.lbin"
 CTRL_BLOB="$BUILD_DIR/control-flow.lbin"
 BAD_ARITH_SRC="$LAB_DIR/samples/arithmetic-bad.lisp"
 BAD_ARITH_BLOB="$BUILD_DIR/arithmetic-bad.lbin"
@@ -66,6 +68,7 @@ PTR_DIRECT_EXE="$BUILD_DIR/ptr_values_direct"
 CONST_PTR_EXIT="$BUILD_DIR/const_ptr_load_u8_aot.elf"
 CONST_PTR_CODE="$BUILD_DIR/const_ptr_load_u8_code.elf"
 CONST_PTR_CODE_OBJ="$BUILD_DIR/const_ptr_load_u8_code.o"
+CONST_PTR_LOAD_ONLY_OBJ="$BUILD_DIR/const_ptr_load_only.o"
 CONST_PTR_LINK_EXE="$BUILD_DIR/const_ptr_load_u8_linked"
 CONST_PTR_DIRECT_EXE="$BUILD_DIR/const_ptr_load_u8_direct"
 CONST_PTR_BAD_RELOC_OBJ="$BUILD_DIR/const_ptr_bad_reloc.o"
@@ -399,6 +402,23 @@ expect_elf64_obj_data_pc32() {
   printf '%s\n' "$out" | rg -q 'elf64\.obj\.data\.bytes=[1-9]'
 }
 
+expect_elf64_obj_rodata_pc32() {
+  local path="$1"
+  local out=""
+  out=$("$RUNNER" inspect-elf64-obj "$path")
+  printf '%s\n' "$out"
+  printf '%s\n' "$out" | rg -q 'elf64\.obj\.section\..*\.name=\.rodata'
+  printf '%s\n' "$out" | rg -q 'elf64\.obj\.section\.1\.flags=ax'
+  printf '%s\n' "$out" | rg -q 'elf64\.obj\.section\..*\.flags=a$'
+  printf '%s\n' "$out" | rg -q 'elf64\.obj\.layout=section_rodata'
+  printf '%s\n' "$out" | rg -q 'elf64\.obj\.rodata\.policy=section_pc32'
+  printf '%s\n' "$out" | rg -q 'elf64\.obj\.rodata\.section=\.rodata'
+  printf '%s\n' "$out" | rg -q 'elf64\.obj\.rodata\.local_symbol=\.Lrodata0'
+  printf '%s\n' "$out" | rg -q 'elf64\.obj\.rela\..*\.type=PC32'
+  printf '%s\n' "$out" | rg -q 'elf64\.obj\.rela\..*\.target=\.rodata'
+  printf '%s\n' "$out" | rg -q 'elf64\.obj\.rodata\.bytes=[1-9]'
+}
+
 log "# nano-lisp-jit .lisp to .lbin probe"
 
 run_case "build-native-nano-lisp-jit" cc -DNANO_LISP_JIT -Os -s "$NANO_C" -ldl -o "$RUNNER"
@@ -415,6 +435,8 @@ log "ptr.source.path=$PTR_SRC"
 log "ptr.source.bytes=$(bytes_of "$PTR_SRC")"
 log "const.ptr.source.path=$CONST_PTR_SRC"
 log "const.ptr.source.bytes=$(bytes_of "$CONST_PTR_SRC")"
+log "const.ptr.load.only.source.path=$CONST_PTR_LOAD_ONLY_SRC"
+log "const.ptr.load.only.source.bytes=$(bytes_of "$CONST_PTR_LOAD_ONLY_SRC")"
 log "control.source.path=$CTRL_SRC"
 log "control.source.bytes=$(bytes_of "$CTRL_SRC")"
 log "multi.source.path=$MULTI_SRC"
@@ -506,6 +528,11 @@ log "const.ptr.blob.bytes=$(bytes_of "$CONST_PTR_BLOB")"
 
 run_case "execute-const-ptr-load-u8-lbin" "$RUNNER" run "$CONST_PTR_BLOB"
 
+run_case "compile-const-ptr-load-only-lbin" "$RUNNER" compile "$CONST_PTR_LOAD_ONLY_SRC" "$CONST_PTR_LOAD_ONLY_BLOB"
+log "const.ptr.load.only.blob.bytes=$(bytes_of "$CONST_PTR_LOAD_ONLY_BLOB")"
+
+run_case "execute-const-ptr-load-only-lbin" "$RUNNER" run "$CONST_PTR_LOAD_ONLY_BLOB"
+
 run_case "run-bootstrap-plan" "$RUNNER" run-bootstrap-plan "$BOOTSTRAP_SRC"
 
 run_case "run-bootstrap-aot-plan" "$RUNNER" run-bootstrap-plan "$BOOTSTRAP_AOT_SRC"
@@ -556,6 +583,8 @@ if [ "$(uname -m)" = "x86_64" ] || [ "$(uname -m)" = "amd64" ]; then
   run_case "run-aot-const-ptr-load-u8-code1" "$RUNNER" run-expect-exit "$CONST_PTR_CODE" 1
   run_case "aot-const-ptr-load-u8-elf64-obj-code1" "$RUNNER" aot-elf64-obj-code "$CONST_PTR_BLOB" "$CONST_PTR_CODE_OBJ" nano_const_ptr_code
   run_case "inspect-aot-const-ptr-obj-data-pc32" expect_elf64_obj_data_pc32 "$CONST_PTR_CODE_OBJ"
+  run_case "aot-const-ptr-load-only-elf64-obj-rodata" "$RUNNER" aot-elf64-obj-code "$CONST_PTR_LOAD_ONLY_BLOB" "$CONST_PTR_LOAD_ONLY_OBJ" nano_const_ptr_load_only
+  run_case "inspect-aot-const-ptr-load-only-rodata-pc32" expect_elf64_obj_rodata_pc32 "$CONST_PTR_LOAD_ONLY_OBJ"
   run_case "prepare-bad-data-reloc-objs" make_bad_data_reloc_objs
   run_case "inspect-elf64-obj-reject-bad-text-flags" expect_inspect_elf64_obj_failure "$CONST_PTR_BAD_FLAGS_OBJ" "bad_text_flags"
   run_case "inspect-elf64-obj-reject-bad-rela-link" expect_inspect_elf64_obj_failure "$CONST_PTR_BAD_RELA_LINK_OBJ" "bad_rela_symtab_link"

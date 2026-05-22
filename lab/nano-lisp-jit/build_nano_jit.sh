@@ -96,6 +96,8 @@ PTR_SRC="$LAB_DIR/samples/ptr-values.lisp"
 PTR_BLOB="$BUILD_DIR/ptr-values.lbin"
 CONST_PTR_SRC="$LAB_DIR/samples/const-ptr-load-u8.lisp"
 CONST_PTR_BLOB="$BUILD_DIR/const-ptr-load-u8.lbin"
+CONST_PTR_LOAD_ONLY_SRC="$LAB_DIR/samples/const-ptr-load-only.lisp"
+CONST_PTR_LOAD_ONLY_BLOB="$BUILD_DIR/const-ptr-load-only.lbin"
 CTRL_SRC="$LAB_DIR/samples/control-flow.lisp"
 CTRL_BLOB="$BUILD_DIR/control-flow.lbin"
 MULTI_SRC="$LAB_DIR/samples/multi-func.lisp"
@@ -150,6 +152,7 @@ CALL42_CALLEE_OBJ="$BUILD_DIR/nano_ext42.o"
 CALL42_LINK_EXE="$BUILD_DIR/nano_call42_linked"
 CONST_PTR_CALL_OBJ="$BUILD_DIR/const_ptr_call.o"
 CONST_PTR_CALLEE_OBJ="$BUILD_DIR/const_ptr_callee.o"
+CONST_PTR_LOAD_ONLY_OBJ="$BUILD_DIR/const_ptr_load_only.o"
 CONST_PTR_CROSS_LINK_EXE="$BUILD_DIR/const_ptr_cross_obj_linked"
 CONST_PTR_BAD_RELOC_OBJ="$BUILD_DIR/const_ptr_bad_reloc.o"
 CONST_PTR_BAD_SHNDX_OBJ="$BUILD_DIR/const_ptr_bad_shndx.o"
@@ -260,6 +263,9 @@ cat > "$BOOTSTRAP_PLAN" <<EOF
   (compile "$CONST_PTR_SRC" "$BUILD_DIR/bootstrap-smoke-const-ptr-load-u8.lbin")
   (file-size "$BUILD_DIR/bootstrap-smoke-const-ptr-load-u8.lbin")
   (run "$BUILD_DIR/bootstrap-smoke-const-ptr-load-u8.lbin")
+  (compile "$CONST_PTR_LOAD_ONLY_SRC" "$BUILD_DIR/bootstrap-smoke-const-ptr-load-only.lbin")
+  (file-size "$BUILD_DIR/bootstrap-smoke-const-ptr-load-only.lbin")
+  (run "$BUILD_DIR/bootstrap-smoke-const-ptr-load-only.lbin")
   (compile "$SMOKE_SRC" "$BUILD_DIR/bootstrap-smoke.lbin")
   (resolve-quiet "$BUILD_DIR/bootstrap-smoke.lbin")
   (hash "$BUILD_DIR/bootstrap-smoke.lbin")
@@ -319,6 +325,8 @@ cat > "$BOOTSTRAP_PLAN" <<EOF
   (run-expect-exit "$BUILD_DIR/bootstrap-aot-const-ptr-load-u8-code.elf" 1)
   (aot-elf64-obj-code "$BUILD_DIR/bootstrap-aot-const-ptr-load-u8.lbin" "$BUILD_DIR/bootstrap-aot-const-ptr-load-u8-code.o" "nano_bootstrap_const_ptr_code")
   (inspect-elf64-obj "$BUILD_DIR/bootstrap-aot-const-ptr-load-u8-code.o")
+  (aot-elf64-obj-code "$BUILD_DIR/bootstrap-smoke-const-ptr-load-only.lbin" "$BUILD_DIR/bootstrap-aot-const-ptr-load-only.o" "nano_bootstrap_const_ptr_load_only")
+  (inspect-elf64-obj "$BUILD_DIR/bootstrap-aot-const-ptr-load-only.o")
   (link-elf64-exe "$BUILD_DIR/bootstrap-aot-const-ptr-load-u8-linked" "nano_bootstrap_const_ptr_code" "$BUILD_DIR/bootstrap-aot-const-ptr-load-u8-code.o")
   (inspect-elf64-exe "$BUILD_DIR/bootstrap-aot-const-ptr-load-u8-linked")
   (run-expect-exit "$BUILD_DIR/bootstrap-aot-const-ptr-load-u8-linked" 1)
@@ -548,6 +556,10 @@ run_case "nano-jit-tiny-link-elf64-obj-call42" "$BUILD_DIR/nano-jit.com" link-el
 run_case "nano-jit-run-tiny-linked-call42" "$BUILD_DIR/nano-jit.com" run-expect-exit "$CALL42_LINK_EXE" 42
 run_case "nano-jit-emit-cross-object-const-ptr-call" "$BUILD_DIR/nano-jit.com" emit-elf64-obj-call "$CONST_PTR_CALL_OBJ" nano_const_ptr_call nano_const_ptr_callee
 run_case "nano-jit-compile-cross-object-const-ptr-callee" "$BUILD_DIR/nano-jit.com" compile "$CONST_PTR_SRC" "$CONST_PTR_BLOB"
+run_case "nano-jit-compile-const-ptr-load-only" "$BUILD_DIR/nano-jit.com" compile "$CONST_PTR_LOAD_ONLY_SRC" "$CONST_PTR_LOAD_ONLY_BLOB"
+run_case "nano-jit-aot-const-ptr-load-only-rodata" "$BUILD_DIR/nano-jit.com" aot-elf64-obj-code "$CONST_PTR_LOAD_ONLY_BLOB" "$CONST_PTR_LOAD_ONLY_OBJ" nano_const_ptr_load_only
+run_case "nano-jit-expect-const-ptr-load-only-rodata" expect_inspect_line "$BUILD_DIR/nano-jit.com" inspect-elf64-obj "$CONST_PTR_LOAD_ONLY_OBJ" "elf64.obj.layout=section_rodata"
+run_case "nano-jit-expect-const-ptr-load-only-rodata-symbol" expect_inspect_line "$BUILD_DIR/nano-jit.com" inspect-elf64-obj "$CONST_PTR_LOAD_ONLY_OBJ" "elf64.obj.rodata.local_symbol=.Lrodata0"
 run_case "nano-jit-aot-cross-object-const-ptr-callee" "$BUILD_DIR/nano-jit.com" aot-elf64-obj-code "$CONST_PTR_BLOB" "$CONST_PTR_CALLEE_OBJ" nano_const_ptr_callee
 run_case "nano-jit-inspect-cross-object-const-ptr-callee" "$BUILD_DIR/nano-jit.com" inspect-elf64-obj "$CONST_PTR_CALLEE_OBJ"
 run_case "nano-jit-expect-cross-object-const-ptr-section-data" expect_inspect_line "$BUILD_DIR/nano-jit.com" inspect-elf64-obj "$CONST_PTR_CALLEE_OBJ" "elf64.obj.layout=section_data"

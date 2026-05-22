@@ -4127,6 +4127,7 @@ static int elf64_obj_local_info(const Elf64ObjSymbol *syms, size_t sym_count, ui
 
 static int emit_elf64_obj_file(const char *out_path, const unsigned char *text, size_t text_n,
                                const unsigned char *data, size_t data_n,
+                               uint64_t data_flags,
                                const Elf64ObjSymbol *syms, size_t sym_count,
                                const Elf64ObjRela *relas, size_t rela_count) {
   static const unsigned char shstr_no_rela[] =
@@ -4135,10 +4136,15 @@ static int emit_elf64_obj_file(const char *out_path, const unsigned char *text, 
     "\0.text\0.rela.text\0.shstrtab\0.symtab\0.strtab\0.note.GNU-stack";
   static const unsigned char shstr_with_data[] =
     "\0.text\0.rela.text\0.data\0.shstrtab\0.symtab\0.strtab\0.note.GNU-stack";
+  static const unsigned char shstr_with_rodata[] =
+    "\0.text\0.rela.text\0.rodata\0.shstrtab\0.symtab\0.strtab\0.note.GNU-stack";
   int has_data = data && data_n;
-  const unsigned char *shstr = has_data ? shstr_with_data :
+  int has_rodata = has_data && data_flags == 0x2;
+  const unsigned char *shstr = has_rodata ? shstr_with_rodata :
+                               has_data ? shstr_with_data :
                                (rela_count ? shstr_with_rela : shstr_no_rela);
-  size_t shstr_n = has_data ? sizeof(shstr_with_data) :
+  size_t shstr_n = has_rodata ? sizeof(shstr_with_rodata) :
+                   has_data ? sizeof(shstr_with_data) :
                    (rela_count ? sizeof(shstr_with_rela) : sizeof(shstr_no_rela));
   uint16_t shnum = has_data ? 8 : (rela_count ? 7 : 6);
   uint16_t shstrndx = has_data ? 4 : (rela_count ? 3 : 2);
@@ -4146,10 +4152,10 @@ static int emit_elf64_obj_file(const char *out_path, const unsigned char *text, 
   uint32_t text_name = 1;
   uint32_t rela_name = 7;
   uint32_t data_name = 18;
-  uint32_t shstr_name = has_data ? 24 : (rela_count ? 18 : 7);
-  uint32_t symtab_name = has_data ? 34 : (rela_count ? 28 : 17);
-  uint32_t strtab_name = has_data ? 42 : (rela_count ? 36 : 25);
-  uint32_t note_name = has_data ? 50 : (rela_count ? 44 : 33);
+  uint32_t shstr_name = has_rodata ? 26 : (has_data ? 24 : (rela_count ? 18 : 7));
+  uint32_t symtab_name = has_rodata ? 36 : (has_data ? 34 : (rela_count ? 28 : 17));
+  uint32_t strtab_name = has_rodata ? 44 : (has_data ? 42 : (rela_count ? 36 : 25));
+  uint32_t note_name = has_rodata ? 52 : (has_data ? 50 : (rela_count ? 44 : 33));
   size_t strtab_n = 1;
   uint32_t *name_offs = NULL;
   unsigned char *out = NULL;
@@ -4203,7 +4209,7 @@ static int emit_elf64_obj_file(const char *out_path, const unsigned char *text, 
                   ELF64_RELA_SIZE);
   }
   if (has_data) {
-    wr_elf64_shdr(sh + 3 * ELF64_SHDR_SIZE, data_name, 1, 0x3, 0, off_data, data_n,
+    wr_elf64_shdr(sh + 3 * ELF64_SHDR_SIZE, data_name, 1, data_flags, 0, off_data, data_n,
                   0, 0, 16, 0);
   }
   wr_elf64_shdr(sh + (size_t)shstrndx * ELF64_SHDR_SIZE, shstr_name, 3, 0, 0, off_shstr,
@@ -4241,7 +4247,7 @@ static int emit_elf64_obj_text_file(const char *out_path, const char *symbol,
   const Elf64ObjSymbol syms[] = {
     {symbol, 0x12, 1, 0, text_n},
   };
-  return emit_elf64_obj_file(out_path, text, text_n, NULL, 0, syms, 1, NULL, 0);
+  return emit_elf64_obj_file(out_path, text, text_n, NULL, 0, 0, syms, 1, NULL, 0);
 }
 
 static int emit_elf64_obj_text_data_file(const char *out_path, const char *symbol,
@@ -4252,7 +4258,20 @@ static int emit_elf64_obj_text_data_file(const char *out_path, const char *symbo
     {".Ldata0", 0x01, 3, 0, data_n},
     {symbol, 0x12, 1, 0, text_n},
   };
-  return emit_elf64_obj_file(out_path, text, text_n, data, data_n, syms, 2, relas, rela_count);
+  return emit_elf64_obj_file(out_path, text, text_n, data, data_n, 0x3, syms, 2,
+                             relas, rela_count);
+}
+
+static int emit_elf64_obj_text_rodata_file(const char *out_path, const char *symbol,
+                                           const unsigned char *text, size_t text_n,
+                                           const unsigned char *data, size_t data_n,
+                                           const Elf64ObjRela *relas, size_t rela_count) {
+  const Elf64ObjSymbol syms[] = {
+    {".Lrodata0", 0x01, 3, 0, data_n},
+    {symbol, 0x12, 1, 0, text_n},
+  };
+  return emit_elf64_obj_file(out_path, text, text_n, data, data_n, 0x2, syms, 2,
+                             relas, rela_count);
 }
 
 static int emit_elf64_obj_ret_file(const char *out_path, const char *symbol, uint32_t value) {
@@ -4270,7 +4289,7 @@ static int emit_elf64_obj_call_file(const char *out_path, const char *local, con
   const Elf64ObjRela relas[] = {
     {1, 2, ELF64_R_X86_64_PLT32, -4},
   };
-  return emit_elf64_obj_file(out_path, text, sizeof(text), NULL, 0, syms, 2, relas, 1);
+  return emit_elf64_obj_file(out_path, text, sizeof(text), NULL, 0, 0, syms, 2, relas, 1);
 }
 
 typedef struct {
@@ -4287,6 +4306,9 @@ typedef struct {
   const unsigned char *data_sec;
   size_t data_sec_size;
   size_t out_data_off;
+  uint16_t rodata_idx;
+  const unsigned char *rodata_sec;
+  size_t rodata_sec_size;
   const unsigned char *symtab;
   size_t sym_count;
   uint16_t symtab_idx;
@@ -4405,6 +4427,11 @@ static int parse_elf_obj(const unsigned char *data, size_t size, ElfObj *o,
       o->data_idx = i;
       o->data_sec = data + off;
       o->data_sec_size = (size_t)n;
+    } else if (strcmp(name, ".rodata") == 0) {
+      if (o->rodata_idx || type != 1 || flags != 0x2) return 0;
+      o->rodata_idx = i;
+      o->rodata_sec = data + off;
+      o->rodata_sec_size = (size_t)n;
     } else if (type == 2) {
       uint64_t entsize = rd64(sh + 56);
       if (o->symtab || entsize != ELF64_SYM_SIZE || link >= shnum || (entsize && n % entsize)) return 0;
@@ -4434,7 +4461,7 @@ static int parse_elf_obj(const unsigned char *data, size_t size, ElfObj *o,
     if (reason) *reason = "bad_rela_symtab_link";
     return 0;
   }
-  if (o->data_sec_size && !o->rela) return 0;
+  if ((o->data_sec_size || o->rodata_sec_size) && !o->rela) return 0;
   size_t local_count = 0;
   int saw_global = 0;
   for (size_t s = 1; s < o->sym_count; ++s) {
@@ -4466,6 +4493,7 @@ static const char *elf64_reloc_type_name(uint32_t type) {
 static const char *elf64_shdr_flags_name(uint64_t flags) {
   if (flags == 0x6) return "ax";
   if (flags == 0x3) return "aw";
+  if (flags == 0x2) return "a";
   if (flags == 0) return "none";
   return "other";
 }
@@ -4499,7 +4527,9 @@ static int cmd_inspect_elf64_obj(const char *path) {
   }
   printf("elf64.obj.text.bytes=%zu\n", o.text_size);
   printf("elf64.obj.data.bytes=%zu\n", o.data_sec_size);
-  printf("elf64.obj.layout=%s\n", o.data_sec_size ? "section_data" : "text_only");
+  printf("elf64.obj.rodata.bytes=%zu\n", o.rodata_sec_size);
+  printf("elf64.obj.layout=%s\n", o.rodata_sec_size ? "section_rodata" :
+         (o.data_sec_size ? "section_data" : "text_only"));
   if (o.data_sec_size) {
     const char *data_sym = NULL;
     size_t data_sym_idx = 0;
@@ -4518,6 +4548,25 @@ static int cmd_inspect_elf64_obj(const char *path) {
     }
   } else {
     printf("elf64.obj.data.policy=none\n");
+  }
+  if (o.rodata_sec_size) {
+    const char *rodata_sym = NULL;
+    size_t rodata_sym_idx = 0;
+    for (size_t s = 1; s < o.sym_count; ++s) {
+      if (elf_sym_binding(&o, s) == 0 && elf_sym_shndx(&o, s) == o.rodata_idx) {
+        rodata_sym = elf_sym_name(&o, s);
+        rodata_sym_idx = s;
+        break;
+      }
+    }
+    printf("elf64.obj.rodata.policy=section_pc32\n");
+    printf("elf64.obj.rodata.section=.rodata\n");
+    if (rodata_sym) {
+      printf("elf64.obj.rodata.local_symbol=%s\n", rodata_sym);
+      printf("elf64.obj.rodata.local_sym=%zu\n", rodata_sym_idx);
+    }
+  } else {
+    printf("elf64.obj.rodata.policy=none\n");
   }
   printf("elf64.obj.rela.count=%zu\n", o.rela_count);
   for (size_t i = 0; i < o.rela_count; ++i) {
@@ -5069,6 +5118,17 @@ typedef struct {
   uint32_t patch_off;
   uint32_t data_off;
 } DataPatch;
+
+static int blob_has_store_ops(const Blob *b) {
+  for (uint32_t pc = 0; pc < b->instr_count; ++pc) {
+    const unsigned char *ins = instr_row(b, pc);
+    if (!ins) return 0;
+    if (ins[0] == OP_STORE_U8 || ins[0] == OP_STORE_U16 || ins[0] == OP_STORE_U32) {
+      return 1;
+    }
+  }
+  return 0;
+}
 
 static int compile_pure_blob_to_x86(const Blob *b, Buf *code, int exit_style,
                                     Buf *data, size_t data_align, Buf *out_data_patches) {
@@ -6135,7 +6195,7 @@ static int compile_aot_module_to_elf64_obj(const AotModule *m, const char *out_p
     }
   }
 
-  ok = emit_elf64_obj_file(out_path, text.data, text.len, NULL, 0, syms, m->func_count,
+  ok = emit_elf64_obj_file(out_path, text.data, text.len, NULL, 0, 0, syms, m->func_count,
                            relas, rela_count);
 
 done:
@@ -6237,6 +6297,7 @@ static int cmd_aot_elf64_obj_code(const char *blob_path, const char *out_path,
     fprintf(stderr, "blob=parse_fail path=%s\n", blob_path);
     return 1;
   }
+  int has_store_ops = blob_has_store_ops(&b);
   int ok = compile_pure_u64_blob_to_x86_ret_obj(&b, &code, &data, &data_patches);
   free(owned);
   if (!ok) {
@@ -6265,8 +6326,11 @@ static int cmd_aot_elf64_obj_code(const char *blob_path, const char *out_path,
       };
     }
   }
-  ok = data.len ? emit_elf64_obj_text_data_file(out_path, symbol, code.data, code.len,
-                                                data.data, data.len, relas, rela_count) :
+  ok = data.len ? (has_store_ops ?
+                   emit_elf64_obj_text_data_file(out_path, symbol, code.data, code.len,
+                                                 data.data, data.len, relas, rela_count) :
+                   emit_elf64_obj_text_rodata_file(out_path, symbol, code.data, code.len,
+                                                   data.data, data.len, relas, rela_count)) :
                   emit_elf64_obj_text_file(out_path, symbol, code.data, code.len);
   if (!ok) {
     free(code.data);
@@ -6279,7 +6343,8 @@ static int cmd_aot_elf64_obj_code(const char *blob_path, const char *out_path,
   printf("aot.obj.code.output=%s\n", out_path);
   printf("aot.obj.code.symbol=%s\n", symbol);
   printf("aot.obj.code.x86.bytes=%zu\n", code_n);
-  if (data.len) printf("aot.obj.code.data.bytes=%zu\n", data.len);
+  if (data.len && has_store_ops) printf("aot.obj.code.data.bytes=%zu\n", data.len);
+  if (data.len && !has_store_ops) printf("aot.obj.code.rodata.bytes=%zu\n", data.len);
   if (rela_count) printf("aot.obj.code.rela.count=%zu\n", rela_count);
   free(code.data);
   free(data.data);
