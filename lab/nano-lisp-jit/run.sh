@@ -166,6 +166,18 @@ has_qemu_aarch64() {
   command -v qemu-aarch64-static >/dev/null 2>&1 || command -v qemu-aarch64 >/dev/null 2>&1
 }
 
+host_is_linux_x86_64() {
+  [ "$(uname -s)" = "Linux" ] && { [ "$(uname -m)" = "x86_64" ] || [ "$(uname -m)" = "amd64" ]; }
+}
+
+skip_case() {
+  local name="$1"
+  local reason="$2"
+  log ""
+  log "## $name"
+  log "skip: $reason"
+}
+
 log "# nano-lisp-jit .lisp to .lbin probe"
 
 run_case "build-native-nano-lisp-jit" cc -DNANO_LISP_JIT -Os -s "$NANO_C" -ldl -o "$RUNNER"
@@ -311,8 +323,13 @@ log "bootstrap.ape.v2.source.path=$BOOTSTRAP_APE_V2_SRC"
 log "bootstrap.ape.v2.source.bytes=$(bytes_of "$BOOTSTRAP_APE_V2_SRC")"
 run_case "run-bootstrap-ape-v2-plan" "$RUNNER" run-bootstrap-plan "$BOOTSTRAP_APE_V2_SRC"
 if [ -f "$APE_V2_COM" ]; then
-  run_case "inspect-ape-v2-smoke" "$RUNNER" inspect-ape "$APE_V2_COM"
-  if [ "$(uname -m)" = "x86_64" ] || [ "$(uname -m)" = "amd64" ]; then
+  run_case "pack-ape-v2-fixture" test -f "$APE_V2_COM"
+  run_case "inspect-ape-v2-container" bash -c '
+    out=$("'"$RUNNER"'" inspect-ape "'"$APE_V2_COM"'" 2>&1) || true
+    printf "%s\n" "$out"
+    printf "%s\n" "$out" | grep -q "inspect-ape.container=ape-v2"
+  '
+  if host_is_linux_x86_64; then
     run_case "run-ape-v2-native-exit42" "$RUNNER" run-ape-expect-exit "$APE_V2_COM" 42
     run_case "run-ape-v2-memfd-loader-smoke" bash -c '
       out=$("'"$RUNNER"'" run-ape "'"$APE_V2_COM"'" 2>&1) || true
@@ -321,10 +338,17 @@ if [ -f "$APE_V2_COM" ]; then
       printf "%s\n" "$out" | grep -q "run-ape.loader=memfd"
       printf "%s\n" "$out" | grep -q "run-ape.exit=42"
     '
+  else
+    skip_case "run-ape-v2-native-exit42" "host is not Linux x86_64 (uname -s=$(uname -s) -m=$(uname -m))"
+    skip_case "run-ape-v2-memfd-loader-smoke" "host is not Linux x86_64 (uname -s=$(uname -s) -m=$(uname -m))"
   fi
   run_case "make-ape-v2-negative-fixtures" python3 "$LAB_DIR/make_ape_fixtures.py" "$APE_V2_COM" "$BUILD_DIR"
   BOOTSTRAP_APE_V2_NEG_SRC="$LAB_DIR/samples/bootstrap-ape-v2-negative.lisp"
   run_case "run-bootstrap-ape-v2-negative-plan" "$RUNNER" run-bootstrap-plan "$BOOTSTRAP_APE_V2_NEG_SRC"
+else
+  skip_case "pack-ape-v2-fixture" "bootstrap-ape-v2.com missing after plan"
+  skip_case "inspect-ape-v2-container" "bootstrap-ape-v2.com missing after plan"
+  skip_case "run-ape-v2-native-exit42" "bootstrap-ape-v2.com missing after plan"
 fi
 
 if [ -f "$BUILD_DIR/ape-v1-legacy.com" ]; then
