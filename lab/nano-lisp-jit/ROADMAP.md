@@ -245,18 +245,18 @@ nano-jit continuation after self-bootstrap v1
 下一圈（v2 kickoff）：
 
 1. **APE v2**（slice 1 **100% scoped**）+ **hybrid loader**（~50%）：`run-ape` 原生读 v2；`pack-ape` stub 优先 `NANO_JIT`/`nano-lisp-jit run-ape`。
-2. **`lispjit.c` 模块边界**（slice 2 **~98%**）：+`nano_pack_app.c`；`parse_aot`/`emit-elf64` 已迁入 aot/elf64；`lispjit.c` 仅 CLI glue + `main`。
+2. **`lispjit.c` 模块边界**（slice 2 **~99%**）：`lispjit.c` ~900 行；+`nano_compile_cli` / `nano_run_cli` / `nano_libc_resolve` / `nano_compile_elf64_cli`；仅 `main` + `parse_size_arg`。
 
 ### v2 总完成度（工程向）
 
 | 轨道 | 状态 | 说明 |
 |------|------|------|
 | APE v2 格式 + inspect/run | **100%** scoped | slice 1 签收 |
-| 模块拆分 | **~98%** | +pack_app；aot parse + emit-elf64 CLI 归位 |
-| 进程内 loader（无 shell） | **~65%** | Linux x86_64 `memfd`+`execv`；aarch64 仍 qemu/tmpfile |
+| 模块拆分 | **~99%** | 12× `nano_*.c` + `ape_v2`；`lispjit.c` 薄化 |
+| 进程内 loader（无 shell） | **~70%** | x86_64 memfd；**Mode B** bare v2 + `pack-ape-bare` |
 | ABI / 参数 / 自托管 slice | **0%** | slice 3+ |
 
-**v2 整体（全目标）**：约 **85%** — 五路并行合并（parse_aot / pack_app / emit_elf64 / memfd loader / run.sh smoke）。
+**v2 整体（全目标）**：约 **90%** — 第二轮五路并行（CLI 拆分 + Mode B + libc_resolve）。
 
 **远程 `main`**：每次 merge 在 commit message 中标注上述整体完成度百分比。
 
