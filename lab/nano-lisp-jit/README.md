@@ -3,7 +3,7 @@
 目标：生成跨架构可执行的 `nano-lisp-jit.com`，把极小 Lisp-like 源码编译为 portable `.lbin` blob，并在运行时只加载 `.lbin` 执行。
 
 长期目标：推进到可自举的 `nano-jit.com`：用 Lisp/IR 驱动 FFI、JIT、AOT，最终自己编译自己并生成多架构可运行 APE；v3+ 继续作为 AI 友好、图灵完备、可验证的独立基石，逐步吸收 WASM/JVM/JS/SQL 等外部语义。
-路线图、v1 反思、持续进化循环、v1.5/v2/v3+ 洋葱 TDD mindmap 见 `ROADMAP.md`。
+路线图、v1 反思、持续进化循环、v1.5/v2/v3/v3.5 洋葱 TDD mindmap 见 `ROADMAP.md`（v3.5 = nano-cc）。
 `lab/tool-*` 消费者用法与已知摩擦见 `LAB-USAGE-FEEDBACK.md`。
 内存安全借鉴与产品化命名见 `DESIGN-MEMORY-AND-PRODUCT.md`。
 能力边界探测见 `../boundary-probes/`（`run-probes.sh` → `RESULTS.md`）。

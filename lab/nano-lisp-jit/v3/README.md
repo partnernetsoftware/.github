@@ -8,7 +8,7 @@ v2.5 **100%（scoped）** 完成。v3 **100%（scoped）** — core + B 层编�
 |----|------|------|
 | **A** | 用户 Lisp → `.lbin`/AOT；`nano-jit.com` self-pack | **100%** |
 | **B orchestration** | Lisp `bootstrap` 编排 genesis→gen1→gen2 | **100%** scoped — [`BOOTSTRAP-THOROUGH.md`](BOOTSTRAP-THOROUGH.md) |
-| **B codegen** | Lisp 生成 slice 机器码，零 `cc` | **0%** — `build-slice` 仍 stage0-bridge |
+| **B codegen** | Lisp 生成 slice 机器码，零 `cc` | **v3.5** — 见 [`../v3.5/README.md`](../v3.5/README.md) |
 
 ## v3 完成度
 
@@ -19,9 +19,10 @@ v2.5 **100%（scoped）** 完成。v3 **100%（scoped）** — core + B 层编�
 | slice 2 aarch64 slice | **100%** scoped |
 | slice 3 证据/bootstrap | **100%** |
 | slice 4 orchestration（B 层） | **100%** scoped |
-| slice 4b codegen | **0%** |
+| slice 4b codegen → v3.5 nano-cc | **0%**（v3.5 kickoff） |
 
-**v3 整体（scoped）**：**100%** — 反思见 [`REFLECTION.md`](REFLECTION.md)
+**v3 整体（scoped）**：**100%** — 反思见 [`REFLECTION.md`](REFLECTION.md)  
+**下一圈**：**v3.5 nano-cc** — [`../v3.5/README.md`](../v3.5/README.md) + ROADMAP v3.5 mindmap
 
 ## 命令
 

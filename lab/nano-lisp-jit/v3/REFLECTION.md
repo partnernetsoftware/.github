@@ -25,6 +25,7 @@
 - `bootstrap-v3-selfhost-gen2.lisp`：gen1 slice runner 再跑 gen2，形成两代闭环证据。
 - 门禁：`run.sh` plan + arithmetic；`build_nano_jit.sh` `selfhost-thorough-round{1,2}`。
 
-## 下一圈（slice 4b / codegen）
+## 下一圈（v3.5 nano-cc）
 
-- Lisp/IR lowering 产出 slice 字节，去掉对 `lispjit.c` 的 stage0 `cc`。
+- 见 [`../v3.5/README.md`](../v3.5/README.md) 与 ROADMAP **v3.5 洋葱 TDD mindmap**。
+- 第一刀：slice 0 `nano-cc` + hello.c；再 C-subset 前端 → `build-slice.role=nano-cc` → gen3 selfhost。
