@@ -261,10 +261,11 @@ nano-jit continuation after self-bootstrap v1
 | slice 1 错误码/arity | **100%** | VM `load-arg-i64` + `func-param-vm-i64`；AOT/VM 负向 exit 2；[`v3/ERROR-CODES.md`](v3/ERROR-CODES.md) |
 | slice 2 aarch64 native slice | **100%** scoped | cross gcc + static/qemu compile/run smoke；非 x86 duplicate |
 | slice 3 证据/bootstrap | **100%** | self-pack v3 VM 矩阵 + `build.pass/skip/fail` + hash distinct |
-| slice 4 compiler-in-lisp（B 层自举） | **~40%** | `build-slice` + `bootstrap-v3-build-graph`；仍 stage0 cc |
+| slice 4 compiler-in-lisp（B 层自举） | **100%** scoped orchestration | `build-slice` + `bootstrap-v3-selfhost-gen{1,2}`；[`v3/BOOTSTRAP-THOROUGH.md`](v3/BOOTSTRAP-THOROUGH.md) |
+| slice 4b Lisp codegen（零 cc） | **0%** | 长期路线；见 ROADMAP §5/§6 |
 
 **v3 core（slice 0–3）**：**100%（scoped）** — 反思见 [`v3/REFLECTION.md`](v3/REFLECTION.md)。  
-**v3 整体（含 B 层 slice 4）**：**~85%** — B 层未脱离 `cc`；见 [`v3/README.md`](v3/README.md)。
+**v3 整体（scoped，含 B 层编排）**：**100%（scoped）** — Genesis `cc` + Lisp gen1→gen2 闭环；Codegen 未达成。见 [`v3/README.md`](v3/README.md)。
 
 ### 0. 证据基线
 

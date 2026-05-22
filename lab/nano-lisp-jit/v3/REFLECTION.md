@@ -1,6 +1,6 @@
-# v3 反思（scoped core 签收）
+# v3 反思（scoped 全量签收）
 
-**范围**：v3 切片 0–3 视为 **100%（scoped）**；切片 4（Lisp 编编译器 / B 层）仍在进行（~40%），不计入本次签收。
+**范围**：v3 切片 0–4 orchestration **100%（scoped）**；slice 4b（Lisp codegen / 零 `cc`）未达成，单独计 0%。
 
 ## 设计
 
@@ -19,7 +19,12 @@
 - 真双架构证据 = **payload hash 不同** +（可选）**qemu-aarch64-static** 对 cross slice 做 compile/run。
 - v3 fixture 必须进 **self-packed** `nano-jit.com` 矩阵，不能只停在 native `lispjit` runner。
 
-## 下一圈（v3+ / slice 4）
+## B 层编排签收（slice 4）
 
-- Lisp/IR  lowering 产出 slice 字节，去掉对 `lispjit.c` 的 stage0 `cc`。
-- 固定 seed 后，self-packed runner 执行完整构建图生成下一代 `.com`。
+- `bootstrap-v3-selfhost-gen1.lisp`：genesis runner 重建 slice + `.com` + VM smoke。
+- `bootstrap-v3-selfhost-gen2.lisp`：gen1 slice runner 再跑 gen2，形成两代闭环证据。
+- 门禁：`run.sh` plan + arithmetic；`build_nano_jit.sh` `selfhost-thorough-round{1,2}`。
+
+## 下一圈（slice 4b / codegen）
+
+- Lisp/IR lowering 产出 slice 字节，去掉对 `lispjit.c` 的 stage0 `cc`。

@@ -120,6 +120,10 @@ BOOTSTRAP_DATA_NEG_SRC="$LAB_DIR/samples/bootstrap-data-negative.lisp"
 BOOTSTRAP_V25_NATIVE_SELFPACK="$LAB_DIR/samples/bootstrap-v25-native-selfpack.lisp"
 BOOTSTRAP_V3_VM_MATRIX="$LAB_DIR/samples/bootstrap-v3-vm-selfpack-matrix.lisp"
 BOOTSTRAP_V3_BUILD_SLICE="$LAB_DIR/samples/bootstrap-v3-build-slice.lisp"
+BOOTSTRAP_V3_SELFHOST_GEN1="$LAB_DIR/samples/bootstrap-v3-selfhost-gen1.lisp"
+BOOTSTRAP_V3_SELFHOST_GEN2="$LAB_DIR/samples/bootstrap-v3-selfhost-gen2.lisp"
+SELFHOST_DIR="$BUILD_DIR/selfhost"
+NANO_SELFHOST_THOROUGH="${NANO_SELFHOST_THOROUGH:-1}"
 FUNC_PARAM_VM_I64_SRC="$LAB_DIR/samples/func-param-vm-i64.lisp"
 RODATA_READONLY_SRC="$LAB_DIR/samples/rodata-readonly.lisp"
 APE_FIXTURE_DIR="$LAB_DIR/.build"
@@ -555,6 +559,15 @@ if [ "$AARCH64_SLICE_SKIPPED" = 1 ]; then
     bash -c "cd \"$ROOT_DIR\" && \"$PACKER\" run-bootstrap-plan \"$BOOTSTRAP_V3_VM_MATRIX\""
   run_case "run-bootstrap-v25-native-selfpack" \
     bash -c "cd \"$ROOT_DIR\" && \"$PACKER\" run-bootstrap-plan \"$BOOTSTRAP_V25_NATIVE_SELFPACK\""
+  if [ "$NANO_SELFHOST_THOROUGH" = "1" ]; then
+    mkdir -p "$SELFHOST_DIR"
+    run_case "selfhost-thorough-round1-genesis-x86-only" bash -c '
+      cd "'"$ROOT_DIR"'" && "'"$PACKER"'" run-bootstrap-plan "'"$BOOTSTRAP_V3_SELFHOST_GEN1"'"
+    '
+    run_case "selfhost-thorough-round2-gen1-slice-x86-only" bash -c '
+      cd "'"$ROOT_DIR"'" && "'"$SELFHOST_DIR"'/gen1-slice-x86.elf" run-bootstrap-plan "'"$BOOTSTRAP_V3_SELFHOST_GEN2"'"
+    '
+  fi
   {
     echo "nano-jit.com.bytes=$(bytes_of "$BUILD_DIR/nano-jit.com")"
     echo "nano-jit.com.fnv1a64=$(hash_of "$BUILD_DIR/nano-jit.com")"
@@ -620,6 +633,7 @@ run_case "make-ape-negative-fixtures-self-pack" python3 "$LAB_DIR/make_ape_fixtu
 run_case "run-bootstrap-ape-negative-self-pack" \
   bash -c "cd \"$ROOT_DIR\" && \"$BUILD_DIR/nano-jit.com\" run-bootstrap-plan \"$BOOTSTRAP_APE_NEG_SRC\""
 
+rm -f "$APE_FIXTURE_DIR/const-ptr-data-fixtures.lbin" 2>/dev/null || true
 run_case "nano-jit-compile-const-ptr-for-data-fixtures-self-pack" \
   "$BUILD_DIR/nano-jit.com" compile "$CONST_PTR_SRC" "$APE_FIXTURE_DIR/const-ptr-data-fixtures.lbin"
 run_case "nano-jit-aot-const-ptr-data-good-obj-self-pack" \
@@ -738,6 +752,41 @@ run_case "nano-jit-run-smoke-app" "$SMOKE_APP"
 run_case "generate-libc-resolve-manifest" "$BUILD_DIR/nano-jit.com" gen-libc-resolve "$RESOLVE_SRC"
 run_case "nano-jit-compile-libc-resolve" "$BUILD_DIR/nano-jit.com" compile "$RESOLVE_SRC" "$RESOLVE_BLOB"
 run_case "nano-jit-resolve-libc" "$BUILD_DIR/nano-jit.com" resolve --quiet "$RESOLVE_BLOB"
+
+if [ "$NANO_SELFHOST_THOROUGH" = "1" ] && { [ "$(uname -m)" = "x86_64" ] || [ "$(uname -m)" = "amd64" ]; }; then
+  mkdir -p "$SELFHOST_DIR"
+  GENESIS_RUNNER="$PACKER"
+  if [ ! -x "$GENESIS_RUNNER" ]; then
+    GENESIS_RUNNER="$BUILD_DIR/nano-jit.x86_64"
+  fi
+  run_case "selfhost-thorough-round1-genesis" bash -c '
+    cd "'"$ROOT_DIR"'" && "'"$GENESIS_RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V3_SELFHOST_GEN1"'"
+  '
+  run_case "selfhost-thorough-round1-artifacts" bash -c '
+    test -x "'"$SELFHOST_DIR"'/gen1-slice-x86.elf"
+    test -f "'"$SELFHOST_DIR"'/gen1-slice-aarch64.elf"
+    test -f "'"$SELFHOST_DIR"'/gen1-nano-jit.com"
+    test -f "'"$SELFHOST_DIR"'/gen1-arithmetic.lbin"
+    file -b "'"$SELFHOST_DIR"'/gen1-slice-aarch64.elf" | grep -q "ARM aarch64"
+    "'"$SELFHOST_DIR"'/gen1-slice-x86.elf" run "'"$SELFHOST_DIR"'/gen1-arithmetic.lbin"
+  '
+  run_case "selfhost-thorough-round2-gen1-slice" bash -c '
+    cd "'"$ROOT_DIR"'" && "'"$SELFHOST_DIR"'/gen1-slice-x86.elf" run-bootstrap-plan "'"$BOOTSTRAP_V3_SELFHOST_GEN2"'"
+  '
+  run_case "selfhost-thorough-round2-artifacts" bash -c '
+    test -x "'"$SELFHOST_DIR"'/gen2-slice-x86.elf"
+    test -f "'"$SELFHOST_DIR"'/gen2-nano-jit.com"
+    test -f "'"$SELFHOST_DIR"'/gen2-arithmetic.lbin"
+    "'"$SELFHOST_DIR"'/gen2-slice-x86.elf" run "'"$SELFHOST_DIR"'/gen2-arithmetic.lbin"
+  '
+  {
+    echo "selfhost.thorough=ok"
+    echo "selfhost.gen1.slice.x86.hash=$(hash_of "$SELFHOST_DIR/gen1-slice-x86.elf")"
+    echo "selfhost.gen2.slice.x86.hash=$(hash_of "$SELFHOST_DIR/gen2-slice-x86.elf")"
+  } | tee -a "$REPORT"
+else
+  build_skip_case "selfhost-thorough-round1-genesis" "NANO_SELFHOST_THOROUGH=$NANO_SELFHOST_THOROUGH or non-x86 host"
+fi
 
 build_end_summary
 echo "bootstrap.report=$REPORT" | tee -a "$REPORT"

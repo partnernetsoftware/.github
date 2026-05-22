@@ -51,6 +51,9 @@ FUNC_CALL_VM_SMOKE_BLOB="$BUILD_DIR/func-call-vm-smoke.lbin"
 FUNC_PARAM_VM_I64_SRC="$LAB_DIR/samples/func-param-vm-i64.lisp"
 FUNC_PARAM_VM_I64_BLOB="$BUILD_DIR/func-param-vm-i64.lbin"
 BOOTSTRAP_V3_VM_MATRIX_SRC="$LAB_DIR/samples/bootstrap-v3-vm-selfpack-matrix.lisp"
+BOOTSTRAP_V3_SELFHOST_GEN1_SRC="$LAB_DIR/samples/bootstrap-v3-selfhost-gen1.lisp"
+BOOTSTRAP_V3_SELFHOST_GEN2_SRC="$LAB_DIR/samples/bootstrap-v3-selfhost-gen2.lisp"
+SELFHOST_DIR="$LAB_DIR/.build/nano-jit/selfhost"
 DATA_GOOD_OBJ="$BUILD_DIR/data-good.o"
 DATA_BAD_RELOC_TYPE_OBJ="$BUILD_DIR/data-bad-reloc-type.o"
 DATA_BAD_RELOC_SYM_OBJ="$BUILD_DIR/data-bad-reloc-sym.o"
@@ -709,6 +712,34 @@ run_case "run-bootstrap-v3-vm-matrix-plan" bash -c '
   printf "%s\n" "$out" | grep -q "bootstrap-step.*=compile"
   printf "%s\n" "$out" | grep -q "bootstrap-step.*=compile-expect-exit"
 '
+
+# --- bootstrap-v3 selfhost thorough (B-layer genesis→gen1→gen2 orchestration) ---
+log "bootstrap.v3.selfhost.gen1.source.path=$BOOTSTRAP_V3_SELFHOST_GEN1_SRC"
+run_case "run-bootstrap-v3-selfhost-gen1-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V3_SELFHOST_GEN1_SRC"'" 2>&1) || true
+  printf "%s\n" "$out"
+  printf "%s\n" "$out" | grep -q "bootstrap-step.*=build-slice"
+  printf "%s\n" "$out" | grep -q "bootstrap-step.*=pack-ape"
+  printf "%s\n" "$out" | grep -q "build-slice.role=stage0-bridge"
+  test -x "'"$SELFHOST_DIR"'/gen1-slice-x86.elf"
+  test -f "'"$SELFHOST_DIR"'/gen1-nano-jit.com"
+'
+if [ -x "$SELFHOST_DIR/gen1-slice-x86.elf" ]; then
+  log "bootstrap.v3.selfhost.gen2.source.path=$BOOTSTRAP_V3_SELFHOST_GEN2_SRC"
+  run_case "run-bootstrap-v3-selfhost-gen2-plan" bash -c '
+    cd "'"$ROOT_DIR"'" && out=$("'"$SELFHOST_DIR"'/gen1-slice-x86.elf" run-bootstrap-plan "'"$BOOTSTRAP_V3_SELFHOST_GEN2_SRC"'" 2>&1) || true
+    printf "%s\n" "$out"
+    printf "%s\n" "$out" | grep -q "bootstrap-step.*=build-slice"
+    printf "%s\n" "$out" | grep -q "bootstrap-step.*=run"
+    test -x "'"$SELFHOST_DIR"'/gen2-slice-x86.elf"
+    test -f "'"$SELFHOST_DIR"'/gen2-arithmetic.lbin"
+  '
+  run_case "run-bootstrap-v3-selfhost-gen2-arithmetic" \
+    "$SELFHOST_DIR/gen2-slice-x86.elf" run "$SELFHOST_DIR/gen2-arithmetic.lbin"
+else
+  skip_case "run-bootstrap-v3-selfhost-gen2-plan" "gen1-slice-x86.elf missing after gen1 plan"
+  skip_case "run-bootstrap-v3-selfhost-gen2-arithmetic" "gen1-slice-x86.elf missing after gen1 plan"
+fi
 
 # --- bootstrap-v25 native selfpack (pack-ape per plan) ---
 V25_NATIVE_SELFPACK_COM="$NANO_JIT_COM"
