@@ -267,11 +267,11 @@ nano-jit continuation after self-bootstrap v1
 
 最新稳定基线：`nano-jit.com` 已能 self-pack，不调用 `apelink`；能从纯 VM `.lisp` 直接生成 ELF/object；能把 nano 生成的多个 ELF64 object 用自带 tiny linker 链成可运行 ELF。
 
-当前完成度评估：`100%`（self-bootstrap v1）；`40%`（v1.5）。v1 已补齐最小 load/store 宽度，并用跨 object tiny-link 样例验证被调用 object 内嵌数据可读写；v1.5 正在收紧 APE manifest / inspect / run 证据。
+当前完成度评估：`100%`（self-bootstrap v1）；`45%`（v1.5）。v1 已补齐最小 load/store 宽度，并用跨 object tiny-link 样例验证被调用 object 内嵌数据可读写；v1.5 正在收紧 APE manifest / inspect / run 证据。
 
 下一步优先级：
 
-1. v1.5 slice 3：让 `run` / 当前 shell stub 选择 payload 的行为进入更明确的 inspect/run 证据；unsupported arch 保持稳定失败码。
+1. v1.5 slice 3 第二轮：继续反思 loader 与 manifest 的边界，决定是否把 `run-ape` 从临时文件执行推进到更结构化的 payload runner。
 2. v1.5 后半：进入 `.rodata/.data` section 与数据 relocation，逐步移除 RWX text/data 混合策略。
 3. 持续缩小临时依赖：`cosmocc` 只保留为 slice compiler，下一阶段目标是生成 x86_64 slice 的可运行子集。
 4. v2 前半：做 `lispjit.c` 分层、函数模型和 ABI descriptor，仍以 C 侧等价推进为主。
@@ -284,6 +284,7 @@ nano-jit continuation after self-bootstrap v1
 - v1.5 slice 1 首轮：`pack-ape` 写出 `ape-v1` manifest，新增 `inspect-ape` CLI，bootstrap DSL 支持 `pack-ape` / `inspect-ape`，并加入 checked-in `bootstrap-ape-smoke.lisp`。
 - v1.5 slice 1 第二轮（v1.5 35%）：`inspect-ape` 会校验 `ape-v1` container、必填 slice offset/size、payload marker、payload bounds 与 canonical slice layout；`run.sh` 增加 missing manifest / bad container / bad offset / missing key 负向断言。
 - v1.5 slice 2 首轮（v1.5 40%）：`pack-ape` manifest 记录 per-slice arch/os/fnv1a64，`inspect-ape` 会复算 payload slice hash 并校验 arch/os，`bootstrap-ape-smoke.lisp` 和 `run.sh` 覆盖正向 hash 输出与 bad hash / bad arch / missing os 负向断言。
+- v1.5 slice 3 首轮（v1.5 45%）：新增 `run-ape` / `run-ape-expect-exit`，nano 会基于 `ape-v1` manifest 校验、选择 host 或指定 arch slice、抽取临时 ELF 并执行；`run.sh` 覆盖正向执行与 unsupported arch=126，`build_nano_jit.sh` 用 self-packed `nano-jit.com` 复验 bootstrap APE。
 - AOT app 直接从 `.com` payload 读取内嵌 blob 执行。
 - AOT app 结构化 manifest、`inspect-app` 和 `run-app`。
 - `pack-ape` 已能组合 x86_64/aarch64 slice 与 container metadata，形成当前最小 `.com`；但 loader/多架构执行选择仍主要依赖现有 slice/stub 约定，尚未形成 nano 自主的完整 APE loader 格式。
@@ -413,9 +414,9 @@ v1.5 kickoff
 │  ├─ inspect-app 或 inspect-ape 能解释新 manifest（首轮已由 inspect-ape 校验）
 │  └─ bootstrap DSL 覆盖 pack/inspect/hash（首轮已加入 bootstrap-ape-smoke）
 └─ slice 3: run selected payload
-   ├─ Linux host 先选择 x86_64 payload
-   ├─ unsupported arch 有稳定失败码
-   ├─ self-packed nano-jit.com 复验
+   ├─ Linux host 先选择 x86_64 payload（首轮已落地 run-ape）
+   ├─ unsupported arch 有稳定失败码（首轮已落地 126）
+   ├─ self-packed nano-jit.com 复验（首轮已接入 build_nano_jit.sh）
    └─ 反思 loader 与 manifest 的下一圈缺口
 ```
 

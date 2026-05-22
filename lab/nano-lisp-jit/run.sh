@@ -222,6 +222,33 @@ expect_inspect_ape_failure() {
   esac
 }
 
+expect_run_ape_failure() {
+  local path="$1"
+  local expected_status="$2"
+  local expected_msg="$3"
+  local arch="${4:-}"
+  local out=""
+  local status=0
+  if [ -n "$arch" ]; then
+    out=$("$RUNNER" run-ape "$path" "$arch" 2>&1 >/dev/null) || status=$?
+  else
+    out=$("$RUNNER" run-ape "$path" 2>&1 >/dev/null) || status=$?
+  fi
+  printf 'run-ape.path=%s\n' "$path"
+  if [ -n "$arch" ]; then
+    printf 'run-ape.requested_arch=%s\n' "$arch"
+  fi
+  printf 'run-ape.status=%s\n' "$status"
+  printf 'run-ape.stderr=%s\n' "$out"
+  if [ "$status" -ne "$expected_status" ]; then
+    return 1
+  fi
+  case "$out" in
+    *"$expected_msg"*) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
 log "# nano-lisp-jit .lisp to .lbin probe"
 
 run_case "build-native-nano-lisp-jit" cc -DNANO_LISP_JIT -Os -s "$NANO_C" -ldl -o "$RUNNER"
@@ -334,6 +361,7 @@ run_case "run-bootstrap-plan" "$RUNNER" run-bootstrap-plan "$BOOTSTRAP_SRC"
 run_case "run-bootstrap-aot-plan" "$RUNNER" run-bootstrap-plan "$BOOTSTRAP_AOT_SRC"
 
 run_case "run-bootstrap-ape-plan" "$RUNNER" run-bootstrap-plan "$BOOTSTRAP_APE_SRC"
+run_case "run-ape-bootstrap-ape-com" "$RUNNER" run-ape-expect-exit "$BOOTSTRAP_APE_COM" 42
 run_case "prepare-bad-ape-manifests" make_bad_ape_manifests
 run_case "inspect-ape-reject-missing-manifest" expect_inspect_ape_failure "$BOOTSTRAP_SRC" "manifest_missing"
 run_case "inspect-ape-reject-bad-container" expect_inspect_ape_failure "$BOOTSTRAP_APE_BAD_CONTAINER" "bad_container"
@@ -342,6 +370,9 @@ run_case "inspect-ape-reject-missing-key" expect_inspect_ape_failure "$BOOTSTRAP
 run_case "inspect-ape-reject-bad-hash" expect_inspect_ape_failure "$BOOTSTRAP_APE_BAD_HASH" "bad_hash"
 run_case "inspect-ape-reject-bad-arch" expect_inspect_ape_failure "$BOOTSTRAP_APE_BAD_ARCH" "bad_arch"
 run_case "inspect-ape-reject-missing-os" expect_inspect_ape_failure "$BOOTSTRAP_APE_MISSING_OS" "manifest_key_missing"
+run_case "run-ape-reject-bad-container" expect_run_ape_failure "$BOOTSTRAP_APE_BAD_CONTAINER" 2 "bad_container"
+run_case "run-ape-reject-bad-offset" expect_run_ape_failure "$BOOTSTRAP_APE_BAD_OFFSET" 2 "payload_bounds"
+run_case "run-ape-reject-unsupported-arch" expect_run_ape_failure "$BOOTSTRAP_APE_COM" 126 "unsupported_arch" riscv64
 
 run_case "compile-control-flow-lbin" "$RUNNER" compile "$CTRL_SRC" "$CTRL_BLOB"
 log "control.blob.bytes=$(bytes_of "$CTRL_BLOB")"

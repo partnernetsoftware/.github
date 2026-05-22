@@ -7,4 +7,5 @@
   (inspect-ape "lab/nano-lisp-jit/.build/bootstrap-ape.com")
   (file-size "lab/nano-lisp-jit/.build/bootstrap-ape.com")
   (file-hash "lab/nano-lisp-jit/.build/bootstrap-ape.com")
+  (run-ape-expect-exit "lab/nano-lisp-jit/.build/bootstrap-ape.com" 42)
   (run-expect-exit "lab/nano-lisp-jit/.build/bootstrap-ape.com" 42))
