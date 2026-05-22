@@ -388,6 +388,13 @@ if [ "$(uname -m)" = "x86_64" ] || [ "$(uname -m)" = "amd64" ]; then
     printf "%s\n" "$out"
     printf "%s\n" "$out" | grep -q "run-ape.arch="
   '
+  if command -v qemu-aarch64-static >/dev/null 2>&1 || command -v qemu-aarch64 >/dev/null 2>&1; then
+    run_case "run-ape-nano-jit-com-aarch64-smoke" bash -c '
+      out=$("'"$PACKER"'" run-ape "'"$BUILD_DIR/nano-jit.com"'" aarch64 2>&1) || true
+      printf "%s\n" "$out"
+      printf "%s\n" "$out" | grep -q "run-ape.force_arch=aarch64"
+    '
+  fi
 fi
 
 run_case "make-ape-negative-fixtures-self-pack" python3 "$LAB_DIR/make_ape_fixtures.py" \

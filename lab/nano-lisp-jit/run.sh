@@ -162,6 +162,10 @@ run_case() {
   return "$status"
 }
 
+has_qemu_aarch64() {
+  command -v qemu-aarch64-static >/dev/null 2>&1 || command -v qemu-aarch64 >/dev/null 2>&1
+}
+
 log "# nano-lisp-jit .lisp to .lbin probe"
 
 run_case "build-native-nano-lisp-jit" cc -DNANO_LISP_JIT -Os -s "$NANO_C" -ldl -o "$RUNNER"
@@ -282,6 +286,21 @@ if [ -f "$APE_COM" ]; then
     run_case "run-ape-native-exit42" "$RUNNER" run-ape-expect-exit "$APE_COM" 42
     run_case "compile-const-ptr-elf64-code-ape-evidence" "$RUNNER" compile-elf64-code "$CONST_PTR_SRC" "$CONST_PTR_DIRECT_EXE"
     run_case "run-const-ptr-elf64-code-ape-evidence" "$RUNNER" run-expect-exit "$CONST_PTR_DIRECT_EXE" 1
+  fi
+  if has_qemu_aarch64 && [ -f "$NANO_JIT_COM" ]; then
+    run_case "run-ape-aarch64-nano-jit-com" bash -c '
+      out=$("'"$RUNNER"'" run-ape "'"$NANO_JIT_COM"'" aarch64 2>&1) || true
+      printf "%s\n" "$out"
+      printf "%s\n" "$out" | grep -q "run-ape.force_arch=aarch64"
+    '
+  elif has_qemu_aarch64; then
+    log ""
+    log "## run-ape-aarch64-nano-jit-com"
+    log "skip: nano-jit.com missing (run build_nano_jit.sh first)"
+  else
+    log ""
+    log "## run-ape-aarch64"
+    log "skip: no qemu-aarch64-static or qemu-aarch64"
   fi
 fi
 
