@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "ape_v2.h"
+
 #if defined(_WIN32)
 #include <windows.h>
 #else
@@ -685,6 +687,8 @@ static uint64_t fnv1a64(const unsigned char *data, size_t n) {
   }
   return h;
 }
+
+#include "ape_v2.c"
 
 static int make_executable(const char *path) {
 #if defined(_WIN32)
@@ -3176,7 +3180,48 @@ static int cmd_run_ape(const char *container_path, const char *force_arch) {
     fprintf(stderr, "read=fail path=%s\n", container_path);
     return 1;
   }
-  int rc = validate_ape_manifest(data, n, &m, "run-ape");
+  size_t payload_start = 0;
+  if (!find_payload_start(data, n, NANO_APE_PAYLOAD_MARKER, &payload_start)) {
+    fprintf(stderr, "run-ape=payload_marker_missing\n");
+    free(data);
+    return 2;
+  }
+  int rc;
+  if (nano_ape_v2_magic_at(data, n, payload_start)) {
+    NanoApeV2Image img = {0};
+    rc = validate_nano_ape_v2(data, n, payload_start, &img, is_elf, fnv1a64, "run-ape");
+    if (rc != 0) {
+      free(data);
+      return rc;
+    }
+#if defined(_WIN32)
+    fprintf(stderr, "run-ape=unsupported_platform\n");
+    free(data);
+    return 2;
+#else
+    const NanoApeV2SliceRow *row = NULL;
+    const char *arch_name = NULL;
+    rc = nano_ape_v2_slice_for_arch(&img, force_arch, &row, &arch_name);
+    if (rc != 0) {
+      free(data);
+      return rc;
+    }
+    size_t payload_base = payload_start + img.header_bytes;
+    size_t abs_off = payload_base + (size_t)row->offset;
+    NanoApeManifest fake = {.payload_start = 0};
+    printf("run-ape.path=%s\n", container_path);
+    printf("run-ape.container=ape-v2\n");
+    printf("run-ape.arch=%s\n", arch_name);
+    printf("run-ape.offset=%llu\n", (unsigned long long)row->offset);
+    printf("run-ape.size=%llu\n", (unsigned long long)row->size);
+    if (force_arch && force_arch[0]) printf("run-ape.force_arch=%s\n", force_arch);
+    rc = extract_and_run_ape_slice(data, n, &fake, abs_off, (size_t)row->size, arch_name);
+    printf("run-ape.exit=%d\n", rc);
+    free(data);
+    return rc;
+#endif
+  }
+  rc = validate_ape_manifest(data, n, &m, "run-ape");
   if (rc != 0) {
     free(data);
     return rc;
@@ -3906,7 +3951,35 @@ static int cmd_inspect_ape(const char *container_path) {
     fprintf(stderr, "read=fail path=%s\n", container_path);
     return 1;
   }
-  int rc = validate_ape_manifest(data, n, &m, "inspect-ape");
+  size_t payload_start = 0;
+  if (!find_payload_start(data, n, NANO_APE_PAYLOAD_MARKER, &payload_start)) {
+    fprintf(stderr, "inspect-ape=payload_marker_missing\n");
+    free(data);
+    return 2;
+  }
+  int rc;
+  if (nano_ape_v2_magic_at(data, n, payload_start)) {
+    NanoApeV2Image img = {0};
+    rc = validate_nano_ape_v2(data, n, payload_start, &img, is_elf, fnv1a64, "inspect-ape");
+    if (rc == 0) {
+      printf("inspect-ape.path=%s\n", container_path);
+      printf("inspect-ape.container=ape-v2\n");
+      printf("inspect-ape.header_bytes=%u\n", (unsigned)img.header_bytes);
+      printf("inspect-ape.slice_count=%u\n", (unsigned)img.slice_count);
+      for (uint16_t i = 0; i < img.slice_count; ++i) {
+        const NanoApeV2SliceRow *r = &img.slices[i];
+        printf("inspect-ape.slice.%u.arch_id=%u\n", (unsigned)i, r->arch_id);
+        printf("inspect-ape.slice.%u.os_id=%u\n", (unsigned)i, r->os_id);
+        printf("inspect-ape.slice.%u.offset=%llu\n", (unsigned)i, (unsigned long long)r->offset);
+        printf("inspect-ape.slice.%u.size=%llu\n", (unsigned)i, (unsigned long long)r->size);
+        printf("inspect-ape.slice.%u.hash=%016llx\n", (unsigned)i, (unsigned long long)r->hash);
+      }
+      printf("inspect-ape.ok=1\n");
+    }
+    free(data);
+    return rc;
+  }
+  rc = validate_ape_manifest(data, n, &m, "inspect-ape");
   free(data);
   if (rc == 0) {
     printf("inspect-ape.path=%s\n", container_path);
@@ -6358,19 +6431,22 @@ static int cmd_pack_ape(const char *out_path, const char *x86_path, const char *
 
   uint64_t x86_hash = fnv1a64(x86, x86_n);
   uint64_t arm_hash = fnv1a64(arm, arm_n);
+  uint16_t v2_slice_count = 2;
+  size_t v2_hdr_bytes = nano_ape_v2_header_bytes(v2_slice_count);
+  size_t arm_payload_off = v2_hdr_bytes + x86_n;
 
   const char *stub_fmt =
       "#!/bin/sh\n"
       "set -eu\n"
       "arch=\"$(uname -m)\"\n"
       "case \"$arch\" in\n"
-      "  x86_64|amd64) off=0; size=%zu; suffix=x86_64 ;;\n"
+      "  x86_64|amd64) off=%zu; size=%zu; suffix=x86_64 ;;\n"
       "  aarch64|arm64) off=%zu; size=%zu; suffix=aarch64 ;;\n"
       "  *) echo \"nano pack-ape: unsupported arch $arch\" >&2; exit 126 ;;\n"
       "esac\n"
       "# nano.manifest.begin\n"
       "# nano.container=ape-v1\n"
-      "# nano.slice.x86_64.offset=0\n"
+      "# nano.slice.x86_64.offset=%zu\n"
       "# nano.slice.x86_64.size=%zu\n"
       "# nano.slice.x86_64.hash=%016llx\n"
       "# nano.slice.aarch64.offset=%zu\n"
@@ -6387,8 +6463,8 @@ static int cmd_pack_ape(const char *out_path, const char *x86_path, const char *
       "exit 127\n"
       "__NANO_APE_PAYLOAD_BELOW__\n";
 
-  int stub_n = snprintf(NULL, 0, stub_fmt, x86_n, x86_n, arm_n, x86_n,
-                        (unsigned long long)x86_hash, x86_n, arm_n,
+  int stub_n = snprintf(NULL, 0, stub_fmt, v2_hdr_bytes, x86_n, arm_payload_off, arm_n,
+                        v2_hdr_bytes, x86_n, (unsigned long long)x86_hash, arm_payload_off, arm_n,
                         (unsigned long long)arm_hash);
   if (stub_n < 0) {
     free(x86);
@@ -6401,16 +6477,33 @@ static int cmd_pack_ape(const char *out_path, const char *x86_path, const char *
     free(arm);
     return 2;
   }
-  snprintf(stub, (size_t)stub_n + 1, stub_fmt, x86_n, x86_n, arm_n, x86_n,
-           (unsigned long long)x86_hash, x86_n, arm_n, (unsigned long long)arm_hash);
+  snprintf(stub, (size_t)stub_n + 1, stub_fmt, v2_hdr_bytes, x86_n, arm_payload_off, arm_n,
+           v2_hdr_bytes, x86_n, (unsigned long long)x86_hash, arm_payload_off, arm_n,
+           (unsigned long long)arm_hash);
+
+  NanoApeV2SliceRow v2_rows[2] = {
+      {NANO_APE_V2_ARCH_X86_64, NANO_APE_V2_OS_LINUX, 0, 0, x86_n, x86_hash},
+      {NANO_APE_V2_ARCH_AARCH64, NANO_APE_V2_OS_LINUX, 0, x86_n, arm_n, arm_hash},
+  };
+  unsigned char v2_hdr[128];
+  ssize_t v2_hdr_n = emit_nano_ape_v2_header(v2_hdr, sizeof(v2_hdr), v2_slice_count, v2_rows);
+  if (v2_hdr_n < 0 || (size_t)v2_hdr_n != v2_hdr_bytes) {
+    free(stub);
+    free(x86);
+    free(arm);
+    return 2;
+  }
 
   Buf out = {0};
   buf_put(&out, stub, (size_t)stub_n);
+  buf_put(&out, v2_hdr, (size_t)v2_hdr_n);
   buf_put(&out, x86, x86_n);
   buf_put(&out, arm, arm_n);
   int ok = write_file(out_path, out.data, out.len) && make_executable(out_path);
   if (ok) {
     printf("pack-ape.output=%s\n", out_path);
+    printf("pack-ape.container=ape-v2\n");
+    printf("pack-ape.header_bytes=%zu\n", v2_hdr_bytes);
     printf("pack-ape.bytes=%zu\n", out.len);
     printf("pack-ape.x86_64.bytes=%zu\n", x86_n);
     printf("pack-ape.aarch64.bytes=%zu\n", arm_n);

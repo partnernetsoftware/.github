@@ -1,11 +1,16 @@
 #!/usr/bin/env python3
-"""Build corrupt nano APE fixtures from a valid bootstrap-ape.com."""
+"""Build corrupt nano APE fixtures from a valid bootstrap-ape.com (ape-v2 payload)."""
 
 from __future__ import annotations
 
-import re
+import struct
 import sys
 from pathlib import Path
+
+MARKER = b"__NANO_APE_PAYLOAD_BELOW__\n"
+V2_MAGIC = b"\x7fNANOape"
+ROW0_OFF = 16 + 4  # fixed header + arch/os/reserved + offset field in row 0
+ROW0_HASH_OFF = 16 + 20
 
 
 def read_bytes(path: Path) -> bytes:
@@ -33,10 +38,39 @@ def strip_manifest(data: bytes) -> bytes:
     return b"\n".join(out) + b"\n"
 
 
-def replace_once(data: bytes, old: bytes, new: bytes, label: str) -> bytes:
-    if old not in data:
-        raise SystemExit(f"missing pattern for {label}: {old!r}")
-    return data.replace(old, new, 1)
+def payload_start(data: bytes) -> int:
+    idx = data.find(MARKER)
+    if idx < 0:
+        raise SystemExit(f"missing payload marker: {MARKER!r}")
+    return idx + len(MARKER)
+
+
+def patch_at(data: bytes, off: int, chunk: bytes) -> bytes:
+    if off < 0 or off + len(chunk) > len(data):
+        raise SystemExit(f"patch out of range off={off} len={len(chunk)} file={len(data)}")
+    return data[:off] + chunk + data[off + len(chunk) :]
+
+
+def corrupt_v2_magic(data: bytes) -> bytes:
+    ps = payload_start(data)
+    if data[ps : ps + len(V2_MAGIC)] != V2_MAGIC:
+        raise SystemExit("missing ape-v2 magic at payload_start")
+    return patch_at(data, ps, b"\x7fBADApe\x00")
+
+
+def corrupt_v2_version(data: bytes) -> bytes:
+    ps = payload_start(data) + 8
+    return patch_at(data, ps, struct.pack("<I", 9))
+
+
+def corrupt_v2_row0_offset(data: bytes, value: int = 999999999) -> bytes:
+    ps = payload_start(data) + ROW0_OFF
+    return patch_at(data, ps, struct.pack("<Q", value))
+
+
+def corrupt_v2_row0_hash(data: bytes) -> bytes:
+    ps = payload_start(data) + ROW0_HASH_OFF
+    return patch_at(data, ps, struct.pack("<Q", 1))
 
 
 def main() -> int:
@@ -50,30 +84,11 @@ def main() -> int:
         return 1
 
     base = read_bytes(src)
-    write_bytes(out_dir / "ape-no-manifest.com", strip_manifest(base))
-    write_bytes(
-        out_dir / "ape-bad-container.com",
-        replace_once(base, b"ape-v1", b"bad-v9", "bad-container"),
-    )
-    write_bytes(
-        out_dir / "ape-bad-offset.com",
-        replace_once(
-            base,
-            b"nano.slice.x86_64.offset=0",
-            b"nano.slice.x86_64.offset=999999999",
-            "bad-offset",
-        ),
-    )
-
-    bad_hash, n = re.subn(
-        rb"(nano\.slice\.x86_64\.hash=)[0-9a-f]{16}",
-        rb"\g<1>0000000000000001",
-        base,
-        count=1,
-    )
-    if n != 1:
-        raise SystemExit("missing pattern for bad-hash: nano.slice.x86_64.hash")
-    write_bytes(out_dir / "ape-bad-hash.com", bad_hash)
+    no_manifest = strip_manifest(base)
+    write_bytes(out_dir / "ape-no-manifest.com", corrupt_v2_magic(no_manifest))
+    write_bytes(out_dir / "ape-bad-container.com", corrupt_v2_version(base))
+    write_bytes(out_dir / "ape-bad-offset.com", corrupt_v2_row0_offset(base))
+    write_bytes(out_dir / "ape-bad-hash.com", corrupt_v2_row0_hash(base))
     print(f"ape.fixtures.dir={out_dir}")
     return 0
 

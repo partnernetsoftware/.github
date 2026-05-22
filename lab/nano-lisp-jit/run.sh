@@ -304,6 +304,19 @@ if [ -f "$APE_COM" ]; then
   fi
 fi
 
+# --- bootstrap-ape-v2 (binary header at payload marker) ---
+BOOTSTRAP_APE_V2_SRC="$LAB_DIR/samples/bootstrap-ape-v2-smoke.lisp"
+APE_V2_COM="$BUILD_DIR/bootstrap-ape-v2.com"
+log "bootstrap.ape.v2.source.path=$BOOTSTRAP_APE_V2_SRC"
+log "bootstrap.ape.v2.source.bytes=$(bytes_of "$BOOTSTRAP_APE_V2_SRC")"
+run_case "run-bootstrap-ape-v2-plan" "$RUNNER" run-bootstrap-plan "$BOOTSTRAP_APE_V2_SRC"
+if [ -f "$APE_V2_COM" ]; then
+  run_case "inspect-ape-v2-smoke" "$RUNNER" inspect-ape "$APE_V2_COM"
+  if [ "$(uname -m)" = "x86_64" ] || [ "$(uname -m)" = "amd64" ]; then
+    run_case "run-ape-v2-native-exit42" "$RUNNER" run-ape-expect-exit "$APE_V2_COM" 42
+  fi
+fi
+
 run_case "compile-control-flow-lbin" "$RUNNER" compile "$CTRL_SRC" "$CTRL_BLOB"
 log "control.blob.bytes=$(bytes_of "$CTRL_BLOB")"
 

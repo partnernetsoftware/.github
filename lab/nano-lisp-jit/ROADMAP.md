@@ -234,9 +234,17 @@ nano-jit continuation after self-bootstrap v1
 | data/section | **100%**（验收） | rodata R / data RW ✓；PC32 `.rela.*` ✓；text-embedded 已删 ✓；`bootstrap-data-negative` native + self-pack（`build_nano_jit.sh`）✓ | — |
 | v1.5 整体 | **100%**（scoped） | data 100%；APE 验收完成（manifest / inspect / run / 负向 fixture / 自举矩阵）；loader stub 约定可 inspect/run | nano 自主 loader → **v2 slice 1** |
 
+### v1.5 反思确认（可进入 v2）
+
+- **证据回放（本环境）**：`bash lab/nano-lisp-jit/run.sh` exit 0；`bootstrap-ape-smoke` / `bootstrap-ape-negative` / `bootstrap-data-negative` plan OK；`inspect-ape` 对现有 `nano-jit.com` OK。
+- **data/section**：mindmap 验收项全部有 native 脚本 + DSL 对应；text-embedded 发射路径已删除。
+- **APE scoped 边界**：v1.5 交付的是 `ape-v1` manifest + inspect/run CLI + shell stub loader，**不是** nano 内建 ELF loader；`emit-elf64-exit` 样例 ELF 均为 x86_64，跨 arch 执行证据靠 cosmocc slice + QEMU。
+- **未要求项（不计入 v1.5 缺口）**：aarch64 真机 host `run-ape`；无 cosmocc 时完整 `build_nano_jit.sh`（README 已说明）。
+- **结论**：v1.5 **100%（scoped）成立**，下一圈按 v2 kickoff 执行。
+
 下一圈（v2 kickoff）：
 
-1. **APE v2 / nano 自主 loader**：magic header、payload table、arch/os 选择、inspect/run 输出；替换 shell stub（v2 slice 1）。
+1. **APE v2 / nano 自主 loader**（slice 1 进行中）：`\x7fNANOape` 二进制头 + 28B 表项；`pack-ape`/`inspect-ape`/`run-ape` 已接 v2（v1 manifest 回退）；`bootstrap-ape-v2-smoke` + 负向 fixture；shell stub 仍保留。
 2. **`lispjit.c` 模块边界**：parser/blob/vm/aot_x86/elf/linker/ape/bootstrap 等价拆分，固定 v1/v1.5 fixture hash/exit（v2 slice 2）。
 3. **函数参数与局部变量**：先 VM，再 x86_64 AOT/object/tiny-link；ABI descriptor 替代硬编码签名（v2 slice 3）。
 4. **自托管 slice compiler**：nano 生成 x86_64 payload，逐步把 cosmocc 降级为外部 oracle。
