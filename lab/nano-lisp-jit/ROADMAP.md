@@ -244,7 +244,7 @@ nano-jit continuation after self-bootstrap v1
 
 下一圈（v2 kickoff）：
 
-1. **APE v2**（slice 1 **100% scoped**）+ **hybrid loader**（~50%）：`run-ape` 原生读 v2；`pack-ape` stub 优先 `NANO_JIT`/`nano-lisp-jit run-ape`。
+1. **APE v2**（slice 1 **100% scoped**）+ **进程内 loader**（**100% scoped**）：memfd-first `run-ape`；Mode B `pack-ape-bare`；stub 仅 `NANO_JIT`→`run-ape`。
 2. **`lispjit.c` 模块边界**（slice 2 **100%**）：`lispjit.c` ~720 行 + 14× `nano_*.c` + `nano_main.c`；单 TU `#include` 不变。
 
 ### v2 总完成度（工程向）
