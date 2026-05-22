@@ -270,11 +270,11 @@ nano-jit continuation after self-bootstrap v1
 | `run-ape` 读 v2 表 | **100%** | `run-ape.container=ape-v2` |
 | bootstrap smoke + 负向 | **100%** | `bootstrap-ape-v2-*` + `make_ape_fixtures.py`；`run.sh` `pack-ape-v2-fixture` / `inspect-ape-v2-container` / `run-ape-v2-native-exit42` / `run-ape-v2-memfd-loader-smoke`（Linux x86_64，否则 skip） |
 | self-pack 矩阵（native 侧） | **100%** | `build_nano_jit.sh` 断言 `inspect-ape.container=ape-v2` |
-| nano 进程内 loader（无 stub） | **~50%** | `run-ape` 原生；stub 优先 `run-ape-cli`；纯 ELF loader 未做 |
+| nano 进程内 loader（无 stub） | **100%** scoped | memfd-first；`NANO_JIT`→`run-ape`；Mode B bare |
 
 **v2 slice 1 整体**：**100%（scoped）** — 与 `APE-v2.md` slice 1 范围一致；无 stub loader 不算缺口。
 
-**远程 `main`**：已合并 v2 系列提交（见 `git log origin/main`）；当前整体约 **79%**（`run.sh` APE v2 smoke 与上表同步）。
+**远程 `main`**：v2 **100%（scoped）** 已签收；见 `git log origin/main` 与 `lab/lispjit-ir/MODULES.md`。
 
 **v2 slice 2+**：`lispjit.c` 模块边界；函数参数/ABI；自托管 slice compiler。
 

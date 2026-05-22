@@ -1,8 +1,14 @@
-# nano-lisp-jit v2 kickoff
+# nano-lisp-jit v2 — complete (scoped)
 
-Minimal decomposition scaffold (slice 1 kickoff). See `../ROADMAP.md` for the full v2 onion plan.
+See `../ROADMAP.md` for the full onion plan. v2 scoped delivery is **100%** on `main`.
 
-- **APE v2** (slice 1, done on `main`): `\x7fNANOape` header; `ape_v2.{h,c}`.
-- **Module split** (slice 2, in progress): `nano_manifest.c` (markers + comment manifest parse), `nano_ape.c` (pack/inspect/run APE); still `#include`d into `lispjit.c` single TU — no link-line change yet.
-- **`lispjit.c` module split** (slice 2): parser / blob / vm / aot_x86 / elf / linker / ape / bootstrap partitions without semantic change; lock v1/v1.5 fixture hash/exit first.
-- **Function params, locals, ABI** (slice 3): VM first, then x86_64 AOT/object/tiny-link; ABI descriptors replace hard-coded import signatures.
+| Slice | Status | Evidence |
+|-------|--------|----------|
+| APE v2 header + inspect/run | **100%** | `APE-v2.md`, `ape_v2.{h,c}`, `pack-ape` / `pack-ape-bare`, bootstrap + `make_ape_fixtures.py` |
+| Module decomposition | **100%** | 14× `lab/lispjit-ir/nano_*.c` + `nano_main.c`; `lispjit.c` ~720 lines |
+| In-process loader | **100%** scoped | `run-ape.loader=memfd`; stub `NANO_JIT` → `run-ape` |
+| ABI descriptors | **100%** scoped | `nano_abi.c`, `bootstrap-abi-smoke.lisp` |
+| AOT function params | **100%** scoped | `(param i64)`, `load-arg-i64`, `func-param-i64.lisp` |
+| Self-hosted x86 slice | **100%** scoped | `NANO_SLICE_COMPILER=native` in `build_nano_jit.sh` |
+
+**v3+** (not v2): VM locals/SSA, aarch64 native slice compiler, WASM/JS/SQL lowering.
