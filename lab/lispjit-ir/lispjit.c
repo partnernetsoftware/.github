@@ -3398,9 +3398,9 @@ static int cmd_inspect_elf64_exe(const char *path) {
   printf("elf64.exec.path=%s\n", path);
   printf("elf64.exec.phnum=%u\n", phnum);
   size_t load_count = 0;
-  uint32_t load_flags[2] = {0, 0};
-  uint64_t load_offsets[2] = {0, 0};
-  uint64_t load_filesz[2] = {0, 0};
+  uint32_t load_flags[3] = {0, 0, 0};
+  uint64_t load_offsets[3] = {0, 0, 0};
+  uint64_t load_filesz[3] = {0, 0, 0};
   for (uint16_t i = 0; i < phnum; ++i) {
     const unsigned char *ph = data + phoff + (size_t)i * INSPECT_ELF64_PHDR_SIZE;
     uint32_t type = rd32(ph + 0);
@@ -3411,7 +3411,7 @@ static int cmd_inspect_elf64_exe(const char *path) {
     printf("elf64.exec.load.%zu.flags=%s\n", load_count, elf64_phdr_flags_name(flags));
     printf("elf64.exec.load.%zu.offset=%llu\n", load_count, (unsigned long long)off);
     printf("elf64.exec.load.%zu.filesz=%llu\n", load_count, (unsigned long long)filesz);
-    if (load_count < 2) {
+    if (load_count < 3) {
       load_flags[load_count] = flags;
       load_offsets[load_count] = off;
       load_filesz[load_count] = filesz;
@@ -3426,11 +3426,36 @@ static int cmd_inspect_elf64_exe(const char *path) {
     printf("elf64.exec.data.policy=rw_load_segment\n");
     printf("elf64.exec.data.bytes=%llu\n", (unsigned long long)load_filesz[1]);
     printf("elf64.exec.data.layout=%s\n", (load_offsets[1] % 0x1000u) == 0 ? "page_aligned" : "other");
+    printf("elf64.exec.rodata.present=0\n");
+    printf("elf64.exec.rodata.policy=none\n");
+  } else if (load_count == 2 && load_flags[0] == 5 && load_flags[1] == 4) {
+    printf("elf64.exec.layout=split_rx_ro\n");
+    printf("elf64.exec.code.policy=rx_load_segment\n");
+    printf("elf64.exec.data.present=0\n");
+    printf("elf64.exec.data.policy=none\n");
+    printf("elf64.exec.rodata.present=1\n");
+    printf("elf64.exec.rodata.policy=r_load_segment\n");
+    printf("elf64.exec.rodata.bytes=%llu\n", (unsigned long long)load_filesz[1]);
+    printf("elf64.exec.rodata.layout=%s\n", (load_offsets[1] % 0x1000u) == 0 ? "page_aligned" : "other");
+  } else if (load_count == 3 && load_flags[0] == 5 && load_flags[1] == 4 &&
+             load_flags[2] == 6) {
+    printf("elf64.exec.layout=split_rx_ro_rw\n");
+    printf("elf64.exec.code.policy=rx_load_segment\n");
+    printf("elf64.exec.rodata.present=1\n");
+    printf("elf64.exec.rodata.policy=r_load_segment\n");
+    printf("elf64.exec.rodata.bytes=%llu\n", (unsigned long long)load_filesz[1]);
+    printf("elf64.exec.rodata.layout=%s\n", (load_offsets[1] % 0x1000u) == 0 ? "page_aligned" : "other");
+    printf("elf64.exec.data.present=1\n");
+    printf("elf64.exec.data.policy=rw_load_segment\n");
+    printf("elf64.exec.data.bytes=%llu\n", (unsigned long long)load_filesz[2]);
+    printf("elf64.exec.data.layout=%s\n", (load_offsets[2] % 0x1000u) == 0 ? "page_aligned" : "other");
   } else if (load_count == 1 && load_flags[0] == 7) {
     printf("elf64.exec.layout=single_rwx_compat\n");
     printf("elf64.exec.code.policy=rwx_compat_segment\n");
     printf("elf64.exec.data.present=0\n");
     printf("elf64.exec.data.policy=none\n");
+    printf("elf64.exec.rodata.present=0\n");
+    printf("elf64.exec.rodata.policy=none\n");
   } else {
     printf("elf64.exec.layout=other\n");
   }
@@ -4077,33 +4102,85 @@ static void wr_elf64_rela(unsigned char *p, uint64_t off, uint32_t sym_idx, uint
   wr64(p + 16, (uint64_t)addend);
 }
 
+typedef struct {
+  size_t code_off;
+  size_t rodata_off;
+  size_t data_off;
+  size_t file_n;
+  uint16_t phnum;
+} Elf64ExecLayout;
+
+static void elf64_exec_layout_offsets(size_t code_n, size_t rodata_n, size_t data_n,
+                                      Elf64ExecLayout *layout) {
+  int has_rodata = rodata_n != 0;
+  int has_data = data_n != 0;
+  layout->phnum = (has_rodata || has_data) ? (uint16_t)(1 + has_rodata + has_data) : 1;
+  layout->code_off = (has_rodata || has_data) ?
+    ELF64_EHDR_SIZE + (size_t)layout->phnum * ELF64_PHDR_SIZE :
+    ELF64_EXEC_CODE_OFF;
+  layout->rodata_off = has_rodata ? layout->code_off + align_up_size(code_n, 0x1000) : 0;
+  layout->data_off = has_data ?
+    (has_rodata ? layout->rodata_off + align_up_size(rodata_n, 0x1000) :
+                  layout->code_off + align_up_size(code_n, 0x1000)) : 0;
+  layout->file_n = has_data ? layout->data_off + data_n :
+                   (has_rodata ? layout->rodata_off + rodata_n :
+                                  layout->code_off + code_n);
+}
+
+static int emit_elf64_exec_layout_file(const char *out_path, const unsigned char *code,
+                                       size_t code_n, const unsigned char *rodata,
+                                       size_t rodata_n, const unsigned char *data,
+                                       size_t data_n) {
+  Elf64ExecLayout layout = {0};
+  elf64_exec_layout_offsets(code_n, rodata_n, data_n, &layout);
+  unsigned char *out = (unsigned char *)calloc(1, layout.file_n);
+  if (!out) return 0;
+
+  wr_elf64_ehdr_exec(out, ELF64_EXEC_BASE + layout.code_off, ELF64_EHDR_SIZE,
+                     layout.phnum);
+  if (rodata_n || data_n) {
+    size_t code_filesz = rodata_n ? layout.rodata_off : layout.data_off;
+    wr_elf64_phdr(out + ELF64_EHDR_SIZE, 1, 5, 0, ELF64_EXEC_BASE, ELF64_EXEC_BASE,
+                  code_filesz, code_filesz, 1);
+    size_t ph = 1;
+    if (rodata_n) {
+      wr_elf64_phdr(out + ELF64_EHDR_SIZE + ph * ELF64_PHDR_SIZE, 1, 4,
+                    layout.rodata_off, ELF64_EXEC_BASE + layout.rodata_off,
+                    ELF64_EXEC_BASE + layout.rodata_off, rodata_n, rodata_n, 1);
+      ph++;
+    }
+    if (data_n) {
+      wr_elf64_phdr(out + ELF64_EHDR_SIZE + ph * ELF64_PHDR_SIZE, 1, 6,
+                    layout.data_off, ELF64_EXEC_BASE + layout.data_off,
+                    ELF64_EXEC_BASE + layout.data_off,
+                    data_n, data_n, 1);
+    }
+  } else {
+    wr_elf64_phdr(out + ELF64_EHDR_SIZE, 1, 7, 0, ELF64_EXEC_BASE, ELF64_EXEC_BASE,
+                  layout.file_n, layout.file_n, 0x1000);
+  }
+
+  memcpy(out + layout.code_off, code, code_n);
+  if (rodata_n) memcpy(out + layout.rodata_off, rodata, rodata_n);
+  if (data_n) memcpy(out + layout.data_off, data, data_n);
+  int ok = write_file(out_path, out, layout.file_n) && make_executable(out_path);
+  free(out);
+  return ok;
+}
+
 static int emit_elf64_exec_rx_data_file(const char *out_path, const unsigned char *code,
                                         size_t code_n, const unsigned char *data,
                                         size_t data_n) {
-  size_t code_off = data_n ? ELF64_EHDR_SIZE + 2 * ELF64_PHDR_SIZE : ELF64_EXEC_CODE_OFF;
-  size_t data_off = data_n ? code_off + align_up_size(code_n, 0x1000) : code_off + code_n;
-  size_t file_n = data_off + data_n;
-  unsigned char *out = (unsigned char *)calloc(1, file_n);
-  if (!out) return 0;
+  return emit_elf64_exec_layout_file(out_path, code, code_n, NULL, 0, data, data_n);
+}
 
-  wr_elf64_ehdr_exec(out, ELF64_EXEC_BASE + code_off, ELF64_EHDR_SIZE,
-                     data_n ? 2 : 1);
-  if (data_n) {
-    wr_elf64_phdr(out + ELF64_EHDR_SIZE, 1, 5, 0, ELF64_EXEC_BASE, ELF64_EXEC_BASE,
-                  data_off, data_off, 1);
-    wr_elf64_phdr(out + ELF64_EHDR_SIZE + ELF64_PHDR_SIZE, 1, 6, data_off,
-                  ELF64_EXEC_BASE + data_off, ELF64_EXEC_BASE + data_off,
-                  data_n, data_n, 1);
-  } else {
-    wr_elf64_phdr(out + ELF64_EHDR_SIZE, 1, 7, 0, ELF64_EXEC_BASE, ELF64_EXEC_BASE,
-                  file_n, file_n, 0x1000);
-  }
-
-  memcpy(out + code_off, code, code_n);
-  if (data_n) memcpy(out + data_off, data, data_n);
-  int ok = write_file(out_path, out, file_n) && make_executable(out_path);
-  free(out);
-  return ok;
+static int emit_elf64_exec_rx_rodata_data_file(const char *out_path,
+                                               const unsigned char *code, size_t code_n,
+                                               const unsigned char *rodata,
+                                               size_t rodata_n,
+                                               const unsigned char *data,
+                                               size_t data_n) {
+  return emit_elf64_exec_layout_file(out_path, code, code_n, rodata, rodata_n, data, data_n);
 }
 
 static int emit_elf64_exec_rx_file(const char *out_path, const unsigned char *code,
@@ -4309,6 +4386,7 @@ typedef struct {
   uint16_t rodata_idx;
   const unsigned char *rodata_sec;
   size_t rodata_sec_size;
+  size_t out_rodata_off;
   const unsigned char *symtab;
   size_t sym_count;
   uint16_t symtab_idx;
@@ -4329,6 +4407,7 @@ typedef struct {
 
 typedef struct {
   uint64_t code_vbase;
+  uint64_t rodata_vbase;
   uint64_t data_vbase;
   size_t code_file_off;
 } LinkLayout;
@@ -4598,9 +4677,10 @@ static int link_find_sym(const LinkSym *syms, size_t sym_count, const char *name
 }
 
 static void link_cleanup(unsigned char **owned, size_t *owned_n, ElfObj *objs, int obj_count,
-                         LinkSym *syms, Buf *code, Buf *data) {
+                         LinkSym *syms, Buf *code, Buf *rodata, Buf *data) {
   (void)owned_n;
   if (code) free(code->data);
+  if (rodata) free(rodata->data);
   if (data) free(data->data);
   free(syms);
   if (owned) {
@@ -4654,6 +4734,10 @@ static int link_symbol_va(const ElfObj *o, uint32_t sym_idx, const LinkSym *syms
     }
     if (o->data_idx && shndx == o->data_idx && layout->data_vbase) {
       *out = layout->data_vbase + o->out_data_off + elf_sym_value(o, sym_idx);
+      return 1;
+    }
+    if (o->rodata_idx && shndx == o->rodata_idx && layout->rodata_vbase) {
+      *out = layout->rodata_vbase + o->out_rodata_off + elf_sym_value(o, sym_idx);
       return 1;
     }
     return 0;
@@ -4716,10 +4800,13 @@ static int cmd_link_elf64_exe(int argc, char **argv) {
   if (!owned || !owned_n || !objs) goto done;
 
   size_t code_off = 14;
+  size_t rodata_off = 0;
   size_t data_off = 0;
+  int has_rodata = 0;
   int has_data = 0;
   LinkLayout layout = {0};
   Buf code = {0};
+  Buf rodata = {0};
   Buf data = {0};
   for (int i = 0; i < obj_count; ++i) {
     owned[i] = read_file(argv[4 + i], &owned_n[i]);
@@ -4730,18 +4817,28 @@ static int cmd_link_elf64_exe(int argc, char **argv) {
     }
     objs[i].out_off = code_off;
     code_off += objs[i].text_size;
+    objs[i].out_rodata_off = rodata_off;
+    rodata_off += objs[i].rodata_sec_size;
     objs[i].out_data_off = data_off;
     data_off += objs[i].data_sec_size;
+    if (objs[i].rodata_sec_size) has_rodata = 1;
     if (objs[i].data_sec_size) has_data = 1;
   }
 
-  layout.code_file_off = has_data ? ELF64_EHDR_SIZE + 2 * ELF64_PHDR_SIZE : ELF64_EXEC_CODE_OFF;
+  Elf64ExecLayout exec_layout = {0};
+  elf64_exec_layout_offsets(code_off, rodata_off, data_off, &exec_layout);
+  layout.code_file_off = exec_layout.code_off;
   layout.code_vbase = ELF64_EXEC_BASE + layout.code_file_off;
-  layout.data_vbase = has_data ? layout.code_vbase + align_up_size(code_off, 0x1000) : 0;
+  layout.rodata_vbase = has_rodata ? ELF64_EXEC_BASE + exec_layout.rodata_off : 0;
+  layout.data_vbase = has_data ? ELF64_EXEC_BASE + exec_layout.data_off : 0;
 
   for (int i = 0; i < obj_count; ++i) {
     if (!link_add_section_symbols(&objs[i], (size_t)i, objs[i].text_idx, layout.code_vbase,
                                   objs[i].out_off, &syms, &sym_count, &sym_cap)) goto done;
+    if (objs[i].rodata_idx &&
+        !link_add_section_symbols(&objs[i], (size_t)i, objs[i].rodata_idx,
+                                  layout.rodata_vbase, objs[i].out_rodata_off,
+                                  &syms, &sym_count, &sym_cap)) goto done;
     if (objs[i].data_idx &&
         !link_add_section_symbols(&objs[i], (size_t)i, objs[i].data_idx, layout.data_vbase,
                                   objs[i].out_data_off, &syms, &sym_count, &sym_cap)) goto done;
@@ -4756,6 +4853,7 @@ static int cmd_link_elf64_exe(int argc, char **argv) {
   buf_put(&code, entry_stub, sizeof(entry_stub));
   for (int i = 0; i < obj_count; ++i) {
     buf_put(&code, objs[i].text, objs[i].text_size);
+    if (objs[i].rodata_sec_size) buf_put(&rodata, objs[i].rodata_sec, objs[i].rodata_sec_size);
     if (objs[i].data_sec_size) buf_put(&data, objs[i].data_sec, objs[i].data_sec_size);
   }
 
@@ -4781,8 +4879,8 @@ static int cmd_link_elf64_exe(int argc, char **argv) {
     }
   }
 
-  if (!(has_data ? emit_elf64_code_data_file(out_path, code.data, code.len, data.data, data.len) :
-                  emit_elf64_code_file(out_path, code.data, code.len))) {
+  if (!emit_elf64_exec_rx_rodata_data_file(out_path, code.data, code.len, rodata.data,
+                                           rodata.len, data.data, data.len)) {
     fprintf(stderr, "link-elf64-exe=write_fail path=%s\n", out_path);
     rc = 5;
     goto done;
@@ -4790,11 +4888,12 @@ static int cmd_link_elf64_exe(int argc, char **argv) {
   printf("link.output=%s\n", out_path);
   printf("link.objects=%d\n", obj_count);
   printf("link.code.bytes=%zu\n", code.len);
+  if (has_rodata) printf("link.rodata.bytes=%zu\n", rodata.len);
   if (has_data) printf("link.data.bytes=%zu\n", data.len);
   rc = 0;
 
 done:
-  link_cleanup(owned, owned_n, objs, obj_count, syms, &code, &data);
+  link_cleanup(owned, owned_n, objs, obj_count, syms, &code, &rodata, &data);
   return rc;
 }
 
@@ -6219,6 +6318,7 @@ static int cmd_aot_elf64_code(const char *blob_path, const char *out_path) {
     fprintf(stderr, "blob=parse_fail path=%s\n", blob_path);
     return 1;
   }
+  int has_store_ops = blob_has_store_ops(&b);
   int ok = compile_pure_u64_blob_to_x86_exit_exec(&b, &code, &data);
   free(owned);
   if (!ok) {
@@ -6227,19 +6327,23 @@ static int cmd_aot_elf64_code(const char *blob_path, const char *out_path) {
     fprintf(stderr, "aot-elf64-code=unsupported_blob\n");
     return 2;
   }
-  if (!emit_elf64_code_data_file(out_path, code.data, code.len, data.data, data.len)) {
+  if (!(data.len && !has_store_ops ?
+        emit_elf64_exec_rx_rodata_data_file(out_path, code.data, code.len, data.data, data.len,
+                                            NULL, 0) :
+        emit_elf64_code_data_file(out_path, code.data, code.len, data.data, data.len))) {
     free(code.data);
     free(data.data);
     fprintf(stderr, "aot-elf64-code=write_fail path=%s\n", out_path);
     return 3;
   }
   printf("aot.code.output=%s\n", out_path);
-  printf("aot.code.bytes=%zu\n",
-         data.len ? (ELF64_EHDR_SIZE + 2 * ELF64_PHDR_SIZE +
-                     align_up_size(code.len, 0x1000) + data.len) :
-                    (ELF64_EXEC_CODE_OFF + code.len));
+  Elf64ExecLayout exec_layout = {0};
+  elf64_exec_layout_offsets(code.len, (data.len && !has_store_ops) ? data.len : 0,
+                            (data.len && has_store_ops) ? data.len : 0, &exec_layout);
+  printf("aot.code.bytes=%zu\n", exec_layout.file_n);
   printf("aot.code.x86.bytes=%zu\n", code.len);
-  if (data.len) printf("aot.code.data.bytes=%zu\n", data.len);
+  if (data.len && has_store_ops) printf("aot.code.data.bytes=%zu\n", data.len);
+  if (data.len && !has_store_ops) printf("aot.code.rodata.bytes=%zu\n", data.len);
   free(code.data);
   free(data.data);
   return 0;
@@ -6256,6 +6360,7 @@ static int cmd_compile_elf64_code(const char *src_path, const char *out_path) {
     free(blob_data);
     return 1;
   }
+  int has_store_ops = blob_has_store_ops(&b);
   int ok = compile_pure_u64_blob_to_x86_exit_exec(&b, &code, &data);
   free(blob_data);
   if (!ok) {
@@ -6264,19 +6369,23 @@ static int cmd_compile_elf64_code(const char *src_path, const char *out_path) {
     fprintf(stderr, "compile-elf64-code=unsupported_source\n");
     return 2;
   }
-  if (!emit_elf64_code_data_file(out_path, code.data, code.len, data.data, data.len)) {
+  if (!(data.len && !has_store_ops ?
+        emit_elf64_exec_rx_rodata_data_file(out_path, code.data, code.len, data.data, data.len,
+                                            NULL, 0) :
+        emit_elf64_code_data_file(out_path, code.data, code.len, data.data, data.len))) {
     free(code.data);
     free(data.data);
     fprintf(stderr, "compile-elf64-code=write_fail path=%s\n", out_path);
     return 3;
   }
   printf("compile.elf64.output=%s\n", out_path);
-  printf("compile.elf64.bytes=%zu\n",
-         data.len ? (ELF64_EHDR_SIZE + 2 * ELF64_PHDR_SIZE +
-                     align_up_size(code.len, 0x1000) + data.len) :
-                    (ELF64_EXEC_CODE_OFF + code.len));
+  Elf64ExecLayout exec_layout = {0};
+  elf64_exec_layout_offsets(code.len, (data.len && !has_store_ops) ? data.len : 0,
+                            (data.len && has_store_ops) ? data.len : 0, &exec_layout);
+  printf("compile.elf64.bytes=%zu\n", exec_layout.file_n);
   printf("compile.elf64.x86.bytes=%zu\n", code.len);
-  if (data.len) printf("compile.elf64.data.bytes=%zu\n", data.len);
+  if (data.len && has_store_ops) printf("compile.elf64.data.bytes=%zu\n", data.len);
+  if (data.len && !has_store_ops) printf("compile.elf64.rodata.bytes=%zu\n", data.len);
   free(code.data);
   free(data.data);
   return 0;

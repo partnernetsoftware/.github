@@ -267,12 +267,12 @@ nano-jit continuation after self-bootstrap v1
 
 最新稳定基线：`nano-jit.com` 已能 self-pack，不调用 `apelink`；能从纯 VM `.lisp` 直接生成 ELF/object；能把 nano 生成的多个 ELF64 object 用自带 tiny linker 链成可运行 ELF。
 
-当前完成度评估：`100%`（self-bootstrap v1）；`73%`（v1.5）。v1 已补齐最小 load/store 宽度，并用跨 object tiny-link 样例验证被调用 object 内嵌数据可读写；v1.5 正在收紧 APE manifest / inspect / run 与 data/section 证据。
+当前完成度评估：`100%`（self-bootstrap v1）；`79%`（v1.5）。v1 已补齐最小 load/store 宽度，并用跨 object tiny-link 样例验证被调用 object 内嵌数据可读写；v1.5 正在收紧 APE manifest / inspect / run 与 data/section 证据。
 
 下一步优先级：
 
-1. v1.5 data/section slice 10：把 object `.rodata` tiny-link / executable segment policy 加入洋葱闭环。
-2. v1.5 data/section slice 11：补 store-to-rodata 的类型/权限负向，开始形成 ptr mutability policy。
+1. v1.5 data/section slice 11：补 store-to-rodata 的类型/权限负向，开始形成 ptr mutability policy。
+2. v1.5 data/section slice 12：做 rodata/rwdata 混合多 object 链接 fixture，并把 `split_rx_ro_rw` 作为组合权限回归。
 3. 持续缩小临时依赖：`cosmocc` 只保留为 slice compiler，下一阶段目标是生成 x86_64 slice 的可运行子集。
 4. v2 前半：做 `lispjit.c` 分层、函数模型和 ABI descriptor，仍以 C 侧等价推进为主。
 5. v2 后半 / v2.5：bootstrap DSL build graph 与 self-hosted slice path 开始 Lisp-first，并把改 C 变成例外。
@@ -294,6 +294,7 @@ nano-jit continuation after self-bootstrap v1
 - v1.5 data/section slice 7 首轮（v1.5 67%）：writable `.data` 的本地基符号从误导性的 `.Lrodata` 改为 `.Ldata0`；`inspect-elf64-obj`、native runner 与 self-packed runner 固定该命名约定，作为后续 `.rodata` / `.data` policy 分流前置。
 - v1.5 data/section slice 8 首轮（v1.5 70%）：`inspect-elf64-obj` 对坏 object 输出可断言 reason（`bad_text_flags` / `bad_rela_symtab_link` / `bad_symtab_order`），native 与 self-packed runner 复用坏 `.o` fixture 增加 inspect 负向断言，并让 link parse 失败共享同一 reason。
 - v1.5 data/section slice 9 首轮（v1.5 73%）：新增 `const-ptr-load-only.lisp` 只读 fixture；不含 store 的 const-ptr object 输出 `.rodata`（flags `a`）与 `.Lrodata0`，`inspect-elf64-obj` 输出 `section_rodata` / `section_pc32` 证据；native、bootstrap DSL 与 self-packed runner 覆盖 object-only `.rodata` MVP。
+- v1.5 data/section slice 10 首轮（v1.5 79%）：`.rodata` 进入 executable 洋葱闭环；直接 AOT / direct compile 的 load-only const-ptr 输出 RX+RO ELF，object `.rodata` 经 tiny linker 保留为 `split_rx_ro` / `r_load_segment`，native、bootstrap DSL 与 self-packed runner 覆盖 inspect + run 证据。
 - AOT app 直接从 `.com` payload 读取内嵌 blob 执行。
 - AOT app 结构化 manifest、`inspect-app` 和 `run-app`。
 - `pack-ape` 已能组合 x86_64/aarch64 slice 与 container metadata，形成当前最小 `.com`；但 loader/多架构执行选择仍主要依赖现有 slice/stub 约定，尚未形成 nano 自主的完整 APE loader 格式。

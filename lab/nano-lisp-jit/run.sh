@@ -68,9 +68,12 @@ PTR_DIRECT_EXE="$BUILD_DIR/ptr_values_direct"
 CONST_PTR_EXIT="$BUILD_DIR/const_ptr_load_u8_aot.elf"
 CONST_PTR_CODE="$BUILD_DIR/const_ptr_load_u8_code.elf"
 CONST_PTR_CODE_OBJ="$BUILD_DIR/const_ptr_load_u8_code.o"
+CONST_PTR_LOAD_ONLY_CODE="$BUILD_DIR/const_ptr_load_only_code.elf"
 CONST_PTR_LOAD_ONLY_OBJ="$BUILD_DIR/const_ptr_load_only.o"
 CONST_PTR_LINK_EXE="$BUILD_DIR/const_ptr_load_u8_linked"
+CONST_PTR_LOAD_ONLY_LINK_EXE="$BUILD_DIR/const_ptr_load_only_linked"
 CONST_PTR_DIRECT_EXE="$BUILD_DIR/const_ptr_load_u8_direct"
+CONST_PTR_LOAD_ONLY_DIRECT_EXE="$BUILD_DIR/const_ptr_load_only_direct"
 CONST_PTR_BAD_RELOC_OBJ="$BUILD_DIR/const_ptr_bad_reloc.o"
 CONST_PTR_BAD_SHNDX_OBJ="$BUILD_DIR/const_ptr_bad_shndx.o"
 CONST_PTR_BAD_FLAGS_OBJ="$BUILD_DIR/const_ptr_bad_flags.o"
@@ -373,6 +376,23 @@ expect_elf64_exec_load_split() {
   printf '%s\n' "$out" | rg -q 'elf64\.exec\.data\.bytes=[1-9]'
 }
 
+expect_elf64_exec_ro_split() {
+  local path="$1"
+  local out=""
+  out=$("$RUNNER" inspect-elf64-exe "$path")
+  printf '%s\n' "$out"
+  printf '%s\n' "$out" | rg -q 'elf64\.exec\.load\.count=2'
+  printf '%s\n' "$out" | rg -q 'elf64\.exec\.load\.0\.flags=rx'
+  printf '%s\n' "$out" | rg -q 'elf64\.exec\.load\.1\.flags=r'
+  printf '%s\n' "$out" | rg -q 'elf64\.exec\.layout=split_rx_ro'
+  printf '%s\n' "$out" | rg -q 'elf64\.exec\.code\.policy=rx_load_segment'
+  printf '%s\n' "$out" | rg -q 'elf64\.exec\.data\.present=0'
+  printf '%s\n' "$out" | rg -q 'elf64\.exec\.data\.policy=none'
+  printf '%s\n' "$out" | rg -q 'elf64\.exec\.rodata\.present=1'
+  printf '%s\n' "$out" | rg -q 'elf64\.exec\.rodata\.policy=r_load_segment'
+  printf '%s\n' "$out" | rg -q 'elf64\.exec\.rodata\.bytes=[1-9]'
+}
+
 expect_elf64_exec_rwx_compat() {
   local path="$1"
   local out=""
@@ -581,10 +601,16 @@ if [ "$(uname -m)" = "x86_64" ] || [ "$(uname -m)" = "amd64" ]; then
   run_case "aot-const-ptr-load-u8-elf64-code1" "$RUNNER" aot-elf64-code "$CONST_PTR_BLOB" "$CONST_PTR_CODE"
   run_case "inspect-aot-const-ptr-load-u8-rx-rw" expect_elf64_exec_load_split "$CONST_PTR_CODE"
   run_case "run-aot-const-ptr-load-u8-code1" "$RUNNER" run-expect-exit "$CONST_PTR_CODE" 1
+  run_case "aot-const-ptr-load-only-elf64-code-ro" "$RUNNER" aot-elf64-code "$CONST_PTR_LOAD_ONLY_BLOB" "$CONST_PTR_LOAD_ONLY_CODE"
+  run_case "inspect-aot-const-ptr-load-only-rx-ro" expect_elf64_exec_ro_split "$CONST_PTR_LOAD_ONLY_CODE"
+  run_case "run-aot-const-ptr-load-only-code1" "$RUNNER" run-expect-exit "$CONST_PTR_LOAD_ONLY_CODE" 1
   run_case "aot-const-ptr-load-u8-elf64-obj-code1" "$RUNNER" aot-elf64-obj-code "$CONST_PTR_BLOB" "$CONST_PTR_CODE_OBJ" nano_const_ptr_code
   run_case "inspect-aot-const-ptr-obj-data-pc32" expect_elf64_obj_data_pc32 "$CONST_PTR_CODE_OBJ"
   run_case "aot-const-ptr-load-only-elf64-obj-rodata" "$RUNNER" aot-elf64-obj-code "$CONST_PTR_LOAD_ONLY_BLOB" "$CONST_PTR_LOAD_ONLY_OBJ" nano_const_ptr_load_only
   run_case "inspect-aot-const-ptr-load-only-rodata-pc32" expect_elf64_obj_rodata_pc32 "$CONST_PTR_LOAD_ONLY_OBJ"
+  run_case "tiny-link-aot-const-ptr-load-only-rodata" "$RUNNER" link-elf64-exe "$CONST_PTR_LOAD_ONLY_LINK_EXE" nano_const_ptr_load_only "$CONST_PTR_LOAD_ONLY_OBJ"
+  run_case "inspect-linked-const-ptr-load-only-rx-ro" expect_elf64_exec_ro_split "$CONST_PTR_LOAD_ONLY_LINK_EXE"
+  run_case "run-tiny-linked-const-ptr-load-only-1" "$RUNNER" run-expect-exit "$CONST_PTR_LOAD_ONLY_LINK_EXE" 1
   run_case "prepare-bad-data-reloc-objs" make_bad_data_reloc_objs
   run_case "inspect-elf64-obj-reject-bad-text-flags" expect_inspect_elf64_obj_failure "$CONST_PTR_BAD_FLAGS_OBJ" "bad_text_flags"
   run_case "inspect-elf64-obj-reject-bad-rela-link" expect_inspect_elf64_obj_failure "$CONST_PTR_BAD_RELA_LINK_OBJ" "bad_rela_symtab_link"
@@ -623,6 +649,9 @@ if [ "$(uname -m)" = "x86_64" ] || [ "$(uname -m)" = "amd64" ]; then
   run_case "compile-const-ptr-load-u8-elf64-code1" "$RUNNER" compile-elf64-code "$CONST_PTR_SRC" "$CONST_PTR_DIRECT_EXE"
   run_case "inspect-direct-const-ptr-load-u8-rx-rw" expect_elf64_exec_load_split "$CONST_PTR_DIRECT_EXE"
   run_case "run-direct-compiled-const-ptr-load-u8-1" "$RUNNER" run-expect-exit "$CONST_PTR_DIRECT_EXE" 1
+  run_case "compile-const-ptr-load-only-elf64-code-ro" "$RUNNER" compile-elf64-code "$CONST_PTR_LOAD_ONLY_SRC" "$CONST_PTR_LOAD_ONLY_DIRECT_EXE"
+  run_case "inspect-direct-const-ptr-load-only-rx-ro" expect_elf64_exec_ro_split "$CONST_PTR_LOAD_ONLY_DIRECT_EXE"
+  run_case "run-direct-compiled-const-ptr-load-only-1" "$RUNNER" run-expect-exit "$CONST_PTR_LOAD_ONLY_DIRECT_EXE" 1
   run_case "emit-elf64-obj-ret42" "$RUNNER" emit-elf64-obj-ret "$RET42_OBJ" nano_ret 42
   log "ret42.obj.bytes=$(bytes_of "$RET42_OBJ")"
   run_case "link-elf64-obj-ret42" "$RUNNER" link-elf64-exe "$RET42_EXE" nano_ret "$RET42_OBJ"
