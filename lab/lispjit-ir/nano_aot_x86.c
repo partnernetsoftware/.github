@@ -131,6 +131,17 @@ static int parse_aot_body_items(const char **p, AotFunc *f) {
              aot_add_stmt(f, AOT_STMT_EXPECT_U64, imm, NULL);
       }
       free(value);
+    } else if (strcmp(head, "param") == 0) {
+      char *type = parse_atom(p);
+      ok = type && strcmp(type, "i64") == 0 && !f->param_count && eat(p, ')');
+      if (ok) f->param_count = 1;
+      free(type);
+    } else if (strcmp(head, "load-arg-i64") == 0) {
+      char *value = parse_atom(p);
+      uint64_t idx = 0;
+      ok = value && parse_u64_atom(value, &idx) && idx == 0 && f->param_count > 0 &&
+           eat(p, ')') && aot_add_stmt(f, AOT_STMT_LOAD_ARG_I64, idx, NULL);
+      free(value);
     } else if (strcmp(head, "call") == 0) {
       char *target = parse_atom(p);
       skip_ws(p);
@@ -1100,9 +1111,13 @@ static int infer_aot_func_return_kind(const AotModule *m, size_t func_idx,
       if (last_kind != VAL_BOOL) return 0;
     } else if (stmt->kind == AOT_STMT_EXPECT_PTR) {
       if (last_kind != VAL_PTR) return 0;
+    } else if (stmt->kind == AOT_STMT_LOAD_ARG_I64) {
+      if (!func->param_count || stmt->imm != 0) return 0;
+      last_kind = VAL_I64;
     } else if (stmt->kind == AOT_STMT_CALL_FUNC) {
       int target_idx = aot_find_func(m, stmt->target_name);
       if (target_idx < 0) return 0;
+      if (m->funcs[target_idx].param_count > 0 && last_kind != VAL_I64) return 0;
       if (!infer_aot_func_return_kind(m, (size_t)target_idx, return_kinds, states)) return 0;
       last_kind = return_kinds[target_idx];
     } else {
@@ -1421,11 +1436,22 @@ static int compile_aot_func_to_x86_ret(const AotModule *m, const AotFunc *func,
         buf_put(code, jne_target, sizeof(jne_target));
         buf_put(&branch_patches, &patch, sizeof(patch));
       }
+    } else if (stmt->kind == AOT_STMT_LOAD_ARG_I64) {
+      unsigned char mov_rax_rdi[3] = {0x48, 0x89, 0xf8};
+      if (!func->param_count || stmt->imm != 0) goto fail;
+      buf_put(code, mov_rax_rdi, sizeof(mov_rax_rdi));
+      last_kind = VAL_I64;
     } else if (stmt->kind == AOT_STMT_CALL_FUNC) {
       int target_idx = aot_find_func(m, stmt->target_name);
       unsigned char call_rel32[5] = {0xe8, 0, 0, 0, 0};
-      AotCallPatch patch = {(uint32_t)(code->len + 1), stmt->target_name};
+      AotCallPatch patch = {0, stmt->target_name};
       if (target_idx < 0 || !return_kinds[target_idx]) goto fail;
+      if (m->funcs[target_idx].param_count > 0) {
+        unsigned char mov_rdi_rax[3] = {0x48, 0x89, 0xc7};
+        if (last_kind != VAL_I64) goto fail;
+        buf_put(code, mov_rdi_rax, sizeof(mov_rdi_rax));
+      }
+      patch.patch_off = (uint32_t)(code->len + 1);
       buf_put(code, call_rel32, sizeof(call_rel32));
       buf_put(call_patches, &patch, sizeof(patch));
       last_kind = return_kinds[target_idx];

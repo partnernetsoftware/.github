@@ -154,7 +154,7 @@ static AotFunc *aot_add_func(AotModule *m, char *name, int is_global) {
     m->funcs = p;
     m->func_cap = next;
   }
-  m->funcs[m->func_count] = (AotFunc){name, is_global, NULL, 0, 0};
+  m->funcs[m->func_count] = (AotFunc){name, is_global, NULL, 0, 0, 0};
   return &m->funcs[m->func_count++];
 }
 
