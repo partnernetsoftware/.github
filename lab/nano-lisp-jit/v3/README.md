@@ -6,12 +6,12 @@ v2.5 **100%（scoped）** 完成。v3 从 v2.5 反思出发，见 [`../ROADMAP.m
 
 | 切片 | 状态 | 说明 |
 |------|------|------|
-| slice 0 VM `OP_CALL_FUNC` | **0%** | 真 `(func …)` + `(call …)`；`func-call-smoke.lisp` + `run.sh` |
+| slice 0 VM `OP_CALL_FUNC` | **100%** | `samples/func-call-vm-smoke.lisp` + `run.sh` compile/run |
 | slice 1 错误码/arity | **0%** | VM/AOT 负向统一错误码 |
 | slice 2 aarch64 native slice | **0%** | 真 aarch64 payload，非 x86 duplicate oracle |
-| slice 3 证据/bootstrap | **0%** | bootstrap 覆盖 `NANO_PACK_APE_MODE` + skip 统计 |
+| slice 3 证据/bootstrap | **~70%** | skip 汇总、`bootstrap-v3-pack-bare`、build 侧 skip_registry |
 
-**v3 整体**：**0%** — ROADMAP 表与本文同步更新。
+**v3 整体**：**~30%** — 下一刀 slice1 arity/错误码表。
 
 ## v3 优先级（洋葱序）
 

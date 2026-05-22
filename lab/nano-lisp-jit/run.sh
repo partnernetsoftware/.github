@@ -44,7 +44,8 @@ BOOTSTRAP_APE_NEG_SRC="$LAB_DIR/samples/bootstrap-ape-negative.lisp"
 BOOTSTRAP_DATA_NEG_SRC="$LAB_DIR/samples/bootstrap-data-negative.lisp"
 BOOTSTRAP_V25_NATIVE_SELFPACK_SRC="$LAB_DIR/samples/bootstrap-v25-native-selfpack.lisp"
 BOOTSTRAP_V3_PACK_BARE_SRC="$LAB_DIR/samples/bootstrap-v3-pack-bare.lisp"
-BOOTSTRAP_V3_PACK_BARE_SRC="$LAB_DIR/samples/bootstrap-v3-pack-bare.lisp"
+FUNC_CALL_VM_SMOKE_SRC="$LAB_DIR/samples/func-call-vm-smoke.lisp"
+FUNC_CALL_VM_SMOKE_BLOB="$BUILD_DIR/func-call-vm-smoke.lbin"
 DATA_GOOD_OBJ="$BUILD_DIR/data-good.o"
 DATA_BAD_RELOC_TYPE_OBJ="$BUILD_DIR/data-bad-reloc-type.o"
 DATA_BAD_RELOC_SYM_OBJ="$BUILD_DIR/data-bad-reloc-sym.o"
@@ -272,6 +273,9 @@ run_case "execute-arithmetic-i64-lbin" "$RUNNER" run "$ARITH_I64_BLOB"
 
 run_case "compile-func-param-vm-parity-lbin" "$RUNNER" compile "$FUNC_PARAM_VM_PARITY_SRC" "$FUNC_PARAM_VM_PARITY_BLOB"
 run_case "run-func-param-vm-parity-lbin-expect42" "$RUNNER" run "$FUNC_PARAM_VM_PARITY_BLOB"
+
+run_case "compile-func-call-vm-smoke-lbin" "$RUNNER" compile "$FUNC_CALL_VM_SMOKE_SRC" "$FUNC_CALL_VM_SMOKE_BLOB"
+run_case "run-func-call-vm-smoke-lbin-expect42" "$RUNNER" run "$FUNC_CALL_VM_SMOKE_BLOB"
 
 run_case "compile-typed-values-lbin" "$RUNNER" compile "$TYPED_SRC" "$TYPED_BLOB"
 log "typed.blob.bytes=$(bytes_of "$TYPED_BLOB")"
@@ -635,32 +639,6 @@ if host_is_linux_x86_64; then
   '
 else
   skip_case "build-nano-jit-native-smoke" "host is not Linux x86_64 (uname -s=$(uname -s) -m=$(uname -m))"
-fi
-
-# --- bootstrap-v3 pack-ape NANO_PACK_APE_MODE=bare (DSL pack-ape-bare-env) ---
-V3_PACK_BARE_COM="$BUILD_DIR/bootstrap-v3-pack-bare.com"
-log "bootstrap.v3.pack.bare.source.path=$BOOTSTRAP_V3_PACK_BARE_SRC"
-run_case "run-bootstrap-v3-pack-bare-plan" bash -c '
-  out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V3_PACK_BARE_SRC"'" 2>&1) || true
-  printf "%s\n" "$out"
-  printf "%s\n" "$out" | grep -q "bootstrap-step.*=pack-ape-bare-env"
-'
-if [ -f "$V3_PACK_BARE_COM" ]; then
-  run_case "pack-ape-v3-bare-env-output" test -f "$V3_PACK_BARE_COM"
-  run_case "inspect-ape-v3-bare-env" bash -c '
-    out=$("'"$RUNNER"'" inspect-ape "'"$V3_PACK_BARE_COM"'" 2>&1) || true
-    printf "%s\n" "$out"
-    printf "%s\n" "$out" | grep -q "inspect-ape.container=ape-v2"
-  '
-  if host_is_linux_x86_64; then
-    run_case "run-ape-v3-bare-env-exit42" "$RUNNER" run-ape-expect-exit "$V3_PACK_BARE_COM" 42
-  else
-    skip_case "run-ape-v3-bare-env-exit42" "host is not Linux x86_64"
-  fi
-else
-  skip_case "pack-ape-v3-bare-env-output" "bootstrap-v3-pack-bare.com missing after plan"
-  skip_case "inspect-ape-v3-bare-env" "bootstrap-v3-pack-bare.com missing after plan"
-  skip_case "run-ape-v3-bare-env-exit42" "bootstrap-v3-pack-bare.com missing after plan"
 fi
 
 # --- bootstrap-v3 pack-ape NANO_PACK_APE_MODE=bare (DSL pack-ape-bare-env) ---

@@ -243,12 +243,12 @@ nano-jit continuation after self-bootstrap v1
 
 | 切片 | 状态 | 说明 |
 |------|------|------|
-| slice 0 VM `OP_CALL_FUNC` | **0%** | 真 `(func …)` + `(call …)`；`func-call-smoke.lisp` + `run.sh` |
+| slice 0 VM `OP_CALL_FUNC` | **100%** | `OP_CALL_FUNC` + `(func …)`/`(call …)`；`func-call-vm-smoke.lisp` + `run.sh` |
 | slice 1 错误码/arity | **0%** | VM/AOT 负向统一错误码 |
 | slice 2 aarch64 native slice | **0%** | `NANO_SLICE_COMPILER=native` 真 aarch64，非 x86 duplicate oracle |
-| slice 3 证据/bootstrap | **0%** | bootstrap 覆盖 `NANO_PACK_APE_MODE` + skip 统计 |
+| slice 3 证据/bootstrap | **~70%** | `run_end_summary` PASS/SKIP/FAIL；`bootstrap-v3-pack-bare.lisp`；`build_nano_jit.sh`→`skip_registry` |
 
-**v3 整体**：**0%** — kickoff；洋葱序与命令见 [`v3/README.md`](v3/README.md)。
+**v3 整体**：**~30%** — slice0 签收；slice3 证据层进行中；见 [`v3/README.md`](v3/README.md)。
 
 ### 0. 证据基线
 
