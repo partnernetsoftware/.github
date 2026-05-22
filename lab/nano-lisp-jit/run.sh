@@ -134,6 +134,8 @@ CONST_PTR_CALL_OBJ="$BUILD_DIR/const_ptr_call.o"
 CONST_PTR_CALLEE_OBJ="$BUILD_DIR/const_ptr_callee.o"
 CONST_PTR_CROSS_LINK_EXE="$BUILD_DIR/const_ptr_cross_obj_linked"
 DUP42_OBJ="$BUILD_DIR/nano_dup42.o"
+NANO_JIT_DIR="$LAB_DIR/.build/nano-jit"
+NANO_JIT_COM="$NANO_JIT_DIR/nano-jit.com"
 RUNNER="$BUILD_DIR/nano-lisp-jit"
 RESULTS="$BUILD_DIR/results.txt"
 NANO_C="$ROOT_DIR/lab/lispjit-ir/lispjit.c"
@@ -433,6 +435,10 @@ if [ "$(uname -m)" = "x86_64" ] || [ "$(uname -m)" = "amd64" ]; then
   run_case "tiny-link-reject-bad-data-reloc-sym" "$RUNNER" link-expect-exit 4 "$BUILD_DIR/data-bad-reloc-sym-fail" nano_main "$DATA_BAD_RELOC_SYM_OBJ"
   run_case "tiny-link-reject-bad-data-symbol-shndx" "$RUNNER" link-expect-exit 4 "$BUILD_DIR/data-bad-symbol-shndx-fail" nano_main "$DATA_BAD_SYMBOL_SHNDX_OBJ"
   run_case "run-bootstrap-data-negative-plan" "$RUNNER" run-bootstrap-plan "$BOOTSTRAP_DATA_NEG_SRC"
+  if [ -f "$NANO_JIT_COM" ]; then
+    run_case "run-bootstrap-data-negative-self-pack" \
+      bash -c "cd \"$ROOT_DIR\" && \"$NANO_JIT_COM\" run-bootstrap-plan \"$BOOTSTRAP_DATA_NEG_SRC\""
+  fi
   run_case "emit-elf64-obj-duplicate-nano-ext" "$RUNNER" emit-elf64-obj-ret "$DUP42_OBJ" nano_ext 7
   run_case "tiny-link-reject-duplicate-symbol" "$RUNNER" link-expect-exit 2 "$BUILD_DIR/dup_should_fail" nano_call "$CALL42_OBJ" "$CALL42_CALLEE_OBJ" "$DUP42_OBJ"
 else

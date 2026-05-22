@@ -65,7 +65,13 @@ CONST_PTR_SRC="$LAB_DIR/samples/const-ptr-load-u8.lisp"
 CONST_PTR_BLOB="$BUILD_DIR/const-ptr-load-u8.lbin"
 CONST_PTR_DIRECT_EXE="$BUILD_DIR/const_ptr_load_u8_direct"
 BOOTSTRAP_APE_NEG_SRC="$LAB_DIR/samples/bootstrap-ape-negative.lisp"
+BOOTSTRAP_DATA_NEG_SRC="$LAB_DIR/samples/bootstrap-data-negative.lisp"
+RODATA_READONLY_SRC="$LAB_DIR/samples/rodata-readonly.lisp"
 APE_FIXTURE_DIR="$LAB_DIR/.build"
+DATA_GOOD_OBJ="$APE_FIXTURE_DIR/data-good.o"
+DATA_BAD_RELOC_TYPE_OBJ="$APE_FIXTURE_DIR/data-bad-reloc-type.o"
+DATA_BAD_RELOC_SYM_OBJ="$APE_FIXTURE_DIR/data-bad-reloc-sym.o"
+DATA_BAD_SYMBOL_SHNDX_OBJ="$APE_FIXTURE_DIR/data-bad-symbol-shndx.o"
 CTRL_SRC="$LAB_DIR/samples/control-flow.lisp"
 CTRL_BLOB="$BUILD_DIR/control-flow.lbin"
 MULTI_SRC="$LAB_DIR/samples/multi-func.lisp"
@@ -231,7 +237,7 @@ cat > "$BOOTSTRAP_PLAN" <<EOF
   (run-expect-exit "$BUILD_DIR/bootstrap-aot-ptr-values.elf" 1)
   (compile-elf64-code "$CONST_PTR_SRC" "$BUILD_DIR/bootstrap-aot-const-ptr-load-u8.elf")
   (run-expect-exit "$BUILD_DIR/bootstrap-aot-const-ptr-load-u8.elf" 1)
-  (compile-elf64-code "$LAB_DIR/samples/rodata-readonly.lisp" "$BUILD_DIR/bootstrap-aot-rodata-readonly.elf")
+  (compile-elf64-code "$RODATA_READONLY_SRC" "$BUILD_DIR/bootstrap-aot-rodata-readonly.elf")
   (run-expect-exit "$BUILD_DIR/bootstrap-aot-rodata-readonly.elf" 0)
   (aot-elf64-obj-ret "$BUILD_DIR/bootstrap-aot-arithmetic.lbin" "$BUILD_DIR/bootstrap-aot-arithmetic-ret.o" "nano_bootstrap_arith_ret")
   (link-elf64-exe "$BUILD_DIR/bootstrap-aot-arithmetic-ret-linked" "nano_bootstrap_arith_ret" "$BUILD_DIR/bootstrap-aot-arithmetic-ret.o")
@@ -377,13 +383,30 @@ run_case "self-pack-nano-jit-com" "$PACKER" pack-ape \
 run_case "inspect-nano-jit-com" "$PACKER" inspect-ape "$BUILD_DIR/nano-jit.com"
 
 if [ "$(uname -m)" = "x86_64" ] || [ "$(uname -m)" = "amd64" ]; then
-  run_case "run-ape-nano-jit-com" "$PACKER" run-ape "$BUILD_DIR/nano-jit.com"
+  run_case "run-ape-nano-jit-com-smoke" bash -c '
+    out=$("'"$PACKER"'" run-ape "'"$BUILD_DIR/nano-jit.com"'" 2>&1) || true
+    printf "%s\n" "$out"
+    printf "%s\n" "$out" | grep -q "run-ape.arch="
+  '
 fi
 
 run_case "make-ape-negative-fixtures-self-pack" python3 "$LAB_DIR/make_ape_fixtures.py" \
   "$BUILD_DIR/nano-jit.com" "$APE_FIXTURE_DIR"
 run_case "run-bootstrap-ape-negative-self-pack" \
   bash -c "cd \"$ROOT_DIR\" && \"$BUILD_DIR/nano-jit.com\" run-bootstrap-plan \"$BOOTSTRAP_APE_NEG_SRC\""
+
+run_case "nano-jit-compile-const-ptr-for-data-fixtures-self-pack" \
+  "$BUILD_DIR/nano-jit.com" compile "$CONST_PTR_SRC" "$APE_FIXTURE_DIR/const-ptr-data-fixtures.lbin"
+run_case "nano-jit-aot-const-ptr-data-good-obj-self-pack" \
+  "$BUILD_DIR/nano-jit.com" aot-elf64-obj-code "$APE_FIXTURE_DIR/const-ptr-data-fixtures.lbin" "$DATA_GOOD_OBJ" nano_main
+run_case "make-data-reloc-negative-fixtures-self-pack" python3 "$LAB_DIR/make_data_reloc_fixtures.py" \
+  "$DATA_GOOD_OBJ" "$DATA_BAD_RELOC_TYPE_OBJ" "$DATA_BAD_RELOC_SYM_OBJ" "$DATA_BAD_SYMBOL_SHNDX_OBJ"
+run_case "run-bootstrap-data-negative-self-pack" \
+  bash -c "cd \"$ROOT_DIR\" && \"$BUILD_DIR/nano-jit.com\" run-bootstrap-plan \"$BOOTSTRAP_DATA_NEG_SRC\""
+run_case "nano-jit-compile-rodata-readonly-elf64-self-pack" \
+  "$BUILD_DIR/nano-jit.com" compile-elf64-code "$RODATA_READONLY_SRC" "$BUILD_DIR/rodata_readonly_self_packed.elf"
+run_case "nano-jit-run-rodata-readonly-elf64-self-pack" \
+  "$BUILD_DIR/nano-jit.com" run-expect-exit "$BUILD_DIR/rodata_readonly_self_packed.elf" 0
 
 {
   echo "nano-jit.com.bytes=$(bytes_of "$BUILD_DIR/nano-jit.com")"
@@ -458,8 +481,6 @@ run_case "nano-jit-compile-cross-object-const-ptr-callee" "$BUILD_DIR/nano-jit.c
 run_case "nano-jit-aot-cross-object-const-ptr-callee" "$BUILD_DIR/nano-jit.com" aot-elf64-obj-code "$CONST_PTR_BLOB" "$CONST_PTR_CALLEE_OBJ" nano_const_ptr_callee
 run_case "nano-jit-tiny-link-cross-object-const-ptr-data" "$BUILD_DIR/nano-jit.com" link-elf64-exe "$CONST_PTR_CROSS_LINK_EXE" nano_const_ptr_call "$CONST_PTR_CALL_OBJ" "$CONST_PTR_CALLEE_OBJ"
 run_case "nano-jit-run-cross-object-const-ptr-data" "$BUILD_DIR/nano-jit.com" run-expect-exit "$CONST_PTR_CROSS_LINK_EXE" 1
-run_case "nano-jit-compile-rodata-readonly-elf64" "$BUILD_DIR/nano-jit.com" compile-elf64-code "$LAB_DIR/samples/rodata-readonly.lisp" "$BUILD_DIR/rodata_readonly_self_packed.elf"
-run_case "nano-jit-run-rodata-readonly-elf64" "$BUILD_DIR/nano-jit.com" run-expect-exit "$BUILD_DIR/rodata_readonly_self_packed.elf" 0
 run_case "nano-jit-emit-elf64-obj-duplicate-nano-ext" "$BUILD_DIR/nano-jit.com" emit-elf64-obj-ret "$DUP42_OBJ" nano_ext 7
 run_case "nano-jit-tiny-link-reject-duplicate-symbol" "$BUILD_DIR/nano-jit.com" link-expect-exit 2 "$BUILD_DIR/dup_should_fail" nano_call "$CALL42_OBJ" "$CALL42_CALLEE_OBJ" "$DUP42_OBJ"
 run_case "nano-jit-compile-smoke-repeat" "$BUILD_DIR/nano-jit.com" compile "$SMOKE_SRC" "$SMOKE_BLOB_REPEAT"

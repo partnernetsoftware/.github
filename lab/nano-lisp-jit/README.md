@@ -369,3 +369,9 @@ bash lab/nano-lisp-jit/build_nano_jit.sh
 默认构建使用 `-mtiny`、section GC 和禁用 unwind/stack protector 的 size profile；当前实测 `nano-lisp-jit.com` 约 462KB。
 `build_nano_ape.sh` 使用刚编出的 `nano-lisp-jit` 自身执行 `pack-ape`，打包 x86_64/aarch64 ELF，不调用 `cosmocc` 的 `apelink`；`nano_apelink.py` 仅保留作参考实现。
 `build_nano_jit.sh` 生成 `nano-jit.com` 并写出 `bootstrap-report.txt`；当前仍临时使用 `cosmocc` 编译架构切片，但 `.com` 打包、AOT app 打包和 blob 自测由 `nano-jit` 自己完成。
+
+## v1.5 build_nano_jit
+
+`build_nano_jit.sh` 需要 cosmocc 或 dev container（`third_party/cosmocc` / `/opt/cosmocc/bin`）。
+无 cosmocc 时该脚本无法在 native 主机上运行；可用 `docker-compose.dev.yml` 的 dev 容器执行。
+x86_64 上的 native 验证矩阵由 `run.sh` 覆盖，不依赖 cosmocc。

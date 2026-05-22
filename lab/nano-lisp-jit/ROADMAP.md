@@ -224,6 +224,21 @@ nano-jit continuation after self-bootstrap v1
 
 当前完成度评估：`100%`（self-bootstrap v1）。已补齐最小 load/store 宽度，并用跨 object tiny-link 样例验证被调用 object 内嵌数据可读写；后续工作进入 v2 反思队列。
 
+## v1.5 完成度评估
+
+依据：回放 `run.sh`、`build_nano_jit.sh`、`lab/run-lab-tools.sh` 与 checked-in bootstrap DSL 证据；不含日历估算。
+
+| 切片 | 完成度 | 已闭环证据 | 缺口 |
+|------|--------|-----------|------|
+| APE format | ~90% | 上列 + dev 容器 `build_nano_jit.sh` 全矩阵 exit 0（`bootstrap-report.txt`）；`make_ape_fixtures` 同长替换 hash；`run-ape` smoke（slice 提取） | aarch64 **host** `run-ape`；nano 自主 loader（当前 stub 约定） |
+| data/section | **100%**（验收） | rodata R / data RW ✓；PC32 `.rela.*` ✓；text-embedded 已删 ✓；`bootstrap-data-negative` native + self-pack（`build_nano_jit.sh`）✓ | — |
+| v1.5 整体 | **~97%** | data 验收闭环 + APE cosmocc 自举矩阵 | aarch64 run-ape + loader 语义 |
+
+下一圈（冲 100%）：
+
+1. aarch64 host（或 CI matrix）补 `run-ape` 证据。
+2. APE loader 从 stub 约定推进到 nano 自主 header/payload 选择（可并入 v2 首切片）。
+
 下一步优先级：
 
 1. 把最小 control flow 子集继续接到机器码 AOT/codegen 路径，逐步缩小静态求值-only 语义。
@@ -242,6 +257,7 @@ nano-jit continuation after self-bootstrap v1
 - v1.5 data/section 三轮（约 65%）：const 字符串按 `store` 分 `.rodata`/`.data`；`emit_elf64_obj_text_data_section` + `link-elf64-exe` 解析 `.rela.rodata`/`.rela.data` 并打 PC32；可执行文件多 PT_LOAD（text RX、rodata R、data RW）且段间页对齐；`compile-elf64-code`/`aot-elf64-code` 统一经 object+link；样例 `rodata-readonly.lisp`、`const-ptr-load-u8.lisp` 在 `run.sh` 通过。
 - v1.5 data/section 四轮（约 85%）：`make_data_reloc_fixtures.py` + `bootstrap-data-negative.lisp` 覆盖 unsupported data reloc；`bootstrap-aot-smoke` / `build_nano_jit.sh` 增加 rodata-readonly；self-packed `nano-jit.com` 复验 `compile-elf64-code` rodata 路径。
 - v1.5 data/section 五轮（约 95%）：`data-bad-symbol-shndx.o` 触发 `bad_data_symbol`；删除未使用的 `emit_elf64_exec_rx_data_file` / `emit_elf64_code_data_file`（text-embedded 直连已弃用，统一 object+link+`emit_elf64_exec_sections_file`）。
+- v1.5 data/section **验收 100%**：`build_nano_jit.sh` self-pack 复验 `bootstrap-data-negative` + rodata；见上文「v1.5 完成度评估」表。
 - AOT app 直接从 `.com` payload 读取内嵌 blob 执行。
 - AOT app 结构化 manifest、`inspect-app` 和 `run-app`。
 - `pack-ape` 已能组合 x86_64/aarch64 slice 与 container metadata，形成当前最小 `.com`；但 loader/多架构执行选择仍主要依赖现有 slice/stub 约定，尚未形成 nano 自主的完整 APE loader 格式。

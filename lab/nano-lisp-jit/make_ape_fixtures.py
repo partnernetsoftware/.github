@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import re
 import sys
 from pathlib import Path
 
@@ -64,13 +65,15 @@ def main() -> int:
         ),
     )
 
-    hash_lines: list[bytes] = []
-    for line in base.split(b"\n"):
-        if b"nano.slice.x86_64.hash=" in line:
-            hash_lines.append(b"# nano.slice.x86_64.hash=0000000000000000")
-        else:
-            hash_lines.append(line)
-    write_bytes(out_dir / "ape-bad-hash.com", b"\n".join(hash_lines) + b"\n")
+    bad_hash, n = re.subn(
+        rb"(nano\.slice\.x86_64\.hash=)[0-9a-f]{16}",
+        rb"\g<1>0000000000000001",
+        base,
+        count=1,
+    )
+    if n != 1:
+        raise SystemExit("missing pattern for bad-hash: nano.slice.x86_64.hash")
+    write_bytes(out_dir / "ape-bad-hash.com", bad_hash)
     print(f"ape.fixtures.dir={out_dir}")
     return 0
 
