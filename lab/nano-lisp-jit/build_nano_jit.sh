@@ -4,6 +4,9 @@ set -euo pipefail
 LAB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$LAB_DIR/../.." && pwd)"
 
+# shellcheck source=skip_registry.sh
+source "$LAB_DIR/skip_registry.sh"
+
 discover_cosmo_bin() {
   if [ -n "${COSMO_BIN:-}" ]; then
     printf '%s\n' "$COSMO_BIN"
@@ -30,14 +33,6 @@ discover_cosmo_bin() {
 }
 
 NANO_SLICE_COMPILER="${NANO_SLICE_COMPILER:-cosmo}"
-
-host_is_linux_x86_64() {
-  [ "$(uname -s)" = "Linux" ] && { [ "$(uname -m)" = "x86_64" ] || [ "$(uname -m)" = "amd64" ]; }
-}
-
-cosmocc_usable() {
-  [ -x "$X86_CC" ] && [ -x "$ARM_CC" ]
-}
 
 slice_tool() {
   if [ -f "$BUILD_DIR/nano-jit.com" ]; then
@@ -414,7 +409,7 @@ case "$NANO_SLICE_COMPILER" in
       echo "cosmocc.role=aarch64-slice-only-if-present"
     } | tee -a "$REPORT"
     run_case "build-x86_64-slice" cc -DNANO_LISP_JIT -Os -s "$NANO_C" -ldl -o "$BUILD_DIR/nano-jit.x86_64"
-    if cosmocc_usable; then
+    if cosmocc_bin_usable "$COSMO_BIN"; then
       run_case "build-aarch64-slice" "$ARM_CC" "${COMMON[@]}" -o "$BUILD_DIR/nano-jit.aarch64"
     else
       {
@@ -429,7 +424,7 @@ case "$NANO_SLICE_COMPILER" in
     fi
     ;;
   cosmo)
-    if ! cosmocc_usable; then
+    if ! cosmocc_bin_usable "$COSMO_BIN"; then
       {
         echo "cosmocc=missing"
         echo "searched=$COSMO_BIN"
