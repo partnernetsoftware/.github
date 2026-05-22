@@ -380,7 +380,11 @@ run_case "self-pack-nano-jit-com" "$PACKER" pack-ape \
   "$BUILD_DIR/nano-jit.x86_64" \
   "$BUILD_DIR/nano-jit.aarch64"
 
-run_case "inspect-nano-jit-com" "$PACKER" inspect-ape "$BUILD_DIR/nano-jit.com"
+run_case "inspect-nano-jit-com" bash -c '
+  out=$("'"$PACKER"'" inspect-ape "'"$BUILD_DIR/nano-jit.com"'" 2>&1) || exit 1
+  printf "%s\n" "$out"
+  printf "%s\n" "$out" | grep -q "inspect-ape.container=ape-v2"
+'
 
 if [ "$(uname -m)" = "x86_64" ] || [ "$(uname -m)" = "amd64" ]; then
   run_case "run-ape-nano-jit-com-smoke" bash -c '

@@ -315,6 +315,17 @@ if [ -f "$APE_V2_COM" ]; then
   if [ "$(uname -m)" = "x86_64" ] || [ "$(uname -m)" = "amd64" ]; then
     run_case "run-ape-v2-native-exit42" "$RUNNER" run-ape-expect-exit "$APE_V2_COM" 42
   fi
+  run_case "make-ape-v2-negative-fixtures" python3 "$LAB_DIR/make_ape_fixtures.py" "$APE_V2_COM" "$BUILD_DIR"
+  BOOTSTRAP_APE_V2_NEG_SRC="$LAB_DIR/samples/bootstrap-ape-v2-negative.lisp"
+  run_case "run-bootstrap-ape-v2-negative-plan" "$RUNNER" run-bootstrap-plan "$BOOTSTRAP_APE_V2_NEG_SRC"
+fi
+
+if [ -f "$BUILD_DIR/ape-v1-legacy.com" ]; then
+  run_case "inspect-ape-v1-legacy-fallback" bash -c '
+    out=$("'"$RUNNER"'" inspect-ape "'"$BUILD_DIR/ape-v1-legacy.com"'" 2>&1) || true
+    printf "%s\n" "$out"
+    printf "%s\n" "$out" | grep -q "inspect-ape.container=ape-v1"
+  '
 fi
 
 run_case "compile-control-flow-lbin" "$RUNNER" compile "$CTRL_SRC" "$CTRL_BLOB"

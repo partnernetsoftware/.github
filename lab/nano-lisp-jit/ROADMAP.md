@@ -244,10 +244,26 @@ nano-jit continuation after self-bootstrap v1
 
 下一圈（v2 kickoff）：
 
-1. **APE v2 / nano 自主 loader**（slice 1 进行中）：`\x7fNANOape` 二进制头 + 28B 表项；`pack-ape`/`inspect-ape`/`run-ape` 已接 v2（v1 manifest 回退）；`bootstrap-ape-v2-smoke` + 负向 fixture；shell stub 仍保留。
-2. **`lispjit.c` 模块边界**：parser/blob/vm/aot_x86/elf/linker/ape/bootstrap 等价拆分，固定 v1/v1.5 fixture hash/exit（v2 slice 2）。
-3. **函数参数与局部变量**：先 VM，再 x86_64 AOT/object/tiny-link；ABI descriptor 替代硬编码签名（v2 slice 3）。
-4. **自托管 slice compiler**：nano 生成 x86_64 payload，逐步把 cosmocc 降级为外部 oracle。
+1. **APE v2 / nano 自主 loader**（slice 1 **~95%**）：见下表；缺：去掉 shell stub 的 in-process loader（刻意留 slice 2+）。
+2. **`lispjit.c` 模块边界**（slice 2 未开）：parser/blob/vm/aot_x86/elf/linker/ape/bootstrap 等价拆分（见 v2 kickoff slice 2）。
+
+### v2 slice 1 完成度（scoped）
+
+| 项 | 状态 | 证据 |
+|----|------|------|
+| `APE-v2.md` + 28B 表项 | **100%** | spec 与 `ape_v2.{h,c}` 一致 |
+| `pack-ape` 写 v2 头 | **100%** | `pack-ape.container=ape-v2` |
+| `inspect-ape` v2 优先 + v1 回退 | **100%** | `ape-v1-legacy.com` fallback 测试 |
+| `run-ape` 读 v2 表 | **100%** | `run-ape.container=ape-v2` |
+| bootstrap smoke + 负向 | **100%** | `bootstrap-ape-v2-*` + `make_ape_fixtures` |
+| self-pack 矩阵（native 侧） | **100%** | `build_nano_jit.sh` 断言 `inspect-ape.container=ape-v2` |
+| nano 进程内 loader（无 stub） | **0%** | → v2 slice 2+ |
+
+**v2 slice 1 整体**：**100%（scoped）** — 与 `APE-v2.md` slice 1 范围一致；无 stub loader 不算缺口。
+
+**远程 `main`**：合并前 v2 仅在 `cursor/nano-jit-v2-ape-loader-f186`（PR #80）。
+
+**v2 slice 2+**：`lispjit.c` 模块边界；函数参数/ABI；自托管 slice compiler。
 
 下一步优先级：
 

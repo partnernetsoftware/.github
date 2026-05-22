@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import re
 import struct
 import sys
 from pathlib import Path
@@ -73,6 +74,41 @@ def corrupt_v2_row0_hash(data: bytes) -> bytes:
     return patch_at(data, ps, struct.pack("<Q", 1))
 
 
+def v1_legacy_from_v2_pack(data: bytes) -> bytes:
+    """Drop v2 binary header and rewind v1 manifest/stub offsets to payload-relative 0."""
+    ps = payload_start(data)
+    if data[ps : ps + len(V2_MAGIC)] != V2_MAGIC:
+        raise SystemExit("v1_legacy: missing ape-v2 magic")
+    header_bytes = struct.unpack_from("<H", data, ps + 14)[0]
+    row0 = ps + 16
+    x86_size = struct.unpack_from("<Q", data, row0 + 12)[0]
+    head = data[:ps]
+    payload = data[ps + header_bytes :]
+    head = re.sub(rb"(nano\.slice\.x86_64\.offset=)\d+", rb"\g<1>0", head, count=1)
+    head = re.sub(
+        rb"(nano\.slice\.aarch64\.offset=)\d+",
+        b"\\g<1>" + str(x86_size).encode(),
+        head,
+        count=1,
+    )
+    head = re.sub(rb"(x86_64\|amd64\) off=)\d+;", rb"\g<1>0;", head, count=1)
+    head = re.sub(
+        rb"(aarch64\|arm64\) off=)\d+;",
+        b"\\g<1>" + str(x86_size).encode() + b";",
+        head,
+        count=1,
+    )
+    return head + payload
+
+
+def write_v2_fixtures(base: bytes, out_dir: Path, prefix: str) -> None:
+    no_manifest = strip_manifest(base)
+    write_bytes(out_dir / f"{prefix}no-manifest.com", corrupt_v2_magic(no_manifest))
+    write_bytes(out_dir / f"{prefix}bad-container.com", corrupt_v2_version(base))
+    write_bytes(out_dir / f"{prefix}bad-offset.com", corrupt_v2_row0_offset(base))
+    write_bytes(out_dir / f"{prefix}bad-hash.com", corrupt_v2_row0_hash(base))
+
+
 def main() -> int:
     if len(sys.argv) != 3:
         print(f"usage: {sys.argv[0]} <src.com> <out-dir>", file=sys.stderr)
@@ -84,11 +120,9 @@ def main() -> int:
         return 1
 
     base = read_bytes(src)
-    no_manifest = strip_manifest(base)
-    write_bytes(out_dir / "ape-no-manifest.com", corrupt_v2_magic(no_manifest))
-    write_bytes(out_dir / "ape-bad-container.com", corrupt_v2_version(base))
-    write_bytes(out_dir / "ape-bad-offset.com", corrupt_v2_row0_offset(base))
-    write_bytes(out_dir / "ape-bad-hash.com", corrupt_v2_row0_hash(base))
+    write_v2_fixtures(base, out_dir, "ape-")
+    write_v2_fixtures(base, out_dir, "ape-v2-")
+    write_bytes(out_dir / "ape-v1-legacy.com", v1_legacy_from_v2_pack(base))
     print(f"ape.fixtures.dir={out_dir}")
     return 0
 
