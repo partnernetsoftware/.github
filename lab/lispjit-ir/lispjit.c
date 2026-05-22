@@ -4396,6 +4396,13 @@ static const char *elf64_reloc_type_name(uint32_t type) {
   return "other";
 }
 
+static const char *elf64_shdr_flags_name(uint64_t flags) {
+  if (flags == 0x6) return "ax";
+  if (flags == 0x3) return "aw";
+  if (flags == 0) return "none";
+  return "other";
+}
+
 static int cmd_inspect_elf64_obj(const char *path) {
   size_t n = 0;
   unsigned char *data = read_file(path, &n);
@@ -4417,7 +4424,10 @@ static int cmd_inspect_elf64_obj(const char *path) {
   for (uint16_t i = 1; i < o.shnum; ++i) {
     const unsigned char *sh = elf_section(&o, i);
     const char *name = elf_str(data + shstr_off, (size_t)shstr_size, rd32(sh));
-    if (name) printf("elf64.obj.section.%u.name=%s\n", i, name);
+    if (name) {
+      printf("elf64.obj.section.%u.name=%s\n", i, name);
+      printf("elf64.obj.section.%u.flags=%s\n", i, elf64_shdr_flags_name(rd64(sh + 8)));
+    }
   }
   printf("elf64.obj.text.bytes=%zu\n", o.text_size);
   printf("elf64.obj.data.bytes=%zu\n", o.data_sec_size);

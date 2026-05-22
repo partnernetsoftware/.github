@@ -330,6 +330,8 @@ expect_elf64_obj_data_pc32() {
   out=$("$RUNNER" inspect-elf64-obj "$path")
   printf '%s\n' "$out"
   printf '%s\n' "$out" | rg -q 'elf64\.obj\.section\..*\.name=\.data'
+  printf '%s\n' "$out" | rg -q 'elf64\.obj\.section\.1\.flags=ax'
+  printf '%s\n' "$out" | rg -q 'elf64\.obj\.section\..*\.flags=aw'
   printf '%s\n' "$out" | rg -q 'elf64\.obj\.rela\..*\.type=PC32'
   printf '%s\n' "$out" | rg -q 'elf64\.obj\.rela\..*\.target=\.data'
   printf '%s\n' "$out" | rg -q 'elf64\.obj\.data\.bytes=[1-9]'

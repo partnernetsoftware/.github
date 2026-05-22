@@ -8,7 +8,7 @@
 `lab/tool-*` 消费者用法与已知摩擦见 `LAB-USAGE-FEEDBACK.md`。
 内存安全借鉴与产品化命名见 `DESIGN-MEMORY-AND-PRODUCT.md`。
 
-当前状态：self-bootstrap v1 已评估为 `100%`，v1.5 约 `55%`。`nano-jit.com` 已能 self-pack，不调用 `apelink`；纯 VM source 可进入 `.lbin`、解释执行、AOT ELF、ELF64 object、tiny-link executable；typed `i64/bool/ptr`、control-flow、multi-func、多 object、load/store-family 和跨 object 数据 smoke 均有 native/container 自举证据；APE manifest 已覆盖 per-slice arch/os/offset/size/fnv1a64、`inspect-ape` 校验和 manifest-aware `run-ape` 执行；含 data 的 ELF executable 已拆成 RX code / RW data load segment，object 路径开始输出独立 `.data` 与 `R_X86_64_PC32` relocation，并有负向坏 relocation / 坏 section index 覆盖。
+当前状态：self-bootstrap v1 已评估为 `100%`，v1.5 约 `58%`。`nano-jit.com` 已能 self-pack，不调用 `apelink`；纯 VM source 可进入 `.lbin`、解释执行、AOT ELF、ELF64 object、tiny-link executable；typed `i64/bool/ptr`、control-flow、multi-func、多 object、load/store-family 和跨 object 数据 smoke 均有 native/container 自举证据；APE manifest 已覆盖 per-slice arch/os/offset/size/fnv1a64、`inspect-ape` 校验和 manifest-aware `run-ape` 执行；含 data 的 ELF executable 已拆成 RX code / RW data load segment，object 路径开始输出独立 `.data` 与 `R_X86_64_PC32` relocation，并有 section flags 与负向坏 relocation / 坏 section index 覆盖。
 
 下一会话建议从 `ROADMAP.md` 的 `v1.5 / v2 开工入口` 继续：先用持续反思/学习/进化循环确认 v1 基线，再从 v1.5 的 nano APE manifest fixture 开工；随后处理 pack/inspect/run、`.rodata/.data` section、数据 relocation、`lispjit.c` 分层、bootstrap DSL build graph，以及 v2 的自托管 slice compiler 路径。分层与 data section 属于 v2 前半 C 侧等价推进，build graph 与自托管 slice path 是 v2 后半 Lisp-first 起点；v3+ 不把 v2 当终点，而是继续扩大到外部 VM、语言和查询语义的导入/转译/自举验证。
 
