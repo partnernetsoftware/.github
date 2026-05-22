@@ -218,11 +218,15 @@ cat > "$BOOTSTRAP_PLAN" <<EOF
   (inspect-elf64-exe "$BUILD_DIR/bootstrap-aot-const-ptr-load-u8-code.elf")
   (run-expect-exit "$BUILD_DIR/bootstrap-aot-const-ptr-load-u8-code.elf" 1)
   (aot-elf64-obj-code "$BUILD_DIR/bootstrap-aot-const-ptr-load-u8.lbin" "$BUILD_DIR/bootstrap-aot-const-ptr-load-u8-code.o" "nano_bootstrap_const_ptr_code")
+  (inspect-elf64-obj "$BUILD_DIR/bootstrap-aot-const-ptr-load-u8-code.o")
   (link-elf64-exe "$BUILD_DIR/bootstrap-aot-const-ptr-load-u8-linked" "nano_bootstrap_const_ptr_code" "$BUILD_DIR/bootstrap-aot-const-ptr-load-u8-code.o")
+  (inspect-elf64-exe "$BUILD_DIR/bootstrap-aot-const-ptr-load-u8-linked")
   (run-expect-exit "$BUILD_DIR/bootstrap-aot-const-ptr-load-u8-linked" 1)
   (emit-elf64-obj-call "$BUILD_DIR/bootstrap-aot-const-ptr-call.o" "nano_bootstrap_const_ptr_call" "nano_bootstrap_const_ptr_callee")
   (aot-elf64-obj-code "$BUILD_DIR/bootstrap-aot-const-ptr-load-u8.lbin" "$BUILD_DIR/bootstrap-aot-const-ptr-callee.o" "nano_bootstrap_const_ptr_callee")
+  (inspect-elf64-obj "$BUILD_DIR/bootstrap-aot-const-ptr-callee.o")
   (link-elf64-exe "$BUILD_DIR/bootstrap-aot-const-ptr-cross-linked" "nano_bootstrap_const_ptr_call" "$BUILD_DIR/bootstrap-aot-const-ptr-call.o" "$BUILD_DIR/bootstrap-aot-const-ptr-callee.o")
+  (inspect-elf64-exe "$BUILD_DIR/bootstrap-aot-const-ptr-cross-linked")
   (run-expect-exit "$BUILD_DIR/bootstrap-aot-const-ptr-cross-linked" 1)
   (aot-elf64-code "$BUILD_DIR/bootstrap-aot-ptr-values.lbin" "$BUILD_DIR/bootstrap-aot-ptr-values-code.elf")
   (run-expect-exit "$BUILD_DIR/bootstrap-aot-ptr-values-code.elf" 1)
@@ -444,7 +448,9 @@ run_case "nano-jit-run-tiny-linked-call42" "$BUILD_DIR/nano-jit.com" run-expect-
 run_case "nano-jit-emit-cross-object-const-ptr-call" "$BUILD_DIR/nano-jit.com" emit-elf64-obj-call "$CONST_PTR_CALL_OBJ" nano_const_ptr_call nano_const_ptr_callee
 run_case "nano-jit-compile-cross-object-const-ptr-callee" "$BUILD_DIR/nano-jit.com" compile "$CONST_PTR_SRC" "$CONST_PTR_BLOB"
 run_case "nano-jit-aot-cross-object-const-ptr-callee" "$BUILD_DIR/nano-jit.com" aot-elf64-obj-code "$CONST_PTR_BLOB" "$CONST_PTR_CALLEE_OBJ" nano_const_ptr_callee
+run_case "nano-jit-inspect-cross-object-const-ptr-callee" "$BUILD_DIR/nano-jit.com" inspect-elf64-obj "$CONST_PTR_CALLEE_OBJ"
 run_case "nano-jit-tiny-link-cross-object-const-ptr-data" "$BUILD_DIR/nano-jit.com" link-elf64-exe "$CONST_PTR_CROSS_LINK_EXE" nano_const_ptr_call "$CONST_PTR_CALL_OBJ" "$CONST_PTR_CALLEE_OBJ"
+run_case "nano-jit-inspect-cross-object-const-ptr-linked" "$BUILD_DIR/nano-jit.com" inspect-elf64-exe "$CONST_PTR_CROSS_LINK_EXE"
 run_case "nano-jit-run-cross-object-const-ptr-data" "$BUILD_DIR/nano-jit.com" run-expect-exit "$CONST_PTR_CROSS_LINK_EXE" 1
 run_case "nano-jit-emit-elf64-obj-duplicate-nano-ext" "$BUILD_DIR/nano-jit.com" emit-elf64-obj-ret "$DUP42_OBJ" nano_ext 7
 run_case "nano-jit-tiny-link-reject-duplicate-symbol" "$BUILD_DIR/nano-jit.com" link-expect-exit 2 "$BUILD_DIR/dup_should_fail" nano_call "$CALL42_OBJ" "$CALL42_CALLEE_OBJ" "$DUP42_OBJ"

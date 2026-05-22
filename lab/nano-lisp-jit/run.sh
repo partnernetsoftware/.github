@@ -259,6 +259,17 @@ expect_elf64_exec_load_split() {
   printf '%s\n' "$out" | rg -q 'elf64\.exec\.load\.1\.flags=rw'
 }
 
+expect_elf64_obj_data_pc32() {
+  local path="$1"
+  local out=""
+  out=$("$RUNNER" inspect-elf64-obj "$path")
+  printf '%s\n' "$out"
+  printf '%s\n' "$out" | rg -q 'elf64\.obj\.section\..*\.name=\.data'
+  printf '%s\n' "$out" | rg -q 'elf64\.obj\.rela\..*\.type=PC32'
+  printf '%s\n' "$out" | rg -q 'elf64\.obj\.rela\..*\.target=\.data'
+  printf '%s\n' "$out" | rg -q 'elf64\.obj\.data\.bytes=[1-9]'
+}
+
 log "# nano-lisp-jit .lisp to .lbin probe"
 
 run_case "build-native-nano-lisp-jit" cc -DNANO_LISP_JIT -Os -s "$NANO_C" -ldl -o "$RUNNER"
@@ -414,11 +425,15 @@ if [ "$(uname -m)" = "x86_64" ] || [ "$(uname -m)" = "amd64" ]; then
   run_case "inspect-aot-const-ptr-load-u8-rx-rw" expect_elf64_exec_load_split "$CONST_PTR_CODE"
   run_case "run-aot-const-ptr-load-u8-code1" "$RUNNER" run-expect-exit "$CONST_PTR_CODE" 1
   run_case "aot-const-ptr-load-u8-elf64-obj-code1" "$RUNNER" aot-elf64-obj-code "$CONST_PTR_BLOB" "$CONST_PTR_CODE_OBJ" nano_const_ptr_code
+  run_case "inspect-aot-const-ptr-obj-data-pc32" expect_elf64_obj_data_pc32 "$CONST_PTR_CODE_OBJ"
   run_case "tiny-link-aot-const-ptr-load-u8-obj-code1" "$RUNNER" link-elf64-exe "$CONST_PTR_LINK_EXE" nano_const_ptr_code "$CONST_PTR_CODE_OBJ"
+  run_case "inspect-linked-const-ptr-load-u8-rx-rw" expect_elf64_exec_load_split "$CONST_PTR_LINK_EXE"
   run_case "run-tiny-linked-const-ptr-load-u8-1" "$RUNNER" run-expect-exit "$CONST_PTR_LINK_EXE" 1
   run_case "emit-cross-object-const-ptr-call" "$RUNNER" emit-elf64-obj-call "$CONST_PTR_CALL_OBJ" nano_const_ptr_call nano_const_ptr_callee
   run_case "aot-cross-object-const-ptr-callee" "$RUNNER" aot-elf64-obj-code "$CONST_PTR_BLOB" "$CONST_PTR_CALLEE_OBJ" nano_const_ptr_callee
+  run_case "inspect-cross-object-const-ptr-callee-data-pc32" expect_elf64_obj_data_pc32 "$CONST_PTR_CALLEE_OBJ"
   run_case "tiny-link-cross-object-const-ptr-data" "$RUNNER" link-elf64-exe "$CONST_PTR_CROSS_LINK_EXE" nano_const_ptr_call "$CONST_PTR_CALL_OBJ" "$CONST_PTR_CALLEE_OBJ"
+  run_case "inspect-cross-object-const-ptr-rx-rw" expect_elf64_exec_load_split "$CONST_PTR_CROSS_LINK_EXE"
   run_case "run-cross-object-const-ptr-data" "$RUNNER" run-expect-exit "$CONST_PTR_CROSS_LINK_EXE" 1
   run_case "aot-ptr-values-elf64-code1" "$RUNNER" aot-elf64-code "$PTR_BLOB" "$PTR_CODE"
   run_case "run-aot-ptr-values-code1" "$RUNNER" run-expect-exit "$PTR_CODE" 1
