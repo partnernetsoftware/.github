@@ -239,6 +239,17 @@ nano-jit continuation after self-bootstrap v1
 
 **v2.5 整体**：**100%（scoped）** — 已签收；下一圈 v3（见下方 mindmap + `v2.5` 反思汇入）。
 
+### v3 完成度（工程向）
+
+| 切片 | 状态 | 说明 |
+|------|------|------|
+| slice 0 VM `OP_CALL_FUNC` | **0%** | 真 `(func …)` + `(call …)`；`func-call-smoke.lisp` + `run.sh` |
+| slice 1 错误码/arity | **0%** | VM/AOT 负向统一错误码 |
+| slice 2 aarch64 native slice | **0%** | `NANO_SLICE_COMPILER=native` 真 aarch64，非 x86 duplicate oracle |
+| slice 3 证据/bootstrap | **0%** | bootstrap 覆盖 `NANO_PACK_APE_MODE` + skip 统计 |
+
+**v3 整体**：**0%** — kickoff；洋葱序与命令见 [`v3/README.md`](v3/README.md)。
+
 ### 0. 证据基线
 
 - `run.sh`：native 编译、`.lisp -> .lbin`、JIT/FFI 执行、全量 libc resolver。
