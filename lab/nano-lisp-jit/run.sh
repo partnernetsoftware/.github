@@ -68,6 +68,9 @@ CONST_PTR_CODE="$BUILD_DIR/const_ptr_load_u8_code.elf"
 CONST_PTR_CODE_OBJ="$BUILD_DIR/const_ptr_load_u8_code.o"
 CONST_PTR_LINK_EXE="$BUILD_DIR/const_ptr_load_u8_linked"
 CONST_PTR_DIRECT_EXE="$BUILD_DIR/const_ptr_load_u8_direct"
+CONST_PTR_BAD_RELOC_OBJ="$BUILD_DIR/const_ptr_bad_reloc.o"
+CONST_PTR_BAD_SHNDX_OBJ="$BUILD_DIR/const_ptr_bad_shndx.o"
+CONST_PTR_BAD_LINK_EXE="$BUILD_DIR/const_ptr_bad_linked"
 MULTI_OBJ="$BUILD_DIR/multi_func.o"
 MULTI_LINK_EXE="$BUILD_DIR/multi_func_linked"
 MULTI_CTRL_OBJ="$BUILD_DIR/multi_func_control.o"
@@ -204,6 +207,47 @@ missing_os.write_bytes(re.sub(
 PY
 }
 
+make_bad_data_reloc_objs() {
+  python3 - "$CONST_PTR_CODE_OBJ" "$CONST_PTR_BAD_RELOC_OBJ" "$CONST_PTR_BAD_SHNDX_OBJ" <<'PY'
+from pathlib import Path
+import struct
+import sys
+
+good, bad_reloc, bad_shndx = map(Path, sys.argv[1:])
+src = good.read_bytes()
+
+def sections(data):
+    shoff = struct.unpack_from("<Q", data, 40)[0]
+    shentsize = struct.unpack_from("<H", data, 58)[0]
+    shnum = struct.unpack_from("<H", data, 60)[0]
+    shstrndx = struct.unpack_from("<H", data, 62)[0]
+    shstr = data[shoff + shstrndx * shentsize: shoff + (shstrndx + 1) * shentsize]
+    shstr_off = struct.unpack_from("<Q", shstr, 24)[0]
+    shstr_size = struct.unpack_from("<Q", shstr, 32)[0]
+    names = data[shstr_off: shstr_off + shstr_size]
+    out = {}
+    for i in range(shnum):
+        sh = data[shoff + i * shentsize: shoff + (i + 1) * shentsize]
+        name_off = struct.unpack_from("<I", sh, 0)[0]
+        name = names[name_off:names.index(b"\0", name_off)].decode()
+        out[name] = (i, shoff + i * shentsize, sh)
+    return out, shnum
+
+sec, shnum = sections(src)
+rela_off = struct.unpack_from("<Q", sec[".rela.text"][2], 24)[0]
+symtab_off = struct.unpack_from("<Q", sec[".symtab"][2], 24)[0]
+
+bad = bytearray(src)
+r_info = struct.unpack_from("<Q", bad, rela_off + 8)[0]
+struct.pack_into("<Q", bad, rela_off + 8, ((r_info >> 32) << 32) | 1)
+bad_reloc.write_bytes(bad)
+
+bad = bytearray(src)
+struct.pack_into("<H", bad, symtab_off + 24 + 6, shnum + 10)
+bad_shndx.write_bytes(bad)
+PY
+}
+
 expect_inspect_ape_failure() {
   local path="$1"
   local expected_msg="$2"
@@ -240,6 +284,27 @@ expect_run_ape_failure() {
   fi
   printf 'run-ape.status=%s\n' "$status"
   printf 'run-ape.stderr=%s\n' "$out"
+  if [ "$status" -ne "$expected_status" ]; then
+    return 1
+  fi
+  case "$out" in
+    *"$expected_msg"*) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+expect_link_failure() {
+  local out_path="$1"
+  local entry="$2"
+  local obj="$3"
+  local expected_status="$4"
+  local expected_msg="$5"
+  local out=""
+  local status=0
+  out=$("$RUNNER" link-elf64-exe "$out_path" "$entry" "$obj" 2>&1 >/dev/null) || status=$?
+  printf 'link-failure.obj=%s\n' "$obj"
+  printf 'link-failure.status=%s\n' "$status"
+  printf 'link-failure.stderr=%s\n' "$out"
   if [ "$status" -ne "$expected_status" ]; then
     return 1
   fi
@@ -426,6 +491,9 @@ if [ "$(uname -m)" = "x86_64" ] || [ "$(uname -m)" = "amd64" ]; then
   run_case "run-aot-const-ptr-load-u8-code1" "$RUNNER" run-expect-exit "$CONST_PTR_CODE" 1
   run_case "aot-const-ptr-load-u8-elf64-obj-code1" "$RUNNER" aot-elf64-obj-code "$CONST_PTR_BLOB" "$CONST_PTR_CODE_OBJ" nano_const_ptr_code
   run_case "inspect-aot-const-ptr-obj-data-pc32" expect_elf64_obj_data_pc32 "$CONST_PTR_CODE_OBJ"
+  run_case "prepare-bad-data-reloc-objs" make_bad_data_reloc_objs
+  run_case "link-reject-unsupported-data-reloc" expect_link_failure "$CONST_PTR_BAD_LINK_EXE" nano_const_ptr_code "$CONST_PTR_BAD_RELOC_OBJ" 4 "unsupported_reloc"
+  run_case "link-reject-bad-data-section-index" expect_link_failure "$CONST_PTR_BAD_LINK_EXE" nano_const_ptr_code "$CONST_PTR_BAD_SHNDX_OBJ" 4 "unsupported_local_reloc"
   run_case "tiny-link-aot-const-ptr-load-u8-obj-code1" "$RUNNER" link-elf64-exe "$CONST_PTR_LINK_EXE" nano_const_ptr_code "$CONST_PTR_CODE_OBJ"
   run_case "inspect-linked-const-ptr-load-u8-rx-rw" expect_elf64_exec_load_split "$CONST_PTR_LINK_EXE"
   run_case "run-tiny-linked-const-ptr-load-u8-1" "$RUNNER" run-expect-exit "$CONST_PTR_LINK_EXE" 1

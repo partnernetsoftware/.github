@@ -118,6 +118,9 @@ CALL42_LINK_EXE="$BUILD_DIR/nano_call42_linked"
 CONST_PTR_CALL_OBJ="$BUILD_DIR/const_ptr_call.o"
 CONST_PTR_CALLEE_OBJ="$BUILD_DIR/const_ptr_callee.o"
 CONST_PTR_CROSS_LINK_EXE="$BUILD_DIR/const_ptr_cross_obj_linked"
+CONST_PTR_BAD_RELOC_OBJ="$BUILD_DIR/const_ptr_bad_reloc.o"
+CONST_PTR_BAD_SHNDX_OBJ="$BUILD_DIR/const_ptr_bad_shndx.o"
+CONST_PTR_BAD_LINK_EXE="$BUILD_DIR/const_ptr_bad_linked"
 DUP42_OBJ="$BUILD_DIR/nano_dup42.o"
 SMOKE_SRC="$LAB_DIR/samples/libc-smoke.lisp"
 SMOKE_BLOB="$BUILD_DIR/libc-smoke.lbin"
@@ -127,6 +130,47 @@ BOOTSTRAP_PLAN="$BUILD_DIR/bootstrap-smoke-plan.lisp"
 RESOLVE_SRC="$BUILD_DIR/libc-resolve.lisp"
 RESOLVE_BLOB="$BUILD_DIR/libc-resolve.lbin"
 REPORT="$BUILD_DIR/bootstrap-report.txt"
+
+make_bad_data_reloc_objs() {
+  python3 - "$CONST_PTR_CALLEE_OBJ" "$CONST_PTR_BAD_RELOC_OBJ" "$CONST_PTR_BAD_SHNDX_OBJ" <<'PY'
+from pathlib import Path
+import struct
+import sys
+
+good, bad_reloc, bad_shndx = map(Path, sys.argv[1:])
+src = good.read_bytes()
+
+def sections(data):
+    shoff = struct.unpack_from("<Q", data, 40)[0]
+    shentsize = struct.unpack_from("<H", data, 58)[0]
+    shnum = struct.unpack_from("<H", data, 60)[0]
+    shstrndx = struct.unpack_from("<H", data, 62)[0]
+    shstr = data[shoff + shstrndx * shentsize: shoff + (shstrndx + 1) * shentsize]
+    shstr_off = struct.unpack_from("<Q", shstr, 24)[0]
+    shstr_size = struct.unpack_from("<Q", shstr, 32)[0]
+    names = data[shstr_off: shstr_off + shstr_size]
+    out = {}
+    for i in range(shnum):
+        sh = data[shoff + i * shentsize: shoff + (i + 1) * shentsize]
+        name_off = struct.unpack_from("<I", sh, 0)[0]
+        name = names[name_off:names.index(b"\0", name_off)].decode()
+        out[name] = (i, shoff + i * shentsize, sh)
+    return out, shnum
+
+sec, shnum = sections(src)
+rela_off = struct.unpack_from("<Q", sec[".rela.text"][2], 24)[0]
+symtab_off = struct.unpack_from("<Q", sec[".symtab"][2], 24)[0]
+
+bad = bytearray(src)
+r_info = struct.unpack_from("<Q", bad, rela_off + 8)[0]
+struct.pack_into("<Q", bad, rela_off + 8, ((r_info >> 32) << 32) | 1)
+bad_reloc.write_bytes(bad)
+
+bad = bytearray(src)
+struct.pack_into("<H", bad, symtab_off + 24 + 6, shnum + 10)
+bad_shndx.write_bytes(bad)
+PY
+}
 
 mkdir -p "$BUILD_DIR"
 : > "$REPORT"
@@ -449,6 +493,9 @@ run_case "nano-jit-emit-cross-object-const-ptr-call" "$BUILD_DIR/nano-jit.com" e
 run_case "nano-jit-compile-cross-object-const-ptr-callee" "$BUILD_DIR/nano-jit.com" compile "$CONST_PTR_SRC" "$CONST_PTR_BLOB"
 run_case "nano-jit-aot-cross-object-const-ptr-callee" "$BUILD_DIR/nano-jit.com" aot-elf64-obj-code "$CONST_PTR_BLOB" "$CONST_PTR_CALLEE_OBJ" nano_const_ptr_callee
 run_case "nano-jit-inspect-cross-object-const-ptr-callee" "$BUILD_DIR/nano-jit.com" inspect-elf64-obj "$CONST_PTR_CALLEE_OBJ"
+run_case "nano-jit-prepare-bad-data-reloc-objs" make_bad_data_reloc_objs
+run_case "nano-jit-link-reject-unsupported-data-reloc" "$BUILD_DIR/nano-jit.com" link-expect-exit 4 "$CONST_PTR_BAD_LINK_EXE" nano_const_ptr_callee "$CONST_PTR_BAD_RELOC_OBJ"
+run_case "nano-jit-link-reject-bad-data-section-index" "$BUILD_DIR/nano-jit.com" link-expect-exit 4 "$CONST_PTR_BAD_LINK_EXE" nano_const_ptr_callee "$CONST_PTR_BAD_SHNDX_OBJ"
 run_case "nano-jit-tiny-link-cross-object-const-ptr-data" "$BUILD_DIR/nano-jit.com" link-elf64-exe "$CONST_PTR_CROSS_LINK_EXE" nano_const_ptr_call "$CONST_PTR_CALL_OBJ" "$CONST_PTR_CALLEE_OBJ"
 run_case "nano-jit-inspect-cross-object-const-ptr-linked" "$BUILD_DIR/nano-jit.com" inspect-elf64-exe "$CONST_PTR_CROSS_LINK_EXE"
 run_case "nano-jit-run-cross-object-const-ptr-data" "$BUILD_DIR/nano-jit.com" run-expect-exit "$CONST_PTR_CROSS_LINK_EXE" 1

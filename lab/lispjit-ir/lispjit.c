@@ -4533,6 +4533,10 @@ static int link_apply_relocations(Buf *code, const ElfObj *o, const LinkSym *sym
       return 0;
     }
     if (!link_symbol_va(o, sym_idx, syms, sym_count, layout, &target, &name)) {
+      if (sym_idx < o->sym_count && elf_sym_binding(o, sym_idx) == 0) {
+        fprintf(stderr, "link-elf64-exe=unsupported_local_reloc\n");
+        return 0;
+      }
       fprintf(stderr, "link-elf64-exe=symbol_missing symbol=%s\n", name ? name : "?");
       return 0;
     }
