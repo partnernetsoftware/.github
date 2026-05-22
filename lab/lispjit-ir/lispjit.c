@@ -9,6 +9,7 @@
 #include <dlfcn.h>
 #include <sys/stat.h>
 #include <sys/mman.h>
+#include <sys/utsname.h>
 #include <sys/wait.h>
 #include <unistd.h>
 #endif
@@ -188,6 +189,9 @@ extern void *cosmo_dlsym(void *handle, const char *symbol);
 #define BOOTSTRAP_STEP_COMPILE_EXPECT_EXIT 26u
 #define BOOTSTRAP_STEP_PACK_APE 27u
 #define BOOTSTRAP_STEP_INSPECT_APE 28u
+#define BOOTSTRAP_STEP_RUN_APE 29u
+#define BOOTSTRAP_STEP_INSPECT_EXPECT_EXIT 30u
+#define BOOTSTRAP_STEP_RUN_APE_EXPECT_EXIT 31u
 
 typedef uint64_t (*jit_entry_fn)(void);
 typedef int (*ffi_i32_ptr_fn)(const char *);
@@ -1185,11 +1189,13 @@ static int parse_bootstrap_plan(const char *src, BootstrapPlan *plan) {
         return 0;
       }
     } else if (strcmp(head, "emit-elf64-exit") == 0 ||
-               strcmp(head, "run-expect-exit") == 0) {
+               strcmp(head, "run-expect-exit") == 0 ||
+               strcmp(head, "run-ape-expect-exit") == 0) {
       char *arg0 = parse_string(&p);
       char *arg1 = parse_atom(&p);
-      uint32_t kind = strcmp(head, "emit-elf64-exit") == 0 ?
-                      BOOTSTRAP_STEP_EMIT_ELF64_EXIT : BOOTSTRAP_STEP_RUN_EXPECT_EXIT;
+      uint32_t kind = strcmp(head, "emit-elf64-exit") == 0 ? BOOTSTRAP_STEP_EMIT_ELF64_EXIT :
+                      strcmp(head, "run-ape-expect-exit") == 0 ?
+                      BOOTSTRAP_STEP_RUN_APE_EXPECT_EXIT : BOOTSTRAP_STEP_RUN_EXPECT_EXIT;
       int ok = arg0 && arg1 && eat(&p, ')') &&
                bootstrap_add_step(plan, kind, arg0, arg1, NULL, NULL);
       if (!ok) {
@@ -1335,6 +1341,20 @@ static int parse_bootstrap_plan(const char *src, BootstrapPlan *plan) {
         free(head);
         return 0;
       }
+    } else if (strcmp(head, "inspect-expect-exit") == 0) {
+      char *arg0 = parse_atom(&p);
+      char *arg1 = parse_atom(&p);
+      char *arg2 = parse_string(&p);
+      int ok = arg0 && arg1 && arg2 && eat(&p, ')') &&
+               bootstrap_add_step(plan, BOOTSTRAP_STEP_INSPECT_EXPECT_EXIT,
+                                  arg0, arg1, arg2, NULL);
+      if (!ok) {
+        free(arg0);
+        free(arg1);
+        free(arg2);
+        free(head);
+        return 0;
+      }
     } else if (strcmp(head, "pack-ape") == 0) {
       char *arg0 = parse_string(&p);
       char *arg1 = parse_string(&p);
@@ -1360,6 +1380,15 @@ static int parse_bootstrap_plan(const char *src, BootstrapPlan *plan) {
         free(arg1);
         free(arg2);
         free(arg3);
+        free(head);
+        return 0;
+      }
+    } else if (strcmp(head, "run-ape") == 0) {
+      char *arg0 = parse_string(&p);
+      int ok = arg0 && eat(&p, ')') &&
+               bootstrap_add_step(plan, BOOTSTRAP_STEP_RUN_APE, arg0, NULL, NULL, NULL);
+      if (!ok) {
+        free(arg0);
         free(head);
         return 0;
       }
@@ -2846,6 +2875,295 @@ static int manifest_find_size(const unsigned char *data, size_t n,
   return 0;
 }
 
+static int manifest_find_string(const unsigned char *data, size_t n, const char *key,
+                                char *out, size_t out_cap) {
+  int in_manifest = 0;
+  size_t pos = 0;
+  size_t key_n = strlen(key);
+  while (pos < n) {
+    size_t line_start = pos;
+    while (pos < n && data[pos] != '\n') pos++;
+    size_t line_n = pos - line_start;
+    if (pos < n && data[pos] == '\n') pos++;
+    if (line_n == sizeof(NANO_MANIFEST_BEGIN) - 1 &&
+        memcmp(data + line_start, NANO_MANIFEST_BEGIN, sizeof(NANO_MANIFEST_BEGIN) - 1) == 0) {
+      in_manifest = 1;
+      continue;
+    }
+    if (line_n == sizeof(NANO_MANIFEST_END) - 1 &&
+        memcmp(data + line_start, NANO_MANIFEST_END, sizeof(NANO_MANIFEST_END) - 1) == 0) {
+      return 0;
+    }
+    if (in_manifest && line_n > 2 + key_n && data[line_start] == '#' &&
+        data[line_start + 1] == ' ' &&
+        memcmp(data + line_start + 2, key, key_n) == 0 &&
+        data[line_start + 2 + key_n] == '=') {
+      size_t value_n = line_n - 3 - key_n;
+      if (value_n + 1 > out_cap) return 0;
+      memcpy(out, data + line_start + 3 + key_n, value_n);
+      out[value_n] = '\0';
+      return 1;
+    }
+  }
+  return 0;
+}
+
+static int manifest_find_hash(const unsigned char *data, size_t n, const char *key,
+                              uint64_t *out) {
+  char value_buf[32];
+  if (!manifest_find_string(data, n, key, value_buf, sizeof(value_buf))) return 0;
+  char *end = NULL;
+  unsigned long long v = strtoull(value_buf, &end, 16);
+  if (!value_buf[0] || !end || *end) return 0;
+  *out = (uint64_t)v;
+  return 1;
+}
+
+typedef struct {
+  int found;
+  char container[32];
+  size_t x86_off;
+  size_t x86_size;
+  uint64_t x86_hash;
+  int has_x86_hash;
+  size_t arm_off;
+  size_t arm_size;
+  uint64_t arm_hash;
+  int has_arm_hash;
+  size_t payload_start;
+} NanoApeManifest;
+
+static int parse_ape_manifest(const unsigned char *data, size_t n, NanoApeManifest *m,
+                              const char *error_prefix) {
+  memset(m, 0, sizeof(*m));
+  if (!find_payload_start(data, n, NANO_APE_PAYLOAD_MARKER, &m->payload_start)) {
+    fprintf(stderr, "%s=payload_marker_missing\n", error_prefix);
+    return 2;
+  }
+  int in_manifest = 0;
+  size_t pos = 0;
+  while (pos < n) {
+    size_t line_start = pos;
+    while (pos < n && data[pos] != '\n') pos++;
+    size_t line_n = pos - line_start;
+    if (pos < n && data[pos] == '\n') pos++;
+    if (line_n == sizeof(NANO_MANIFEST_BEGIN) - 1 &&
+        memcmp(data + line_start, NANO_MANIFEST_BEGIN, sizeof(NANO_MANIFEST_BEGIN) - 1) == 0) {
+      in_manifest = 1;
+      m->found = 1;
+      continue;
+    }
+    if (line_n == sizeof(NANO_MANIFEST_END) - 1 &&
+        memcmp(data + line_start, NANO_MANIFEST_END, sizeof(NANO_MANIFEST_END) - 1) == 0) {
+      break;
+    }
+    if (in_manifest && line_n >= 2 && data[line_start] == '#' &&
+        data[line_start + 1] == ' ') {
+      fwrite(data + line_start + 2, 1, line_n - 2, stdout);
+      fputc('\n', stdout);
+    }
+  }
+  if (!m->found) {
+    fprintf(stderr, "%s=manifest_missing\n", error_prefix);
+    return 2;
+  }
+  if (!manifest_find_string(data, n, "nano.container", m->container, sizeof(m->container))) {
+    fprintf(stderr, "%s=container_key_missing\n", error_prefix);
+    return 3;
+  }
+  if (strcmp(m->container, "ape-v1") != 0) {
+    fprintf(stderr, "%s=bad_container value=%s\n", error_prefix, m->container);
+    return 3;
+  }
+  if (!manifest_find_size(data, n, "nano.slice.x86_64.offset", &m->x86_off) ||
+      !manifest_find_size(data, n, "nano.slice.x86_64.size", &m->x86_size) ||
+      !manifest_find_size(data, n, "nano.slice.aarch64.offset", &m->arm_off) ||
+      !manifest_find_size(data, n, "nano.slice.aarch64.size", &m->arm_size)) {
+    fprintf(stderr, "%s=slice_key_missing\n", error_prefix);
+    return 4;
+  }
+  m->has_x86_hash = manifest_find_hash(data, n, "nano.slice.x86_64.hash", &m->x86_hash);
+  m->has_arm_hash = manifest_find_hash(data, n, "nano.slice.aarch64.hash", &m->arm_hash);
+  return 0;
+}
+
+static int is_elf(const unsigned char *data, size_t n) {
+  return n >= 4 && data[0] == 0x7f && data[1] == 'E' && data[2] == 'L' && data[3] == 'F';
+}
+
+static int validate_ape_slice_bounds(const unsigned char *data, size_t n,
+                                       const NanoApeManifest *m, size_t rel_off,
+                                       size_t slice_size, const char *arch,
+                                       const char *error_prefix) {
+  size_t abs_off = m->payload_start + rel_off;
+  if (rel_off > n - m->payload_start || slice_size > n - abs_off) {
+    fprintf(stderr, "%s=bad_offset arch=%s off=%zu size=%zu payload=%zu file=%zu\n",
+            error_prefix, arch, rel_off, slice_size, m->payload_start, n);
+    return 4;
+  }
+  if (!is_elf(data + abs_off, slice_size)) {
+    fprintf(stderr, "%s=bad_slice_elf arch=%s\n", error_prefix, arch);
+    return 4;
+  }
+  return 0;
+}
+
+static int validate_ape_manifest_hashes(const unsigned char *data, size_t n,
+                                        const NanoApeManifest *m,
+                                        const char *error_prefix) {
+  if (m->has_x86_hash) {
+    uint64_t actual = fnv1a64(data + m->payload_start + m->x86_off, m->x86_size);
+    if (actual != m->x86_hash) {
+      fprintf(stderr, "%s=bad_hash arch=x86_64 expected=%016llx actual=%016llx\n",
+              error_prefix, (unsigned long long)m->x86_hash, (unsigned long long)actual);
+      return 5;
+    }
+  }
+  if (m->has_arm_hash) {
+    uint64_t actual = fnv1a64(data + m->payload_start + m->arm_off, m->arm_size);
+    if (actual != m->arm_hash) {
+      fprintf(stderr, "%s=bad_hash arch=aarch64 expected=%016llx actual=%016llx\n",
+              error_prefix, (unsigned long long)m->arm_hash, (unsigned long long)actual);
+      return 5;
+    }
+  }
+  return 0;
+}
+
+static int validate_ape_manifest(const unsigned char *data, size_t n, NanoApeManifest *m,
+                                 const char *error_prefix) {
+  int rc = parse_ape_manifest(data, n, m, error_prefix);
+  if (rc != 0) return rc;
+  rc = validate_ape_slice_bounds(data, n, m, m->x86_off, m->x86_size, "x86_64", error_prefix);
+  if (rc != 0) return rc;
+  rc = validate_ape_slice_bounds(data, n, m, m->arm_off, m->arm_size, "aarch64", error_prefix);
+  if (rc != 0) return rc;
+  return validate_ape_manifest_hashes(data, n, m, error_prefix);
+}
+
+#if !defined(_WIN32)
+static int host_ape_slice(const NanoApeManifest *m, size_t *rel_off, size_t *slice_size,
+                          const char **arch_name) {
+  struct utsname ut;
+  if (uname(&ut) != 0) return 126;
+  if (strcmp(ut.machine, "x86_64") == 0 || strcmp(ut.machine, "amd64") == 0) {
+    *rel_off = m->x86_off;
+    *slice_size = m->x86_size;
+    *arch_name = "x86_64";
+    return 0;
+  }
+  if (strcmp(ut.machine, "aarch64") == 0 || strcmp(ut.machine, "arm64") == 0) {
+    *rel_off = m->arm_off;
+    *slice_size = m->arm_size;
+    *arch_name = "aarch64";
+    return 0;
+  }
+  fprintf(stderr, "run-ape=unsupported_arch machine=%s\n", ut.machine);
+  return 126;
+}
+
+static int extract_and_run_ape_slice(const unsigned char *data, size_t n,
+                                       const NanoApeManifest *m, size_t rel_off,
+                                       size_t slice_size, const char *arch_name) {
+  size_t abs_off = m->payload_start + rel_off;
+  char tmpl[] = "/tmp/nano-ape-XXXXXX";
+  int fd = mkstemp(tmpl);
+  if (fd < 0) {
+    fprintf(stderr, "run-ape=mkstemp_fail arch=%s\n", arch_name);
+    return 3;
+  }
+  ssize_t wrote = write(fd, data + abs_off, slice_size);
+  close(fd);
+  if ((size_t)wrote != slice_size) {
+    remove(tmpl);
+    fprintf(stderr, "run-ape=write_fail arch=%s\n", arch_name);
+    return 3;
+  }
+  if (!make_executable(tmpl)) {
+    remove(tmpl);
+    fprintf(stderr, "run-ape=chmod_fail arch=%s\n", arch_name);
+    return 3;
+  }
+  pid_t pid = fork();
+  if (pid < 0) {
+    remove(tmpl);
+    fprintf(stderr, "run-ape=fork_fail arch=%s\n", arch_name);
+    return 3;
+  }
+  if (pid == 0) {
+    char *const argv[] = {tmpl, NULL};
+    execv(tmpl, argv);
+    _exit(127);
+  }
+  int status = 0;
+  if (waitpid(pid, &status, 0) < 0) {
+    remove(tmpl);
+    fprintf(stderr, "run-ape=wait_fail arch=%s\n", arch_name);
+    return 3;
+  }
+  remove(tmpl);
+  if (WIFEXITED(status)) return WEXITSTATUS(status);
+  if (WIFSIGNALED(status)) return 128 + WTERMSIG(status);
+  return 3;
+}
+#endif
+
+static int cmd_run_ape(const char *container_path) {
+  size_t n = 0;
+  unsigned char *data = read_file(container_path, &n);
+  NanoApeManifest m = {0};
+  if (!data) {
+    fprintf(stderr, "read=fail path=%s\n", container_path);
+    return 1;
+  }
+  int rc = validate_ape_manifest(data, n, &m, "run-ape");
+  if (rc != 0) {
+    free(data);
+    return rc;
+  }
+#if defined(_WIN32)
+  (void)m;
+  fprintf(stderr, "run-ape=unsupported_platform\n");
+  free(data);
+  return 2;
+#else
+  size_t rel_off = 0;
+  size_t slice_size = 0;
+  const char *arch_name = NULL;
+  rc = host_ape_slice(&m, &rel_off, &slice_size, &arch_name);
+  if (rc != 0) {
+    free(data);
+    return rc;
+  }
+  printf("run-ape.path=%s\n", container_path);
+  printf("run-ape.arch=%s\n", arch_name);
+  printf("run-ape.offset=%zu\n", rel_off);
+  printf("run-ape.size=%zu\n", slice_size);
+  rc = extract_and_run_ape_slice(data, n, &m, rel_off, slice_size, arch_name);
+  printf("run-ape.exit=%d\n", rc);
+  free(data);
+  return rc;
+#endif
+}
+
+static int run_ape_expect_exit(const char *path, const char *expected_s) {
+  size_t expected = 0;
+  if (!parse_size_arg(expected_s, &expected) || expected > 255) {
+    fprintf(stderr, "run-ape-expect-exit=bad_expected\n");
+    return 1;
+  }
+  int actual = cmd_run_ape(path);
+  printf("run-ape-expect-exit.path=%s\n", path);
+  printf("run-ape-expect-exit.expected=%zu\n", expected);
+  printf("run-ape-expect-exit.actual=%d\n", actual);
+  if (actual == (int)expected) {
+    printf("run-ape-expect-exit.ok=1\n");
+    return 0;
+  }
+  fprintf(stderr, "run-ape-expect-exit=mismatch expected=%zu actual=%d\n", expected, actual);
+  return 5;
+}
+
 static int cmd_run_app(const char *container_path) {
   size_t n = 0;
   size_t blob_off = 0;
@@ -3323,6 +3641,37 @@ static int check_compile_expect_exit(const char *expected_s, const char *mode,
   return 0;
 }
 
+static int run_inspect_subcommand(const char *mode, const char *path) {
+  if (strcmp(mode, "inspect-ape") == 0) return cmd_inspect_ape(path);
+  if (strcmp(mode, "inspect-app") == 0) return cmd_inspect_app(path);
+  return 1;
+}
+
+static int check_inspect_expect_exit(const char *expected_s, const char *mode,
+                                     const char *path, const char *label) {
+  size_t expected = 0;
+  if (!parse_size_arg(expected_s, &expected) || expected > 255) {
+    fprintf(stderr, "%s=bad_expected\n", label);
+    return 2;
+  }
+  int inspect_rc = run_inspect_subcommand(mode, path);
+  if ((size_t)inspect_rc != expected) {
+    fprintf(stderr, "%s=unexpected expected=%zu actual=%d\n", label, expected, inspect_rc);
+    return 2;
+  }
+  printf("%s.mode=%s\n", label, mode);
+  printf("%s.ok=%zu\n", label, expected);
+  return 0;
+}
+
+static int cmd_inspect_expect_exit(int argc, char **argv) {
+  if (argc != 5) {
+    fprintf(stderr, "inspect-expect-exit=bad_args\n");
+    return 1;
+  }
+  return check_inspect_expect_exit(argv[2], argv[3], argv[4], "inspect-expect-exit");
+}
+
 static int cmd_run_bootstrap_plan(const char *plan_path) {
   size_t n = 0;
   unsigned char *src = read_file(plan_path, &n);
@@ -3403,18 +3752,28 @@ static int cmd_run_bootstrap_plan(const char *plan_path) {
       rc = check_compile_expect_exit(step->arg0, step->arg1, step->arg2, step->arg3,
                                      step->extra_args, step->extra_arg_count,
                                      "bootstrap-compile-expect-exit");
+    } else if (step->kind == BOOTSTRAP_STEP_INSPECT_EXPECT_EXIT) {
+      printf("bootstrap-step.%zu=inspect-expect-exit\n", i);
+      rc = check_inspect_expect_exit(step->arg0, step->arg1, step->arg2,
+                                     "bootstrap-inspect-expect-exit");
     } else if (step->kind == BOOTSTRAP_STEP_RESOLVE_QUIET) {
       printf("bootstrap-step.%zu=resolve-quiet\n", i);
       rc = cmd_resolve(step->arg0, 1);
     } else if (step->kind == BOOTSTRAP_STEP_RUN_EXPECT_EXIT) {
       printf("bootstrap-step.%zu=run-expect-exit\n", i);
       rc = run_executable_expect_exit(step->arg0, step->arg1);
+    } else if (step->kind == BOOTSTRAP_STEP_RUN_APE_EXPECT_EXIT) {
+      printf("bootstrap-step.%zu=run-ape-expect-exit\n", i);
+      rc = run_ape_expect_exit(step->arg0, step->arg1);
     } else if (step->kind == BOOTSTRAP_STEP_PACK_APE) {
       printf("bootstrap-step.%zu=pack-ape\n", i);
       rc = cmd_pack_ape(step->arg0, step->arg1, step->arg2);
     } else if (step->kind == BOOTSTRAP_STEP_INSPECT_APE) {
       printf("bootstrap-step.%zu=inspect-ape\n", i);
       rc = cmd_inspect_ape(step->arg0);
+    } else if (step->kind == BOOTSTRAP_STEP_RUN_APE) {
+      printf("bootstrap-step.%zu=run-ape\n", i);
+      rc = cmd_run_ape(step->arg0);
     } else if (step->kind == BOOTSTRAP_STEP_PACK_APP) {
       printf("bootstrap-step.%zu=pack-app\n", i);
       rc = cmd_pack_app(step->arg0, step->arg1, step->arg2, step->arg3);
@@ -3436,7 +3795,7 @@ static int cmd_run_bootstrap_plan(const char *plan_path) {
   bootstrap_plan_free(&plan);
   return rc;
 }
-static int cmd_inspect_manifest(const char *container_path, const char *error_prefix) {
+static int cmd_inspect_manifest_dump(const char *container_path, const char *error_prefix) {
   size_t n = 0;
   unsigned char *data = read_file(container_path, &n);
   if (!data) {
@@ -3474,11 +3833,25 @@ static int cmd_inspect_manifest(const char *container_path, const char *error_pr
 }
 
 static int cmd_inspect_app(const char *container_path) {
-  return cmd_inspect_manifest(container_path, "inspect-app");
+  return cmd_inspect_manifest_dump(container_path, "inspect-app");
 }
 
 static int cmd_inspect_ape(const char *container_path) {
-  return cmd_inspect_manifest(container_path, "inspect-ape");
+  size_t n = 0;
+  unsigned char *data = read_file(container_path, &n);
+  NanoApeManifest m = {0};
+  if (!data) {
+    fprintf(stderr, "read=fail path=%s\n", container_path);
+    return 1;
+  }
+  int rc = validate_ape_manifest(data, n, &m, "inspect-ape");
+  free(data);
+  if (rc == 0) {
+    printf("inspect-ape.path=%s\n", container_path);
+    printf("inspect-ape.container=%s\n", m.container);
+    printf("inspect-ape.ok=1\n");
+  }
+  return rc;
 }
 
 static size_t align_up_size(size_t n, size_t a) {
@@ -3771,8 +4144,6 @@ typedef struct {
   size_t obj_idx;
   uint64_t value;
 } LinkSym;
-
-static int is_elf(const unsigned char *data, size_t n);
 
 static const unsigned char *elf_section(const ElfObj *o, uint16_t idx) {
   if (!idx || idx >= o->shnum) return NULL;
@@ -5605,10 +5976,6 @@ done:
   return rc;
 }
 
-static int is_elf(const unsigned char *data, size_t n) {
-  return n >= 4 && data[0] == 0x7f && data[1] == 'E' && data[2] == 'L' && data[3] == 'F';
-}
-
 static int cmd_pack_ape(const char *out_path, const char *x86_path, const char *arm_path) {
   size_t x86_n = 0;
   size_t arm_n = 0;
@@ -5620,6 +5987,9 @@ static int cmd_pack_ape(const char *out_path, const char *x86_path, const char *
     free(arm);
     return 1;
   }
+
+  uint64_t x86_hash = fnv1a64(x86, x86_n);
+  uint64_t arm_hash = fnv1a64(arm, arm_n);
 
   const char *stub_fmt =
       "#!/bin/sh\n"
@@ -5634,8 +6004,10 @@ static int cmd_pack_ape(const char *out_path, const char *x86_path, const char *
       "# nano.container=ape-v1\n"
       "# nano.slice.x86_64.offset=0\n"
       "# nano.slice.x86_64.size=%zu\n"
+      "# nano.slice.x86_64.hash=%016llx\n"
       "# nano.slice.aarch64.offset=%zu\n"
       "# nano.slice.aarch64.size=%zu\n"
+      "# nano.slice.aarch64.hash=%016llx\n"
       "# nano.manifest.end\n"
       "payload_line=$(awk '/^__NANO_APE_PAYLOAD_BELOW__$/ { print NR + 1; exit }' \"$0\")\n"
       "if [ -z \"${payload_line:-}\" ]; then echo \"nano pack-ape: payload marker missing\" >&2; exit 126; fi\n"
@@ -5647,7 +6019,9 @@ static int cmd_pack_ape(const char *out_path, const char *x86_path, const char *
       "exit 127\n"
       "__NANO_APE_PAYLOAD_BELOW__\n";
 
-  int stub_n = snprintf(NULL, 0, stub_fmt, x86_n, x86_n, arm_n, x86_n, x86_n, arm_n);
+  int stub_n = snprintf(NULL, 0, stub_fmt, x86_n, x86_n, arm_n, x86_n,
+                        (unsigned long long)x86_hash, x86_n, arm_n,
+                        (unsigned long long)arm_hash);
   if (stub_n < 0) {
     free(x86);
     free(arm);
@@ -5659,7 +6033,8 @@ static int cmd_pack_ape(const char *out_path, const char *x86_path, const char *
     free(arm);
     return 2;
   }
-  snprintf(stub, (size_t)stub_n + 1, stub_fmt, x86_n, x86_n, arm_n, x86_n, x86_n, arm_n);
+  snprintf(stub, (size_t)stub_n + 1, stub_fmt, x86_n, x86_n, arm_n, x86_n,
+           (unsigned long long)x86_hash, x86_n, arm_n, (unsigned long long)arm_hash);
 
   Buf out = {0};
   buf_put(&out, stub, (size_t)stub_n);
@@ -5778,7 +6153,10 @@ static void usage(const char *argv0) {
   fprintf(stderr, "  %s run program.%s\n", argv0, BLOB_EXT);
   fprintf(stderr, "  %s run-embedded container.com blob_offset blob_size\n", argv0);
   fprintf(stderr, "  %s inspect-ape container.com\n", argv0);
+  fprintf(stderr, "  %s inspect-expect-exit expected inspect-ape|inspect-app container.com\n", argv0);
   fprintf(stderr, "  %s inspect-app container.com\n", argv0);
+  fprintf(stderr, "  %s run-ape container.com\n", argv0);
+  fprintf(stderr, "  %s run-ape-expect-exit container.com expected_exit\n", argv0);
   fprintf(stderr, "  %s run-app container.com\n", argv0);
   fprintf(stderr, "  %s emit-elf64-exit output.elf exit_code\n", argv0);
   fprintf(stderr, "  %s emit-elf64-obj-ret output.o symbol value\n", argv0);
@@ -5825,6 +6203,15 @@ int main(int argc, char **argv) {
   }
   if (argc >= 2 && strcmp(argv[1], "run-app") == 0 && argc == 3) {
     return cmd_run_app(argv[2]);
+  }
+  if (argc >= 2 && strcmp(argv[1], "run-ape") == 0 && argc == 3) {
+    return cmd_run_ape(argv[2]);
+  }
+  if (argc >= 2 && strcmp(argv[1], "run-ape-expect-exit") == 0 && argc == 4) {
+    return run_ape_expect_exit(argv[2], argv[3]);
+  }
+  if (argc >= 2 && strcmp(argv[1], "inspect-expect-exit") == 0 && argc == 5) {
+    return cmd_inspect_expect_exit(argc, argv);
   }
   if (argc >= 2 && strcmp(argv[1], "emit-elf64-exit") == 0 && argc == 4) {
     return cmd_emit_elf64_exit(argv[2], argv[3]);

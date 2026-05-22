@@ -33,6 +33,8 @@ TYPE_BAD_EXPECT_PTR_SRC="$LAB_DIR/samples/type-error-expect-ptr-bad.lisp"
 BOOTSTRAP_SRC="$LAB_DIR/samples/bootstrap-smoke.lisp"
 BOOTSTRAP_AOT_SRC="$LAB_DIR/samples/bootstrap-aot-smoke.lisp"
 BOOTSTRAP_APE_SRC="$LAB_DIR/samples/bootstrap-ape-smoke.lisp"
+BOOTSTRAP_APE_NEG_SRC="$LAB_DIR/samples/bootstrap-ape-negative.lisp"
+APE_COM="$BUILD_DIR/bootstrap-ape.com"
 SMOKE_SRC="$LAB_DIR/samples/libc-smoke.lisp"
 BLOB="$BUILD_DIR/strlen.lbin"
 BLOB_REPEAT="$BUILD_DIR/strlen-repeat.lbin"
@@ -263,6 +265,14 @@ run_case "run-bootstrap-plan" "$RUNNER" run-bootstrap-plan "$BOOTSTRAP_SRC"
 run_case "run-bootstrap-aot-plan" "$RUNNER" run-bootstrap-plan "$BOOTSTRAP_AOT_SRC"
 
 run_case "run-bootstrap-ape-plan" "$RUNNER" run-bootstrap-plan "$BOOTSTRAP_APE_SRC"
+
+if [ -f "$APE_COM" ]; then
+  run_case "make-ape-negative-fixtures" python3 "$LAB_DIR/make_ape_fixtures.py" "$APE_COM" "$BUILD_DIR"
+  run_case "run-bootstrap-ape-negative-plan" "$RUNNER" run-bootstrap-plan "$BOOTSTRAP_APE_NEG_SRC"
+  if [ "$(uname -m)" = "x86_64" ] || [ "$(uname -m)" = "amd64" ]; then
+    run_case "run-ape-native-exit42" "$RUNNER" run-ape-expect-exit "$APE_COM" 42
+  fi
+fi
 
 run_case "compile-control-flow-lbin" "$RUNNER" compile "$CTRL_SRC" "$CTRL_BLOB"
 log "control.blob.bytes=$(bytes_of "$CTRL_BLOB")"

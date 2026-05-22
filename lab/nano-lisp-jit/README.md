@@ -326,7 +326,10 @@ bootstrap DSL 也能描述一条最小 AOT/codegen/tiny-link 构建图，不需�
 - `run-bootstrap-plan`：读取最小 bootstrap DSL，顺序执行 `compile` / `gen-libc-resolve` / `dump` / `file-size` / `file-hash` / `hash` / `compare` / `resolve-quiet` / `pack-ape` / `inspect-ape` / `pack-app` / `inspect-app` / `run-app` / `run` / `emit-elf64-exit` / `emit-elf64-obj-ret` / `emit-elf64-obj-call` / `aot-elf64-exit` / `aot-elf64-obj-ret` / `aot-elf64-code` / `aot-elf64-obj-code` / `compile-elf64-code` / `compile-elf64-obj-code` / `compile-elf64-exe` / `compile-expect-exit` / `link-elf64-exe` / `link-expect-exit` / `run-expect-exit` 子流程，开始把 shell 片段迁到 `.lisp` 描述。
 - `run`：解析 `.lbin`，通过 `dlopen`/`dlsym` 找系统符号，执行 main 指令流。
 - `run-embedded`：从 `.com` 容器内按 payload 偏移直接读取并执行内嵌 blob。
-- `inspect-ape`：读取 nano APE manifest，输出 `ape-v1` container、slice offset 和 size。
+- `inspect-ape`：读取并校验 `ape-v1` manifest（container、slice offset/size/hash）；失败码 2=缺 manifest、3=坏 container、4=坏 offset、5=坏 hash。
+- `inspect-expect-exit`：断言 `inspect-ape` / `inspect-app` 失败码。
+- `run-ape`：按 host arch 从 manifest 抽取 ELF slice 并执行（不依赖 shell stub）。
+- `run-ape-expect-exit`：断言 `run-ape` 退出码。
 - `inspect-app`：读取 AOT app manifest，输出 runtime slice 和 blob 的 offset/size。
 - `run-app`：读取 AOT app manifest，自动定位并执行 `.com` 内嵌 blob。
 - `emit-elf64-exit`：直接写最小 x86_64 Linux ELF，可作为替换 slice compiler 的第一块。
