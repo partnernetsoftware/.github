@@ -38,6 +38,7 @@ BOOTSTRAP_ABI_SRC="$LAB_DIR/samples/bootstrap-abi-smoke.lisp"
 BOOTSTRAP_APE_SRC="$LAB_DIR/samples/bootstrap-ape-smoke.lisp"
 BOOTSTRAP_APE_NEG_SRC="$LAB_DIR/samples/bootstrap-ape-negative.lisp"
 BOOTSTRAP_DATA_NEG_SRC="$LAB_DIR/samples/bootstrap-data-negative.lisp"
+BOOTSTRAP_V25_NATIVE_SELFPACK_SRC="$LAB_DIR/samples/bootstrap-v25-native-selfpack.lisp"
 DATA_GOOD_OBJ="$BUILD_DIR/data-good.o"
 DATA_BAD_RELOC_TYPE_OBJ="$BUILD_DIR/data-bad-reloc-type.o"
 DATA_BAD_RELOC_SYM_OBJ="$BUILD_DIR/data-bad-reloc-sym.o"
@@ -262,6 +263,8 @@ log "bootstrap.abi.source.path=$BOOTSTRAP_ABI_SRC"
 log "bootstrap.abi.source.bytes=$(bytes_of "$BOOTSTRAP_ABI_SRC")"
 log "bootstrap.ape.source.path=$BOOTSTRAP_APE_SRC"
 log "bootstrap.ape.source.bytes=$(bytes_of "$BOOTSTRAP_APE_SRC")"
+log "bootstrap.v25.native.selfpack.source.path=$BOOTSTRAP_V25_NATIVE_SELFPACK_SRC"
+log "bootstrap.v25.native.selfpack.source.bytes=$(bytes_of "$BOOTSTRAP_V25_NATIVE_SELFPACK_SRC")"
 log "smoke.source.path=$SMOKE_SRC"
 log "smoke.source.bytes=$(bytes_of "$SMOKE_SRC")"
 log "native.runtime.bytes=$(bytes_of "$RUNNER")"
@@ -631,6 +634,29 @@ if host_is_linux_x86_64; then
   '
 else
   skip_case "build-nano-jit-native-smoke" "host is not Linux x86_64 (uname -s=$(uname -s) -m=$(uname -m))"
+fi
+
+# --- bootstrap-v25 native selfpack (pack-ape per plan) ---
+V25_NATIVE_SELFPACK_COM="$NANO_JIT_COM"
+if host_is_linux_x86_64 && [ -x "$NANO_JIT_DIR/nano-jit.x86_64" ]; then
+  V25_PACKER="$NANO_JIT_DIR/nano-jit.x86_64"
+  run_case "run-bootstrap-v25-native-selfpack-plan" \
+    bash -c "cd \"$ROOT_DIR\" && \"$V25_PACKER\" run-bootstrap-plan \"$BOOTSTRAP_V25_NATIVE_SELFPACK_SRC\""
+  if [ -f "$V25_NATIVE_SELFPACK_COM" ]; then
+    run_case "pack-ape-v25-native-selfpack-output" test -f "$V25_NATIVE_SELFPACK_COM"
+    run_case "inspect-ape-v25-native-selfpack" bash -c '
+      out=$("'"$V25_PACKER"'" inspect-ape "'"$V25_NATIVE_SELFPACK_COM"'" 2>&1) || true
+      printf "%s\n" "$out"
+      printf "%s\n" "$out" | grep -q "inspect-ape.container=ape-v2"
+    '
+  else
+    skip_case "pack-ape-v25-native-selfpack-output" "nano-jit.com missing after plan (expected pack-ape output)"
+    skip_case "inspect-ape-v25-native-selfpack" "nano-jit.com missing after plan"
+  fi
+else
+  skip_case "run-bootstrap-v25-native-selfpack-plan" "requires Linux x86_64 and nano-jit.x86_64 slice"
+  skip_case "pack-ape-v25-native-selfpack-output" "requires Linux x86_64 and nano-jit.x86_64 slice"
+  skip_case "inspect-ape-v25-native-selfpack" "requires Linux x86_64 and nano-jit.x86_64 slice"
 fi
 
 log ""
