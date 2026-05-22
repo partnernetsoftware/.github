@@ -55,15 +55,15 @@ Validation (both paths): bounds, ELF magic at each slice, hash if non-zero. v2 a
 
 Success prints include `inspect-ape.container=ape-v2`, `inspect-ape.header_bytes=…`, and per-slice `arch_id`, `os_id`, `offset`, `size`, `hash`.
 
-## Loader (slice 2+)
+## Loader (100% scoped)
 
-- **Primary (native):** `nano-jit run-ape container.com [arch]` reads the v2 table in-process (no manifest shell logic).
-- **Native Linux x86_64 ELF:** host `run-ape` writes the slice to a `memfd` and `fork`+`exec` via `/proc/self/fd/N` (`run-ape.loader=memfd`); falls back to `/tmp` extract when `memfd_create` is unavailable.
-- **Direct execution:** `pack-ape` shell stub tries `NANO_JIT` / `nano-lisp-jit run-ape` first (`# nano.loader=run-ape-cli`), then falls back to `dd` slice extract + `exec`.
-- **Mode B (future):** v2 header without shell script wrapper.
+- **Primary (native):** `nano-jit run-ape container.com [arch]` reads the v2 table in-process when magic is present; otherwise the v1 comment manifest (`ape-v1`).
+- **Linux ELF slices (v1 + v2):** `run-ape` always tries `memfd_create` + `write` + `fork`/`exec` via `/proc/self/fd/N` first (`run-ape.loader=memfd`). Only if that path fails (no `memfd_create`, arch mismatch on host, or write/exec error) does it fall back to a `/tmp` extract (`run-ape.loader=tmpfile`). Cross-arch on x86_64 (e.g. forced `aarch64` + QEMU) uses the tmpfile path.
+- **`pack-ape` shell stub:** `# nano.loader=run-ape-cli` — if `NANO_JIT` is set, `exec "${NANO_JIT}" run-ape "$0" "$@"` (no runtime `dd`); else if `nano-lisp-jit` is on `PATH`, `exec nano-lisp-jit run-ape …`; else `# nano.loader.fallback=dd-extract` (manifest offsets + `dd` + `exec`). When a runner is configured, the stub never reaches the `dd` path.
+- **Mode B (bare):** `pack-ape-bare` — v2 header at offset 0, no shell; execution is `run-ape` only (same Linux memfd-first rule).
 
 ## Scope (slice 1)
 
-- Spec + `pack-ape` / `inspect-ape` / bootstrap negative fixtures; v1 `.com` files still pass via fallback.
+- Spec + `pack-ape` / `inspect-ape` / bootstrap negative fixtures; v1-only containers (`ape-v1-legacy.com`) still inspect/run via manifest fallback.
 
 Fixtures: extend `make_ape_fixtures.py`; see `APE-v1.md` for v1 keys and `run-ape` behavior (unchanged until native loader lands).

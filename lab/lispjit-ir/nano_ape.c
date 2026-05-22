@@ -246,6 +246,7 @@ static int extract_and_run_ape_slice(const unsigned char *data, size_t n,
   }
   const unsigned char *slice = data + abs_off;
 #if defined(__linux__)
+  /* Linux: memfd+exec before /tmp extract for all run-ape ELF slices (ape-v1 + ape-v2). */
   if (is_elf(slice, slice_size)) {
     int memfd_rc = run_elf_slice_memfd_linux(slice, slice_size, arch_name);
     if (memfd_rc >= 0) return memfd_rc;
@@ -523,13 +524,14 @@ static int cmd_pack_ape(const char *out_path, const char *x86_path, const char *
   const char *stub_fmt =
       "#!/bin/sh\n"
       "set -eu\n"
-      "# nano.loader=run-ape-cli\n"
-      "if [ -n \"${NANO_JIT:-}\" ] && [ -x \"${NANO_JIT}\" ]; then\n"
+      "# nano.loader=run-ape-cli (NANO_JIT or nano-lisp-jit run-ape only; no runtime dd when set)\n"
+      "if [ -n \"${NANO_JIT:-}\" ]; then\n"
       "  exec \"${NANO_JIT}\" run-ape \"$0\" \"$@\"\n"
       "fi\n"
       "if command -v nano-lisp-jit >/dev/null 2>&1; then\n"
       "  exec nano-lisp-jit run-ape \"$0\" \"$@\"\n"
       "fi\n"
+      "# nano.loader.fallback=dd-extract (only when NANO_JIT unset and nano-lisp-jit missing)\n"
       "arch=\"$(uname -m)\"\n"
       "case \"$arch\" in\n"
       "  x86_64|amd64) off=%zu; size=%zu; suffix=x86_64 ;;\n"
