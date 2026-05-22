@@ -249,6 +249,16 @@ expect_run_ape_failure() {
   esac
 }
 
+expect_elf64_exec_load_split() {
+  local path="$1"
+  local out=""
+  out=$("$RUNNER" inspect-elf64-exe "$path")
+  printf '%s\n' "$out"
+  printf '%s\n' "$out" | rg -q 'elf64\.exec\.load\.count=2'
+  printf '%s\n' "$out" | rg -q 'elf64\.exec\.load\.0\.flags=rx'
+  printf '%s\n' "$out" | rg -q 'elf64\.exec\.load\.1\.flags=rw'
+}
+
 log "# nano-lisp-jit .lisp to .lbin probe"
 
 run_case "build-native-nano-lisp-jit" cc -DNANO_LISP_JIT -Os -s "$NANO_C" -ldl -o "$RUNNER"
@@ -401,6 +411,7 @@ if [ "$(uname -m)" = "x86_64" ] || [ "$(uname -m)" = "amd64" ]; then
   run_case "aot-const-ptr-load-u8-elf64-exit1" "$RUNNER" aot-elf64-exit "$CONST_PTR_BLOB" "$CONST_PTR_EXIT"
   run_case "run-aot-const-ptr-load-u8-exit1" "$RUNNER" run-expect-exit "$CONST_PTR_EXIT" 1
   run_case "aot-const-ptr-load-u8-elf64-code1" "$RUNNER" aot-elf64-code "$CONST_PTR_BLOB" "$CONST_PTR_CODE"
+  run_case "inspect-aot-const-ptr-load-u8-rx-rw" expect_elf64_exec_load_split "$CONST_PTR_CODE"
   run_case "run-aot-const-ptr-load-u8-code1" "$RUNNER" run-expect-exit "$CONST_PTR_CODE" 1
   run_case "aot-const-ptr-load-u8-elf64-obj-code1" "$RUNNER" aot-elf64-obj-code "$CONST_PTR_BLOB" "$CONST_PTR_CODE_OBJ" nano_const_ptr_code
   run_case "tiny-link-aot-const-ptr-load-u8-obj-code1" "$RUNNER" link-elf64-exe "$CONST_PTR_LINK_EXE" nano_const_ptr_code "$CONST_PTR_CODE_OBJ"
@@ -427,6 +438,7 @@ if [ "$(uname -m)" = "x86_64" ] || [ "$(uname -m)" = "amd64" ]; then
   run_case "compile-ptr-values-elf64-code1" "$RUNNER" compile-elf64-code "$PTR_SRC" "$PTR_DIRECT_EXE"
   run_case "run-direct-compiled-ptr-values1" "$RUNNER" run-expect-exit "$PTR_DIRECT_EXE" 1
   run_case "compile-const-ptr-load-u8-elf64-code1" "$RUNNER" compile-elf64-code "$CONST_PTR_SRC" "$CONST_PTR_DIRECT_EXE"
+  run_case "inspect-direct-const-ptr-load-u8-rx-rw" expect_elf64_exec_load_split "$CONST_PTR_DIRECT_EXE"
   run_case "run-direct-compiled-const-ptr-load-u8-1" "$RUNNER" run-expect-exit "$CONST_PTR_DIRECT_EXE" 1
   run_case "emit-elf64-obj-ret42" "$RUNNER" emit-elf64-obj-ret "$RET42_OBJ" nano_ret 42
   log "ret42.obj.bytes=$(bytes_of "$RET42_OBJ")"

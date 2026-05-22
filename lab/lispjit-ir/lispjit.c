@@ -190,6 +190,7 @@ extern void *cosmo_dlsym(void *handle, const char *symbol);
 #define BOOTSTRAP_STEP_INSPECT_APE 28u
 #define BOOTSTRAP_STEP_RUN_APE 29u
 #define BOOTSTRAP_STEP_RUN_APE_EXPECT_EXIT 30u
+#define BOOTSTRAP_STEP_INSPECT_ELF64_EXE 31u
 
 typedef uint64_t (*jit_entry_fn)(void);
 typedef int (*ffi_i32_ptr_fn)(const char *);
@@ -1410,6 +1411,7 @@ static int parse_bootstrap_plan(const char *src, BootstrapPlan *plan) {
       }
     } else if (strcmp(head, "hash") == 0 || strcmp(head, "dump") == 0 ||
                strcmp(head, "file-size") == 0 || strcmp(head, "file-hash") == 0 ||
+               strcmp(head, "inspect-elf64-exe") == 0 ||
                strcmp(head, "gen-libc-resolve") == 0 ||
                strcmp(head, "run") == 0 ||
                strcmp(head, "resolve-quiet") == 0) {
@@ -1418,6 +1420,7 @@ static int parse_bootstrap_plan(const char *src, BootstrapPlan *plan) {
                       strcmp(head, "dump") == 0 ? BOOTSTRAP_STEP_DUMP :
                       strcmp(head, "file-size") == 0 ? BOOTSTRAP_STEP_FILE_SIZE :
                       strcmp(head, "file-hash") == 0 ? BOOTSTRAP_STEP_FILE_HASH :
+                      strcmp(head, "inspect-elf64-exe") == 0 ? BOOTSTRAP_STEP_INSPECT_ELF64_EXE :
                       strcmp(head, "gen-libc-resolve") == 0 ? BOOTSTRAP_STEP_GEN_LIBC_RESOLVE :
                       strcmp(head, "run") == 0 ? BOOTSTRAP_STEP_RUN :
                       BOOTSTRAP_STEP_RESOLVE_QUIET;
@@ -3357,6 +3360,55 @@ static int cmd_file_hash(const char *path) {
   return 0;
 }
 
+static const char *elf64_phdr_flags_name(uint32_t flags) {
+  if (flags == 5) return "rx";
+  if (flags == 6) return "rw";
+  if (flags == 4) return "r";
+  if (flags == 7) return "rwx";
+  return "other";
+}
+
+static int cmd_inspect_elf64_exe(const char *path) {
+  size_t n = 0;
+  unsigned char *data = read_file(path, &n);
+  if (!data) {
+    fprintf(stderr, "read=fail path=%s\n", path);
+    return 1;
+  }
+  if (!is_elf(data, n) || n < ELF64_EHDR_SIZE || rd16(data + 16) != 2) {
+    fprintf(stderr, "inspect-elf64-exe=not_exec_elf path=%s\n", path);
+    free(data);
+    return 2;
+  }
+  size_t phoff = (size_t)rd64(data + 32);
+  uint16_t phentsize = rd16(data + 54);
+  uint16_t phnum = rd16(data + 56);
+  if (phentsize != ELF64_PHDR_SIZE || phoff > n ||
+      (size_t)phnum > (n - phoff) / ELF64_PHDR_SIZE) {
+    fprintf(stderr, "inspect-elf64-exe=bad_phdr path=%s\n", path);
+    free(data);
+    return 2;
+  }
+  printf("elf64.exec.path=%s\n", path);
+  printf("elf64.exec.phnum=%u\n", phnum);
+  size_t load_count = 0;
+  for (uint16_t i = 0; i < phnum; ++i) {
+    const unsigned char *ph = data + phoff + (size_t)i * ELF64_PHDR_SIZE;
+    uint32_t type = rd32(ph + 0);
+    uint32_t flags = rd32(ph + 4);
+    uint64_t off = rd64(ph + 8);
+    uint64_t filesz = rd64(ph + 32);
+    if (type != 1) continue;
+    printf("elf64.exec.load.%zu.flags=%s\n", load_count, elf64_phdr_flags_name(flags));
+    printf("elf64.exec.load.%zu.offset=%llu\n", load_count, (unsigned long long)off);
+    printf("elf64.exec.load.%zu.filesz=%llu\n", load_count, (unsigned long long)filesz);
+    load_count++;
+  }
+  printf("elf64.exec.load.count=%zu\n", load_count);
+  free(data);
+  return 0;
+}
+
 static int str_cmp_ptr(const void *a, const void *b) {
   const char *const *sa = (const char *const *)a;
   const char *const *sb = (const char *const *)b;
@@ -3736,6 +3788,9 @@ static int cmd_run_bootstrap_plan(const char *plan_path) {
     } else if (step->kind == BOOTSTRAP_STEP_FILE_HASH) {
       printf("bootstrap-step.%zu=file-hash\n", i);
       rc = cmd_file_hash(step->arg0);
+    } else if (step->kind == BOOTSTRAP_STEP_INSPECT_ELF64_EXE) {
+      printf("bootstrap-step.%zu=inspect-elf64-exe\n", i);
+      rc = cmd_inspect_elf64_exe(step->arg0);
     } else if (step->kind == BOOTSTRAP_STEP_GEN_LIBC_RESOLVE) {
       printf("bootstrap-step.%zu=gen-libc-resolve\n", i);
       rc = cmd_gen_libc_resolve(NULL, step->arg0);
@@ -3991,16 +4046,27 @@ static void wr_elf64_rela(unsigned char *p, uint64_t off, uint32_t sym_idx, uint
 static int emit_elf64_exec_rx_data_file(const char *out_path, const unsigned char *code,
                                         size_t code_n, const unsigned char *data,
                                         size_t data_n) {
-  size_t file_n = ELF64_EXEC_CODE_OFF + code_n + data_n;
+  size_t code_off = data_n ? ELF64_EHDR_SIZE + 2 * ELF64_PHDR_SIZE : ELF64_EXEC_CODE_OFF;
+  size_t data_off = code_off + code_n;
+  size_t file_n = data_off + data_n;
   unsigned char *out = (unsigned char *)calloc(1, file_n);
   if (!out) return 0;
 
-  wr_elf64_ehdr_exec(out, ELF64_EXEC_BASE + ELF64_EXEC_CODE_OFF, ELF64_EHDR_SIZE, 1);
-  wr_elf64_phdr(out + ELF64_EHDR_SIZE, 1, 7, 0, ELF64_EXEC_BASE, ELF64_EXEC_BASE,
-                file_n, file_n, 0x1000);
+  wr_elf64_ehdr_exec(out, ELF64_EXEC_BASE + code_off, ELF64_EHDR_SIZE,
+                     data_n ? 2 : 1);
+  if (data_n) {
+    wr_elf64_phdr(out + ELF64_EHDR_SIZE, 1, 5, 0, ELF64_EXEC_BASE, ELF64_EXEC_BASE,
+                  data_off, data_off, 1);
+    wr_elf64_phdr(out + ELF64_EHDR_SIZE + ELF64_PHDR_SIZE, 1, 6, data_off,
+                  ELF64_EXEC_BASE + data_off, ELF64_EXEC_BASE + data_off,
+                  data_n, data_n, 1);
+  } else {
+    wr_elf64_phdr(out + ELF64_EHDR_SIZE, 1, 5, 0, ELF64_EXEC_BASE, ELF64_EXEC_BASE,
+                  file_n, file_n, 0x1000);
+  }
 
-  memcpy(out + ELF64_EXEC_CODE_OFF, code, code_n);
-  if (data_n) memcpy(out + ELF64_EXEC_CODE_OFF + code_n, data, data_n);
+  memcpy(out + code_off, code, code_n);
+  if (data_n) memcpy(out + data_off, data, data_n);
   int ok = write_file(out_path, out, file_n) && make_executable(out_path);
   free(out);
   return ok;
@@ -6206,6 +6272,7 @@ static void usage(const char *argv0) {
   fprintf(stderr, "  %s hash program.%s\n", argv0, BLOB_EXT);
   fprintf(stderr, "  %s file-size path\n", argv0);
   fprintf(stderr, "  %s file-hash path\n", argv0);
+  fprintf(stderr, "  %s inspect-elf64-exe executable\n", argv0);
   fprintf(stderr, "  %s gen-libc-resolve [libc.so] output.%s\n", argv0, SOURCE_EXT);
   fprintf(stderr, "  %s compare left.%s right.%s\n", argv0, BLOB_EXT, BLOB_EXT);
   fprintf(stderr, "  %s resolve [--quiet] program.%s\n", argv0, BLOB_EXT);
@@ -6294,6 +6361,9 @@ int main(int argc, char **argv) {
   }
   if (argc >= 2 && strcmp(argv[1], "file-hash") == 0 && argc == 3) {
     return cmd_file_hash(argv[2]);
+  }
+  if (argc >= 2 && strcmp(argv[1], "inspect-elf64-exe") == 0 && argc == 3) {
+    return cmd_inspect_elf64_exe(argv[2]);
   }
   if (argc >= 2 && strcmp(argv[1], "gen-libc-resolve") == 0) {
     if (argc == 3) return cmd_gen_libc_resolve(NULL, argv[2]);
