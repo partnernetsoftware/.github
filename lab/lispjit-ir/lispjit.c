@@ -702,9 +702,6 @@ static int make_executable(const char *path) {
 
 #include "nano_lisp_parse.c"
 
-
-
-
 #include "nano_blob_vm.c"
 
 
