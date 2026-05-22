@@ -372,6 +372,31 @@ if [ -f "$APE_V2_COM" ]; then
     skip_case "run-ape-bare-v2-exit42" "bootstrap-ape-v2-bare.com missing after plan"
     skip_case "run-ape-bare-v2-memfd-loader-smoke" "bootstrap-ape-v2-bare.com missing after plan"
   fi
+  APE_V2_X86_ELF="$BUILD_DIR/bootstrap-ape-v2-x86.elf"
+  APE_V2_ARM_ELF="$BUILD_DIR/bootstrap-ape-v2-arm.elf"
+  PACK_APE_V25_BARE_ENV_COM="$BUILD_DIR/pack-ape-v25-bare-env.com"
+  if [ -f "$APE_V2_X86_ELF" ] && [ -f "$APE_V2_ARM_ELF" ]; then
+    run_case "pack-ape-v25-bare-mode-env" bash -c '
+      export NANO_PACK_APE_MODE=bare
+      out=$("'"$RUNNER"'" pack-ape "'"$PACK_APE_V25_BARE_ENV_COM"'" \
+        "'"$APE_V2_X86_ELF"'" "'"$APE_V2_ARM_ELF"'" 2>&1) || true
+      printf "%s\n" "$out"
+      printf "%s\n" "$out" | grep -q "pack-ape-bare.mode=bare"
+      test -f "'"$PACK_APE_V25_BARE_ENV_COM"'"
+      inspect=$("'"$RUNNER"'" inspect-ape "'"$PACK_APE_V25_BARE_ENV_COM"'" 2>&1) || true
+      printf "%s\n" "$inspect"
+      printf "%s\n" "$inspect" | grep -q "inspect-ape.container=ape-v2"
+    '
+    if host_is_linux_x86_64; then
+      run_case "run-ape-v25-bare-mode-env-exit42" \
+        "$RUNNER" run-ape-expect-exit "$PACK_APE_V25_BARE_ENV_COM" 42
+    else
+      skip_case "run-ape-v25-bare-mode-env-exit42" "host is not Linux x86_64"
+    fi
+  else
+    skip_case "pack-ape-v25-bare-mode-env" "bootstrap-ape-v2 slice ELFs missing"
+    skip_case "run-ape-v25-bare-mode-env-exit42" "bootstrap-ape-v2 slice ELFs missing"
+  fi
   run_case "make-ape-v2-negative-fixtures" python3 "$LAB_DIR/make_ape_fixtures.py" "$APE_V2_COM" "$BUILD_DIR"
   if [ -f "$BUILD_DIR/ape-v2-bare.com" ]; then
     run_case "inspect-ape-v2-bare-fixture" bash -c '

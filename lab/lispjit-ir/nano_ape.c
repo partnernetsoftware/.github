@@ -448,6 +448,14 @@ static int cmd_inspect_ape(const char *container_path) {
   }
   return rc;
 }
+static const char *nano_pack_ape_mode(void) {
+  const char *mode = getenv("NANO_PACK_APE_MODE");
+  if (!mode || !*mode || strcmp(mode, "stub") == 0) return "stub";
+  if (strcmp(mode, "bare") == 0) return "bare";
+  fprintf(stderr, "pack-ape: unknown NANO_PACK_APE_MODE=%s (use stub|bare)\n", mode);
+  return "stub";
+}
+
 static int pack_ape_v2_payload(Buf *out, const unsigned char *x86, size_t x86_n,
                                const unsigned char *arm, size_t arm_n) {
   uint64_t x86_hash = fnv1a64(x86, x86_n);
@@ -504,6 +512,7 @@ static int cmd_pack_ape_bare(const char *out_path, const char *x86_path, const c
 }
 
 static int cmd_pack_ape(const char *out_path, const char *x86_path, const char *arm_path) {
+  if (strcmp(nano_pack_ape_mode(), "bare") == 0) return cmd_pack_ape_bare(out_path, x86_path, arm_path);
   size_t x86_n = 0;
   size_t arm_n = 0;
   unsigned char *x86 = read_file(x86_path, &x86_n);
@@ -587,6 +596,7 @@ static int cmd_pack_ape(const char *out_path, const char *x86_path, const char *
   int ok = write_file(out_path, out.data, out.len) && make_executable(out_path);
   if (ok) {
     printf("pack-ape.output=%s\n", out_path);
+    printf("pack-ape.mode=stub\n");
     printf("pack-ape.container=ape-v2\n");
     printf("pack-ape.header_bytes=%zu\n", v2_hdr_bytes);
     printf("pack-ape.bytes=%zu\n", out.len);

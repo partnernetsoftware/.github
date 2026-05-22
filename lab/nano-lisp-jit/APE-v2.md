@@ -61,6 +61,7 @@ Success prints include `inspect-ape.container=ape-v2`, `inspect-ape.header_bytes
 - **Linux ELF slices (v1 + v2):** `run-ape` always tries `memfd_create` + `write` + `fork`/`exec` via `/proc/self/fd/N` first (`run-ape.loader=memfd`). Only if that path fails (no `memfd_create`, arch mismatch on host, or write/exec error) does it fall back to a `/tmp` extract (`run-ape.loader=tmpfile`). Cross-arch on x86_64 (e.g. forced `aarch64` + QEMU) uses the tmpfile path.
 - **`pack-ape` shell stub:** `# nano.loader=run-ape-cli` — if `NANO_JIT` is set, `exec "${NANO_JIT}" run-ape "$0" "$@"` (no runtime `dd`); else if `nano-lisp-jit` is on `PATH`, `exec nano-lisp-jit run-ape …`; else `# nano.loader.fallback=dd-extract` (manifest offsets + `dd` + `exec`). When a runner is configured, the stub never reaches the `dd` path.
 - **Mode B (bare):** `pack-ape-bare` — v2 header at offset 0, no shell; execution is `run-ape` only (same Linux memfd-first rule).
+- **`NANO_PACK_APE_MODE` (v2.5 default strategy):** `pack-ape` reads `NANO_PACK_APE_MODE` before building. **`stub`** (default, unset or explicit) — Mode A shell + marker + v2 payload (compat). **`bare`** — same output as `pack-ape-bare` (header at offset 0). `pack-ape-bare` remains an explicit alias; both call the same bare builder in `nano_ape.c`.
 
 ## Scope (slice 1)
 
