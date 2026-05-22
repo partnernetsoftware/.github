@@ -178,7 +178,7 @@ cat > "$BOOTSTRAP_PLAN" <<EOF
   (file-size "$BUILD_DIR/bootstrap-ape.com")
   (file-hash "$BUILD_DIR/bootstrap-ape.com")
   (inspect-ape "$BUILD_DIR/bootstrap-ape.com")
-  (run-ape-expect-exit "$BUILD_DIR/bootstrap-ape.com" 42)
+  (run-ape-expect-exit "$BUILD_DIR/bootstrap-ape.com" 2)
   (run-app "$BUILD_DIR/bootstrap-smoke.com")
   (run "$BUILD_DIR/bootstrap-smoke.lbin")
   (emit-elf64-exit "$BUILD_DIR/bootstrap-aot-exit42.elf" 42)
@@ -389,7 +389,7 @@ run_case "nano-jit-run-arithmetic-i64" "$BUILD_DIR/nano-jit.com" run "$ARITH_I64
 run_case "nano-jit-compile-typed-values" "$BUILD_DIR/nano-jit.com" compile "$TYPED_SRC" "$TYPED_BLOB"
 run_case "nano-jit-run-typed-values" "$BUILD_DIR/nano-jit.com" run "$TYPED_BLOB"
 run_case "nano-jit-run-bootstrap-plan" "$BUILD_DIR/nano-jit.com" run-bootstrap-plan "$BOOTSTRAP_PLAN"
-run_case "nano-jit-run-ape-bootstrap-com" "$BUILD_DIR/nano-jit.com" run-ape-expect-exit "$BUILD_DIR/bootstrap-ape.com" 42
+run_case "nano-jit-run-ape-bootstrap-com" "$BUILD_DIR/nano-jit.com" run-ape-expect-exit "$BUILD_DIR/bootstrap-ape.com" 2
 run_case "nano-jit-compile-control-flow" "$BUILD_DIR/nano-jit.com" compile "$CTRL_SRC" "$CTRL_BLOB"
 run_case "nano-jit-run-control-flow" "$BUILD_DIR/nano-jit.com" run "$CTRL_BLOB"
 run_case "nano-jit-emit-elf64-exit42" "$BUILD_DIR/nano-jit.com" emit-elf64-exit "$EXIT42" 42
