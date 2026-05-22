@@ -3868,6 +3868,41 @@ enum {
 };
 
 #define ELF64_EXEC_BASE 0x400000u
+
+typedef struct {
+  size_t text_va;
+  size_t rodata_va;
+  size_t data_va;
+} ExecSectionLayout;
+
+static void exec_section_layout_fill(ExecSectionLayout *layout, size_t code_n, size_t rodata_n,
+                                     size_t data_n, size_t *out_file_n) {
+  const size_t page = 0x1000;
+  int nph = 1 + (rodata_n > 0) + (data_n > 0);
+  size_t off = ELF64_EHDR_SIZE + (size_t)nph * ELF64_PHDR_SIZE;
+  size_t va = off;
+  layout->text_va = ELF64_EXEC_BASE + va;
+  off += code_n;
+  va += code_n;
+  layout->rodata_va = 0;
+  layout->data_va = 0;
+  if (rodata_n) {
+    off = align_up_size(off, page);
+    va = align_up_size(va, page);
+    layout->rodata_va = ELF64_EXEC_BASE + va;
+    off += rodata_n;
+    va += rodata_n;
+  }
+  if (data_n) {
+    off = align_up_size(off, page);
+    va = align_up_size(va, page);
+    layout->data_va = ELF64_EXEC_BASE + va;
+    off += data_n;
+    va += data_n;
+  }
+  *out_file_n = align_up_size(off, page);
+}
+
 #define ELF64_MACHINE_X86_64 62u
 
 typedef struct {
@@ -3966,27 +4001,52 @@ static void wr_elf64_rela(unsigned char *p, uint64_t off, uint32_t sym_idx, uint
   wr64(p + 16, (uint64_t)addend);
 }
 
-static int emit_elf64_exec_rx_data_file(const char *out_path, const unsigned char *code,
-                                        size_t code_n, const unsigned char *data,
-                                        size_t data_n) {
-  size_t file_n = ELF64_EXEC_CODE_OFF + code_n + data_n;
+static int emit_elf64_exec_sections_file(const char *out_path, const unsigned char *code,
+                                         size_t code_n, const unsigned char *rodata,
+                                         size_t rodata_n, const unsigned char *data,
+                                         size_t data_n) {
+  ExecSectionLayout layout = {0};
+  size_t file_n = 0;
+  int nph = 1 + (rodata_n > 0) + (data_n > 0);
+  exec_section_layout_fill(&layout, code_n, rodata_n, data_n, &file_n);
   unsigned char *out = (unsigned char *)calloc(1, file_n);
   if (!out) return 0;
 
-  wr_elf64_ehdr_exec(out, ELF64_EXEC_BASE + ELF64_EXEC_CODE_OFF, ELF64_EHDR_SIZE, 1);
-  wr_elf64_phdr(out + ELF64_EHDR_SIZE, 1, 7, 0, ELF64_EXEC_BASE, ELF64_EXEC_BASE,
-                file_n, file_n, 0x1000);
+  wr_elf64_ehdr_exec(out, layout.text_va, ELF64_EHDR_SIZE, (uint16_t)nph);
+  size_t ph = ELF64_EHDR_SIZE;
+  size_t text_off = layout.text_va - ELF64_EXEC_BASE;
+  wr_elf64_phdr(out + ph, 1, 5, text_off, layout.text_va, layout.text_va, code_n, code_n, 0x1000);
+  ph += ELF64_PHDR_SIZE;
+  if (rodata_n) {
+    size_t ro_off = layout.rodata_va - ELF64_EXEC_BASE;
+    wr_elf64_phdr(out + ph, 1, 4, ro_off, layout.rodata_va, layout.rodata_va, rodata_n,
+                  rodata_n, 0x1000);
+    ph += ELF64_PHDR_SIZE;
+  }
+  if (data_n) {
+    size_t data_off = layout.data_va - ELF64_EXEC_BASE;
+    wr_elf64_phdr(out + ph, 1, 6, data_off, layout.data_va, layout.data_va, data_n, data_n,
+                  0x1000);
+  }
 
-  memcpy(out + ELF64_EXEC_CODE_OFF, code, code_n);
-  if (data_n) memcpy(out + ELF64_EXEC_CODE_OFF + code_n, data, data_n);
+  memcpy(out + text_off, code, code_n);
+  if (rodata_n) memcpy(out + (layout.rodata_va - ELF64_EXEC_BASE), rodata, rodata_n);
+  if (data_n) memcpy(out + (layout.data_va - ELF64_EXEC_BASE), data, data_n);
   int ok = write_file(out_path, out, file_n) && make_executable(out_path);
   free(out);
   return ok;
 }
 
+static int emit_elf64_exec_rx_data_file(const char *out_path, const unsigned char *code,
+                                        size_t code_n, const unsigned char *rodata,
+                                        size_t rodata_n, const unsigned char *data,
+                                        size_t data_n) {
+  return emit_elf64_exec_sections_file(out_path, code, code_n, rodata, rodata_n, data, data_n);
+}
+
 static int emit_elf64_exec_rx_file(const char *out_path, const unsigned char *code,
                                    size_t code_n) {
-  return emit_elf64_exec_rx_data_file(out_path, code, code_n, NULL, 0);
+  return emit_elf64_exec_sections_file(out_path, code, code_n, NULL, 0, NULL, 0);
 }
 
 static int elf64_obj_local_info(const Elf64ObjSymbol *syms, size_t sym_count, uint32_t *out) {
@@ -4090,9 +4150,10 @@ static int emit_elf64_code_file(const char *out_path, const unsigned char *code,
 }
 
 static int emit_elf64_code_data_file(const char *out_path, const unsigned char *code,
-                                     size_t code_n, const unsigned char *data,
+                                     size_t code_n, const unsigned char *rodata,
+                                     size_t rodata_n, const unsigned char *data,
                                      size_t data_n) {
-  return emit_elf64_exec_rx_data_file(out_path, code, code_n, data, data_n);
+  return emit_elf64_exec_rx_data_file(out_path, code, code_n, rodata, rodata_n, data, data_n);
 }
 
 static int emit_elf64_obj_text_file(const char *out_path, const char *symbol,
@@ -4101,6 +4162,83 @@ static int emit_elf64_obj_text_file(const char *out_path, const char *symbol,
     {symbol, 0x12, 1, 0, text_n},
   };
   return emit_elf64_obj_file(out_path, text, text_n, syms, 1, NULL, 0);
+}
+
+static int emit_elf64_obj_text_data_section(const char *out_path, const char *symbol,
+                                            const unsigned char *text, size_t text_n,
+                                            const char *sec_name,
+                                            const unsigned char *sec_data, size_t sec_n,
+                                            const Elf64ObjRela *sec_relas,
+                                            size_t sec_rela_n) {
+  static const unsigned char shstr[] =
+    "\0.text\0.rodata\0.data\0.rela.rodata\0.rela.data\0.shstrtab\0.symtab\0.strtab\0.note.GNU-stack";
+  enum {
+    SHSTR_TEXT = 1,
+    SHSTR_RODATA = 7,
+    SHSTR_DATA = 15,
+    SHSTR_RELA_RODATA = 21,
+    SHSTR_RELA_DATA = 34,
+    SHSTR_SHSTRTAB = 44,
+    SHSTR_SYMTAB = 54,
+    SHSTR_STRTAB = 61,
+    SHSTR_NOTE = 68,
+  };
+  uint32_t sec_name_off = (uint32_t)(strcmp(sec_name, ".data") == 0 ? SHSTR_DATA : SHSTR_RODATA);
+  uint32_t rela_name_off =
+    (uint32_t)(strcmp(sec_name, ".data") == 0 ? SHSTR_RELA_DATA : SHSTR_RELA_RODATA);
+  uint64_t sec_flags = strcmp(sec_name, ".data") == 0 ? 3u : 2u;
+  const Elf64ObjSymbol syms[] = {
+    {"nano_blob_data", 0x11, 2, 0, sec_n},
+    {symbol, 0x12, 1, 0, text_n},
+  };
+  size_t off_text = ELF64_EHDR_SIZE;
+  size_t off_sec = off_text + text_n;
+  size_t off_rela = align_up_size(off_sec + sec_n, 8);
+  size_t off_shstr = off_rela + sec_rela_n * ELF64_RELA_SIZE;
+  size_t off_strtab = off_shstr + sizeof(shstr);
+  size_t strtab_n = 1 + strlen("nano_blob_data") + 1 + strlen(symbol) + 1;
+  size_t off_symtab = align_up_size(off_strtab + strtab_n, 8);
+  size_t symtab_n = 3 * ELF64_SYM_SIZE;
+  size_t off_shdr = align_up_size(off_symtab + symtab_n, 8);
+  size_t file_n = off_shdr + 8 * ELF64_SHDR_SIZE;
+  unsigned char *out = (unsigned char *)calloc(1, file_n);
+  uint32_t name_offs[2];
+  if (!out) return 0;
+  name_offs[0] = 1;
+  name_offs[1] = 1 + (uint32_t)strlen("nano_blob_data") + 1;
+
+  wr_elf64_ehdr_reloc(out, off_shdr, 8, 4);
+  memcpy(out + off_text, text, text_n);
+  memcpy(out + off_sec, sec_data, sec_n);
+  for (size_t i = 0; i < sec_rela_n; ++i) {
+    wr_elf64_rela(out + off_rela + i * ELF64_RELA_SIZE, sec_relas[i].offset, sec_relas[i].sym_idx,
+                  sec_relas[i].type, sec_relas[i].addend);
+  }
+  memcpy(out + off_shstr, shstr, sizeof(shstr));
+  out[off_strtab] = 0;
+  memcpy(out + off_strtab + name_offs[0], "nano_blob_data", strlen("nano_blob_data") + 1);
+  memcpy(out + off_strtab + name_offs[1], symbol, strlen(symbol) + 1);
+  wr_elf64_sym(out + off_symtab + ELF64_SYM_SIZE, name_offs[0], syms[0].info, syms[0].shndx,
+               syms[0].value, syms[0].size);
+  wr_elf64_sym(out + off_symtab + 2 * ELF64_SYM_SIZE, name_offs[1], syms[1].info, syms[1].shndx,
+               syms[1].value, syms[1].size);
+
+  unsigned char *sh = out + off_shdr;
+  wr_elf64_shdr(sh + 1 * ELF64_SHDR_SIZE, 1, 1, 0x6, 0, off_text, text_n, 0, 0, 16, 0);
+  wr_elf64_shdr(sh + 2 * ELF64_SHDR_SIZE, sec_name_off, 1, sec_flags, 0, off_sec, sec_n, 0, 0, 1,
+                0);
+  wr_elf64_shdr(sh + 3 * ELF64_SHDR_SIZE, rela_name_off, 4, 0, 0, off_rela,
+                sec_rela_n * ELF64_RELA_SIZE, 5, 2, 8, ELF64_RELA_SIZE);
+  wr_elf64_shdr(sh + 4 * ELF64_SHDR_SIZE, SHSTR_SHSTRTAB, 3, 0, 0, off_shstr, sizeof(shstr), 0, 0,
+                1, 0);
+  wr_elf64_shdr(sh + 5 * ELF64_SHDR_SIZE, SHSTR_SYMTAB, 2, 0, 0, off_symtab, symtab_n, 6, 2, 8,
+                ELF64_SYM_SIZE);
+  wr_elf64_shdr(sh + 6 * ELF64_SHDR_SIZE, SHSTR_STRTAB, 3, 0, 0, off_strtab, strtab_n, 0, 0, 1, 0);
+  wr_elf64_shdr(sh + 7 * ELF64_SHDR_SIZE, SHSTR_NOTE, 1, 0, 0, 0, 0, 0, 0, 1, 0);
+
+  int ok = write_file(out_path, out, file_n);
+  free(out);
+  return ok;
 }
 
 static int emit_elf64_obj_ret_file(const char *out_path, const char *symbol, uint32_t value) {
@@ -4131,12 +4269,24 @@ typedef struct {
   const unsigned char *text;
   size_t text_size;
   size_t out_off;
+  uint16_t rodata_idx;
+  const unsigned char *rodata;
+  size_t rodata_size;
+  size_t rodata_out_off;
+  uint16_t data_idx;
+  const unsigned char *data_sec;
+  size_t data_size;
+  size_t data_out_off;
   const unsigned char *symtab;
   size_t sym_count;
   const unsigned char *strtab;
   size_t strtab_size;
   const unsigned char *rela;
   size_t rela_count;
+  const unsigned char *rela_rodata;
+  size_t rela_rodata_count;
+  const unsigned char *rela_data;
+  size_t rela_data_count;
 } ElfObj;
 
 typedef struct {
@@ -4224,6 +4374,14 @@ static int parse_elf_obj(const unsigned char *data, size_t size, ElfObj *o) {
       o->text_idx = i;
       o->text = data + off;
       o->text_size = (size_t)n;
+    } else if (strcmp(name, ".rodata") == 0) {
+      o->rodata_idx = i;
+      o->rodata = data + off;
+      o->rodata_size = (size_t)n;
+    } else if (strcmp(name, ".data") == 0) {
+      o->data_idx = i;
+      o->data_sec = data + off;
+      o->data_size = (size_t)n;
     } else if (type == 2) {
       uint64_t entsize = rd64(sh + 56);
       if (entsize != ELF64_SYM_SIZE || link >= shnum) return 0;
@@ -4240,6 +4398,16 @@ static int parse_elf_obj(const unsigned char *data, size_t size, ElfObj *o) {
       if (entsize != ELF64_RELA_SIZE || info >= shnum) return 0;
       o->rela = data + off;
       o->rela_count = (size_t)(n / entsize);
+    } else if (type == 4 && strcmp(name, ".rela.rodata") == 0) {
+      uint64_t entsize = rd64(sh + 56);
+      if (entsize != ELF64_RELA_SIZE || info >= shnum) return 0;
+      o->rela_rodata = data + off;
+      o->rela_rodata_count = (size_t)(n / entsize);
+    } else if (type == 4 && strcmp(name, ".rela.data") == 0) {
+      uint64_t entsize = rd64(sh + 56);
+      if (entsize != ELF64_RELA_SIZE || info >= shnum) return 0;
+      o->rela_data = data + off;
+      o->rela_data_count = (size_t)(n / entsize);
     }
   }
   return o->text && o->symtab && o->strtab;
@@ -4274,8 +4442,8 @@ static int link_rel32_checked(int64_t rel, uint32_t *out) {
   return 1;
 }
 
-static int link_add_text_symbols(const ElfObj *o, size_t obj_idx, LinkSym **syms,
-                                 size_t *sym_count, size_t *sym_cap) {
+static int link_add_text_symbols(const ElfObj *o, size_t obj_idx, uint64_t text_base,
+                                 LinkSym **syms, size_t *sym_count, size_t *sym_cap) {
   for (size_t s = 1; s < o->sym_count; ++s) {
     const char *name = elf_sym_name(o, s);
     uint64_t existing = 0;
@@ -4293,13 +4461,45 @@ static int link_add_text_symbols(const ElfObj *o, size_t obj_idx, LinkSym **syms
       *sym_cap = next;
     }
     (*syms)[(*sym_count)++] =
-      (LinkSym){name, obj_idx, ELF64_EXEC_BASE + ELF64_EXEC_CODE_OFF + o->out_off + elf_sym_value(o, s)};
+      (LinkSym){name, obj_idx, text_base + o->out_off + elf_sym_value(o, s)};
+  }
+  return 1;
+}
+
+static int link_apply_sec_pc32_relocations(Buf *code, const ElfObj *o, const unsigned char *rela_tab,
+                                           size_t rela_count, const ExecSectionLayout *layout,
+                                           uint64_t sec_va, size_t sec_out_off,
+                                           uint16_t sec_shndx) {
+  uint32_t rel32 = 0;
+  for (size_t r = 0; r < rela_count; ++r) {
+    const unsigned char *rela = rela_tab + r * ELF64_RELA_SIZE;
+    uint64_t r_off = rd64(rela);
+    uint64_t r_info = rd64(rela + 8);
+    int64_t addend = (int64_t)rd64(rela + 16);
+    uint32_t type = (uint32_t)r_info;
+    uint32_t sym_idx = (uint32_t)(r_info >> 32);
+    if (type != 1 || sym_idx >= o->sym_count || r_off > o->text_size - 4) {
+      fprintf(stderr, "link-elf64-exe=unsupported_data_reloc\n");
+      return 0;
+    }
+    if (elf_sym_shndx(o, sym_idx) != sec_shndx) {
+      fprintf(stderr, "link-elf64-exe=bad_data_symbol\n");
+      return 0;
+    }
+    uint64_t target = sec_va + sec_out_off + elf_sym_value(o, sym_idx) + (uint64_t)addend;
+    uint64_t rip_next = layout->text_va + o->out_off + r_off + 4;
+    int64_t rel = (int64_t)target - (int64_t)rip_next;
+    if (!link_rel32_checked(rel, &rel32)) {
+      fprintf(stderr, "link-elf64-exe=data_reloc_out_of_range\n");
+      return 0;
+    }
+    wr32(code->data + o->out_off + r_off, rel32);
   }
   return 1;
 }
 
 static int link_apply_relocations(Buf *code, const ElfObj *o, const LinkSym *syms,
-                                  size_t sym_count) {
+                                  size_t sym_count, const ExecSectionLayout *layout) {
   uint32_t rel32 = 0;
   for (size_t r = 0; r < o->rela_count; ++r) {
     const unsigned char *rela = elf_rela_row(o, r);
@@ -4319,7 +4519,7 @@ static int link_apply_relocations(Buf *code, const ElfObj *o, const LinkSym *sym
         fprintf(stderr, "link-elf64-exe=unsupported_local_reloc\n");
         return 0;
       }
-      target = ELF64_EXEC_BASE + ELF64_EXEC_CODE_OFF + o->out_off + elf_sym_value(o, sym_idx);
+      target = layout->text_va + o->out_off + elf_sym_value(o, sym_idx);
     } else {
       name = elf_sym_name(o, sym_idx);
       if (!name || !link_find_sym(syms, sym_count, name, &target)) {
@@ -4327,7 +4527,7 @@ static int link_apply_relocations(Buf *code, const ElfObj *o, const LinkSym *sym
         return 0;
       }
     }
-    uint64_t place = ELF64_EXEC_BASE + ELF64_EXEC_CODE_OFF + o->out_off + r_off;
+    uint64_t place = layout->text_va + o->out_off + r_off;
     int64_t rel = (int64_t)target + addend - (int64_t)place;
     if (!link_rel32_checked(rel, &rel32)) {
       fprintf(stderr, "link-elf64-exe=reloc_out_of_range symbol=%s\n", name);
@@ -4355,17 +4555,30 @@ static int cmd_link_elf64_exe(int argc, char **argv) {
   int rc = 2;
   if (!owned || !owned_n || !objs) goto done;
 
-  size_t code_off = 14;
   Buf code = {0};
+  Buf rodata = {0};
+  Buf data_buf = {0};
+  ExecSectionLayout layout = {0};
+  size_t file_n = 0;
+  size_t stub_n = 14;
+  size_t text_total = stub_n;
+
   for (int i = 0; i < obj_count; ++i) {
     owned[i] = read_file(argv[4 + i], &owned_n[i]);
     if (!owned[i] || !parse_elf_obj(owned[i], owned_n[i], &objs[i])) {
       fprintf(stderr, "link-elf64-exe=parse_fail path=%s\n", argv[4 + i]);
       goto done;
     }
-    objs[i].out_off = code_off;
-    code_off += objs[i].text_size;
-    if (!link_add_text_symbols(&objs[i], (size_t)i, &syms, &sym_count, &sym_cap)) goto done;
+    text_total += objs[i].text_size;
+  }
+  (void)text_total;
+
+  {
+    size_t text_off = stub_n;
+    for (int i = 0; i < obj_count; ++i) {
+      objs[i].out_off = text_off;
+      text_off += objs[i].text_size;
+    }
   }
 
   unsigned char entry_stub[14] = {
@@ -4377,6 +4590,22 @@ static int cmd_link_elf64_exe(int argc, char **argv) {
   buf_put(&code, entry_stub, sizeof(entry_stub));
   for (int i = 0; i < obj_count; ++i) {
     buf_put(&code, objs[i].text, objs[i].text_size);
+    if (objs[i].rodata_size) {
+      objs[i].rodata_out_off = rodata.len;
+      buf_put(&rodata, objs[i].rodata, objs[i].rodata_size);
+    }
+    if (objs[i].data_size) {
+      objs[i].data_out_off = data_buf.len;
+      buf_put(&data_buf, objs[i].data_sec, objs[i].data_size);
+    }
+  }
+  exec_section_layout_fill(&layout, code.len, rodata.len, data_buf.len, &file_n);
+
+  for (int i = 0; i < obj_count; ++i) {
+    if (!link_add_text_symbols(&objs[i], (size_t)i, layout.text_va, &syms, &sym_count,
+                                &sym_cap)) {
+      goto done;
+    }
   }
 
   uint64_t entry_addr = 0;
@@ -4385,8 +4614,8 @@ static int cmd_link_elf64_exe(int argc, char **argv) {
     rc = 3;
     goto done;
   }
-  int64_t entry_rel = (int64_t)entry_addr - (int64_t)(ELF64_EXEC_BASE + ELF64_EXEC_CODE_OFF + 5);
   uint32_t rel32 = 0;
+  int64_t entry_rel = (int64_t)entry_addr - (int64_t)(layout.text_va + 5);
   if (!link_rel32_checked(entry_rel, &rel32)) {
     fprintf(stderr, "link-elf64-exe=entry_out_of_range symbol=%s\n", entry_name);
     rc = 3;
@@ -4395,13 +4624,28 @@ static int cmd_link_elf64_exe(int argc, char **argv) {
   wr32(code.data + 1, rel32);
 
   for (int i = 0; i < obj_count; ++i) {
-    if (!link_apply_relocations(&code, &objs[i], syms, sym_count)) {
+    if (!link_apply_relocations(&code, &objs[i], syms, sym_count, &layout)) {
+      rc = 4;
+      goto done;
+    }
+    if (objs[i].rela_rodata_count &&
+        !link_apply_sec_pc32_relocations(&code, &objs[i], objs[i].rela_rodata,
+                                         objs[i].rela_rodata_count, &layout, layout.rodata_va,
+                                         objs[i].rodata_out_off, objs[i].rodata_idx)) {
+      rc = 4;
+      goto done;
+    }
+    if (objs[i].rela_data_count &&
+        !link_apply_sec_pc32_relocations(&code, &objs[i], objs[i].rela_data,
+                                         objs[i].rela_data_count, &layout, layout.data_va,
+                                         objs[i].data_out_off, objs[i].data_idx)) {
       rc = 4;
       goto done;
     }
   }
 
-  if (!emit_elf64_code_file(out_path, code.data, code.len)) {
+  if (!emit_elf64_exec_sections_file(out_path, code.data, code.len, rodata.data, rodata.len,
+                                     data_buf.data, data_buf.len)) {
     fprintf(stderr, "link-elf64-exe=write_fail path=%s\n", out_path);
     rc = 5;
     goto done;
@@ -4409,9 +4653,13 @@ static int cmd_link_elf64_exe(int argc, char **argv) {
   printf("link.output=%s\n", out_path);
   printf("link.objects=%d\n", obj_count);
   printf("link.code.bytes=%zu\n", code.len);
+  if (rodata.len) printf("link.rodata.bytes=%zu\n", rodata.len);
+  if (data_buf.len) printf("link.data.bytes=%zu\n", data_buf.len);
   rc = 0;
 
 done:
+  free(rodata.data);
+  free(data_buf.data);
   link_cleanup(owned, owned_n, objs, obj_count, syms, &code);
   return rc;
 }
@@ -4734,17 +4982,38 @@ typedef struct {
 
 typedef struct {
   uint32_t patch_off;
-  uint32_t data_off;
+  uint32_t sec_off;
+  uint8_t sec; /* 1=.rodata 2=.data */
 } DataPatch;
 
-static int compile_pure_blob_to_x86(const Blob *b, Buf *code, int exit_style, Buf *data) {
+static int blob_has_store_ops(const Blob *b) {
+  for (uint32_t pc = 0; pc < b->instr_count; ++pc) {
+    const unsigned char *ins = instr_row(b, pc);
+    if (!ins) continue;
+    uint8_t op = ins[0];
+    if (op == OP_STORE_U8 || op == OP_STORE_U16 || op == OP_STORE_U32) return 1;
+  }
+  return 0;
+}
+
+static int compile_pure_blob_to_x86(const Blob *b, Buf *code, int exit_style, Buf *rodata,
+                                    Buf *data_sec, Buf *data_relas) {
   int saw_ret = 0;
   int last_kind = 0;
   Buf expect_patches = {0};
   Buf branch_patches = {0};
   Buf data_patches = {0};
+  uint32_t *const_sec_off = NULL;
   uint32_t *pc_offs = (uint32_t *)calloc(b->instr_count ? b->instr_count : 1, sizeof(*pc_offs));
   if (!pc_offs) return 0;
+  if (b->const_count) {
+    const_sec_off = (uint32_t *)malloc(b->const_count * sizeof(*const_sec_off));
+    if (!const_sec_off) {
+      free(pc_offs);
+      return 0;
+    }
+    for (size_t i = 0; i < b->const_count; ++i) const_sec_off[i] = UINT32_MAX;
+  }
   for (uint32_t pc = 0; pc < b->instr_count; ++pc) {
     const unsigned char *ins = instr_row(b, pc);
     uint8_t op = 0;
@@ -4832,13 +5101,29 @@ static int compile_pure_blob_to_x86(const Blob *b, Buf *code, int exit_style, Bu
       if (last_kind != VAL_U64) goto fail;
       last_kind = VAL_PTR;
     } else if (op == OP_CONST_PTR) {
-      const char *s = data ? const_string_ref(b, arg0) : NULL;
+      const char *s = (rodata || data_sec) ? const_string_ref(b, arg0) : NULL;
+      Buf *sec = NULL;
+      uint8_t sec_id = 0;
       if (!s) goto fail;
+      if (blob_has_store_ops(b)) {
+        sec = data_sec;
+        sec_id = 2;
+      } else {
+        sec = rodata;
+        sec_id = 1;
+      }
+      if (!sec) goto fail;
+      if (arg0 >= b->const_count) goto fail;
       {
         unsigned char lea[7] = {0x48, 0x8d, exit_style ? 0x3d : 0x05, 0, 0, 0, 0};
-        DataPatch patch = {(uint32_t)(code->len + 3), (uint32_t)data->len};
+        uint32_t sec_off = const_sec_off[arg0];
+        if (sec_off == UINT32_MAX) {
+          sec_off = (uint32_t)sec->len;
+          const_sec_off[arg0] = sec_off;
+          buf_put(sec, s, strlen(s) + 1);
+        }
+        DataPatch patch = {(uint32_t)(code->len + 3), sec_off, sec_id};
         buf_put(code, lea, sizeof(lea));
-        buf_put(data, s, strlen(s) + 1);
         buf_put(&data_patches, &patch, sizeof(patch));
       }
       last_kind = VAL_PTR;
@@ -5234,12 +5519,25 @@ static int compile_pure_blob_to_x86(const Blob *b, Buf *code, int exit_style, Bu
   if (data_patches.len) {
     for (size_t i = 0; i < data_patches.len; i += sizeof(DataPatch)) {
       const DataPatch *patch = (const DataPatch *)(data_patches.data + i);
-      int64_t rel = (int64_t)code->len + (int64_t)patch->data_off -
-                    (int64_t)(patch->patch_off + 4);
-      if (rel < INT32_MIN || rel > INT32_MAX) goto fail;
-      wr32(code->data + patch->patch_off, (uint32_t)(int32_t)rel);
+      if (data_relas) {
+        Elf64ObjRela rel = {patch->patch_off, 1u, 1u, (int64_t)patch->sec_off};
+        buf_put(data_relas, &rel, sizeof(rel));
+      } else {
+        ExecSectionLayout layout = {0};
+        size_t file_n = 0;
+        exec_section_layout_fill(&layout, code->len, rodata ? rodata->len : 0,
+                                 data_sec ? data_sec->len : 0, &file_n);
+        (void)file_n;
+        uint64_t target = patch->sec == 2 ? layout.data_va + patch->sec_off :
+                          layout.rodata_va + patch->sec_off;
+        uint64_t rip_next = layout.text_va + patch->patch_off + 4;
+        int64_t rel = (int64_t)target - (int64_t)rip_next;
+        if (rel < INT32_MIN || rel > INT32_MAX) goto fail;
+        wr32(code->data + patch->patch_off, (uint32_t)(int32_t)rel);
+      }
     }
   }
+  free(const_sec_off);
   free(pc_offs);
   free(expect_patches.data);
   free(branch_patches.data);
@@ -5247,6 +5545,7 @@ static int compile_pure_blob_to_x86(const Blob *b, Buf *code, int exit_style, Bu
   return 1;
 
 fail:
+  free(const_sec_off);
   free(pc_offs);
   free(expect_patches.data);
   free(branch_patches.data);
@@ -5254,12 +5553,17 @@ fail:
   return 0;
 }
 
-static int compile_pure_u64_blob_to_x86_exit(const Blob *b, Buf *code, Buf *data) {
-  return compile_pure_blob_to_x86(b, code, 1, data);
+static int compile_pure_u64_blob_to_x86_exit(const Blob *b, Buf *code, Buf *rodata, Buf *data_sec) {
+  return compile_pure_blob_to_x86(b, code, 1, rodata, data_sec, NULL);
 }
 
-static int compile_pure_u64_blob_to_x86_ret(const Blob *b, Buf *code, Buf *data) {
-  return compile_pure_blob_to_x86(b, code, 0, data);
+static int compile_pure_u64_blob_to_x86_ret(const Blob *b, Buf *code, Buf *rodata, Buf *data_sec) {
+  return compile_pure_blob_to_x86(b, code, 0, rodata, data_sec, NULL);
+}
+
+static int compile_pure_u64_blob_to_x86_ret_obj(const Blob *b, Buf *code, Buf *rodata, Buf *data_sec,
+                                                Buf *data_relas) {
+  return compile_pure_blob_to_x86(b, code, 0, rodata, data_sec, data_relas);
 }
 
 static int aot_build_label_table(const AotFunc *func, LabelDef **out_labels,
@@ -5802,35 +6106,26 @@ done:
   return ok;
 }
 
+static int compile_pure_blob_to_elf64_obj_file(const Blob *b, const char *out_path,
+                                               const char *symbol);
+static int compile_pure_blob_to_elf64_exe_file(const Blob *b, const char *out_path,
+                                               const char *entry_symbol);
+
 static int cmd_aot_elf64_code(const char *blob_path, const char *out_path) {
   Blob b;
   unsigned char *owned = NULL;
-  Buf code = {0};
-  Buf data = {0};
   if (!blob_load_path(blob_path, &b, &owned)) {
     fprintf(stderr, "blob=parse_fail path=%s\n", blob_path);
     return 1;
   }
-  int ok = compile_pure_u64_blob_to_x86_exit(&b, &code, &data);
-  free(owned);
-  if (!ok) {
-    free(code.data);
-    free(data.data);
+  if (!compile_pure_blob_to_elf64_exe_file(&b, out_path, "nano_main")) {
+    free(owned);
     fprintf(stderr, "aot-elf64-code=unsupported_blob\n");
     return 2;
   }
-  if (!emit_elf64_code_data_file(out_path, code.data, code.len, data.data, data.len)) {
-    free(code.data);
-    free(data.data);
-    fprintf(stderr, "aot-elf64-code=write_fail path=%s\n", out_path);
-    return 3;
-  }
+  free(owned);
   printf("aot.code.output=%s\n", out_path);
-  printf("aot.code.bytes=%zu\n", 120 + code.len + data.len);
-  printf("aot.code.x86.bytes=%zu\n", code.len);
-  if (data.len) printf("aot.code.data.bytes=%zu\n", data.len);
-  free(code.data);
-  free(data.data);
+  printf("aot.code.symbol=nano_main\n");
   return 0;
 }
 
@@ -5838,42 +6133,81 @@ static int cmd_compile_elf64_code(const char *src_path, const char *out_path) {
   size_t blob_n = 0;
   unsigned char *blob_data = compile_source_path_to_blob(src_path, &blob_n);
   Blob b;
-  Buf code = {0};
-  Buf data = {0};
   if (!blob_data || !blob_init(&b, blob_data, blob_n)) {
     fprintf(stderr, "compile-elf64-code=compile_fail\n");
     free(blob_data);
     return 1;
   }
-  int ok = compile_pure_u64_blob_to_x86_exit(&b, &code, &data);
   free(blob_data);
-  if (!ok) {
-    free(code.data);
-    free(data.data);
+  if (!compile_pure_blob_to_elf64_exe_file(&b, out_path, "nano_main")) {
     fprintf(stderr, "compile-elf64-code=unsupported_source\n");
     return 2;
   }
-  if (!emit_elf64_code_data_file(out_path, code.data, code.len, data.data, data.len)) {
-    free(code.data);
-    free(data.data);
-    fprintf(stderr, "compile-elf64-code=write_fail path=%s\n", out_path);
-    return 3;
-  }
   printf("compile.elf64.output=%s\n", out_path);
-  printf("compile.elf64.bytes=%zu\n", 120 + code.len + data.len);
-  printf("compile.elf64.x86.bytes=%zu\n", code.len);
-  if (data.len) printf("compile.elf64.data.bytes=%zu\n", data.len);
-  free(code.data);
-  free(data.data);
+  printf("compile.elf64.symbol=nano_main\n");
   return 0;
+}
+
+static int compile_pure_blob_to_elf64_obj_file(const Blob *b, const char *out_path,
+                                               const char *symbol) {
+  Buf code = {0};
+  Buf rodata = {0};
+  Buf data_sec = {0};
+  Buf data_relas = {0};
+  if (!symbol[0]) return 0;
+  if (!compile_pure_u64_blob_to_x86_ret_obj(b, &code, &rodata, &data_sec, &data_relas)) {
+    free(code.data);
+    free(rodata.data);
+    free(data_sec.data);
+    free(data_relas.data);
+    return 0;
+  }
+  size_t code_n = code.len;
+  int emit_ok = 0;
+  if (rodata.len || data_sec.len) {
+    const char *sec_name = data_sec.len ? ".data" : ".rodata";
+    const unsigned char *sec = data_sec.len ? data_sec.data : rodata.data;
+    size_t sec_n = data_sec.len ? data_sec.len : rodata.len;
+    size_t rela_n = data_relas.len / sizeof(Elf64ObjRela);
+    emit_ok = emit_elf64_obj_text_data_section(out_path, symbol, code.data, code_n, sec_name, sec,
+                                               sec_n, (const Elf64ObjRela *)data_relas.data,
+                                               rela_n);
+  } else {
+    emit_ok = emit_elf64_obj_text_file(out_path, symbol, code.data, code.len);
+  }
+  free(code.data);
+  free(rodata.data);
+  free(data_sec.data);
+  free(data_relas.data);
+  return emit_ok;
+}
+
+static int link_elf64_exe_from_obj(const char *exe_path, const char *entry_symbol,
+                                   const char *obj_path) {
+  char *argv[] = {"nano-lisp-jit", "link-elf64-exe", (char *)exe_path, (char *)entry_symbol,
+                  (char *)obj_path, NULL};
+  return cmd_link_elf64_exe(5, argv);
+}
+
+static int compile_pure_blob_to_elf64_exe_file(const Blob *b, const char *out_path,
+                                               const char *entry_symbol) {
+  char tmp_obj[] = "/tmp/nano-jit-XXXXXX.o";
+  int fd = mkstemps(tmp_obj, 2);
+  if (fd < 0) return 0;
+  close(fd);
+  if (!compile_pure_blob_to_elf64_obj_file(b, tmp_obj, entry_symbol)) {
+    remove(tmp_obj);
+    return 0;
+  }
+  int rc = link_elf64_exe_from_obj(out_path, entry_symbol, tmp_obj);
+  remove(tmp_obj);
+  return rc == 0;
 }
 
 static int cmd_aot_elf64_obj_code(const char *blob_path, const char *out_path,
                                   const char *symbol) {
   Blob b;
   unsigned char *owned = NULL;
-  Buf code = {0};
-  Buf data = {0};
   if (!symbol[0]) {
     fprintf(stderr, "aot-elf64-obj-code=bad_symbol\n");
     return 1;
@@ -5882,28 +6216,14 @@ static int cmd_aot_elf64_obj_code(const char *blob_path, const char *out_path,
     fprintf(stderr, "blob=parse_fail path=%s\n", blob_path);
     return 1;
   }
-  int ok = compile_pure_u64_blob_to_x86_ret(&b, &code, &data);
-  free(owned);
-  if (!ok) {
-    free(code.data);
-    free(data.data);
-    fprintf(stderr, "aot-elf64-obj-code=unsupported_blob\n");
-    return 2;
-  }
-  size_t code_n = code.len;
-  if (data.len) buf_put(&code, data.data, data.len);
-  if (!emit_elf64_obj_text_file(out_path, symbol, code.data, code.len)) {
-    free(code.data);
-    free(data.data);
+  if (!compile_pure_blob_to_elf64_obj_file(&b, out_path, symbol)) {
+    free(owned);
     fprintf(stderr, "aot-elf64-obj-code=write_fail path=%s\n", out_path);
     return 3;
   }
+  free(owned);
   printf("aot.obj.code.output=%s\n", out_path);
   printf("aot.obj.code.symbol=%s\n", symbol);
-  printf("aot.obj.code.x86.bytes=%zu\n", code_n);
-  if (data.len) printf("aot.obj.code.data.bytes=%zu\n", data.len);
-  free(code.data);
-  free(data.data);
   return 0;
 }
 
