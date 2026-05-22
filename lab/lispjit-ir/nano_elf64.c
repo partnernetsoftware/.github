@@ -390,7 +390,7 @@ static int emit_elf64_obj_call_file(const char *out_path, const char *local, con
   return emit_elf64_obj_file(out_path, text, sizeof(text), syms, 2, relas, 1);
 }
 
-static int emit_elf64_exit_file(const char *out_path, uint8_t exit_code) {
+int emit_elf64_exit_file(const char *out_path, uint8_t exit_code) {
   unsigned char code[12];
   memset(code, 0, sizeof(code));
   code[0] = 0xb8;

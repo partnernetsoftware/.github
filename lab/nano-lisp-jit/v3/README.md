@@ -1,33 +1,31 @@
-# nano-lisp-jit v3 kickoff
+# nano-lisp-jit v3
 
-v2.5 **100%（scoped）** 完成。v3 **100%（scoped）** — core + B 层编排自举；Lisp codegen 未达成。
+v2.5 **100%** 完成。v3 **未完全 100%** — 缺 slice **4b-3**；**v3.5 冻结**。
 
-## 自举两层
+## 自举两层 + codegen
 
 | 层 | 含义 | 状态 |
 |----|------|------|
 | **A** | 用户 Lisp → `.lbin`/AOT；`nano-jit.com` self-pack | **100%** |
-| **B orchestration** | Lisp `bootstrap` 编排 genesis→gen1→gen2 | **100%** scoped — [`BOOTSTRAP-THOROUGH.md`](BOOTSTRAP-THOROUGH.md) |
-| **B codegen** | Lisp 生成 slice 机器码，零 `cc` | **v3.5** — 见 [`../v3.5/README.md`](../v3.5/README.md) |
+| **B 编排** | Lisp `bootstrap` genesis→gen1→gen2→gen3 | **100%** — [`BOOTSTRAP-THOROUGH.md`](BOOTSTRAP-THOROUGH.md) |
+| **B codegen 4b-1** | `build-slice-lisp`（`.lisp`→ELF） | **100%** |
+| **B codegen 4b-2** | `nano-cc` + `nano-cc-hello.c` | **100%** |
+| **B codegen 4b-3** | 全量 `lispjit.c` 零 `cc` | **0%** — [`CODEGEN.md`](CODEGEN.md) |
 
 ## v3 完成度
 
 | 切片 | 状态 |
 |------|------|
-| slice 0 `OP_CALL_FUNC` | **100%** |
-| slice 1 错误码/arity | **100%** |
-| slice 2 aarch64 slice | **100%** scoped |
-| slice 3 证据/bootstrap | **100%** |
-| slice 4 orchestration（B 层） | **100%** scoped |
-| slice 4b codegen → v3.5 nano-cc | **0%**（v3.5 kickoff） |
+| slice 0–3 core | **100%** |
+| slice 4 编排 | **100%** |
+| slice 4b-1 / 4b-2 | **100%** |
+| slice 4b-3 | **0%** |
 
-**v3 整体（scoped）**：**100%** — 反思见 [`REFLECTION.md`](REFLECTION.md)  
-**下一圈**：**v3.5 nano-cc** — [`../v3.5/README.md`](../v3.5/README.md) + ROADMAP v3.5 mindmap
+**v3 完全 100%**：**未签收**（~92%）。**v3.5**：待 4b-3 后 — [`../v3.5/README.md`](../v3.5/README.md)
 
 ## 命令
 
 ```bash
 bash lab/nano-lisp-jit/run.sh
-env NANO_SLICE_COMPILER=native bash lab/nano-lisp-jit/build_nano_jit.sh
 env NANO_SELFHOST_THOROUGH=1 NANO_SLICE_COMPILER=native bash lab/nano-lisp-jit/build_nano_jit.sh
 ```

@@ -1,6 +1,6 @@
 # v3 反思（scoped 全量签收）
 
-**范围**：v3 切片 0–4 orchestration **100%（scoped）**；slice 4b（Lisp codegen / 零 `cc`）未达成，单独计 0%。
+**范围**：v3 slice 0–3 + 4 编排 + 4b-1/4b-2 **100%**；4b-3（全量 `lispjit.c` 零 `cc`）**0%** — v3 完全 100% 未签收。
 
 ## 设计
 
@@ -25,7 +25,7 @@
 - `bootstrap-v3-selfhost-gen2.lisp`：gen1 slice runner 再跑 gen2，形成两代闭环证据。
 - 门禁：`run.sh` plan + arithmetic；`build_nano_jit.sh` `selfhost-thorough-round{1,2}`。
 
-## 下一圈（v3.5 nano-cc）
+## 下一圈（v3 slice 4b-3 — v3.5 冻结）
 
-- 见 [`../v3.5/README.md`](../v3.5/README.md) 与 ROADMAP **v3.5 洋葱 TDD mindmap**。
-- 第一刀：slice 0 `nano-cc` + hello.c；再 C-subset 前端 → `build-slice.role=nano-cc` → gen3 selfhost。
+- 见 [`CODEGEN.md`](CODEGEN.md)：扩展 `nano-cc` / IR，使 `build-slice` 对 `lispjit.c` 零 host `cc`。
+- 已落地：4b-1 `build-slice-lisp`、4b-2 `nano-cc-hello`、gen3 bootstrap。

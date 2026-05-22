@@ -199,7 +199,7 @@ nano-jit continuation after self-bootstrap v1
 │  ├─ 设计：A/B 自举分层；VM/AOT 参数与 exit 2 统一
 │  ├─ 实现：PARAM 不计入 PC；cross aarch64 + qemu static smoke
 │  ├─ 测试：self-packed v3 矩阵 + build.pass/skip/fail
-│  └─ 下一圈：**v3.5 nano-cc** — 见 [`v3.5/README.md`](v3.5/README.md) 与上方 v3.5 mindmap
+│  └─ 下一圈：**v3 slice 4b-3** — 见 [`v3/CODEGEN.md`](v3/CODEGEN.md)（v3.5 冻结）
 ├─ v2.5: v2 反思收口（把 scoped 缺口变成可测切片）
 │  ├─ 反思 · 设计（v2 发现的问题）
 │  │  ├─ scoped 100% 与 mindmap 脱节：「richer IR/VM 参数」只落了 AOT 单 `(param i64)`，VM 仍无参
@@ -263,16 +263,20 @@ nano-jit continuation after self-bootstrap v1
 | slice 1 错误码/arity | **100%** | VM `load-arg-i64` + `func-param-vm-i64`；AOT/VM 负向 exit 2；[`v3/ERROR-CODES.md`](v3/ERROR-CODES.md) |
 | slice 2 aarch64 native slice | **100%** scoped | cross gcc + static/qemu compile/run smoke；非 x86 duplicate |
 | slice 3 证据/bootstrap | **100%** | self-pack v3 VM 矩阵 + `build.pass/skip/fail` + hash distinct |
-| slice 4 compiler-in-lisp（B 层自举） | **100%** scoped orchestration | `build-slice` + `bootstrap-v3-selfhost-gen{1,2}`；[`v3/BOOTSTRAP-THOROUGH.md`](v3/BOOTSTRAP-THOROUGH.md) |
-| slice 4b Lisp codegen（零 cc） | **0%** | 长期路线；见 ROADMAP §5/§6 |
+| slice 4 compiler-in-lisp（B 层编排） | **100%** | `bootstrap-v3-selfhost-gen{1,2}`；[`v3/BOOTSTRAP-THOROUGH.md`](v3/BOOTSTRAP-THOROUGH.md) |
+| slice 4b-1 `build-slice-lisp` | **100%** | `.lisp` → ELF；[`v3/CODEGEN.md`](v3/CODEGEN.md) |
+| slice 4b-2 `nano-cc` hello | **100%** | `nano-cc-hello.c` → ELF；`build-slice.compiler=nano-cc` |
+| slice 4b-3 全量 `lispjit.c` 零 `cc` | **0%** | v3 **完全 100%** 阻塞项；**v3.5 不得启动** |
 
-**v3 core（slice 0–3）**：**100%（scoped）** — 反思见 [`v3/REFLECTION.md`](v3/REFLECTION.md)。  
-**v3 整体（scoped，含 B 层编排）**：**100%（scoped）** — Genesis `cc` + Lisp gen1→gen2 闭环；Codegen 未达成。见 [`v3/README.md`](v3/README.md)。  
-**下一圈**：**v3.5 nano-cc** — 见下方 mindmap + [`v3.5/README.md`](v3.5/README.md)。
+**v3 core（slice 0–3）**：**100%** — 反思见 [`v3/REFLECTION.md`](v3/REFLECTION.md)。  
+**v3 完全 100%**：**未签收** — 缺 4b-3；当前 **~92%**（4b-1/4b-2 已闭环）。见 [`v3/README.md`](v3/README.md)。  
+**v3.5**：**冻结** — 待 v3 完全 100% 后启动（见 [`v3.5/README.md`](v3.5/README.md)）。
 
-### v3.5 洋葱 TDD mindmap（nano-jit 实现 cc 编译器）
+### v3.5 洋葱 TDD mindmap（冻结 — 待 v3 完全 100%）
 
-v3 编排自举签收后，**v3.5** 把 v3 未完成的 **slice 4b（Codegen）** 收成可测切片：用 nano-jit 自身能力实现一个 **C-subset → ELF** 的 `nano-cc`，逐步替换 `build-slice` 对 host `cc` 的依赖。这是 ROADMAP §5（编译器自举）与 §6（替换外部 slice compiler）的**第一座可证明桥梁**。
+**门禁**：v3 slice **4b-3**（`lispjit.c` 零 host `cc`）签收前，不启动 v3.5 实现。下方 mindmap 为 4b-3 完成后的扩展规划（与 [`v3/CODEGEN.md`](v3/CODEGEN.md) 衔接）。
+
+v3 编排 + 4b-1/4b-2 签收后，**v3.5** 将把剩余 **slice 4b-3+** 收成可测切片：用 nano-jit 自身能力实现一个 **C-subset → ELF** 的 `nano-cc`，逐步替换 `build-slice` 对 host `cc` 的依赖。这是 ROADMAP §5（编译器自举）与 §6（替换外部 slice compiler）的**第一座可证明桥梁**。
 
 ```text
 v3.5: nano-cc（nano-jit 作为 cc 编译器）
@@ -399,15 +403,15 @@ v3.5: nano-cc（nano-jit 作为 cc 编译器）
 
 ## 当前下一刀
 
-**稳定基线**：v3 **100%（scoped）** — Genesis + gen1→gen2 编排自举；`run.sh` / `build_nano_jit.sh`（`NANO_SELFHOST_THOROUGH=1`）全绿。
+**稳定基线**：v3 core + 编排 + 4b-1/4b-2 证据全绿（`run.sh` 216 pass；`build_nano_jit.sh` 107 pass）。
 
-**当前下一刀（v3.5 kickoff）**：
+**当前下一刀（v3 完全 100%，非 v3.5）**：
 
-1. **slice 0**：`nano-cc` CLI + `nano-cc-hello.c` — 证明 nano-jit 路径可产出可执行 ELF（exit 42），不依赖 host `cc` 编该样例。
-2. **slice 1**：最小 C-subset 前端（单函数 + call）lower 到可编译 IR。
-3. **slice 3 前禁止贪大**：`lispjit.c` 全量翻译放到 slice 5 之后；先让 `build-slice.role=nano-cc` 对 hello/极小 TU 成立。
+1. **4b-3**：扩展 `nano-cc` / IR lowering，使 `(build-slice "lispjit.c" …)` 默认 `build-slice.role=lisp-codegen`（零 host `cc`）。
+2. **gen4 自举**：gen3 全 cc 路径改为 nano-cc 路径后，更新 `bootstrap-v3-selfhost-gen*.lisp` 与 `selfhost-thorough-*`。
+3. **v3.5 保持冻结**，直至上表 4b-3 = **100%**。
 
-历史基线：`nano-jit.com` self-pack；纯 VM → ELF/object；tiny linker 多 object — 均已签收（v1–v3）。
+历史基线：`nano-jit.com` self-pack；gen1→gen2→gen3 编排；`build-slice-lisp` + `nano-cc-hello` codegen — 已签收。
 
 ## v1.5 完成度评估
 

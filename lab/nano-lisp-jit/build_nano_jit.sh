@@ -122,6 +122,8 @@ BOOTSTRAP_V3_VM_MATRIX="$LAB_DIR/samples/bootstrap-v3-vm-selfpack-matrix.lisp"
 BOOTSTRAP_V3_BUILD_SLICE="$LAB_DIR/samples/bootstrap-v3-build-slice.lisp"
 BOOTSTRAP_V3_SELFHOST_GEN1="$LAB_DIR/samples/bootstrap-v3-selfhost-gen1.lisp"
 BOOTSTRAP_V3_SELFHOST_GEN2="$LAB_DIR/samples/bootstrap-v3-selfhost-gen2.lisp"
+BOOTSTRAP_V3_CODEGEN_SMOKE="$LAB_DIR/samples/bootstrap-v3-codegen-smoke.lisp"
+BOOTSTRAP_V3_SELFHOST_GEN3="$LAB_DIR/samples/bootstrap-v3-selfhost-gen3.lisp"
 SELFHOST_DIR="$BUILD_DIR/selfhost"
 NANO_SELFHOST_THOROUGH="${NANO_SELFHOST_THOROUGH:-1}"
 FUNC_PARAM_VM_I64_SRC="$LAB_DIR/samples/func-param-vm-i64.lisp"
@@ -557,6 +559,8 @@ if [ "$AARCH64_SLICE_SKIPPED" = 1 ]; then
     "$PACKER" run "$BUILD_DIR/native-smoke-func-param-vm-i64.lbin"
   run_case "run-bootstrap-v3-vm-selfpack-matrix" \
     bash -c "cd \"$ROOT_DIR\" && \"$PACKER\" run-bootstrap-plan \"$BOOTSTRAP_V3_VM_MATRIX\""
+  run_case "run-bootstrap-v3-codegen-smoke-native-slice" \
+    bash -c "cd \"$ROOT_DIR\" && \"$PACKER\" run-bootstrap-plan \"$BOOTSTRAP_V3_CODEGEN_SMOKE\""
   run_case "run-bootstrap-v25-native-selfpack" \
     bash -c "cd \"$ROOT_DIR\" && \"$PACKER\" run-bootstrap-plan \"$BOOTSTRAP_V25_NATIVE_SELFPACK\""
   if [ "$NANO_SELFHOST_THOROUGH" = "1" ]; then
@@ -672,6 +676,8 @@ run_case "nano-jit-selfpack-run-func-param-vm-i64" \
   "$BUILD_DIR/nano-jit.com" run "$BUILD_DIR/selfpack-func-param-vm-i64.lbin"
 run_case "nano-jit-selfpack-run-bootstrap-v3-vm-matrix" \
   bash -c "cd \"$ROOT_DIR\" && \"$BUILD_DIR/nano-jit.com\" run-bootstrap-plan \"$BOOTSTRAP_V3_VM_MATRIX\""
+run_case "nano-jit-selfpack-run-bootstrap-v3-codegen-smoke" \
+  bash -c "cd \"$ROOT_DIR\" && \"$BUILD_DIR/nano-jit.com\" run-bootstrap-plan \"$BOOTSTRAP_V3_CODEGEN_SMOKE\""
 run_case "nano-jit-compile-typed-values" "$BUILD_DIR/nano-jit.com" compile "$TYPED_SRC" "$TYPED_BLOB"
 run_case "nano-jit-run-typed-values" "$BUILD_DIR/nano-jit.com" run "$TYPED_BLOB"
 run_case "nano-jit-run-bootstrap-plan" "$BUILD_DIR/nano-jit.com" run-bootstrap-plan "$BOOTSTRAP_PLAN"
@@ -778,6 +784,15 @@ if [ "$NANO_SELFHOST_THOROUGH" = "1" ] && { [ "$(uname -m)" = "x86_64" ] || [ "$
     test -f "'"$SELFHOST_DIR"'/gen2-nano-jit.com"
     test -f "'"$SELFHOST_DIR"'/gen2-arithmetic.lbin"
     "'"$SELFHOST_DIR"'/gen2-slice-x86.elf" run "'"$SELFHOST_DIR"'/gen2-arithmetic.lbin"
+  '
+  run_case "selfhost-codegen-round3-gen2-runner" bash -c '
+    cd "'"$ROOT_DIR"'" && "'"$SELFHOST_DIR"'/gen2-slice-x86.elf" run-bootstrap-plan "'"$BOOTSTRAP_V3_SELFHOST_GEN3"'"
+  '
+  run_case "selfhost-codegen-round3-artifacts" bash -c '
+    test -x "'"$SELFHOST_DIR"'/gen3-slice-lisp-x86.elf"
+    test -x "'"$SELFHOST_DIR"'/gen3-slice-nano-cc-x86.elf"
+    "'"$SELFHOST_DIR"'/gen3-slice-lisp-x86.elf"; test $? -eq 42
+    "'"$SELFHOST_DIR"'/gen3-slice-nano-cc-x86.elf"; test $? -eq 42
   '
   {
     echo "selfhost.thorough=ok"

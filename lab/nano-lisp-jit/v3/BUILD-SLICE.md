@@ -6,11 +6,13 @@ Stage model (onion order):
 |-------|--------|--------|--------|
 | 0 seed | host `cc` / cosmocc | `nano-jit.x86_64` | **today** |
 | 1 graph | Lisp `bootstrap-plan` | user `.lbin` / APE steps | **today** (A-layer) |
-| 2 slice DSL | Lisp `(build-slice …)` | ELF payload bytes | **v3 slice 4 — orchestration 100% scoped** |
-| 3 self-host | `nano-jit.com` | next-gen `.com` without stage 0 | **future** |
+| 2 slice DSL | Lisp `(build-slice …)` / `(build-slice-lisp …)` | ELF payload bytes | **4b-1/4b-2 100%**；`lispjit.c` 仍 cc |
+| 3 self-host | gen1→gen2→gen3 | orchestration + codegen smoke | **100%** 编排；4b-3 待办 |
 
-Evidence anchor: `samples/bootstrap-v3-vm-selfpack-matrix.lisp` runs on self-packed runner when `NANO_SLICE_COMPILER=native`.
+Evidence: `bootstrap-v3-codegen-smoke.lisp`；`bootstrap-v3-selfhost-gen3.lisp`；[`CODEGEN.md`](CODEGEN.md).
 
-**Implemented (v3 ~25%)**: bootstrap `(build-slice "lispjit.c" "out.elf" "x86_64"|"aarch64")` — see `samples/bootstrap-v3-build-slice.lisp`. Emits `build-slice.role=stage0-bridge`. Still invokes host/cross `cc`, not Lisp codegen.
+**`build-slice`**: `nano-cc-hello.c` → `build-slice.role=lisp-codegen`；`lispjit.c` → `stage0-bridge`（cc）.
 
-Next: Lisp IR lowering for slice bytes; then drop stage0 `cc` for `lispjit.c`.
+**`build-slice-lisp`**: `nano-jit-slice-min.lisp` → `compile-elf64-code`（零 cc）.
+
+Next: **4b-3** — full `lispjit.c` via expanded `nano-cc`（v3 完全 100% 阻塞项；v3.5 冻结）。

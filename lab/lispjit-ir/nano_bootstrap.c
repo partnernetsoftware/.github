@@ -1,4 +1,63 @@
 /* Included from lispjit.c — bootstrap plan DSL parse + run-bootstrap-plan. */
+static int cmd_compile_elf64_code(const char *src_path, const char *out_path);
+
+static int build_slice_use_nano_cc(const char *src_path) {
+  const char *base = src_path;
+  const char *slash;
+  if (!src_path) return 0;
+  slash = strrchr(src_path, '/');
+  if (slash) base = slash + 1;
+  if (strcmp(base, "nano-cc-hello.c") == 0) return 1;
+  {
+    const char *env = getenv("NANO_BUILD_SLICE_CODEGEN");
+    if (env && env[0] == '1' && env[1] == '\0' && nano_cc_can_compile_path(src_path)) return 1;
+  }
+  return 0;
+}
+
+static int build_slice_via_nano_cc(const char *src_path, const char *out_path, const char *arch) {
+  int rc;
+  if (strcmp(arch, "x86_64") != 0 && strcmp(arch, "amd64") != 0) {
+    fprintf(stderr, "build-slice=nano_cc_arch_unsupported arch=%s\n", arch);
+    return 2;
+  }
+  printf("build-slice.compiler=nano-cc\n");
+  printf("build-slice.arch=%s\n", arch);
+  printf("build-slice.role=lisp-codegen\n");
+  printf("build-slice.source=%s\n", src_path);
+  printf("build-slice.output=%s\n", out_path);
+  rc = cmd_nano_cc_compile(src_path, out_path);
+  if (rc != 0) return rc;
+  return cmd_file_size(out_path);
+}
+
+static int cmd_build_slice_lisp(const char *src_path, const char *out_path, const char *arch) {
+  int rc;
+  if (!src_path || !out_path || !arch) {
+    fprintf(stderr, "build-slice-lisp=bad_args\n");
+    return 1;
+  }
+  if (strcmp(arch, "aarch64") == 0 || strcmp(arch, "arm64") == 0) {
+    fprintf(stderr, "build-slice-lisp=aarch64_not_implemented\n");
+    return 2;
+  }
+  if (strcmp(arch, "x86_64") != 0 && strcmp(arch, "amd64") != 0) {
+    fprintf(stderr, "build-slice-lisp=bad_arch arch=%s\n", arch);
+    return 2;
+  }
+  printf("build-slice.compiler=nano-jit-lisp\n");
+  printf("build-slice.arch=%s\n", arch);
+  printf("build-slice.role=lisp-codegen\n");
+  printf("build-slice.source=%s\n", src_path);
+  printf("build-slice.output=%s\n", out_path);
+  rc = cmd_compile_elf64_code(src_path, out_path);
+  if (rc != 0) {
+    fprintf(stderr, "build-slice-lisp=codegen_fail\n");
+    return rc;
+  }
+  return cmd_file_size(out_path);
+}
+
 static int cmd_build_slice(const char *src_path, const char *out_path, const char *arch) {
   char cmd[8192];
   const char *cc = "cc";
@@ -6,6 +65,7 @@ static int cmd_build_slice(const char *src_path, const char *out_path, const cha
     fprintf(stderr, "build-slice=bad_args\n");
     return 1;
   }
+  if (build_slice_use_nano_cc(src_path)) return build_slice_via_nano_cc(src_path, out_path, arch);
   if (strcmp(arch, "aarch64") == 0 || strcmp(arch, "arm64") == 0) {
     cc = "aarch64-linux-gnu-gcc";
   } else if (strcmp(arch, "x86_64") != 0 && strcmp(arch, "amd64") != 0) {
@@ -268,12 +328,14 @@ static int parse_bootstrap_plan(const char *src, BootstrapPlan *plan) {
         free(head);
         return 0;
       }
-    } else if (strcmp(head, "build-slice") == 0) {
+    } else if (strcmp(head, "build-slice") == 0 || strcmp(head, "build-slice-lisp") == 0) {
       char *arg0 = parse_string(&p);
       char *arg1 = parse_string(&p);
       char *arg2 = parse_string(&p);
+      uint32_t kind = strcmp(head, "build-slice") == 0 ? BOOTSTRAP_STEP_BUILD_SLICE :
+                      BOOTSTRAP_STEP_BUILD_SLICE_LISP;
       int ok = arg0 && arg1 && arg2 && eat(&p, ')') &&
-               bootstrap_add_step(plan, BOOTSTRAP_STEP_BUILD_SLICE, arg0, arg1, arg2, NULL);
+               bootstrap_add_step(plan, kind, arg0, arg1, arg2, NULL);
       if (!ok) {
         free(arg0);
         free(arg1);
@@ -634,6 +696,9 @@ static int cmd_run_bootstrap_plan(const char *plan_path) {
     } else if (step->kind == BOOTSTRAP_STEP_BUILD_SLICE) {
       printf("bootstrap-step.%zu=build-slice\n", i);
       rc = cmd_build_slice(step->arg0, step->arg1, step->arg2);
+    } else if (step->kind == BOOTSTRAP_STEP_BUILD_SLICE_LISP) {
+      printf("bootstrap-step.%zu=build-slice-lisp\n", i);
+      rc = cmd_build_slice_lisp(step->arg0, step->arg1, step->arg2);
     } else if (step->kind == BOOTSTRAP_STEP_INSPECT_APE) {
       printf("bootstrap-step.%zu=inspect-ape\n", i);
       rc = cmd_inspect_ape(step->arg0);

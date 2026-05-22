@@ -166,6 +166,7 @@
 #define BOOTSTRAP_STEP_PACK_APE_BARE 32u
 #define BOOTSTRAP_STEP_PACK_APE_BARE_ENV 33u
 #define BOOTSTRAP_STEP_BUILD_SLICE 34u
+#define BOOTSTRAP_STEP_BUILD_SLICE_LISP 35u
 
 typedef uint64_t (*jit_entry_fn)(void);
 typedef int (*ffi_i32_ptr_fn)(const char *);
