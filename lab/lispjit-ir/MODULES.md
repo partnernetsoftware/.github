@@ -4,7 +4,8 @@ Build remains one translation unit: `cc lispjit.c` includes submodules below.
 
 | File | Role |
 |------|------|
-| `lispjit.c` | Types, defines, shared helpers, include chain |
+| `lispjit.c` | Blob layout defines, shared helpers, include chain |
+| `nano_types.h` | `Module`, `AotModule`, `Bootstrap*`, `Value`/`ValueKind`, `OP_*` / `SRC_FORM_*` / `AOT_STMT_*` / `BOOTSTRAP_STEP_*` |
 | `nano_main.c` | `usage`, `main` (CLI dispatch) |
 | `ape_v2.{h,c}` | APE v2 binary header parse/validate/emit |
 | `nano_abi.c` | FFI import `SIG_*` IDs, `sig_parse` / `sig_name` |
@@ -22,4 +23,4 @@ Build remains one translation unit: `cc lispjit.c` includes submodules below.
 | `nano_lisp_parse.c` | lbin/ljir parser, `compile_module` |
 | `nano_bootstrap.c` | Bootstrap plan DSL, `run-bootstrap-plan` |
 
-v2 module split: **100%**. v2.5: `nano_util.c`, native self-pack oracle — see `lab/nano-lisp-jit/v2.5/README.md`. v3+: VM params, aarch64 native slice.
+v2 module split: **100%**. v2.5: `nano_types.h`, `nano_util.c`, native self-pack oracle — see `lab/nano-lisp-jit/v2.5/README.md`. v3+: VM params, aarch64 native slice.
