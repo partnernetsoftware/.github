@@ -245,7 +245,7 @@ nano-jit continuation after self-bootstrap v1
 下一圈（v2 kickoff）：
 
 1. **APE v2 / nano 自主 loader**（slice 1 **~95%**）：见下表；缺：去掉 shell stub 的 in-process loader（刻意留 slice 2+）。
-2. **`lispjit.c` 模块边界**（slice 2 未开）：parser/blob/vm/aot_x86/elf/linker/ape/bootstrap 等价拆分（见 v2 kickoff slice 2）。
+2. **`lispjit.c` 模块边界**（slice 2 **~15%**）：已抽出 `nano_manifest.c` + `nano_ape.c`（`#include` 进单 TU）；待拆 parser/blob/elf/linker。
 
 ### v2 slice 1 完成度（scoped）
 
