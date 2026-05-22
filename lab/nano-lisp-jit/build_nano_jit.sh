@@ -96,6 +96,7 @@ CONST_PTR_BLOB="$BUILD_DIR/const-ptr-load-u8.lbin"
 CONST_PTR_DIRECT_EXE="$BUILD_DIR/const_ptr_load_u8_direct"
 BOOTSTRAP_APE_NEG_SRC="$LAB_DIR/samples/bootstrap-ape-negative.lisp"
 BOOTSTRAP_DATA_NEG_SRC="$LAB_DIR/samples/bootstrap-data-negative.lisp"
+BOOTSTRAP_V25_NATIVE_SELFPACK="$LAB_DIR/samples/bootstrap-v25-native-selfpack.lisp"
 RODATA_READONLY_SRC="$LAB_DIR/samples/rodata-readonly.lisp"
 APE_FIXTURE_DIR="$LAB_DIR/.build"
 DATA_GOOD_OBJ="$APE_FIXTURE_DIR/data-good.o"
@@ -452,22 +453,40 @@ if [ "$AARCH64_SLICE_SKIPPED" = 1 ]; then
   PACKER="$BUILD_DIR/nano-jit.x86_64"
   {
     printf '\n## self-pack-nano-jit-com\n'
-    echo "self-pack=skipped"
-    echo "self-pack.reason=aarch64_slice_unavailable"
-    echo "exit.status=0"
+    echo "self-pack=oracle-x86-duplicate"
+    echo "slice.aarch64=x86_64_duplicate"
+    echo "slice.aarch64.reason=cosmocc_missing"
   } | tee -a "$REPORT"
+  run_case "self-pack-nano-jit-com" "$PACKER" pack-ape \
+    "$BUILD_DIR/nano-jit.com" \
+    "$BUILD_DIR/nano-jit.x86_64" \
+    "$BUILD_DIR/nano-jit.x86_64"
+  run_case "inspect-nano-jit-com" bash -c '
+    out=$("'"$PACKER"'" inspect-ape "'"$BUILD_DIR/nano-jit.com"'" 2>&1) || exit 1
+    printf "%s\n" "$out"
+    printf "%s\n" "$out" | grep -q "inspect-ape.container=ape-v2"
+  '
+  run_case "run-ape-nano-jit-com-smoke" bash -c '
+    out=$("'"$PACKER"'" run-ape "'"$BUILD_DIR/nano-jit.com"'" 2>&1) || true
+    printf "%s\n" "$out"
+    printf "%s\n" "$out" | grep -q "run-ape.arch="
+  '
   run_case "native-x86-slice-compile-arithmetic" \
     "$PACKER" compile "$ARITH_SRC" "$BUILD_DIR/native-smoke-arithmetic.lbin"
   run_case "native-x86-slice-run-arithmetic" \
     "$PACKER" run "$BUILD_DIR/native-smoke-arithmetic.lbin"
+  run_case "run-bootstrap-v25-native-selfpack" \
+    bash -c "cd \"$ROOT_DIR\" && \"$PACKER\" run-bootstrap-plan \"$BOOTSTRAP_V25_NATIVE_SELFPACK\""
   {
+    echo "nano-jit.com.bytes=$(bytes_of "$BUILD_DIR/nano-jit.com")"
+    echo "nano-jit.com.fnv1a64=$(hash_of "$BUILD_DIR/nano-jit.com")"
     echo "nano-jit.x86_64.bytes=$(bytes_of "$BUILD_DIR/nano-jit.x86_64")"
     echo "nano-jit.x86_64.fnv1a64=$(hash_of "$BUILD_DIR/nano-jit.x86_64")"
-    echo "nano-jit.aarch64.bytes=0"
-    echo "nano-jit.aarch64.fnv1a64=0"
+    echo "nano-jit.aarch64.bytes=$(bytes_of "$BUILD_DIR/nano-jit.x86_64")"
+    echo "nano-jit.aarch64.fnv1a64=$(hash_of "$BUILD_DIR/nano-jit.x86_64")"
   } | tee -a "$REPORT"
   echo "bootstrap.report=$REPORT" | tee -a "$REPORT"
-  ls -l "$BUILD_DIR"/nano-jit.x86_64
+  ls -l "$BUILD_DIR"/nano-jit.com "$BUILD_DIR"/nano-jit.x86_64 2>/dev/null || ls -l "$BUILD_DIR"/nano-jit.x86_64
   exit 0
 fi
 
