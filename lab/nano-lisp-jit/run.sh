@@ -172,37 +172,11 @@ run_case() {
   return "$status"
 }
 
+# shellcheck source=skip_registry.sh
+source "$LAB_DIR/skip_registry.sh"
+
 has_qemu_aarch64() {
   command -v qemu-aarch64-static >/dev/null 2>&1 || command -v qemu-aarch64 >/dev/null 2>&1
-}
-
-host_is_linux_x86_64() {
-  [ "$(uname -s)" = "Linux" ] && { [ "$(uname -m)" = "x86_64" ] || [ "$(uname -m)" = "amd64" ]; }
-}
-
-cosmocc_available() {
-  for tool in x86_64-unknown-cosmo-cc cosmocc; do
-    if command -v "$tool" >/dev/null 2>&1; then
-      return 0
-    fi
-  done
-  for dir in \
-    "$ROOT_DIR/third_party/cosmocc/bin" \
-    /opt/cosmocc/bin \
-    /opt/cosmo/bin; do
-    if [ -x "$dir/x86_64-unknown-cosmo-cc" ] && [ -x "$dir/aarch64-unknown-cosmo-cc" ]; then
-      return 0
-    fi
-  done
-  return 1
-}
-
-skip_case() {
-  local name="$1"
-  local reason="$2"
-  log ""
-  log "## $name"
-  log "skip: $reason"
 }
 
 log "# nano-lisp-jit .lisp to .lbin probe"
@@ -341,13 +315,9 @@ if [ -f "$APE_COM" ]; then
       printf "%s\n" "$out" | grep -q "run-ape.force_arch=aarch64"
     '
   elif has_qemu_aarch64; then
-    log ""
-    log "## run-ape-aarch64-nano-jit-com"
-    log "skip: nano-jit.com missing (run build_nano_jit.sh first)"
+    skip_case "run-ape-aarch64-nano-jit-com" "nano-jit.com missing (run build_nano_jit.sh first)"
   else
-    log ""
-    log "## run-ape-aarch64"
-    log "skip: no qemu-aarch64-static or qemu-aarch64"
+    skip_case "run-ape-aarch64" "no qemu-aarch64-static or qemu-aarch64"
   fi
 fi
 
@@ -604,9 +574,7 @@ if [ "$(uname -m)" = "x86_64" ] || [ "$(uname -m)" = "amd64" ]; then
   run_case "emit-elf64-obj-duplicate-nano-ext" "$RUNNER" emit-elf64-obj-ret "$DUP42_OBJ" nano_ext 7
   run_case "tiny-link-reject-duplicate-symbol" "$RUNNER" link-expect-exit 2 "$BUILD_DIR/dup_should_fail" nano_call "$CALL42_OBJ" "$CALL42_CALLEE_OBJ" "$DUP42_OBJ"
 else
-  log ""
-  log "## run-elf64-exit42"
-  log "skip: host is not x86_64"
+  skip_case "run-elf64-exit42" "host is not x86_64"
 fi
 
 run_case "compile-libc-smoke-lbin" "$RUNNER" compile "$SMOKE_SRC" "$SMOKE_BLOB"
