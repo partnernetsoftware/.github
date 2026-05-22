@@ -104,7 +104,7 @@ static void bootstrap_plan_free(BootstrapPlan *plan) {
 }
 
 static int add_import(Module *m, char *name, char *lib, char *symbol, char *sig) {
-  uint32_t sig_id = parse_sig_id(sig);
+  uint32_t sig_id = sig_parse(sig);
   if (sig_id == UINT32_MAX) {
     fprintf(stderr, "unsupported.signature=%s\n", sig);
     return 0;
@@ -154,7 +154,7 @@ static AotFunc *aot_add_func(AotModule *m, char *name, int is_global) {
     m->funcs = p;
     m->func_cap = next;
   }
-  m->funcs[m->func_count] = (AotFunc){name, is_global, NULL, 0, 0};
+  m->funcs[m->func_count] = (AotFunc){name, is_global, NULL, 0, 0, 0};
   return &m->funcs[m->func_count++];
 }
 

@@ -5,6 +5,7 @@ Build remains one translation unit: `cc lispjit.c` includes submodules below.
 | File | Role |
 |------|------|
 | `lispjit.c` | CLI glue, `parse_size_arg`, `main` |
+| `nano_abi.c` | FFI import `SIG_*` IDs, `sig_parse` / `sig_name` |
 | `ape_v2.{h,c}` | APE v2 binary header parse/validate/emit |
 | `nano_manifest.c` | Payload markers, comment manifest parse/dump, `inspect-app`, `is_elf` |
 | `nano_compile_cli.c` | `compile` CLI |
@@ -19,4 +20,4 @@ Build remains one translation unit: `cc lispjit.c` includes submodules below.
 | `nano_lisp_parse.c` | lbin/ljir parser, `compile_module` |
 | `nano_bootstrap.c` | Bootstrap plan DSL, `run-bootstrap-plan` |
 
-Next: ABI / slice 3; optional `pack-ape-bare` polish.
+Next: slice 3 (function params/locals, ABI descriptors); optional `pack-ape-bare` polish.

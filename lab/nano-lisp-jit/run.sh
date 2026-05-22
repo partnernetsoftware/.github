@@ -15,6 +15,7 @@ CTRL_SRC="$LAB_DIR/samples/control-flow.lisp"
 MULTI_SRC="$LAB_DIR/samples/multi-func.lisp"
 MULTI_CTRL_SRC="$LAB_DIR/samples/multi-func-control-flow.lisp"
 MULTI_PTR_SRC="$LAB_DIR/samples/multi-func-ptr.lisp"
+FUNC_PARAM_I64_SRC="$LAB_DIR/samples/func-param-i64.lisp"
 TYPE_BAD_PTR_OP_SRC="$LAB_DIR/samples/type-error-ptr-op-bad.lisp"
 TYPE_BAD_ADD_PTR_SRC="$LAB_DIR/samples/type-error-add-ptr-bad.lisp"
 TYPE_BAD_SUB_PTR_SRC="$LAB_DIR/samples/type-error-sub-ptr-bad.lisp"
@@ -33,6 +34,7 @@ TYPE_BAD_BRANCH_SRC="$LAB_DIR/samples/type-error-branch-bad.lisp"
 TYPE_BAD_EXPECT_PTR_SRC="$LAB_DIR/samples/type-error-expect-ptr-bad.lisp"
 BOOTSTRAP_SRC="$LAB_DIR/samples/bootstrap-smoke.lisp"
 BOOTSTRAP_AOT_SRC="$LAB_DIR/samples/bootstrap-aot-smoke.lisp"
+BOOTSTRAP_ABI_SRC="$LAB_DIR/samples/bootstrap-abi-smoke.lisp"
 BOOTSTRAP_APE_SRC="$LAB_DIR/samples/bootstrap-ape-smoke.lisp"
 BOOTSTRAP_APE_NEG_SRC="$LAB_DIR/samples/bootstrap-ape-negative.lisp"
 BOOTSTRAP_DATA_NEG_SRC="$LAB_DIR/samples/bootstrap-data-negative.lisp"
@@ -77,6 +79,7 @@ MULTI_CTRL_LINK_EXE="$BUILD_DIR/multi_func_control_linked"
 MULTI_PTR_OBJ="$BUILD_DIR/multi_func_ptr.o"
 MULTI_PTR_LINK_EXE="$BUILD_DIR/multi_func_ptr_linked"
 MULTI_PTR_DIRECT_EXE="$BUILD_DIR/multi_func_ptr_direct"
+FUNC_PARAM_I64_EXE="$BUILD_DIR/func_param_i64_direct"
 TYPE_BAD_PTR_OP_EXE="$BUILD_DIR/type_error_ptr_op_bad"
 TYPE_BAD_PTR_OP_OBJ="$BUILD_DIR/type_error_ptr_op_bad.o"
 TYPE_BAD_ADD_PTR_OBJ="$BUILD_DIR/type_error_add_ptr_bad.o"
@@ -238,6 +241,8 @@ log "bootstrap.source.path=$BOOTSTRAP_SRC"
 log "bootstrap.source.bytes=$(bytes_of "$BOOTSTRAP_SRC")"
 log "bootstrap.aot.source.path=$BOOTSTRAP_AOT_SRC"
 log "bootstrap.aot.source.bytes=$(bytes_of "$BOOTSTRAP_AOT_SRC")"
+log "bootstrap.abi.source.path=$BOOTSTRAP_ABI_SRC"
+log "bootstrap.abi.source.bytes=$(bytes_of "$BOOTSTRAP_ABI_SRC")"
 log "bootstrap.ape.source.path=$BOOTSTRAP_APE_SRC"
 log "bootstrap.ape.source.bytes=$(bytes_of "$BOOTSTRAP_APE_SRC")"
 log "smoke.source.path=$SMOKE_SRC"
@@ -288,6 +293,8 @@ run_case "execute-const-ptr-load-u8-lbin" "$RUNNER" run "$CONST_PTR_BLOB"
 run_case "run-bootstrap-plan" "$RUNNER" run-bootstrap-plan "$BOOTSTRAP_SRC"
 
 run_case "run-bootstrap-aot-plan" "$RUNNER" run-bootstrap-plan "$BOOTSTRAP_AOT_SRC"
+
+run_case "run-bootstrap-abi-smoke-plan" "$RUNNER" run-bootstrap-plan "$BOOTSTRAP_ABI_SRC"
 
 run_case "run-bootstrap-ape-plan" "$RUNNER" run-bootstrap-plan "$BOOTSTRAP_APE_SRC"
 
@@ -394,6 +401,16 @@ if [ -f "$BUILD_DIR/ape-v1-legacy.com" ]; then
     printf "%s\n" "$out"
     printf "%s\n" "$out" | grep -q "inspect-ape.container=ape-v1"
   '
+  if host_is_linux_x86_64; then
+    run_case "run-ape-v1-legacy-memfd-loader-smoke" bash -c '
+      out=$("'"$RUNNER"'" run-ape "'"$BUILD_DIR/ape-v1-legacy.com"'" 2>&1) || true
+      printf "%s\n" "$out"
+      printf "%s\n" "$out" | grep -q "run-ape.loader=memfd"
+      printf "%s\n" "$out" | grep -q "run-ape.exit=42"
+    '
+  else
+    skip_case "run-ape-v1-legacy-memfd-loader-smoke" "host is not Linux x86_64 (uname -s=$(uname -s) -m=$(uname -m))"
+  fi
 fi
 
 run_case "compile-control-flow-lbin" "$RUNNER" compile "$CTRL_SRC" "$CTRL_BLOB"
@@ -494,6 +511,8 @@ if [ "$(uname -m)" = "x86_64" ] || [ "$(uname -m)" = "amd64" ]; then
   run_case "run-tiny-linked-multi-func-ptr1" "$RUNNER" run-expect-exit "$MULTI_PTR_LINK_EXE" 1
   run_case "compile-multi-func-ptr-elf64-exe1" "$RUNNER" compile-elf64-exe "$MULTI_PTR_SRC" "$MULTI_PTR_DIRECT_EXE" nano_multi_ptr_direct
   run_case "run-direct-compiled-multi-func-ptr1" "$RUNNER" run-expect-exit "$MULTI_PTR_DIRECT_EXE" 1
+  run_case "compile-func-param-i64-elf64-exe42" "$RUNNER" compile-elf64-exe "$FUNC_PARAM_I64_SRC" "$FUNC_PARAM_I64_EXE" nano_func_param
+  run_case "run-direct-compiled-func-param-i64-42" "$RUNNER" run-expect-exit "$FUNC_PARAM_I64_EXE" 42
   run_case "reject-ptr-op-type-error-elf64-code" "$RUNNER" compile-expect-exit 2 compile-elf64-code "$TYPE_BAD_PTR_OP_SRC" "$TYPE_BAD_PTR_OP_EXE"
   run_case "reject-ptr-op-type-error-elf64-obj" "$RUNNER" compile-expect-exit 2 compile-elf64-obj-code "$TYPE_BAD_PTR_OP_SRC" "$TYPE_BAD_PTR_OP_OBJ" nano_type_bad_ptr_op
   run_case "reject-ptr-op-type-error-elf64-exe" "$RUNNER" compile-expect-exit 2 compile-elf64-exe "$TYPE_BAD_PTR_OP_SRC" "$TYPE_BAD_PTR_OP_EXE" nano_type_bad_ptr_op

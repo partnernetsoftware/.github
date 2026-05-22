@@ -38,12 +38,6 @@ extern void *cosmo_dlsym(void *handle, const char *symbol);
 #define BLOB_EXT "ljir"
 #endif
 
-#define SIG_ADDR 0u
-#define SIG_U64_PTR 1u
-#define SIG_I32_PTR 2u
-#define SIG_I32_PTR_PTR 3u
-#define SIG_I32_VOID 4u
-#define SIG_I32_I32 5u
 #define CONST_STRING 1u
 #define OP_CALL_IMPORT_CONST 1u
 #define OP_RET_LAST 2u
@@ -162,6 +156,7 @@ extern void *cosmo_dlsym(void *handle, const char *symbol);
 #define AOT_STMT_STORE_U8 34u
 #define AOT_STMT_STORE_U16 35u
 #define AOT_STMT_STORE_U32 36u
+#define AOT_STMT_LOAD_ARG_I64 37u
 
 #define BOOTSTRAP_STEP_COMPILE 1u
 #define BOOTSTRAP_STEP_HASH 2u
@@ -246,6 +241,7 @@ typedef struct {
   AotStmt *stmts;
   size_t stmt_count;
   size_t stmt_cap;
+  int param_count;
 } AotFunc;
 
 typedef struct {
@@ -582,28 +578,6 @@ static void print_value(FILE *out, Value v) {
   fprintf(out, "<?>");
 }
 
-static uint32_t parse_sig_id(const char *sig) {
-  if (strcmp(sig, "addr") == 0) return SIG_ADDR;
-  if (strcmp(sig, "u64(ptr)") == 0) return SIG_U64_PTR;
-  if (strcmp(sig, "i32(ptr)") == 0) return SIG_I32_PTR;
-  if (strcmp(sig, "i32(ptr,ptr)") == 0) return SIG_I32_PTR_PTR;
-  if (strcmp(sig, "i32()") == 0) return SIG_I32_VOID;
-  if (strcmp(sig, "i32(i32)") == 0) return SIG_I32_I32;
-  return UINT32_MAX;
-}
-
-static const char *sig_name(uint32_t sig) {
-  switch (sig) {
-    case SIG_ADDR: return "addr";
-    case SIG_U64_PTR: return "u64(ptr)";
-    case SIG_I32_PTR: return "i32(ptr)";
-    case SIG_I32_PTR_PTR: return "i32(ptr,ptr)";
-    case SIG_I32_VOID: return "i32()";
-    case SIG_I32_I32: return "i32(i32)";
-    default: return "unknown";
-  }
-}
-
 static void buf_reserve(Buf *b, size_t add) {
   if (b->len + add <= b->cap) return;
   size_t next = b->cap ? b->cap * 2 : 256;
@@ -700,6 +674,8 @@ static int make_executable(const char *path) {
 #endif
 }
 
+
+#include "nano_abi.c"
 
 #include "nano_lisp_parse.c"
 
