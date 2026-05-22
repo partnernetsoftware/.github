@@ -1,4 +1,31 @@
 /* Included from lispjit.c — bootstrap plan DSL parse + run-bootstrap-plan. */
+static int cmd_build_slice(const char *src_path, const char *out_path, const char *arch) {
+  char cmd[8192];
+  const char *cc = "cc";
+  if (!src_path || !out_path || !arch) {
+    fprintf(stderr, "build-slice=bad_args\n");
+    return 1;
+  }
+  if (strcmp(arch, "aarch64") == 0 || strcmp(arch, "arm64") == 0) {
+    cc = "aarch64-linux-gnu-gcc";
+  } else if (strcmp(arch, "x86_64") != 0 && strcmp(arch, "amd64") != 0) {
+    fprintf(stderr, "build-slice=bad_arch arch=%s\n", arch);
+    return 2;
+  }
+  snprintf(cmd, sizeof(cmd), "%s -DNANO_LISP_JIT -Os -s '%s' -ldl -o '%s'", cc, src_path,
+           out_path);
+  printf("build-slice.compiler=%s\n", cc);
+  printf("build-slice.arch=%s\n", arch);
+  printf("build-slice.role=stage0-bridge\n");
+  printf("build-slice.source=%s\n", src_path);
+  printf("build-slice.output=%s\n", out_path);
+  if (system(cmd) != 0) {
+    fprintf(stderr, "build-slice=compile_fail\n");
+    return 2;
+  }
+  return cmd_file_size(out_path);
+}
+
 static int parse_bootstrap_plan(const char *src, BootstrapPlan *plan) {
   const char *p = src;
   if (!eat(&p, '(')) return 0;
@@ -234,6 +261,19 @@ static int parse_bootstrap_plan(const char *src, BootstrapPlan *plan) {
       char *arg2 = parse_string(&p);
       int ok = arg0 && arg1 && arg2 && eat(&p, ')') &&
                bootstrap_add_step(plan, BOOTSTRAP_STEP_PACK_APE_BARE, arg0, arg1, arg2, NULL);
+      if (!ok) {
+        free(arg0);
+        free(arg1);
+        free(arg2);
+        free(head);
+        return 0;
+      }
+    } else if (strcmp(head, "build-slice") == 0) {
+      char *arg0 = parse_string(&p);
+      char *arg1 = parse_string(&p);
+      char *arg2 = parse_string(&p);
+      int ok = arg0 && arg1 && arg2 && eat(&p, ')') &&
+               bootstrap_add_step(plan, BOOTSTRAP_STEP_BUILD_SLICE, arg0, arg1, arg2, NULL);
       if (!ok) {
         free(arg0);
         free(arg1);
@@ -591,6 +631,9 @@ static int cmd_run_bootstrap_plan(const char *plan_path) {
     } else if (step->kind == BOOTSTRAP_STEP_PACK_APE_BARE_ENV) {
       printf("bootstrap-step.%zu=pack-ape-bare-env\n", i);
       rc = cmd_pack_ape_bare_env(step->arg0, step->arg1, step->arg2);
+    } else if (step->kind == BOOTSTRAP_STEP_BUILD_SLICE) {
+      printf("bootstrap-step.%zu=build-slice\n", i);
+      rc = cmd_build_slice(step->arg0, step->arg1, step->arg2);
     } else if (step->kind == BOOTSTRAP_STEP_INSPECT_APE) {
       printf("bootstrap-step.%zu=inspect-ape\n", i);
       rc = cmd_inspect_ape(step->arg0);

@@ -11,4 +11,6 @@ Stage model (onion order):
 
 Evidence anchor: `samples/bootstrap-v3-vm-selfpack-matrix.lisp` runs on self-packed runner when `NANO_SLICE_COMPILER=native`.
 
-Next implementation slice: add `(build-slice source.c out.elf arch)` bootstrap step that shells to `cc` with explicit report field `build-slice.role=stage0-bridge` (documented bridge, not claiming B-layer done).
+**Implemented (v3 ~25%)**: bootstrap `(build-slice "lispjit.c" "out.elf" "x86_64"|"aarch64")` — see `samples/bootstrap-v3-build-slice.lisp`. Emits `build-slice.role=stage0-bridge`. Still invokes host/cross `cc`, not Lisp codegen.
+
+Next: Lisp IR lowering for slice bytes; then drop stage0 `cc` for `lispjit.c`.

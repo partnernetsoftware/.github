@@ -44,6 +44,7 @@ BOOTSTRAP_APE_NEG_SRC="$LAB_DIR/samples/bootstrap-ape-negative.lisp"
 BOOTSTRAP_DATA_NEG_SRC="$LAB_DIR/samples/bootstrap-data-negative.lisp"
 BOOTSTRAP_V25_NATIVE_SELFPACK_SRC="$LAB_DIR/samples/bootstrap-v25-native-selfpack.lisp"
 BOOTSTRAP_V3_PACK_BARE_SRC="$LAB_DIR/samples/bootstrap-v3-pack-bare.lisp"
+BOOTSTRAP_V3_BUILD_SLICE_SRC="$LAB_DIR/samples/bootstrap-v3-build-slice.lisp"
 FUNC_CALL_VM_SMOKE_SRC="$LAB_DIR/samples/func-call-vm-smoke.lisp"
 FUNC_CALL_VM_SMOKE_BLOB="$BUILD_DIR/func-call-vm-smoke.lbin"
 FUNC_PARAM_VM_I64_SRC="$LAB_DIR/samples/func-param-vm-i64.lisp"
@@ -676,6 +677,17 @@ else
   skip_case "inspect-ape-v3-bare-env" "bootstrap-v3-pack-bare.com missing after plan"
   skip_case "run-ape-v3-bare-env-exit42" "bootstrap-v3-pack-bare.com missing after plan"
 fi
+
+# --- bootstrap-v3 build-slice plan (slice4 stage0 bridge) ---
+log "bootstrap.v3.build.slice.source.path=$BOOTSTRAP_V3_BUILD_SLICE_SRC"
+run_case "run-bootstrap-v3-build-slice-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V3_BUILD_SLICE_SRC"'" 2>&1) || true
+  printf "%s\n" "$out"
+  printf "%s\n" "$out" | grep -q "bootstrap-step.*=build-slice"
+  printf "%s\n" "$out" | grep -q "build-slice.role=stage0-bridge"
+  test -f "'"$ROOT_DIR"'/lab/nano-lisp-jit/.build/bootstrap-v3-slice-aarch64.elf"
+  file -b "'"$ROOT_DIR"'/lab/nano-lisp-jit/.build/bootstrap-v3-slice-aarch64.elf" | grep -q "ARM aarch64"
+'
 
 # --- bootstrap-v3 VM self-pack matrix (plan only; full run needs nano-jit.x86_64 slice) ---
 log "bootstrap.v3.vm.matrix.source.path=$BOOTSTRAP_V3_VM_MATRIX_SRC"

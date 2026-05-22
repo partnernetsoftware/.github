@@ -254,11 +254,11 @@ nano-jit continuation after self-bootstrap v1
 |------|------|------|
 | slice 0 VM `OP_CALL_FUNC` | **100%** | `OP_CALL_FUNC` + `(func …)`/`(call …)`；`func-call-vm-smoke.lisp` + `run.sh` |
 | slice 1 错误码/arity | **100%** | VM `load-arg-i64` + `func-param-vm-i64`；AOT/VM 负向 exit 2；[`v3/ERROR-CODES.md`](v3/ERROR-CODES.md) |
-| slice 2 aarch64 native slice | **0%** | `NANO_SLICE_COMPILER=native` 真 aarch64，非 x86 duplicate oracle |
-| slice 3 证据/bootstrap | **~85%** | `bootstrap-v3-vm-selfpack-matrix.lisp` + native slice 全链 |
-| slice 4 compiler-in-lisp（B 层自举） | **~10%** | [`v3/BUILD-SLICE.md`](v3/BUILD-SLICE.md) stage 模型入账 |
+| slice 2 aarch64 native slice | **~70%** scoped | `aarch64-linux-gnu-gcc` cross；`slice.aarch64.mode=native-cross`；hash 与 x86 分离 |
+| slice 3 证据/bootstrap | **~90%** | VM matrix + build-slice plan + payload hash distinct |
+| slice 4 compiler-in-lisp（B 层自举） | **~25%** | bootstrap `(build-slice …)` stage0-bridge；[`BUILD-SLICE.md`](v3/BUILD-SLICE.md) |
 
-**v3 整体**：**~55%** — slice1 签收；B 层仅文档/矩阵占位；见 [`v3/README.md`](v3/README.md)。
+**v3 整体**：**~65%** — 真双架构 slice（cross）；B 层仍为 cc 桥接；见 [`v3/README.md`](v3/README.md)。
 
 ### 0. 证据基线
 

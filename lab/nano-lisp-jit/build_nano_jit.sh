@@ -93,8 +93,7 @@ BOOTSTRAP_APE_NEG_SRC="$LAB_DIR/samples/bootstrap-ape-negative.lisp"
 BOOTSTRAP_DATA_NEG_SRC="$LAB_DIR/samples/bootstrap-data-negative.lisp"
 BOOTSTRAP_V25_NATIVE_SELFPACK="$LAB_DIR/samples/bootstrap-v25-native-selfpack.lisp"
 BOOTSTRAP_V3_VM_MATRIX="$LAB_DIR/samples/bootstrap-v3-vm-selfpack-matrix.lisp"
-FUNC_PARAM_VM_I64_SRC="$LAB_DIR/samples/func-param-vm-i64.lisp"
-BOOTSTRAP_V3_VM_MATRIX="$LAB_DIR/samples/bootstrap-v3-vm-selfpack-matrix.lisp"
+BOOTSTRAP_V3_BUILD_SLICE="$LAB_DIR/samples/bootstrap-v3-build-slice.lisp"
 FUNC_PARAM_VM_I64_SRC="$LAB_DIR/samples/func-param-vm-i64.lisp"
 RODATA_READONLY_SRC="$LAB_DIR/samples/rodata-readonly.lisp"
 APE_FIXTURE_DIR="$LAB_DIR/.build"
@@ -415,6 +414,19 @@ case "$NANO_SLICE_COMPILER" in
     run_case "build-x86_64-slice" cc -DNANO_LISP_JIT -Os -s "$NANO_C" -ldl -o "$BUILD_DIR/nano-jit.x86_64"
     if cosmocc_bin_usable "$COSMO_BIN"; then
       run_case "build-aarch64-slice" "$ARM_CC" "${COMMON[@]}" -o "$BUILD_DIR/nano-jit.aarch64"
+      echo "slice.aarch64.compiler=cosmocc" | tee -a "$REPORT"
+      echo "slice.aarch64.mode=cosmo" | tee -a "$REPORT"
+    elif aarch64_cross_cc_available; then
+      ARM_CROSS="$(aarch64_cross_cc)"
+      run_case "build-aarch64-slice-cross" "$ARM_CROSS" -DNANO_LISP_JIT -Os -s "$NANO_C" -ldl \
+        -o "$BUILD_DIR/nano-jit.aarch64"
+      {
+        echo "slice.aarch64.compiler=$ARM_CROSS"
+        echo "slice.aarch64.mode=native-cross"
+      } | tee -a "$REPORT"
+      run_case "verify-aarch64-slice-elf" bash -c '
+        file -b "'"$BUILD_DIR/nano-jit.aarch64"'" | grep -q "ARM aarch64"
+      '
     else
       {
         printf '\n## build-aarch64-slice\n'
@@ -531,6 +543,16 @@ run_case "inspect-nano-jit-com" bash -c '
   printf "%s\n" "$out"
   printf "%s\n" "$out" | grep -q "inspect-ape.container=ape-v2"
 '
+
+if [ -f "$BUILD_DIR/nano-jit.aarch64" ] && [ -f "$BUILD_DIR/nano-jit.x86_64" ]; then
+  run_case "native-slice-payload-hash-distinct" bash -c '
+    h0=$("'"$PACKER"'" file-hash "'"$BUILD_DIR/nano-jit.x86_64"'" 2>/dev/null | tail -1)
+    h1=$("'"$PACKER"'" file-hash "'"$BUILD_DIR/nano-jit.aarch64"'" 2>/dev/null | tail -1)
+    printf "slice.x86_64.hash=%s\n" "$h0"
+    printf "slice.aarch64.hash=%s\n" "$h1"
+    [ -n "$h0" ] && [ -n "$h1" ] && [ "$h0" != "$h1" ]
+  '
+fi
 
 if [ "$(uname -m)" = "x86_64" ] || [ "$(uname -m)" = "amd64" ]; then
   run_case "run-ape-nano-jit-com-smoke" bash -c '

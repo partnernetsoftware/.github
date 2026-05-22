@@ -40,6 +40,14 @@ cosmocc_bin_usable() {
   [ -n "$bin" ] && [ -x "$bin/x86_64-unknown-cosmo-cc" ] && [ -x "$bin/aarch64-unknown-cosmo-cc" ]
 }
 
+aarch64_cross_cc_available() {
+  command -v aarch64-linux-gnu-gcc >/dev/null 2>&1
+}
+
+aarch64_cross_cc() {
+  command -v aarch64-linux-gnu-gcc
+}
+
 cosmocc_available() {
   for tool in x86_64-unknown-cosmo-cc cosmocc; do
     if command -v "$tool" >/dev/null 2>&1; then
