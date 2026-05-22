@@ -228,6 +228,8 @@ cat > "$BOOTSTRAP_PLAN" <<EOF
   (run-expect-exit "$BUILD_DIR/bootstrap-aot-ptr-values.elf" 1)
   (compile-elf64-code "$CONST_PTR_SRC" "$BUILD_DIR/bootstrap-aot-const-ptr-load-u8.elf")
   (run-expect-exit "$BUILD_DIR/bootstrap-aot-const-ptr-load-u8.elf" 1)
+  (compile-elf64-code "$LAB_DIR/samples/rodata-readonly.lisp" "$BUILD_DIR/bootstrap-aot-rodata-readonly.elf")
+  (run-expect-exit "$BUILD_DIR/bootstrap-aot-rodata-readonly.elf" 0)
   (aot-elf64-obj-ret "$BUILD_DIR/bootstrap-aot-arithmetic.lbin" "$BUILD_DIR/bootstrap-aot-arithmetic-ret.o" "nano_bootstrap_arith_ret")
   (link-elf64-exe "$BUILD_DIR/bootstrap-aot-arithmetic-ret-linked" "nano_bootstrap_arith_ret" "$BUILD_DIR/bootstrap-aot-arithmetic-ret.o")
   (file-size "$BUILD_DIR/bootstrap-aot-arithmetic-ret-linked")
@@ -442,6 +444,8 @@ run_case "nano-jit-compile-cross-object-const-ptr-callee" "$BUILD_DIR/nano-jit.c
 run_case "nano-jit-aot-cross-object-const-ptr-callee" "$BUILD_DIR/nano-jit.com" aot-elf64-obj-code "$CONST_PTR_BLOB" "$CONST_PTR_CALLEE_OBJ" nano_const_ptr_callee
 run_case "nano-jit-tiny-link-cross-object-const-ptr-data" "$BUILD_DIR/nano-jit.com" link-elf64-exe "$CONST_PTR_CROSS_LINK_EXE" nano_const_ptr_call "$CONST_PTR_CALL_OBJ" "$CONST_PTR_CALLEE_OBJ"
 run_case "nano-jit-run-cross-object-const-ptr-data" "$BUILD_DIR/nano-jit.com" run-expect-exit "$CONST_PTR_CROSS_LINK_EXE" 1
+run_case "nano-jit-compile-rodata-readonly-elf64" "$BUILD_DIR/nano-jit.com" compile-elf64-code "$LAB_DIR/samples/rodata-readonly.lisp" "$BUILD_DIR/rodata_readonly_self_packed.elf"
+run_case "nano-jit-run-rodata-readonly-elf64" "$BUILD_DIR/nano-jit.com" run-expect-exit "$BUILD_DIR/rodata_readonly_self_packed.elf" 0
 run_case "nano-jit-emit-elf64-obj-duplicate-nano-ext" "$BUILD_DIR/nano-jit.com" emit-elf64-obj-ret "$DUP42_OBJ" nano_ext 7
 run_case "nano-jit-tiny-link-reject-duplicate-symbol" "$BUILD_DIR/nano-jit.com" link-expect-exit 2 "$BUILD_DIR/dup_should_fail" nano_call "$CALL42_OBJ" "$CALL42_CALLEE_OBJ" "$DUP42_OBJ"
 run_case "nano-jit-compile-smoke-repeat" "$BUILD_DIR/nano-jit.com" compile "$SMOKE_SRC" "$SMOKE_BLOB_REPEAT"

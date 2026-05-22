@@ -35,6 +35,10 @@ BOOTSTRAP_SRC="$LAB_DIR/samples/bootstrap-smoke.lisp"
 BOOTSTRAP_AOT_SRC="$LAB_DIR/samples/bootstrap-aot-smoke.lisp"
 BOOTSTRAP_APE_SRC="$LAB_DIR/samples/bootstrap-ape-smoke.lisp"
 BOOTSTRAP_APE_NEG_SRC="$LAB_DIR/samples/bootstrap-ape-negative.lisp"
+BOOTSTRAP_DATA_NEG_SRC="$LAB_DIR/samples/bootstrap-data-negative.lisp"
+DATA_GOOD_OBJ="$BUILD_DIR/data-good.o"
+DATA_BAD_RELOC_TYPE_OBJ="$BUILD_DIR/data-bad-reloc-type.o"
+DATA_BAD_RELOC_SYM_OBJ="$BUILD_DIR/data-bad-reloc-sym.o"
 APE_COM="$BUILD_DIR/bootstrap-ape.com"
 SMOKE_SRC="$LAB_DIR/samples/libc-smoke.lisp"
 BLOB="$BUILD_DIR/strlen.lbin"
@@ -420,6 +424,11 @@ if [ "$(uname -m)" = "x86_64" ] || [ "$(uname -m)" = "amd64" ]; then
   run_case "tiny-link-elf64-obj-call42" "$RUNNER" link-elf64-exe "$CALL42_LINK_EXE" nano_call "$CALL42_OBJ" "$CALL42_CALLEE_OBJ"
   log "call42.tiny.link.bytes=$(bytes_of "$CALL42_LINK_EXE")"
   run_case "run-tiny-linked-call42" "$RUNNER" run-expect-exit "$CALL42_LINK_EXE" 42
+  run_case "aot-const-ptr-data-good-obj" "$RUNNER" aot-elf64-obj-code "$CONST_PTR_BLOB" "$DATA_GOOD_OBJ" nano_main
+  run_case "make-data-reloc-negative-fixtures" python3 "$LAB_DIR/make_data_reloc_fixtures.py" "$DATA_GOOD_OBJ" "$DATA_BAD_RELOC_TYPE_OBJ" "$DATA_BAD_RELOC_SYM_OBJ"
+  run_case "tiny-link-reject-bad-data-reloc-type" "$RUNNER" link-expect-exit 4 "$BUILD_DIR/data-bad-reloc-type-fail" nano_main "$DATA_BAD_RELOC_TYPE_OBJ"
+  run_case "tiny-link-reject-bad-data-reloc-sym" "$RUNNER" link-expect-exit 4 "$BUILD_DIR/data-bad-reloc-sym-fail" nano_main "$DATA_BAD_RELOC_SYM_OBJ"
+  run_case "run-bootstrap-data-negative-plan" "$RUNNER" run-bootstrap-plan "$BOOTSTRAP_DATA_NEG_SRC"
   run_case "emit-elf64-obj-duplicate-nano-ext" "$RUNNER" emit-elf64-obj-ret "$DUP42_OBJ" nano_ext 7
   run_case "tiny-link-reject-duplicate-symbol" "$RUNNER" link-expect-exit 2 "$BUILD_DIR/dup_should_fail" nano_call "$CALL42_OBJ" "$CALL42_CALLEE_OBJ" "$DUP42_OBJ"
 else

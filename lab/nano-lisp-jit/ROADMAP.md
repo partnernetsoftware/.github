@@ -239,6 +239,7 @@ nano-jit continuation after self-bootstrap v1
 - v1.5 slice 1 首轮：`pack-ape` 写出 `ape-v1` manifest，新增 `inspect-ape` CLI，bootstrap DSL 支持 `pack-ape` / `inspect-ape`，并加入 checked-in `bootstrap-ape-smoke.lisp`。
 - v1.5 slice 1–3 二轮（约 50%）：`pack-ape` manifest 写入 slice fnv1a64 hash；`inspect-ape` 校验 container/offset/hash；新增 `inspect-expect-exit`、`run-ape`、`run-ape-expect-exit`；`bootstrap-ape-negative.lisp` + `make_ape_fixtures.py` 覆盖 bad manifest/container/offset/hash；`run-ape` 按 host arch 抽取 payload 执行。
 - v1.5 data/section 三轮（约 65%）：const 字符串按 `store` 分 `.rodata`/`.data`；`emit_elf64_obj_text_data_section` + `link-elf64-exe` 解析 `.rela.rodata`/`.rela.data` 并打 PC32；可执行文件多 PT_LOAD（text RX、rodata R、data RW）且段间页对齐；`compile-elf64-code`/`aot-elf64-code` 统一经 object+link；样例 `rodata-readonly.lisp`、`const-ptr-load-u8.lisp` 在 `run.sh` 通过。
+- v1.5 data/section 四轮（约 85%）：`make_data_reloc_fixtures.py` + `bootstrap-data-negative.lisp` 覆盖 unsupported data reloc；`bootstrap-aot-smoke` / `build_nano_jit.sh` 增加 rodata-readonly；self-packed `nano-jit.com` 复验 `compile-elf64-code` rodata 路径。
 - AOT app 直接从 `.com` payload 读取内嵌 blob 执行。
 - AOT app 结构化 manifest、`inspect-app` 和 `run-app`。
 - `pack-ape` 已能组合 x86_64/aarch64 slice 与 container metadata，形成当前最小 `.com`；但 loader/多架构执行选择仍主要依赖现有 slice/stub 约定，尚未形成 nano 自主的完整 APE loader 格式。
