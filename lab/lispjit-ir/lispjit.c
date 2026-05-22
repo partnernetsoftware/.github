@@ -3369,13 +3369,14 @@ static const char *elf64_phdr_flags_name(uint32_t flags) {
 }
 
 static int cmd_inspect_elf64_exe(const char *path) {
+  enum { INSPECT_ELF64_EHDR_SIZE = 64, INSPECT_ELF64_PHDR_SIZE = 56 };
   size_t n = 0;
   unsigned char *data = read_file(path, &n);
   if (!data) {
     fprintf(stderr, "read=fail path=%s\n", path);
     return 1;
   }
-  if (!is_elf(data, n) || n < ELF64_EHDR_SIZE || rd16(data + 16) != 2) {
+  if (!is_elf(data, n) || n < INSPECT_ELF64_EHDR_SIZE || rd16(data + 16) != 2) {
     fprintf(stderr, "inspect-elf64-exe=not_exec_elf path=%s\n", path);
     free(data);
     return 2;
@@ -3383,8 +3384,8 @@ static int cmd_inspect_elf64_exe(const char *path) {
   size_t phoff = (size_t)rd64(data + 32);
   uint16_t phentsize = rd16(data + 54);
   uint16_t phnum = rd16(data + 56);
-  if (phentsize != ELF64_PHDR_SIZE || phoff > n ||
-      (size_t)phnum > (n - phoff) / ELF64_PHDR_SIZE) {
+  if (phentsize != INSPECT_ELF64_PHDR_SIZE || phoff > n ||
+      (size_t)phnum > (n - phoff) / INSPECT_ELF64_PHDR_SIZE) {
     fprintf(stderr, "inspect-elf64-exe=bad_phdr path=%s\n", path);
     free(data);
     return 2;
@@ -3393,7 +3394,7 @@ static int cmd_inspect_elf64_exe(const char *path) {
   printf("elf64.exec.phnum=%u\n", phnum);
   size_t load_count = 0;
   for (uint16_t i = 0; i < phnum; ++i) {
-    const unsigned char *ph = data + phoff + (size_t)i * ELF64_PHDR_SIZE;
+    const unsigned char *ph = data + phoff + (size_t)i * INSPECT_ELF64_PHDR_SIZE;
     uint32_t type = rd32(ph + 0);
     uint32_t flags = rd32(ph + 4);
     uint64_t off = rd64(ph + 8);
