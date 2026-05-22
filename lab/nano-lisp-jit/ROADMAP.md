@@ -153,21 +153,37 @@ nano-jit continuation after self-bootstrap v1
 │  └─ 验收
 │     ├─ build_nano_jit.sh 可选择 nano-generated x86_64 payload
 │     └─ 下一阶段再补 aarch64 payload generator
-└─ v3+: AI-friendly universal substrate
+├─ v2.5 反思 · 汇入 v3（设计 / 实现 / 测试）
+│  ├─ 设计
+│  │  ├─ VM「参数对齐」靠 inline main 样例闭环，真 `(func)`+`(call)` 必须 v3 做 `OP_CALL_FUNC`
+│  │  ├─ `NANO_PACK_APE_MODE` 已统一 env，但默认仍 stub；bootstrap DSL 未覆盖 bare 模式
+│  │  ├─ native self-pack 用 x86 双行 oracle 填满 aarch64 行，非真实双架构 slice
+│  │  └─ AOT 双参靠 `(save-top-i64)` 隐式栈，缺显式 `(call2 …)` / arity 检查
+│  ├─ 实现
+│  │  ├─ `skip_registry.sh` 仅 `run.sh` 接入；`build_nano_jit.sh` 仍内联 host/cosmocc 检测
+│  │  ├─ `nano_types.h` 已收口，但 `lispjit.c` 仍含大量 rd32/Value helpers，可再薄化
+│  │  └─ 负向 AOT：parse 放行 `load-arg-i64`，compile 阶段 exit 2 — 行为对但需 v3 文档化错误码表
+│  └─ 测试
+│     ├─ `verify_tu.sh` 只验证整 TU 编译，不探测单模块 `#include` 顺序回归
+│     ├─ skip 无汇总计数（PASS/SKIP/FAIL 统计）
+│     └─ cosmocc-less CI 依赖 oracle self-pack，与「真 .com 矩阵」仍有差距
+└─ v3+: AI-friendly universal substrate（kickoff）
    ├─ 目标
-   │  ├─ nano-jit 不以 JVM/GCC 为能力上限，而是形成自己的可计算世界观
-   │  ├─ 以图灵完备、可读、可验证、AI 友好为核心约束
-   │  └─ 逐步吃下 WASM/JVM/JS/SQL 等外部语义，转译到自身 IR/VM/AOT/APE 体系
+   │  ├─ VM：`OP_CALL_FUNC` + `(func …)` module 形态（对齐 AOT 参数模型）
+   │  ├─ slice：aarch64 `NANO_SLICE_COMPILER=native` 或独立后端，去掉 oracle duplicate
+   │  ├─ pack/loader：bare 默认可选；纯 ELF loader 分层（exec 层 vs 解析层）
+   │  └─ 外部语义（WASM/JS/SQL）仍以 fixture→lower→VM 为先
    ├─ 洋葱 TDD
-   │  ├─ import: 先读最小外部格式 fixture
-   │  ├─ lower: 转成 nano IR 或 typed DSL
-   │  ├─ execute: VM 跑通行为等价
-   │  ├─ compile: x86_64 AOT/object/tiny-link 跑通
-   │  ├─ package: 进入 nano APE payload/manifest
-   │  └─ self-host: 用 nano-jit.com 复验同一导入/编译矩阵
+   │  ├─ slice 0: `OP_CALL_FUNC` VM + `func-call-smoke.lisp` + run.sh
+   │  ├─ slice 1: AOT/VM 参数 arity 负向统一错误码
+   │  ├─ slice 2: aarch64 native slice（非 duplicate oracle）
+   │  ├─ slice 3: bootstrap 覆盖 `NANO_PACK_APE_MODE` + skip 统计
+   │  ├─ import/lower/execute/compile/package/self-host（延续 v2 mindmap）
+   │  └─ 每步 native + self-packed 复验
    └─ 验收
-      ├─ 每吞下一种外部语义，都留下 fixture、负向样例、bootstrap DSL 证据
-      └─ v3 之后继续按同一洋葱层扩张，而不是把 v2 当终局
+      ├─ v2/v2.5 fixture 不退化
+      ├─ 真 multi-arch `.com` 或文档化 aarch64 缺口
+      └─ v3 进度表可追踪（非 scoped 空话）
 ├─ v2.5: v2 反思收口（把 scoped 缺口变成可测切片）
 │  ├─ 反思 · 设计（v2 发现的问题）
 │  │  ├─ scoped 100% 与 mindmap 脱节：「richer IR/VM 参数」只落了 AOT 单 `(param i64)`，VM 仍无参
@@ -217,9 +233,11 @@ nano-jit continuation after self-bootstrap v1
 | slice 2 `nano_util` | **100%** | `parse_size_arg` 唯一实现 |
 | slice 3 VM/AOT 参数对齐 | **100%** scoped | AOT 双参 + 负向；VM `func-param-vm-parity`；user func call = v3 |
 | slice 2b `nano_types.h` | **100%** | 类型/opcode 收口 |
+| slice 4 skip 注册表 | **100%** | `skip_registry.sh` |
+| slice 5 pack 默认 | **100%** scoped | `NANO_PACK_APE_MODE=stub\|bare` |
 | TU 编译探针 | **100%** | `verify_tu.sh` + `run.sh` |
 
-**v2.5 整体**：约 **88%** — slice3 VM parity 已 scoped；余：skip 注册表、pack 默认策略。
+**v2.5 整体**：**100%（scoped）** — 已签收；下一圈 v3（见下方 mindmap + `v2.5` 反思汇入）。
 
 ### 0. 证据基线
 
