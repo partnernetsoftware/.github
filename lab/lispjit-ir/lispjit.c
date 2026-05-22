@@ -4352,7 +4352,9 @@ static const unsigned char *elf_rela_row(const ElfObj *o, size_t idx) {
   return idx < o->rela_count ? o->rela + idx * ELF64_RELA_SIZE : NULL;
 }
 
-static int parse_elf_obj(const unsigned char *data, size_t size, ElfObj *o) {
+static int parse_elf_obj(const unsigned char *data, size_t size, ElfObj *o,
+                         const char **reason) {
+  if (reason) *reason = "not_reloc_elf";
   if (!is_elf(data, size) || size < ELF64_EHDR_SIZE || rd16(data + 16) != 1 ||
       rd16(data + 18) != ELF64_MACHINE_X86_64) {
     return 0;
@@ -4390,7 +4392,11 @@ static int parse_elf_obj(const unsigned char *data, size_t size, ElfObj *o) {
     const char *name = elf_str(data + shstr_off, (size_t)shstr_size, name_off);
     if (!name || off > size || n > size - off) return 0;
     if (strcmp(name, ".text") == 0) {
-      if (o->text_idx || type != 1 || flags != 0x6) return 0;
+      if (o->text_idx) return 0;
+      if (type != 1 || flags != 0x6) {
+        if (reason) *reason = "bad_text_flags";
+        return 0;
+      }
       o->text_idx = i;
       o->text = data + off;
       o->text_size = (size_t)n;
@@ -4424,13 +4430,19 @@ static int parse_elf_obj(const unsigned char *data, size_t size, ElfObj *o) {
     }
   }
   if (!o->text || !o->symtab || !o->strtab) return 0;
-  if (o->rela && o->rela_link_idx != o->symtab_idx) return 0;
+  if (o->rela && o->rela_link_idx != o->symtab_idx) {
+    if (reason) *reason = "bad_rela_symtab_link";
+    return 0;
+  }
   if (o->data_sec_size && !o->rela) return 0;
   size_t local_count = 0;
   int saw_global = 0;
   for (size_t s = 1; s < o->sym_count; ++s) {
     if (elf_sym_binding(o, s) == 0) {
-      if (saw_global) return 0;
+      if (saw_global) {
+        if (reason) *reason = "bad_symtab_order";
+        return 0;
+      }
       local_count++;
     } else {
       saw_global = 1;
@@ -4466,8 +4478,9 @@ static int cmd_inspect_elf64_obj(const char *path) {
     fprintf(stderr, "read=fail path=%s\n", path);
     return 1;
   }
-  if (!parse_elf_obj(data, n, &o)) {
-    fprintf(stderr, "inspect-elf64-obj=not_reloc_elf path=%s\n", path);
+  const char *reason = "not_reloc_elf";
+  if (!parse_elf_obj(data, n, &o, &reason)) {
+    fprintf(stderr, "inspect-elf64-obj=%s path=%s\n", reason, path);
     free(data);
     return 2;
   }
@@ -4661,8 +4674,9 @@ static int cmd_link_elf64_exe(int argc, char **argv) {
   Buf data = {0};
   for (int i = 0; i < obj_count; ++i) {
     owned[i] = read_file(argv[4 + i], &owned_n[i]);
-    if (!owned[i] || !parse_elf_obj(owned[i], owned_n[i], &objs[i])) {
-      fprintf(stderr, "link-elf64-exe=parse_fail path=%s\n", argv[4 + i]);
+    const char *reason = "not_reloc_elf";
+    if (!owned[i] || !parse_elf_obj(owned[i], owned_n[i], &objs[i], &reason)) {
+      fprintf(stderr, "link-elf64-exe=%s path=%s\n", reason, argv[4 + i]);
       goto done;
     }
     objs[i].out_off = code_off;

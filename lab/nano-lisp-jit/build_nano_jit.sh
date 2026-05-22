@@ -61,6 +61,25 @@ expect_inspect_line() {
   esac
 }
 
+expect_inspect_failure() {
+  local runner="$1"
+  local mode="$2"
+  local path="$3"
+  local needle="$4"
+  local out=""
+  local status=0
+  out=$("$runner" "$mode" "$path" 2>&1 >/dev/null) || status=$?
+  printf '%s.status=%s\n' "$mode" "$status"
+  printf '%s.stderr=%s\n' "$mode" "$out"
+  if [ "$status" -ne 2 ]; then
+    return 1
+  fi
+  case "$out" in
+    *"$needle"*) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
 COSMO_BIN="$(discover_cosmo_bin)"
 X86_CC="$COSMO_BIN/x86_64-unknown-cosmo-cc"
 ARM_CC="$COSMO_BIN/aarch64-unknown-cosmo-cc"
@@ -534,6 +553,9 @@ run_case "nano-jit-inspect-cross-object-const-ptr-callee" "$BUILD_DIR/nano-jit.c
 run_case "nano-jit-expect-cross-object-const-ptr-section-data" expect_inspect_line "$BUILD_DIR/nano-jit.com" inspect-elf64-obj "$CONST_PTR_CALLEE_OBJ" "elf64.obj.layout=section_data"
 run_case "nano-jit-expect-cross-object-const-ptr-local-symbol" expect_inspect_line "$BUILD_DIR/nano-jit.com" inspect-elf64-obj "$CONST_PTR_CALLEE_OBJ" "elf64.obj.data.local_symbol=.Ldata0"
 run_case "nano-jit-prepare-bad-data-reloc-objs" make_bad_data_reloc_objs
+run_case "nano-jit-inspect-reject-bad-object-flags" expect_inspect_failure "$BUILD_DIR/nano-jit.com" inspect-elf64-obj "$CONST_PTR_BAD_FLAGS_OBJ" "bad_text_flags"
+run_case "nano-jit-inspect-reject-bad-rela-link" expect_inspect_failure "$BUILD_DIR/nano-jit.com" inspect-elf64-obj "$CONST_PTR_BAD_RELA_LINK_OBJ" "bad_rela_symtab_link"
+run_case "nano-jit-inspect-reject-bad-symtab-order" expect_inspect_failure "$BUILD_DIR/nano-jit.com" inspect-elf64-obj "$CONST_PTR_BAD_SYMTAB_ORDER_OBJ" "bad_symtab_order"
 run_case "nano-jit-link-reject-bad-object-flags" "$BUILD_DIR/nano-jit.com" link-expect-exit 2 "$CONST_PTR_BAD_LINK_EXE" nano_const_ptr_callee "$CONST_PTR_BAD_FLAGS_OBJ"
 run_case "nano-jit-link-reject-bad-rela-link" "$BUILD_DIR/nano-jit.com" link-expect-exit 2 "$CONST_PTR_BAD_LINK_EXE" nano_const_ptr_callee "$CONST_PTR_BAD_RELA_LINK_OBJ"
 run_case "nano-jit-link-reject-bad-symtab-order" "$BUILD_DIR/nano-jit.com" link-expect-exit 2 "$CONST_PTR_BAD_LINK_EXE" nano_const_ptr_callee "$CONST_PTR_BAD_SYMTAB_ORDER_OBJ"

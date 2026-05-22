@@ -337,6 +337,24 @@ expect_link_failure() {
   esac
 }
 
+expect_inspect_elf64_obj_failure() {
+  local path="$1"
+  local expected_msg="$2"
+  local out=""
+  local status=0
+  out=$("$RUNNER" inspect-elf64-obj "$path" 2>&1 >/dev/null) || status=$?
+  printf 'inspect-elf64-obj.path=%s\n' "$path"
+  printf 'inspect-elf64-obj.status=%s\n' "$status"
+  printf 'inspect-elf64-obj.stderr=%s\n' "$out"
+  if [ "$status" -ne 2 ]; then
+    return 1
+  fi
+  case "$out" in
+    *"$expected_msg"*) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
 expect_elf64_exec_load_split() {
   local path="$1"
   local out=""
@@ -539,9 +557,12 @@ if [ "$(uname -m)" = "x86_64" ] || [ "$(uname -m)" = "amd64" ]; then
   run_case "aot-const-ptr-load-u8-elf64-obj-code1" "$RUNNER" aot-elf64-obj-code "$CONST_PTR_BLOB" "$CONST_PTR_CODE_OBJ" nano_const_ptr_code
   run_case "inspect-aot-const-ptr-obj-data-pc32" expect_elf64_obj_data_pc32 "$CONST_PTR_CODE_OBJ"
   run_case "prepare-bad-data-reloc-objs" make_bad_data_reloc_objs
-  run_case "link-reject-bad-object-flags" expect_link_failure "$CONST_PTR_BAD_LINK_EXE" nano_const_ptr_code "$CONST_PTR_BAD_FLAGS_OBJ" 2 "parse_fail"
-  run_case "link-reject-bad-rela-link" expect_link_failure "$CONST_PTR_BAD_LINK_EXE" nano_const_ptr_code "$CONST_PTR_BAD_RELA_LINK_OBJ" 2 "parse_fail"
-  run_case "link-reject-bad-symtab-order" expect_link_failure "$CONST_PTR_BAD_LINK_EXE" nano_const_ptr_code "$CONST_PTR_BAD_SYMTAB_ORDER_OBJ" 2 "parse_fail"
+  run_case "inspect-elf64-obj-reject-bad-text-flags" expect_inspect_elf64_obj_failure "$CONST_PTR_BAD_FLAGS_OBJ" "bad_text_flags"
+  run_case "inspect-elf64-obj-reject-bad-rela-link" expect_inspect_elf64_obj_failure "$CONST_PTR_BAD_RELA_LINK_OBJ" "bad_rela_symtab_link"
+  run_case "inspect-elf64-obj-reject-bad-symtab-order" expect_inspect_elf64_obj_failure "$CONST_PTR_BAD_SYMTAB_ORDER_OBJ" "bad_symtab_order"
+  run_case "link-reject-bad-object-flags" expect_link_failure "$CONST_PTR_BAD_LINK_EXE" nano_const_ptr_code "$CONST_PTR_BAD_FLAGS_OBJ" 2 "bad_text_flags"
+  run_case "link-reject-bad-rela-link" expect_link_failure "$CONST_PTR_BAD_LINK_EXE" nano_const_ptr_code "$CONST_PTR_BAD_RELA_LINK_OBJ" 2 "bad_rela_symtab_link"
+  run_case "link-reject-bad-symtab-order" expect_link_failure "$CONST_PTR_BAD_LINK_EXE" nano_const_ptr_code "$CONST_PTR_BAD_SYMTAB_ORDER_OBJ" 2 "bad_symtab_order"
   run_case "link-reject-unsupported-data-reloc" expect_link_failure "$CONST_PTR_BAD_LINK_EXE" nano_const_ptr_code "$CONST_PTR_BAD_RELOC_OBJ" 4 "unsupported_reloc"
   run_case "link-reject-bad-data-section-index" expect_link_failure "$CONST_PTR_BAD_LINK_EXE" nano_const_ptr_code "$CONST_PTR_BAD_SHNDX_OBJ" 4 "unsupported_local_reloc"
   run_case "tiny-link-aot-const-ptr-load-u8-obj-code1" "$RUNNER" link-elf64-exe "$CONST_PTR_LINK_EXE" nano_const_ptr_code "$CONST_PTR_CODE_OBJ"
