@@ -10,6 +10,7 @@ ARITH_I64_SRC="$LAB_DIR/samples/arithmetic-i64.lisp"
 TYPED_SRC="$LAB_DIR/samples/typed-values.lisp"
 PTR_SRC="$LAB_DIR/samples/ptr-values.lisp"
 CONST_PTR_SRC="$LAB_DIR/samples/const-ptr-load-u8.lisp"
+RODATA_READONLY_SRC="$LAB_DIR/samples/rodata-readonly.lisp"
 CTRL_SRC="$LAB_DIR/samples/control-flow.lisp"
 MULTI_SRC="$LAB_DIR/samples/multi-func.lisp"
 MULTI_CTRL_SRC="$LAB_DIR/samples/multi-func-control-flow.lisp"
@@ -63,6 +64,7 @@ CONST_PTR_CODE="$BUILD_DIR/const_ptr_load_u8_code.elf"
 CONST_PTR_CODE_OBJ="$BUILD_DIR/const_ptr_load_u8_code.o"
 CONST_PTR_LINK_EXE="$BUILD_DIR/const_ptr_load_u8_linked"
 CONST_PTR_DIRECT_EXE="$BUILD_DIR/const_ptr_load_u8_direct"
+RODATA_READONLY_EXE="$BUILD_DIR/rodata_readonly_direct"
 MULTI_OBJ="$BUILD_DIR/multi_func.o"
 MULTI_LINK_EXE="$BUILD_DIR/multi_func_linked"
 MULTI_CTRL_OBJ="$BUILD_DIR/multi_func_control.o"
@@ -328,6 +330,8 @@ if [ "$(uname -m)" = "x86_64" ] || [ "$(uname -m)" = "amd64" ]; then
   run_case "run-direct-compiled-ptr-values1" "$RUNNER" run-expect-exit "$PTR_DIRECT_EXE" 1
   run_case "compile-const-ptr-load-u8-elf64-code1" "$RUNNER" compile-elf64-code "$CONST_PTR_SRC" "$CONST_PTR_DIRECT_EXE"
   run_case "run-direct-compiled-const-ptr-load-u8-1" "$RUNNER" run-expect-exit "$CONST_PTR_DIRECT_EXE" 1
+  run_case "compile-rodata-readonly-elf64-code0" "$RUNNER" compile-elf64-code "$RODATA_READONLY_SRC" "$RODATA_READONLY_EXE"
+  run_case "run-direct-compiled-rodata-readonly-0" "$RUNNER" run-expect-exit "$RODATA_READONLY_EXE" 0
   run_case "emit-elf64-obj-ret42" "$RUNNER" emit-elf64-obj-ret "$RET42_OBJ" nano_ret 42
   log "ret42.obj.bytes=$(bytes_of "$RET42_OBJ")"
   run_case "link-elf64-obj-ret42" "$RUNNER" link-elf64-exe "$RET42_EXE" nano_ret "$RET42_OBJ"
