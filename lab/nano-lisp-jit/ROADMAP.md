@@ -230,7 +230,7 @@ nano-jit continuation after self-bootstrap v1
 
 | 切片 | 完成度 | 已闭环证据 | 缺口 |
 |------|--------|-----------|------|
-| APE format | **100%**（scoped） | `APE-v1.md`；`run-ape [arch]` + x86 上 `qemu-aarch64-static` 跑 aarch64 slice；`bootstrap-ape-smoke` x86+aarch64 exit；inspect/负向/self-pack 矩阵 | nano 自主 loader → **v2 slice 1** |
+| APE format | **100%**（scoped） | `APE-v1.md`；`pack-ape`/`inspect-ape`/hash；`run-ape` host + `[arch]`+QEMU（`nano-jit.com` aarch64 smoke）；`bootstrap-ape-*` 负向；`build_nano_jit.sh` self-pack 全矩阵 | nano 自主 loader → **v2 slice 1** |
 | data/section | **100%**（验收） | rodata R / data RW ✓；PC32 `.rela.*` ✓；text-embedded 已删 ✓；`bootstrap-data-negative` native + self-pack（`build_nano_jit.sh`）✓ | — |
 | v1.5 整体 | **100%**（scoped） | data 100%；APE 验收完成（manifest / inspect / run / 负向 fixture / 自举矩阵）；loader stub 约定可 inspect/run | nano 自主 loader → **v2 slice 1** |
 
@@ -257,7 +257,7 @@ nano-jit continuation after self-bootstrap v1
 - v1.5 slice 1–3 二轮（约 50%）：`pack-ape` manifest 写入 slice fnv1a64 hash；`inspect-ape` 校验 container/offset/hash；新增 `inspect-expect-exit`、`run-ape`、`run-ape-expect-exit`；`bootstrap-ape-negative.lisp` + `make_ape_fixtures.py` 覆盖 bad manifest/container/offset/hash；`run-ape` 按 host arch 抽取 payload 执行。
 - v1.5 slice 1–3 三轮（约 70%）：`build_nano_jit.sh` self-pack 后对 `nano-jit.com` 跑 `inspect-ape`、`run-ape`（x86_64）并用 self-packed runner 复验 `bootstrap-ape-negative.lisp`；`run.sh` 在 APE 块补 `compile-elf64-code` const-ptr 证据。
 - v1.5 slice 1–3 四轮（约 90%）：dev 容器 cosmocc 下 `build_nano_jit.sh` 全绿；`make_ape_fixtures` 同长 hash 负向；self-pack 复验 `bootstrap-data-negative`；`run-ape` 改为 slice 提取 smoke（不要求 compiler exit 0）。
-- v1.5 slice 1–3 五轮（**APE 验收 100%**）：`run-ape container.com aarch64` + QEMU；`bootstrap-ape-smoke` 双 arch `run-ape-expect-exit`；`APE-v1.md` 最小 spec。
+- v1.5 slice 1–3 五轮（**APE 验收 100%**）：`run-ape … aarch64` + QEMU（`run.sh` 对 cosmocc `nano-jit.com`）；`APE-v1.md` 最小 spec（loader 边界写明 v2）。
 - v1.5 data/section 三轮（约 65%）：const 字符串按 `store` 分 `.rodata`/`.data`；`emit_elf64_obj_text_data_section` + `link-elf64-exe` 解析 `.rela.rodata`/`.rela.data` 并打 PC32；可执行文件多 PT_LOAD（text RX、rodata R、data RW）且段间页对齐；`compile-elf64-code`/`aot-elf64-code` 统一经 object+link；样例 `rodata-readonly.lisp`、`const-ptr-load-u8.lisp` 在 `run.sh` 通过。
 - v1.5 data/section 四轮（约 85%）：`make_data_reloc_fixtures.py` + `bootstrap-data-negative.lisp` 覆盖 unsupported data reloc；`bootstrap-aot-smoke` / `build_nano_jit.sh` 增加 rodata-readonly；self-packed `nano-jit.com` 复验 `compile-elf64-code` rodata 路径。
 - v1.5 data/section 五轮（约 95%）：`data-bad-symbol-shndx.o` 触发 `bad_data_symbol`；删除未使用的 `emit_elf64_exec_rx_data_file` / `emit_elf64_code_data_file`（text-embedded 直连已弃用，统一 object+link+`emit_elf64_exec_sections_file`）。
