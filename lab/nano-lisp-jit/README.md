@@ -8,7 +8,7 @@
 `lab/tool-*` 消费者用法与已知摩擦见 `LAB-USAGE-FEEDBACK.md`。
 内存安全借鉴与产品化命名见 `DESIGN-MEMORY-AND-PRODUCT.md`。
 
-当前状态：self-bootstrap v1 已评估为 `100%`，v1.5 约 `64%`。`nano-jit.com` 已能 self-pack，不调用 `apelink`；纯 VM source 可进入 `.lbin`、解释执行、AOT ELF、ELF64 object、tiny-link executable；typed `i64/bool/ptr`、control-flow、multi-func、多 object、load/store-family 和跨 object 数据 smoke 均有 native/container 自举证据；APE manifest 已覆盖 per-slice arch/os/offset/size/fnv1a64、`inspect-ape` 校验和 manifest-aware `run-ape` 执行；含 data 的 ELF executable 已拆成 RX code / RW data load segment，object 路径开始输出独立 `.data` 与 `R_X86_64_PC32` relocation，并有 section flags、layout policy、strict object parse policy 与负向坏 relocation / 坏 section index 覆盖。
+当前状态：self-bootstrap v1 已评估为 `100%`，v1.5 约 `67%`。`nano-jit.com` 已能 self-pack，不调用 `apelink`；纯 VM source 可进入 `.lbin`、解释执行、AOT ELF、ELF64 object、tiny-link executable；typed `i64/bool/ptr`、control-flow、multi-func、多 object、load/store-family 和跨 object 数据 smoke 均有 native/container 自举证据；APE manifest 已覆盖 per-slice arch/os/offset/size/fnv1a64、`inspect-ape` 校验和 manifest-aware `run-ape` 执行；含 data 的 ELF executable 已拆成 RX code / RW data load segment，object 路径开始输出独立 `.data` 与 `R_X86_64_PC32` relocation，并有 section flags、layout policy、strict object parse policy、`.Ldata0` data symbol 命名与负向坏 relocation / 坏 section index 覆盖。
 
 下一会话建议从 `ROADMAP.md` 的 `v1.5 / v2 开工入口` 继续：先用持续反思/学习/进化循环确认 v1 基线，再从 v1.5 的 nano APE manifest fixture 开工；随后处理 pack/inspect/run、`.rodata/.data` section、数据 relocation、`lispjit.c` 分层、bootstrap DSL build graph，以及 v2 的自托管 slice compiler 路径。分层与 data section 属于 v2 前半 C 侧等价推进，build graph 与自托管 slice path 是 v2 后半 Lisp-first 起点；v3+ 不把 v2 当终点，而是继续扩大到外部 VM、语言和查询语义的导入/转译/自举验证。
 
@@ -62,7 +62,7 @@
 - 含 data 的 ELF executable 不再假定单 RWX segment；外部工具如需看 segment 权限，应使用 `inspect-elf64-exe`，不要硬编码 data 紧跟 `.text` 的权限假设。
 - `inspect-elf64-exe` 会输出 `elf64.exec.layout=split_rx_rw` 或 `single_rwx_compat`；后者是无 data 旧执行段兼容层，后续满足删除条件后再收敛。
 - 含 `const-ptr` 的 ELF object 现在通过 `.data` + `R_X86_64_PC32` 表达 code->data 引用；外部工具可用 `inspect-elf64-obj` 读取 section / relocation 证据。
-- `inspect-elf64-obj` 会输出 `elf64.obj.layout=section_data`、`elf64.obj.data.policy=section_pc32` 与当前 local data symbol，供消费者写稳定断言。
+- `inspect-elf64-obj` 会输出 `elf64.obj.layout=section_data`、`elf64.obj.data.policy=section_pc32` 与当前 local data symbol；writable `.data` 的本地基符号约定为 `.Ldata0`。
 - tiny linker 会拒绝 unsupported data relocation 与异常 local section index；调用方可用 `link-expect-exit 4 ...` 固定断言这类失败。
 - tiny linker 会在 parse 阶段拒绝坏 `.text/.data` flags、坏 `.rela.text` link、重复关键 section 与乱序 local/global symtab；调用方可用 `link-expect-exit 2 ...` 固定断言这类坏 object。
 - `run-bootstrap-plan` 的 checked-in 样例默认从 repo root 执行；外部工具若从子目录调用，应传入 repo-root 相对路径或先切到 repo root。

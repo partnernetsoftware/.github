@@ -375,7 +375,7 @@ expect_elf64_obj_data_pc32() {
   printf '%s\n' "$out" | rg -q 'elf64\.obj\.layout=section_data'
   printf '%s\n' "$out" | rg -q 'elf64\.obj\.data\.policy=section_pc32'
   printf '%s\n' "$out" | rg -q 'elf64\.obj\.data\.section=\.data'
-  printf '%s\n' "$out" | rg -q 'elf64\.obj\.data\.local_symbol=\.Lrodata'
+  printf '%s\n' "$out" | rg -q 'elf64\.obj\.data\.local_symbol=\.Ldata0'
   printf '%s\n' "$out" | rg -q 'elf64\.obj\.rela\..*\.type=PC32'
   printf '%s\n' "$out" | rg -q 'elf64\.obj\.rela\..*\.target=\.data'
   printf '%s\n' "$out" | rg -q 'elf64\.obj\.data\.bytes=[1-9]'

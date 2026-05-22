@@ -4249,7 +4249,7 @@ static int emit_elf64_obj_text_data_file(const char *out_path, const char *symbo
                                          const unsigned char *data, size_t data_n,
                                          const Elf64ObjRela *relas, size_t rela_count) {
   const Elf64ObjSymbol syms[] = {
-    {".Lrodata", 0x01, 3, 0, data_n},
+    {".Ldata0", 0x01, 3, 0, data_n},
     {symbol, 0x12, 1, 0, text_n},
   };
   return emit_elf64_obj_file(out_path, text, text_n, data, data_n, syms, 2, relas, rela_count);
