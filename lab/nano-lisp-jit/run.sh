@@ -173,6 +173,23 @@ host_is_linux_x86_64() {
   [ "$(uname -s)" = "Linux" ] && { [ "$(uname -m)" = "x86_64" ] || [ "$(uname -m)" = "amd64" ]; }
 }
 
+cosmocc_available() {
+  for tool in x86_64-unknown-cosmo-cc cosmocc; do
+    if command -v "$tool" >/dev/null 2>&1; then
+      return 0
+    fi
+  done
+  for dir in \
+    "$ROOT_DIR/third_party/cosmocc/bin" \
+    /opt/cosmocc/bin \
+    /opt/cosmo/bin; do
+    if [ -x "$dir/x86_64-unknown-cosmo-cc" ] && [ -x "$dir/aarch64-unknown-cosmo-cc" ]; then
+      return 0
+    fi
+  done
+  return 1
+}
+
 skip_case() {
   local name="$1"
   local reason="$2"
@@ -586,6 +603,23 @@ run_case "generate-libc-resolve-manifest" "$RUNNER" gen-libc-resolve "$LIBC_SRC"
 run_case "compile-libc-resolve-lbin" "$RUNNER" compile "$LIBC_SRC" "$LIBC_BLOB"
 log "libc.resolve.blob.bytes=$(bytes_of "$LIBC_BLOB")"
 run_case "resolve-libc-imports" "$RUNNER" resolve --quiet "$LIBC_BLOB"
+
+if [ ! -f "$NANO_JIT_COM" ] && host_is_linux_x86_64 && command -v cc >/dev/null 2>&1 && ! cosmocc_available; then
+  log ""
+  log "# native-slice smoke (cosmocc missing, host cc)"
+  NATIVE_SLICE="$NANO_JIT_DIR/nano-jit.x86_64"
+  run_case "build-native-x86-slice-via-build-script" \
+    env NANO_SLICE_COMPILER=native bash "$LAB_DIR/build_nano_jit.sh"
+  if [ -x "$NATIVE_SLICE" ]; then
+    run_case "native-x86-slice-compile-strlen" \
+      "$NATIVE_SLICE" compile "$SRC" "$BUILD_DIR/native-slice-strlen.lbin"
+    run_case "native-x86-slice-run-strlen" \
+      "$NATIVE_SLICE" run "$BUILD_DIR/native-slice-strlen.lbin"
+  else
+    skip_case "native-x86-slice-compile-strlen" "nano-jit.x86_64 missing after build_nano_jit.sh"
+    skip_case "native-x86-slice-run-strlen" "nano-jit.x86_64 missing after build_nano_jit.sh"
+  fi
+fi
 
 log ""
 log "results.file=$RESULTS"
