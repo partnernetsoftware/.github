@@ -16,6 +16,7 @@ MULTI_SRC="$LAB_DIR/samples/multi-func.lisp"
 MULTI_CTRL_SRC="$LAB_DIR/samples/multi-func-control-flow.lisp"
 MULTI_PTR_SRC="$LAB_DIR/samples/multi-func-ptr.lisp"
 FUNC_PARAM_I64_SRC="$LAB_DIR/samples/func-param-i64.lisp"
+FUNC_PARAM_VM_PARITY_SRC="$LAB_DIR/samples/func-param-vm-parity.lisp"
 FUNC_PARAM_MISSING_PARAM_BAD_SRC="$LAB_DIR/samples/func-param-missing-param-bad.lisp"
 FUNC_PARAM_CALL_NO_ARG_BAD_SRC="$LAB_DIR/samples/func-param-call-no-arg-bad.lisp"
 TYPE_BAD_PTR_OP_SRC="$LAB_DIR/samples/type-error-ptr-op-bad.lisp"
@@ -302,6 +303,9 @@ run_case "compile-arithmetic-i64-lbin" "$RUNNER" compile "$ARITH_I64_SRC" "$ARIT
 log "arithmetic.i64.blob.bytes=$(bytes_of "$ARITH_I64_BLOB")"
 
 run_case "execute-arithmetic-i64-lbin" "$RUNNER" run "$ARITH_I64_BLOB"
+
+run_case "compile-func-param-vm-parity-lbin" "$RUNNER" compile "$FUNC_PARAM_VM_PARITY_SRC" "$FUNC_PARAM_VM_PARITY_BLOB"
+run_case "run-func-param-vm-parity-lbin-expect42" "$RUNNER" run "$FUNC_PARAM_VM_PARITY_BLOB"
 
 run_case "compile-typed-values-lbin" "$RUNNER" compile "$TYPED_SRC" "$TYPED_BLOB"
 log "typed.blob.bytes=$(bytes_of "$TYPED_BLOB")"
