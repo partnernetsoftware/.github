@@ -373,6 +373,10 @@ run_case "self-pack-nano-jit-com" "$PACKER" pack-ape \
 
 run_case "inspect-nano-jit-com" "$PACKER" inspect-ape "$BUILD_DIR/nano-jit.com"
 
+if [ "$(uname -m)" = "x86_64" ] || [ "$(uname -m)" = "amd64" ]; then
+  run_case "run-ape-nano-jit-com" "$PACKER" run-ape "$BUILD_DIR/nano-jit.com"
+fi
+
 {
   echo "nano-jit.com.bytes=$(bytes_of "$BUILD_DIR/nano-jit.com")"
   echo "nano-jit.com.fnv1a64=$(hash_of "$BUILD_DIR/nano-jit.com")"
