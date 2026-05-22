@@ -324,7 +324,6 @@ static int cmd_compare(const char *left_path, const char *right_path) {
 static int cmd_inspect_app(const char *container_path);
 static int cmd_pack_app(const char *out_path, const char *x86_path, const char *arm_path,
                         const char *blob_path);
-static int cmd_emit_elf64_exit(const char *out_path, const char *code_s);
 static int cmd_aot_elf64_exit(const char *blob_path, const char *out_path);
 static int cmd_aot_elf64_obj_ret(const char *blob_path, const char *out_path,
                                  const char *symbol);
@@ -336,10 +335,6 @@ static int cmd_compile_elf64_obj_code(const char *src_path, const char *out_path
                                       const char *symbol);
 static int cmd_compile_elf64_exe(const char *src_path, const char *out_path,
                                  const char *symbol);
-static int cmd_emit_elf64_obj_ret(const char *out_path, const char *symbol,
-                                  const char *value_s);
-static int cmd_emit_elf64_obj_call(const char *out_path, const char *local,
-                                   const char *external);
 static int cmd_link_elf64_exe(int argc, char **argv);
 static int cmd_link_expect_exit(int argc, char **argv);
 

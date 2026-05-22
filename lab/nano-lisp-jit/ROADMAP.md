@@ -245,18 +245,18 @@ nano-jit continuation after self-bootstrap v1
 下一圈（v2 kickoff）：
 
 1. **APE v2**（slice 1 **100% scoped**）+ **hybrid loader**（~50%）：`run-ape` 原生读 v2；`pack-ape` stub 优先 `NANO_JIT`/`nano-lisp-jit run-ape`。
-2. **`lispjit.c` 模块边界**（slice 2 **~90%**）：+`nano_lisp_parse.c`；`lispjit.c` ~2.1k 行；待拆 bootstrap planner。
+2. **`lispjit.c` 模块边界**（slice 2 **~95%**）：+`nano_lisp_parse.c` / `nano_bootstrap.c`；`lispjit.c` ~2.1k 行；bootstrap planner 仍待薄化。
 
 ### v2 总完成度（工程向）
 
 | 轨道 | 状态 | 说明 |
 |------|------|------|
 | APE v2 格式 + inspect/run | **100%** scoped | slice 1 签收 |
-| 模块拆分 | **~90%** | manifest/ape/elf64/blob_vm/aot_x86/lisp_parse |
-| 进程内 loader（无 shell） | **~50%** | CLI 原生 + stub 委托 `run-ape`；真 ELF loader 未做 |
+| 模块拆分 | **~95%** | manifest/ape/elf64/blob_vm/aot_x86/lisp_parse/bootstrap |
+| 进程内 loader（无 shell） | **~50%** | `run-ape` 原生读 v2 表；stub 委托 `run-ape-cli`；无内建 ELF 解析 |
 | ABI / 参数 / 自托管 slice | **0%** | slice 3+ |
 
-**v2 整体（全目标）**：约 **72%** — 主内核已高度模块化；ABI 与纯 ELF loader 为剩余大头。
+**v2 整体（全目标）**：约 **79%** — slice 1 签收 + 模块边界 ~95%；ABI 与纯 ELF loader 为剩余大头。
 
 **远程 `main`**：每次 merge 在 commit message 中标注上述整体完成度百分比。
 
@@ -268,13 +268,13 @@ nano-jit continuation after self-bootstrap v1
 | `pack-ape` 写 v2 头 | **100%** | `pack-ape.container=ape-v2` |
 | `inspect-ape` v2 优先 + v1 回退 | **100%** | `ape-v1-legacy.com` fallback 测试 |
 | `run-ape` 读 v2 表 | **100%** | `run-ape.container=ape-v2` |
-| bootstrap smoke + 负向 | **100%** | `bootstrap-ape-v2-*` + `make_ape_fixtures` |
+| bootstrap smoke + 负向 | **100%** | `bootstrap-ape-v2-*` + `make_ape_fixtures.py`；`run.sh` `pack-ape-v2-fixture` / `inspect-ape-v2-container` / `run-ape-v2-native-exit42`（Linux x86_64，否则 skip） |
 | self-pack 矩阵（native 侧） | **100%** | `build_nano_jit.sh` 断言 `inspect-ape.container=ape-v2` |
 | nano 进程内 loader（无 stub） | **~50%** | `run-ape` 原生；stub 优先 `run-ape-cli`；纯 ELF loader 未做 |
 
 **v2 slice 1 整体**：**100%（scoped）** — 与 `APE-v2.md` slice 1 范围一致；无 stub loader 不算缺口。
 
-**远程 `main`**：已合并 v2 系列提交（见 `git log origin/main`）；当前整体约 **65%**。
+**远程 `main`**：已合并 v2 系列提交（见 `git log origin/main`）；当前整体约 **79%**（`run.sh` APE v2 smoke 与上表同步）。
 
 **v2 slice 2+**：`lispjit.c` 模块边界；函数参数/ABI；自托管 slice compiler。
 
