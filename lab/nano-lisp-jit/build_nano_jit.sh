@@ -47,6 +47,20 @@ run_case() {
   return "$status"
 }
 
+expect_inspect_line() {
+  local runner="$1"
+  local mode="$2"
+  local path="$3"
+  local needle="$4"
+  local out=""
+  out=$("$runner" "$mode" "$path")
+  printf '%s\n' "$out"
+  case "$out" in
+    *"$needle"*) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
 COSMO_BIN="$(discover_cosmo_bin)"
 X86_CC="$COSMO_BIN/x86_64-unknown-cosmo-cc"
 ARM_CC="$COSMO_BIN/aarch64-unknown-cosmo-cc"
@@ -447,6 +461,7 @@ run_case "nano-jit-run-elf64-exit42" "$BUILD_DIR/nano-jit.com" run-expect-exit "
 run_case "nano-jit-aot-arithmetic-elf64-exit42" "$BUILD_DIR/nano-jit.com" aot-elf64-exit "$ARITH_BLOB" "$ARITH_EXIT"
 run_case "nano-jit-run-aot-arithmetic-exit42" "$BUILD_DIR/nano-jit.com" run-expect-exit "$ARITH_EXIT" 42
 run_case "nano-jit-aot-arithmetic-elf64-code42" "$BUILD_DIR/nano-jit.com" aot-elf64-code "$ARITH_BLOB" "$ARITH_CODE"
+run_case "nano-jit-inspect-arithmetic-rwx-compat" expect_inspect_line "$BUILD_DIR/nano-jit.com" inspect-elf64-exe "$ARITH_CODE" "elf64.exec.layout=single_rwx_compat"
 run_case "nano-jit-run-aot-arithmetic-code42" "$BUILD_DIR/nano-jit.com" run-expect-exit "$ARITH_CODE" 42
 run_case "nano-jit-aot-arithmetic-i64-elf64-code42" "$BUILD_DIR/nano-jit.com" aot-elf64-code "$ARITH_I64_BLOB" "$ARITH_I64_CODE"
 run_case "nano-jit-run-aot-arithmetic-i64-code42" "$BUILD_DIR/nano-jit.com" run-expect-exit "$ARITH_I64_CODE" 42
@@ -493,11 +508,14 @@ run_case "nano-jit-emit-cross-object-const-ptr-call" "$BUILD_DIR/nano-jit.com" e
 run_case "nano-jit-compile-cross-object-const-ptr-callee" "$BUILD_DIR/nano-jit.com" compile "$CONST_PTR_SRC" "$CONST_PTR_BLOB"
 run_case "nano-jit-aot-cross-object-const-ptr-callee" "$BUILD_DIR/nano-jit.com" aot-elf64-obj-code "$CONST_PTR_BLOB" "$CONST_PTR_CALLEE_OBJ" nano_const_ptr_callee
 run_case "nano-jit-inspect-cross-object-const-ptr-callee" "$BUILD_DIR/nano-jit.com" inspect-elf64-obj "$CONST_PTR_CALLEE_OBJ"
+run_case "nano-jit-expect-cross-object-const-ptr-section-data" expect_inspect_line "$BUILD_DIR/nano-jit.com" inspect-elf64-obj "$CONST_PTR_CALLEE_OBJ" "elf64.obj.layout=section_data"
+run_case "nano-jit-expect-cross-object-const-ptr-local-symbol" expect_inspect_line "$BUILD_DIR/nano-jit.com" inspect-elf64-obj "$CONST_PTR_CALLEE_OBJ" "elf64.obj.data.local_symbol=.Lrodata"
 run_case "nano-jit-prepare-bad-data-reloc-objs" make_bad_data_reloc_objs
 run_case "nano-jit-link-reject-unsupported-data-reloc" "$BUILD_DIR/nano-jit.com" link-expect-exit 4 "$CONST_PTR_BAD_LINK_EXE" nano_const_ptr_callee "$CONST_PTR_BAD_RELOC_OBJ"
 run_case "nano-jit-link-reject-bad-data-section-index" "$BUILD_DIR/nano-jit.com" link-expect-exit 4 "$CONST_PTR_BAD_LINK_EXE" nano_const_ptr_callee "$CONST_PTR_BAD_SHNDX_OBJ"
 run_case "nano-jit-tiny-link-cross-object-const-ptr-data" "$BUILD_DIR/nano-jit.com" link-elf64-exe "$CONST_PTR_CROSS_LINK_EXE" nano_const_ptr_call "$CONST_PTR_CALL_OBJ" "$CONST_PTR_CALLEE_OBJ"
 run_case "nano-jit-inspect-cross-object-const-ptr-linked" "$BUILD_DIR/nano-jit.com" inspect-elf64-exe "$CONST_PTR_CROSS_LINK_EXE"
+run_case "nano-jit-expect-cross-object-const-ptr-split-layout" expect_inspect_line "$BUILD_DIR/nano-jit.com" inspect-elf64-exe "$CONST_PTR_CROSS_LINK_EXE" "elf64.exec.layout=split_rx_rw"
 run_case "nano-jit-run-cross-object-const-ptr-data" "$BUILD_DIR/nano-jit.com" run-expect-exit "$CONST_PTR_CROSS_LINK_EXE" 1
 run_case "nano-jit-emit-elf64-obj-duplicate-nano-ext" "$BUILD_DIR/nano-jit.com" emit-elf64-obj-ret "$DUP42_OBJ" nano_ext 7
 run_case "nano-jit-tiny-link-reject-duplicate-symbol" "$BUILD_DIR/nano-jit.com" link-expect-exit 2 "$BUILD_DIR/dup_should_fail" nano_call "$CALL42_OBJ" "$CALL42_CALLEE_OBJ" "$DUP42_OBJ"

@@ -3398,6 +3398,9 @@ static int cmd_inspect_elf64_exe(const char *path) {
   printf("elf64.exec.path=%s\n", path);
   printf("elf64.exec.phnum=%u\n", phnum);
   size_t load_count = 0;
+  uint32_t load_flags[2] = {0, 0};
+  uint64_t load_offsets[2] = {0, 0};
+  uint64_t load_filesz[2] = {0, 0};
   for (uint16_t i = 0; i < phnum; ++i) {
     const unsigned char *ph = data + phoff + (size_t)i * INSPECT_ELF64_PHDR_SIZE;
     uint32_t type = rd32(ph + 0);
@@ -3408,9 +3411,29 @@ static int cmd_inspect_elf64_exe(const char *path) {
     printf("elf64.exec.load.%zu.flags=%s\n", load_count, elf64_phdr_flags_name(flags));
     printf("elf64.exec.load.%zu.offset=%llu\n", load_count, (unsigned long long)off);
     printf("elf64.exec.load.%zu.filesz=%llu\n", load_count, (unsigned long long)filesz);
+    if (load_count < 2) {
+      load_flags[load_count] = flags;
+      load_offsets[load_count] = off;
+      load_filesz[load_count] = filesz;
+    }
     load_count++;
   }
   printf("elf64.exec.load.count=%zu\n", load_count);
+  if (load_count == 2 && load_flags[0] == 5 && load_flags[1] == 6) {
+    printf("elf64.exec.layout=split_rx_rw\n");
+    printf("elf64.exec.code.policy=rx_load_segment\n");
+    printf("elf64.exec.data.present=1\n");
+    printf("elf64.exec.data.policy=rw_load_segment\n");
+    printf("elf64.exec.data.bytes=%llu\n", (unsigned long long)load_filesz[1]);
+    printf("elf64.exec.data.layout=%s\n", (load_offsets[1] % 0x1000u) == 0 ? "page_aligned" : "other");
+  } else if (load_count == 1 && load_flags[0] == 7) {
+    printf("elf64.exec.layout=single_rwx_compat\n");
+    printf("elf64.exec.code.policy=rwx_compat_segment\n");
+    printf("elf64.exec.data.present=0\n");
+    printf("elf64.exec.data.policy=none\n");
+  } else {
+    printf("elf64.exec.layout=other\n");
+  }
   free(data);
   return 0;
 }
@@ -4431,6 +4454,26 @@ static int cmd_inspect_elf64_obj(const char *path) {
   }
   printf("elf64.obj.text.bytes=%zu\n", o.text_size);
   printf("elf64.obj.data.bytes=%zu\n", o.data_sec_size);
+  printf("elf64.obj.layout=%s\n", o.data_sec_size ? "section_data" : "text_only");
+  if (o.data_sec_size) {
+    const char *data_sym = NULL;
+    size_t data_sym_idx = 0;
+    for (size_t s = 1; s < o.sym_count; ++s) {
+      if (elf_sym_binding(&o, s) == 0 && elf_sym_shndx(&o, s) == o.data_idx) {
+        data_sym = elf_sym_name(&o, s);
+        data_sym_idx = s;
+        break;
+      }
+    }
+    printf("elf64.obj.data.policy=section_pc32\n");
+    printf("elf64.obj.data.section=.data\n");
+    if (data_sym) {
+      printf("elf64.obj.data.local_symbol=%s\n", data_sym);
+      printf("elf64.obj.data.local_sym=%zu\n", data_sym_idx);
+    }
+  } else {
+    printf("elf64.obj.data.policy=none\n");
+  }
   printf("elf64.obj.rela.count=%zu\n", o.rela_count);
   for (size_t i = 0; i < o.rela_count; ++i) {
     const unsigned char *rela = elf_rela_row(&o, i);

@@ -322,6 +322,24 @@ expect_elf64_exec_load_split() {
   printf '%s\n' "$out" | rg -q 'elf64\.exec\.load\.count=2'
   printf '%s\n' "$out" | rg -q 'elf64\.exec\.load\.0\.flags=rx'
   printf '%s\n' "$out" | rg -q 'elf64\.exec\.load\.1\.flags=rw'
+  printf '%s\n' "$out" | rg -q 'elf64\.exec\.layout=split_rx_rw'
+  printf '%s\n' "$out" | rg -q 'elf64\.exec\.code\.policy=rx_load_segment'
+  printf '%s\n' "$out" | rg -q 'elf64\.exec\.data\.present=1'
+  printf '%s\n' "$out" | rg -q 'elf64\.exec\.data\.policy=rw_load_segment'
+  printf '%s\n' "$out" | rg -q 'elf64\.exec\.data\.bytes=[1-9]'
+  printf '%s\n' "$out" | rg -q 'elf64\.exec\.data\.layout=page_aligned'
+}
+
+expect_elf64_exec_rwx_compat() {
+  local path="$1"
+  local out=""
+  out=$("$RUNNER" inspect-elf64-exe "$path")
+  printf '%s\n' "$out"
+  printf '%s\n' "$out" | rg -q 'elf64\.exec\.load\.count=1'
+  printf '%s\n' "$out" | rg -q 'elf64\.exec\.load\.0\.flags=rwx'
+  printf '%s\n' "$out" | rg -q 'elf64\.exec\.layout=single_rwx_compat'
+  printf '%s\n' "$out" | rg -q 'elf64\.exec\.data\.present=0'
+  printf '%s\n' "$out" | rg -q 'elf64\.exec\.data\.policy=none'
 }
 
 expect_elf64_obj_data_pc32() {
@@ -332,6 +350,10 @@ expect_elf64_obj_data_pc32() {
   printf '%s\n' "$out" | rg -q 'elf64\.obj\.section\..*\.name=\.data'
   printf '%s\n' "$out" | rg -q 'elf64\.obj\.section\.1\.flags=ax'
   printf '%s\n' "$out" | rg -q 'elf64\.obj\.section\..*\.flags=aw'
+  printf '%s\n' "$out" | rg -q 'elf64\.obj\.layout=section_data'
+  printf '%s\n' "$out" | rg -q 'elf64\.obj\.data\.policy=section_pc32'
+  printf '%s\n' "$out" | rg -q 'elf64\.obj\.data\.section=\.data'
+  printf '%s\n' "$out" | rg -q 'elf64\.obj\.data\.local_symbol=\.Lrodata'
   printf '%s\n' "$out" | rg -q 'elf64\.obj\.rela\..*\.type=PC32'
   printf '%s\n' "$out" | rg -q 'elf64\.obj\.rela\..*\.target=\.data'
   printf '%s\n' "$out" | rg -q 'elf64\.obj\.data\.bytes=[1-9]'
@@ -476,6 +498,7 @@ if [ "$(uname -m)" = "x86_64" ] || [ "$(uname -m)" = "amd64" ]; then
   run_case "run-aot-arithmetic-exit42" "$RUNNER" run-expect-exit "$ARITH_EXIT" 42
   run_case "aot-arithmetic-elf64-code42" "$RUNNER" aot-elf64-code "$ARITH_BLOB" "$ARITH_CODE"
   log "arithmetic.codegen.bytes=$(bytes_of "$ARITH_CODE")"
+  run_case "inspect-arithmetic-code-rwx-compat" expect_elf64_exec_rwx_compat "$ARITH_CODE"
   run_case "run-aot-arithmetic-code42" "$RUNNER" run-expect-exit "$ARITH_CODE" 42
   run_case "aot-arithmetic-i64-elf64-code42" "$RUNNER" aot-elf64-code "$ARITH_I64_BLOB" "$ARITH_I64_CODE"
   run_case "run-aot-arithmetic-i64-code42" "$RUNNER" run-expect-exit "$ARITH_I64_CODE" 42
