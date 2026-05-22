@@ -44,6 +44,7 @@ BOOTSTRAP_APE_NEG_SRC="$LAB_DIR/samples/bootstrap-ape-negative.lisp"
 BOOTSTRAP_DATA_NEG_SRC="$LAB_DIR/samples/bootstrap-data-negative.lisp"
 BOOTSTRAP_V25_NATIVE_SELFPACK_SRC="$LAB_DIR/samples/bootstrap-v25-native-selfpack.lisp"
 BOOTSTRAP_V3_PACK_BARE_SRC="$LAB_DIR/samples/bootstrap-v3-pack-bare.lisp"
+BOOTSTRAP_V3_PACK_BARE_SRC="$LAB_DIR/samples/bootstrap-v3-pack-bare.lisp"
 DATA_GOOD_OBJ="$BUILD_DIR/data-good.o"
 DATA_BAD_RELOC_TYPE_OBJ="$BUILD_DIR/data-bad-reloc-type.o"
 DATA_BAD_RELOC_SYM_OBJ="$BUILD_DIR/data-bad-reloc-sym.o"
@@ -634,6 +635,32 @@ if host_is_linux_x86_64; then
   '
 else
   skip_case "build-nano-jit-native-smoke" "host is not Linux x86_64 (uname -s=$(uname -s) -m=$(uname -m))"
+fi
+
+# --- bootstrap-v3 pack-ape NANO_PACK_APE_MODE=bare (DSL pack-ape-bare-env) ---
+V3_PACK_BARE_COM="$BUILD_DIR/bootstrap-v3-pack-bare.com"
+log "bootstrap.v3.pack.bare.source.path=$BOOTSTRAP_V3_PACK_BARE_SRC"
+run_case "run-bootstrap-v3-pack-bare-plan" bash -c '
+  out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V3_PACK_BARE_SRC"'" 2>&1) || true
+  printf "%s\n" "$out"
+  printf "%s\n" "$out" | grep -q "bootstrap-step.*=pack-ape-bare-env"
+'
+if [ -f "$V3_PACK_BARE_COM" ]; then
+  run_case "pack-ape-v3-bare-env-output" test -f "$V3_PACK_BARE_COM"
+  run_case "inspect-ape-v3-bare-env" bash -c '
+    out=$("'"$RUNNER"'" inspect-ape "'"$V3_PACK_BARE_COM"'" 2>&1) || true
+    printf "%s\n" "$out"
+    printf "%s\n" "$out" | grep -q "inspect-ape.container=ape-v2"
+  '
+  if host_is_linux_x86_64; then
+    run_case "run-ape-v3-bare-env-exit42" "$RUNNER" run-ape-expect-exit "$V3_PACK_BARE_COM" 42
+  else
+    skip_case "run-ape-v3-bare-env-exit42" "host is not Linux x86_64"
+  fi
+else
+  skip_case "pack-ape-v3-bare-env-output" "bootstrap-v3-pack-bare.com missing after plan"
+  skip_case "inspect-ape-v3-bare-env" "bootstrap-v3-pack-bare.com missing after plan"
+  skip_case "run-ape-v3-bare-env-exit42" "bootstrap-v3-pack-bare.com missing after plan"
 fi
 
 # --- bootstrap-v3 pack-ape NANO_PACK_APE_MODE=bare (DSL pack-ape-bare-env) ---

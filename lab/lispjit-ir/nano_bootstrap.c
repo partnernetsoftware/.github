@@ -241,6 +241,19 @@ static int parse_bootstrap_plan(const char *src, BootstrapPlan *plan) {
         free(head);
         return 0;
       }
+    } else if (strcmp(head, "pack-ape-bare-env") == 0) {
+      char *arg0 = parse_string(&p);
+      char *arg1 = parse_string(&p);
+      char *arg2 = parse_string(&p);
+      int ok = arg0 && arg1 && arg2 && eat(&p, ')') &&
+               bootstrap_add_step(plan, BOOTSTRAP_STEP_PACK_APE_BARE_ENV, arg0, arg1, arg2, NULL);
+      if (!ok) {
+        free(arg0);
+        free(arg1);
+        free(arg2);
+        free(head);
+        return 0;
+      }
     } else if (strcmp(head, "pack-app") == 0) {
       char *arg0 = parse_string(&p);
       char *arg1 = parse_string(&p);
@@ -575,6 +588,9 @@ static int cmd_run_bootstrap_plan(const char *plan_path) {
     } else if (step->kind == BOOTSTRAP_STEP_PACK_APE_BARE) {
       printf("bootstrap-step.%zu=pack-ape-bare\n", i);
       rc = cmd_pack_ape_bare(step->arg0, step->arg1, step->arg2);
+    } else if (step->kind == BOOTSTRAP_STEP_PACK_APE_BARE_ENV) {
+      printf("bootstrap-step.%zu=pack-ape-bare-env\n", i);
+      rc = cmd_pack_ape_bare_env(step->arg0, step->arg1, step->arg2);
     } else if (step->kind == BOOTSTRAP_STEP_INSPECT_APE) {
       printf("bootstrap-step.%zu=inspect-ape\n", i);
       rc = cmd_inspect_ape(step->arg0);

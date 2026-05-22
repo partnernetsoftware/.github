@@ -161,6 +161,7 @@
 #define BOOTSTRAP_STEP_INSPECT_EXPECT_EXIT 30u
 #define BOOTSTRAP_STEP_RUN_APE_EXPECT_EXIT 31u
 #define BOOTSTRAP_STEP_PACK_APE_BARE 32u
+#define BOOTSTRAP_STEP_PACK_APE_BARE_ENV 33u
 
 typedef uint64_t (*jit_entry_fn)(void);
 typedef int (*ffi_i32_ptr_fn)(const char *);

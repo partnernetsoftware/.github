@@ -612,3 +612,20 @@ static int cmd_pack_ape(const char *out_path, const char *x86_path, const char *
   free(arm);
   return ok ? 0 : 3;
 }
+
+static int cmd_pack_ape_bare_env(const char *out_path, const char *x86_path, const char *arm_path) {
+  const char *prev = getenv("NANO_PACK_APE_MODE");
+  char *saved = prev ? strdup(prev) : NULL;
+  if (setenv("NANO_PACK_APE_MODE", "bare", 1) != 0) {
+    free(saved);
+    return 1;
+  }
+  int rc = cmd_pack_ape(out_path, x86_path, arm_path);
+  if (saved) {
+    setenv("NANO_PACK_APE_MODE", saved, 1);
+    free(saved);
+  } else {
+    unsetenv("NANO_PACK_APE_MODE");
+  }
+  return rc;
+}
