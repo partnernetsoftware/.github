@@ -99,3 +99,44 @@ static int manifest_find_hash(const unsigned char *data, size_t n, const char *k
 static int is_elf(const unsigned char *data, size_t n) {
   return n >= 4 && data[0] == 0x7f && data[1] == 'E' && data[2] == 'L' && data[3] == 'F';
 }
+
+static int cmd_inspect_manifest_dump(const char *container_path, const char *error_prefix) {
+  size_t n = 0;
+  unsigned char *data = read_file(container_path, &n);
+  if (!data) {
+    fprintf(stderr, "read=fail path=%s\n", container_path);
+    return 1;
+  }
+  int in_manifest = 0;
+  int found = 0;
+  size_t pos = 0;
+  while (pos < n) {
+    size_t line_start = pos;
+    while (pos < n && data[pos] != '\n') pos++;
+    size_t line_n = pos - line_start;
+    if (pos < n && data[pos] == '\n') pos++;
+    if (line_n == sizeof(NANO_MANIFEST_BEGIN) - 1 &&
+        memcmp(data + line_start, NANO_MANIFEST_BEGIN, sizeof(NANO_MANIFEST_BEGIN) - 1) == 0) {
+      in_manifest = 1;
+      found = 1;
+      continue;
+    }
+    if (line_n == sizeof(NANO_MANIFEST_END) - 1 &&
+        memcmp(data + line_start, NANO_MANIFEST_END, sizeof(NANO_MANIFEST_END) - 1) == 0) {
+      free(data);
+      return found ? 0 : 2;
+    }
+    if (in_manifest && line_n >= 2 && data[line_start] == '#' &&
+        data[line_start + 1] == ' ') {
+      fwrite(data + line_start + 2, 1, line_n - 2, stdout);
+      fputc('\n', stdout);
+    }
+  }
+  fprintf(stderr, "%s=manifest_missing\n", error_prefix);
+  free(data);
+  return 2;
+}
+
+static int cmd_inspect_app(const char *container_path) {
+  return cmd_inspect_manifest_dump(container_path, "inspect-app");
+}
