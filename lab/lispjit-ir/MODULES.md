@@ -8,6 +8,7 @@ Build remains one translation unit: `cc lispjit.c` includes submodules below.
 | `nano_main.c` | `usage`, `main` (CLI dispatch) |
 | `ape_v2.{h,c}` | APE v2 binary header parse/validate/emit |
 | `nano_abi.c` | FFI import `SIG_*` IDs, `sig_parse` / `sig_name` |
+| `nano_util.c` | `parse_size_arg` (decimal size CLI args) |
 | `nano_manifest.c` | Payload markers, comment manifest parse/dump, `inspect-app`, `is_elf` |
 | `nano_compile_cli.c` | `compile` CLI |
 | `nano_libc_resolve.c` | `gen-libc-resolve` (ELF dynsym scrape) |

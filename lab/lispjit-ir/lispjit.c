@@ -684,21 +684,13 @@ static int make_executable(const char *path) {
 #include "nano_compile_cli.c"
 #include "nano_libc_resolve.c"
 
-static int parse_size_arg(const char *s, size_t *out);
+#include "nano_util.c"
 
 #include "nano_manifest.c"
 #include "nano_run_cli.c"
 #include "nano_pack_app.c"
 
 #include "nano_ape.c"
-
-static int parse_size_arg(const char *s, size_t *out) {
-  char *end = NULL;
-  unsigned long long v = strtoull(s, &end, 10);
-  if (!s[0] || !end || *end) return 0;
-  *out = (size_t)v;
-  return (unsigned long long)*out == v;
-}
 
 static int run_link_elf64_exe(const char *out_path, const char *entry_name,
                               const char *first_obj, char **extra_args,
