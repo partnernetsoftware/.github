@@ -49,6 +49,7 @@
 #define OP_STORE_U16 40u
 #define OP_STORE_U32 41u
 #define OP_CALL_FUNC 42u
+#define OP_LOAD_ARG_I64 43u
 
 #define SRC_FORM_CALL 1u
 #define SRC_FORM_RESOLVE 2u

@@ -253,12 +253,12 @@ nano-jit continuation after self-bootstrap v1
 | 切片 | 状态 | 说明 |
 |------|------|------|
 | slice 0 VM `OP_CALL_FUNC` | **100%** | `OP_CALL_FUNC` + `(func …)`/`(call …)`；`func-call-vm-smoke.lisp` + `run.sh` |
-| slice 1 错误码/arity | **~80%** | VM `compile` exit 2 + `func-param-*-bad`；表见 [`v3/ERROR-CODES.md`](v3/ERROR-CODES.md) |
+| slice 1 错误码/arity | **100%** | VM `load-arg-i64` + `func-param-vm-i64`；AOT/VM 负向 exit 2；[`v3/ERROR-CODES.md`](v3/ERROR-CODES.md) |
 | slice 2 aarch64 native slice | **0%** | `NANO_SLICE_COMPILER=native` 真 aarch64，非 x86 duplicate oracle |
-| slice 3 证据/bootstrap | **~75%** | skip 汇总、bare bootstrap、`build_nano_jit` func-call self-pack smoke |
-| slice 4 compiler-in-lisp（B 层自举） | **0%** | Lisp 构建图替换 `cc lispjit.c`；见 mindmap slice 4 |
+| slice 3 证据/bootstrap | **~85%** | `bootstrap-v3-vm-selfpack-matrix.lisp` + native slice 全链 |
+| slice 4 compiler-in-lisp（B 层自举） | **~10%** | [`v3/BUILD-SLICE.md`](v3/BUILD-SLICE.md) stage 模型入账 |
 
-**v3 整体**：**~40%** — A 层自举保持；B 层（Lisp 编编译器）未开工；见 [`v3/README.md`](v3/README.md)。
+**v3 整体**：**~55%** — slice1 签收；B 层仅文档/矩阵占位；见 [`v3/README.md`](v3/README.md)。
 
 ### 0. 证据基线
 

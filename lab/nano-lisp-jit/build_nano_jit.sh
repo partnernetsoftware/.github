@@ -92,6 +92,10 @@ CONST_PTR_DIRECT_EXE="$BUILD_DIR/const_ptr_load_u8_direct"
 BOOTSTRAP_APE_NEG_SRC="$LAB_DIR/samples/bootstrap-ape-negative.lisp"
 BOOTSTRAP_DATA_NEG_SRC="$LAB_DIR/samples/bootstrap-data-negative.lisp"
 BOOTSTRAP_V25_NATIVE_SELFPACK="$LAB_DIR/samples/bootstrap-v25-native-selfpack.lisp"
+BOOTSTRAP_V3_VM_MATRIX="$LAB_DIR/samples/bootstrap-v3-vm-selfpack-matrix.lisp"
+FUNC_PARAM_VM_I64_SRC="$LAB_DIR/samples/func-param-vm-i64.lisp"
+BOOTSTRAP_V3_VM_MATRIX="$LAB_DIR/samples/bootstrap-v3-vm-selfpack-matrix.lisp"
+FUNC_PARAM_VM_I64_SRC="$LAB_DIR/samples/func-param-vm-i64.lisp"
 RODATA_READONLY_SRC="$LAB_DIR/samples/rodata-readonly.lisp"
 APE_FIXTURE_DIR="$LAB_DIR/.build"
 DATA_GOOD_OBJ="$APE_FIXTURE_DIR/data-good.o"
@@ -487,6 +491,12 @@ if [ "$AARCH64_SLICE_SKIPPED" = 1 ]; then
   run_case "native-x86-slice-reject-func-param-call-no-arg-lbin" \
     "$PACKER" compile-expect-exit 2 compile "$FUNC_PARAM_CALL_NO_ARG_BAD_SRC" \
     "$BUILD_DIR/native-func-param-call-no-arg-bad.lbin"
+  run_case "native-x86-slice-compile-func-param-vm-i64" \
+    "$PACKER" compile "$FUNC_PARAM_VM_I64_SRC" "$BUILD_DIR/native-smoke-func-param-vm-i64.lbin"
+  run_case "native-x86-slice-run-func-param-vm-i64" \
+    "$PACKER" run "$BUILD_DIR/native-smoke-func-param-vm-i64.lbin"
+  run_case "run-bootstrap-v3-vm-selfpack-matrix" \
+    bash -c "cd \"$ROOT_DIR\" && \"$PACKER\" run-bootstrap-plan \"$BOOTSTRAP_V3_VM_MATRIX\""
   run_case "run-bootstrap-v25-native-selfpack" \
     bash -c "cd \"$ROOT_DIR\" && \"$PACKER\" run-bootstrap-plan \"$BOOTSTRAP_V25_NATIVE_SELFPACK\""
   {

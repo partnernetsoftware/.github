@@ -267,12 +267,13 @@ static int resolve_blob(const Blob *b, int quiet) {
 
 static uint64_t value_as_call_arg(Value v) {
   if (v.kind == VAL_U64) return v.bits;
-  if (v.kind == VAL_I64 && (int64_t)v.bits >= 0) return (uint64_t)v.bits;
+  if (v.kind == VAL_I64) return v.bits;
   return UINT64_MAX;
 }
 
 static int execute_func_range(const Blob *b, uint32_t start, uint32_t end, uint64_t arg,
                               Value *out) {
+  Value slots[2] = {value_i64((int64_t)arg), value_i64(0)};
   Value last = value_u64(arg);
   uint32_t pc = start;
   while (pc < end) {
@@ -281,9 +282,29 @@ static int execute_func_range(const Blob *b, uint32_t start, uint32_t end, uint6
     uint8_t op = ins[0];
     uint32_t arg0 = rd32(ins + 4);
     uint32_t arg1 = rd32(ins + 8);
+    if (op == OP_LOAD_ARG_I64) {
+      if (arg0 >= 2u) {
+        fprintf(stderr, "func.load-arg-i64.%u=bad_index %u\n", pc, arg0);
+        return 24;
+      }
+      last = slots[arg0];
+      printf("func.load-arg-i64.%u=", pc);
+      print_value(stdout, last);
+      printf("\n");
+      pc++;
+      continue;
+    }
     if (op == OP_CONST_U64) {
       last = value_u64((uint64_t)arg0 | ((uint64_t)arg1 << 32));
       printf("func.u64.%u=", pc);
+      print_value(stdout, last);
+      printf("\n");
+      pc++;
+      continue;
+    }
+    if (op == OP_CONST_I64) {
+      last = value_i64((int64_t)((uint64_t)arg0 | ((uint64_t)arg1 << 32)));
+      printf("func.i64.%u=", pc);
       print_value(stdout, last);
       printf("\n");
       pc++;
@@ -298,6 +319,20 @@ static int execute_func_range(const Blob *b, uint32_t start, uint32_t end, uint6
         return 20;
       }
       printf("func.add-u64.%u=", pc);
+      print_value(stdout, last);
+      printf("\n");
+      pc++;
+      continue;
+    }
+    if (op == OP_ADD_I64) {
+      int64_t rhs = (int64_t)((uint64_t)arg0 | ((uint64_t)arg1 << 32));
+      if (!value_add_i64(&last, rhs)) {
+        fprintf(stderr, "func.type.add-i64=%u actual=", pc);
+        print_value(stderr, last);
+        fprintf(stderr, "\n");
+        return 20;
+      }
+      printf("func.add-i64.%u=", pc);
       print_value(stdout, last);
       printf("\n");
       pc++;

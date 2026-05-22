@@ -7,27 +7,19 @@ v2.5 **100%（scoped）** 完成。v3 从 v2.5 反思 + **自举语义分层** �
 | 层 | 含义 | 状态 |
 |----|------|------|
 | **A** | 用户 Lisp → `.lbin`/AOT；`nano-jit.com` self-pack | v1 **100%**，v3 保持不退化 |
-| **B** | 编译器本体由 Lisp 生成 slice，脱离 `cc` 编 `lispjit.c` | **0%** → v3 **slice 4** |
-
-当前链：`lispjit.c` ──cc/cosmo──► `nano-jit.*` ──► 只编译**用户** `.lisp`，不是「Lisp 编自己」。
+| **B** | 编译器本体由 Lisp 生成 slice，脱离 `cc` 编 `lispjit.c` | **~10%** → [`BUILD-SLICE.md`](BUILD-SLICE.md) |
 
 ## v3 完成度
 
 | 切片 | 状态 | 说明 |
 |------|------|------|
-| slice 0 VM `OP_CALL_FUNC` | **100%** | `func-call-vm-smoke.lisp` + `run.sh` |
-| slice 1 错误码/arity | **~80%** | VM/AOT exit 2；[`ERROR-CODES.md`](ERROR-CODES.md) |
+| slice 0 VM `OP_CALL_FUNC` | **100%** | `func-call-vm-smoke.lisp` |
+| slice 1 错误码/arity | **100%** | `func-param-vm-i64` + 负向 exit 2 |
 | slice 2 aarch64 native slice | **0%** | 真 aarch64 payload |
-| slice 3 证据/bootstrap | **~75%** | skip 汇总、bare pack、`build_nano_jit` func-call smoke |
-| slice 4 compiler-in-lisp | **0%** | Lisp 构建图 → 替换 stage0 C 编译 |
+| slice 3 证据/bootstrap | **~85%** | `bootstrap-v3-vm-selfpack-matrix.lisp` |
+| slice 4 compiler-in-lisp | **~10%** | BUILD-SLICE stage 表 |
 
-**v3 整体**：**~40%**
-
-## 洋葱序（可并行）
-
-1. slice 1 收尾：`load-arg` VM  lowering（正路径）+ bootstrap DSL 负向
-2. slice 2 + slice 3：aarch64 slice + self-packed 矩阵扩面
-3. slice 4：最小 Lisp `(build-slice …)` 描述，与 §5/§6 ROADMAP 对齐
+**v3 整体**：**~55%**
 
 ## 命令
 

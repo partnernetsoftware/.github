@@ -630,7 +630,7 @@ static int build_label_table_for(const InstrDef *instrs, size_t count, LabelDef 
         return 0;
       }
       labels[label_count++] = (LabelDef){in->import_name, emitted};
-    } else {
+    } else if (in->form != SRC_FORM_PARAM_I64) {
       emitted++;
     }
   }
@@ -646,8 +646,8 @@ static int compile_instr_buf(const Module *m, const InstrDef *instrs, size_t cou
     const InstrDef *in = &instrs[i];
     if (in->form == SRC_FORM_LABEL || in->form == SRC_FORM_PARAM_I64) continue;
     if (in->form == SRC_FORM_LOAD_ARG_I64) {
-      fprintf(stderr, "compile=unsupported_source reason=load_arg_not_lowered\n");
-      return 0;
+      emit_instr(out_instrs, OP_LOAD_ARG_I64, (uint32_t)in->imm, 0);
+      continue;
     }
     if (in->form == SRC_FORM_CONST_U64 || in->form == SRC_FORM_ADD_U64 ||
         in->form == SRC_FORM_CONST_I64 || in->form == SRC_FORM_ADD_I64 ||

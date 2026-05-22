@@ -46,6 +46,9 @@ BOOTSTRAP_V25_NATIVE_SELFPACK_SRC="$LAB_DIR/samples/bootstrap-v25-native-selfpac
 BOOTSTRAP_V3_PACK_BARE_SRC="$LAB_DIR/samples/bootstrap-v3-pack-bare.lisp"
 FUNC_CALL_VM_SMOKE_SRC="$LAB_DIR/samples/func-call-vm-smoke.lisp"
 FUNC_CALL_VM_SMOKE_BLOB="$BUILD_DIR/func-call-vm-smoke.lbin"
+FUNC_PARAM_VM_I64_SRC="$LAB_DIR/samples/func-param-vm-i64.lisp"
+FUNC_PARAM_VM_I64_BLOB="$BUILD_DIR/func-param-vm-i64.lbin"
+BOOTSTRAP_V3_VM_MATRIX_SRC="$LAB_DIR/samples/bootstrap-v3-vm-selfpack-matrix.lisp"
 DATA_GOOD_OBJ="$BUILD_DIR/data-good.o"
 DATA_BAD_RELOC_TYPE_OBJ="$BUILD_DIR/data-bad-reloc-type.o"
 DATA_BAD_RELOC_SYM_OBJ="$BUILD_DIR/data-bad-reloc-sym.o"
@@ -278,6 +281,9 @@ run_case "run-func-param-vm-parity-lbin-expect42" "$RUNNER" run "$FUNC_PARAM_VM_
 
 run_case "compile-func-call-vm-smoke-lbin" "$RUNNER" compile "$FUNC_CALL_VM_SMOKE_SRC" "$FUNC_CALL_VM_SMOKE_BLOB"
 run_case "run-func-call-vm-smoke-lbin-expect42" "$RUNNER" run "$FUNC_CALL_VM_SMOKE_BLOB"
+
+run_case "compile-func-param-vm-i64-lbin" "$RUNNER" compile "$FUNC_PARAM_VM_I64_SRC" "$FUNC_PARAM_VM_I64_BLOB"
+run_case "run-func-param-vm-i64-lbin-expect42" "$RUNNER" run "$FUNC_PARAM_VM_I64_BLOB"
 
 run_case "compile-typed-values-lbin" "$RUNNER" compile "$TYPED_SRC" "$TYPED_BLOB"
 log "typed.blob.bytes=$(bytes_of "$TYPED_BLOB")"
@@ -670,6 +676,15 @@ else
   skip_case "inspect-ape-v3-bare-env" "bootstrap-v3-pack-bare.com missing after plan"
   skip_case "run-ape-v3-bare-env-exit42" "bootstrap-v3-pack-bare.com missing after plan"
 fi
+
+# --- bootstrap-v3 VM self-pack matrix (plan only; full run needs nano-jit.x86_64 slice) ---
+log "bootstrap.v3.vm.matrix.source.path=$BOOTSTRAP_V3_VM_MATRIX_SRC"
+run_case "run-bootstrap-v3-vm-matrix-plan" bash -c '
+  out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V3_VM_MATRIX_SRC"'" 2>&1) || true
+  printf "%s\n" "$out"
+  printf "%s\n" "$out" | grep -q "bootstrap-step.*=compile"
+  printf "%s\n" "$out" | grep -q "bootstrap-step.*=compile-expect-exit"
+'
 
 # --- bootstrap-v25 native selfpack (pack-ape per plan) ---
 V25_NATIVE_SELFPACK_COM="$NANO_JIT_COM"

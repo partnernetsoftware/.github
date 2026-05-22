@@ -21,6 +21,8 @@ Both must fail with **exit 2** on:
 - `compile` → `.lbin`
 - `compile-elf64-obj-code` / `compile-elf64-exe`
 
+Positive path: `func-param-vm-i64.lisp` — `(param i64)` + `load-arg-i64` + `OP_LOAD_ARG_I64` in `.lbin` (see `run.sh` + `build_nano_jit.sh` native slice).
+
 ## VM runtime (execution, not compile)
 
 | Exit | Meaning |
