@@ -702,53 +702,6 @@ static int make_executable(const char *path) {
 
 #include "nano_lisp_parse.c"
 
-static int parse_aot_module(const char *src, AotModule *m) {
-  const char *p = src;
-  int saw_main = 0;
-  if (!eat(&p, '(')) return 0;
-  char *module = parse_atom(&p);
-  if (!module || strcmp(module, "module") != 0) {
-    free(module);
-    return 0;
-  }
-  free(module);
-  while (1) {
-    skip_ws(&p);
-    if (*p == ')') {
-      p++;
-      skip_ws(&p);
-      return *p == 0 && saw_main;
-    }
-    if (!eat(&p, '(')) return 0;
-    char *head = parse_atom(&p);
-    char *name = NULL;
-    AotFunc *func = NULL;
-    int ok = 0;
-    if (!head) return 0;
-    if (strcmp(head, "main") == 0) {
-      if (saw_main || aot_find_func(m, "main") >= 0) {
-        free(head);
-        return 0;
-      }
-      name = dup_cstr("main");
-      func = name ? aot_add_func(m, name, 1) : NULL;
-      ok = func && parse_aot_body_items(&p, func);
-      saw_main = ok;
-    } else if (strcmp(head, "func") == 0) {
-      name = parse_atom(&p);
-      if (!name || !name[0] || aot_find_func(m, name) >= 0 || strcmp(name, "main") == 0) {
-        free(name);
-        free(head);
-        return 0;
-      }
-      func = aot_add_func(m, name, 0);
-      ok = func && parse_aot_body_items(&p, func);
-    }
-    free(head);
-    if (!ok) return 0;
-  }
-}
-
 
 #include "nano_blob_vm.c"
 

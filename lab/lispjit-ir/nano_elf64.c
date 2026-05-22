@@ -390,6 +390,66 @@ static int emit_elf64_obj_call_file(const char *out_path, const char *local, con
   return emit_elf64_obj_file(out_path, text, sizeof(text), syms, 2, relas, 1);
 }
 
+static int emit_elf64_exit_file(const char *out_path, uint8_t exit_code) {
+  unsigned char code[12];
+  memset(code, 0, sizeof(code));
+  code[0] = 0xb8;
+  wr32(code + 1, 60);
+  code[5] = 0xbf;
+  wr32(code + 6, (uint32_t)exit_code);
+  code[10] = 0x0f;
+  code[11] = 0x05;
+  return emit_elf64_code_file(out_path, code, sizeof(code));
+}
+
+static int cmd_emit_elf64_exit(const char *out_path, const char *code_s) {
+  size_t code_arg = 0;
+  if (!parse_size_arg(code_s, &code_arg) || code_arg > 255) {
+    fprintf(stderr, "emit-elf64-exit=bad_exit_code\n");
+    return 1;
+  }
+  if (!emit_elf64_exit_file(out_path, (uint8_t)code_arg)) {
+    fprintf(stderr, "emit-elf64-exit=write_fail path=%s\n", out_path);
+    return 2;
+  }
+  printf("elf64.output=%s\n", out_path);
+  printf("elf64.bytes=%d\n", 132);
+  printf("elf64.entry=0x%llx\n", (unsigned long long)(0x400000u + 120));
+  printf("elf64.exit=%zu\n", code_arg);
+  return 0;
+}
+
+static int cmd_emit_elf64_obj_ret(const char *out_path, const char *symbol, const char *value_s) {
+  size_t value = 0;
+  if (!symbol[0] || !parse_size_arg(value_s, &value) || value > UINT32_MAX) {
+    fprintf(stderr, "emit-elf64-obj-ret=bad_args\n");
+    return 1;
+  }
+  if (!emit_elf64_obj_ret_file(out_path, symbol, (uint32_t)value)) {
+    fprintf(stderr, "emit-elf64-obj-ret=write_fail path=%s\n", out_path);
+    return 2;
+  }
+  printf("elf64.obj.output=%s\n", out_path);
+  printf("elf64.obj.symbol=%s\n", symbol);
+  printf("elf64.obj.ret=%zu\n", value);
+  return 0;
+}
+
+static int cmd_emit_elf64_obj_call(const char *out_path, const char *local, const char *external) {
+  if (!local[0] || !external[0]) {
+    fprintf(stderr, "emit-elf64-obj-call=bad_args\n");
+    return 1;
+  }
+  if (!emit_elf64_obj_call_file(out_path, local, external)) {
+    fprintf(stderr, "emit-elf64-obj-call=write_fail path=%s\n", out_path);
+    return 2;
+  }
+  printf("elf64.obj.output=%s\n", out_path);
+  printf("elf64.obj.symbol=%s\n", local);
+  printf("elf64.obj.extern=%s\n", external);
+  return 0;
+}
+
 typedef struct {
   const unsigned char *data;
   size_t size;
