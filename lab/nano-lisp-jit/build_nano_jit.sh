@@ -155,6 +155,7 @@ CONST_PTR_CALLEE_OBJ="$BUILD_DIR/const_ptr_callee.o"
 CONST_PTR_LOAD_ONLY_CODE="$BUILD_DIR/const_ptr_load_only_code.elf"
 CONST_PTR_LOAD_ONLY_OBJ="$BUILD_DIR/const_ptr_load_only.o"
 CONST_PTR_LOAD_ONLY_LINK_EXE="$BUILD_DIR/const_ptr_load_only_linked"
+CONST_PTR_MIXED_RO_RW_EXE="$BUILD_DIR/const_ptr_mixed_ro_rw_linked"
 CONST_PTR_CROSS_LINK_EXE="$BUILD_DIR/const_ptr_cross_obj_linked"
 CONST_PTR_BAD_RELOC_OBJ="$BUILD_DIR/const_ptr_bad_reloc.o"
 CONST_PTR_BAD_SHNDX_OBJ="$BUILD_DIR/const_ptr_bad_shndx.o"
@@ -335,6 +336,9 @@ cat > "$BOOTSTRAP_PLAN" <<EOF
   (link-elf64-exe "$BUILD_DIR/bootstrap-aot-const-ptr-load-only-linked" "nano_bootstrap_const_ptr_load_only" "$BUILD_DIR/bootstrap-aot-const-ptr-load-only.o")
   (inspect-elf64-exe "$BUILD_DIR/bootstrap-aot-const-ptr-load-only-linked")
   (run-expect-exit "$BUILD_DIR/bootstrap-aot-const-ptr-load-only-linked" 1)
+  (link-elf64-exe "$BUILD_DIR/bootstrap-aot-const-ptr-mixed-ro-rw-linked" "nano_bootstrap_const_ptr_load_only" "$BUILD_DIR/bootstrap-aot-const-ptr-load-only.o" "$BUILD_DIR/bootstrap-aot-const-ptr-load-u8-code.o")
+  (inspect-elf64-exe "$BUILD_DIR/bootstrap-aot-const-ptr-mixed-ro-rw-linked")
+  (run-expect-exit "$BUILD_DIR/bootstrap-aot-const-ptr-mixed-ro-rw-linked" 1)
   (link-elf64-exe "$BUILD_DIR/bootstrap-aot-const-ptr-load-u8-linked" "nano_bootstrap_const_ptr_code" "$BUILD_DIR/bootstrap-aot-const-ptr-load-u8-code.o")
   (inspect-elf64-exe "$BUILD_DIR/bootstrap-aot-const-ptr-load-u8-linked")
   (run-expect-exit "$BUILD_DIR/bootstrap-aot-const-ptr-load-u8-linked" 1)
@@ -579,6 +583,10 @@ run_case "nano-jit-aot-cross-object-const-ptr-callee" "$BUILD_DIR/nano-jit.com" 
 run_case "nano-jit-inspect-cross-object-const-ptr-callee" "$BUILD_DIR/nano-jit.com" inspect-elf64-obj "$CONST_PTR_CALLEE_OBJ"
 run_case "nano-jit-expect-cross-object-const-ptr-section-data" expect_inspect_line "$BUILD_DIR/nano-jit.com" inspect-elf64-obj "$CONST_PTR_CALLEE_OBJ" "elf64.obj.layout=section_data"
 run_case "nano-jit-expect-cross-object-const-ptr-local-symbol" expect_inspect_line "$BUILD_DIR/nano-jit.com" inspect-elf64-obj "$CONST_PTR_CALLEE_OBJ" "elf64.obj.data.local_symbol=.Ldata0"
+run_case "nano-jit-tiny-link-const-ptr-mixed-ro-rw" "$BUILD_DIR/nano-jit.com" link-elf64-exe "$CONST_PTR_MIXED_RO_RW_EXE" nano_const_ptr_load_only "$CONST_PTR_LOAD_ONLY_OBJ" "$CONST_PTR_CALLEE_OBJ"
+run_case "nano-jit-expect-const-ptr-mixed-split-rx-ro-rw" expect_inspect_line "$BUILD_DIR/nano-jit.com" inspect-elf64-exe "$CONST_PTR_MIXED_RO_RW_EXE" "elf64.exec.layout=split_rx_ro_rw"
+run_case "nano-jit-expect-const-ptr-mixed-rw-segment" expect_inspect_line "$BUILD_DIR/nano-jit.com" inspect-elf64-exe "$CONST_PTR_MIXED_RO_RW_EXE" "elf64.exec.data.policy=rw_load_segment"
+run_case "nano-jit-run-const-ptr-mixed-ro-rw" "$BUILD_DIR/nano-jit.com" run-expect-exit "$CONST_PTR_MIXED_RO_RW_EXE" 1
 run_case "nano-jit-prepare-bad-data-reloc-objs" make_bad_data_reloc_objs
 run_case "nano-jit-inspect-reject-bad-object-flags" expect_inspect_failure "$BUILD_DIR/nano-jit.com" inspect-elf64-obj "$CONST_PTR_BAD_FLAGS_OBJ" "bad_text_flags"
 run_case "nano-jit-inspect-reject-bad-rela-link" expect_inspect_failure "$BUILD_DIR/nano-jit.com" inspect-elf64-obj "$CONST_PTR_BAD_RELA_LINK_OBJ" "bad_rela_symtab_link"

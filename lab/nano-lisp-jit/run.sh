@@ -72,6 +72,7 @@ CONST_PTR_LOAD_ONLY_CODE="$BUILD_DIR/const_ptr_load_only_code.elf"
 CONST_PTR_LOAD_ONLY_OBJ="$BUILD_DIR/const_ptr_load_only.o"
 CONST_PTR_LINK_EXE="$BUILD_DIR/const_ptr_load_u8_linked"
 CONST_PTR_LOAD_ONLY_LINK_EXE="$BUILD_DIR/const_ptr_load_only_linked"
+CONST_PTR_MIXED_RO_RW_EXE="$BUILD_DIR/const_ptr_mixed_ro_rw_linked"
 CONST_PTR_DIRECT_EXE="$BUILD_DIR/const_ptr_load_u8_direct"
 CONST_PTR_LOAD_ONLY_DIRECT_EXE="$BUILD_DIR/const_ptr_load_only_direct"
 CONST_PTR_BAD_RELOC_OBJ="$BUILD_DIR/const_ptr_bad_reloc.o"
@@ -393,6 +394,22 @@ expect_elf64_exec_ro_split() {
   printf '%s\n' "$out" | rg -q 'elf64\.exec\.rodata\.bytes=[1-9]'
 }
 
+expect_elf64_exec_ro_rw_split() {
+  local path="$1"
+  local out=""
+  out=$("$RUNNER" inspect-elf64-exe "$path")
+  printf '%s\n' "$out"
+  printf '%s\n' "$out" | rg -q 'elf64\.exec\.load\.count=3'
+  printf '%s\n' "$out" | rg -q 'elf64\.exec\.load\.0\.flags=rx'
+  printf '%s\n' "$out" | rg -q 'elf64\.exec\.load\.1\.flags=r'
+  printf '%s\n' "$out" | rg -q 'elf64\.exec\.load\.2\.flags=rw'
+  printf '%s\n' "$out" | rg -q 'elf64\.exec\.layout=split_rx_ro_rw'
+  printf '%s\n' "$out" | rg -q 'elf64\.exec\.rodata\.policy=r_load_segment'
+  printf '%s\n' "$out" | rg -q 'elf64\.exec\.rodata\.bytes=[1-9]'
+  printf '%s\n' "$out" | rg -q 'elf64\.exec\.data\.policy=rw_load_segment'
+  printf '%s\n' "$out" | rg -q 'elf64\.exec\.data\.bytes=[1-9]'
+}
+
 expect_elf64_exec_rwx_compat() {
   local path="$1"
   local out=""
@@ -611,6 +628,9 @@ if [ "$(uname -m)" = "x86_64" ] || [ "$(uname -m)" = "amd64" ]; then
   run_case "tiny-link-aot-const-ptr-load-only-rodata" "$RUNNER" link-elf64-exe "$CONST_PTR_LOAD_ONLY_LINK_EXE" nano_const_ptr_load_only "$CONST_PTR_LOAD_ONLY_OBJ"
   run_case "inspect-linked-const-ptr-load-only-rx-ro" expect_elf64_exec_ro_split "$CONST_PTR_LOAD_ONLY_LINK_EXE"
   run_case "run-tiny-linked-const-ptr-load-only-1" "$RUNNER" run-expect-exit "$CONST_PTR_LOAD_ONLY_LINK_EXE" 1
+  run_case "tiny-link-aot-const-ptr-mixed-ro-rw" "$RUNNER" link-elf64-exe "$CONST_PTR_MIXED_RO_RW_EXE" nano_const_ptr_load_only "$CONST_PTR_LOAD_ONLY_OBJ" "$CONST_PTR_CODE_OBJ"
+  run_case "inspect-linked-const-ptr-mixed-rx-ro-rw" expect_elf64_exec_ro_rw_split "$CONST_PTR_MIXED_RO_RW_EXE"
+  run_case "run-tiny-linked-const-ptr-mixed-ro-rw-1" "$RUNNER" run-expect-exit "$CONST_PTR_MIXED_RO_RW_EXE" 1
   run_case "prepare-bad-data-reloc-objs" make_bad_data_reloc_objs
   run_case "inspect-elf64-obj-reject-bad-text-flags" expect_inspect_elf64_obj_failure "$CONST_PTR_BAD_FLAGS_OBJ" "bad_text_flags"
   run_case "inspect-elf64-obj-reject-bad-rela-link" expect_inspect_elf64_obj_failure "$CONST_PTR_BAD_RELA_LINK_OBJ" "bad_rela_symtab_link"
