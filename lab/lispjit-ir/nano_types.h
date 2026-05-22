@@ -48,6 +48,7 @@
 #define OP_STORE_U8 39u
 #define OP_STORE_U16 40u
 #define OP_STORE_U32 41u
+#define OP_CALL_FUNC 42u
 
 #define SRC_FORM_CALL 1u
 #define SRC_FORM_RESOLVE 2u
@@ -87,6 +88,7 @@
 #define SRC_FORM_STORE_U8 36u
 #define SRC_FORM_STORE_U16 37u
 #define SRC_FORM_STORE_U32 38u
+#define SRC_FORM_CALL_FUNC 39u
 
 #define AOT_STMT_CONST_U64 1u
 #define AOT_STMT_ADD_U64 2u
@@ -187,6 +189,13 @@ typedef struct {
 } InstrDef;
 
 typedef struct {
+  char *name;
+  InstrDef *instrs;
+  size_t instr_count;
+  size_t instr_cap;
+} VmFuncDef;
+
+typedef struct {
   ImportDef *imports;
   size_t import_count;
   size_t import_cap;
@@ -196,6 +205,9 @@ typedef struct {
   InstrDef *instrs;
   size_t instr_count;
   size_t instr_cap;
+  VmFuncDef *funcs;
+  size_t func_count;
+  size_t func_cap;
 } Module;
 
 typedef struct {
@@ -255,10 +267,12 @@ typedef struct {
   uint32_t const_count;
   uint32_t instr_count;
   uint32_t string_size;
+  uint32_t func_count;
   size_t import_off;
   size_t const_off;
   size_t instr_off;
   size_t string_off;
+  size_t func_off;
 } Blob;
 
 typedef struct {

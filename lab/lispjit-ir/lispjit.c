@@ -26,6 +26,7 @@ extern void *cosmo_dlsym(void *handle, const char *symbol);
 #define IMPORT_SIZE 16u
 #define CONST_SIZE 16u
 #define INSTR_SIZE 12u
+#define FUNC_ENTRY_SIZE 12u
 
 #ifdef NANO_LISP_JIT
 #define OUTPUT_MAGIC_INIT {'L', 'B', 'I', 'N', '0', '1', 0, 0}

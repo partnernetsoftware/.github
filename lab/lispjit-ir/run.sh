@@ -42,5 +42,11 @@ log "blob.bytes=$(bytes_of "$BLOB")"
 run_case "dump-portable-blob" "$RUNNER" dump "$BLOB"
 
 run_case "execute-blob-via-jit" "$RUNNER" run "$BLOB"
+
+SMOKE_SRC="$LAB_DIR/samples/func-call-vm-smoke.lisp"
+SMOKE_BLOB="$BUILD_DIR/func-call-vm-smoke.ljir"
+run_case "compile-func-call-vm-smoke" "$RUNNER" compile "$SMOKE_SRC" "$SMOKE_BLOB"
+run_case "execute-func-call-vm-smoke" "$RUNNER" run "$SMOKE_BLOB"
+
 log ""
 log "results.file=$RESULTS"

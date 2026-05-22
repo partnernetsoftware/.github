@@ -20,6 +20,7 @@ static int blob_init(Blob *b, unsigned char *data, size_t size) {
   b->data = data;
   b->size = size;
   b->version = rd32(data + 8);
+  b->func_count = rd32(data + 12);
   b->import_count = rd32(data + 16);
   b->const_count = rd32(data + 20);
   b->instr_count = rd32(data + 24);
@@ -28,11 +29,19 @@ static int blob_init(Blob *b, unsigned char *data, size_t size) {
   b->const_off = b->import_off + (size_t)b->import_count * IMPORT_SIZE;
   b->instr_off = b->const_off + (size_t)b->const_count * CONST_SIZE;
   b->string_off = b->instr_off + (size_t)b->instr_count * INSTR_SIZE;
+  b->func_off = b->string_off + (size_t)b->string_size;
   if (!checked_span(size, b->import_off, b->import_count, IMPORT_SIZE)) return 0;
   if (!checked_span(size, b->const_off, b->const_count, CONST_SIZE)) return 0;
   if (!checked_span(size, b->instr_off, b->instr_count, INSTR_SIZE)) return 0;
   if (!checked_span(size, b->string_off, b->string_size, 1)) return 0;
-  if (b->string_off + b->string_size != size) return 0;
+  if (!checked_span(size, b->func_off, b->func_count, FUNC_ENTRY_SIZE)) return 0;
+  if (b->func_off + (size_t)b->func_count * FUNC_ENTRY_SIZE != size) {
+    if (b->func_count == 0 && b->string_off + b->string_size == size) {
+      b->func_off = size;
+    } else {
+      return 0;
+    }
+  }
   return b->version == 1;
 }
 
@@ -52,6 +61,10 @@ static const unsigned char *const_row(const Blob *b, uint32_t idx) {
 
 static const unsigned char *instr_row(const Blob *b, uint32_t idx) {
   return idx < b->instr_count ? b->data + b->instr_off + (size_t)idx * INSTR_SIZE : NULL;
+}
+
+static const unsigned char *func_entry_row(const Blob *b, uint32_t idx) {
+  return idx < b->func_count ? b->data + b->func_off + (size_t)idx * FUNC_ENTRY_SIZE : NULL;
 }
 
 static void *open_named_library(const char *name) {
@@ -249,6 +262,51 @@ static int resolve_blob(const Blob *b, int quiet) {
   }
   printf("resolve.imports=%u\n", b->import_count);
   printf("resolve.ok=%u\n", ok);
+  return 0;
+}
+
+static uint64_t value_as_call_arg(Value v) {
+  if (v.kind == VAL_U64) return v.bits;
+  if (v.kind == VAL_I64 && (int64_t)v.bits >= 0) return (uint64_t)v.bits;
+  return UINT64_MAX;
+}
+
+static int execute_func_range(const Blob *b, uint32_t start, uint32_t end, uint64_t arg,
+                              Value *out) {
+  Value last = value_u64(arg);
+  uint32_t pc = start;
+  while (pc < end) {
+    const unsigned char *ins = instr_row(b, pc);
+    if (!ins) return 10;
+    uint8_t op = ins[0];
+    uint32_t arg0 = rd32(ins + 4);
+    uint32_t arg1 = rd32(ins + 8);
+    if (op == OP_CONST_U64) {
+      last = value_u64((uint64_t)arg0 | ((uint64_t)arg1 << 32));
+      printf("func.u64.%u=", pc);
+      print_value(stdout, last);
+      printf("\n");
+      pc++;
+      continue;
+    }
+    if (op == OP_ADD_U64) {
+      uint64_t rhs = (uint64_t)arg0 | ((uint64_t)arg1 << 32);
+      if (!value_add_u64(&last, rhs)) {
+        fprintf(stderr, "func.type.add-u64=%u actual=", pc);
+        print_value(stderr, last);
+        fprintf(stderr, "\n");
+        return 20;
+      }
+      printf("func.add-u64.%u=", pc);
+      print_value(stdout, last);
+      printf("\n");
+      pc++;
+      continue;
+    }
+    fprintf(stderr, "func.unsupported.op=%u\n", op);
+    return 11;
+  }
+  *out = last;
   return 0;
 }
 
@@ -719,6 +777,36 @@ static int execute_blob(const Blob *b) {
         return 20;
       }
       printf("ge-i64.%u=", pc);
+      print_value(stdout, last);
+      printf("\n");
+      pc++;
+      continue;
+    }
+    if (op == OP_CALL_FUNC) {
+      const unsigned char *entry = func_entry_row(b, arg0);
+      uint64_t call_arg;
+      uint32_t start;
+      uint32_t len;
+      if (!entry) {
+        fprintf(stderr, "call-func.%u=bad_index %u\n", pc, arg0);
+        return 24;
+      }
+      call_arg = value_as_call_arg(last);
+      if (call_arg == UINT64_MAX) {
+        fprintf(stderr, "call-func.%u=bad_arg actual=", pc);
+        print_value(stderr, last);
+        fprintf(stderr, "\n");
+        return 20;
+      }
+      start = rd32(entry);
+      len = rd32(entry + 4);
+      if (start + len > b->instr_count) {
+        fprintf(stderr, "call-func.%u=bad_range start=%u len=%u\n", pc, start, len);
+        return 24;
+      }
+      rc = execute_func_range(b, start, start + len, call_arg, &last);
+      if (rc != 0) return rc;
+      printf("call-func.%u=idx%u result=", pc, arg0);
       print_value(stdout, last);
       printf("\n");
       pc++;
