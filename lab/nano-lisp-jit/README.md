@@ -8,7 +8,7 @@
 `lab/tool-*` 消费者用法与已知摩擦见 `LAB-USAGE-FEEDBACK.md`。
 内存安全借鉴与产品化命名见 `DESIGN-MEMORY-AND-PRODUCT.md`。
 
-当前状态：self-bootstrap v1 已评估为 `100%`。`nano-jit.com` 已能 self-pack，不调用 `apelink`；纯 VM source 可进入 `.lbin`、解释执行、AOT ELF、ELF64 object、tiny-link executable；typed `i64/bool/ptr`、control-flow、multi-func、多 object、load/store-family 和跨 object 数据 smoke 均有 native/container 自举证据。
+当前状态：self-bootstrap v1 已评估为 `100%`，v1.5 约 `40%`。`nano-jit.com` 已能 self-pack，不调用 `apelink`；纯 VM source 可进入 `.lbin`、解释执行、AOT ELF、ELF64 object、tiny-link executable；typed `i64/bool/ptr`、control-flow、multi-func、多 object、load/store-family 和跨 object 数据 smoke 均有 native/container 自举证据；APE manifest 已覆盖 per-slice arch/os/offset/size/fnv1a64 与 `inspect-ape` 校验。
 
 下一会话建议从 `ROADMAP.md` 的 `v1.5 / v2 开工入口` 继续：先用持续反思/学习/进化循环确认 v1 基线，再从 v1.5 的 nano APE manifest fixture 开工；随后处理 pack/inspect/run、`.rodata/.data` section、数据 relocation、`lispjit.c` 分层、bootstrap DSL build graph，以及 v2 的自托管 slice compiler 路径。分层与 data section 属于 v2 前半 C 侧等价推进，build graph 与自托管 slice path 是 v2 后半 Lisp-first 起点；v3+ 不把 v2 当终点，而是继续扩大到外部 VM、语言和查询语义的导入/转译/自举验证。
 
@@ -52,7 +52,8 @@
 
 - 外部工具优先通过 `NANO_JIT=/path/to/nano-lisp-jit` 指定 runner；`lab/_nano_common.sh` 会优先使用该环境变量，未设置时沿用仓库内 `lab/nano-lisp-jit/.build/nano-lisp-jit`。
 - `resolve-quiet program.lbin` 已作为顶层 CLI alias 接入，等价于 `resolve --quiet program.lbin`；`(resolve-quiet ...)` 仍是 bootstrap DSL 步骤名。
-- `inspect-ape file.com` 现在会拒绝非 `ape-v1` container、缺失 slice 字段、越界 payload 和非 canonical slice layout；`inspect-app` 仍保持通用 manifest dump 行为。
+- `pack-ape` 会按 `ape-v1` 写入各 slice 的 arch/os/offset/size/fnv1a64；外部工具应优先用 `inspect-ape` 读取 manifest，不要假设固定 stub 偏移。
+- `inspect-ape file.com` 现在会拒绝非 `ape-v1` container、缺失 slice 字段、越界 payload、非 canonical slice layout、arch/os 不匹配和 slice hash 不一致；`inspect-app` 仍保持通用 manifest dump 行为。
 - `run-bootstrap-plan` 的 checked-in 样例默认从 repo root 执行；外部工具若从子目录调用，应传入 repo-root 相对路径或先切到 repo root。
 - `run program.lbin` 的进程退出码等于 VM 最后一条返回值；脚本自测应优先写 `(expect ...)`，或用 `run-expect-exit` 固定断言。
 - `compile-elf64-*` / `aot-elf64-*` 当前面向 x86_64 Linux；跨平台调用方应像 `run.sh` 一样在非 x86_64 host 上跳过。

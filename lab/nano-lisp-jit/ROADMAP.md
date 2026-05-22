@@ -267,22 +267,23 @@ nano-jit continuation after self-bootstrap v1
 
 最新稳定基线：`nano-jit.com` 已能 self-pack，不调用 `apelink`；能从纯 VM `.lisp` 直接生成 ELF/object；能把 nano 生成的多个 ELF64 object 用自带 tiny linker 链成可运行 ELF。
 
-当前完成度评估：`100%`（self-bootstrap v1）。已补齐最小 load/store 宽度，并用跨 object tiny-link 样例验证被调用 object 内嵌数据可读写；后续工作进入 v2 反思队列。
+当前完成度评估：`100%`（self-bootstrap v1）；`40%`（v1.5）。v1 已补齐最小 load/store 宽度，并用跨 object tiny-link 样例验证被调用 object 内嵌数据可读写；v1.5 正在收紧 APE manifest / inspect / run 证据。
 
 下一步优先级：
 
-1. 把最小 control flow 子集继续接到机器码 AOT/codegen 路径，逐步缩小静态求值-only 语义。
-2. 继续扩大 bootstrap DSL：在已落地的 `compile/hash/compare/pack-app/inspect-app/run-app/run` 基础上，再接更丰富的可验证步骤。
+1. v1.5 slice 3：让 `run` / 当前 shell stub 选择 payload 的行为进入更明确的 inspect/run 证据；unsupported arch 保持稳定失败码。
+2. v1.5 后半：进入 `.rodata/.data` section 与数据 relocation，逐步移除 RWX text/data 混合策略。
 3. 持续缩小临时依赖：`cosmocc` 只保留为 slice compiler，下一阶段目标是生成 x86_64 slice 的可运行子集。
-4. 进入 v2 反思队列：实现类似 Cosmopolitan 的 APE 格式、明确独立数据段权限模型、更多内存布局、更完整 ABI 边界，以及减少 slice compiler 依赖。
-5. 保留 v3+ 扩张方向：把 nano-jit 作为 AI 友好、图灵完备、可自举的独立基石，持续吸收 WASM/JVM/JS/SQL 等外部语义，而不是把 v2 当终点。
-6. 将 lab 消费者反馈纳入 v1.5 slice 0：先收敛 CLI/DSL 命名、runner 定位、repo-root 路径、`run` 退出码语义和 x86_64 skip 说明，再开 APE manifest。
+4. v2 前半：做 `lispjit.c` 分层、函数模型和 ABI descriptor，仍以 C 侧等价推进为主。
+5. v2 后半 / v2.5：bootstrap DSL build graph 与 self-hosted slice path 开始 Lisp-first，并把改 C 变成例外。
+6. 保留 v3+ 扩张方向：把 nano-jit 作为 AI 友好、图灵完备、可自举的独立基石，持续吸收 WASM/JVM/JS/SQL 等外部语义，而不是把 v2 当终点。
 
 已完成：
 
 - v1.5 slice 0 首轮：顶层 CLI 新增 `resolve-quiet program.lbin` alias，lab 消费者 helper 支持 `NANO_JIT` runner 覆盖，继续用 `bash lab/run-lab-tools.sh` 做消费者回归。
 - v1.5 slice 1 首轮：`pack-ape` 写出 `ape-v1` manifest，新增 `inspect-ape` CLI，bootstrap DSL 支持 `pack-ape` / `inspect-ape`，并加入 checked-in `bootstrap-ape-smoke.lisp`。
 - v1.5 slice 1 第二轮（v1.5 35%）：`inspect-ape` 会校验 `ape-v1` container、必填 slice offset/size、payload marker、payload bounds 与 canonical slice layout；`run.sh` 增加 missing manifest / bad container / bad offset / missing key 负向断言。
+- v1.5 slice 2 首轮（v1.5 40%）：`pack-ape` manifest 记录 per-slice arch/os/fnv1a64，`inspect-ape` 会复算 payload slice hash 并校验 arch/os，`bootstrap-ape-smoke.lisp` 和 `run.sh` 覆盖正向 hash 输出与 bad hash / bad arch / missing os 负向断言。
 - AOT app 直接从 `.com` payload 读取内嵌 blob 执行。
 - AOT app 结构化 manifest、`inspect-app` 和 `run-app`。
 - `pack-ape` 已能组合 x86_64/aarch64 slice 与 container metadata，形成当前最小 `.com`；但 loader/多架构执行选择仍主要依赖现有 slice/stub 约定，尚未形成 nano 自主的完整 APE loader 格式。
@@ -408,9 +409,9 @@ v1.5 kickoff
 │  └─ 目标: 先锁格式，不急着重写 loader
 ├─ slice 2: pack-ape writes nano manifest
 │  ├─ 保留现有 x86_64/aarch64 slice
-│  ├─ manifest 记录 arch/os/offset/size/hash
-│  ├─ inspect-app 或 inspect-ape 能解释新 manifest
-│  └─ bootstrap DSL 覆盖 pack/inspect/hash
+│  ├─ manifest 记录 arch/os/offset/size/hash（首轮已落地 per-slice arch/os/fnv1a64）
+│  ├─ inspect-app 或 inspect-ape 能解释新 manifest（首轮已由 inspect-ape 校验）
+│  └─ bootstrap DSL 覆盖 pack/inspect/hash（首轮已加入 bootstrap-ape-smoke）
 └─ slice 3: run selected payload
    ├─ Linux host 先选择 x86_64 payload
    ├─ unsupported arch 有稳定失败码
@@ -442,7 +443,7 @@ v2 kickoff
 
 1. 先跑 `bash lab/nano-lisp-jit/run.sh` 和 `sudo docker compose -f docker-compose.dev.yml run --rm dev bash lab/nano-lisp-jit/build_nano_jit.sh`，确认 v1 基线仍绿。
 2. 先跑 `bash lab/run-lab-tools.sh`，把 `LAB-USAGE-FEEDBACK.md` 中的问题转成 v1.5 slice 0 的修复或文档约定。
-3. 再从 v1.5 slice 1 开始：把 APE manifest/header/payload table 写成最小 spec 和 fixture，再用 inspect 测试锁定格式。
-4. 完成 v1.5 pack/inspect/run 三圈后，再进入 v2 `.rodata/.data` section 和数据 relocation。
+3. 再从 v1.5 slice 3 开始：让 selected payload run 与 unsupported arch 失败码进入更明确证据。
+4. 完成 v1.5 pack/inspect/run 三圈后，再进入 v1.5 后半 `.rodata/.data` section 和数据 relocation。
 5. 数据 section 稳定后再拆 `lispjit.c`，避免格式、权限和大规模移动同时发生。
 6. 每次推进继续保持“目标复盘 -> 样例 -> native runner -> checked-in bootstrap DSL -> self-packed runner -> lab consumer regression -> 反思 -> commit/merge”的洋葱顺序。

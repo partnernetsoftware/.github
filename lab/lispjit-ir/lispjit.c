@@ -2905,9 +2905,40 @@ static int validate_payload_slice_bounds(size_t payload_n, size_t off, size_t sl
   return off <= payload_n && slice_n <= payload_n - off;
 }
 
+static int is_lower_hex16(const char *s) {
+  for (size_t i = 0; i < 16; ++i) {
+    char c = s[i];
+    if (!((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f'))) return 0;
+  }
+  return s[16] == '\0';
+}
+
+static int validate_slice_fnv1a64(const unsigned char *data, size_t n,
+                                  const char *expected, const char *arch,
+                                  const char *error_prefix) {
+  char actual[17];
+  if (!is_lower_hex16(expected)) {
+    fprintf(stderr, "%s=bad_hash arch=%s got=%s\n", error_prefix, arch, expected);
+    return 2;
+  }
+  snprintf(actual, sizeof(actual), "%016llx", (unsigned long long)fnv1a64(data, n));
+  if (strcmp(actual, expected) != 0) {
+    fprintf(stderr, "%s=bad_hash arch=%s expected=%s got=%s\n",
+            error_prefix, arch, actual, expected);
+    return 2;
+  }
+  return 0;
+}
+
 static int validate_ape_v1_manifest(const unsigned char *data, size_t n,
                                     const char *error_prefix) {
   char container[32];
+  char x86_arch[32];
+  char arm_arch[32];
+  char x86_os[32];
+  char arm_os[32];
+  char x86_hash[32];
+  char arm_hash[32];
   size_t x86_off = 0;
   size_t x86_size = 0;
   size_t arm_off = 0;
@@ -2946,6 +2977,37 @@ static int validate_ape_v1_manifest(const unsigned char *data, size_t n,
     fprintf(stderr, "%s=payload_layout\n", error_prefix);
     return 2;
   }
+  if (!manifest_find_string(data, n, "nano.slice.x86_64.arch", x86_arch, sizeof(x86_arch)) ||
+      !manifest_find_string(data, n, "nano.slice.aarch64.arch", arm_arch, sizeof(arm_arch)) ||
+      !manifest_find_string(data, n, "nano.slice.x86_64.os", x86_os, sizeof(x86_os)) ||
+      !manifest_find_string(data, n, "nano.slice.aarch64.os", arm_os, sizeof(arm_os)) ||
+      !manifest_find_string(data, n, "nano.slice.x86_64.fnv1a64", x86_hash, sizeof(x86_hash)) ||
+      !manifest_find_string(data, n, "nano.slice.aarch64.fnv1a64", arm_hash, sizeof(arm_hash))) {
+    fprintf(stderr, "%s=manifest_key_missing key=nano.slice.metadata\n", error_prefix);
+    return 2;
+  }
+  if (strcmp(x86_arch, "x86_64") != 0) {
+    fprintf(stderr, "%s=bad_arch expected=x86_64 got=%s\n", error_prefix, x86_arch);
+    return 2;
+  }
+  if (strcmp(arm_arch, "aarch64") != 0) {
+    fprintf(stderr, "%s=bad_arch expected=aarch64 got=%s\n", error_prefix, arm_arch);
+    return 2;
+  }
+  if (strcmp(x86_os, "linux") != 0) {
+    fprintf(stderr, "%s=bad_os arch=x86_64 expected=linux got=%s\n", error_prefix, x86_os);
+    return 2;
+  }
+  if (strcmp(arm_os, "linux") != 0) {
+    fprintf(stderr, "%s=bad_os arch=aarch64 expected=linux got=%s\n", error_prefix, arm_os);
+    return 2;
+  }
+  int x86_hash_ok = validate_slice_fnv1a64(data + payload_start + x86_off, x86_size,
+                                           x86_hash, "x86_64", error_prefix);
+  if (x86_hash_ok != 0) return x86_hash_ok;
+  int arm_hash_ok = validate_slice_fnv1a64(data + payload_start + arm_off, arm_size,
+                                           arm_hash, "aarch64", error_prefix);
+  if (arm_hash_ok != 0) return arm_hash_ok;
   return 0;
 }
 
@@ -5746,8 +5808,14 @@ static int cmd_pack_ape(const char *out_path, const char *x86_path, const char *
       "# nano.container=ape-v1\n"
       "# nano.slice.x86_64.offset=0\n"
       "# nano.slice.x86_64.size=%zu\n"
+      "# nano.slice.x86_64.arch=x86_64\n"
+      "# nano.slice.x86_64.os=linux\n"
+      "# nano.slice.x86_64.fnv1a64=%016llx\n"
       "# nano.slice.aarch64.offset=%zu\n"
       "# nano.slice.aarch64.size=%zu\n"
+      "# nano.slice.aarch64.arch=aarch64\n"
+      "# nano.slice.aarch64.os=linux\n"
+      "# nano.slice.aarch64.fnv1a64=%016llx\n"
       "# nano.manifest.end\n"
       "payload_line=$(awk '/^__NANO_APE_PAYLOAD_BELOW__$/ { print NR + 1; exit }' \"$0\")\n"
       "if [ -z \"${payload_line:-}\" ]; then echo \"nano pack-ape: payload marker missing\" >&2; exit 126; fi\n"
@@ -5759,7 +5827,11 @@ static int cmd_pack_ape(const char *out_path, const char *x86_path, const char *
       "exit 127\n"
       "__NANO_APE_PAYLOAD_BELOW__\n";
 
-  int stub_n = snprintf(NULL, 0, stub_fmt, x86_n, x86_n, arm_n, x86_n, x86_n, arm_n);
+  uint64_t x86_hash = fnv1a64(x86, x86_n);
+  uint64_t arm_hash = fnv1a64(arm, arm_n);
+  int stub_n = snprintf(NULL, 0, stub_fmt, x86_n, x86_n, arm_n, x86_n,
+                        (unsigned long long)x86_hash, x86_n, arm_n,
+                        (unsigned long long)arm_hash);
   if (stub_n < 0) {
     free(x86);
     free(arm);
@@ -5771,7 +5843,8 @@ static int cmd_pack_ape(const char *out_path, const char *x86_path, const char *
     free(arm);
     return 2;
   }
-  snprintf(stub, (size_t)stub_n + 1, stub_fmt, x86_n, x86_n, arm_n, x86_n, x86_n, arm_n);
+  snprintf(stub, (size_t)stub_n + 1, stub_fmt, x86_n, x86_n, arm_n, x86_n,
+           (unsigned long long)x86_hash, x86_n, arm_n, (unsigned long long)arm_hash);
 
   Buf out = {0};
   buf_put(&out, stub, (size_t)stub_n);

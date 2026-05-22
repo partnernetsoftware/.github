@@ -37,6 +37,9 @@ BOOTSTRAP_APE_COM="$BUILD_DIR/bootstrap-ape.com"
 BOOTSTRAP_APE_BAD_CONTAINER="$BUILD_DIR/bootstrap-ape-bad-container.com"
 BOOTSTRAP_APE_BAD_OFFSET="$BUILD_DIR/bootstrap-ape-bad-offset.com"
 BOOTSTRAP_APE_MISSING_KEY="$BUILD_DIR/bootstrap-ape-missing-key.com"
+BOOTSTRAP_APE_BAD_HASH="$BUILD_DIR/bootstrap-ape-bad-hash.com"
+BOOTSTRAP_APE_BAD_ARCH="$BUILD_DIR/bootstrap-ape-bad-arch.com"
+BOOTSTRAP_APE_MISSING_OS="$BUILD_DIR/bootstrap-ape-missing-os.com"
 SMOKE_SRC="$LAB_DIR/samples/libc-smoke.lisp"
 BLOB="$BUILD_DIR/strlen.lbin"
 BLOB_REPEAT="$BUILD_DIR/strlen-repeat.lbin"
@@ -157,12 +160,14 @@ run_case() {
 
 make_bad_ape_manifests() {
   python3 - "$BOOTSTRAP_APE_COM" "$BOOTSTRAP_APE_BAD_CONTAINER" \
-    "$BOOTSTRAP_APE_BAD_OFFSET" "$BOOTSTRAP_APE_MISSING_KEY" <<'PY'
+    "$BOOTSTRAP_APE_BAD_OFFSET" "$BOOTSTRAP_APE_MISSING_KEY" \
+    "$BOOTSTRAP_APE_BAD_HASH" "$BOOTSTRAP_APE_BAD_ARCH" \
+    "$BOOTSTRAP_APE_MISSING_OS" <<'PY'
 from pathlib import Path
 import sys
 import re
 
-good, bad_container, bad_offset, missing_key = map(Path, sys.argv[1:])
+good, bad_container, bad_offset, missing_key, bad_hash, bad_arch, missing_os = map(Path, sys.argv[1:])
 data = good.read_bytes()
 bad_container.write_bytes(data.replace(
     b"# nano.container=ape-v1\n",
@@ -176,6 +181,22 @@ bad_offset.write_bytes(re.sub(
 ))
 missing_key.write_bytes(re.sub(
     br"# nano\.slice\.aarch64\.size=[0-9]+\n",
+    b"",
+    data,
+    count=1,
+))
+bad_hash.write_bytes(re.sub(
+    br"# nano\.slice\.x86_64\.fnv1a64=[0-9a-f]+\n",
+    b"# nano.slice.x86_64.fnv1a64=0000000000000000\n",
+    data,
+    count=1,
+))
+bad_arch.write_bytes(data.replace(
+    b"# nano.slice.x86_64.arch=x86_64\n",
+    b"# nano.slice.x86_64.arch=riscv64\n",
+))
+missing_os.write_bytes(re.sub(
+    br"# nano\.slice\.x86_64\.os=linux\n",
     b"",
     data,
     count=1,
@@ -318,6 +339,9 @@ run_case "inspect-ape-reject-missing-manifest" expect_inspect_ape_failure "$BOOT
 run_case "inspect-ape-reject-bad-container" expect_inspect_ape_failure "$BOOTSTRAP_APE_BAD_CONTAINER" "bad_container"
 run_case "inspect-ape-reject-bad-offset" expect_inspect_ape_failure "$BOOTSTRAP_APE_BAD_OFFSET" "payload_bounds"
 run_case "inspect-ape-reject-missing-key" expect_inspect_ape_failure "$BOOTSTRAP_APE_MISSING_KEY" "manifest_key_missing"
+run_case "inspect-ape-reject-bad-hash" expect_inspect_ape_failure "$BOOTSTRAP_APE_BAD_HASH" "bad_hash"
+run_case "inspect-ape-reject-bad-arch" expect_inspect_ape_failure "$BOOTSTRAP_APE_BAD_ARCH" "bad_arch"
+run_case "inspect-ape-reject-missing-os" expect_inspect_ape_failure "$BOOTSTRAP_APE_MISSING_OS" "manifest_key_missing"
 
 run_case "compile-control-flow-lbin" "$RUNNER" compile "$CTRL_SRC" "$CTRL_BLOB"
 log "control.blob.bytes=$(bytes_of "$CTRL_BLOB")"
