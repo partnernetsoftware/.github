@@ -314,6 +314,13 @@ if [ -f "$APE_V2_COM" ]; then
   run_case "inspect-ape-v2-smoke" "$RUNNER" inspect-ape "$APE_V2_COM"
   if [ "$(uname -m)" = "x86_64" ] || [ "$(uname -m)" = "amd64" ]; then
     run_case "run-ape-v2-native-exit42" "$RUNNER" run-ape-expect-exit "$APE_V2_COM" 42
+    run_case "run-ape-v2-memfd-loader-smoke" bash -c '
+      out=$("'"$RUNNER"'" run-ape "'"$APE_V2_COM"'" 2>&1) || true
+      printf "%s\n" "$out"
+      printf "%s\n" "$out" | grep -q "run-ape.container=ape-v2"
+      printf "%s\n" "$out" | grep -q "run-ape.loader=memfd"
+      printf "%s\n" "$out" | grep -q "run-ape.exit=42"
+    '
   fi
   run_case "make-ape-v2-negative-fixtures" python3 "$LAB_DIR/make_ape_fixtures.py" "$APE_V2_COM" "$BUILD_DIR"
   BOOTSTRAP_APE_V2_NEG_SRC="$LAB_DIR/samples/bootstrap-ape-v2-negative.lisp"

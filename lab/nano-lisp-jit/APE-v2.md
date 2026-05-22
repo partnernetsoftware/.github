@@ -58,6 +58,7 @@ Success prints include `inspect-ape.container=ape-v2`, `inspect-ape.header_bytes
 ## Loader (slice 2+)
 
 - **Primary (native):** `nano-jit run-ape container.com [arch]` reads the v2 table in-process (no manifest shell logic).
+- **Native Linux x86_64 ELF:** host `run-ape` writes the slice to a `memfd` and `fork`+`exec` via `/proc/self/fd/N` (`run-ape.loader=memfd`); falls back to `/tmp` extract when `memfd_create` is unavailable.
 - **Direct execution:** `pack-ape` shell stub tries `NANO_JIT` / `nano-lisp-jit run-ape` first (`# nano.loader=run-ape-cli`), then falls back to `dd` slice extract + `exec`.
 - **Mode B (future):** v2 header without shell script wrapper.
 

@@ -121,6 +121,67 @@ static int validate_ape_manifest(const unsigned char *data, size_t n, NanoApeMan
 }
 
 #if !defined(_WIN32)
+#if defined(__linux__)
+#include <sys/syscall.h>
+#ifndef SYS_memfd_create
+#if defined(__x86_64__)
+#define SYS_memfd_create 319
+#elif defined(__aarch64__)
+#define SYS_memfd_create 279
+#endif
+#endif
+
+static int ape_memfd_create(void) {
+#ifdef SYS_memfd_create
+  return (int)syscall(SYS_memfd_create, "nano-ape", 0u);
+#else
+  return -1;
+#endif
+}
+
+static int host_arch_matches_slice(const char *arch_name) {
+  struct utsname ut;
+  if (uname(&ut) != 0) return 0;
+  if (strcmp(arch_name, "x86_64") == 0) {
+    return strcmp(ut.machine, "x86_64") == 0 || strcmp(ut.machine, "amd64") == 0;
+  }
+  if (strcmp(arch_name, "aarch64") == 0) {
+    return strcmp(ut.machine, "aarch64") == 0 || strcmp(ut.machine, "arm64") == 0;
+  }
+  return 0;
+}
+
+static int run_elf_slice_memfd_linux(const unsigned char *elf, size_t elf_n, const char *arch_name) {
+  if (!host_arch_matches_slice(arch_name) || !is_elf(elf, elf_n)) return -1;
+  int fd = ape_memfd_create();
+  if (fd < 0) return -1;
+  ssize_t wrote = write(fd, elf, elf_n);
+  if ((size_t)wrote != elf_n) {
+    close(fd);
+    return -1;
+  }
+  pid_t pid = fork();
+  if (pid < 0) {
+    close(fd);
+    return -1;
+  }
+  if (pid == 0) {
+    char path[64];
+    snprintf(path, sizeof(path), "/proc/self/fd/%d", fd);
+    char *const argv[] = {path, NULL};
+    execv(path, argv);
+    _exit(127);
+  }
+  close(fd);
+  int status = 0;
+  if (waitpid(pid, &status, 0) < 0) return -1;
+  printf("run-ape.loader=memfd\n");
+  if (WIFEXITED(status)) return WEXITSTATUS(status);
+  if (WIFSIGNALED(status)) return 128 + WTERMSIG(status);
+  return 3;
+}
+#endif
+
 static int host_machine_is_x86_64(void) {
   struct utsname ut;
   if (uname(&ut) != 0) return 0;
@@ -179,13 +240,24 @@ static int extract_and_run_ape_slice(const unsigned char *data, size_t n,
                                        const NanoApeManifest *m, size_t rel_off,
                                        size_t slice_size, const char *arch_name) {
   size_t abs_off = m->payload_start + rel_off;
+  if (abs_off > n || slice_size > n - abs_off) {
+    fprintf(stderr, "run-ape=bad_slice_bounds arch=%s\n", arch_name);
+    return 4;
+  }
+  const unsigned char *slice = data + abs_off;
+#if defined(__linux__)
+  if (is_elf(slice, slice_size)) {
+    int memfd_rc = run_elf_slice_memfd_linux(slice, slice_size, arch_name);
+    if (memfd_rc >= 0) return memfd_rc;
+  }
+#endif
   char tmpl[] = "/tmp/nano-ape-XXXXXX";
   int fd = mkstemp(tmpl);
   if (fd < 0) {
     fprintf(stderr, "run-ape=mkstemp_fail arch=%s\n", arch_name);
     return 3;
   }
-  ssize_t wrote = write(fd, data + abs_off, slice_size);
+  ssize_t wrote = write(fd, slice, slice_size);
   close(fd);
   if ((size_t)wrote != slice_size) {
     remove(tmpl);
@@ -225,6 +297,7 @@ static int extract_and_run_ape_slice(const unsigned char *data, size_t n,
     return 3;
   }
   remove(tmpl);
+  printf("run-ape.loader=tmpfile\n");
   if (WIFEXITED(status)) return WEXITSTATUS(status);
   if (WIFSIGNALED(status)) return 128 + WTERMSIG(status);
   return 3;
