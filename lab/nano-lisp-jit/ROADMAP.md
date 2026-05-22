@@ -168,7 +168,56 @@ nano-jit continuation after self-bootstrap v1
    └─ 验收
       ├─ 每吞下一种外部语义，都留下 fixture、负向样例、bootstrap DSL 证据
       └─ v3 之后继续按同一洋葱层扩张，而不是把 v2 当终局
+├─ v2.5: v2 反思收口（把 scoped 缺口变成可测切片）
+│  ├─ 反思 · 设计（v2 发现的问题）
+│  │  ├─ scoped 100% 与 mindmap 脱节：「richer IR/VM 参数」只落了 AOT 单 `(param i64)`，VM 仍无参
+│  │  ├─ 单 TU `#include` 顺序成为隐式模块 ABI，并行开发易冲突
+│  │  ├─ loader「100% scoped」= memfd+exec，非纯 ELF 解析/映射；与 APE-v2 长期目标需分层表述
+│  │  ├─ `pack-ape` 默认仍 Mode A shell；`pack-ape-bare` 与 stub 路径分裂，缺统一默认策略
+│  │  └─ ABI 仅覆盖 import `sig` 字符串，缺通用 call descriptor / 多寄存器 SysV 模型
+│  ├─ 反思 · 实现
+│  │  ├─ `lispjit.c` 仍承载全部 typedef/常量，模块拆分未收口类型头
+│  │  ├─ `parse_size_arg` 曾重复定义 + 前向声明，manifest/run/bootstrap 交叉依赖
+│  │  ├─ `NANO_SLICE_COMPILER=native` 缺 aarch64 时整段 self-pack 被跳过（证据空洞）
+│  │  ├─ AOT `param_count` 仅 0/1，`load-arg-i64` 仅 index 0；call 侧仅 `mov rdi,rax`
+│  │  └─ 多 agent 并行合并频繁冲突 `lispjit.c` / `MODULES.md` / `run.sh`
+│  ├─ 反思 · 测试
+│  │  ├─ `build_nano_jit.sh` 未默认纳入 `run.sh` 门禁，cloud/CI 易只跑 native 子集
+│  │  ├─ Linux x86_64 skip 分散在各块，缺统一 skip 注册表/日志格式
+│  │  ├─ 缺「include 顺序 / 模块移动」回归探针
+│  │  └─ native slice 路径未验证 pack→inspect→run 全链（仅 compile/run arithmetic）
+│  ├─ slice 0: 证据门禁
+│  │  ├─ `run.sh` 末尾 `build-nano-jit-native-smoke`（`slice.compiler=native`）
+│  │  ├─ bootstrap DSL：`bootstrap-v25-native-selfpack.lisp`
+│  │  └─ 负向：无 cc / 非 x86_64 host 明确 skip
+│  ├─ slice 1: native x86-only self-pack oracle
+│  │  ├─ cosmocc 缺失时用 x86_64 slice 填满双行 payload table（文档化 oracle）
+│  │  ├─ `inspect-ape` / `run-ape` / 部分 self-pack 矩阵仍跑
+│  │  └─ report 字段：`self-pack=oracle-x86-duplicate`
+│  ├─ slice 2: include 卫生
+│  │  ├─ `nano_util.c`：`parse_size_arg` 唯一实现
+│  │  └─ 目标：`nano_types.h` 收口 typedef（后续）
+│  ├─ slice 3: VM↔AOT 参数对齐
+│  │  ├─ sample：`func-param-i64` 已有 AOT；补 VM `.lbin` 路径或 `(func …)` module 形态
+│  │  ├─ 负向：无 `(param)` 的 call、错误 arity
+│  │  └─ AOT：第二参数 `rsi` / 双 `(param i64)`（后续）
+│  └─ 验收
+│     ├─ `run.sh` + `build_nano_jit.sh`（native）全绿
+│     ├─ v2 全量 fixture hash/exit 不退化
+│     └─ ROADMAP 表 v2.5 进度可追踪（非 scoped 空话）
 ```
+
+### v2.5 完成度（工程向）
+
+| 切片 | 状态 | 说明 |
+|------|------|------|
+| 反思 mindmap 入账 | **进行中** | 本节 + `v2.5/README.md` |
+| slice 0 证据门禁 | **进行中** | `run.sh` build smoke |
+| slice 1 x86-only self-pack | **进行中** | oracle duplicate aarch64 row |
+| slice 2 `nano_util` | **进行中** | `parse_size_arg` |
+| slice 3 VM/AOT 参数对齐 | **0%** | 下一刀 |
+
+**v2.5 整体**：约 **25%** — kickoff 三轮并行。
 
 ### 0. 证据基线
 
