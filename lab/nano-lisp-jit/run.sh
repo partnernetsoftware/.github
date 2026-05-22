@@ -11,6 +11,7 @@ TYPED_SRC="$LAB_DIR/samples/typed-values.lisp"
 PTR_SRC="$LAB_DIR/samples/ptr-values.lisp"
 CONST_PTR_SRC="$LAB_DIR/samples/const-ptr-load-u8.lisp"
 CONST_PTR_LOAD_ONLY_SRC="$LAB_DIR/samples/const-ptr-load-only.lisp"
+MUT_PTR_LOAD_ONLY_SRC="$LAB_DIR/samples/mut-ptr-load-only.lisp"
 CTRL_SRC="$LAB_DIR/samples/control-flow.lisp"
 MULTI_SRC="$LAB_DIR/samples/multi-func.lisp"
 MULTI_CTRL_SRC="$LAB_DIR/samples/multi-func-control-flow.lisp"
@@ -51,6 +52,7 @@ TYPED_BLOB="$BUILD_DIR/typed-values.lbin"
 PTR_BLOB="$BUILD_DIR/ptr-values.lbin"
 CONST_PTR_BLOB="$BUILD_DIR/const-ptr-load-u8.lbin"
 CONST_PTR_LOAD_ONLY_BLOB="$BUILD_DIR/const-ptr-load-only.lbin"
+MUT_PTR_LOAD_ONLY_BLOB="$BUILD_DIR/mut-ptr-load-only.lbin"
 TYPE_BAD_STORE_RODATA_BLOB="$BUILD_DIR/type-error-store-rodata-bad.lbin"
 CTRL_BLOB="$BUILD_DIR/control-flow.lbin"
 BAD_ARITH_SRC="$LAB_DIR/samples/arithmetic-bad.lisp"
@@ -72,11 +74,14 @@ CONST_PTR_CODE="$BUILD_DIR/const_ptr_load_u8_code.elf"
 CONST_PTR_CODE_OBJ="$BUILD_DIR/const_ptr_load_u8_code.o"
 CONST_PTR_LOAD_ONLY_CODE="$BUILD_DIR/const_ptr_load_only_code.elf"
 CONST_PTR_LOAD_ONLY_OBJ="$BUILD_DIR/const_ptr_load_only.o"
+MUT_PTR_LOAD_ONLY_CODE="$BUILD_DIR/mut_ptr_load_only_code.elf"
+MUT_PTR_LOAD_ONLY_OBJ="$BUILD_DIR/mut_ptr_load_only.o"
 CONST_PTR_LINK_EXE="$BUILD_DIR/const_ptr_load_u8_linked"
 CONST_PTR_LOAD_ONLY_LINK_EXE="$BUILD_DIR/const_ptr_load_only_linked"
 CONST_PTR_MIXED_RO_RW_EXE="$BUILD_DIR/const_ptr_mixed_ro_rw_linked"
 CONST_PTR_DIRECT_EXE="$BUILD_DIR/const_ptr_load_u8_direct"
 CONST_PTR_LOAD_ONLY_DIRECT_EXE="$BUILD_DIR/const_ptr_load_only_direct"
+MUT_PTR_LOAD_ONLY_DIRECT_EXE="$BUILD_DIR/mut_ptr_load_only_direct"
 CONST_PTR_BAD_RELOC_OBJ="$BUILD_DIR/const_ptr_bad_reloc.o"
 CONST_PTR_BAD_SHNDX_OBJ="$BUILD_DIR/const_ptr_bad_shndx.o"
 CONST_PTR_BAD_FLAGS_OBJ="$BUILD_DIR/const_ptr_bad_flags.o"
@@ -478,6 +483,8 @@ log "const.ptr.source.path=$CONST_PTR_SRC"
 log "const.ptr.source.bytes=$(bytes_of "$CONST_PTR_SRC")"
 log "const.ptr.load.only.source.path=$CONST_PTR_LOAD_ONLY_SRC"
 log "const.ptr.load.only.source.bytes=$(bytes_of "$CONST_PTR_LOAD_ONLY_SRC")"
+log "mut.ptr.load.only.source.path=$MUT_PTR_LOAD_ONLY_SRC"
+log "mut.ptr.load.only.source.bytes=$(bytes_of "$MUT_PTR_LOAD_ONLY_SRC")"
 log "control.source.path=$CTRL_SRC"
 log "control.source.bytes=$(bytes_of "$CTRL_SRC")"
 log "multi.source.path=$MULTI_SRC"
@@ -576,6 +583,11 @@ log "const.ptr.load.only.blob.bytes=$(bytes_of "$CONST_PTR_LOAD_ONLY_BLOB")"
 
 run_case "execute-const-ptr-load-only-lbin" "$RUNNER" run "$CONST_PTR_LOAD_ONLY_BLOB"
 
+run_case "compile-mut-ptr-load-only-lbin" "$RUNNER" compile "$MUT_PTR_LOAD_ONLY_SRC" "$MUT_PTR_LOAD_ONLY_BLOB"
+log "mut.ptr.load.only.blob.bytes=$(bytes_of "$MUT_PTR_LOAD_ONLY_BLOB")"
+
+run_case "execute-mut-ptr-load-only-lbin" "$RUNNER" run "$MUT_PTR_LOAD_ONLY_BLOB"
+
 run_case "compile-type-error-store-rodata-lbin" "$RUNNER" compile "$TYPE_BAD_STORE_RODATA_SRC" "$TYPE_BAD_STORE_RODATA_BLOB"
 
 run_case "run-bootstrap-plan" "$RUNNER" run-bootstrap-plan "$BOOTSTRAP_SRC"
@@ -629,10 +641,15 @@ if [ "$(uname -m)" = "x86_64" ] || [ "$(uname -m)" = "amd64" ]; then
   run_case "aot-const-ptr-load-only-elf64-code-ro" "$RUNNER" aot-elf64-code "$CONST_PTR_LOAD_ONLY_BLOB" "$CONST_PTR_LOAD_ONLY_CODE"
   run_case "inspect-aot-const-ptr-load-only-rx-ro" expect_elf64_exec_ro_split "$CONST_PTR_LOAD_ONLY_CODE"
   run_case "run-aot-const-ptr-load-only-code1" "$RUNNER" run-expect-exit "$CONST_PTR_LOAD_ONLY_CODE" 1
+  run_case "aot-mut-ptr-load-only-elf64-code-rw" "$RUNNER" aot-elf64-code "$MUT_PTR_LOAD_ONLY_BLOB" "$MUT_PTR_LOAD_ONLY_CODE"
+  run_case "inspect-aot-mut-ptr-load-only-rx-rw" expect_elf64_exec_load_split "$MUT_PTR_LOAD_ONLY_CODE"
+  run_case "run-aot-mut-ptr-load-only-code1" "$RUNNER" run-expect-exit "$MUT_PTR_LOAD_ONLY_CODE" 1
   run_case "aot-const-ptr-load-u8-elf64-obj-code1" "$RUNNER" aot-elf64-obj-code "$CONST_PTR_BLOB" "$CONST_PTR_CODE_OBJ" nano_const_ptr_code
   run_case "inspect-aot-const-ptr-obj-data-pc32" expect_elf64_obj_data_pc32 "$CONST_PTR_CODE_OBJ"
   run_case "aot-const-ptr-load-only-elf64-obj-rodata" "$RUNNER" aot-elf64-obj-code "$CONST_PTR_LOAD_ONLY_BLOB" "$CONST_PTR_LOAD_ONLY_OBJ" nano_const_ptr_load_only
   run_case "inspect-aot-const-ptr-load-only-rodata-pc32" expect_elf64_obj_rodata_pc32 "$CONST_PTR_LOAD_ONLY_OBJ"
+  run_case "aot-mut-ptr-load-only-elf64-obj-data" "$RUNNER" aot-elf64-obj-code "$MUT_PTR_LOAD_ONLY_BLOB" "$MUT_PTR_LOAD_ONLY_OBJ" nano_mut_ptr_load_only
+  run_case "inspect-aot-mut-ptr-load-only-data-pc32" expect_elf64_obj_data_pc32 "$MUT_PTR_LOAD_ONLY_OBJ"
   run_case "tiny-link-aot-const-ptr-load-only-rodata" "$RUNNER" link-elf64-exe "$CONST_PTR_LOAD_ONLY_LINK_EXE" nano_const_ptr_load_only "$CONST_PTR_LOAD_ONLY_OBJ"
   run_case "inspect-linked-const-ptr-load-only-rx-ro" expect_elf64_exec_ro_split "$CONST_PTR_LOAD_ONLY_LINK_EXE"
   run_case "run-tiny-linked-const-ptr-load-only-1" "$RUNNER" run-expect-exit "$CONST_PTR_LOAD_ONLY_LINK_EXE" 1
@@ -683,6 +700,9 @@ if [ "$(uname -m)" = "x86_64" ] || [ "$(uname -m)" = "amd64" ]; then
   run_case "compile-const-ptr-load-only-elf64-code-ro" "$RUNNER" compile-elf64-code "$CONST_PTR_LOAD_ONLY_SRC" "$CONST_PTR_LOAD_ONLY_DIRECT_EXE"
   run_case "inspect-direct-const-ptr-load-only-rx-ro" expect_elf64_exec_ro_split "$CONST_PTR_LOAD_ONLY_DIRECT_EXE"
   run_case "run-direct-compiled-const-ptr-load-only-1" "$RUNNER" run-expect-exit "$CONST_PTR_LOAD_ONLY_DIRECT_EXE" 1
+  run_case "compile-mut-ptr-load-only-elf64-code-rw" "$RUNNER" compile-elf64-code "$MUT_PTR_LOAD_ONLY_SRC" "$MUT_PTR_LOAD_ONLY_DIRECT_EXE"
+  run_case "inspect-direct-mut-ptr-load-only-rx-rw" expect_elf64_exec_load_split "$MUT_PTR_LOAD_ONLY_DIRECT_EXE"
+  run_case "run-direct-compiled-mut-ptr-load-only-1" "$RUNNER" run-expect-exit "$MUT_PTR_LOAD_ONLY_DIRECT_EXE" 1
   run_case "emit-elf64-obj-ret42" "$RUNNER" emit-elf64-obj-ret "$RET42_OBJ" nano_ret 42
   log "ret42.obj.bytes=$(bytes_of "$RET42_OBJ")"
   run_case "link-elf64-obj-ret42" "$RUNNER" link-elf64-exe "$RET42_EXE" nano_ret "$RET42_OBJ"

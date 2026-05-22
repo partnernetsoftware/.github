@@ -5294,11 +5294,12 @@ typedef struct {
   uint32_t data_off;
 } DataPatch;
 
-static int blob_has_store_ops(const Blob *b) {
+static int blob_needs_writable_data(const Blob *b) {
   for (uint32_t pc = 0; pc < b->instr_count; ++pc) {
     const unsigned char *ins = instr_row(b, pc);
     if (!ins) return 0;
-    if (ins[0] == OP_STORE_U8 || ins[0] == OP_STORE_U16 || ins[0] == OP_STORE_U32) {
+    if (ins[0] == OP_STORE_U8 || ins[0] == OP_STORE_U16 || ins[0] == OP_STORE_U32 ||
+        (ins[0] == OP_CONST_PTR && rd32(ins + 8) != 0)) {
       return 1;
     }
   }
@@ -6420,7 +6421,7 @@ static int cmd_aot_elf64_code(const char *blob_path, const char *out_path) {
     fprintf(stderr, "blob=parse_fail path=%s\n", blob_path);
     return 1;
   }
-  int has_store_ops = blob_has_store_ops(&b);
+  int needs_writable_data = blob_needs_writable_data(&b);
   int ok = compile_pure_u64_blob_to_x86_exit_exec(&b, &code, &data);
   free(owned);
   if (!ok) {
@@ -6429,7 +6430,7 @@ static int cmd_aot_elf64_code(const char *blob_path, const char *out_path) {
     fprintf(stderr, "aot-elf64-code=unsupported_blob\n");
     return 2;
   }
-  if (!(data.len && !has_store_ops ?
+  if (!(data.len && !needs_writable_data ?
         emit_elf64_exec_rx_rodata_data_file(out_path, code.data, code.len, data.data, data.len,
                                             NULL, 0) :
         emit_elf64_code_data_file(out_path, code.data, code.len, data.data, data.len))) {
@@ -6440,12 +6441,12 @@ static int cmd_aot_elf64_code(const char *blob_path, const char *out_path) {
   }
   printf("aot.code.output=%s\n", out_path);
   Elf64ExecLayout exec_layout = {0};
-  elf64_exec_layout_offsets(code.len, (data.len && !has_store_ops) ? data.len : 0,
-                            (data.len && has_store_ops) ? data.len : 0, &exec_layout);
+  elf64_exec_layout_offsets(code.len, (data.len && !needs_writable_data) ? data.len : 0,
+                            (data.len && needs_writable_data) ? data.len : 0, &exec_layout);
   printf("aot.code.bytes=%zu\n", exec_layout.file_n);
   printf("aot.code.x86.bytes=%zu\n", code.len);
-  if (data.len && has_store_ops) printf("aot.code.data.bytes=%zu\n", data.len);
-  if (data.len && !has_store_ops) printf("aot.code.rodata.bytes=%zu\n", data.len);
+  if (data.len && needs_writable_data) printf("aot.code.data.bytes=%zu\n", data.len);
+  if (data.len && !needs_writable_data) printf("aot.code.rodata.bytes=%zu\n", data.len);
   free(code.data);
   free(data.data);
   return 0;
@@ -6462,7 +6463,7 @@ static int cmd_compile_elf64_code(const char *src_path, const char *out_path) {
     free(blob_data);
     return 1;
   }
-  int has_store_ops = blob_has_store_ops(&b);
+  int needs_writable_data = blob_needs_writable_data(&b);
   int ok = compile_pure_u64_blob_to_x86_exit_exec(&b, &code, &data);
   free(blob_data);
   if (!ok) {
@@ -6471,7 +6472,7 @@ static int cmd_compile_elf64_code(const char *src_path, const char *out_path) {
     fprintf(stderr, "compile-elf64-code=unsupported_source\n");
     return 2;
   }
-  if (!(data.len && !has_store_ops ?
+  if (!(data.len && !needs_writable_data ?
         emit_elf64_exec_rx_rodata_data_file(out_path, code.data, code.len, data.data, data.len,
                                             NULL, 0) :
         emit_elf64_code_data_file(out_path, code.data, code.len, data.data, data.len))) {
@@ -6482,12 +6483,12 @@ static int cmd_compile_elf64_code(const char *src_path, const char *out_path) {
   }
   printf("compile.elf64.output=%s\n", out_path);
   Elf64ExecLayout exec_layout = {0};
-  elf64_exec_layout_offsets(code.len, (data.len && !has_store_ops) ? data.len : 0,
-                            (data.len && has_store_ops) ? data.len : 0, &exec_layout);
+  elf64_exec_layout_offsets(code.len, (data.len && !needs_writable_data) ? data.len : 0,
+                            (data.len && needs_writable_data) ? data.len : 0, &exec_layout);
   printf("compile.elf64.bytes=%zu\n", exec_layout.file_n);
   printf("compile.elf64.x86.bytes=%zu\n", code.len);
-  if (data.len && has_store_ops) printf("compile.elf64.data.bytes=%zu\n", data.len);
-  if (data.len && !has_store_ops) printf("compile.elf64.rodata.bytes=%zu\n", data.len);
+  if (data.len && needs_writable_data) printf("compile.elf64.data.bytes=%zu\n", data.len);
+  if (data.len && !needs_writable_data) printf("compile.elf64.rodata.bytes=%zu\n", data.len);
   free(code.data);
   free(data.data);
   return 0;
@@ -6508,7 +6509,7 @@ static int cmd_aot_elf64_obj_code(const char *blob_path, const char *out_path,
     fprintf(stderr, "blob=parse_fail path=%s\n", blob_path);
     return 1;
   }
-  int has_store_ops = blob_has_store_ops(&b);
+  int needs_writable_data = blob_needs_writable_data(&b);
   int ok = compile_pure_u64_blob_to_x86_ret_obj(&b, &code, &data, &data_patches);
   free(owned);
   if (!ok) {
@@ -6537,7 +6538,7 @@ static int cmd_aot_elf64_obj_code(const char *blob_path, const char *out_path,
       };
     }
   }
-  ok = data.len ? (has_store_ops ?
+  ok = data.len ? (needs_writable_data ?
                    emit_elf64_obj_text_data_file(out_path, symbol, code.data, code.len,
                                                  data.data, data.len, relas, rela_count) :
                    emit_elf64_obj_text_rodata_file(out_path, symbol, code.data, code.len,
@@ -6554,8 +6555,8 @@ static int cmd_aot_elf64_obj_code(const char *blob_path, const char *out_path,
   printf("aot.obj.code.output=%s\n", out_path);
   printf("aot.obj.code.symbol=%s\n", symbol);
   printf("aot.obj.code.x86.bytes=%zu\n", code_n);
-  if (data.len && has_store_ops) printf("aot.obj.code.data.bytes=%zu\n", data.len);
-  if (data.len && !has_store_ops) printf("aot.obj.code.rodata.bytes=%zu\n", data.len);
+  if (data.len && needs_writable_data) printf("aot.obj.code.data.bytes=%zu\n", data.len);
+  if (data.len && !needs_writable_data) printf("aot.obj.code.rodata.bytes=%zu\n", data.len);
   if (rela_count) printf("aot.obj.code.rela.count=%zu\n", rela_count);
   free(code.data);
   free(data.data);

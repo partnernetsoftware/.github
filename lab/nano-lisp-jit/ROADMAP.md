@@ -267,12 +267,12 @@ nano-jit continuation after self-bootstrap v1
 
 最新稳定基线：`nano-jit.com` 已能 self-pack，不调用 `apelink`；能从纯 VM `.lisp` 直接生成 ELF/object；能把 nano 生成的多个 ELF64 object 用自带 tiny linker 链成可运行 ELF。
 
-当前完成度评估：`100%`（self-bootstrap v1）；`85%`（v1.5）。v1 已补齐最小 load/store 宽度，并用跨 object tiny-link 样例验证被调用 object 内嵌数据可读写；v1.5 正在收紧 APE manifest / inspect / run 与 data/section 证据。
+当前完成度评估：`100%`（self-bootstrap v1）；`88%`（v1.5）。v1 已补齐最小 load/store 宽度，并用跨 object tiny-link 样例验证被调用 object 内嵌数据可读写；v1.5 正在收紧 APE manifest / inspect / run 与 data/section 证据。
 
 下一步优先级：
 
 1. v1.5 data/section slice 13：继续缩小直接 ELF 与 object-link ELF 的策略差距，准备进入 v2 分层。
-2. v1.5 data/section slice 14：把 `mut-ptr` 的 writable-data policy 从“store 触发”推进到显式 data declaration / mut slot。
+2. v1.5 data/section slice 15：把 ptr mutability 从单值 last-kind tracking 推进到 def-use / slot 化，为 v2 函数模型做准备。
 3. 持续缩小临时依赖：`cosmocc` 只保留为 slice compiler，下一阶段目标是生成 x86_64 slice 的可运行子集。
 4. v2 前半：做 `lispjit.c` 分层、函数模型和 ABI descriptor，仍以 C 侧等价推进为主。
 5. v2 后半 / v2.5：bootstrap DSL build graph 与 self-hosted slice path 开始 Lisp-first，并把改 C 变成例外。
@@ -297,6 +297,7 @@ nano-jit continuation after self-bootstrap v1
 - v1.5 data/section slice 10 首轮（v1.5 79%）：`.rodata` 进入 executable 洋葱闭环；直接 AOT / direct compile 的 load-only const-ptr 输出 RX+RO ELF，object `.rodata` 经 tiny linker 保留为 `split_rx_ro` / `r_load_segment`，native、bootstrap DSL 与 self-packed runner 覆盖 inspect + run 证据。
 - v1.5 data/section slice 11 首轮（v1.5 85%）：引入最小 ptr mutability policy；`const-ptr` 标记为只读，新增 `mut-ptr` 承载可写数据入口，AOT/codegen/VM 对 `const-ptr` 派生指针的 `store-*` 输出 `store-to-rodata` 并拒绝；native、bootstrap DSL 与 self-packed runner 覆盖 source 与 `.lbin` 负向。
 - v1.5 data/section slice 12 首轮（v1.5 82%）：新增 rodata + rwdata 混合多 object fixture；tiny linker 固定 `split_rx_ro_rw` 三段策略，native、bootstrap DSL 与 self-packed runner 验证 RX/RO/RW 权限组合和运行结果。
+- v1.5 data/section slice 14 首轮（v1.5 88%）：`mut-ptr` 从“store 触发 writable data”提升为显式 writable data declaration；无 store 的 `mut-ptr-load-only` 仍输出 `.data` / `split_rx_rw`，native、bootstrap DSL 与 self-packed runner 同步固定直接 ELF、object 与运行证据。
 - AOT app 直接从 `.com` payload 读取内嵌 blob 执行。
 - AOT app 结构化 manifest、`inspect-app` 和 `run-app`。
 - `pack-ape` 已能组合 x86_64/aarch64 slice 与 container metadata，形成当前最小 `.com`；但 loader/多架构执行选择仍主要依赖现有 slice/stub 约定，尚未形成 nano 自主的完整 APE loader 格式。

@@ -98,6 +98,8 @@ CONST_PTR_SRC="$LAB_DIR/samples/const-ptr-load-u8.lisp"
 CONST_PTR_BLOB="$BUILD_DIR/const-ptr-load-u8.lbin"
 CONST_PTR_LOAD_ONLY_SRC="$LAB_DIR/samples/const-ptr-load-only.lisp"
 CONST_PTR_LOAD_ONLY_BLOB="$BUILD_DIR/const-ptr-load-only.lbin"
+MUT_PTR_LOAD_ONLY_SRC="$LAB_DIR/samples/mut-ptr-load-only.lisp"
+MUT_PTR_LOAD_ONLY_BLOB="$BUILD_DIR/mut-ptr-load-only.lbin"
 CTRL_SRC="$LAB_DIR/samples/control-flow.lisp"
 CTRL_BLOB="$BUILD_DIR/control-flow.lbin"
 MULTI_SRC="$LAB_DIR/samples/multi-func.lisp"
@@ -155,6 +157,9 @@ CONST_PTR_CALL_OBJ="$BUILD_DIR/const_ptr_call.o"
 CONST_PTR_CALLEE_OBJ="$BUILD_DIR/const_ptr_callee.o"
 CONST_PTR_LOAD_ONLY_CODE="$BUILD_DIR/const_ptr_load_only_code.elf"
 CONST_PTR_LOAD_ONLY_OBJ="$BUILD_DIR/const_ptr_load_only.o"
+MUT_PTR_LOAD_ONLY_CODE="$BUILD_DIR/mut_ptr_load_only_code.elf"
+MUT_PTR_LOAD_ONLY_OBJ="$BUILD_DIR/mut_ptr_load_only.o"
+MUT_PTR_LOAD_ONLY_DIRECT_EXE="$BUILD_DIR/mut_ptr_load_only_direct"
 CONST_PTR_LOAD_ONLY_LINK_EXE="$BUILD_DIR/const_ptr_load_only_linked"
 CONST_PTR_MIXED_RO_RW_EXE="$BUILD_DIR/const_ptr_mixed_ro_rw_linked"
 CONST_PTR_CROSS_LINK_EXE="$BUILD_DIR/const_ptr_cross_obj_linked"
@@ -270,6 +275,9 @@ cat > "$BOOTSTRAP_PLAN" <<EOF
   (compile "$CONST_PTR_LOAD_ONLY_SRC" "$BUILD_DIR/bootstrap-smoke-const-ptr-load-only.lbin")
   (file-size "$BUILD_DIR/bootstrap-smoke-const-ptr-load-only.lbin")
   (run "$BUILD_DIR/bootstrap-smoke-const-ptr-load-only.lbin")
+  (compile "$MUT_PTR_LOAD_ONLY_SRC" "$BUILD_DIR/bootstrap-smoke-mut-ptr-load-only.lbin")
+  (file-size "$BUILD_DIR/bootstrap-smoke-mut-ptr-load-only.lbin")
+  (run "$BUILD_DIR/bootstrap-smoke-mut-ptr-load-only.lbin")
   (compile "$TYPE_BAD_STORE_RODATA_SRC" "$BUILD_DIR/bootstrap-smoke-type-bad-store-rodata.lbin")
   (compile "$SMOKE_SRC" "$BUILD_DIR/bootstrap-smoke.lbin")
   (resolve-quiet "$BUILD_DIR/bootstrap-smoke.lbin")
@@ -331,10 +339,15 @@ cat > "$BOOTSTRAP_PLAN" <<EOF
   (aot-elf64-code "$BUILD_DIR/bootstrap-smoke-const-ptr-load-only.lbin" "$BUILD_DIR/bootstrap-aot-const-ptr-load-only-code.elf")
   (inspect-elf64-exe "$BUILD_DIR/bootstrap-aot-const-ptr-load-only-code.elf")
   (run-expect-exit "$BUILD_DIR/bootstrap-aot-const-ptr-load-only-code.elf" 1)
+  (aot-elf64-code "$BUILD_DIR/bootstrap-smoke-mut-ptr-load-only.lbin" "$BUILD_DIR/bootstrap-aot-mut-ptr-load-only-code.elf")
+  (inspect-elf64-exe "$BUILD_DIR/bootstrap-aot-mut-ptr-load-only-code.elf")
+  (run-expect-exit "$BUILD_DIR/bootstrap-aot-mut-ptr-load-only-code.elf" 1)
   (aot-elf64-obj-code "$BUILD_DIR/bootstrap-aot-const-ptr-load-u8.lbin" "$BUILD_DIR/bootstrap-aot-const-ptr-load-u8-code.o" "nano_bootstrap_const_ptr_code")
   (inspect-elf64-obj "$BUILD_DIR/bootstrap-aot-const-ptr-load-u8-code.o")
   (aot-elf64-obj-code "$BUILD_DIR/bootstrap-smoke-const-ptr-load-only.lbin" "$BUILD_DIR/bootstrap-aot-const-ptr-load-only.o" "nano_bootstrap_const_ptr_load_only")
   (inspect-elf64-obj "$BUILD_DIR/bootstrap-aot-const-ptr-load-only.o")
+  (aot-elf64-obj-code "$BUILD_DIR/bootstrap-smoke-mut-ptr-load-only.lbin" "$BUILD_DIR/bootstrap-aot-mut-ptr-load-only.o" "nano_bootstrap_mut_ptr_load_only")
+  (inspect-elf64-obj "$BUILD_DIR/bootstrap-aot-mut-ptr-load-only.o")
   (link-elf64-exe "$BUILD_DIR/bootstrap-aot-const-ptr-load-only-linked" "nano_bootstrap_const_ptr_load_only" "$BUILD_DIR/bootstrap-aot-const-ptr-load-only.o")
   (inspect-elf64-exe "$BUILD_DIR/bootstrap-aot-const-ptr-load-only-linked")
   (run-expect-exit "$BUILD_DIR/bootstrap-aot-const-ptr-load-only-linked" 1)
@@ -357,6 +370,9 @@ cat > "$BOOTSTRAP_PLAN" <<EOF
   (compile-elf64-code "$CONST_PTR_SRC" "$BUILD_DIR/bootstrap-aot-const-ptr-load-u8.elf")
   (inspect-elf64-exe "$BUILD_DIR/bootstrap-aot-const-ptr-load-u8.elf")
   (run-expect-exit "$BUILD_DIR/bootstrap-aot-const-ptr-load-u8.elf" 1)
+  (compile-elf64-code "$MUT_PTR_LOAD_ONLY_SRC" "$BUILD_DIR/bootstrap-aot-mut-ptr-load-only.elf")
+  (inspect-elf64-exe "$BUILD_DIR/bootstrap-aot-mut-ptr-load-only.elf")
+  (run-expect-exit "$BUILD_DIR/bootstrap-aot-mut-ptr-load-only.elf" 1)
   (aot-elf64-obj-ret "$BUILD_DIR/bootstrap-aot-arithmetic.lbin" "$BUILD_DIR/bootstrap-aot-arithmetic-ret.o" "nano_bootstrap_arith_ret")
   (link-elf64-exe "$BUILD_DIR/bootstrap-aot-arithmetic-ret-linked" "nano_bootstrap_arith_ret" "$BUILD_DIR/bootstrap-aot-arithmetic-ret.o")
   (file-size "$BUILD_DIR/bootstrap-aot-arithmetic-ret-linked")
@@ -574,12 +590,19 @@ run_case "nano-jit-run-tiny-linked-call42" "$BUILD_DIR/nano-jit.com" run-expect-
 run_case "nano-jit-emit-cross-object-const-ptr-call" "$BUILD_DIR/nano-jit.com" emit-elf64-obj-call "$CONST_PTR_CALL_OBJ" nano_const_ptr_call nano_const_ptr_callee
 run_case "nano-jit-compile-cross-object-const-ptr-callee" "$BUILD_DIR/nano-jit.com" compile "$CONST_PTR_SRC" "$CONST_PTR_BLOB"
 run_case "nano-jit-compile-const-ptr-load-only" "$BUILD_DIR/nano-jit.com" compile "$CONST_PTR_LOAD_ONLY_SRC" "$CONST_PTR_LOAD_ONLY_BLOB"
+run_case "nano-jit-compile-mut-ptr-load-only" "$BUILD_DIR/nano-jit.com" compile "$MUT_PTR_LOAD_ONLY_SRC" "$MUT_PTR_LOAD_ONLY_BLOB"
 run_case "nano-jit-aot-const-ptr-load-only-code-ro" "$BUILD_DIR/nano-jit.com" aot-elf64-code "$CONST_PTR_LOAD_ONLY_BLOB" "$CONST_PTR_LOAD_ONLY_CODE"
 run_case "nano-jit-expect-const-ptr-load-only-code-rx-ro" expect_inspect_line "$BUILD_DIR/nano-jit.com" inspect-elf64-exe "$CONST_PTR_LOAD_ONLY_CODE" "elf64.exec.layout=split_rx_ro"
 run_case "nano-jit-run-const-ptr-load-only-code-ro" "$BUILD_DIR/nano-jit.com" run-expect-exit "$CONST_PTR_LOAD_ONLY_CODE" 1
+run_case "nano-jit-aot-mut-ptr-load-only-code-rw" "$BUILD_DIR/nano-jit.com" aot-elf64-code "$MUT_PTR_LOAD_ONLY_BLOB" "$MUT_PTR_LOAD_ONLY_CODE"
+run_case "nano-jit-expect-mut-ptr-load-only-code-rx-rw" expect_inspect_line "$BUILD_DIR/nano-jit.com" inspect-elf64-exe "$MUT_PTR_LOAD_ONLY_CODE" "elf64.exec.layout=split_rx_rw"
+run_case "nano-jit-run-mut-ptr-load-only-code-rw" "$BUILD_DIR/nano-jit.com" run-expect-exit "$MUT_PTR_LOAD_ONLY_CODE" 1
 run_case "nano-jit-aot-const-ptr-load-only-rodata" "$BUILD_DIR/nano-jit.com" aot-elf64-obj-code "$CONST_PTR_LOAD_ONLY_BLOB" "$CONST_PTR_LOAD_ONLY_OBJ" nano_const_ptr_load_only
 run_case "nano-jit-expect-const-ptr-load-only-rodata" expect_inspect_line "$BUILD_DIR/nano-jit.com" inspect-elf64-obj "$CONST_PTR_LOAD_ONLY_OBJ" "elf64.obj.layout=section_rodata"
 run_case "nano-jit-expect-const-ptr-load-only-rodata-symbol" expect_inspect_line "$BUILD_DIR/nano-jit.com" inspect-elf64-obj "$CONST_PTR_LOAD_ONLY_OBJ" "elf64.obj.rodata.local_symbol=.Lrodata0"
+run_case "nano-jit-aot-mut-ptr-load-only-data" "$BUILD_DIR/nano-jit.com" aot-elf64-obj-code "$MUT_PTR_LOAD_ONLY_BLOB" "$MUT_PTR_LOAD_ONLY_OBJ" nano_mut_ptr_load_only
+run_case "nano-jit-expect-mut-ptr-load-only-data" expect_inspect_line "$BUILD_DIR/nano-jit.com" inspect-elf64-obj "$MUT_PTR_LOAD_ONLY_OBJ" "elf64.obj.layout=section_data"
+run_case "nano-jit-expect-mut-ptr-load-only-data-symbol" expect_inspect_line "$BUILD_DIR/nano-jit.com" inspect-elf64-obj "$MUT_PTR_LOAD_ONLY_OBJ" "elf64.obj.data.local_symbol=.Ldata0"
 run_case "nano-jit-tiny-link-const-ptr-load-only-rodata" "$BUILD_DIR/nano-jit.com" link-elf64-exe "$CONST_PTR_LOAD_ONLY_LINK_EXE" nano_const_ptr_load_only "$CONST_PTR_LOAD_ONLY_OBJ"
 run_case "nano-jit-expect-const-ptr-load-only-split-rx-ro" expect_inspect_line "$BUILD_DIR/nano-jit.com" inspect-elf64-exe "$CONST_PTR_LOAD_ONLY_LINK_EXE" "elf64.exec.layout=split_rx_ro"
 run_case "nano-jit-expect-const-ptr-load-only-ro-segment" expect_inspect_line "$BUILD_DIR/nano-jit.com" inspect-elf64-exe "$CONST_PTR_LOAD_ONLY_LINK_EXE" "elf64.exec.rodata.policy=r_load_segment"
