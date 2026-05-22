@@ -70,6 +70,9 @@ CONST_PTR_LINK_EXE="$BUILD_DIR/const_ptr_load_u8_linked"
 CONST_PTR_DIRECT_EXE="$BUILD_DIR/const_ptr_load_u8_direct"
 CONST_PTR_BAD_RELOC_OBJ="$BUILD_DIR/const_ptr_bad_reloc.o"
 CONST_PTR_BAD_SHNDX_OBJ="$BUILD_DIR/const_ptr_bad_shndx.o"
+CONST_PTR_BAD_FLAGS_OBJ="$BUILD_DIR/const_ptr_bad_flags.o"
+CONST_PTR_BAD_RELA_LINK_OBJ="$BUILD_DIR/const_ptr_bad_rela_link.o"
+CONST_PTR_BAD_SYMTAB_ORDER_OBJ="$BUILD_DIR/const_ptr_bad_symtab_order.o"
 CONST_PTR_BAD_LINK_EXE="$BUILD_DIR/const_ptr_bad_linked"
 MULTI_OBJ="$BUILD_DIR/multi_func.o"
 MULTI_LINK_EXE="$BUILD_DIR/multi_func_linked"
@@ -208,12 +211,13 @@ PY
 }
 
 make_bad_data_reloc_objs() {
-  python3 - "$CONST_PTR_CODE_OBJ" "$CONST_PTR_BAD_RELOC_OBJ" "$CONST_PTR_BAD_SHNDX_OBJ" <<'PY'
+  python3 - "$CONST_PTR_CODE_OBJ" "$CONST_PTR_BAD_RELOC_OBJ" "$CONST_PTR_BAD_SHNDX_OBJ" \
+    "$CONST_PTR_BAD_FLAGS_OBJ" "$CONST_PTR_BAD_RELA_LINK_OBJ" "$CONST_PTR_BAD_SYMTAB_ORDER_OBJ" <<'PY'
 from pathlib import Path
 import struct
 import sys
 
-good, bad_reloc, bad_shndx = map(Path, sys.argv[1:])
+good, bad_reloc, bad_shndx, bad_flags, bad_rela_link, bad_symtab_order = map(Path, sys.argv[1:])
 src = good.read_bytes()
 
 def sections(data):
@@ -236,6 +240,8 @@ def sections(data):
 sec, shnum = sections(src)
 rela_off = struct.unpack_from("<Q", sec[".rela.text"][2], 24)[0]
 symtab_off = struct.unpack_from("<Q", sec[".symtab"][2], 24)[0]
+text_shoff = sec[".text"][1]
+rela_shoff = sec[".rela.text"][1]
 
 bad = bytearray(src)
 r_info = struct.unpack_from("<Q", bad, rela_off + 8)[0]
@@ -245,6 +251,23 @@ bad_reloc.write_bytes(bad)
 bad = bytearray(src)
 struct.pack_into("<H", bad, symtab_off + 24 + 6, shnum + 10)
 bad_shndx.write_bytes(bad)
+
+bad = bytearray(src)
+struct.pack_into("<Q", bad, text_shoff + 8, 0x7)
+bad_flags.write_bytes(bad)
+
+bad = bytearray(src)
+struct.pack_into("<I", bad, rela_shoff + 40, 0)
+bad_rela_link.write_bytes(bad)
+
+bad = bytearray(src)
+first_sym = symtab_off + 24
+second_sym = symtab_off + 48
+sym1 = bytes(bad[first_sym:first_sym + 24])
+sym2 = bytes(bad[second_sym:second_sym + 24])
+bad[first_sym:first_sym + 24] = sym2
+bad[second_sym:second_sym + 24] = sym1
+bad_symtab_order.write_bytes(bad)
 PY
 }
 
@@ -516,6 +539,9 @@ if [ "$(uname -m)" = "x86_64" ] || [ "$(uname -m)" = "amd64" ]; then
   run_case "aot-const-ptr-load-u8-elf64-obj-code1" "$RUNNER" aot-elf64-obj-code "$CONST_PTR_BLOB" "$CONST_PTR_CODE_OBJ" nano_const_ptr_code
   run_case "inspect-aot-const-ptr-obj-data-pc32" expect_elf64_obj_data_pc32 "$CONST_PTR_CODE_OBJ"
   run_case "prepare-bad-data-reloc-objs" make_bad_data_reloc_objs
+  run_case "link-reject-bad-object-flags" expect_link_failure "$CONST_PTR_BAD_LINK_EXE" nano_const_ptr_code "$CONST_PTR_BAD_FLAGS_OBJ" 2 "parse_fail"
+  run_case "link-reject-bad-rela-link" expect_link_failure "$CONST_PTR_BAD_LINK_EXE" nano_const_ptr_code "$CONST_PTR_BAD_RELA_LINK_OBJ" 2 "parse_fail"
+  run_case "link-reject-bad-symtab-order" expect_link_failure "$CONST_PTR_BAD_LINK_EXE" nano_const_ptr_code "$CONST_PTR_BAD_SYMTAB_ORDER_OBJ" 2 "parse_fail"
   run_case "link-reject-unsupported-data-reloc" expect_link_failure "$CONST_PTR_BAD_LINK_EXE" nano_const_ptr_code "$CONST_PTR_BAD_RELOC_OBJ" 4 "unsupported_reloc"
   run_case "link-reject-bad-data-section-index" expect_link_failure "$CONST_PTR_BAD_LINK_EXE" nano_const_ptr_code "$CONST_PTR_BAD_SHNDX_OBJ" 4 "unsupported_local_reloc"
   run_case "tiny-link-aot-const-ptr-load-u8-obj-code1" "$RUNNER" link-elf64-exe "$CONST_PTR_LINK_EXE" nano_const_ptr_code "$CONST_PTR_CODE_OBJ"

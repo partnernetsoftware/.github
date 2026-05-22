@@ -134,6 +134,9 @@ CONST_PTR_CALLEE_OBJ="$BUILD_DIR/const_ptr_callee.o"
 CONST_PTR_CROSS_LINK_EXE="$BUILD_DIR/const_ptr_cross_obj_linked"
 CONST_PTR_BAD_RELOC_OBJ="$BUILD_DIR/const_ptr_bad_reloc.o"
 CONST_PTR_BAD_SHNDX_OBJ="$BUILD_DIR/const_ptr_bad_shndx.o"
+CONST_PTR_BAD_FLAGS_OBJ="$BUILD_DIR/const_ptr_bad_flags.o"
+CONST_PTR_BAD_RELA_LINK_OBJ="$BUILD_DIR/const_ptr_bad_rela_link.o"
+CONST_PTR_BAD_SYMTAB_ORDER_OBJ="$BUILD_DIR/const_ptr_bad_symtab_order.o"
 CONST_PTR_BAD_LINK_EXE="$BUILD_DIR/const_ptr_bad_linked"
 DUP42_OBJ="$BUILD_DIR/nano_dup42.o"
 SMOKE_SRC="$LAB_DIR/samples/libc-smoke.lisp"
@@ -146,12 +149,13 @@ RESOLVE_BLOB="$BUILD_DIR/libc-resolve.lbin"
 REPORT="$BUILD_DIR/bootstrap-report.txt"
 
 make_bad_data_reloc_objs() {
-  python3 - "$CONST_PTR_CALLEE_OBJ" "$CONST_PTR_BAD_RELOC_OBJ" "$CONST_PTR_BAD_SHNDX_OBJ" <<'PY'
+  python3 - "$CONST_PTR_CALLEE_OBJ" "$CONST_PTR_BAD_RELOC_OBJ" "$CONST_PTR_BAD_SHNDX_OBJ" \
+    "$CONST_PTR_BAD_FLAGS_OBJ" "$CONST_PTR_BAD_RELA_LINK_OBJ" "$CONST_PTR_BAD_SYMTAB_ORDER_OBJ" <<'PY'
 from pathlib import Path
 import struct
 import sys
 
-good, bad_reloc, bad_shndx = map(Path, sys.argv[1:])
+good, bad_reloc, bad_shndx, bad_flags, bad_rela_link, bad_symtab_order = map(Path, sys.argv[1:])
 src = good.read_bytes()
 
 def sections(data):
@@ -174,6 +178,8 @@ def sections(data):
 sec, shnum = sections(src)
 rela_off = struct.unpack_from("<Q", sec[".rela.text"][2], 24)[0]
 symtab_off = struct.unpack_from("<Q", sec[".symtab"][2], 24)[0]
+text_shoff = sec[".text"][1]
+rela_shoff = sec[".rela.text"][1]
 
 bad = bytearray(src)
 r_info = struct.unpack_from("<Q", bad, rela_off + 8)[0]
@@ -183,6 +189,23 @@ bad_reloc.write_bytes(bad)
 bad = bytearray(src)
 struct.pack_into("<H", bad, symtab_off + 24 + 6, shnum + 10)
 bad_shndx.write_bytes(bad)
+
+bad = bytearray(src)
+struct.pack_into("<Q", bad, text_shoff + 8, 0x7)
+bad_flags.write_bytes(bad)
+
+bad = bytearray(src)
+struct.pack_into("<I", bad, rela_shoff + 40, 0)
+bad_rela_link.write_bytes(bad)
+
+bad = bytearray(src)
+first_sym = symtab_off + 24
+second_sym = symtab_off + 48
+sym1 = bytes(bad[first_sym:first_sym + 24])
+sym2 = bytes(bad[second_sym:second_sym + 24])
+bad[first_sym:first_sym + 24] = sym2
+bad[second_sym:second_sym + 24] = sym1
+bad_symtab_order.write_bytes(bad)
 PY
 }
 
@@ -511,6 +534,9 @@ run_case "nano-jit-inspect-cross-object-const-ptr-callee" "$BUILD_DIR/nano-jit.c
 run_case "nano-jit-expect-cross-object-const-ptr-section-data" expect_inspect_line "$BUILD_DIR/nano-jit.com" inspect-elf64-obj "$CONST_PTR_CALLEE_OBJ" "elf64.obj.layout=section_data"
 run_case "nano-jit-expect-cross-object-const-ptr-local-symbol" expect_inspect_line "$BUILD_DIR/nano-jit.com" inspect-elf64-obj "$CONST_PTR_CALLEE_OBJ" "elf64.obj.data.local_symbol=.Lrodata"
 run_case "nano-jit-prepare-bad-data-reloc-objs" make_bad_data_reloc_objs
+run_case "nano-jit-link-reject-bad-object-flags" "$BUILD_DIR/nano-jit.com" link-expect-exit 2 "$CONST_PTR_BAD_LINK_EXE" nano_const_ptr_callee "$CONST_PTR_BAD_FLAGS_OBJ"
+run_case "nano-jit-link-reject-bad-rela-link" "$BUILD_DIR/nano-jit.com" link-expect-exit 2 "$CONST_PTR_BAD_LINK_EXE" nano_const_ptr_callee "$CONST_PTR_BAD_RELA_LINK_OBJ"
+run_case "nano-jit-link-reject-bad-symtab-order" "$BUILD_DIR/nano-jit.com" link-expect-exit 2 "$CONST_PTR_BAD_LINK_EXE" nano_const_ptr_callee "$CONST_PTR_BAD_SYMTAB_ORDER_OBJ"
 run_case "nano-jit-link-reject-unsupported-data-reloc" "$BUILD_DIR/nano-jit.com" link-expect-exit 4 "$CONST_PTR_BAD_LINK_EXE" nano_const_ptr_callee "$CONST_PTR_BAD_RELOC_OBJ"
 run_case "nano-jit-link-reject-bad-data-section-index" "$BUILD_DIR/nano-jit.com" link-expect-exit 4 "$CONST_PTR_BAD_LINK_EXE" nano_const_ptr_callee "$CONST_PTR_BAD_SHNDX_OBJ"
 run_case "nano-jit-tiny-link-cross-object-const-ptr-data" "$BUILD_DIR/nano-jit.com" link-elf64-exe "$CONST_PTR_CROSS_LINK_EXE" nano_const_ptr_call "$CONST_PTR_CALL_OBJ" "$CONST_PTR_CALLEE_OBJ"

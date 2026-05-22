@@ -267,12 +267,12 @@ nano-jit continuation after self-bootstrap v1
 
 最新稳定基线：`nano-jit.com` 已能 self-pack，不调用 `apelink`；能从纯 VM `.lisp` 直接生成 ELF/object；能把 nano 生成的多个 ELF64 object 用自带 tiny linker 链成可运行 ELF。
 
-当前完成度评估：`100%`（self-bootstrap v1）；`61%`（v1.5）。v1 已补齐最小 load/store 宽度，并用跨 object tiny-link 样例验证被调用 object 内嵌数据可读写；v1.5 正在收紧 APE manifest / inspect / run 与 data/section 证据。
+当前完成度评估：`100%`（self-bootstrap v1）；`64%`（v1.5）。v1 已补齐最小 load/store 宽度，并用跨 object tiny-link 样例验证被调用 object 内嵌数据可读写；v1.5 正在收紧 APE manifest / inspect / run 与 data/section 证据。
 
 下一步优先级：
 
-1. v1.5 data/section slice 6：继续把 object `.rodata/.data` 命名与 writer/linker policy 收拢到 v2 分层入口。
-2. v1.5 data/section slice 7：收紧 `parse_elf_obj` 的 section flags、rela link、symtab local-order policy，为 v2 分层前减少 crafted object 模糊行为。
+1. v1.5 data/section slice 7：继续把 object `.rodata/.data` 命名与 writer/linker policy 收拢到 v2 分层入口。
+2. v1.5 data/section slice 8：补 `inspect-elf64-obj` 负向 CLI 断言与更细错误标签，为外部消费者稳定判断坏 object。
 3. 持续缩小临时依赖：`cosmocc` 只保留为 slice compiler，下一阶段目标是生成 x86_64 slice 的可运行子集。
 4. v2 前半：做 `lispjit.c` 分层、函数模型和 ABI descriptor，仍以 C 侧等价推进为主。
 5. v2 后半 / v2.5：bootstrap DSL build graph 与 self-hosted slice path 开始 Lisp-first，并把改 C 变成例外。
@@ -290,6 +290,7 @@ nano-jit continuation after self-bootstrap v1
 - v1.5 data/section slice 3 首轮（v1.5 55%）：tiny linker 增加 data section 负向样例，覆盖 unsupported relocation 与坏 local section index；`run.sh` 使用坏 `.o` fixture 校验错误消息，`build_nano_jit.sh` 使用 self-packed `nano-jit.com` 复验 `link-expect-exit 4`。
 - v1.5 data/section slice 4 首轮（v1.5 58%）：`inspect-elf64-obj` 输出 section flags，native runner 固定 `.text=ax` 与 `.data=aw` 证据，为后续 `.rodata/.data` policy 和 v2 分层提供可检查边界。
 - v1.5 data/section slice 5 首轮（v1.5 61%）：`inspect-elf64-exe` 输出 `split_rx_rw` / `single_rwx_compat` layout policy，`inspect-elf64-obj` 输出 `section_data` / `section_pc32` data policy 与 local data symbol；native 与 self-packed runner 均断言兼容层、canonical object data 与 linked RX/RW layout。
+- v1.5 data/section slice 6 首轮（v1.5 64%）：`parse_elf_obj` 收紧 strict policy，拒绝坏 `.text/.data` flags、坏 `.rela.text` link、重复关键 section、乱序 local/global symtab 与越界 relocation symbol；native 与 self-packed runner 增加坏 object `link-expect-exit 2` 断言。
 - AOT app 直接从 `.com` payload 读取内嵌 blob 执行。
 - AOT app 结构化 manifest、`inspect-app` 和 `run-app`。
 - `pack-ape` 已能组合 x86_64/aarch64 slice 与 container metadata，形成当前最小 `.com`；但 loader/多架构执行选择仍主要依赖现有 slice/stub 约定，尚未形成 nano 自主的完整 APE loader 格式。

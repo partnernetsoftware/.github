@@ -4289,10 +4289,14 @@ typedef struct {
   size_t out_data_off;
   const unsigned char *symtab;
   size_t sym_count;
+  uint16_t symtab_idx;
+  uint32_t symtab_info;
   const unsigned char *strtab;
   size_t strtab_size;
+  uint16_t strtab_idx;
   const unsigned char *rela;
   size_t rela_count;
+  uint16_t rela_link_idx;
 } ElfObj;
 
 typedef struct {
@@ -4382,35 +4386,63 @@ static int parse_elf_obj(const unsigned char *data, size_t size, ElfObj *o) {
     uint64_t n = rd64(sh + 32);
     uint32_t link = rd32(sh + 40);
     uint32_t info = rd32(sh + 44);
+    uint64_t flags = rd64(sh + 8);
     const char *name = elf_str(data + shstr_off, (size_t)shstr_size, name_off);
     if (!name || off > size || n > size - off) return 0;
     if (strcmp(name, ".text") == 0) {
+      if (o->text_idx || type != 1 || flags != 0x6) return 0;
       o->text_idx = i;
       o->text = data + off;
       o->text_size = (size_t)n;
     } else if (strcmp(name, ".data") == 0) {
+      if (o->data_idx || type != 1 || flags != 0x3) return 0;
       o->data_idx = i;
       o->data_sec = data + off;
       o->data_sec_size = (size_t)n;
     } else if (type == 2) {
       uint64_t entsize = rd64(sh + 56);
-      if (entsize != ELF64_SYM_SIZE || link >= shnum) return 0;
+      if (o->symtab || entsize != ELF64_SYM_SIZE || link >= shnum || (entsize && n % entsize)) return 0;
       const unsigned char *str_sh = elf_section(o, (uint16_t)link);
+      if (rd32(str_sh + 4) != 3) return 0;
       uint64_t str_off = rd64(str_sh + 24);
       uint64_t str_n = rd64(str_sh + 32);
       if (str_off > size || str_n > size - str_off) return 0;
       o->symtab = data + off;
       o->sym_count = (size_t)(n / entsize);
+      o->symtab_idx = i;
+      o->symtab_info = info;
       o->strtab = data + str_off;
       o->strtab_size = (size_t)str_n;
+      o->strtab_idx = (uint16_t)link;
     } else if (type == 4 && strcmp(name, ".rela.text") == 0) {
       uint64_t entsize = rd64(sh + 56);
-      if (entsize != ELF64_RELA_SIZE || info != o->text_idx) return 0;
+      if (o->rela || entsize != ELF64_RELA_SIZE || info != o->text_idx ||
+          link >= shnum || (entsize && n % entsize)) return 0;
       o->rela = data + off;
       o->rela_count = (size_t)(n / entsize);
+      o->rela_link_idx = (uint16_t)link;
     }
   }
-  return o->text && o->symtab && o->strtab;
+  if (!o->text || !o->symtab || !o->strtab) return 0;
+  if (o->rela && o->rela_link_idx != o->symtab_idx) return 0;
+  if (o->data_sec_size && !o->rela) return 0;
+  size_t local_count = 0;
+  int saw_global = 0;
+  for (size_t s = 1; s < o->sym_count; ++s) {
+    if (elf_sym_binding(o, s) == 0) {
+      if (saw_global) return 0;
+      local_count++;
+    } else {
+      saw_global = 1;
+    }
+  }
+  if (o->symtab_info != (uint32_t)(1 + local_count)) return 0;
+  for (size_t r = 0; r < o->rela_count; ++r) {
+    const unsigned char *rela = elf_rela_row(o, r);
+    uint32_t sym_idx = (uint32_t)(rd64(rela + 8) >> 32);
+    if (sym_idx >= o->sym_count) return 0;
+  }
+  return 1;
 }
 
 static const char *elf64_reloc_type_name(uint32_t type) {
