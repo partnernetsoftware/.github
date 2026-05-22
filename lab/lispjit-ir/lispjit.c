@@ -2796,6 +2796,8 @@ static const char NANO_MANIFEST_END[] = "# nano.manifest.end";
 static const char NANO_APE_PAYLOAD_MARKER[] = "__NANO_APE_PAYLOAD_BELOW__";
 static const char NANO_APP_PAYLOAD_MARKER[] = "__NANO_APP_PAYLOAD_BELOW__";
 
+static int is_elf(const unsigned char *data, size_t n);
+
 typedef struct {
   const char *arch;
   size_t offset;
