@@ -22,4 +22,4 @@ Build remains one translation unit: `cc lispjit.c` includes submodules below.
 | `nano_lisp_parse.c` | lbin/ljir parser, `compile_module` |
 | `nano_bootstrap.c` | Bootstrap plan DSL, `run-bootstrap-plan` |
 
-v2 module split: **100%**. Self-hosted x86 slice: `NANO_SLICE_COMPILER=native`. v3+: richer IR, aarch64 native slice.
+v2 module split: **100%**. v2.5: `nano_util.c`, native self-pack oracle — see `lab/nano-lisp-jit/v2.5/README.md`. v3+: VM params, aarch64 native slice.

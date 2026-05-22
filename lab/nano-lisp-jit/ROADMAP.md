@@ -211,13 +211,13 @@ nano-jit continuation after self-bootstrap v1
 
 | 切片 | 状态 | 说明 |
 |------|------|------|
-| 反思 mindmap 入账 | **进行中** | 本节 + `v2.5/README.md` |
-| slice 0 证据门禁 | **进行中** | `run.sh` build smoke |
-| slice 1 x86-only self-pack | **进行中** | oracle duplicate aarch64 row |
-| slice 2 `nano_util` | **进行中** | `parse_size_arg` |
+| 反思 mindmap 入账 | **100%** | ROADMAP 节点 + `v2.5/README.md` |
+| slice 0 证据门禁 | **100%** | `run.sh` `build-nano-jit-native-smoke` |
+| slice 1 x86-only self-pack | **100%** | `self-pack=oracle-x86-duplicate` + `bootstrap-v25-native-selfpack.lisp` |
+| slice 2 `nano_util` | **100%** | `parse_size_arg` 唯一实现 |
 | slice 3 VM/AOT 参数对齐 | **0%** | 下一刀 |
 
-**v2.5 整体**：约 **25%** — kickoff 三轮并行。
+**v2.5 整体**：约 **55%** — kickoff 四轮已合并 `main`；slice 3 待开工。
 
 ### 0. 证据基线
 
