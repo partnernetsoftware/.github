@@ -116,12 +116,13 @@ extern void *cosmo_dlsym(void *handle, const char *symbol);
 #define SRC_FORM_PTR_TO_U64 30u
 #define SRC_FORM_U64_TO_PTR 31u
 #define SRC_FORM_CONST_PTR 32u
-#define SRC_FORM_LOAD_U8 33u
-#define SRC_FORM_LOAD_U16 34u
-#define SRC_FORM_LOAD_U32 35u
-#define SRC_FORM_STORE_U8 36u
-#define SRC_FORM_STORE_U16 37u
-#define SRC_FORM_STORE_U32 38u
+#define SRC_FORM_MUT_PTR 33u
+#define SRC_FORM_LOAD_U8 34u
+#define SRC_FORM_LOAD_U16 35u
+#define SRC_FORM_LOAD_U32 36u
+#define SRC_FORM_STORE_U8 37u
+#define SRC_FORM_STORE_U16 38u
+#define SRC_FORM_STORE_U32 39u
 
 #define AOT_STMT_CONST_U64 1u
 #define AOT_STMT_ADD_U64 2u
@@ -1539,10 +1540,11 @@ static int parse_main_items(const char **p, Module *m) {
                       SRC_FORM_PTR_TO_U64 :
                       SRC_FORM_U64_TO_PTR;
       ok = eat(p, ')') && add_instr(m, form, NULL, NULL, NULL, 0);
-    } else if (strcmp(head, "const-ptr") == 0) {
+    } else if (strcmp(head, "const-ptr") == 0 || strcmp(head, "mut-ptr") == 0) {
       char *const_name = parse_atom(p);
+      uint32_t form = strcmp(head, "mut-ptr") == 0 ? SRC_FORM_MUT_PTR : SRC_FORM_CONST_PTR;
       ok = const_name && eat(p, ')') &&
-           add_instr(m, SRC_FORM_CONST_PTR, NULL, const_name, NULL, 0);
+           add_instr(m, form, NULL, const_name, NULL, 0);
     } else if (strcmp(head, "load-u8") == 0 || strcmp(head, "load-u16") == 0 ||
                strcmp(head, "load-u32") == 0) {
       uint32_t form = strcmp(head, "load-u8") == 0 ? SRC_FORM_LOAD_U8 :
@@ -1798,7 +1800,7 @@ static unsigned char *compile_module(const Module *m, size_t *out_n) {
       emit_instr(&instrs, OP_U64_TO_PTR, 0, 0);
       continue;
     }
-    if (in->form == SRC_FORM_CONST_PTR) {
+    if (in->form == SRC_FORM_CONST_PTR || in->form == SRC_FORM_MUT_PTR) {
       int const_idx = in->const_name ? find_const(m, in->const_name) : -1;
       if (const_idx < 0) {
         free(imports.data);
@@ -1808,7 +1810,8 @@ static unsigned char *compile_module(const Module *m, size_t *out_n) {
         free(labels);
         return NULL;
       }
-      emit_instr(&instrs, OP_CONST_PTR, (uint32_t)const_idx, 0);
+      emit_instr(&instrs, OP_CONST_PTR, (uint32_t)const_idx,
+                 in->form == SRC_FORM_MUT_PTR ? 1u : 0u);
       continue;
     }
     if (in->form == SRC_FORM_LOAD_U8) {
@@ -2230,6 +2233,7 @@ static int resolve_blob(const Blob *b, int quiet) {
 
 static int execute_blob(const Blob *b) {
   Value last = value_u64(0);
+  int last_ptr_ro = 0;
   uint32_t pc = 0;
   while (pc < b->instr_count) {
     const unsigned char *ins = instr_row(b, pc);
@@ -2249,6 +2253,7 @@ static int execute_blob(const Blob *b) {
       rc = resolve_import_ref(b, arg0, &ri);
       if (rc != 0) return rc;
       last = value_ptr(ri.fn);
+      last_ptr_ro = 0;
       printf("resolve.%u=%s:%s sig=%s ok\n", pc, ri.lib, ri.sym, sig_name(ri.sig));
       pc++;
       continue;
@@ -2317,6 +2322,7 @@ static int execute_blob(const Blob *b) {
     }
     if (op == OP_CONST_U64) {
       last = value_u64((uint64_t)arg0 | ((uint64_t)arg1 << 32));
+      last_ptr_ro = 0;
       printf("u64.%u=", pc);
       print_value(stdout, last);
       printf("\n");
@@ -2325,6 +2331,7 @@ static int execute_blob(const Blob *b) {
     }
     if (op == OP_CONST_I64) {
       last = value_i64((int64_t)((uint64_t)arg0 | ((uint64_t)arg1 << 32)));
+      last_ptr_ro = 0;
       printf("i64.%u=", pc);
       print_value(stdout, last);
       printf("\n");
@@ -2333,6 +2340,7 @@ static int execute_blob(const Blob *b) {
     }
     if (op == OP_CONST_BOOL) {
       last = value_bool((int)arg0);
+      last_ptr_ro = 0;
       printf("bool.%u=", pc);
       print_value(stdout, last);
       printf("\n");
@@ -2341,6 +2349,7 @@ static int execute_blob(const Blob *b) {
     }
     if (op == OP_NULL_PTR) {
       last = value_ptr(NULL);
+      last_ptr_ro = 0;
       printf("null-ptr.%u=", pc);
       print_value(stdout, last);
       printf("\n");
@@ -2382,6 +2391,7 @@ static int execute_blob(const Blob *b) {
         fprintf(stderr, "\n");
         return 20;
       }
+      last_ptr_ro = 0;
       printf("ptr-to-u64.%u=", pc);
       print_value(stdout, last);
       printf("\n");
@@ -2395,6 +2405,7 @@ static int execute_blob(const Blob *b) {
         fprintf(stderr, "\n");
         return 20;
       }
+      last_ptr_ro = 0;
       printf("u64-to-ptr.%u=", pc);
       print_value(stdout, last);
       printf("\n");
@@ -2408,7 +2419,8 @@ static int execute_blob(const Blob *b) {
         return 23;
       }
       last = value_ptr(s);
-      printf("const-ptr.%u=", pc);
+      last_ptr_ro = arg1 == 0;
+      printf("%s.%u=", arg1 ? "mut-ptr" : "const-ptr", pc);
       print_value(stdout, last);
       printf("\n");
       pc++;
@@ -2421,6 +2433,7 @@ static int execute_blob(const Blob *b) {
         fprintf(stderr, "\n");
         return 20;
       }
+      last_ptr_ro = 0;
       printf("load-u8.%u=", pc);
       print_value(stdout, last);
       printf("\n");
@@ -2434,6 +2447,7 @@ static int execute_blob(const Blob *b) {
         fprintf(stderr, "\n");
         return 20;
       }
+      last_ptr_ro = 0;
       printf("load-u16.%u=", pc);
       print_value(stdout, last);
       printf("\n");
@@ -2447,6 +2461,7 @@ static int execute_blob(const Blob *b) {
         fprintf(stderr, "\n");
         return 20;
       }
+      last_ptr_ro = 0;
       printf("load-u32.%u=", pc);
       print_value(stdout, last);
       printf("\n");
@@ -2455,6 +2470,10 @@ static int execute_blob(const Blob *b) {
     }
     if (op == OP_STORE_U8) {
       uint64_t byte = (uint64_t)arg0 | ((uint64_t)arg1 << 32);
+      if (last_ptr_ro) {
+        fprintf(stderr, "store-to-rodata=%u\n", pc);
+        return 20;
+      }
       if (!value_store_u8(&last, byte)) {
         fprintf(stderr, "type.store-u8=%u actual=", pc);
         print_value(stderr, last);
@@ -2469,6 +2488,10 @@ static int execute_blob(const Blob *b) {
     }
     if (op == OP_STORE_U16) {
       uint64_t word = (uint64_t)arg0 | ((uint64_t)arg1 << 32);
+      if (last_ptr_ro) {
+        fprintf(stderr, "store-to-rodata=%u\n", pc);
+        return 20;
+      }
       if (!value_store_u16(&last, word)) {
         fprintf(stderr, "type.store-u16=%u actual=", pc);
         print_value(stderr, last);
@@ -2483,6 +2506,10 @@ static int execute_blob(const Blob *b) {
     }
     if (op == OP_STORE_U32) {
       uint64_t dword = (uint64_t)arg0 | ((uint64_t)arg1 << 32);
+      if (last_ptr_ro) {
+        fprintf(stderr, "store-to-rodata=%u\n", pc);
+        return 20;
+      }
       if (!value_store_u32(&last, dword)) {
         fprintf(stderr, "type.store-u32=%u actual=", pc);
         print_value(stderr, last);
@@ -2502,6 +2529,7 @@ static int execute_blob(const Blob *b) {
         fprintf(stderr, "\n");
         return 20;
       }
+      last_ptr_ro = 0;
       printf("is-null-ptr.%u=", pc);
       print_value(stdout, last);
       printf("\n");
@@ -2515,6 +2543,7 @@ static int execute_blob(const Blob *b) {
         fprintf(stderr, "\n");
         return 20;
       }
+      last_ptr_ro = 0;
       printf("is-nonnull-ptr.%u=", pc);
       print_value(stdout, last);
       printf("\n");
@@ -2528,6 +2557,7 @@ static int execute_blob(const Blob *b) {
         fprintf(stderr, "\n");
         return 20;
       }
+      last_ptr_ro = 0;
       printf("not-bool.%u=", pc);
       print_value(stdout, last);
       printf("\n");
@@ -3782,6 +3812,14 @@ static int run_compile_subcommand(const char *mode, const char *src_path,
     if (extra_arg_count != 0) return 1;
     return cmd_compile_elf64_code(src_path, out_path);
   }
+  if (strcmp(mode, "aot-elf64-code") == 0) {
+    if (extra_arg_count != 0) return 1;
+    return cmd_aot_elf64_code(src_path, out_path);
+  }
+  if (strcmp(mode, "aot-elf64-obj-code") == 0) {
+    if (extra_arg_count != 1) return 1;
+    return cmd_aot_elf64_obj_code(src_path, out_path, extra_args[0]);
+  }
   if (strcmp(mode, "compile") == 0) {
     if (extra_arg_count != 0) return 1;
     return cmd_compile(src_path, out_path);
@@ -5013,6 +5051,7 @@ static int value_to_obj_ret_u32(Value v, uint32_t *out) {
 
 static int eval_pure_blob(const Blob *b, Value *out) {
   Value last = value_u64(0);
+  int last_ptr_ro = 0;
   uint32_t pc = 0;
   while (pc < b->instr_count) {
     const unsigned char *ins = instr_row(b, pc);
@@ -5022,15 +5061,19 @@ static int eval_pure_blob(const Blob *b, Value *out) {
     uint32_t arg1 = rd32(ins + 8);
     if (op == OP_CONST_U64) {
       last = value_u64((uint64_t)arg0 | ((uint64_t)arg1 << 32));
+      last_ptr_ro = 0;
       pc++;
     } else if (op == OP_CONST_I64) {
       last = value_i64((int64_t)((uint64_t)arg0 | ((uint64_t)arg1 << 32)));
+      last_ptr_ro = 0;
       pc++;
     } else if (op == OP_CONST_BOOL) {
       last = value_bool((int)arg0);
+      last_ptr_ro = 0;
       pc++;
     } else if (op == OP_NULL_PTR) {
       last = value_ptr(NULL);
+      last_ptr_ro = 0;
       pc++;
     } else if (op == OP_ADD_PTR) {
       uint64_t rhs = (uint64_t)arg0 | ((uint64_t)arg1 << 32);
@@ -5042,90 +5085,123 @@ static int eval_pure_blob(const Blob *b, Value *out) {
       pc++;
     } else if (op == OP_PTR_TO_U64) {
       if (!value_ptr_to_u64(&last)) return 0;
+      last_ptr_ro = 0;
       pc++;
     } else if (op == OP_U64_TO_PTR) {
       if (!value_u64_to_ptr(&last)) return 0;
+      last_ptr_ro = 0;
       pc++;
     } else if (op == OP_CONST_PTR) {
       const char *s = const_string_ref(b, arg0);
       if (!s) return 0;
       last = value_ptr(s);
+      last_ptr_ro = arg1 == 0;
       pc++;
     } else if (op == OP_LOAD_U8) {
       if (!value_load_u8(&last)) return 0;
+      last_ptr_ro = 0;
       pc++;
     } else if (op == OP_LOAD_U16) {
       if (!value_load_u16(&last)) return 0;
+      last_ptr_ro = 0;
       pc++;
     } else if (op == OP_LOAD_U32) {
       if (!value_load_u32(&last)) return 0;
+      last_ptr_ro = 0;
       pc++;
     } else if (op == OP_STORE_U8) {
       uint64_t byte = (uint64_t)arg0 | ((uint64_t)arg1 << 32);
+      if (last_ptr_ro) {
+        fprintf(stderr, "store-to-rodata=%u\n", pc);
+        return 0;
+      }
       if (!value_store_u8(&last, byte)) return 0;
       pc++;
     } else if (op == OP_STORE_U16) {
       uint64_t word = (uint64_t)arg0 | ((uint64_t)arg1 << 32);
+      if (last_ptr_ro) {
+        fprintf(stderr, "store-to-rodata=%u\n", pc);
+        return 0;
+      }
       if (!value_store_u16(&last, word)) return 0;
       pc++;
     } else if (op == OP_STORE_U32) {
       uint64_t dword = (uint64_t)arg0 | ((uint64_t)arg1 << 32);
+      if (last_ptr_ro) {
+        fprintf(stderr, "store-to-rodata=%u\n", pc);
+        return 0;
+      }
       if (!value_store_u32(&last, dword)) return 0;
       pc++;
     } else if (op == OP_IS_NULL_PTR) {
       if (!value_is_null_ptr(&last)) return 0;
+      last_ptr_ro = 0;
       pc++;
     } else if (op == OP_IS_NONNULL_PTR) {
       if (!value_is_nonnull_ptr(&last)) return 0;
+      last_ptr_ro = 0;
       pc++;
     } else if (op == OP_NOT_BOOL) {
       if (!value_not_bool(&last)) return 0;
+      last_ptr_ro = 0;
       pc++;
     } else if (op == OP_AND_BOOL) {
       if (!value_and_bool(&last, (int)arg0)) return 0;
+      last_ptr_ro = 0;
       pc++;
     } else if (op == OP_OR_BOOL) {
       if (!value_or_bool(&last, (int)arg0)) return 0;
+      last_ptr_ro = 0;
       pc++;
     } else if (op == OP_ADD_U64) {
       uint64_t rhs = (uint64_t)arg0 | ((uint64_t)arg1 << 32);
       if (!value_add_u64(&last, rhs)) return 0;
+      last_ptr_ro = 0;
       pc++;
     } else if (op == OP_ADD_I64) {
       int64_t rhs = (int64_t)((uint64_t)arg0 | ((uint64_t)arg1 << 32));
       if (!value_add_i64(&last, rhs)) return 0;
+      last_ptr_ro = 0;
       pc++;
     } else if (op == OP_SUB_I64) {
       int64_t rhs = (int64_t)((uint64_t)arg0 | ((uint64_t)arg1 << 32));
       if (!value_sub_i64(&last, rhs)) return 0;
+      last_ptr_ro = 0;
       pc++;
     } else if (op == OP_MUL_I64) {
       int64_t rhs = (int64_t)((uint64_t)arg0 | ((uint64_t)arg1 << 32));
       if (!value_mul_i64(&last, rhs)) return 0;
+      last_ptr_ro = 0;
       pc++;
     } else if (op == OP_EQ_I64) {
       int64_t rhs = (int64_t)((uint64_t)arg0 | ((uint64_t)arg1 << 32));
       if (!value_eq_i64(&last, rhs)) return 0;
+      last_ptr_ro = 0;
       pc++;
     } else if (op == OP_LT_I64) {
       int64_t rhs = (int64_t)((uint64_t)arg0 | ((uint64_t)arg1 << 32));
       if (!value_lt_i64(&last, rhs)) return 0;
+      last_ptr_ro = 0;
       pc++;
     } else if (op == OP_GT_I64) {
       int64_t rhs = (int64_t)((uint64_t)arg0 | ((uint64_t)arg1 << 32));
       if (!value_gt_i64(&last, rhs)) return 0;
+      last_ptr_ro = 0;
       pc++;
     } else if (op == OP_NE_I64) {
       int64_t rhs = (int64_t)((uint64_t)arg0 | ((uint64_t)arg1 << 32));
       if (!value_ne_i64(&last, rhs)) return 0;
+      last_ptr_ro = 0;
       pc++;
     } else if (op == OP_LE_I64) {
       int64_t rhs = (int64_t)((uint64_t)arg0 | ((uint64_t)arg1 << 32));
       if (!value_le_i64(&last, rhs)) return 0;
+      last_ptr_ro = 0;
       pc++;
     } else if (op == OP_GE_I64) {
       int64_t rhs = (int64_t)((uint64_t)arg0 | ((uint64_t)arg1 << 32));
       if (!value_ge_i64(&last, rhs)) return 0;
+      last_ptr_ro = 0;
       pc++;
     } else if (op == OP_EXPECT_U64) {
       uint64_t expected = (uint64_t)arg0 | ((uint64_t)arg1 << 32);
@@ -5233,6 +5309,7 @@ static int compile_pure_blob_to_x86(const Blob *b, Buf *code, int exit_style,
                                     Buf *data, size_t data_align, Buf *out_data_patches) {
   int saw_ret = 0;
   int last_kind = 0;
+  int last_ptr_ro = 0;
   Buf expect_patches = {0};
   Buf branch_patches = {0};
   Buf data_patches = {0};
@@ -5264,6 +5341,7 @@ static int compile_pure_blob_to_x86(const Blob *b, Buf *code, int exit_style,
         buf_put(code, mov_eax, sizeof(mov_eax));
       }
       last_kind = VAL_U64;
+      last_ptr_ro = 0;
     } else if (op == OP_CONST_I64) {
       if (imm_i64 < INT32_MIN || imm_i64 > INT32_MAX) goto fail;
       if (exit_style) {
@@ -5276,6 +5354,7 @@ static int compile_pure_blob_to_x86(const Blob *b, Buf *code, int exit_style,
         buf_put(code, mov_eax, sizeof(mov_eax));
       }
       last_kind = VAL_I64;
+      last_ptr_ro = 0;
     } else if (op == OP_CONST_BOOL) {
       if (exit_style) {
         unsigned char mov_edi[5] = {0xbf, 0, 0, 0, 0};
@@ -5287,6 +5366,7 @@ static int compile_pure_blob_to_x86(const Blob *b, Buf *code, int exit_style,
         buf_put(code, mov_eax, sizeof(mov_eax));
       }
       last_kind = VAL_BOOL;
+      last_ptr_ro = 0;
     } else if (op == OP_NULL_PTR) {
       if (exit_style) {
         unsigned char mov_edi[5] = {0xbf, 0, 0, 0, 0};
@@ -5296,6 +5376,7 @@ static int compile_pure_blob_to_x86(const Blob *b, Buf *code, int exit_style,
         buf_put(code, mov_eax, sizeof(mov_eax));
       }
       last_kind = VAL_PTR;
+      last_ptr_ro = 0;
     } else if (op == OP_ADD_PTR) {
       if (last_kind != VAL_PTR || imm_u64 > UINT32_MAX) goto fail;
       if (exit_style) {
@@ -5321,9 +5402,11 @@ static int compile_pure_blob_to_x86(const Blob *b, Buf *code, int exit_style,
     } else if (op == OP_PTR_TO_U64) {
       if (last_kind != VAL_PTR) goto fail;
       last_kind = VAL_U64;
+      last_ptr_ro = 0;
     } else if (op == OP_U64_TO_PTR) {
       if (last_kind != VAL_U64) goto fail;
       last_kind = VAL_PTR;
+      last_ptr_ro = 0;
     } else if (op == OP_CONST_PTR) {
       const char *s = data ? const_string_ref(b, arg0) : NULL;
       if (!s) goto fail;
@@ -5335,6 +5418,7 @@ static int compile_pure_blob_to_x86(const Blob *b, Buf *code, int exit_style,
         buf_put(&data_patches, &patch, sizeof(patch));
       }
       last_kind = VAL_PTR;
+      last_ptr_ro = arg1 == 0;
     } else if (op == OP_LOAD_U8) {
       if (last_kind != VAL_PTR) goto fail;
       if (exit_style) {
@@ -5345,6 +5429,7 @@ static int compile_pure_blob_to_x86(const Blob *b, Buf *code, int exit_style,
         buf_put(code, movzx_eax_ptr_rax, sizeof(movzx_eax_ptr_rax));
       }
       last_kind = VAL_U64;
+      last_ptr_ro = 0;
     } else if (op == OP_LOAD_U16) {
       if (last_kind != VAL_PTR) goto fail;
       if (exit_style) {
@@ -5355,6 +5440,7 @@ static int compile_pure_blob_to_x86(const Blob *b, Buf *code, int exit_style,
         buf_put(code, movzx_eax_word_ptr_rax, sizeof(movzx_eax_word_ptr_rax));
       }
       last_kind = VAL_U64;
+      last_ptr_ro = 0;
     } else if (op == OP_LOAD_U32) {
       if (last_kind != VAL_PTR) goto fail;
       if (exit_style) {
@@ -5365,8 +5451,13 @@ static int compile_pure_blob_to_x86(const Blob *b, Buf *code, int exit_style,
         buf_put(code, mov_eax_dword_ptr_rax, sizeof(mov_eax_dword_ptr_rax));
       }
       last_kind = VAL_U64;
+      last_ptr_ro = 0;
     } else if (op == OP_STORE_U8) {
       if (last_kind != VAL_PTR || imm_u64 > 255u) goto fail;
+      if (last_ptr_ro) {
+        fprintf(stderr, "store-to-rodata=%u\n", pc);
+        goto fail;
+      }
       if (exit_style) {
         unsigned char mov_byte_ptr_rdi_imm[3] = {0xc6, 0x07, (unsigned char)imm_u64};
         buf_put(code, mov_byte_ptr_rdi_imm, sizeof(mov_byte_ptr_rdi_imm));
@@ -5376,6 +5467,10 @@ static int compile_pure_blob_to_x86(const Blob *b, Buf *code, int exit_style,
       }
     } else if (op == OP_STORE_U16) {
       if (last_kind != VAL_PTR || imm_u64 > 65535u) goto fail;
+      if (last_ptr_ro) {
+        fprintf(stderr, "store-to-rodata=%u\n", pc);
+        goto fail;
+      }
       if (exit_style) {
         unsigned char mov_word_ptr_rdi_imm[5] = {0x66, 0xc7, 0x07, 0, 0};
         wr16(mov_word_ptr_rdi_imm + 3, (uint16_t)imm_u64);
@@ -5387,6 +5482,10 @@ static int compile_pure_blob_to_x86(const Blob *b, Buf *code, int exit_style,
       }
     } else if (op == OP_STORE_U32) {
       if (last_kind != VAL_PTR || imm_u64 > UINT32_MAX) goto fail;
+      if (last_ptr_ro) {
+        fprintf(stderr, "store-to-rodata=%u\n", pc);
+        goto fail;
+      }
       if (exit_style) {
         unsigned char mov_dword_ptr_rdi_imm[6] = {0xc7, 0x07, 0, 0, 0, 0};
         wr32(mov_dword_ptr_rdi_imm + 2, (uint32_t)imm_u64);
@@ -5414,6 +5513,7 @@ static int compile_pure_blob_to_x86(const Blob *b, Buf *code, int exit_style,
         buf_put(code, movzx_eax_al, sizeof(movzx_eax_al));
       }
       last_kind = VAL_BOOL;
+      last_ptr_ro = 0;
     } else if (op == OP_NOT_BOOL) {
       if (last_kind != VAL_BOOL) goto fail;
       if (exit_style) {
@@ -5505,6 +5605,7 @@ static int compile_pure_blob_to_x86(const Blob *b, Buf *code, int exit_style,
         buf_put(code, movzx_eax_al, sizeof(movzx_eax_al));
       }
       last_kind = VAL_BOOL;
+      last_ptr_ro = 0;
     } else if (op == OP_LT_I64) {
       if (last_kind != VAL_I64 || imm_i64 < INT32_MIN || imm_i64 > INT32_MAX) goto fail;
       if (exit_style) {
@@ -5525,6 +5626,7 @@ static int compile_pure_blob_to_x86(const Blob *b, Buf *code, int exit_style,
         buf_put(code, movzx_eax_al, sizeof(movzx_eax_al));
       }
       last_kind = VAL_BOOL;
+      last_ptr_ro = 0;
     } else if (op == OP_GT_I64) {
       if (last_kind != VAL_I64 || imm_i64 < INT32_MIN || imm_i64 > INT32_MAX) goto fail;
       if (exit_style) {

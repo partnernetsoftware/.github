@@ -118,6 +118,7 @@ TYPE_BAD_STORE_U16_SRC="$LAB_DIR/samples/type-error-store-u16-bad.lisp"
 TYPE_BAD_STORE_U16_RANGE_SRC="$LAB_DIR/samples/type-error-store-u16-range-bad.lisp"
 TYPE_BAD_STORE_U32_SRC="$LAB_DIR/samples/type-error-store-u32-bad.lisp"
 TYPE_BAD_STORE_U32_RANGE_SRC="$LAB_DIR/samples/type-error-store-u32-range-bad.lisp"
+TYPE_BAD_STORE_RODATA_SRC="$LAB_DIR/samples/type-error-store-rodata-bad.lisp"
 TYPE_BAD_BRANCH_SRC="$LAB_DIR/samples/type-error-branch-bad.lisp"
 TYPE_BAD_EXPECT_PTR_SRC="$LAB_DIR/samples/type-error-expect-ptr-bad.lisp"
 BAD_ARITH_SRC="$LAB_DIR/samples/arithmetic-bad.lisp"
@@ -269,6 +270,7 @@ cat > "$BOOTSTRAP_PLAN" <<EOF
   (compile "$CONST_PTR_LOAD_ONLY_SRC" "$BUILD_DIR/bootstrap-smoke-const-ptr-load-only.lbin")
   (file-size "$BUILD_DIR/bootstrap-smoke-const-ptr-load-only.lbin")
   (run "$BUILD_DIR/bootstrap-smoke-const-ptr-load-only.lbin")
+  (compile "$TYPE_BAD_STORE_RODATA_SRC" "$BUILD_DIR/bootstrap-smoke-type-bad-store-rodata.lbin")
   (compile "$SMOKE_SRC" "$BUILD_DIR/bootstrap-smoke.lbin")
   (resolve-quiet "$BUILD_DIR/bootstrap-smoke.lbin")
   (hash "$BUILD_DIR/bootstrap-smoke.lbin")
@@ -438,6 +440,9 @@ cat > "$BOOTSTRAP_PLAN" <<EOF
   (compile-expect-exit 2 compile-elf64-code "$TYPE_BAD_STORE_U32_RANGE_SRC" "$BUILD_DIR/bootstrap-aot-type-bad-store-u32-range.elf")
   (compile-expect-exit 2 compile-elf64-obj-code "$TYPE_BAD_STORE_U32_RANGE_SRC" "$BUILD_DIR/bootstrap-aot-type-bad-store-u32-range.o" "nano_bootstrap_type_bad_store_u32_range")
   (compile-expect-exit 2 compile-elf64-exe "$TYPE_BAD_STORE_U32_RANGE_SRC" "$BUILD_DIR/bootstrap-aot-type-bad-store-u32-range-exe.elf" "nano_bootstrap_type_bad_store_u32_range")
+  (compile-expect-exit 2 compile-elf64-code "$TYPE_BAD_STORE_RODATA_SRC" "$BUILD_DIR/bootstrap-aot-type-bad-store-rodata.elf")
+  (compile-expect-exit 2 aot-elf64-code "$BUILD_DIR/bootstrap-smoke-type-bad-store-rodata.lbin" "$BUILD_DIR/bootstrap-aot-type-bad-store-rodata-from-blob.elf")
+  (compile-expect-exit 2 aot-elf64-obj-code "$BUILD_DIR/bootstrap-smoke-type-bad-store-rodata.lbin" "$BUILD_DIR/bootstrap-aot-type-bad-store-rodata.o" "nano_bootstrap_type_bad_store_rodata")
   (compile-expect-exit 2 compile-elf64-code "$TYPE_BAD_BRANCH_SRC" "$BUILD_DIR/bootstrap-aot-type-bad-branch.elf")
   (compile-expect-exit 2 compile-elf64-obj-code "$TYPE_BAD_EXPECT_PTR_SRC" "$BUILD_DIR/bootstrap-aot-type-bad-expect-ptr.o" "nano_bootstrap_type_bad_expect_ptr")
   (emit-elf64-obj-call "$BUILD_DIR/bootstrap-aot-call42.o" "nano_bootstrap_call" "nano_bootstrap_ext")

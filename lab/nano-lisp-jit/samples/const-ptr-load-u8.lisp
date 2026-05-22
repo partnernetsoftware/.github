@@ -1,4 +1,4 @@
-; Constant string pointer smoke for VM, AOT, codegen, and object memory access.
+; Explicit mutable pointer smoke for VM, AOT, codegen, and object memory access.
 (module
   (const word "Az09")
   (main
@@ -17,15 +17,15 @@
     (add-ptr 1)
     (load-u8)
     (expect 122)
-    (const-ptr word)
+    (mut-ptr word)
     (store-u8 66)
     (load-u8)
     (expect 66)
-    (const-ptr word)
+    (mut-ptr word)
     (store-u16 17218)
     (load-u16)
     (expect 17218)
-    (const-ptr word)
+    (mut-ptr word)
     (store-u32 1145258561)
     (load-u32)
     (expect 1145258561)
