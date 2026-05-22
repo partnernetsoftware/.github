@@ -16,6 +16,8 @@ MULTI_SRC="$LAB_DIR/samples/multi-func.lisp"
 MULTI_CTRL_SRC="$LAB_DIR/samples/multi-func-control-flow.lisp"
 MULTI_PTR_SRC="$LAB_DIR/samples/multi-func-ptr.lisp"
 FUNC_PARAM_I64_SRC="$LAB_DIR/samples/func-param-i64.lisp"
+FUNC_PARAM_MISSING_PARAM_BAD_SRC="$LAB_DIR/samples/func-param-missing-param-bad.lisp"
+FUNC_PARAM_CALL_NO_ARG_BAD_SRC="$LAB_DIR/samples/func-param-call-no-arg-bad.lisp"
 TYPE_BAD_PTR_OP_SRC="$LAB_DIR/samples/type-error-ptr-op-bad.lisp"
 TYPE_BAD_ADD_PTR_SRC="$LAB_DIR/samples/type-error-add-ptr-bad.lisp"
 TYPE_BAD_SUB_PTR_SRC="$LAB_DIR/samples/type-error-sub-ptr-bad.lisp"
@@ -80,6 +82,10 @@ MULTI_PTR_OBJ="$BUILD_DIR/multi_func_ptr.o"
 MULTI_PTR_LINK_EXE="$BUILD_DIR/multi_func_ptr_linked"
 MULTI_PTR_DIRECT_EXE="$BUILD_DIR/multi_func_ptr_direct"
 FUNC_PARAM_I64_EXE="$BUILD_DIR/func_param_i64_direct"
+FUNC_PARAM_MISSING_PARAM_BAD_OBJ="$BUILD_DIR/func_param_missing_param_bad.o"
+FUNC_PARAM_MISSING_PARAM_BAD_EXE="$BUILD_DIR/func_param_missing_param_bad"
+FUNC_PARAM_CALL_NO_ARG_BAD_OBJ="$BUILD_DIR/func_param_call_no_arg_bad.o"
+FUNC_PARAM_CALL_NO_ARG_BAD_EXE="$BUILD_DIR/func_param_call_no_arg_bad"
 TYPE_BAD_PTR_OP_EXE="$BUILD_DIR/type_error_ptr_op_bad"
 TYPE_BAD_PTR_OP_OBJ="$BUILD_DIR/type_error_ptr_op_bad.o"
 TYPE_BAD_ADD_PTR_OBJ="$BUILD_DIR/type_error_add_ptr_bad.o"
@@ -532,6 +538,10 @@ if [ "$(uname -m)" = "x86_64" ] || [ "$(uname -m)" = "amd64" ]; then
   run_case "run-direct-compiled-multi-func-ptr1" "$RUNNER" run-expect-exit "$MULTI_PTR_DIRECT_EXE" 1
   run_case "compile-func-param-i64-elf64-exe42" "$RUNNER" compile-elf64-exe "$FUNC_PARAM_I64_SRC" "$FUNC_PARAM_I64_EXE" nano_func_param
   run_case "run-direct-compiled-func-param-i64-42" "$RUNNER" run-expect-exit "$FUNC_PARAM_I64_EXE" 42
+  run_case "reject-func-param-missing-param-elf64-obj" "$RUNNER" compile-expect-exit 2 compile-elf64-obj-code "$FUNC_PARAM_MISSING_PARAM_BAD_SRC" "$FUNC_PARAM_MISSING_PARAM_BAD_OBJ" nano_func_param_missing_param_bad
+  run_case "reject-func-param-missing-param-elf64-exe" "$RUNNER" compile-expect-exit 2 compile-elf64-exe "$FUNC_PARAM_MISSING_PARAM_BAD_SRC" "$FUNC_PARAM_MISSING_PARAM_BAD_EXE" nano_func_param_missing_param_bad
+  run_case "reject-func-param-call-no-arg-elf64-obj" "$RUNNER" compile-expect-exit 2 compile-elf64-obj-code "$FUNC_PARAM_CALL_NO_ARG_BAD_SRC" "$FUNC_PARAM_CALL_NO_ARG_BAD_OBJ" nano_func_param_call_no_arg_bad
+  run_case "reject-func-param-call-no-arg-elf64-exe" "$RUNNER" compile-expect-exit 2 compile-elf64-exe "$FUNC_PARAM_CALL_NO_ARG_BAD_SRC" "$FUNC_PARAM_CALL_NO_ARG_BAD_EXE" nano_func_param_call_no_arg_bad
   run_case "reject-ptr-op-type-error-elf64-code" "$RUNNER" compile-expect-exit 2 compile-elf64-code "$TYPE_BAD_PTR_OP_SRC" "$TYPE_BAD_PTR_OP_EXE"
   run_case "reject-ptr-op-type-error-elf64-obj" "$RUNNER" compile-expect-exit 2 compile-elf64-obj-code "$TYPE_BAD_PTR_OP_SRC" "$TYPE_BAD_PTR_OP_OBJ" nano_type_bad_ptr_op
   run_case "reject-ptr-op-type-error-elf64-exe" "$RUNNER" compile-expect-exit 2 compile-elf64-exe "$TYPE_BAD_PTR_OP_SRC" "$TYPE_BAD_PTR_OP_EXE" nano_type_bad_ptr_op

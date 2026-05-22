@@ -109,6 +109,8 @@ MULTI_SRC="$LAB_DIR/samples/multi-func.lisp"
 MULTI_CTRL_SRC="$LAB_DIR/samples/multi-func-control-flow.lisp"
 MULTI_PTR_SRC="$LAB_DIR/samples/multi-func-ptr.lisp"
 MULTI_BAD_SRC="$LAB_DIR/samples/multi-func-recursive-bad.lisp"
+FUNC_PARAM_MISSING_PARAM_BAD_SRC="$LAB_DIR/samples/func-param-missing-param-bad.lisp"
+FUNC_PARAM_CALL_NO_ARG_BAD_SRC="$LAB_DIR/samples/func-param-call-no-arg-bad.lisp"
 TYPE_BAD_PTR_OP_SRC="$LAB_DIR/samples/type-error-ptr-op-bad.lisp"
 TYPE_BAD_ADD_PTR_SRC="$LAB_DIR/samples/type-error-add-ptr-bad.lisp"
 TYPE_BAD_SUB_PTR_SRC="$LAB_DIR/samples/type-error-sub-ptr-bad.lisp"
@@ -315,6 +317,10 @@ cat > "$BOOTSTRAP_PLAN" <<EOF
   (run-expect-exit "$BUILD_DIR/bootstrap-aot-multi-ptr-direct.elf" 1)
   (compile-expect-exit 2 compile-elf64-obj-code "$MULTI_BAD_SRC" "$BUILD_DIR/bootstrap-aot-recursive-bad.o" "nano_bootstrap_recursive_bad")
   (compile-expect-exit 2 compile-elf64-exe "$MULTI_BAD_SRC" "$BUILD_DIR/bootstrap-aot-recursive-bad.elf" "nano_bootstrap_recursive_bad")
+  (compile-expect-exit 2 compile-elf64-obj-code "$FUNC_PARAM_MISSING_PARAM_BAD_SRC" "$BUILD_DIR/bootstrap-aot-func-param-missing-param-bad.o" "nano_bootstrap_func_param_missing_param_bad")
+  (compile-expect-exit 2 compile-elf64-exe "$FUNC_PARAM_MISSING_PARAM_BAD_SRC" "$BUILD_DIR/bootstrap-aot-func-param-missing-param-bad.elf" "nano_bootstrap_func_param_missing_param_bad")
+  (compile-expect-exit 2 compile-elf64-obj-code "$FUNC_PARAM_CALL_NO_ARG_BAD_SRC" "$BUILD_DIR/bootstrap-aot-func-param-call-no-arg-bad.o" "nano_bootstrap_func_param_call_no_arg_bad")
+  (compile-expect-exit 2 compile-elf64-exe "$FUNC_PARAM_CALL_NO_ARG_BAD_SRC" "$BUILD_DIR/bootstrap-aot-func-param-call-no-arg-bad.elf" "nano_bootstrap_func_param_call_no_arg_bad")
   (compile-expect-exit 2 compile-elf64-code "$TYPE_BAD_PTR_OP_SRC" "$BUILD_DIR/bootstrap-aot-type-bad-ptr-op.elf")
   (compile-expect-exit 2 compile-elf64-obj-code "$TYPE_BAD_PTR_OP_SRC" "$BUILD_DIR/bootstrap-aot-type-bad-ptr-op.o" "nano_bootstrap_type_bad_ptr_op")
   (compile-expect-exit 2 compile-elf64-exe "$TYPE_BAD_PTR_OP_SRC" "$BUILD_DIR/bootstrap-aot-type-bad-ptr-op-direct.elf" "nano_bootstrap_type_bad_ptr_op")
