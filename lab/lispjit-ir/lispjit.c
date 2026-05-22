@@ -156,6 +156,7 @@ extern void *cosmo_dlsym(void *handle, const char *symbol);
 #define AOT_STMT_STORE_U8 34u
 #define AOT_STMT_STORE_U16 35u
 #define AOT_STMT_STORE_U32 36u
+#define AOT_STMT_LOAD_ARG_I64 37u
 
 #define BOOTSTRAP_STEP_COMPILE 1u
 #define BOOTSTRAP_STEP_HASH 2u
@@ -240,6 +241,7 @@ typedef struct {
   AotStmt *stmts;
   size_t stmt_count;
   size_t stmt_cap;
+  int param_count;
 } AotFunc;
 
 typedef struct {
