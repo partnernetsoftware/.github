@@ -18,6 +18,26 @@ static int find_payload_start(const unsigned char *data, size_t n, const char *m
   }
   return 0;
 }
+
+/* Mode A: after marker line; Mode B: v2 magic at line start (bare file or stub tail). */
+static int find_nano_ape_payload_start(const unsigned char *data, size_t n, size_t *out) {
+  if (find_payload_start(data, n, NANO_APE_PAYLOAD_MARKER, out)) return 1;
+  size_t last = 0;
+  int found = 0;
+  for (size_t i = 0; i + NANO_APE_V2_MAGIC_LEN <= n; ++i) {
+    if (i != 0 && data[i - 1] != '\n') continue;
+    if (nano_ape_v2_magic_at(data, n, i)) {
+      last = i;
+      found = 1;
+    }
+  }
+  if (found) {
+    *out = last;
+    return 1;
+  }
+  return 0;
+}
+
 static int manifest_find_size(const unsigned char *data, size_t n,
                               const char *key, size_t *out) {
   int in_manifest = 0;
