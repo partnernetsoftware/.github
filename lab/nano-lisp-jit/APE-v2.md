@@ -55,9 +55,14 @@ Validation (both paths): bounds, ELF magic at each slice, hash if non-zero. v2 a
 
 Success prints include `inspect-ape.container=ape-v2`, `inspect-ape.header_bytes=…`, and per-slice `arch_id`, `os_id`, `offset`, `size`, `hash`.
 
+## Loader (slice 2+)
+
+- **Primary (native):** `nano-jit run-ape container.com [arch]` reads the v2 table in-process (no manifest shell logic).
+- **Direct execution:** `pack-ape` shell stub tries `NANO_JIT` / `nano-lisp-jit run-ape` first (`# nano.loader=run-ape-cli`), then falls back to `dd` slice extract + `exec`.
+- **Mode B (future):** v2 header without shell script wrapper.
+
 ## Scope (slice 1)
 
 - Spec + `pack-ape` / `inspect-ape` / bootstrap negative fixtures; v1 `.com` files still pass via fallback.
-- Native in-process loader and dropping the shell stub → later v2 slices.
 
 Fixtures: extend `make_ape_fixtures.py`; see `APE-v1.md` for v1 keys and `run-ape` behavior (unchanged until native loader lands).

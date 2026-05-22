@@ -395,6 +395,13 @@ static int cmd_pack_ape(const char *out_path, const char *x86_path, const char *
   const char *stub_fmt =
       "#!/bin/sh\n"
       "set -eu\n"
+      "# nano.loader=run-ape-cli\n"
+      "if [ -n \"${NANO_JIT:-}\" ] && [ -x \"${NANO_JIT}\" ]; then\n"
+      "  exec \"${NANO_JIT}\" run-ape \"$0\" \"$@\"\n"
+      "fi\n"
+      "if command -v nano-lisp-jit >/dev/null 2>&1; then\n"
+      "  exec nano-lisp-jit run-ape \"$0\" \"$@\"\n"
+      "fi\n"
       "arch=\"$(uname -m)\"\n"
       "case \"$arch\" in\n"
       "  x86_64|amd64) off=%zu; size=%zu; suffix=x86_64 ;;\n"

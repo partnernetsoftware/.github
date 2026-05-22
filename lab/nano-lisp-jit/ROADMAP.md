@@ -244,8 +244,19 @@ nano-jit continuation after self-bootstrap v1
 
 下一圈（v2 kickoff）：
 
-1. **APE v2 / nano 自主 loader**（slice 1 **~95%**）：见下表；缺：去掉 shell stub 的 in-process loader（刻意留 slice 2+）。
-2. **`lispjit.c` 模块边界**（slice 2 **~15%**）：已抽出 `nano_manifest.c` + `nano_ape.c`（`#include` 进单 TU）；待拆 parser/blob/elf/linker。
+1. **APE v2**（slice 1 **100% scoped**）+ **hybrid loader**（~50%）：`run-ape` 原生读 v2；`pack-ape` stub 优先 `NANO_JIT`/`nano-lisp-jit run-ape`。
+2. **`lispjit.c` 模块边界**（slice 2 **~65%**）：+`nano_blob_vm.c`；`lispjit.c` ~4.5k 行；待拆 AOT/parser。
+
+### v2 总完成度（工程向）
+
+| 轨道 | 状态 | 说明 |
+|------|------|------|
+| APE v2 格式 + inspect/run | **100%** scoped | slice 1 签收 |
+| 模块拆分 | **~65%** | manifest/ape/elf64/blob_vm |
+| 进程内 loader（无 shell） | **~50%** | CLI 原生 + stub 委托 `run-ape`；真 ELF loader 未做 |
+| ABI / 参数 / 自托管 slice | **0%** | slice 3+ |
+
+**v2 整体（全目标）**：约 **55%** — 格式与测试闭环已稳，结构与 loader 进行中。
 
 ### v2 slice 1 完成度（scoped）
 
@@ -257,7 +268,7 @@ nano-jit continuation after self-bootstrap v1
 | `run-ape` 读 v2 表 | **100%** | `run-ape.container=ape-v2` |
 | bootstrap smoke + 负向 | **100%** | `bootstrap-ape-v2-*` + `make_ape_fixtures` |
 | self-pack 矩阵（native 侧） | **100%** | `build_nano_jit.sh` 断言 `inspect-ape.container=ape-v2` |
-| nano 进程内 loader（无 stub） | **0%** | → v2 slice 2+ |
+| nano 进程内 loader（无 stub） | **~50%** | `run-ape` 原生；stub 优先 `run-ape-cli`；纯 ELF loader 未做 |
 
 **v2 slice 1 整体**：**100%（scoped）** — 与 `APE-v2.md` slice 1 范围一致；无 stub loader 不算缺口。
 
