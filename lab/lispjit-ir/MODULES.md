@@ -11,6 +11,7 @@ Build remains one translation unit: `cc lispjit.c` includes submodules below.
 | `nano_ape.c` | APE v1/v2 pack/inspect/run-ape CLI |
 | `nano_elf64.c` | ELF64 emit (exec/obj), `emit-elf64-*` CLI, tiny linker, `link-elf64-exe` |
 | `nano_blob_vm.c` | VM `execute_blob`, dump/hash/resolve/run CLI |
+| `nano_libc_resolve.c` | ELF dynsym scrape, `gen-libc-resolve` CLI |
 | `nano_aot_x86.c` | AOT module parse (`parse_aot_module`), pure-blob + AOT x86 codegen, `aot-elf64-*`, `eval_pure_blob` |
 | `nano_lisp_parse.c` | lbin/ljir parser, `compile_module`, `compile` path helpers |
 | `nano_bootstrap.c` | Bootstrap plan DSL parse, expect-exit helpers, `run-bootstrap-plan` |
