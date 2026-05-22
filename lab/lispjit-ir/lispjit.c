@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "ape_v2.h"
+#include "nano_types.h"
 
 #if defined(_WIN32)
 #include <windows.h>
@@ -157,6 +158,7 @@ extern void *cosmo_dlsym(void *handle, const char *symbol);
 #define AOT_STMT_STORE_U16 35u
 #define AOT_STMT_STORE_U32 36u
 #define AOT_STMT_LOAD_ARG_I64 37u
+#define AOT_STMT_SAVE_TOP_I64 38u
 
 #define BOOTSTRAP_STEP_COMPILE 1u
 #define BOOTSTRAP_STEP_HASH 2u

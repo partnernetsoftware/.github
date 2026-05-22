@@ -17,7 +17,7 @@ v2 以 **100%（scoped）** 签收；v2.5 把 scoped 与 mindmap 之间的缺口
 1. **slice 0** — `run.sh`：`build-nano-jit-native-smoke`
 2. **slice 1** — `build_nano_jit.sh`：cosmocc 缺失时 x86-only self-pack oracle
 3. **slice 2** — `nano_util.c`：`parse_size_arg`
-4. **slice 3** — VM 与 AOT 参数路径对齐（待开工）
+4. **slice 3** — AOT 双 `i64` 参数：`param_count` 1..2、`load-arg-i64` 0/1、`save-top-i64` + 2-arg `call`（`rdi=rbx`, `rsi=rax`）；main 序：`(i64 a)(save-top-i64)(i64 b)(call …)`；样本 `func-param-i64-2arg.lisp`
 
 ## 证据命令
 

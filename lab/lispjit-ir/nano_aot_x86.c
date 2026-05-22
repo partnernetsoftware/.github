@@ -133,13 +133,15 @@ static int parse_aot_body_items(const char **p, AotFunc *f) {
       free(value);
     } else if (strcmp(head, "param") == 0) {
       char *type = parse_atom(p);
-      ok = type && strcmp(type, "i64") == 0 && !f->param_count && eat(p, ')');
-      if (ok) f->param_count = 1;
+      ok = type && strcmp(type, "i64") == 0 && f->param_count < 2 && eat(p, ')');
+      if (ok) f->param_count++;
       free(type);
+    } else if (strcmp(head, "save-top-i64") == 0) {
+      ok = eat(p, ')') && aot_add_stmt(f, AOT_STMT_SAVE_TOP_I64, 0, NULL);
     } else if (strcmp(head, "load-arg-i64") == 0) {
       char *value = parse_atom(p);
       uint64_t idx = 0;
-      ok = value && parse_u64_atom(value, &idx) && idx == 0 && f->param_count > 0 &&
+      ok = value && parse_u64_atom(value, &idx) && idx < (uint64_t)f->param_count &&
            eat(p, ')') && aot_add_stmt(f, AOT_STMT_LOAD_ARG_I64, idx, NULL);
       free(value);
     } else if (strcmp(head, "call") == 0) {
@@ -1112,8 +1114,10 @@ static int infer_aot_func_return_kind(const AotModule *m, size_t func_idx,
     } else if (stmt->kind == AOT_STMT_EXPECT_PTR) {
       if (last_kind != VAL_PTR) return 0;
     } else if (stmt->kind == AOT_STMT_LOAD_ARG_I64) {
-      if (!func->param_count || stmt->imm != 0) return 0;
+      if (!func->param_count || stmt->imm >= (uint64_t)func->param_count) return 0;
       last_kind = VAL_I64;
+    } else if (stmt->kind == AOT_STMT_SAVE_TOP_I64) {
+      if (last_kind != VAL_I64) return 0;
     } else if (stmt->kind == AOT_STMT_CALL_FUNC) {
       int target_idx = aot_find_func(m, stmt->target_name);
       if (target_idx < 0) return 0;
@@ -1437,19 +1441,37 @@ static int compile_aot_func_to_x86_ret(const AotModule *m, const AotFunc *func,
         buf_put(&branch_patches, &patch, sizeof(patch));
       }
     } else if (stmt->kind == AOT_STMT_LOAD_ARG_I64) {
-      unsigned char mov_rax_rdi[3] = {0x48, 0x89, 0xf8};
-      if (!func->param_count || stmt->imm != 0) goto fail;
-      buf_put(code, mov_rax_rdi, sizeof(mov_rax_rdi));
+      if (!func->param_count || stmt->imm >= (uint64_t)func->param_count) goto fail;
+      if (stmt->imm == 0) {
+        unsigned char mov_rax_rdi[3] = {0x48, 0x89, 0xf8};
+        buf_put(code, mov_rax_rdi, sizeof(mov_rax_rdi));
+      } else {
+        unsigned char mov_rax_rsi[3] = {0x48, 0x89, 0xf0};
+        buf_put(code, mov_rax_rsi, sizeof(mov_rax_rsi));
+      }
       last_kind = VAL_I64;
+    } else if (stmt->kind == AOT_STMT_SAVE_TOP_I64) {
+      unsigned char mov_rbx_rax[3] = {0x48, 0x89, 0xc3};
+      if (last_kind != VAL_I64) goto fail;
+      buf_put(code, mov_rbx_rax, sizeof(mov_rbx_rax));
     } else if (stmt->kind == AOT_STMT_CALL_FUNC) {
       int target_idx = aot_find_func(m, stmt->target_name);
       unsigned char call_rel32[5] = {0xe8, 0, 0, 0, 0};
       AotCallPatch patch = {0, stmt->target_name};
+      int callee_params = 0;
       if (target_idx < 0 || !return_kinds[target_idx]) goto fail;
-      if (m->funcs[target_idx].param_count > 0) {
-        unsigned char mov_rdi_rax[3] = {0x48, 0x89, 0xc7};
+      callee_params = m->funcs[target_idx].param_count;
+      if (callee_params > 0) {
         if (last_kind != VAL_I64) goto fail;
-        buf_put(code, mov_rdi_rax, sizeof(mov_rdi_rax));
+        if (callee_params == 2) {
+          unsigned char mov_rsi_rax[3] = {0x48, 0x89, 0xc6};
+          unsigned char mov_rdi_rbx[3] = {0x48, 0x89, 0xdf};
+          buf_put(code, mov_rsi_rax, sizeof(mov_rsi_rax));
+          buf_put(code, mov_rdi_rbx, sizeof(mov_rdi_rbx));
+        } else {
+          unsigned char mov_rdi_rax[3] = {0x48, 0x89, 0xc7};
+          buf_put(code, mov_rdi_rax, sizeof(mov_rdi_rax));
+        }
       }
       patch.patch_off = (uint32_t)(code->len + 1);
       buf_put(code, call_rel32, sizeof(call_rel32));

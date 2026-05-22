@@ -202,6 +202,8 @@ log "# nano-lisp-jit .lisp to .lbin probe"
 
 run_case "build-native-nano-lisp-jit" cc -DNANO_LISP_JIT -Os -s "$NANO_C" -ldl -o "$RUNNER"
 
+run_case "verify-lispjit-tu" bash "$LAB_DIR/verify_tu.sh"
+
 log "source.path=$SRC"
 log "source.bytes=$(bytes_of "$SRC")"
 log "arithmetic.source.path=$ARITH_SRC"
