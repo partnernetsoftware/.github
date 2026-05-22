@@ -63,6 +63,9 @@ PTR_SRC="$LAB_DIR/samples/ptr-values.lisp"
 PTR_BLOB="$BUILD_DIR/ptr-values.lbin"
 CONST_PTR_SRC="$LAB_DIR/samples/const-ptr-load-u8.lisp"
 CONST_PTR_BLOB="$BUILD_DIR/const-ptr-load-u8.lbin"
+CONST_PTR_DIRECT_EXE="$BUILD_DIR/const_ptr_load_u8_direct"
+BOOTSTRAP_APE_NEG_SRC="$LAB_DIR/samples/bootstrap-ape-negative.lisp"
+APE_FIXTURE_DIR="$LAB_DIR/.build"
 CTRL_SRC="$LAB_DIR/samples/control-flow.lisp"
 CTRL_BLOB="$BUILD_DIR/control-flow.lbin"
 MULTI_SRC="$LAB_DIR/samples/multi-func.lisp"
@@ -377,6 +380,11 @@ if [ "$(uname -m)" = "x86_64" ] || [ "$(uname -m)" = "amd64" ]; then
   run_case "run-ape-nano-jit-com" "$PACKER" run-ape "$BUILD_DIR/nano-jit.com"
 fi
 
+run_case "make-ape-negative-fixtures-self-pack" python3 "$LAB_DIR/make_ape_fixtures.py" \
+  "$BUILD_DIR/nano-jit.com" "$APE_FIXTURE_DIR"
+run_case "run-bootstrap-ape-negative-self-pack" \
+  bash -c "cd \"$ROOT_DIR\" && \"$BUILD_DIR/nano-jit.com\" run-bootstrap-plan \"$BOOTSTRAP_APE_NEG_SRC\""
+
 {
   echo "nano-jit.com.bytes=$(bytes_of "$BUILD_DIR/nano-jit.com")"
   echo "nano-jit.com.fnv1a64=$(hash_of "$BUILD_DIR/nano-jit.com")"
@@ -444,6 +452,8 @@ run_case "nano-jit-emit-elf64-obj-callee42" "$BUILD_DIR/nano-jit.com" emit-elf64
 run_case "nano-jit-tiny-link-elf64-obj-call42" "$BUILD_DIR/nano-jit.com" link-elf64-exe "$CALL42_LINK_EXE" nano_call "$CALL42_OBJ" "$CALL42_CALLEE_OBJ"
 run_case "nano-jit-run-tiny-linked-call42" "$BUILD_DIR/nano-jit.com" run-expect-exit "$CALL42_LINK_EXE" 42
 run_case "nano-jit-emit-cross-object-const-ptr-call" "$BUILD_DIR/nano-jit.com" emit-elf64-obj-call "$CONST_PTR_CALL_OBJ" nano_const_ptr_call nano_const_ptr_callee
+run_case "nano-jit-compile-const-ptr-elf64-code1" "$BUILD_DIR/nano-jit.com" compile-elf64-code "$CONST_PTR_SRC" "$CONST_PTR_DIRECT_EXE"
+run_case "nano-jit-run-direct-compiled-const-ptr-load-u8-1" "$BUILD_DIR/nano-jit.com" run-expect-exit "$CONST_PTR_DIRECT_EXE" 1
 run_case "nano-jit-compile-cross-object-const-ptr-callee" "$BUILD_DIR/nano-jit.com" compile "$CONST_PTR_SRC" "$CONST_PTR_BLOB"
 run_case "nano-jit-aot-cross-object-const-ptr-callee" "$BUILD_DIR/nano-jit.com" aot-elf64-obj-code "$CONST_PTR_BLOB" "$CONST_PTR_CALLEE_OBJ" nano_const_ptr_callee
 run_case "nano-jit-tiny-link-cross-object-const-ptr-data" "$BUILD_DIR/nano-jit.com" link-elf64-exe "$CONST_PTR_CROSS_LINK_EXE" nano_const_ptr_call "$CONST_PTR_CALL_OBJ" "$CONST_PTR_CALLEE_OBJ"

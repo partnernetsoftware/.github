@@ -4037,13 +4037,6 @@ static int emit_elf64_exec_sections_file(const char *out_path, const unsigned ch
   return ok;
 }
 
-static int emit_elf64_exec_rx_data_file(const char *out_path, const unsigned char *code,
-                                        size_t code_n, const unsigned char *rodata,
-                                        size_t rodata_n, const unsigned char *data,
-                                        size_t data_n) {
-  return emit_elf64_exec_sections_file(out_path, code, code_n, rodata, rodata_n, data, data_n);
-}
-
 static int emit_elf64_exec_rx_file(const char *out_path, const unsigned char *code,
                                    size_t code_n) {
   return emit_elf64_exec_sections_file(out_path, code, code_n, NULL, 0, NULL, 0);
@@ -4147,13 +4140,6 @@ done:
 
 static int emit_elf64_code_file(const char *out_path, const unsigned char *code, size_t code_n) {
   return emit_elf64_exec_rx_file(out_path, code, code_n);
-}
-
-static int emit_elf64_code_data_file(const char *out_path, const unsigned char *code,
-                                     size_t code_n, const unsigned char *rodata,
-                                     size_t rodata_n, const unsigned char *data,
-                                     size_t data_n) {
-  return emit_elf64_exec_rx_data_file(out_path, code, code_n, rodata, rodata_n, data, data_n);
 }
 
 static int emit_elf64_obj_text_file(const char *out_path, const char *symbol,
