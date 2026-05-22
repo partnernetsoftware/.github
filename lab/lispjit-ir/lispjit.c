@@ -4048,7 +4048,7 @@ static int emit_elf64_exec_rx_data_file(const char *out_path, const unsigned cha
                                         size_t code_n, const unsigned char *data,
                                         size_t data_n) {
   size_t code_off = data_n ? ELF64_EHDR_SIZE + 2 * ELF64_PHDR_SIZE : ELF64_EXEC_CODE_OFF;
-  size_t data_off = code_off + code_n;
+  size_t data_off = data_n ? code_off + align_up_size(code_n, 0x1000) : code_off + code_n;
   size_t file_n = data_off + data_n;
   unsigned char *out = (unsigned char *)calloc(1, file_n);
   if (!out) return 0;
@@ -4828,7 +4828,8 @@ typedef struct {
   uint32_t data_off;
 } DataPatch;
 
-static int compile_pure_blob_to_x86(const Blob *b, Buf *code, int exit_style, Buf *data) {
+static int compile_pure_blob_to_x86(const Blob *b, Buf *code, int exit_style,
+                                    Buf *data, size_t data_align) {
   int saw_ret = 0;
   int last_kind = 0;
   Buf expect_patches = {0};
@@ -5323,9 +5324,11 @@ static int compile_pure_blob_to_x86(const Blob *b, Buf *code, int exit_style, Bu
     }
   }
   if (data_patches.len) {
+    size_t data_base = data_align ? ((code->len + data_align - 1) & ~(data_align - 1)) :
+                                    code->len;
     for (size_t i = 0; i < data_patches.len; i += sizeof(DataPatch)) {
       const DataPatch *patch = (const DataPatch *)(data_patches.data + i);
-      int64_t rel = (int64_t)code->len + (int64_t)patch->data_off -
+      int64_t rel = (int64_t)data_base + (int64_t)patch->data_off -
                     (int64_t)(patch->patch_off + 4);
       if (rel < INT32_MIN || rel > INT32_MAX) goto fail;
       wr32(code->data + patch->patch_off, (uint32_t)(int32_t)rel);
@@ -5346,11 +5349,15 @@ fail:
 }
 
 static int compile_pure_u64_blob_to_x86_exit(const Blob *b, Buf *code, Buf *data) {
-  return compile_pure_blob_to_x86(b, code, 1, data);
+  return compile_pure_blob_to_x86(b, code, 1, data, 0);
+}
+
+static int compile_pure_u64_blob_to_x86_exit_exec(const Blob *b, Buf *code, Buf *data) {
+  return compile_pure_blob_to_x86(b, code, 1, data, 0x1000);
 }
 
 static int compile_pure_u64_blob_to_x86_ret(const Blob *b, Buf *code, Buf *data) {
-  return compile_pure_blob_to_x86(b, code, 0, data);
+  return compile_pure_blob_to_x86(b, code, 0, data, 0);
 }
 
 static int aot_build_label_table(const AotFunc *func, LabelDef **out_labels,
@@ -5902,7 +5909,7 @@ static int cmd_aot_elf64_code(const char *blob_path, const char *out_path) {
     fprintf(stderr, "blob=parse_fail path=%s\n", blob_path);
     return 1;
   }
-  int ok = compile_pure_u64_blob_to_x86_exit(&b, &code, &data);
+  int ok = compile_pure_u64_blob_to_x86_exit_exec(&b, &code, &data);
   free(owned);
   if (!ok) {
     free(code.data);
@@ -5917,7 +5924,10 @@ static int cmd_aot_elf64_code(const char *blob_path, const char *out_path) {
     return 3;
   }
   printf("aot.code.output=%s\n", out_path);
-  printf("aot.code.bytes=%zu\n", 120 + code.len + data.len);
+  printf("aot.code.bytes=%zu\n",
+         data.len ? (ELF64_EHDR_SIZE + 2 * ELF64_PHDR_SIZE +
+                     align_up_size(code.len, 0x1000) + data.len) :
+                    (ELF64_EXEC_CODE_OFF + code.len));
   printf("aot.code.x86.bytes=%zu\n", code.len);
   if (data.len) printf("aot.code.data.bytes=%zu\n", data.len);
   free(code.data);
@@ -5936,7 +5946,7 @@ static int cmd_compile_elf64_code(const char *src_path, const char *out_path) {
     free(blob_data);
     return 1;
   }
-  int ok = compile_pure_u64_blob_to_x86_exit(&b, &code, &data);
+  int ok = compile_pure_u64_blob_to_x86_exit_exec(&b, &code, &data);
   free(blob_data);
   if (!ok) {
     free(code.data);
@@ -5951,7 +5961,10 @@ static int cmd_compile_elf64_code(const char *src_path, const char *out_path) {
     return 3;
   }
   printf("compile.elf64.output=%s\n", out_path);
-  printf("compile.elf64.bytes=%zu\n", 120 + code.len + data.len);
+  printf("compile.elf64.bytes=%zu\n",
+         data.len ? (ELF64_EHDR_SIZE + 2 * ELF64_PHDR_SIZE +
+                     align_up_size(code.len, 0x1000) + data.len) :
+                    (ELF64_EXEC_CODE_OFF + code.len));
   printf("compile.elf64.x86.bytes=%zu\n", code.len);
   if (data.len) printf("compile.elf64.data.bytes=%zu\n", data.len);
   free(code.data);
