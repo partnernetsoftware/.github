@@ -1,25 +1,30 @@
 # nano-lisp-jit v2.5 — v2 retrospective hardening
 
-v2 以 **100%（scoped）** 签收；v2.5 把 scoped 与 mindmap 之间的缺口变成**可重复证据**，不扩 v3 语义。
+v2 **100%（scoped）** 已签收；v2.5 把反思缺口变成可测切片。Mindmap：`../ROADMAP.md` → `v2.5: v2 反思收口`。
 
-## 为何有 v2.5
+## 进度（~85%）
 
-| 类别 | 核心发现 |
-|------|----------|
-| 设计 | scoped 签收掩盖 VM 参数、双 arch self-pack 空洞、loader=exec 与「纯 ELF loader」表述需分层 |
-| 实现 | 类型仍在 `lispjit.c`；include 顺序脆弱；native 无 aarch64 时 self-pack 整段跳过 |
-| 测试 | `build_nano_jit.sh` 未进默认 `run.sh`；skip 分散；native 未测 pack→inspect→run 链 |
+| 切片 | 状态 |
+|------|------|
+| 反思 mindmap | 100% |
+| slice 0 证据门禁 | 100% |
+| slice 1 x86-only self-pack oracle | 100% |
+| slice 2 `nano_util` | 100% |
+| slice 2b `nano_types.h` | 100% |
+| TU 探针 `verify_tu.sh` | 100% |
+| slice 3 AOT 参数 | ~80%：单/双 `(param i64)`、`save-top-i64`、负向 fixture |
+| VM 多函数参数 | 0%（v3） |
 
-完整洋葱 TDD mindmap 见 [`../ROADMAP.md`](../ROADMAP.md)（`v2.5: v2 反思收口` 节点）。
+## AOT 双参调用约定
 
-## 当前切片
+```lisp
+(i64 41)          ; → rdi（经 save）
+(save-top-i64)
+(i64 1)           ; → rsi
+(call callee-2arg)
+```
 
-1. **slice 0** — `run.sh`：`build-nano-jit-native-smoke`
-2. **slice 1** — `build_nano_jit.sh`：cosmocc 缺失时 x86-only self-pack oracle
-3. **slice 2** — `nano_util.c`：`parse_size_arg`
-4. **slice 3** — AOT 双 `i64` 参数：`param_count` 1..2、`load-arg-i64` 0/1、`save-top-i64` + 2-arg `call`（`rdi=rbx`, `rsi=rax`）；main 序：`(i64 a)(save-top-i64)(i64 b)(call …)`；样本 `func-param-i64-2arg.lisp`
-
-## 证据命令
+## 证据
 
 ```bash
 bash lab/nano-lisp-jit/run.sh

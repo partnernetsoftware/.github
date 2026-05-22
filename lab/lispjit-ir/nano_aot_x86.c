@@ -141,8 +141,8 @@ static int parse_aot_body_items(const char **p, AotFunc *f) {
     } else if (strcmp(head, "load-arg-i64") == 0) {
       char *value = parse_atom(p);
       uint64_t idx = 0;
-      ok = value && parse_u64_atom(value, &idx) && idx < (uint64_t)f->param_count &&
-           eat(p, ')') && aot_add_stmt(f, AOT_STMT_LOAD_ARG_I64, idx, NULL);
+      ok = value && parse_u64_atom(value, &idx) && eat(p, ')') &&
+           aot_add_stmt(f, AOT_STMT_LOAD_ARG_I64, idx, NULL);
       free(value);
     } else if (strcmp(head, "call") == 0) {
       char *target = parse_atom(p);

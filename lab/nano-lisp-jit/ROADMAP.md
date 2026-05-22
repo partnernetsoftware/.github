@@ -215,9 +215,11 @@ nano-jit continuation after self-bootstrap v1
 | slice 0 证据门禁 | **100%** | `run.sh` `build-nano-jit-native-smoke` |
 | slice 1 x86-only self-pack | **100%** | `self-pack=oracle-x86-duplicate` + `bootstrap-v25-native-selfpack.lisp` |
 | slice 2 `nano_util` | **100%** | `parse_size_arg` 唯一实现 |
-| slice 3 VM/AOT 参数对齐 | **0%** | 下一刀 |
+| slice 3 VM/AOT 参数对齐 | **~80%** | AOT 双参 + `save-top-i64` + 负向；VM 多函数仍 v3 |
+| slice 2b `nano_types.h` | **100%** | 类型/opcode 收口 |
+| TU 编译探针 | **100%** | `verify_tu.sh` + `run.sh` |
 
-**v2.5 整体**：约 **55%** — kickoff 四轮已合并 `main`；slice 3 待开工。
+**v2.5 整体**：约 **85%** — 第二轮五路并行已合并 `main`；余：VM 参数、skip 注册表、pack 默认策略。
 
 ### 0. 证据基线
 
