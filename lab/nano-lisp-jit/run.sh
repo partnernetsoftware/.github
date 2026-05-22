@@ -621,5 +621,17 @@ if [ ! -f "$NANO_JIT_COM" ] && host_is_linux_x86_64 && command -v cc >/dev/null 
   fi
 fi
 
+# --- build_nano_jit native-slice evidence (v2.5) ---
+BOOTSTRAP_REPORT="$NANO_JIT_DIR/bootstrap-report.txt"
+if host_is_linux_x86_64; then
+  run_case "build-nano-jit-native-smoke" bash -c '
+    env NANO_SLICE_COMPILER=native bash "'"$LAB_DIR"'/build_nano_jit.sh"
+    grep -q "slice.compiler=native" "'"$BOOTSTRAP_REPORT"'"
+    grep "slice.compiler=native" "'"$BOOTSTRAP_REPORT"'"
+  '
+else
+  skip_case "build-nano-jit-native-smoke" "host is not Linux x86_64 (uname -s=$(uname -s) -m=$(uname -m))"
+fi
+
 log ""
 log "results.file=$RESULTS"
