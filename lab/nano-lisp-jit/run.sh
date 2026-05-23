@@ -819,10 +819,13 @@ run_case "nano-cc-link-hello-obj-exit42" bash -c '
   "'"$RUNNER"'" run-expect-exit "'"$NANO_CC_HELLO_OBJ_EXE"'" 42
 '
 
-# --- v3.5 slice 2: nano-cc add via companion .lisp + compile-elf64-exe ---
+# --- v3.5 slice 2: nano-cc add — canonical nano-jit-slice-add.lisp (no companion .lisp) ---
 log "v35.nano-cc.add.source.path=$NANO_CC_ADD_SRC"
 run_case "nano-cc-compile-add-cli" bash -c '
-  cd "'"$ROOT_DIR"'" && "'"$RUNNER"'" nano-cc compile "'"$NANO_CC_ADD_SRC"'" -o "'"$NANO_CC_ADD_CLI_ELF"'"
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" nano-cc compile "'"$NANO_CC_ADD_SRC"'" -o "'"$NANO_CC_ADD_CLI_ELF"'" 2>&1)
+  printf "%s\n" "$out"
+  printf "%s\n" "$out" | grep -q "nano-cc.lisp.canonical=lab/nano-lisp-jit/samples/nano-jit-slice-add.lisp"
+  ! printf "%s\n" "$out" | grep -qE "^nano-cc\\.lisp="
   test -x "'"$NANO_CC_ADD_CLI_ELF"'"
   "'"$RUNNER"'" run-expect-exit "'"$NANO_CC_ADD_CLI_ELF"'" 42
 '
@@ -832,6 +835,8 @@ run_case "run-bootstrap-v35-nano-cc-add-plan" bash -c '
   printf "%s\n" "$out"
   printf "%s\n" "$out" | grep -q "bootstrap-step.*=nano-cc-compile"
   printf "%s\n" "$out" | grep -q "nano-cc.exit_code=42"
+  printf "%s\n" "$out" | grep -q "nano-cc.lisp.canonical=lab/nano-lisp-jit/samples/nano-jit-slice-add.lisp"
+  ! printf "%s\n" "$out" | grep -qE "^nano-cc\\.lisp="
   test -x "'"$NANO_CC_ADD_ELF"'"
 '
 

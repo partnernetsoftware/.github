@@ -128,6 +128,20 @@ static int nano_cc_parse_add_module(const char *src, size_t n, int *out_a, int *
   return 0;
 }
 
+#define NANO_CC_CANONICAL_ADD_LISP "lab/nano-lisp-jit/samples/nano-jit-slice-add.lisp"
+
+static const char *nano_cc_basename(const char *path) {
+  const char *slash;
+  if (!path) return "";
+  slash = strrchr(path, '/');
+  return slash ? slash + 1 : path;
+}
+
+static int nano_cc_legacy_companion_enabled(void) {
+  const char *v = getenv("NANO_CC_LEGACY_COMPANION");
+  return v && v[0] == '1' && v[1] == '\0';
+}
+
 static int nano_cc_companion_lisp_path(const char *c_path, char *out, size_t out_sz) {
   size_t n;
   const char *dot;
@@ -139,6 +153,20 @@ static int nano_cc_companion_lisp_path(const char *c_path, char *out, size_t out
   memcpy(out, c_path, (size_t)(dot - c_path));
   memcpy(out + (dot - c_path), ".lisp", 6);
   return 1;
+}
+
+static int nano_cc_resolve_add_lisp_path(const char *src_path, char *out, size_t out_sz) {
+  const char *base;
+  if (!src_path || !out || out_sz == 0) return 0;
+  base = nano_cc_basename(src_path);
+  if (strcmp(base, "nano-cc-add.c") == 0) {
+    if (strlen(NANO_CC_CANONICAL_ADD_LISP) + 1 > out_sz) return 0;
+    memcpy(out, NANO_CC_CANONICAL_ADD_LISP, strlen(NANO_CC_CANONICAL_ADD_LISP) + 1);
+    return 1;
+  }
+  if (nano_cc_legacy_companion_enabled())
+    return nano_cc_companion_lisp_path(src_path, out, out_sz);
+  return 0;
 }
 
 static int nano_cc_compile_via_companion_lisp(const char *src_path, const char *out_path) {
@@ -158,18 +186,18 @@ static int nano_cc_compile_via_companion_lisp(const char *src_path, const char *
     return -1;
   }
   free(src);
-  if (!nano_cc_companion_lisp_path(src_path, lisp_path, sizeof(lisp_path))) {
-    fprintf(stderr, "nano-cc=companion_path_fail path=%s\n", src_path);
+  if (!nano_cc_resolve_add_lisp_path(src_path, lisp_path, sizeof(lisp_path))) {
+    fprintf(stderr, "nano-cc=add_lisp_path_fail path=%s\n", src_path);
     return 2;
   }
   if (!nano_cc_path_readable(lisp_path)) {
-    fprintf(stderr, "nano-cc=companion_missing path=%s\n", lisp_path);
+    fprintf(stderr, "nano-cc=add_lisp_missing path=%s\n", lisp_path);
     return 2;
   }
   rc = cmd_compile_elf64_exe(lisp_path, out_path, "nano_cc_add");
   if (rc != 0) return rc;
   printf("nano-cc.source=%s\n", src_path);
-  printf("nano-cc.lisp=%s\n", lisp_path);
+  printf("nano-cc.lisp.canonical=%s\n", lisp_path);
   printf("nano-cc.output=%s\n", out_path);
   printf("nano-cc.exit_code=%d\n", a + b);
   return 0;
@@ -218,7 +246,7 @@ static int nano_cc_can_compile_path(const char *src_path) {
   if (nano_cc_parse_main_return((const char *)src, n, &code)) {
     ok = 1;
   } else if (nano_cc_parse_add_module((const char *)src, n, &a, &b) &&
-             nano_cc_companion_lisp_path(src_path, lisp_path, sizeof(lisp_path)) &&
+             nano_cc_resolve_add_lisp_path(src_path, lisp_path, sizeof(lisp_path)) &&
              nano_cc_path_readable(lisp_path)) {
     ok = 1;
   }
@@ -243,18 +271,18 @@ static int nano_cc_compile_obj_via_companion_lisp(const char *src_path, const ch
     return -1;
   }
   free(src);
-  if (!nano_cc_companion_lisp_path(src_path, lisp_path, sizeof(lisp_path))) {
-    fprintf(stderr, "nano-cc=companion_path_fail path=%s\n", src_path);
+  if (!nano_cc_resolve_add_lisp_path(src_path, lisp_path, sizeof(lisp_path))) {
+    fprintf(stderr, "nano-cc=add_lisp_path_fail path=%s\n", src_path);
     return 2;
   }
   if (!nano_cc_path_readable(lisp_path)) {
-    fprintf(stderr, "nano-cc=companion_missing path=%s\n", lisp_path);
+    fprintf(stderr, "nano-cc=add_lisp_missing path=%s\n", lisp_path);
     return 2;
   }
   rc = cmd_compile_elf64_obj_code(lisp_path, out_path, "nano_cc_add");
   if (rc != 0) return rc;
   printf("nano-cc.source=%s\n", src_path);
-  printf("nano-cc.lisp=%s\n", lisp_path);
+  printf("nano-cc.lisp.canonical=%s\n", lisp_path);
   printf("nano-cc.output=%s\n", out_path);
   printf("nano-cc.obj.symbol=nano_cc_add\n");
   printf("nano-cc.obj.mode=relocatable\n");
