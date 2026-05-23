@@ -1,7 +1,7 @@
 {
   "version": 2,
   "apiVersion": "squad-state/v2",
-  "wave": 13,
+  "wave": 26,
   "signoff_percent": 100,
   "halt": true,
   "assignments": {
@@ -25,6 +25,21 @@
       "status": "done",
       "assign_role": "reviewer",
       "commit": "adb3bd1"
+    },
+    "wave-practice-v4-squad-md": {
+      "status": "done",
+      "assign_role": "engineer-a",
+      "commit": "cbef46b"
+    },
+    "wave-practice-auto-exec-doc": {
+      "status": "done",
+      "assign_role": "engineer-b",
+      "commit": "cbef46b"
+    },
+    "wave-practice-R1": {
+      "status": "done",
+      "assign_role": "reviewer",
+      "commit": "f2a5fdd"
     }
   },
   "findings": [],
@@ -34,7 +49,6 @@
     "engineer-a",
     "engineer-b"
   ],
-  "halt_reason": "signoff_and_all_tasks_done",
   "last_assess": {
     "signoff_id": "v4-kickoff",
     "percent_auto": 100,
@@ -99,5 +113,6 @@
     "terminal": [],
     "manual": []
   },
-  "updated_at": "2026-05-23T08:01:55.409655+00:00"
+  "halt_reason": "signoff_and_all_tasks_done",
+  "updated_at": "2026-05-23T08:14:32.019281+00:00"
 }
