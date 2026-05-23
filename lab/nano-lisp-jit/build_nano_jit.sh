@@ -129,6 +129,7 @@ BOOTSTRAP_V3_CODEGEN_SMOKE="$LAB_DIR/samples/bootstrap-v3-codegen-smoke.lisp"
 BOOTSTRAP_V3_SELFHOST_GEN3="$LAB_DIR/samples/bootstrap-v3-selfhost-gen3.lisp"
 BOOTSTRAP_V35_NANO_CC_HELLO="$LAB_DIR/samples/bootstrap-v35-nano-cc-hello.lisp"
 BOOTSTRAP_V35_BUILD_SLICE="$LAB_DIR/samples/bootstrap-v35-build-slice.lisp"
+BOOTSTRAP_V35_BUILD_SLICE_AARCH64="$LAB_DIR/samples/bootstrap-v35-build-slice-aarch64.lisp"
 BOOTSTRAP_V35_SELFHOST_GEN3="$LAB_DIR/samples/bootstrap-v35-selfhost-gen3.lisp"
 SELFHOST_DIR="$BUILD_DIR/selfhost"
 NANO_SELFHOST_THOROUGH="${NANO_SELFHOST_THOROUGH:-1}"
@@ -604,6 +605,12 @@ if [ "$AARCH64_SLICE_SKIPPED" = 1 ]; then
     bash -c "cd \"$ROOT_DIR\" && \"$PACKER\" run-bootstrap-plan \"$BOOTSTRAP_V35_NANO_CC_HELLO\""
   run_case "run-bootstrap-v35-build-slice-native-slice" \
     bash -c "cd \"$ROOT_DIR\" && NANO_BUILD_SLICE_CODEGEN=1 \"$PACKER\" run-bootstrap-plan \"$BOOTSTRAP_V35_BUILD_SLICE\""
+  run_case "run-bootstrap-v35-build-slice-aarch64-native-slice" \
+    bash -c "cd \"$ROOT_DIR\" && out=\$(NANO_BUILD_SLICE_CODEGEN=1 \"$PACKER\" run-bootstrap-plan \"$BOOTSTRAP_V35_BUILD_SLICE_AARCH64\" 2>&1) || true
+      printf '%s\n' \"\$out\"
+      printf '%s\n' \"\$out\" | grep -q 'build-slice.compiler=nano-cc'
+      test -x '$BUILD_DIR/bootstrap-v35-build-slice-aarch64.elf'
+      file -b '$BUILD_DIR/bootstrap-v35-build-slice-aarch64.elf' | grep -q 'ARM aarch64'"
   run_case "run-bootstrap-v25-native-selfpack" \
     bash -c "cd \"$ROOT_DIR\" && \"$PACKER\" run-bootstrap-plan \"$BOOTSTRAP_V25_NATIVE_SELFPACK\""
   if [ "$NANO_SELFHOST_THOROUGH" = "1" ]; then

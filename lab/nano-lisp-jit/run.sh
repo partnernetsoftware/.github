@@ -60,6 +60,7 @@ BOOTSTRAP_V35_NANO_CC_ADD_SRC="$LAB_DIR/samples/bootstrap-v35-nano-cc-add.lisp"
 BOOTSTRAP_V35_BUILD_SLICE_SRC="$LAB_DIR/samples/bootstrap-v35-build-slice.lisp"
 BOOTSTRAP_V35_SELFHOST_GEN3_SRC="$LAB_DIR/samples/bootstrap-v35-selfhost-gen3.lisp"
 BOOTSTRAP_V35_NANO_CC_AARCH64_SRC="$LAB_DIR/samples/bootstrap-v35-nano-cc-aarch64.lisp"
+BOOTSTRAP_V35_BUILD_SLICE_AARCH64_SRC="$LAB_DIR/samples/bootstrap-v35-build-slice-aarch64.lisp"
 NANO_CC_HELLO_SRC="$LAB_DIR/samples/nano-cc-hello.c"
 NANO_CC_ADD_SRC="$LAB_DIR/samples/nano-cc-add.c"
 NANO_CC_BUILD_SLICE_SRC="$LAB_DIR/samples/nano-cc-build-slice.c"
@@ -67,6 +68,7 @@ NANO_CC_BAD_SRC="$LAB_DIR/samples/nano-cc-bad.c"
 NANO_CC_HELLO_ELF="$BUILD_DIR/bootstrap-v35-nano-cc-hello.elf"
 NANO_CC_ADD_ELF="$BUILD_DIR/bootstrap-v35-nano-cc-add.elf"
 NANO_CC_BUILD_SLICE_ELF="$BUILD_DIR/bootstrap-v35-build-slice.elf"
+NANO_CC_BUILD_SLICE_AARCH64_ELF="$BUILD_DIR/bootstrap-v35-build-slice-aarch64.elf"
 NANO_CC_HELLO_AARCH64_ELF="$BUILD_DIR/nano-cc-hello-aarch64.elf"
 NANO_CC_HELLO_AARCH64_BOOT_ELF="$BUILD_DIR/bootstrap-v35-nano-cc-aarch64.elf"
 NANO_CC_HELLO_CLI_ELF="$BUILD_DIR/nano-cc-hello-cli.elf"
@@ -788,6 +790,28 @@ run_case "run-bootstrap-v35-build-slice-plan" bash -c '
   test -x "'"$NANO_CC_BUILD_SLICE_ELF"'"
   "'"$RUNNER"'" run-expect-exit "'"$NANO_CC_BUILD_SLICE_ELF"'" 43
 '
+
+# --- v3.5 slice 4: build-slice aarch64 via nano-cc (NANO_BUILD_SLICE_CODEGEN=1) ---
+log "bootstrap.v35.build.slice.aarch64.source.path=$BOOTSTRAP_V35_BUILD_SLICE_AARCH64_SRC"
+run_case "run-bootstrap-v35-build-slice-aarch64-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$(NANO_BUILD_SLICE_CODEGEN=1 "'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V35_BUILD_SLICE_AARCH64_SRC"'" 2>&1) || true
+  printf "%s\n" "$out"
+  printf "%s\n" "$out" | grep -q "bootstrap-step.*=build-slice"
+  printf "%s\n" "$out" | grep -q "build-slice.compiler=nano-cc"
+  printf "%s\n" "$out" | grep -q "build-slice.role=lisp-codegen"
+  test -x "'"$NANO_CC_BUILD_SLICE_AARCH64_ELF"'"
+  file -b "'"$NANO_CC_BUILD_SLICE_AARCH64_ELF"'" | grep -q "ARM aarch64"
+'
+if has_qemu_aarch64 && [ -x "$NANO_CC_BUILD_SLICE_AARCH64_ELF" ]; then
+  run_case "nano-cc-qemu-aarch64-build-slice-exit43" bash -c '
+    QEMU_AARCH64="$(command -v qemu-aarch64-static || command -v qemu-aarch64)"
+    rc=$("$QEMU_AARCH64" "'"$NANO_CC_BUILD_SLICE_AARCH64_ELF"'"; echo $?)
+    printf "qemu-aarch64.build-slice.exit=%s\n" "$rc"
+    test "$rc" -eq 43
+  '
+else
+  skip_case "nano-cc-qemu-aarch64-build-slice-exit43" "no qemu-aarch64-static or qemu-aarch64"
+fi
 
 # --- v3.5 slice 4: aarch64 nano-cc exit42 (route B) ---
 log "v35.nano-cc.aarch64.source.path=$NANO_CC_HELLO_SRC"

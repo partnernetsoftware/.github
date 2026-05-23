@@ -8,6 +8,7 @@
 |--------|------------|--------------|
 | **x86_64** `nano-cc-hello.c` | `nano-cc compile … -o` → `emit_elf64_exit` (SysV x86_64) | same |
 | **aarch64** `nano-cc-hello.c` | `NANO_CC_ARCH=aarch64 nano-cc compile … -o` → `emit_aarch64_exit` | same |
+| **aarch64** `nano-cc-build-slice.c` | `build-slice … aarch64` → nano-cc (`NANO_CC_ARCH` from arch arg) | `NANO_BUILD_SLICE_CODEGEN=1` |
 | **aarch64** full `lispjit.c` slice | `build-slice` → **genesis-pin** (`genesis/nano-jit.aarch64`) | `NANO_REGENESIS=1` + cosmocc or `aarch64-linux-gnu-gcc` cross |
 
 Route B: nano-cc emits only the C-subset smoke (`int main(){return N;}`). Full slice ELFs stay on genesis-pin until later slices replace them with nano-cc codegen.
@@ -19,15 +20,18 @@ bash lab/nano-lisp-jit/run.sh
 # nano-cc-compile-hello-aarch64
 # nano-cc-qemu-aarch64-hello-exit42   (when qemu-aarch64-static present)
 # run-bootstrap-v35-nano-cc-aarch64-plan
+# run-bootstrap-v35-build-slice-aarch64-plan
+# nano-cc-qemu-aarch64-build-slice-exit43   (when qemu-aarch64-static present)
 ```
 
-Bootstrap: `samples/bootstrap-v35-nano-cc-aarch64.lisp`
+Bootstrap: `samples/bootstrap-v35-nano-cc-aarch64.lisp`, `samples/bootstrap-v35-build-slice-aarch64.lisp`
 
 ## Environment
 
 | Variable | Effect |
 |----------|--------|
-| `NANO_CC_ARCH=aarch64` | nano-cc emits ELF64 `EM_AARCH64` exit stub (no `aarch64-linux-gnu-gcc`) |
+| `NANO_CC_ARCH=aarch64` | nano-cc emits ELF64 `EM_AARCH64` exit stub (no `aarch64-linux-gnu-gcc`); `build-slice … aarch64` sets this from the arch arg |
+| `NANO_BUILD_SLICE_CODEGEN=1` | route `nano-cc-build-slice.c` through `build-slice` nano-cc path |
 | `NANO_REGENESIS=1` | `build_nano_jit.sh` may cross-build / refresh genesis aarch64 pin |
 | (default) | `lispjit.c` `build-slice aarch64` copies genesis pin; zero host `cc` |
 
