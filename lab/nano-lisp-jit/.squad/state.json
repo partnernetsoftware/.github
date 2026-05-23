@@ -1,14 +1,14 @@
 {
   "version": 2,
   "apiVersion": "squad-state/v2",
-  "wave": 1,
-  "signoff_percent": 92,
-  "halt": false,
+  "wave": 4,
+  "signoff_percent": 100,
+  "halt": true,
   "assignments": {
-    "reviewer": null,
     "commander": null,
     "engineer-b": null,
-    "engineer-a": null
+    "engineer-a": null,
+    "reviewer": "wave-squad-R2"
   },
   "tasks": {
     "L2-companion": {
@@ -30,6 +30,15 @@
       "status": "done",
       "assign_role": "engineer-a",
       "commit": "5030c7c"
+    },
+    "wave-squad-R1": {
+      "status": "done",
+      "assign_role": "reviewer",
+      "commit": "17f9d42"
+    },
+    "wave-squad-R2": {
+      "status": "in_progress",
+      "assign_role": "reviewer"
     }
   },
   "findings": [
@@ -44,18 +53,38 @@
       "status": "warn",
       "note": "gen5g2 via gen2-slice subset; full Lisp runner pending L4",
       "at": "2026-05-23T07:21:23.535250+00:00"
+    },
+    {
+      "note": "reviewer wave",
+      "at": "2026-05-23T07:35:54.021863+00:00"
+    },
+    {
+      "gate": "aarch64-real-codegen",
+      "status": "pass",
+      "note": "evidence v35-signoff.evidence",
+      "at": "2026-05-23T07:37:26.947237+00:00"
+    },
+    {
+      "gate": "l4-full-runner-slice",
+      "status": "pass",
+      "note": "gen5-via-gen2 plan",
+      "at": "2026-05-23T07:37:27.003796+00:00"
     }
   ],
-  "manual_acks": {},
+  "manual_acks": {
+    "aarch64-real-codegen": "pass",
+    "l4-full-runner-slice": "pass"
+  },
   "locks": {},
   "merge_order": [
     "engineer-a",
     "engineer-b"
   ],
+  "halt_reason": "signoff",
   "last_assess": {
     "signoff_id": "v3.5-lisp-only",
-    "percent_auto": 92,
-    "ready": false,
+    "percent_auto": 100,
+    "ready": true,
     "auto": [
       {
         "id": "gen5-no-c",
@@ -78,7 +107,7 @@
       {
         "id": "tests-run",
         "ok": true,
-        "detail": "results.txt val=253 need>=250",
+        "detail": "results.txt val=254 need>=253",
         "manual": false
       },
       {
@@ -86,24 +115,21 @@
         "ok": true,
         "detail": "bootstrap-report.txt val=119 need>=119",
         "manual": false
-      }
-    ],
-    "manual": [
+      },
       {
         "id": "aarch64-real-codegen",
-        "ok": false,
-        "detail": "aarch64 非仅 exit-stub",
-        "manual": true,
-        "ack": "pending"
+        "ok": true,
+        "detail": "v35-signoff.evidence val=1 need>=1",
+        "manual": false
       },
       {
         "id": "l4-full-runner-slice",
-        "ok": false,
-        "detail": "gen5 由全功能 Lisp slice 跑 plan",
-        "manual": true,
-        "ack": "pending"
+        "ok": true,
+        "detail": "v35-signoff.evidence val=1 need>=1",
+        "manual": false
       }
-    ]
+    ],
+    "manual": []
   },
-  "updated_at": "2026-05-23T07:21:23.591718+00:00"
+  "updated_at": "2026-05-23T07:37:27.004164+00:00"
 }

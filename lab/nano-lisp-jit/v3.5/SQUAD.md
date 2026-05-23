@@ -26,13 +26,13 @@ cd lab/nano-lisp-jit && ./squad/squad.sh assess && ./squad/squad.sh status
 - **project**: `/workspace/lab/nano-lisp-jit`
 - **state.db**: `/workspace/lab/nano-lisp-jit/.squad/state.db`
 - **signoff_id**: `v3.5-lisp-only`
-- **updated_at**: 2026-05-23T07:21:46.588113+00:00
-- **signoff_auto**: 92%
-- **halt**: False
+- **updated_at**: 2026-05-23T07:37:29.479914+00:00
+- **signoff_auto**: 100%
+- **halt**: True
 
 | role | task | status |
 |------|------|--------|
-| reviewer | — | idle |
+| reviewer | wave-squad-R2 | in_progress |
 | commander | — | idle |
 | engineer-a | — | idle |
 | engineer-b | — | idle |
@@ -43,8 +43,8 @@ cd lab/nano-lisp-jit && ./squad/squad.sh assess && ./squad/squad.sh status
 | L4-runner-1 | done | 5030c7c |
 | L4-tu-kickoff | done | a043fd5 |
 | aarch64-codegen-1 | done | 5030c7c |
-
-**pending**: wave-squad-R1, wave-squad-R2
+| wave-squad-R1 | done | 17f9d42 |
+| wave-squad-R2 | in_progress | — |
 <!-- SQUAD_STATE_END -->
 
 ## 派单板（历史 · wave-squad-1）

@@ -1,6 +1,6 @@
 # v3.5 反思（并行 track R · 持续更新）
 
-**范围**：v3 完全 100% 之后、v3.5 **~85%** 当下（gen5 scoped）。与 [`../ROADMAP.md`](../ROADMAP.md) §「v3.5 洋葱 TDD mindmap」同步；开发轨最多三路并行，**反思轨单独入账**，不阻塞 slice 交付。小组模式见 [`SQUAD.md`](SQUAD.md)。
+**范围**：v3 完全 100% 之后、v3.5 **~100%** 当下（squad signoff 全绿）。与 [`../ROADMAP.md`](../ROADMAP.md) §「v3.5 洋葱 TDD mindmap」同步；开发轨最多三路并行，**反思轨单独入账**，不阻塞 slice 交付。小组模式见 [`SQUAD.md`](SQUAD.md)。
 
 ---
 
@@ -13,7 +13,7 @@
 | **nano-cc 实为模式匹配** | v3.5 slice 0–2 | `strstr`/固定签名 + companion `.lisp` 绕道 | slice 1 真 lexer/IR；slice 2 真 `.o` 发射，删除 companion 依赖 |
 | **`add` 路径双轨** | slice 2 | C 样例 + `nano-cc-add.lisp` + `compile-elf64-exe` | 单轨：`parse → lower → emit`，dump hash 与 lisp 路径对齐 |
 | **AOT 双参 / VM 用户 `call`** | v2.5 反思 | AOT 有 `(param i64)`×2；VM `OP_CALL_FUNC` 仅 smoke | v3 已 scoped；v4 前不宜在 v3.5 扩面，避免 scope 漂移 |
-| **`build-slice-lisp` aarch64 仅 exit-stub** | L3 签收 | min/add profile `emit_aarch64_exit` | 加速 4：真实 aarch64 codegen，非 stub |
+| **`build-slice-lisp` aarch64 仅 exit-stub** | L3 签收 | min/add profile `emit_aarch64_exit`；**wave-squad-R2** add profile `aarch64-add-emit` + qemu 签收 | 加速 4：扩至 VM/AOT aarch64 codegen（非仅 exit-emit） |
 | **`NANO_BUILD_SLICE_CODEGEN=1` 非默认** | slice 3 | 易忘 env，CI 与文档分裂 | slice 6：默认启用 + `NANO_CC_FALLBACK=1` 显式才 host `cc` |
 | **aarch64「100%」与 x86 duplicate oracle** | v2.5/v3 | cosmocc 缺失时 payload 表可能 x86 填两行 | 文档化 + 门禁：禁止静默 duplicate（hash 必须 distinct 或 skip） |
 | **`pack-ape` Mode A vs bare/stub** | v2.5 | 默认仍 shell 包装 | 产品化在 v4；v3.5 仅记录，不改默认 |
@@ -98,8 +98,10 @@ P3（架构债，v4）
 
 | 日期 | 摘要 |
 |------|------|
+| 2026-05-23 | squad assess auto=100% ready=True |
 | 2026-05-23 | 初版：技术债表、缺陷、实验 H、P0–P3；入 ROADMAP mindmap track R |
 | 2026-05-23 | **L0 签收**：`LISP-ONLY.md`、gen4、`.lisp` build-slice 路由、`build-slice-lisp` AOT fallback |
 | 2026-05-23 | **L1/L3 wave4**：pack x86 Lisp slice；`build-slice-lisp` aarch64；`NANO_V35_CODEGEN_DEFAULT` |
 | 2026-05-23 | **gen5 scoped**：双架构 Lisp pack 零 genesis；`run.sh` 249 / `build` 117 pass |
 | 2026-05-23 | **wave-squad-R1**：小组模式 [`SQUAD.md`](SQUAD.md)；评估 **~85%**（gen5 scoped on branch）；阻塞 L2 去 companion、L4 多 TU link、aarch64 非 stub、gen5 全功能 Lisp runner；派单 A=`L2-companion`、B=`L4-tu-kickoff` |
+| 2026-05-23 | **wave-squad-R2**：L2/L4/aarch64 签收；**aarch64-add-emit**（`build-slice-lisp.mode=aarch64-add-emit` + qemu）；**gen5-via-gen2**（`bootstrap-v35-selfhost-gen5-via-gen2.lisp` + `v35-signoff.evidence`）；squad assess **100%** ready |
