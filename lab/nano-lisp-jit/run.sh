@@ -126,6 +126,10 @@ BOOTSTRAP_V4_SLICE12_ADD17_SRC="$LAB_DIR/samples/bootstrap-v4-slice12-add17.lisp
 BOOTSTRAP_V4_SLICE12_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v4-slice12-evidence.lisp"
 V4_SLICE12_ADD17_ELF="$BUILD_DIR/bootstrap-v4-slice12-add17.elf"
 V4_SLICE12_EVIDENCE="$BUILD_DIR/v4-slice12.evidence"
+BOOTSTRAP_V4_SLICE13_ADD18_SRC="$LAB_DIR/samples/bootstrap-v4-slice13-add18.lisp"
+BOOTSTRAP_V4_SLICE13_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v4-slice13-evidence.lisp"
+V4_SLICE13_ADD18_ELF="$BUILD_DIR/bootstrap-v4-slice13-add18.elf"
+V4_SLICE13_EVIDENCE="$BUILD_DIR/v4-slice13.evidence"
 SQUAD_SH="$ROOT_DIR/tools/squad/squad.sh"
 CATALOG_V4="$LAB_DIR/squad/catalog-v4.yaml"
 BOOTSTRAP_V35_NANO_CC_AARCH64_SRC="$LAB_DIR/samples/bootstrap-v35-nano-cc-aarch64.lisp"
@@ -1685,6 +1689,23 @@ run_case "run-bootstrap-v4-slice12-evidence-plan" bash -c '
     echo "v4.slice12_ir_plan=1"
     echo "v4.slice12_plan=run-bootstrap-v4-slice12-evidence-plan"
   } >> "'"$V4_SLICE12_EVIDENCE"'"
+'
+run_case "run-bootstrap-v4-slice13-add18-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE13_ADD18_SRC"'" 2>&1) || true
+  printf "%s\n" "$out"
+  printf "%s\n" "$out" | grep -q "aarch64.add=11+7"
+  printf "%s\n" "$out" | grep -q "aarch64.emit.encode=lisp-v1"
+  test -f "'"$V4_SLICE13_ADD18_ELF"'"
+'
+run_case "run-bootstrap-v4-slice13-evidence-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE13_EVIDENCE_SRC"'" 2>&1) || true
+  printf "%s\n" "$out"
+  {
+    echo "v4.slice13=1"
+    echo "v4.slice13_encode_lisp=1"
+    echo "v4.slice13_add18=1"
+    echo "v4.slice13_plan=run-bootstrap-v4-slice13-evidence-plan"
+  } >> "'"$V4_SLICE13_EVIDENCE"'"
 '
 run_case "run-bootstrap-v4-slice6-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE6_EVIDENCE_SRC"'" 2>&1) || true
