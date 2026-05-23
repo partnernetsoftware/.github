@@ -69,6 +69,21 @@ tools/squad/squad.sh fail engineer-a L2-companion --reason "verify failed"
 
 **禁止**：只跑一轮 `dispatch` 后在 manual 仍 pending 时停止 — 应 `supervise` 或 Cloud Agent 反复 `supervise --once`。
 
+## Agent team（并发小队）
+
+```bash
+# 后台 tmux：指挥长 supervise + A/B run-role-loop + 审查员
+tools/squad/agent-team.sh
+
+# 或 Cloud 上并行派 4 个 Agent，各跑：
+tools/squad/run-role-loop.sh engineer-a 40 5   # 工程兵 A
+tools/squad/run-role-loop.sh engineer-b 40 5   # 工程兵 B
+# 指挥长：while supervise --once; do sleep 5; done
+# 审查员：claim → verify → reflect → sync-md → done
+```
+
+派单前若已 `halt`：`tools/squad/squad.sh resume && tools/squad/squad.sh dispatch --force --include-meta`
+
 ## 角色微工作流
 
 见 `squad/workflows/*.yaml`；`squad workflow-run commander` 打印步骤。

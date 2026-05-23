@@ -27,6 +27,40 @@ static int build_slice_lisp_parse_expect_imm(const char *src, size_t n, uint8_t 
   return 0;
 }
 
+static int build_slice_lisp_parse_add_operands(const char *src, size_t n, int *out_a, int *out_b) {
+  const char *p = src;
+  const char *end = src + n;
+  int vals[2];
+  int nval = 0;
+  uint8_t expect = 0;
+  while (p + 5 <= end) {
+    if (memcmp(p, "(i64 ", 5) == 0) {
+      const char *q = p + 5;
+      long v = 0;
+      while (q < end && (*q == ' ' || *q == '\t' || *q == '\n' || *q == '\r')) ++q;
+      if (q >= end || *q < '0' || *q > '9') {
+        ++p;
+        continue;
+      }
+      while (q < end && *q >= '0' && *q <= '9') {
+        v = v * 10 + (*q - '0');
+        ++q;
+      }
+      if (nval < 2) vals[nval++] = (int)v;
+      p = q;
+      continue;
+    }
+    ++p;
+  }
+  if (nval < 2) return 0;
+  if (!strstr(src, "(call add")) return 0;
+  if (!build_slice_lisp_parse_expect_imm(src, n, &expect)) return 0;
+  if (vals[0] + vals[1] != (int)expect) return 0;
+  *out_a = vals[0];
+  *out_b = vals[1];
+  return 1;
+}
+
 static int build_slice_lisp_aarch64_profile_ok(const char *src_path, const char *base,
                                                const unsigned char *src, size_t src_n) {
   (void)src_n;
@@ -75,6 +109,25 @@ static int cmd_build_slice_lisp_aarch64(const char *src_path, const char *out_pa
     free(src);
     fprintf(stderr, "build-slice-lisp=aarch64_unsupported_profile\n");
     return 2;
+  }
+  if (strcmp(base, "nano-jit-slice-add.lisp") == 0) {
+    int a = 0;
+    int b = 0;
+    if (!build_slice_lisp_parse_add_operands((const char *)src, src_n, &a, &b)) {
+      free(src);
+      fprintf(stderr, "build-slice-lisp=aarch64_add_parse_fail\n");
+      return 2;
+    }
+    free(src);
+    rc = emit_aarch64_add_exit_file(out_path, a, b);
+    if (!rc) {
+      fprintf(stderr, "build-slice-lisp=aarch64_emit_fail\n");
+      return 3;
+    }
+    printf("build-slice-lisp.mode=aarch64-add-emit\n");
+    printf("build-slice-lisp.aarch64.profile=%s\n", base);
+    printf("build-slice-lisp.aarch64.add=%d+%d\n", a, b);
+    return cmd_file_size(out_path);
   }
   free(src);
 

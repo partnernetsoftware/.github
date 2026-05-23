@@ -22,6 +22,7 @@ from engine.commands import (
     cmd_halt,
     cmd_init,
     cmd_reflect,
+    cmd_resume,
     cmd_roles,
     cmd_signal,
     cmd_status,
@@ -54,7 +55,13 @@ def main() -> int:
 
     d = sub.add_parser("dispatch")
     d.add_argument("--max-tasks", type=int)
+    d.add_argument("--force", action="store_true", help="Dispatch even if squad halted")
+    d.add_argument("--include-meta", action="store_true", help="Also dispatch reviewer/commander tasks")
     d.set_defaults(func=cmd_dispatch)
+
+    rs = sub.add_parser("resume", help="Clear halt and bump wave for next agent-team run")
+    rs.add_argument("--reason", default="resume")
+    rs.set_defaults(func=cmd_resume)
 
     c = sub.add_parser("claim")
     c.add_argument("role")

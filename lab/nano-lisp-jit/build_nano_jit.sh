@@ -643,6 +643,7 @@ if [ "$AARCH64_SLICE_SKIPPED" = 1 ]; then
   run_case "run-bootstrap-v35-build-slice-lisp-aarch64-add-native" bash -c '
     cd "'"$ROOT_DIR"'" && out=$("'"$LAB_DIR"'/.build/nano-lisp-jit" run-bootstrap-plan "'"$BOOTSTRAP_V35_BUILD_SLICE_LISP_AARCH64_ADD"'" 2>&1) || true
       printf "%s\n" "$out"
+      printf "%s\n" "$out" | grep -q "build-slice-lisp.mode=aarch64-add-emit"
       printf "%s\n" "$out" | grep -q "build-slice-lisp.aarch64.profile=nano-jit-slice-add.lisp"
       test -f "'"$LAB_DIR"'/.build/bootstrap-v35-build-slice-lisp-aarch64-add.elf"
   '

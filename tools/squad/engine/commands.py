@@ -65,44 +65,80 @@ def cmd_status(ctx: SquadContext, args: argparse.Namespace) -> int:
     return 0
 
 
+def _pending_tasks(ctx: SquadContext, store: SquadStore, roles: set[str]) -> list[str]:
+    out: list[str] = []
+    for tid in ctx.tasks:
+        role = ctx.task_assign_role(tid)
+        if role not in roles:
+            continue
+        if store.task_status(tid) != "pending":
+            continue
+        deps = ctx.tasks[tid].get("depends", [])
+        if any(store.task_status(d) != "done" for d in deps):
+            continue
+        out.append(tid)
+    return out
+
+
 def cmd_dispatch(ctx: SquadContext, args: argparse.Namespace) -> int:
     store = get_store(ctx)
     state = store.load_snapshot()
-    if state.get("halt"):
-        print("squad halted", file=sys.stderr)
+    if state.get("halt") and not getattr(args, "force", False):
+        print("squad halted (use: squad resume && squad dispatch --force)", file=sys.stderr)
         return 2
     report, _ = run_assess(ctx, state)
     store.set_meta("last_assess", report)
     store.set_meta("signoff_percent", report["percent_auto"])
-    if report["ready"]:
+    workers = set(ctx.worker_roles())
+    meta_roles = {rid for rid, spec in ctx.roles.items() if spec.get("kind") in ("meta", "orchestrator")}
+    include_meta = getattr(args, "include_meta", False)
+    roles_to_fill = set(workers)
+    if include_meta:
+        roles_to_fill |= meta_roles
+
+    meta_pending = _pending_tasks(ctx, store, meta_roles)
+    worker_pending = _pending_tasks(ctx, store, workers)
+    if report["ready"] and not worker_pending and not (include_meta and meta_pending):
         store.set_meta("halt", True)
         store.export_json()
         print("100% — no dispatch")
         return 0
-    workers = ctx.worker_roles()
+    if report["ready"] and worker_pending:
+        print("signoff ready but worker tasks pending — dispatch continues", file=sys.stderr)
+
     max_n = args.max_tasks or ctx.dispatch_cfg.get("max_per_wave", len(workers))
-    pending = [
-        tid
-        for tid in ctx.tasks
-        if store.task_status(tid) == "pending"
-        and ctx.task_assign_role(tid) in workers
-    ]
+    if include_meta:
+        max_n = args.max_tasks or max(max_n, len(meta_roles))
     assigned = 0
-    for role in workers:
-        if assigned >= max_n:
+    pending = _pending_tasks(ctx, store, roles_to_fill)
+    for role in sorted(roles_to_fill, key=lambda r: (r not in workers, r)):
+        if assigned >= max_n and role in workers:
             break
+        busy = state.get("assignments", {}).get(role)
+        if busy:
+            continue
         for tid in list(pending):
             if ctx.task_assign_role(tid) != role:
-                continue
-            deps = ctx.tasks[tid].get("depends", [])
-            if any(store.task_status(d) != "done" for d in deps):
                 continue
             if store.dispatch_assign(role, tid):
                 pending.remove(tid)
                 assigned += 1
+                store.set_signal(role, "running", task_id=tid, reason="dispatched")
                 print(f"dispatch {role} <- {tid}")
                 break
     store.export_json()
+    return 0
+
+
+def cmd_resume(ctx: SquadContext, args: argparse.Namespace) -> int:
+    store = get_store(ctx)
+    store.set_meta("halt", False)
+    store.set_meta("halt_reason", None)
+    wave = int(store.get_meta("wave", 1) or 1) + 1
+    store.set_meta("wave", wave)
+    store.set_signal("supervisor", "running", reason=args.reason or "resume")
+    store.export_json()
+    print(f"resumed wave={wave}")
     return 0
 
 

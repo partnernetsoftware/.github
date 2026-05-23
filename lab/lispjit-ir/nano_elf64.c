@@ -404,6 +404,22 @@ int emit_aarch64_exit_file(const char *out_path, uint8_t exit_code) {
   return emit_elf64_exec_rx_file(out_path, code, sizeof(code), ELF64_MACHINE_AARCH64);
 }
 
+int emit_aarch64_add_exit_file(const char *out_path, int a, int b) {
+  unsigned char code[20];
+  uint32_t movz_x0 = 0xd2800000u | (((uint32_t)a & 0xffffu) << 5);
+  uint32_t movz_x1 = 0xd2800000u | (((uint32_t)b & 0xffffu) << 5) | 1u;
+  uint32_t add_x0_x1 = 0x8b010000u;
+  uint32_t movz_x8 = 0xd2800000u | (93u << 5) | 8u;
+  uint32_t svc0 = 0xd4000001u;
+  memset(code, 0, sizeof(code));
+  wr32(code + 0, movz_x0);
+  wr32(code + 4, movz_x1);
+  wr32(code + 8, add_x0_x1);
+  wr32(code + 12, movz_x8);
+  wr32(code + 16, svc0);
+  return emit_elf64_exec_rx_file(out_path, code, sizeof(code), ELF64_MACHINE_AARCH64);
+}
+
 int emit_elf64_exit_file(const char *out_path, uint8_t exit_code) {
   unsigned char code[12];
   memset(code, 0, sizeof(code));

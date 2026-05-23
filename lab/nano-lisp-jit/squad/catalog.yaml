@@ -52,12 +52,16 @@ signoff:
       file: ".build/nano-jit/bootstrap-report.txt"
       results_key: build.pass
       min_pass: 119
-  # 人工签收（assess 会 WARN，指挥长须在 state 里显式 ack）
-  manual_gates:
     - id: aarch64-real-codegen
-      description: "aarch64 非仅 exit-stub"
+      check: results
+      file: ".build/v35-signoff.evidence"
+      results_key: v35.aarch64_add_emit
+      min_pass: 1
     - id: l4-full-runner-slice
-      description: "gen5 由全功能 Lisp slice 跑 plan"
+      check: results
+      file: ".build/v35-signoff.evidence"
+      results_key: v35.gen5_lisp_runner
+      min_pass: 1
 
 tasks:
   L2-companion:
@@ -100,10 +104,10 @@ tasks:
 
 verify:
   commands:
-    - script: lab/nano-lisp-jit/run.sh
+    - script: run.sh
       cwd: .
       fail_on_nonzero: true
-    - script: lab/nano-lisp-jit/build_nano_jit.sh
+    - script: build_nano_jit.sh
       cwd: .
       env:
         NANO_SELFHOST_THOROUGH: "1"

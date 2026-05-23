@@ -200,8 +200,31 @@ def supervise_tick(
 
     pending = pending_worker_tasks(ctx, store)
     tick["pending_count"] = len(pending)
+    meta_roles = {
+        rid for rid, spec in ctx.roles.items() if spec.get("kind") in ("meta", "orchestrator")
+    }
+    meta_idle = [
+        rid
+        for rid in meta_roles
+        if not store.load_snapshot().get("assignments", {}).get(rid)
+    ]
+    meta_pending = [
+        tid
+        for tid in ctx.tasks
+        if ctx.task_assign_role(tid) in meta_roles and store.task_status(tid) == "pending"
+    ]
+    if meta_pending and meta_idle:
+        for rid in meta_idle:
+            for tid in meta_pending:
+                if ctx.task_assign_role(tid) != rid:
+                    continue
+                if store.dispatch_assign(rid, tid):
+                    store.set_signal(rid, "running", task_id=tid, reason="dispatched")
+                    tick["dispatched"] = tick.get("dispatched", 0) + 1
+                    meta_pending.remove(tid)
+                    break
     if pending and idle_workers(ctx, store.load_snapshot()):
-        tick["dispatched"] = dispatch_wave(ctx, store, max_tasks)
+        tick["dispatched"] = tick.get("dispatched", 0) + dispatch_wave(ctx, store, max_tasks)
 
     return tick
 
