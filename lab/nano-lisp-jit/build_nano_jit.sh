@@ -6,6 +6,8 @@ ROOT_DIR="$(cd "$LAB_DIR/../.." && pwd)"
 
 # shellcheck source=skip_registry.sh
 source "$LAB_DIR/skip_registry.sh"
+# shellcheck source=audit_genesis_shrink.sh
+source "$LAB_DIR/audit_genesis_shrink.sh"
 
 discover_cosmo_bin() {
   if [ -n "${COSMO_BIN:-}" ]; then
@@ -636,8 +638,13 @@ if [ "$AARCH64_SLICE_SKIPPED" = 1 ]; then
     echo "nano-jit.aarch64.bytes=$(bytes_of "$BUILD_DIR/nano-jit.x86_64")"
     echo "nano-jit.aarch64.fnv1a64=$(hash_of "$BUILD_DIR/nano-jit.x86_64")"
   } | tee -a "$REPORT"
+  run_case "audit-genesis-shrink-build-log" audit_genesis_shrink_log "$REPORT"
+  build_end_summary
   echo "bootstrap.report=$REPORT" | tee -a "$REPORT"
   ls -l "$BUILD_DIR"/nano-jit.com "$BUILD_DIR"/nano-jit.x86_64 2>/dev/null || ls -l "$BUILD_DIR"/nano-jit.x86_64
+  if [ "$BUILD_FAIL" -gt 0 ]; then
+    exit 1
+  fi
   exit 0
 fi
 
@@ -873,6 +880,7 @@ else
   build_skip_case "selfhost-thorough-round1-genesis" "NANO_SELFHOST_THOROUGH=$NANO_SELFHOST_THOROUGH or non-x86 host"
 fi
 
+run_case "audit-genesis-shrink-build-log" audit_genesis_shrink_log "$REPORT"
 build_end_summary
 echo "bootstrap.report=$REPORT" | tee -a "$REPORT"
 ls -l "$BUILD_DIR"/nano-jit.*
