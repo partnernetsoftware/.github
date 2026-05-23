@@ -1,7 +1,7 @@
 {
   "version": 2,
   "apiVersion": "squad-state/v2",
-  "wave": 55,
+  "wave": 56,
   "signoff_percent": 100,
   "halt": true,
   "assignments": {
@@ -124,7 +124,6 @@
     "engineer-a",
     "engineer-b"
   ],
-  "halt_reason": "max_waves=50",
   "last_assess": {
     "signoff_id": "v4-slice2-scoped",
     "percent_auto": 100,
@@ -405,5 +404,6 @@
     "terminal": [],
     "manual": []
   },
-  "updated_at": "2026-05-23T09:15:47.524664+00:00"
+  "halt_reason": "signoff_and_all_tasks_done",
+  "updated_at": "2026-05-23T09:16:28.618413+00:00"
 }
