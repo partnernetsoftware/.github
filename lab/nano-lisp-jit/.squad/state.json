@@ -92,7 +92,12 @@
   "last_assess": {
     "signoff_id": "v3.5-lisp-only",
     "percent_auto": 100,
+    "percent_scoped": 100,
+    "percent_terminal": 100,
     "ready": true,
+    "scoped_ready": true,
+    "terminal_ready": true,
+    "require_terminal": true,
     "auto": [
       {
         "id": "gen5-no-c",
@@ -125,13 +130,95 @@
         "manual": false
       },
       {
-        "id": "aarch64-real-codegen",
+        "id": "aarch64-add-emit-scoped",
         "ok": true,
         "detail": "v35-signoff.evidence val=1 need>=1",
         "manual": false
       },
       {
-        "id": "l4-full-runner-slice",
+        "id": "l4-runner-via-gen2-scoped",
+        "ok": true,
+        "detail": "v35-signoff.evidence val=1 need>=1",
+        "manual": false
+      },
+      {
+        "id": "gen2-runs-gen5-full-plan",
+        "ok": true,
+        "detail": "v35-terminal.evidence val=1 need>=1",
+        "manual": false
+      },
+      {
+        "id": "genesis-pin-matches-native",
+        "ok": true,
+        "detail": "v35-terminal.evidence val=1 need>=1",
+        "manual": false
+      },
+      {
+        "id": "signoff-via-bootstrap-plan",
+        "ok": true,
+        "detail": "v35-signoff.evidence val=1 need>=1",
+        "manual": false
+      }
+    ],
+    "scoped": [
+      {
+        "id": "gen5-no-c",
+        "ok": true,
+        "detail": "",
+        "manual": false
+      },
+      {
+        "id": "gen5-dual-arch-pack",
+        "ok": true,
+        "detail": "",
+        "manual": false
+      },
+      {
+        "id": "l4-tu-link",
+        "ok": true,
+        "detail": "samples/bootstrap-v35-lisp-tu-link.lisp",
+        "manual": false
+      },
+      {
+        "id": "tests-run",
+        "ok": true,
+        "detail": "results.txt val=255 need>=253",
+        "manual": false
+      },
+      {
+        "id": "tests-build",
+        "ok": true,
+        "detail": "bootstrap-report.txt val=119 need>=119",
+        "manual": false
+      },
+      {
+        "id": "aarch64-add-emit-scoped",
+        "ok": true,
+        "detail": "v35-signoff.evidence val=1 need>=1",
+        "manual": false
+      },
+      {
+        "id": "l4-runner-via-gen2-scoped",
+        "ok": true,
+        "detail": "v35-signoff.evidence val=1 need>=1",
+        "manual": false
+      }
+    ],
+    "terminal": [
+      {
+        "id": "gen2-runs-gen5-full-plan",
+        "ok": true,
+        "detail": "v35-terminal.evidence val=1 need>=1",
+        "manual": false
+      },
+      {
+        "id": "genesis-pin-matches-native",
+        "ok": true,
+        "detail": "v35-terminal.evidence val=1 need>=1",
+        "manual": false
+      },
+      {
+        "id": "signoff-via-bootstrap-plan",
         "ok": true,
         "detail": "v35-signoff.evidence val=1 need>=1",
         "manual": false
@@ -139,5 +226,5 @@
     ],
     "manual": []
   },
-  "updated_at": "2026-05-23T07:52:31.647711+00:00"
+  "updated_at": "2026-05-23T07:57:27.079110+00:00"
 }

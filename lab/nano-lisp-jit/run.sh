@@ -68,6 +68,8 @@ BOOTSTRAP_V35_SELFHOST_GEN5_SRC="$LAB_DIR/samples/bootstrap-v35-selfhost-gen5.li
 BOOTSTRAP_V35_SELFHOST_GEN5_GEN2_SRC="$LAB_DIR/samples/bootstrap-v35-selfhost-gen5-gen2.lisp"
 BOOTSTRAP_V35_SELFHOST_GEN5_VIA_GEN2_SRC="$LAB_DIR/samples/bootstrap-v35-selfhost-gen5-via-gen2.lisp"
 BOOTSTRAP_V35_SIGNOFF_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v35-signoff-evidence.lisp"
+BOOTSTRAP_V4_KICKOFF_SRC="$LAB_DIR/samples/bootstrap-v4-kickoff.lisp"
+BOOTSTRAP_V4_AARCH64_AOT_SRC="$LAB_DIR/samples/bootstrap-v4-aarch64-aot-plan.lisp"
 BOOTSTRAP_V35_NANO_CC_AARCH64_SRC="$LAB_DIR/samples/bootstrap-v35-nano-cc-aarch64.lisp"
 BOOTSTRAP_V35_BUILD_SLICE_AARCH64_SRC="$LAB_DIR/samples/bootstrap-v35-build-slice-aarch64.lisp"
 BOOTSTRAP_V35_BUILD_SLICE_LISP_AARCH64_SRC="$LAB_DIR/samples/bootstrap-v35-build-slice-lisp-aarch64.lisp"
@@ -205,7 +207,9 @@ NANO_JIT_COM="$NANO_JIT_DIR/nano-jit.com"
 RUNNER="$BUILD_DIR/nano-lisp-jit"
 RESULTS="$BUILD_DIR/results.txt"
 V35_SIGNOFF_EVIDENCE="$BUILD_DIR/v35-signoff.evidence"
+V35_TERMINAL_EVIDENCE="$BUILD_DIR/v35-terminal.evidence"
 : >"$V35_SIGNOFF_EVIDENCE"
+: >"$V35_TERMINAL_EVIDENCE"
 NANO_C="$ROOT_DIR/lab/lispjit-ir/lispjit.c"
 
 mkdir -p "$BUILD_DIR"
@@ -1158,6 +1162,17 @@ run_case "run-bootstrap-v35-signoff-evidence-plan" bash -c '
   printf "%s\n" "$out" | grep -q "build-slice-lisp.mode=aarch64-add-emit"
   test -f "'"$BUILD_DIR"'/bootstrap-v35-signoff-aarch64-add.elf"
   echo "v35.signoff_bootstrap_plan=1" >> "'"$V35_SIGNOFF_EVIDENCE"'"
+  echo "v35.signoff_bootstrap_plan=1" >> "'"$V35_TERMINAL_EVIDENCE"'"
+'
+
+# --- v3.5 terminal: genesis pin must match native runner (parser drift guard) ---
+run_case "v35-genesis-pin-matches-native-runner" bash -c '
+  runner_h=$("'"$RUNNER"'" file-hash "'"$RUNNER"'" 2>/dev/null | tail -1)
+  genesis_h=$("'"$RUNNER"'" file-hash "'"$LAB_DIR"'/genesis/nano-jit.x86_64" 2>/dev/null | tail -1)
+  printf "runner.hash=%s\n" "$runner_h"
+  printf "genesis.x86.hash=%s\n" "$genesis_h"
+  test -n "$runner_h" && test -n "$genesis_h" && test "$runner_h" = "$genesis_h"
+  echo "v35.genesis_pin_ok=1" >> "'"$V35_TERMINAL_EVIDENCE"'"
 '
 
 # --- v3.5 gen5: dual-arch Lisp pack, zero genesis pin, zero .c ---
@@ -1227,6 +1242,36 @@ if [ -x "$SELFHOST_DIR/gen2-slice-x86.elf" ]; then
 else
   skip_case "run-bootstrap-v35-selfhost-gen5-via-gen2-plan" "gen2-slice-x86.elf missing"
 fi
+
+if [ -x "$SELFHOST_DIR/gen2-slice-x86.elf" ]; then
+  log "bootstrap.v35.selfhost.gen5.gen2-full.path=$BOOTSTRAP_V35_SELFHOST_GEN5_SRC"
+  run_case "run-bootstrap-v35-selfhost-gen5-gen2-full-plan" bash -c '
+    cd "'"$ROOT_DIR"'" && out=$("'"$SELFHOST_DIR"'/gen2-slice-x86.elf" run-bootstrap-plan "'"$BOOTSTRAP_V35_SELFHOST_GEN5_SRC"'" 2>&1) || true
+    printf "%s\n" "$out"
+    printf "%s\n" "$out" | grep -q "bootstrap-step.*=pack-ape"
+    printf "%s\n" "$out" | grep -q "bootstrap-step.*=run"
+    test -f "'"$SELFHOST_DIR"'/v35-gen5-nano-jit.com"
+    test -f "'"$SELFHOST_DIR"'/v35-gen5-arithmetic.lbin"
+    echo "v35.gen2_gen5_full=1" >> "'"$V35_TERMINAL_EVIDENCE"'"
+  '
+else
+  skip_case "run-bootstrap-v35-selfhost-gen5-gen2-full-plan" "gen2-slice-x86.elf missing"
+fi
+
+# --- v4 kickoff ---
+log "bootstrap.v4.kickoff.path=$BOOTSTRAP_V4_KICKOFF_SRC"
+run_case "run-bootstrap-v4-kickoff-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_KICKOFF_SRC"'" 2>&1) || true
+  printf "%s\n" "$out"
+  printf "%s\n" "$out" | grep -q "bootstrap-step.*=run"
+  test -f "'"$BUILD_DIR"'/bootstrap-v4-kickoff-arithmetic.lbin"
+'
+run_case "run-bootstrap-v4-aarch64-aot-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_AARCH64_AOT_SRC"'" 2>&1) || true
+  printf "%s\n" "$out"
+  printf "%s\n" "$out" | grep -q "build-slice-lisp"
+  test -f "'"$BUILD_DIR"'/bootstrap-v4-aarch64-add-scout.elf"
+'
 
 # --- bootstrap-v25 native selfpack (pack-ape per plan) ---
 V25_NATIVE_SELFPACK_COM="$NANO_JIT_COM"

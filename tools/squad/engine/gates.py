@@ -80,9 +80,16 @@ def check_gate(ctx: SquadContext, gate: dict[str, Any], state: dict[str, Any]) -
     return {"id": gid, "ok": ok, "detail": detail, "manual": False}
 
 
+def _gate_list(signoff: dict[str, Any], key: str) -> list[dict[str, Any]]:
+    raw = signoff.get(key, [])
+    return list(raw) if isinstance(raw, list) else []
+
+
 def run_assess(ctx: SquadContext, state: dict[str, Any]) -> tuple[dict[str, Any], int]:
     signoff = ctx.signoff
-    auto = [check_gate(ctx, g, state) for g in signoff.get("gates", [])]
+    scoped = [check_gate(ctx, g, state) for g in signoff.get("gates", [])]
+    terminal = [check_gate(ctx, g, state) for g in _gate_list(signoff, "terminal_gates")]
+    auto = scoped + terminal
     manual_defs = signoff.get("manual_gates", [])
     manual = []
     for mg in manual_defs:
@@ -102,11 +109,24 @@ def run_assess(ctx: SquadContext, state: dict[str, Any]) -> tuple[dict[str, Any]
     cap = signoff.get("percent_cap_until_manual", 92)
     if all_auto_ok and not all_manual_ok:
         pct = min(pct, cap)
+    scoped_ok = all(x["ok"] for x in scoped) if scoped else True
+    terminal_ok = all(x["ok"] for x in terminal) if terminal else True
+    require_terminal = bool(signoff.get("require_terminal")) and bool(terminal)
+    ready = scoped_ok and terminal_ok and all_manual_ok
     report = {
         "signoff_id": signoff.get("id"),
         "percent_auto": pct,
-        "ready": all_auto_ok and all_manual_ok,
+        "percent_scoped": int(100 * sum(1 for x in scoped if x["ok"]) / len(scoped)) if scoped else 100,
+        "percent_terminal": int(100 * sum(1 for x in terminal if x["ok"]) / len(terminal))
+        if terminal
+        else 100,
+        "ready": ready,
+        "scoped_ready": scoped_ok and all_manual_ok,
+        "terminal_ready": terminal_ok,
+        "require_terminal": require_terminal,
         "auto": auto,
+        "scoped": scoped,
+        "terminal": terminal,
         "manual": manual,
     }
     state["signoff_percent"] = pct

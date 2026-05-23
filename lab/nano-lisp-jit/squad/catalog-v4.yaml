@@ -1,0 +1,78 @@
+# v4 kickoff — squad/v2（与 v3.5 catalog 分离）
+apiVersion: squad/v2
+project:
+  root: ..
+  state_db: .squad/state-v4.db
+  state_file: .squad/state-v4.json
+locking:
+  backend: sqlite
+roles:
+  reviewer: { kind: meta, workflow: reviewer }
+  commander: { kind: orchestrator, workflow: commander }
+  engineer-a: { kind: worker, workflow: worker }
+  engineer-b: { kind: worker, workflow: worker }
+dispatch:
+  assign_to: [engineer-a, engineer-b]
+  max_per_wave: 2
+supervisor:
+  team_mode: true
+  timeout_sec: 7200
+  poll_interval_sec: 15
+  max_waves: 50
+  task_timeout_sec: 3600
+  stuck_policy: fail
+signoff:
+  id: v4-kickoff
+  require_terminal: false
+  gates:
+    - id: v35-regression-run
+      check: results
+      file: ".build/results.txt"
+      results_key: tests.pass
+      min_pass: 257
+    - id: v35-regression-build
+      check: results
+      file: ".build/nano-jit/bootstrap-report.txt"
+      results_key: build.pass
+      min_pass: 119
+    - id: v4-readme
+      check: artifact
+      path_glob: "v4/README.md"
+    - id: v4-kickoff-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v4-kickoff.lisp"
+
+tasks:
+  v4-aarch64-aot-plan:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths: ["v3.5/AARCH64.md", "lab/lispjit-ir/nano_bootstrap.c"]
+    accept:
+      - "bootstrap-v4-aarch64-aot-plan.lisp 样例"
+      - "REFLECTION 记 v4 slice-0 范围"
+  v4-squad-lisp-sketch:
+    assign_role: engineer-b
+    priority: P1
+    touch_paths: ["v4/README.md", "squad/PROTOCOL.md"]
+    accept:
+      - "PROTOCOL 或 v4 文档：Lisp 编排替代 Python 的步骤列表"
+  wave-v4-R0:
+    assign_role: reviewer
+    priority: meta
+    depends: [v4-aarch64-aot-plan, v4-squad-lisp-sketch]
+    accept:
+      - "ROADMAP v4 节点"
+      - "assess v4-kickoff ready"
+
+verify:
+  commands:
+    - script: run.sh
+      cwd: .
+      fail_on_nonzero: true
+
+sync:
+  board:
+    file: v4/SQUAD.md
+    template: board
+    begin: "<!-- SQUAD_STATE_BEGIN -->"
+    end: "<!-- SQUAD_STATE_END -->"

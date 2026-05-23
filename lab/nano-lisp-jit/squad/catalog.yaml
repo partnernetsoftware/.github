@@ -30,6 +30,7 @@ supervisor:
   stuck_policy: fail
 signoff:
   id: v3.5-lisp-only
+  require_terminal: true
   percent_cap: 100
   gates:
     - id: gen5-no-c
@@ -54,15 +55,32 @@ signoff:
       file: ".build/nano-jit/bootstrap-report.txt"
       results_key: build.pass
       min_pass: 119
-    - id: aarch64-real-codegen
+    - id: aarch64-add-emit-scoped
       check: results
       file: ".build/v35-signoff.evidence"
       results_key: v35.aarch64_add_emit
       min_pass: 1
-    - id: l4-full-runner-slice
+    - id: l4-runner-via-gen2-scoped
       check: results
       file: ".build/v35-signoff.evidence"
       results_key: v35.gen5_lisp_runner
+      min_pass: 1
+  # v3.5 终局（POSTMORTEM）：scoped 100% 不等于 terminal；全 AOT aarch64 留 v4
+  terminal_gates:
+    - id: gen2-runs-gen5-full-plan
+      check: results
+      file: ".build/v35-terminal.evidence"
+      results_key: v35.gen2_gen5_full
+      min_pass: 1
+    - id: genesis-pin-matches-native
+      check: results
+      file: ".build/v35-terminal.evidence"
+      results_key: v35.genesis_pin_ok
+      min_pass: 1
+    - id: signoff-via-bootstrap-plan
+      check: results
+      file: ".build/v35-signoff.evidence"
+      results_key: v35.signoff_bootstrap_plan
       min_pass: 1
 
 tasks:
@@ -129,6 +147,27 @@ tasks:
       - "REFLECTION wave-4 实践反思"
       - "findings 与 assess 一致"
       - "SQUAD.md sync-md"
+  wave5-gen2-gen5-terminal:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths: ["run.sh", ".build/v35-terminal.evidence"]
+    accept:
+      - "gen2-slice run-bootstrap-v35-selfhost-gen5-plan exit 0"
+      - "v35.gen2_gen5_full=1 in terminal evidence"
+  wave5-genesis-pin-gate:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths: ["run.sh", "genesis/manifest.txt", "build_nano_jit.sh"]
+    accept:
+      - "v35.genesis_pin_ok=1"
+  wave-squad-R5:
+    assign_role: reviewer
+    priority: meta
+    depends: [wave5-gen2-gen5-terminal, wave5-genesis-pin-gate]
+    accept:
+      - "assess terminal_ready=true"
+      - "SQUAD.md 停止条件与 catalog 对齐"
+      - "v4 kickoff 文档若 terminal 全绿"
 
 verify:
   commands:

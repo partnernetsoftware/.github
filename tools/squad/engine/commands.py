@@ -39,7 +39,12 @@ def cmd_assess(ctx: SquadContext, args: argparse.Namespace) -> int:
     if args.json:
         print(json.dumps(report, indent=2, ensure_ascii=False))
     else:
-        print(f"signoff: {report['signoff_id']}  auto={report['percent_auto']}%  ready={report['ready']}")
+        tr = report.get("terminal_ready", report["ready"])
+        print(
+            f"signoff: {report['signoff_id']}  scoped={report.get('percent_scoped', report['percent_auto'])}% "
+            f"terminal={report.get('percent_terminal', '?')}%  ready={report['ready']} "
+            f"(scoped_ready={report.get('scoped_ready')} terminal_ready={tr})"
+        )
         print(f"state.db: {ctx.db_path}")
         for x in report["auto"]:
             mark = "OK" if x["ok"] else "FAIL"
