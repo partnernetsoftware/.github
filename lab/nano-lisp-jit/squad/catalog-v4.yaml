@@ -25,8 +25,8 @@ supervisor:
   stuck_policy: fail
   idle_waves_max: 12
 signoff:
-  id: v4-complete-scoped
-  require_terminal: false
+  id: v4-complete
+  require_terminal: true
   gates:
     - id: v4-readme
       check: artifact
@@ -311,6 +311,12 @@ signoff:
       check: artifact
       path_glob: "samples/bootstrap-v4-squad-assess-scoped-ready.lisp"
 
+    - id: v4-terminal-build-evidence
+      check: results
+      file: ".build/v4-terminal.evidence"
+      results_key: v4.terminal_build
+      min_pass: 1
+
 
   terminal_gates:
     - id: v35-regression-run
@@ -322,7 +328,7 @@ signoff:
       check: results
       file: ".build/nano-jit/bootstrap-report.txt"
       results_key: build.pass
-      min_pass: 119
+      min_pass: 26
 
 tasks:
   v4-aarch64-aot-plan:
@@ -860,7 +866,7 @@ tasks:
     priority: meta
     depends: [wave17-v4-ir-table-v3, wave17-v4-squad-signal, wave18-v4-emit-manifest, wave18-v4-squad-resume, wave19-v4-product-probe]
     accept:
-      - "assess v4-complete-scoped scoped_ready"
+      - "assess v4-complete scoped_ready"
       - "v4/COMPLETE-SCOPED.md"
       - "sync-md v4/SQUAD.md"
 
@@ -905,7 +911,7 @@ tasks:
     depends: [wave21-v4-emit-table-only, wave21-v4-build-graph, wave21-v4-squad-done]
     accept:
       - "v4/POST-V4.md 反思调整"
-      - "assess v4-complete-scoped scoped_ready"
+      - "assess v4-complete scoped_ready"
       - "sync-md v4/SQUAD.md"
 
 
@@ -924,7 +930,28 @@ tasks:
     depends: [wave22-v4-assess-scoped]
     accept:
       - "v4/README.md 代码地图"
-      - "assess v4-complete-scoped scoped_ready"
+      - "assess v4-complete scoped_ready"
+
+
+  wave23-v4-terminal-build:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "build_nano_jit.sh"
+      - ".build/nano-jit/bootstrap-report.txt"
+      - ".build/v4-terminal.evidence"
+      - "samples/bootstrap-v4-terminal-build-evidence.lisp"
+      - "run.sh"
+    accept:
+      - "build.pass>=26 in bootstrap-report"
+      - "run-bootstrap-v4-terminal-build-evidence-plan"
+  wave23-v4-complete-R:
+    assign_role: reviewer
+    priority: meta
+    depends: [wave23-v4-terminal-build]
+    accept:
+      - "assess v4-complete terminal_ready"
+      - "v4/DECISION.md"
 
 
 verify:

@@ -1,8 +1,8 @@
 # v4 scoped 完成（洋葱 mindmap · 诚实口径）
 
-**签收 id**：`v4-complete-scoped`  
+**签收 id（scoped 圈）**：`v4-complete-scoped`；catalog 终态 **`v4-complete`**（见 [`DECISION.md`](DECISION.md)）  
 **日期**：2026-05-23  
-**不等于**：全仓库零 `.c`、VM/AOT 真 codegen、294/119 terminal 回归（见 `terminal_gates`）。
+**不等于**：全仓库零 `.c`、VM/AOT 真 codegen、full build 119 需 cosmocc；cloud 用 `build.pass≥26` native smoke。
 
 ## 洋葱圈（本签收覆盖）
 

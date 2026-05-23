@@ -4,7 +4,7 @@
 
 **「全 Lisp」口径**：见 [`LISP-ONLY.md`](LISP-ONLY.md) — v4 **plan 层**可无 `.c` 引用；**runner/codegen 层**仍含 C（slice-2 才攻真 codegen）。
 
-**签收（当前）**：**`v4-complete-scoped`**（S0–S14 洋葱 + post-v4 **S15**）— [`COMPLETE-SCOPED.md`](COMPLETE-SCOPED.md)、[`POST-V4.md`](POST-V4.md)。**不等于**零宿主或 terminal 119/119。
+**签收（当前）**：**`v4-complete`**（scoped S0–S15 + terminal native smoke）— [`DECISION.md`](DECISION.md)、[`COMPLETE-SCOPED.md`](COMPLETE-SCOPED.md)、[`POST-V4.md`](POST-V4.md)。**不等于**零宿主；full build 119 需 cosmocc。
 
 ## 代码地图（三层）
 

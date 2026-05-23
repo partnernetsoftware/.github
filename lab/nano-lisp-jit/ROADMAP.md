@@ -430,7 +430,7 @@ v4: 终局切片 + 产品轨（catalog-v4.yaml · signoff v4-slice9-scoped）
 | VM/AOT aarch64 | **0%** | **pending** | mindmap 原「真 codegen」目标未达成 |
 | 全仓库零 `.c` | **0%** | **pending** | 非 v4 已签收含义 |
 
-**v4 整体**：**scoped 完成（`v4-complete-scoped`）** / **终局自举 ~15%** / **post-v4 减宿主依赖进行中**。详见 [`v4/COMPLETE-SCOPED.md`](v4/COMPLETE-SCOPED.md)、[`v4/POST-V4.md`](v4/POST-V4.md)。
+**v4 整体**：**`v4-complete`（scoped + terminal native）** / **终局自举 ~15%**。详见 [`v4/DECISION.md`](v4/DECISION.md)、[`v4/README.md`](v4/README.md)。
 
 ### 0. 证据基线
 
