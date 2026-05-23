@@ -26,12 +26,21 @@ paths:
 5. **不要提交** `.squad/*.db`、`verify.lock`、本地漂移的 `state.json`；可提交 `sync-md` 生成的 `v4/SQUAD.md`。
 6. **`auto-exec` 会跑 catalog.verify（常为全量 `run.sh`）**：实现前先本地绿；CI/门禁用 `SQUAD_VERIFY=1`；嵌套 smoke 用 `run-loop --once --no-auto-exec`。
 
+## 未 100% 仍推进（v4 wave15+）
+
+- **scoped ≠ terminal**：`v35-regression-*` 在 `terminal_gates`；`scoped_ready` 即可开下一波 → [`lab/nano-lisp-jit/v4/PARALLEL.md`](../../lab/nano-lisp-jit/v4/PARALLEL.md)
+- **双轨并行**：`wave15-v4-ir-entry`（engineer-a）+ `wave15-v4-squad-assess`（engineer-b），分 `touch_paths`，合并前各轨本地 `run.sh`
+- **快启动**：`skills/squad-parallel/scripts/fast-wave.sh lab/nano-lisp-jit/squad/catalog-v4.yaml wave15`（只 resume+dispatch，不起 tmux）
+
 ## 标准波次（Agent 执行）
 
 从仓库根 `/workspace`（或项目根）：
 
 ```bash
-# 推荐：技能附带脚本（传 catalog 相对路径）
+# 并行快路径（单 Agent 实现 A/B 后一次 run.sh）
+skills/squad-parallel/scripts/fast-wave.sh lab/nano-lisp-jit/squad/catalog-v4.yaml wave15
+
+# 全状态机（需四路真 Agent 或接受 defer_verify）
 skills/squad-parallel/scripts/run-wave.sh lab/nano-lisp-jit/squad/catalog-v4.yaml wave14
 skills/squad-parallel/scripts/poll-tasks.sh lab/nano-lisp-jit/squad/catalog-v4.yaml wave14
 ```
