@@ -1,89 +1,61 @@
 # Squad — 通用多角色编排 CLI
 
+**一个工具、一个循环**：所有角色都用 `squad run-loop --role <id>`；指挥长（leader）在循环里更新 `signals.supervisor`，队员 **只等 leader 信号**，不因自己看到 100% 就退出。
+
 ## 状态与锁
 
 | 层 | 路径 | 用途 |
 |----|------|------|
-| **SQLite（真相源）** | `.squad/state.db` | 派单、claim、path 锁、`BEGIN IMMEDIATE` 事务 |
-| **JSON（导出）** | `.squad/state.json` | 人读 / git diff；由 `export-json` 生成 |
+| **SQLite（真相源）** | `.squad/state.db` | 派单、claim、path 锁、**signals** |
+| **JSON（导出）** | `.squad/state.json` | 人读 / diff；`export-json` 生成 |
 
-锁机制：
+## 唯一入口（所有角色）
 
-- `PRAGMA journal_mode=WAL` + `busy_timeout=30000`
-- 写事务 `BEGIN IMMEDIATE`（含 path_locks 唯一约束）
-- 遇 `SQLITE_BUSY` **指数退避**重试（50ms → 2s，最多 10 次）
+```bash
+# 指挥长 = leader：assess → dispatch → 发 supervisor 信号
+tools/squad/squad.sh run-loop --role commander
 
-比纯 JSON 文件锁更稳：原子 claim、并发工程兵不会静默覆盖。
+# 工程兵 / 审查员 = follower：while 等 leader，再 member_tick
+tools/squad/squad.sh run-loop --role engineer-a
+tools/squad/squad.sh run-loop --role engineer-b
+tools/squad/squad.sh run-loop --role reviewer
+
+# 并发小队（tmux 里跑 4 条相同的 run-loop，仅 --role 不同）
+tools/squad/squad.sh agent-team
+```
+
+### Leader 信号（`signals` 表 subject=`supervisor`）
+
+| 信号 | 含义 |
+|------|------|
+| `running` | 波次进行中，队员继续等 |
+| `standby` | 签收门禁已过，仍有任务/指派未完成 |
+| `complete` | 指挥长放行，队员可 `stand_down` 退出 |
+| `failed` / `timeout` | 全队退出 |
+
+队员 **禁止** 调用 `supervise`；**禁止** 根据 `assess.ready` 自行退出。
+
+## 辅助命令
+
+```bash
+tools/squad/squad.sh resume              # 新 wave，leader=running
+tools/squad/squad.sh dispatch --force --include-meta
+tools/squad/squad.sh worker-tick engineer-a   # 单步调试（等同 run-loop --once 一拍）
+tools/squad/squad.sh supervise --once    # 仅 leader 调试
+```
 
 ## 配置
 
-项目根 `.squadrc.yaml`：
+项目根 `.squadrc.yaml` → `catalog.yaml`；`supervisor.team_mode: true`（默认）启用 leader/follower 分离。
 
-```yaml
-catalog: lab/nano-lisp-jit/squad/catalog.yaml
+## Cloud Agent 并行
+
+开 4 个 Agent，**同一条命令、不同 `--role`**：
+
+```
+tools/squad/squad.sh run-loop --role commander
+tools/squad/squad.sh run-loop --role engineer-a
+...
 ```
 
-`catalog.yaml`：
-
-```yaml
-apiVersion: squad/v2
-project:
-  root: ..
-  state_db: .squad/state.db
-  state_file: .squad/state.json
-locking:
-  backend: sqlite
-roles:
-  engineer-a: { kind: worker, workflow: worker }
-dispatch:
-  assign_to: [engineer-a, engineer-b]
-```
-
-## 命令
-
-```bash
-tools/squad/squad.sh init
-tools/squad/squad.sh assess
-tools/squad/squad.sh dispatch
-tools/squad/squad.sh claim engineer-a my-task
-tools/squad/squad.sh done engineer-a my-task --commit abc1234
-tools/squad/squad.sh export-json
-tools/squad/squad.sh supervise          # 指挥长 while：complete|failed|timeout
-tools/squad/squad.sh supervise --once  # 单 tick
-tools/squad/squad.sh worker-tick engineer-a
-tools/squad/squad.sh signal engineer-a complete --task-id L2-companion
-tools/squad/squad.sh fail engineer-a L2-companion --reason "verify failed"
-```
-
-## 监督循环（supervise）
-
-每个并行角色应有 **while**，出口仅三种：
-
-| 出口 | 含义 |
-|------|------|
-| `complete` | `assess.ready`（自动+人工门禁全过） |
-| `failed` | 任务 `failed` / 角色信号 `failed` / `stuck_policy=fail` |
-| `timeout` | 全局 `supervisor.timeout_sec` 或任务 `task_timeout_sec` |
-
-`catalog.supervisor` 配置超时与 `poll_interval_sec`；`signals` 表记录 `supervisor` 与各 `engineer-*` 状态。
-
-**禁止**：只跑一轮 `dispatch` 后在 manual 仍 pending 时停止 — 应 `supervise` 或 Cloud Agent 反复 `supervise --once`。
-
-## Agent team（并发小队）
-
-```bash
-# 后台 tmux：指挥长 supervise + A/B run-role-loop + 审查员
-tools/squad/agent-team.sh
-
-# 或 Cloud 上并行派 4 个 Agent，各跑：
-tools/squad/run-role-loop.sh engineer-a 40 5   # 工程兵 A
-tools/squad/run-role-loop.sh engineer-b 40 5   # 工程兵 B
-# 指挥长：while supervise --once; do sleep 5; done
-# 审查员：claim → verify → reflect → sync-md → done
-```
-
-派单前若已 `halt`：`tools/squad/squad.sh resume && tools/squad/squad.sh dispatch --force --include-meta`
-
-## 角色微工作流
-
-见 `squad/workflows/*.yaml`；`squad workflow-run commander` 打印步骤。
+不要各写一套 shell；不要每人一个 Python 文件。

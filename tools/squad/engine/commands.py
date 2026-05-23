@@ -17,8 +17,12 @@ from .supervisor import (
     OUTCOME_COMPLETE,
     OUTCOME_FAILED,
     OUTCOME_TIMEOUT,
+    member_tick,
+    run_member_loop,
     run_supervise,
+    spawn_agent_team,
     supervise_tick,
+    team_mode,
     worker_tick,
 )
 
@@ -29,7 +33,7 @@ def cmd_assess(ctx: SquadContext, args: argparse.Namespace) -> int:
     report, code = run_assess(ctx, state)
     store.set_meta("signoff_percent", report["percent_auto"])
     store.set_meta("last_assess", report)
-    if report["ready"]:
+    if report["ready"] and not team_mode(ctx):
         store.set_meta("halt", True)
     store.export_json()
     if args.json:
@@ -134,11 +138,15 @@ def cmd_resume(ctx: SquadContext, args: argparse.Namespace) -> int:
     store = get_store(ctx)
     store.set_meta("halt", False)
     store.set_meta("halt_reason", None)
+    store.set_meta("supervisor_outcome", None)
     wave = int(store.get_meta("wave", 1) or 1) + 1
     store.set_meta("wave", wave)
     store.set_signal("supervisor", "running", reason=args.reason or "resume")
+    for rid in ctx.all_role_ids():
+        if rid != "commander":
+            store.set_signal(rid, "running", reason="wave_open")
     store.export_json()
-    print(f"resumed wave={wave}")
+    print(f"resumed wave={wave} leader=running")
     return 0
 
 
@@ -394,6 +402,7 @@ def _supervisor_options(ctx: SquadContext, args: argparse.Namespace) -> dict:
             args.task_timeout if args.task_timeout is not None else cfg.get("task_timeout_sec", 3600)
         ),
         "stuck_policy": args.stuck_policy or cfg.get("stuck_policy", "fail"),
+        "max_iter": int(args.max_iter if getattr(args, "max_iter", None) is not None else cfg.get("max_iter", 500)),
     }
 
 
@@ -497,13 +506,51 @@ def cmd_task_timeout(ctx: SquadContext, args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_run_loop(ctx: SquadContext, args: argparse.Namespace) -> int:
+    """Same tool for commander / engineer-a / engineer-b / reviewer."""
+    store = get_store(ctx)
+    role = args.role
+    if role not in ctx.all_role_ids():
+        print(f"unknown role {role}; catalog: {', '.join(ctx.all_role_ids())}", file=sys.stderr)
+        return 1
+    opts = _supervisor_options(ctx, args)
+    max_iter = opts["max_iter"]
+    outcome, code = run_member_loop(
+        ctx,
+        store,
+        role,
+        max_iter=max_iter,
+        poll_interval_sec=opts["poll_interval_sec"],
+        timeout_sec=opts["timeout_sec"],
+        max_tasks=opts["max_tasks"],
+        task_timeout_sec=opts["task_timeout_sec"],
+        stuck_policy=opts["stuck_policy"],
+        once=args.once,
+    )
+    store.export_json()
+    if args.json:
+        print(json.dumps({"role": role, "outcome": outcome, "exit_code": code}, indent=2))
+    else:
+        print(f"run-loop role={role} outcome={outcome} exit={code}")
+    return code
+
+
+def cmd_agent_team(ctx: SquadContext, args: argparse.Namespace) -> int:
+    store = get_store(ctx)
+    cmd_resume(ctx, argparse.Namespace(reason="agent-team"))
+    cmd_dispatch(ctx, argparse.Namespace(max_tasks=4, force=True, include_meta=True))
+    poll = float(args.poll_interval if args.poll_interval is not None else 8.0)
+    max_iter = int(args.max_iter if args.max_iter is not None else 500)
+    return spawn_agent_team(ctx, poll_sec=poll, max_iter=max_iter)
+
+
 def cmd_worker_tick(ctx: SquadContext, args: argparse.Namespace) -> int:
     store = get_store(ctx)
     cfg = ctx.catalog.get("supervisor") or {}
     task_timeout = float(
         args.task_timeout if args.task_timeout is not None else cfg.get("task_timeout_sec", 3600)
     )
-    result = worker_tick(ctx, store, args.role, task_timeout_sec=task_timeout)
+    result = member_tick(ctx, store, args.role, task_timeout_sec=task_timeout)
     if args.json:
         print(json.dumps(result, indent=2, ensure_ascii=False))
     else:
@@ -512,6 +559,6 @@ def cmd_worker_tick(ctx: SquadContext, args: argparse.Namespace) -> int:
             print(f"  reason: {result['reason']}")
         if result.get("pending"):
             print(f"  pending: {', '.join(result['pending'])}")
-    if result.get("action") == "halt":
-        return 1
+    if result.get("action") in ("halt", "stand_down"):
+        return 1 if result.get("action") == "halt" else 0
     return 0

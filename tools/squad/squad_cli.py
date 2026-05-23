@@ -21,9 +21,11 @@ from engine.commands import (
     cmd_fail,
     cmd_halt,
     cmd_init,
+    cmd_agent_team,
     cmd_reflect,
     cmd_resume,
     cmd_roles,
+    cmd_run_loop,
     cmd_signal,
     cmd_status,
     cmd_supervise,
@@ -148,11 +150,32 @@ def main() -> int:
     to.add_argument("--reason", default="")
     to.set_defaults(func=cmd_task_timeout)
 
-    wt = sub.add_parser("worker-tick", help="One worker-loop step for a role")
+    wt = sub.add_parser("worker-tick", help="One member tick (debug; prefer run-loop)")
     wt.add_argument("role")
     wt.add_argument("--task-timeout", type=float)
     wt.add_argument("--json", action="store_true")
     wt.set_defaults(func=cmd_worker_tick)
+
+    rl = sub.add_parser(
+        "run-loop",
+        help="Unified while-loop for ANY role (commander=leader, others await leader signal)",
+    )
+    rl.add_argument("--role", required=True, help="catalog role id")
+    rl.add_argument("--timeout", type=float)
+    rl.add_argument("--poll-interval", type=float)
+    rl.add_argument("--max-waves", type=int)
+    rl.add_argument("--max-tasks", type=int)
+    rl.add_argument("--max-iter", type=int, help="Follower iterations (leader uses supervise)")
+    rl.add_argument("--task-timeout", type=float)
+    rl.add_argument("--stuck-policy", choices=["fail", "timeout", "redispatch"])
+    rl.add_argument("--once", action="store_true")
+    rl.add_argument("--json", action="store_true")
+    rl.set_defaults(func=cmd_run_loop)
+
+    at = sub.add_parser("agent-team", help="Spawn tmux: 4x run-loop (same tool, different --role)")
+    at.add_argument("--poll-interval", type=float, default=8.0)
+    at.add_argument("--max-iter", type=int, default=500)
+    at.set_defaults(func=cmd_agent_team)
 
     args = p.parse_args()
     try:

@@ -1,6 +1,7 @@
-"""Supervisor while-loop: exit only on complete, failed, or timeout."""
+"""Squad team loops — one implementation for every role (leader + followers)."""
 from __future__ import annotations
 
+import subprocess
 import time
 from datetime import datetime, timezone
 from typing import Any
@@ -13,7 +14,8 @@ OUTCOME_COMPLETE = "complete"
 OUTCOME_FAILED = "failed"
 OUTCOME_TIMEOUT = "timeout"
 
-TERMINAL_SIGNALS = frozenset({OUTCOME_COMPLETE, OUTCOME_FAILED, OUTCOME_TIMEOUT})
+TERMINAL_LEADER = frozenset({OUTCOME_COMPLETE, OUTCOME_FAILED, OUTCOME_TIMEOUT})
+LEADER_ACTIVE = frozenset({"running", "standby"})
 TERMINAL_TASK = frozenset({"done", "failed", "timeout"})
 
 
@@ -34,6 +36,54 @@ def _supervisor_cfg(ctx: SquadContext) -> dict[str, Any]:
     return dict(ctx.catalog.get("supervisor") or {})
 
 
+def team_mode(ctx: SquadContext) -> bool:
+    cfg = _supervisor_cfg(ctx)
+    return cfg.get("team_mode", True) is not False
+
+
+def leader_signal(store: SquadStore) -> str:
+    sig = store.get_signal("supervisor")
+    return sig["signal"] if sig else "running"
+
+
+def pending_any_tasks(ctx: SquadContext, store: SquadStore) -> bool:
+    for tid in ctx.tasks:
+        st = store.task_status(tid)
+        if st in ("pending", "assigned", "in_progress"):
+            deps = ctx.tasks[tid].get("depends", [])
+            if any(store.task_status(d) != "done" for d in deps):
+                continue
+            return True
+    return False
+
+
+def inflight_assignments(state: dict[str, Any]) -> bool:
+    return any(v for v in (state.get("assignments") or {}).values() if v)
+
+
+def team_ready_to_release(ctx: SquadContext, store: SquadStore) -> bool:
+    state = store.load_snapshot()
+    report, _ = run_assess(ctx, state)
+    if not report["ready"]:
+        return False
+    if pending_any_tasks(ctx, store):
+        return False
+    if inflight_assignments(state):
+        return False
+    return True
+
+
+def release_team(ctx: SquadContext, store: SquadStore, reason: str) -> None:
+    store.set_signal("supervisor", OUTCOME_COMPLETE, reason=reason)
+    store.set_meta("supervisor_outcome", OUTCOME_COMPLETE)
+    store.set_meta("halt", True)
+    store.set_meta("halt_reason", reason)
+    for rid in ctx.all_role_ids():
+        if rid == "commander":
+            continue
+        store.set_signal(rid, OUTCOME_COMPLETE, reason="leader_release")
+
+
 def pending_worker_tasks(ctx: SquadContext, store: SquadStore) -> list[str]:
     workers = set(ctx.worker_roles())
     out: list[str] = []
@@ -43,19 +93,18 @@ def pending_worker_tasks(ctx: SquadContext, store: SquadStore) -> list[str]:
         st = store.task_status(tid)
         if st in ("pending", "assigned", "in_progress"):
             deps = ctx.tasks[tid].get("depends", [])
-            if any(store.task_status(d) not in ("done",) for d in deps):
+            if any(store.task_status(d) != "done" for d in deps):
                 continue
             out.append(tid)
     return out
 
 
 def idle_workers(ctx: SquadContext, state: dict[str, Any]) -> list[str]:
-    idle = []
-    for rid in ctx.worker_roles():
-        cur = state.get("assignments", {}).get(rid)
-        if not cur:
-            idle.append(rid)
-    return idle
+    return [
+        rid
+        for rid in ctx.worker_roles()
+        if not state.get("assignments", {}).get(rid)
+    ]
 
 
 def worker_failed(store: SquadStore, ctx: SquadContext) -> str | None:
@@ -93,9 +142,8 @@ def stuck_tasks(
 
 
 def dispatch_wave(ctx: SquadContext, store: SquadStore, max_tasks: int) -> int:
-    """One dispatch pass; returns count assigned."""
     state = store.load_snapshot()
-    if state.get("halt"):
+    if state.get("halt") and leader_signal(store) in TERMINAL_LEADER:
         return 0
     workers = ctx.worker_roles()
     pending = pending_worker_tasks(ctx, store)
@@ -103,8 +151,7 @@ def dispatch_wave(ctx: SquadContext, store: SquadStore, max_tasks: int) -> int:
     for role in workers:
         if assigned >= max_tasks:
             break
-        busy = state.get("assignments", {}).get(role)
-        if busy:
+        if state.get("assignments", {}).get(role):
             continue
         for tid in list(pending):
             if ctx.task_assign_role(tid) != role:
@@ -126,7 +173,7 @@ def supervise_tick(
     stuck_policy: str,
     now: float | None = None,
 ) -> dict[str, Any]:
-    """Single supervisor iteration (assess → fail checks → dispatch)."""
+    """One leader tick: assess → dispatch → maybe standby (never auto-complete in team_mode)."""
     now = now if now is not None else time.time()
     state = store.load_snapshot()
     report, assess_code = run_assess(ctx, state)
@@ -140,9 +187,19 @@ def supervise_tick(
         "assess_code": assess_code,
         "dispatched": 0,
         "outcome": None,
+        "leader": leader_signal(store),
     }
 
-    if report["ready"]:
+    if team_mode(ctx) and report["ready"]:
+        if team_ready_to_release(ctx, store):
+            release_team(ctx, store, "signoff_and_all_tasks_done")
+            tick["outcome"] = OUTCOME_COMPLETE
+            tick["leader"] = OUTCOME_COMPLETE
+            return tick
+        store.set_signal("supervisor", "standby", reason="signoff_ready_team_busy")
+        tick["leader"] = "standby"
+        tick["signoff_ready"] = True
+    elif report["ready"] and not team_mode(ctx):
         tick["outcome"] = OUTCOME_COMPLETE
         store.set_meta("supervisor_outcome", OUTCOME_COMPLETE)
         store.set_meta("halt", True)
@@ -159,6 +216,7 @@ def supervise_tick(
         store.set_meta("halt", True)
         store.set_meta("halt_reason", tick["fail_detail"])
         store.set_signal("supervisor", OUTCOME_FAILED, reason=tick["fail_detail"])
+        tick["leader"] = OUTCOME_FAILED
         return tick
 
     stuck = stuck_tasks(ctx, store.load_snapshot(), task_timeout_sec=task_timeout_sec, now=now)
@@ -178,35 +236,29 @@ def supervise_tick(
                         reason="task_timeout",
                         touch_paths=list(spec.get("touch_paths") or []),
                     )
-            tick["outcome"] = OUTCOME_TIMEOUT
+            reason = f"stuck:{','.join(stuck)}"
             store.set_meta("supervisor_outcome", OUTCOME_TIMEOUT)
             store.set_meta("halt", True)
-            store.set_meta("halt_reason", f"stuck:{','.join(stuck)}")
-            reason = f"stuck:{','.join(stuck)}"
             store.set_meta("halt_reason", reason)
             store.set_signal("supervisor", OUTCOME_TIMEOUT, reason=reason)
-            tick["halt_reason"] = reason
+            tick["outcome"] = OUTCOME_TIMEOUT
+            tick["leader"] = OUTCOME_TIMEOUT
             return tick
         if stuck_policy == "fail":
-            tick["outcome"] = OUTCOME_FAILED
+            reason = f"stuck:{','.join(stuck)}"
             store.set_meta("supervisor_outcome", OUTCOME_FAILED)
             store.set_meta("halt", True)
-            reason = f"stuck:{','.join(stuck)}"
             store.set_meta("halt_reason", reason)
             store.set_signal("supervisor", OUTCOME_FAILED, reason=reason)
-            tick["halt_reason"] = reason
+            tick["outcome"] = OUTCOME_FAILED
+            tick["leader"] = OUTCOME_FAILED
             return tick
-        # redispatch: release stuck — not implemented fully; mark timeout on role signal only
 
-    pending = pending_worker_tasks(ctx, store)
-    tick["pending_count"] = len(pending)
     meta_roles = {
         rid for rid, spec in ctx.roles.items() if spec.get("kind") in ("meta", "orchestrator")
     }
     meta_idle = [
-        rid
-        for rid in meta_roles
-        if not store.load_snapshot().get("assignments", {}).get(rid)
+        rid for rid in meta_roles if not store.load_snapshot().get("assignments", {}).get(rid)
     ]
     meta_pending = [
         tid
@@ -215,7 +267,7 @@ def supervise_tick(
     ]
     if meta_pending and meta_idle:
         for rid in meta_idle:
-            for tid in meta_pending:
+            for tid in list(meta_pending):
                 if ctx.task_assign_role(tid) != rid:
                     continue
                 if store.dispatch_assign(rid, tid):
@@ -223,8 +275,16 @@ def supervise_tick(
                     tick["dispatched"] = tick.get("dispatched", 0) + 1
                     meta_pending.remove(tid)
                     break
+
+    pending = pending_worker_tasks(ctx, store)
+    tick["pending_count"] = len(pending)
     if pending and idle_workers(ctx, store.load_snapshot()):
         tick["dispatched"] = tick.get("dispatched", 0) + dispatch_wave(ctx, store, max_tasks)
+
+    if team_mode(ctx) and team_ready_to_release(ctx, store):
+        release_team(ctx, store, "all_tasks_done")
+        tick["outcome"] = OUTCOME_COMPLETE
+        tick["leader"] = OUTCOME_COMPLETE
 
     return tick
 
@@ -241,16 +301,13 @@ def run_supervise(
     stuck_policy: str,
     once: bool = False,
 ) -> tuple[str, int]:
-    """
-    While-loop until complete | failed | timeout.
-    Returns (outcome, exit_code): complete=0, failed=1, timeout=3, tick=2.
-    """
-    cfg = _supervisor_cfg(ctx)
+    """Leader (commander) while-loop — only role that drives supervisor signal."""
     start = time.time()
     wave = int(store.get_meta("wave", 1) or 1)
     store.set_meta("supervisor_started_at", _utc_now())
     store.set_meta("supervisor_outcome", None)
-    store.set_signal("supervisor", "running", reason="supervise loop")
+    store.set_meta("halt", False)
+    store.set_signal("supervisor", "running", reason="leader run-loop")
 
     last_progress = start
     outcome = ""
@@ -275,9 +332,11 @@ def run_supervise(
         )
         store.export_json()
 
-        if tick.get("outcome") in TERMINAL_SIGNALS:
-            return tick["outcome"], 0 if tick["outcome"] == OUTCOME_COMPLETE else (
-                3 if tick["outcome"] == OUTCOME_TIMEOUT else 1
+        if tick.get("outcome") in TERMINAL_LEADER:
+            return tick["outcome"], (
+                0
+                if tick["outcome"] == OUTCOME_COMPLETE
+                else (3 if tick["outcome"] == OUTCOME_TIMEOUT else 1)
             )
 
         if tick.get("dispatched") or tick.get("percent_auto", 0) > int(
@@ -286,7 +345,6 @@ def run_supervise(
             last_progress = time.time()
             store.set_meta("last_progress_percent", tick["percent_auto"])
         elif time.time() - last_progress > task_timeout_sec and pending_worker_tasks(ctx, store):
-            # global stall with pending work
             if stuck_policy == "timeout":
                 outcome = OUTCOME_TIMEOUT
                 store.set_meta("supervisor_outcome", OUTCOME_TIMEOUT)
@@ -296,7 +354,6 @@ def run_supervise(
                 store.export_json()
                 return outcome, 3
 
-        # wave bump when all workers idle and no in-flight tasks
         state = store.load_snapshot()
         inflight = any(
             state.get("tasks", {}).get(tid, {}).get("status") in ("assigned", "in_progress")
@@ -306,7 +363,7 @@ def run_supervise(
         if not inflight and not pending_worker_tasks(ctx, store):
             wave += 1
             store.set_meta("wave", wave)
-            if wave > max_waves and not tick["ready"]:
+            if wave > max_waves and not tick.get("ready"):
                 outcome = OUTCOME_FAILED
                 store.set_meta("supervisor_outcome", OUTCOME_FAILED)
                 store.set_meta("halt", True)
@@ -321,35 +378,49 @@ def run_supervise(
         time.sleep(poll_interval_sec)
 
 
-def worker_tick(
+def member_tick(
     ctx: SquadContext,
     store: SquadStore,
     role: str,
     *,
     task_timeout_sec: float,
 ) -> dict[str, Any]:
-    """One worker-loop step for AI/human: what to do next."""
+    """One step for any non-leader role — waits on leader signal first."""
     if role not in ctx.all_role_ids():
         return {"error": f"unknown role {role}"}
 
-    state = store.load_snapshot()
-    cur = state.get("assignments", {}).get(role)
-    spec = (state.get("tasks") or {}).get(cur or "", {})
-    status = spec.get("status", "idle")
-    now = time.time()
-
+    leader = leader_signal(store)
     result: dict[str, Any] = {
         "role": role,
-        "task_id": cur,
-        "status": status,
-        "action": "idle",
-        "signal": store.get_signal(role),
+        "leader": leader,
+        "action": "await_leader",
+        "task_id": None,
+        "status": "idle",
     }
 
-    sig = store.get_signal(role)
-    if sig and sig["signal"] in TERMINAL_SIGNALS - {OUTCOME_COMPLETE}:
+    if leader in TERMINAL_LEADER:
+        result["action"] = "stand_down"
+        result["reason"] = f"leader={leader}"
+        return result
+
+    if leader not in LEADER_ACTIVE and leader != "running":
+        result["action"] = "await_leader"
+        result["reason"] = f"unknown_leader_signal={leader}"
+        return result
+
+    state = store.load_snapshot()
+    cur = state.get("assignments", {}).get(role)
+    spec = (state.get("tasks", {}).get(cur or "", {}))
+    status = spec.get("status", "idle")
+    now = time.time()
+    result["task_id"] = cur
+    result["status"] = status
+    result["signal"] = store.get_signal(role)
+
+    role_sig = store.get_signal(role)
+    if role_sig and role_sig["signal"] in (OUTCOME_FAILED, OUTCOME_TIMEOUT):
         result["action"] = "halt"
-        result["reason"] = sig.get("reason")
+        result["reason"] = role_sig.get("reason")
         return result
 
     if not cur:
@@ -358,11 +429,18 @@ def worker_tick(
             for tid in pending_worker_tasks(ctx, store)
             if ctx.task_assign_role(tid) == role
         ]
-        if pending:
+        meta_pending = [
+            tid
+            for tid in ctx.tasks
+            if ctx.task_assign_role(tid) == role and store.task_status(tid) == "pending"
+        ]
+        all_p = pending + meta_pending
+        if all_p:
             result["action"] = "wait_dispatch"
-            result["pending"] = pending
+            result["pending"] = all_p
         else:
-            result["action"] = "idle"
+            result["action"] = "await_leader"
+            result["reason"] = "no_task_wait_leader"
         return result
 
     if status == "assigned":
@@ -379,15 +457,145 @@ def worker_tick(
             result["steps"] = ["verify", "done"]
         return result
 
-    if status == "done":
-        result["action"] = "idle"
-        store.set_signal(role, OUTCOME_COMPLETE, task_id=cur, reason="task done")
-        return result
-
     if status in ("failed", "timeout"):
         result["action"] = "halt"
         result["reason"] = status
         return result
 
+    if status == "done":
+        result["action"] = "await_leader"
+        result["reason"] = "task_done_wait_leader"
+        return result
+
     result["action"] = "work"
     return result
+
+
+# Back-compat alias
+worker_tick = member_tick
+
+
+def _role_kind(ctx: SquadContext, role: str) -> str:
+    return (ctx.roles.get(role) or {}).get("kind", "worker")
+
+
+def _exit_code_for_leader(leader: str) -> int:
+    if leader == OUTCOME_COMPLETE:
+        return 0
+    if leader == OUTCOME_TIMEOUT:
+        return 3
+    if leader == OUTCOME_FAILED:
+        return 1
+    return 2
+
+
+def run_member_loop(
+    ctx: SquadContext,
+    store: SquadStore,
+    role: str,
+    *,
+    max_iter: int,
+    poll_interval_sec: float,
+    timeout_sec: float,
+    max_tasks: int,
+    task_timeout_sec: float,
+    stuck_policy: str,
+    once: bool = False,
+) -> tuple[str, int]:
+    """
+    Unified run-loop for every catalog role.
+    - commander / orchestrator → leader supervise loop
+    - worker / meta → follower loop (await leader signal, never call supervise)
+    """
+    kind = _role_kind(ctx, role)
+    if kind == "orchestrator" or role == "commander":
+        return run_supervise(
+            ctx,
+            store,
+            timeout_sec=timeout_sec,
+            poll_interval_sec=poll_interval_sec,
+            max_waves=int(_supervisor_cfg(ctx).get("max_waves", 50)),
+            max_tasks=max_tasks,
+            task_timeout_sec=task_timeout_sec,
+            stuck_policy=stuck_policy,
+            once=once,
+        )
+
+    store.set_signal(role, "running", reason="member run-loop joined")
+    start = time.time()
+
+    for i in range(1, max_iter + 1):
+        if time.time() - start > timeout_sec:
+            store.set_signal(role, OUTCOME_TIMEOUT, reason="member_loop_timeout")
+            store.export_json()
+            return OUTCOME_TIMEOUT, 3
+
+        leader = leader_signal(store)
+        if leader in TERMINAL_LEADER:
+            store.export_json()
+            return leader, _exit_code_for_leader(leader)
+
+        tick = member_tick(ctx, store, role, task_timeout_sec=task_timeout_sec)
+        action = tick.get("action", "await_leader")
+
+        if action == "stand_down":
+            store.export_json()
+            return leader, _exit_code_for_leader(leader)
+
+        if action == "halt":
+            store.export_json()
+            return OUTCOME_FAILED, 1
+
+        if action == "claim" and tick.get("task_id"):
+            store.export_json()
+            if once:
+                return "tick", 2
+            time.sleep(poll_interval_sec)
+            continue
+
+        if action in ("work", "timeout", "wait_dispatch"):
+            store.export_json()
+            if once:
+                return "tick", 2
+            time.sleep(poll_interval_sec)
+            continue
+
+        # await_leader / idle → keep waiting for commander
+        store.export_json()
+        if once:
+            return "tick", 2
+        time.sleep(poll_interval_sec)
+
+    store.export_json()
+    return "max_iter", 2
+
+
+def spawn_agent_team(
+    ctx: SquadContext,
+    *,
+    poll_sec: float = 8.0,
+    max_iter: int = 500,
+) -> int:
+    """Start tmux sessions — each runs the same `squad run-loop --role`."""
+    root = ctx.project_root
+    squad = root / "tools/squad/squad.sh"
+    tmux = "tmux -f /exec-daemon/tmux.portal.conf"
+    roles = ["commander", "engineer-a", "engineer-b", "reviewer"]
+    for name in roles:
+        session = f"squad-{name}"
+        subprocess.run(
+            f"{tmux} kill-session -t {session} 2>/dev/null || true",
+            shell=True,
+            check=False,
+        )
+        cmd = (
+            f"cd {root!s} && {squad!s} resume --reason agent-team 2>/dev/null; "
+            f"{squad!s} dispatch --force --include-meta --max-tasks 4 2>/dev/null; "
+            f"{squad!s} run-loop --role {name} --max-iter {max_iter} --poll-interval {poll_sec}"
+        )
+        subprocess.run(
+            [tmux, "new-session", "-d", "-s", session, "-c", str(root), "--", "bash", "-lc", cmd],
+            check=False,
+        )
+    print("agent-team sessions:", ", ".join(f"squad-{r}" for r in roles))
+    return 0

@@ -35,16 +35,26 @@ tools/squad/squad.sh workflow-run worker --as-role engineer-a
 3. `squad reflect --gate <id> --status warn --note "..."`
 4. `squad sync-md --targets board,reflection`
 
-### 指挥长 C
+### 全队：同一工具 `run-loop`（禁止每角色一套脚本/py）
 
-**推荐**：`squad supervise`（while 循环，见 `catalog.supervisor`）
+```bash
+tools/squad/squad.sh run-loop --role commander    # 唯一 leader
+tools/squad/squad.sh run-loop --role engineer-a   # follower：等 leader 信号
+tools/squad/squad.sh run-loop --role engineer-b
+tools/squad/squad.sh run-loop --role reviewer
+tools/squad/squad.sh agent-team                   # tmux 起 4 条 run-loop
+```
 
-1. `squad supervise` — 每 tick：`assess` → 若 ready 则 **complete** 退出
-2. 否则检查 worker `failed`/`timeout` 信号 → **failed** 退出
-3. 否则 `dispatch` 空闲工程兵 → `sleep poll_interval` 直至全局超时 → **timeout**
-4. 每轮结束可 `squad sync-md --targets board`
+### 指挥长 C（leader）
 
-单 tick（Agent 轮询）：`squad supervise --once`（exit 2=继续，0=complete，1=failed，3=timeout）
+- 只有 commander 跑 `run-loop` 时进入 **supervise** 分支，写 `signals.supervisor`
+- `running` → 波次中；`standby` → 门禁已过但任务未清空；`complete|failed|timeout` → 全队退出
+- **禁止** 在 `assess.ready` 时立刻 `complete`（`team_mode`）；须任务全 done 且指派清空后 `release_team`
+
+### 队员 A/B/R（follower）
+
+- **同一** `run-loop`，内部 `member_tick`；**禁止** 调用 `supervise`
+- 无任务时 `action=await_leader`，在 while 里 sleep，直到 `supervisor` 为 `complete|failed|timeout`
 
 ### 信号（signals 表）
 
@@ -64,7 +74,7 @@ squad task-timeout engineer-a L2-companion
 
 ### 工程兵 A|B
 
-0. `squad worker-tick engineer-a` → 按 `action` 执行（while 直到 idle/complete 或 halt）
+0. `squad run-loop --role engineer-a`（或 Cloud Agent 常驻此一条命令）
 
 1. `squad status --role engineer-a`
 2. `squad claim engineer-a <task_id>`  # SQLite 锁 touch_paths

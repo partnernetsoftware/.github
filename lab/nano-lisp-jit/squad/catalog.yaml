@@ -21,9 +21,11 @@ dispatch:
   max_per_wave: 2
 # 指挥长 supervise：while 直到 complete | failed | timeout（禁止 dispatch 一轮即停）
 supervisor:
+  team_mode: true
   timeout_sec: 7200
   poll_interval_sec: 15
   max_waves: 50
+  max_iter: 500
   task_timeout_sec: 3600
   stuck_policy: fail
 signoff:
