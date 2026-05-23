@@ -48,3 +48,22 @@ sudo docker compose -f docker-compose.dev.yml run --rm dev cosmocc hello.c -o he
 | Bun | 1.3.14 | `/root/.bun/bin/` |
 
 The workspace is mounted at `/workspace` so edits are reflected immediately. CosmoRun build scripts expect cosmocc at `third_party/cosmocc/bin/`; inside the container, use a symlink: `ln -s /opt/cosmocc third_party/cosmocc`.
+
+### Coding agents & tools installed
+
+All available via `$PATH` (ensure `~/.local/bin` and `~/.bun/bin` are in PATH):
+
+| Tool | Command | Install method |
+|---|---|---|
+| Claude Code | `claude` | `npm i -g @anthropic-ai/claude-code` |
+| Cursor Agent CLI | `agent` | `curl https://cursor.com/install -fsS \| bash` |
+| Codex CLI (OpenAI) | `codex` | `npm i -g @openai/codex` |
+| Antigravity CLI (Google) | `agy` | `curl -fsSL https://antigravity.google/cli/install.sh \| bash` |
+| Hermes Agent | `hermes` | `pip install hermes-agent` |
+| OpenClaw | `openclaw` | `npm i -g openclaw@latest` |
+| OpenCode | `opencode` | `npm i -g opencode-ai@latest` |
+| CodeBuddy (Tencent) | `codebuddy` | `npm i -g @tencent-ai/codebuddy-code` |
+| lazygit | `lazygit` | Binary from GitHub releases |
+| byobu | `byobu` | `apt-get install byobu` |
+
+**Note**: All coding agents require their respective API keys to actually run sessions (e.g. `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GOOGLE_API_KEY`). They are installed but not authenticated.
