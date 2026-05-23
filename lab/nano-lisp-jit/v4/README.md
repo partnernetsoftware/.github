@@ -20,7 +20,7 @@ tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v4.yaml dispatch 
 tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v4.yaml agent-team --auto-exec
 ```
 
-**签收**：slice-0..2 已完成；当前 **`v4-slice3-scoped`**（S3 once tick）— 见 [`SLICE3.md`](SLICE3.md)。
+**签收**：slice-0..3 已完成（**`v4-slice3-scoped`** — S3 once tick）— 见 [`SLICE3.md`](SLICE3.md)。
 
 ```bash
 tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v4.yaml agent-team --auto-exec --auto-done

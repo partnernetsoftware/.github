@@ -10,7 +10,7 @@
 | **v4 slice-1** | **scoped 签收 · 完成** | 见 [`../v4/SLICE1.md`](../v4/SLICE1.md) |
 | **v4 lisp-only（plan）** | **完成** | 见 [`../v4/LISP-ONLY.md`](../v4/LISP-ONLY.md) |
 | **v4 slice-2** | **完成** | 见 [`../v4/SLICE2.md`](../v4/SLICE2.md) |
-| **v4 slice-3** | **推进中** | `v4-slice3-scoped` — S3 once tick；见 [`../v4/SLICE3.md`](../v4/SLICE3.md) |
+| **v4 slice-3** | **scoped 签收 · 完成** | `v4-slice3-scoped` — S3 once tick；见 [`../v4/SLICE3.md`](../v4/SLICE3.md) |
 
 ## 规则
 
