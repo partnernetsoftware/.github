@@ -72,4 +72,18 @@
 | 2026-05-23 | **wave13**：**agent-team 四角色 tmux 实跑**（`--auto-exec --auto-done`）完成 lowering-table + add13；修复 `spawn_agent_team` tmux argv |
 | 2026-05-23 | **wave12**：S7 emit profile + add11；`parse_add_operands` 已读 plan 内 `(i64 …)`，profile 标记可观测 |
 | 2026-05-23 | **wave11**：本文件 + S6 codegen kickoff；调整 wave11+ 双轨策略 |
+| 2026-05-23 | **wave27–28**：扩散收敛（整表+words-v2 交叉验证）；反思固化 PARALLEL 禁止碎补；`EVAL.md` 合 main 进度 |
 | 2026-05-23 | S0–S5 汇总入账；小队 §2 调整表与 `SQUAD_VERIFY` 实践 |
+---
+
+## 6. wave27–28 反思（扩散 vs 碎补）
+
+| 做对 | 做错 / 已改 |
+|------|-------------|
+| 一波铺开 plan 族 + catalog/run.sh | wave26 逐 op 改 C = 假进度 |
+| 整表 `plan-lisp-v1-full` 一次读入 | 勿再把「改 C」当终局交付 |
+| `EVAL.md` 六维与 catalog 分离 | 勿用 ready=True 暗示零宿主 |
+| 合 main 带进度评估 | — |
+
+**下一扩散面（未开卷）**：Lisp VM emit；`build.pass≥119` 进 plan（需 cosmocc）；runner 非 C。
+

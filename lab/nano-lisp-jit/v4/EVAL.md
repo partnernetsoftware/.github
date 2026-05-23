@@ -31,3 +31,13 @@
 - `tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v4.yaml assess`
 
 **未声称**：零 `.c` / `.py` / `.sh`（见 [`DECISION.md`](DECISION.md) 终局未开卷）。
+
+## wave28 增量（反思后）
+
+| 维度 | Δ |
+|------|---|
+| Codegen | words-v2 ↔ lisp 表交叉验证 `verified=plan-lisp-v1-full` |
+| 编排 | assess-evidence-chain + plan-contract-bundle |
+| 构建 | build-graph-full（plan 多锚点） |
+
+**终局整体**：仍约 **15–22%**；见 [`PROGRESS.md`](PROGRESS.md)。

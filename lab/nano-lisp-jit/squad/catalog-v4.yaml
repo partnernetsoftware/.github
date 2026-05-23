@@ -410,6 +410,33 @@ signoff:
       results_key: v4.slice27
       min_pass: 1
 
+    - id: v4-ir-words-v2
+      check: artifact
+      path_glob: "samples/v4-ir-words-v2.txt"
+    - id: v4-slice28-doc
+      check: artifact
+      path_glob: "v4/SLICE28.md"
+    - id: v4-wave28-diffusion-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v4-wave28-diffusion.lisp"
+    - id: v4-slice28-add23-elf
+      check: artifact
+      path_glob: ".build/bootstrap-v4-slice28-add23.elf"
+    - id: v4-build-graph-full-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v4-build-graph-full.lisp"
+    - id: v4-plan-contract-bundle-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v4-plan-contract-bundle.lisp"
+    - id: v4-assess-evidence-chain-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v4-assess-evidence-chain.lisp"
+    - id: v4-slice28-evidence
+      check: results
+      file: ".build/v4-slice28.evidence"
+      results_key: v4.slice28
+      min_pass: 1
+
   terminal_gates:
     - id: v35-regression-run
       check: results
@@ -1184,6 +1211,41 @@ tasks:
     depends: [wave27-v4-diffusion, wave27-v4-orchestration]
     accept:
       - "v4/EVAL.md 进度评估"
+      - "assess v4-complete ready"
+
+
+  wave28-v4-diffusion:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "../lispjit-ir/nano_bootstrap.c"
+      - "samples/v4-ir-words-v2.txt"
+      - "samples/bootstrap-v4-wave28-diffusion.lisp"
+      - ".build/v4-slice28.evidence"
+      - "run.sh"
+    accept:
+      - "aarch64.emit.ir.table.verified=plan-lisp-v1-full"
+      - "run-bootstrap-v4-wave28-diffusion-plan"
+  wave28-v4-orchestration:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v4-build-graph-full.lisp"
+      - "samples/bootstrap-v4-plan-contract-bundle.lisp"
+      - "samples/bootstrap-v4-assess-evidence-chain.lisp"
+      - "v4/REFLECTION.md"
+      - "v4/SLICE28.md"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-build-graph-full-plan"
+      - "run-bootstrap-v4-assess-evidence-chain-plan"
+      - "run-bootstrap-v4-slice28-evidence-plan"
+  wave28-v4-R:
+    assign_role: reviewer
+    priority: meta
+    depends: [wave28-v4-diffusion, wave28-v4-orchestration]
+    accept:
+      - "REFLECTION wave27-28"
       - "assess v4-complete ready"
 
 

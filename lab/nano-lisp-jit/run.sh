@@ -160,6 +160,13 @@ BOOTSTRAP_V4_SQUAD_ORCH_BUNDLE_SRC="$LAB_DIR/samples/bootstrap-v4-squad-orchestr
 BOOTSTRAP_V4_SLICE27_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v4-slice27-evidence.lisp"
 V4_SLICE27_ADD22_ELF="$BUILD_DIR/bootstrap-v4-slice27-add22.elf"
 V4_SLICE27_EVIDENCE="$BUILD_DIR/v4-slice27.evidence"
+BOOTSTRAP_V4_WAVE28_DIFFUSION_SRC="$LAB_DIR/samples/bootstrap-v4-wave28-diffusion.lisp"
+BOOTSTRAP_V4_BUILD_GRAPH_FULL_SRC="$LAB_DIR/samples/bootstrap-v4-build-graph-full.lisp"
+BOOTSTRAP_V4_PLAN_CONTRACT_SRC="$LAB_DIR/samples/bootstrap-v4-plan-contract-bundle.lisp"
+BOOTSTRAP_V4_ASSESS_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v4-assess-evidence-chain.lisp"
+BOOTSTRAP_V4_SLICE28_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v4-slice28-evidence.lisp"
+V4_SLICE28_ADD23_ELF="$BUILD_DIR/bootstrap-v4-slice28-add23.elf"
+V4_SLICE28_EVIDENCE="$BUILD_DIR/v4-slice28.evidence"
 SQUAD_SH="$ROOT_DIR/tools/squad/squad.sh"
 CATALOG_V4="$LAB_DIR/squad/catalog-v4.yaml"
 BOOTSTRAP_V35_NANO_CC_AARCH64_SRC="$LAB_DIR/samples/bootstrap-v35-nano-cc-aarch64.lisp"
@@ -1784,6 +1791,34 @@ run_case "run-bootstrap-v4-slice27-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE27_EVIDENCE_SRC"'" 2>&1) || true
   test -f "'"$LAB_DIR"'/v4/EVAL.md"
   { echo "v4.slice27=1"; } >> "'"$V4_SLICE27_EVIDENCE"'"
+'
+
+run_case "run-bootstrap-v4-wave28-diffusion-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE28_DIFFUSION_SRC"'" 2>&1) || true
+  printf "%s
+" "$out" | grep -q "aarch64.emit.ir.table.verified=plan-lisp-v1-full"
+  test -f "'"$V4_SLICE28_ADD23_ELF"'"
+'
+
+run_case "run-bootstrap-v4-build-graph-full-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_BUILD_GRAPH_FULL_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/samples/bootstrap-v4-wave28-diffusion.lisp"
+'
+
+run_case "run-bootstrap-v4-plan-contract-bundle-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_PLAN_CONTRACT_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/samples/v4-ir-words-v2.txt"
+'
+
+run_case "run-bootstrap-v4-assess-evidence-chain-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_ASSESS_EVIDENCE_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/EVAL.md"
+'
+
+run_case "run-bootstrap-v4-slice28-evidence-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE28_EVIDENCE_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/SLICE28.md"
+  { echo "v4.slice28=1"; } >> "'"$V4_SLICE28_EVIDENCE"'"
 '
 
 run_case "run-bootstrap-v4-slice16-plan-words-plan" bash -c '
