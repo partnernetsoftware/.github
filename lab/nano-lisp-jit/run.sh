@@ -82,6 +82,10 @@ V4_SLICE1_ADD7_ELF="$BUILD_DIR/bootstrap-v4-slice1-add7.elf"
 V4_SLICE1_EVIDENCE="$BUILD_DIR/v4-slice1.evidence"
 BOOTSTRAP_V4_GEN5_ANCHOR_SRC="$LAB_DIR/samples/bootstrap-v4-gen5-anchor.lisp"
 V4_LISP_ONLY_EVIDENCE="$BUILD_DIR/v4-lisp-only.evidence"
+BOOTSTRAP_V4_SQUAD_S2_STATE_SRC="$LAB_DIR/samples/bootstrap-v4-squad-s2-state.lisp"
+BOOTSTRAP_V4_GEN5_VIA_GEN2_ANCHOR_SRC="$LAB_DIR/samples/bootstrap-v4-gen5-via-gen2-anchor.lisp"
+BOOTSTRAP_V4_SLICE2_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v4-slice2-evidence.lisp"
+V4_SLICE2_EVIDENCE="$BUILD_DIR/v4-slice2.evidence"
 BOOTSTRAP_V35_NANO_CC_AARCH64_SRC="$LAB_DIR/samples/bootstrap-v35-nano-cc-aarch64.lisp"
 BOOTSTRAP_V35_BUILD_SLICE_AARCH64_SRC="$LAB_DIR/samples/bootstrap-v35-build-slice-aarch64.lisp"
 BOOTSTRAP_V35_BUILD_SLICE_LISP_AARCH64_SRC="$LAB_DIR/samples/bootstrap-v35-build-slice-lisp-aarch64.lisp"
@@ -1366,6 +1370,32 @@ run_case "run-bootstrap-v4-gen5-anchor-plan" bash -c '
   printf "%s\n" "$out" | grep -q "bootstrap-step.*=file"
   ! awk "!/^[[:space:]]*;/ && /\.c/" "'"$BOOTSTRAP_V35_SELFHOST_GEN5_SRC"'" | grep -q .
   echo "v4.gen5_anchor=1" >> "'"$V4_LISP_ONLY_EVIDENCE"'"
+'
+run_case "run-bootstrap-v4-squad-s2-state-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SQUAD_S2_STATE_SRC"'" 2>&1) || true
+  printf "%s\n" "$out"
+  printf "%s\n" "$out" | grep -q "bootstrap-step.*=file"
+  test -f "'"$LAB_DIR"'/.squad/state-v4.db"
+'
+run_case "run-bootstrap-v4-gen5-via-gen2-anchor-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_GEN5_VIA_GEN2_ANCHOR_SRC"'" 2>&1) || true
+  printf "%s\n" "$out"
+  test -f "'"$SELFHOST_DIR"'/v35-gen5v2-slice-min-x86.elf" || {
+    echo "skip: gen5v2 artifacts missing (run gen5-via-gen2 first)"
+    exit 0
+  }
+  printf "%s\n" "$out" | grep -q "bootstrap-step.*=file"
+'
+run_case "run-bootstrap-v4-slice2-evidence-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE2_EVIDENCE_SRC"'" 2>&1) || true
+  printf "%s\n" "$out"
+  test -f "'"$LAB_DIR"'/.squad/state-v4.db"
+  {
+    echo "v4.slice2=1"
+    echo "v4.slice2_s2_state=1"
+    echo "v4.slice2_gen5v2_anchor=1"
+    echo "v4.slice2_plan=run-bootstrap-v4-slice2-evidence-plan"
+  } >> "'"$V4_SLICE2_EVIDENCE"'"
 '
 
 # --- bootstrap-v25 native selfpack (pack-ape per plan) ---

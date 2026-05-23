@@ -20,7 +20,11 @@ tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v4.yaml dispatch 
 tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v4.yaml agent-team --auto-exec
 ```
 
-**签收**：slice-0/1 已完成；当前门禁 **`v4-lisp-only-scoped`**（plan 无 `.c` + gen5 锚点 + 回归）— 见 [`SLICE1.md`](SLICE1.md)、[`LISP-ONLY.md`](LISP-ONLY.md)。
+**签收**：slice-0/1 + lisp-only 已完成；当前波次 **`v4-slice2-scoped`**（squad S2 状态 + gen5-via-gen2 锚点）— 见 [`SLICE2.md`](SLICE2.md)。
+
+```bash
+tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v4.yaml agent-team --auto-exec --auto-done
+```
 
 **小队**：四角色固定进程 — `agent-team --auto-exec --auto-done`（一进程一角色，保持上下文稳定）。
 
@@ -94,7 +98,8 @@ slice S5 — 与构建图合一
 | 样本 | 覆盖 |
 |------|------|
 | `samples/bootstrap-v4-squad-assess.lisp` | S0：catalog 门禁 + file-hash |
-| `samples/bootstrap-v4-squad-dispatch.lisp` | S2：dispatch + signal smoke |
+| `samples/bootstrap-v4-squad-dispatch.lisp` | catalog 契约 smoke |
+| `samples/bootstrap-v4-squad-s2-state.lisp` | **S2**：`state-v4.db` + JSON 导出 |
 | `samples/bootstrap-v4-squad-run-loop-once.lisp` | S3：leader/member 各 `--once` tick |
 
 首波 **不实现** SQLite FFI；S0–S1 用 checked-in plan + 现有 runner 断言 stdout/exit，与 [`bootstrap-v4-kickoff.lisp`](../samples/bootstrap-v4-kickoff.lisp) 同模式。

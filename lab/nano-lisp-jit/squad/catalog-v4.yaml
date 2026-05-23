@@ -24,7 +24,7 @@ supervisor:
   task_timeout_sec: 3600
   stuck_policy: fail
 signoff:
-  id: v4-lisp-only-scoped
+  id: v4-slice2-scoped
   require_terminal: false
   gates:
     - id: v35-regression-run
@@ -89,6 +89,24 @@ signoff:
     - id: v4-lisp-only-doc
       check: artifact
       path_glob: "v4/LISP-ONLY.md"
+    - id: v4-squad-s2-state-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v4-squad-s2-state.lisp"
+    - id: v4-gen5v2-anchor-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v4-gen5-via-gen2-anchor.lisp"
+    - id: v4-slice2-doc
+      check: artifact
+      path_glob: "v4/SLICE2.md"
+    - id: v4-slice2-evidence
+      check: results
+      file: ".build/v4-slice2.evidence"
+      results_key: v4.slice2
+      min_pass: 1
+    - id: v35-gen5v2-plan-no-c
+      check: artifact
+      path_glob: "samples/bootstrap-v35-selfhost-gen5-via-gen2.lisp"
+      plan_must_not_match: '\\.c'
 
 tasks:
   v4-aarch64-aot-plan:
@@ -235,6 +253,34 @@ tasks:
       - "assess v4-lisp-only-scoped ready"
       - "v4/README 链到 LISP-ONLY.md"
       - "REFLECTION 诚实口径一行"
+  wave6-v4-squad-s2-state:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v4-squad-s2-state.lisp"
+      - "lab/nano-lisp-jit/.squad/state-v4.db"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-squad-s2-state-plan"
+      - "state-v4.db exists"
+  wave6-v4-gen5v2-regression:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "run.sh"
+      - "samples/bootstrap-v4-gen5-via-gen2-anchor.lisp"
+      - ".build/v4-slice2.evidence"
+    accept:
+      - "run-bootstrap-v35-selfhost-gen5-via-gen2-plan"
+      - "run-bootstrap-v4-slice2-evidence-plan"
+  wave6-v4-R:
+    assign_role: reviewer
+    priority: meta
+    depends: [wave6-v4-squad-s2-state, wave6-v4-gen5v2-regression]
+    accept:
+      - "assess v4-slice2-scoped ready"
+      - "v4/README + SLICE2.md"
+      - "REFLECTION slice-2 行"
 
 verify:
   commands:
