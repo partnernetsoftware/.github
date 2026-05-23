@@ -199,7 +199,7 @@ nano-jit continuation after self-bootstrap v1
 │  ├─ 设计：A/B 自举分层；VM/AOT 参数与 exit 2 统一
 │  ├─ 实现：PARAM 不计入 PC；cross aarch64 + qemu static smoke
 │  ├─ 测试：self-packed v3 矩阵 + build.pass/skip/fail
-│  └─ 下一圈：**v3 slice 4b-3** — 见 [`v3/CODEGEN.md`](v3/CODEGEN.md)（v3.5 冻结）
+│  └─ 下一圈：**v3.5 并行** — slice 0 100%；切片 1–6 见 [`v3.5/PARALLEL.md`](v3.5/PARALLEL.md)
 ├─ v2.5: v2 反思收口（把 scoped 缺口变成可测切片）
 │  ├─ 反思 · 设计（v2 发现的问题）
 │  │  ├─ scoped 100% 与 mindmap 脱节：「richer IR/VM 参数」只落了 AOT 单 `(param i64)`，VM 仍无参
@@ -270,7 +270,7 @@ nano-jit continuation after self-bootstrap v1
 
 **v3 core（slice 0–3）**：**100%** — 反思见 [`v3/REFLECTION.md`](v3/REFLECTION.md)。  
 **v3 完全 100%**：**100%** — 编排 + 4b-1/4b-2/4b-3；见 [`v3/README.md`](v3/README.md)。  
-**v3.5**：**可启动** — 扩展 nano-cc 覆盖全量 C 前端等（见 [`v3.5/README.md`](v3.5/README.md)）。
+**v3.5**：**~15%** — slice 0 100%；切片 1–6 并行 kickoff（见 [`v3.5/README.md`](v3.5/README.md)、[`v3.5/PARALLEL.md`](v3.5/PARALLEL.md)）。
 
 ### v3.5 洋葱 TDD mindmap（kickoff）
 
@@ -293,40 +293,40 @@ v3.5: nano-cc（nano-jit 作为 cc 编译器）
 │  ├─ 已有资产可复用：`compile-elf64-*` / `aot-elf64-obj-code` / `link-elf64-exe` / section+reloc
 │  ├─ 缺口：无 C 前端；无 `#include` 展开；无 SysV 全 ABI；aarch64 后端独立于 x86_64
 │  └─ 风险：试图一次译全 `lispjit.c` 会爆炸 — 必须 C-subset 洋葱切片
-├─ slice 0: nano-cc 证据门禁（0%）
-│  ├─ sample：`samples/nano-cc-hello.c`（`main` return 42）+ `nano-cc-hello.expect`
-│  ├─ CLI：`nano-cc compile input.c -o out.elf`（由 genesis runner 或 `nano-jit.com` 承载）
-│  ├─ native：`run.sh` `nano-cc-compile-hello` / `nano-cc-run-exit42`
-│  ├─ 负向：syntax error / unsupported construct → 明确 exit（对齐 [`v3/ERROR-CODES.md`](v3/ERROR-CODES.md) 扩展表）
-│  └─ 验收：不依赖 host `cc` 生成该 hello ELF（允许 genesis 编 nano-cc 自身一次）
-├─ slice 1: C-subset 前端（Lisp 描述 → 内部 IR）（0%）
+├─ slice 0: nano-cc 证据门禁（**100%**）
+│  ├─ sample：`samples/nano-cc-hello.c`（`main` return 42）+ `nano-cc-bad.c`
+│  ├─ CLI：`nano-cc compile input.c -o out.elf`（genesis runner 或 `nano-jit.com`）
+│  ├─ native：`run.sh` `nano-cc-compile-hello-cli` / `nano-cc-run-hello-exit42`
+│  ├─ 负向：syntax error / unsupported construct → exit 2（[`v3.5/ERROR-CODES.md`](v3.5/ERROR-CODES.md)）
+│  └─ 验收：不依赖 host `cc` 生成 hello ELF（genesis 编 runner 一次可接受）
+├─ slice 1: C-subset 前端（Lisp 描述 → 内部 IR）（**kickoff ~5%** · 并行 track A）
 │  ├─ sample：单函数 `int add(int a,int b){ return a+b; }` + 调用方
-│  ├─ 前端：token/parse lower 到 nano `Module` 或专用 `CModule`（checked-in `.lisp` 或 `.c` 子集规范）
+│  ├─ 前端：token/parse lower 到 nano `Module` 或专用 `CModule`（`add-parse` stderr tag）
 │  ├─ 洋葱：样例 → parse dump → `.lbin` 中间表示 hash 稳定
 │  ├─ bootstrap：`(nano-cc-compile "…c" "…o")` DSL 步骤（plan-only 先行）
 │  └─ 验收：`infer`/`compile` 与 hand-written `.lisp` 等价路径 exit 一致
-├─ slice 2: x86_64 对象发射（0%）
+├─ slice 2: x86_64 对象发射（**kickoff ~5%** · 并行 track B，等 slice 1 IR）
 │  ├─ 复用：`compile-elf64-obj-code` / rodata+data PC32 已有链路
 │  ├─ sample：全局 const、简单 `if`/`while`、函数间 `call`（PLT32/rel32 范围负向沿用 v2 fixture）
 │  ├─ link：`link-elf64-exe` 链 `nano-cc` 多 object 成 slice 候选
 │  └─ 验收：与 host `cc -DNANO_LISP_JIT …` 的 **符号表/入口/exit 行为** 对齐（先不强求逐字节）
-├─ slice 3: `build-slice` 切换（0%）
+├─ slice 3: `build-slice` 切换（**0% blocked** · 并行 track C）
 │  ├─ 改 `cmd_build_slice`：`NANO_CC=1` 或 `build-slice.compiler=nano-cc`
 │  ├─ sample：`bootstrap-v35-build-slice.lisp` 替换 `bootstrap-v3-build-slice.lisp` 路径
 │  ├─ report：`build-slice.role=nano-cc`（禁止静默回退 host `cc` 除非 `NANO_CC_FALLBACK=1`）
 │  ├─ self-pack：genesis `nano-jit.com` 跑 v35 plan
 │  └─ 验收：`run.sh` + `build_nano_jit.sh` 全绿；`build-slice` 日志无 `compiler=cc`
-├─ slice 4: aarch64 nano-cc（0%）
+├─ slice 4: aarch64 nano-cc（**kickoff ~5%** · 并行 track D）
 │  ├─ 路线 A：独立 aarch64 发射后端（与 v3 cross slice 对齐）
 │  ├─ 路线 B：先 x86_64-only nano-cc + cross 仅 genesis（文档化缺口）
 │  ├─ sample：qemu-aarch64 跑 nano-cc 产物 arithmetic（延续 v3 slice 2 证据）
 │  └─ 验收：payload hash distinct + qemu compile/run（与 v3 同门槛）
-├─ slice 5: gen3 自举（nano-cc 编 slice）（0%）
+├─ slice 5: gen3 自举（nano-cc 编 slice）（**0% blocked** · 并行 track E）
 │  ├─ sample：`bootstrap-v35-selfhost-gen3.lisp` — gen2 runner 调 nano-cc `build-slice` 出 gen3
 │  ├─ 对比：gen2 vs gen3 slice hash 允许相同（确定性）或版本化 bump
-│  ├─ 门禁：`selfhost-gen3-*` in `build_nano_jit.sh`
+│  ├─ 门禁：`selfhost-v35-gen3-*` in `build_nano_jit.sh`
 │  └─ 验收：**日常重建**不再调用 host `cc` 编 `lispjit.c`（Genesis pin 除外）
-├─ slice 6: 收缩 Genesis（0%）
+├─ slice 6: 收缩 Genesis（**0% blocked** · 并行 track F）
 │  ├─ pin：`third_party/nano-genesis/` 或 hash 锁定的最小 seed ELF
 │  ├─ 文档：何时允许重编 genesis（安全/ libc 变更），何时禁止
 │  └─ 验收：CI 默认无 `cc lispjit.c`；仅 `NANO_REGENESIS=1` 打破 pin
@@ -334,7 +334,7 @@ v3.5: nano-cc（nano-jit 作为 cc 编译器）
    ├─ `build-slice` 默认 nano-cc；host `cc` 仅 fallback/文档化
    ├─ gen3 selfhost 证据入库（bootstrap DSL + build 矩阵）
    ├─ v2/v2.5/v3 全量 fixture 不退化
-   └─ ROADMAP / `v3.5/README.md` 进度表可追踪（非「实现 cc」空话）
+   └─ ROADMAP / `v3.5/README.md` / `v3.5/PARALLEL.md` 进度可追踪（非「实现 cc」空话）
 ```
 
 ### v3.5 完成度（工程向）
@@ -342,14 +342,14 @@ v3.5: nano-cc（nano-jit 作为 cc 编译器）
 | 切片 | 状态 | 说明 |
 |------|------|------|
 | slice 0 nano-cc 证据门禁 | **100%** | `nano-cc compile -o`、bootstrap-v35、负向 exit 2 |
-| slice 1 C-subset 前端 | **0%** | parse/lower → IR |
-| slice 2 x86_64 对象发射 | **0%** | object+link 对齐 host cc 行为 |
-| slice 3 `build-slice` 切换 | **0%** | `build-slice.role=nano-cc` |
-| slice 4 aarch64 nano-cc | **0%** | cross + qemu 证据 |
-| slice 5 gen3 自举 | **0%** | nano-cc 重建 slice，零日常 host `cc` |
-| slice 6 Genesis 收缩 | **0%** | pin seed + `NANO_REGENESIS` |
+| slice 1 C-subset 前端 | **kickoff ~5%** | `add-parse`；并行 track A |
+| slice 2 x86_64 对象发射 | **kickoff ~5%** | object+link；等 slice 1 IR |
+| slice 3 `build-slice` 切换 | **0%** blocked | `build-slice-codegen`；[`v3.5/ERROR-CODES.md`](v3.5/ERROR-CODES.md) |
+| slice 4 aarch64 nano-cc | **kickoff ~5%** | cross + qemu 或路线 B |
+| slice 5 gen3 自举 | **0%** blocked | `bootstrap-v35-selfhost-gen3` |
+| slice 6 Genesis 收缩 | **0%** blocked | pin seed + `NANO_REGENESIS` |
 
-**v3.5 整体**：**~15%** — slice 0 签收。下一刀 slice 1 C-subset 前端。见 [`v3.5/README.md`](v3.5/README.md)。
+**v3.5 整体**：**~15%** — slice 0 签收；1/2/4 并行 kickoff。合并波次见 [`v3.5/PARALLEL.md`](v3.5/PARALLEL.md)。
 
 ### 0. 证据基线
 
@@ -403,10 +403,11 @@ v3.5: nano-cc（nano-jit 作为 cc 编译器）
 
 **稳定基线**：v3 core + 编排 + 4b-1/4b-2 证据全绿（`run.sh` 216 pass；`build_nano_jit.sh` 107 pass）。
 
-**当前下一刀（v3.5）**：
+**当前下一刀（v3.5 并行）**：
 
-1. 扩展 `nano-cc` C 前端，逐步用 `lisp-codegen` 替代 `genesis-pin` 复制（可选 `NANO_REGENESIS` 刷新 pin）。
-2. 外部语义 / 全量 TU 编译见 v3.5 mindmap。
+1. 六轨并行：slice 1 `add-parse`、2 x86 emit、4 aarch64 脚手架（wave 1）；slice 3 `build-slice-codegen` 待 1+2。
+2. 合并顺序与命令：[`v3.5/PARALLEL.md`](v3.5/PARALLEL.md)；错误码 [`v3.5/ERROR-CODES.md`](v3.5/ERROR-CODES.md)。
+3. 基线不退化：`bash lab/nano-lisp-jit/run.sh` + `NANO_SELFHOST_THOROUGH=1 build_nano_jit.sh` 全绿后再 merge 各轨。
 
 历史基线：v3 完全 100% — genesis-pin + gen1→gen2→gen3 + `build-slice-lisp` + `nano-cc-hello`。
 
