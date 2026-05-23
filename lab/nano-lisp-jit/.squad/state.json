@@ -8,7 +8,7 @@
     "commander": null,
     "engineer-b": null,
     "engineer-a": null,
-    "reviewer": "wave-squad-R2"
+    "reviewer": null
   },
   "tasks": {
     "L2-companion": {
@@ -37,8 +37,9 @@
       "commit": "17f9d42"
     },
     "wave-squad-R2": {
-      "status": "in_progress",
-      "assign_role": "reviewer"
+      "status": "done",
+      "assign_role": "reviewer",
+      "commit": "b06a23e"
     }
   },
   "findings": [
@@ -131,5 +132,5 @@
     ],
     "manual": []
   },
-  "updated_at": "2026-05-23T07:37:27.004164+00:00"
+  "updated_at": "2026-05-23T07:37:38.743105+00:00"
 }
