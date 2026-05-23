@@ -33,6 +33,21 @@
 - **错误码分裂**：parse 用 `add_parse_fail`，compile 用 `unsupported_source`；应统一 reason 枚举并写入 [`ERROR-CODES.md`](ERROR-CODES.md)。
 - **无 `#include` / 多 TU**：`link-elf64-exe` 已有多 object，nano-cc 未接入；slice 2 若只做单文件 `.o` 仍不够编 `lispjit.c` 子集。
 
+### 2.3 Squad 工具实践暴露（2026-05-23 · 已部分修复）
+
+| 现象 | 根因 | 状态 |
+|------|------|------|
+| 派单一轮就停、未到 100% | 无 `supervise` while；`dispatch` 一轮即结束 | 已加 `run-loop` + leader |
+| 4 个 Agent 秒退 | 队员自己跑 `supervise`，见 `assess.ready` 即退出 | 已改 follower 只 `await_leader` |
+| 审查员从未派单 | `dispatch` 只遍历 `engineer-*` | 已加 `--include-meta` |
+| 签收 100% 后 wave 卡死 | `assess` / `dispatch` 遇 ready 即 `halt` | `team_mode` + `resume` |
+| 每角色一套 shell/py | `run-role-loop.sh` 与 reviewer 内联 bash 分叉 | 已统一 `squad run-loop --role` |
+| `squad verify` 路径双份 | catalog 写 `lab/.../run.sh` 而 `work_root` 已在 `nano-lisp-jit` | 已改为 `run.sh` |
+| 门禁与叙事不一致 | `findings` 仍留 warn，auto gate 已 pass | **未清**：应 `reflect` 或清 findings |
+| 签收证据旁路 | `v35-signoff.evidence` 由 run.sh 写入，非 bootstrap 步骤 | **scoped 可接受**；长期应 plan 内 `(evidence …)` |
+| `run-loop` 不代劳 claim/done | 只提示 action，实现仍靠 Agent 手跑 CLI | **待办**：Lisp 化后内嵌到 slice runner |
+| 多机 Cloud 难共享锁 | SQLite `state.db` 本机 WAL | 预期；远程需单 orchestrator 或导出 JSON 合并 |
+
 ### 2.2 实现
 
 - **`nano_cc_parse_main_return` 扫描全文件**：注释里 `main` 曾触发误匹配（已部分修复）；缺词法器，**误报/漏报**风险仍在。
