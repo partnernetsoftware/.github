@@ -12,7 +12,9 @@
 | slice 5 gen3 自举 | **100%** scoped | `bootstrap-v35-selfhost-gen3`、genesis pin pack |
 | slice 6 Genesis 收缩 | **~scoped kickoff** | [`GENESIS-SHRINK.md`](GENESIS-SHRINK.md)、`bootstrap-v35-genesis-shrink` |
 
-**v3.5 整体**：**~55%**
+**Lisp-only 线 L0**：见 [`LISP-ONLY.md`](LISP-ONLY.md)（新增 slice 只写 `.lisp`）。
+
+**v3.5 整体**：**~60%**
 
 ## slice 0 证据
 

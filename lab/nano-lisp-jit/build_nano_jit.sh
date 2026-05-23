@@ -133,6 +133,8 @@ BOOTSTRAP_V35_NANO_CC_HELLO="$LAB_DIR/samples/bootstrap-v35-nano-cc-hello.lisp"
 BOOTSTRAP_V35_BUILD_SLICE="$LAB_DIR/samples/bootstrap-v35-build-slice.lisp"
 BOOTSTRAP_V35_BUILD_SLICE_AARCH64="$LAB_DIR/samples/bootstrap-v35-build-slice-aarch64.lisp"
 BOOTSTRAP_V35_SELFHOST_GEN3="$LAB_DIR/samples/bootstrap-v35-selfhost-gen3.lisp"
+BOOTSTRAP_V35_SELFHOST_GEN4="$LAB_DIR/samples/bootstrap-v35-selfhost-gen4.lisp"
+BOOTSTRAP_V35_LISP_ONLY_MATRIX="$LAB_DIR/samples/bootstrap-v35-lisp-only-matrix.lisp"
 BOOTSTRAP_V35_GENESIS_SHRINK="$LAB_DIR/samples/bootstrap-v35-genesis-shrink.lisp"
 SELFHOST_DIR="$BUILD_DIR/selfhost"
 NANO_SELFHOST_THOROUGH="${NANO_SELFHOST_THOROUGH:-1}"
@@ -467,6 +469,8 @@ case "$NANO_SLICE_COMPILER" in
       '
       echo "slice.x86_64.source=genesis-pin" | tee -a "$REPORT"
     fi
+    run_case "build-native-runner-current-tree" cc -DNANO_LISP_JIT -Os -s "$NANO_C" -ldl \
+      -o "$LAB_DIR/.build/nano-lisp-jit"
     if cosmocc_bin_usable "$COSMO_BIN"; then
       if [ "${NANO_REGENESIS:-}" = "1" ]; then
         run_case "regenesis-build-aarch64-slice" "$ARM_CC" "${COMMON[@]}" -o "$BUILD_DIR/nano-jit.aarch64"
@@ -604,6 +608,8 @@ if [ "$AARCH64_SLICE_SKIPPED" = 1 ]; then
     bash -c "cd \"$ROOT_DIR\" && \"$PACKER\" run-bootstrap-plan \"$BOOTSTRAP_V3_VM_MATRIX\""
   run_case "run-bootstrap-v3-codegen-smoke-native-slice" \
     bash -c "cd \"$ROOT_DIR\" && \"$PACKER\" run-bootstrap-plan \"$BOOTSTRAP_V3_CODEGEN_SMOKE\""
+  run_case "run-bootstrap-v35-lisp-only-matrix-native-slice" \
+    bash -c "cd \"$ROOT_DIR\" && \"$LAB_DIR/.build/nano-lisp-jit\" run-bootstrap-plan \"$BOOTSTRAP_V35_LISP_ONLY_MATRIX\""
   run_case "run-bootstrap-v35-nano-cc-hello-native-slice" \
     bash -c "cd \"$ROOT_DIR\" && \"$PACKER\" run-bootstrap-plan \"$BOOTSTRAP_V35_NANO_CC_HELLO\""
   run_case "run-bootstrap-v35-build-slice-native-slice" \
@@ -870,6 +876,17 @@ if [ "$NANO_SELFHOST_THOROUGH" = "1" ] && { [ "$(uname -m)" = "x86_64" ] || [ "$
     "'"$SELFHOST_DIR"'/v35-gen3-slice-lisp-x86.elf"; test $? -eq 42
     "'"$SELFHOST_DIR"'/v35-gen3-slice-nano-cc-x86.elf"; test $? -eq 42
     "'"$SELFHOST_DIR"'/gen2-slice-x86.elf" run "'"$SELFHOST_DIR"'/v35-gen3-arithmetic.lbin"
+  '
+  run_case "selfhost-v35-gen4-round-packer-runner" bash -c '
+    cd "'"$ROOT_DIR"'" && "'"$LAB_DIR"'/.build/nano-lisp-jit" run-bootstrap-plan "'"$BOOTSTRAP_V35_SELFHOST_GEN4"'"
+  '
+  run_case "selfhost-v35-gen4-round-artifacts" bash -c '
+    test -x "'"$SELFHOST_DIR"'/v35-gen4-slice-min-x86.elf"
+    test -x "'"$SELFHOST_DIR"'/v35-gen4-slice-add-x86.elf"
+    test -f "'"$SELFHOST_DIR"'/v35-gen4-nano-jit.com"
+    "'"$SELFHOST_DIR"'/v35-gen4-slice-min-x86.elf"; test $? -eq 42
+    "'"$SELFHOST_DIR"'/v35-gen4-slice-add-x86.elf"; test $? -eq 42
+    "'"$SELFHOST_DIR"'/gen2-slice-x86.elf" run "'"$SELFHOST_DIR"'/v35-gen4-arithmetic.lbin"
   '
   {
     echo "selfhost.thorough=ok"

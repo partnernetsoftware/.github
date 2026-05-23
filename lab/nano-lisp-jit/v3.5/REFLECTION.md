@@ -97,3 +97,4 @@ P3（架构债，v4）
 | 日期 | 摘要 |
 |------|------|
 | 2026-05-23 | 初版：技术债表、缺陷、实验 H、P0–P3；入 ROADMAP mindmap track R |
+| 2026-05-23 | **L0 签收**：`LISP-ONLY.md`、gen4、`.lisp` build-slice 路由、`build-slice-lisp` AOT fallback |

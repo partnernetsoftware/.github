@@ -1,5 +1,6 @@
 /* Included from lispjit.c — bootstrap plan DSL parse + run-bootstrap-plan. */
 static int cmd_compile_elf64_code(const char *src_path, const char *out_path);
+static int cmd_compile_elf64_exe(const char *src_path, const char *out_path, const char *symbol);
 
 static int build_slice_is_nano_cc_sample_c(const char *base) {
   size_t n;
@@ -70,11 +71,35 @@ static int cmd_build_slice_lisp(const char *src_path, const char *out_path, cons
   printf("build-slice.source=%s\n", src_path);
   printf("build-slice.output=%s\n", out_path);
   rc = cmd_compile_elf64_code(src_path, out_path);
-  if (rc != 0) {
-    fprintf(stderr, "build-slice-lisp=codegen_fail\n");
-    return rc;
+  if (rc == 0) {
+    printf("build-slice-lisp.mode=compile-elf64-code\n");
+    return cmd_file_size(out_path);
   }
-  return cmd_file_size(out_path);
+  rc = cmd_compile_elf64_exe(src_path, out_path, "nano_main");
+  if (rc == 0) {
+    printf("build-slice-lisp.mode=compile-elf64-exe\n");
+    printf("build-slice-lisp.entry=nano_main\n");
+    return cmd_file_size(out_path);
+  }
+  rc = cmd_compile_elf64_exe(src_path, out_path, "nano_cc_add");
+  if (rc == 0) {
+    printf("build-slice-lisp.mode=compile-elf64-exe\n");
+    printf("build-slice-lisp.entry=nano_cc_add\n");
+    return cmd_file_size(out_path);
+  }
+  fprintf(stderr, "build-slice-lisp=codegen_fail\n");
+  return rc != 0 ? rc : 2;
+}
+
+static int build_slice_is_lisp_source(const char *src_path) {
+  const char *base = src_path;
+  const char *slash;
+  size_t n;
+  if (!src_path) return 0;
+  slash = strrchr(src_path, '/');
+  if (slash) base = slash + 1;
+  n = strlen(base);
+  return n > 5 && strcmp(base + n - 5, ".lisp") == 0;
 }
 
 static int cmd_build_slice(const char *src_path, const char *out_path, const char *arch) {
@@ -83,6 +108,10 @@ static int cmd_build_slice(const char *src_path, const char *out_path, const cha
   if (!src_path || !out_path || !arch) {
     fprintf(stderr, "build-slice=bad_args\n");
     return 1;
+  }
+  if (build_slice_is_lisp_source(src_path)) {
+    printf("build-slice.route=lisp-by-extension\n");
+    return cmd_build_slice_lisp(src_path, out_path, arch);
   }
   if (build_slice_use_nano_cc(src_path)) return build_slice_via_nano_cc(src_path, out_path, arch);
   if (build_slice_use_genesis_pin(src_path))

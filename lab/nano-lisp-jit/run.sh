@@ -59,6 +59,9 @@ BOOTSTRAP_V35_NANO_CC_HELLO_SRC="$LAB_DIR/samples/bootstrap-v35-nano-cc-hello.li
 BOOTSTRAP_V35_NANO_CC_ADD_SRC="$LAB_DIR/samples/bootstrap-v35-nano-cc-add.lisp"
 BOOTSTRAP_V35_BUILD_SLICE_SRC="$LAB_DIR/samples/bootstrap-v35-build-slice.lisp"
 BOOTSTRAP_V35_SELFHOST_GEN3_SRC="$LAB_DIR/samples/bootstrap-v35-selfhost-gen3.lisp"
+BOOTSTRAP_V35_LISP_ONLY_MATRIX_SRC="$LAB_DIR/samples/bootstrap-v35-lisp-only-matrix.lisp"
+BOOTSTRAP_V35_BUILD_SLICE_LISP_ROUTE_SRC="$LAB_DIR/samples/bootstrap-v35-build-slice-lisp-route.lisp"
+BOOTSTRAP_V35_SELFHOST_GEN4_SRC="$LAB_DIR/samples/bootstrap-v35-selfhost-gen4.lisp"
 BOOTSTRAP_V35_NANO_CC_AARCH64_SRC="$LAB_DIR/samples/bootstrap-v35-nano-cc-aarch64.lisp"
 BOOTSTRAP_V35_BUILD_SLICE_AARCH64_SRC="$LAB_DIR/samples/bootstrap-v35-build-slice-aarch64.lisp"
 BOOTSTRAP_V35_GENESIS_SHRINK_SRC="$LAB_DIR/samples/bootstrap-v35-genesis-shrink.lisp"
@@ -828,6 +831,30 @@ run_case "run-bootstrap-v35-nano-cc-add-plan" bash -c '
   test -x "'"$NANO_CC_ADD_ELF"'"
 '
 
+# --- v3.5 Lisp-only line L0: slice matrix + build-slice .lisp auto-route ---
+log "bootstrap.v35.lisp.only.matrix.path=$BOOTSTRAP_V35_LISP_ONLY_MATRIX_SRC"
+run_case "run-bootstrap-v35-lisp-only-matrix-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V35_LISP_ONLY_MATRIX_SRC"'" 2>&1) || true
+  printf "%s\n" "$out"
+  printf "%s\n" "$out" | grep -q "bootstrap-step.*=build-slice-lisp"
+  printf "%s\n" "$out" | grep -q "build-slice.compiler=nano-jit-lisp"
+  printf "%s\n" "$out" | grep -q "build-slice.role=lisp-codegen"
+  test -x "'"$ROOT_DIR"'/lab/nano-lisp-jit/.build/bootstrap-v35-lisp-only-min.elf"
+  test -x "'"$ROOT_DIR"'/lab/nano-lisp-jit/.build/bootstrap-v35-lisp-only-add.elf"
+  printf "%s\n" "$out" | grep -q "build-slice-lisp.mode=compile-elf64"
+  ! printf "%s\n" "$out" | grep -qE "build-slice\.source=.*\.c|samples/nano-cc-[^.]+\.c"
+'
+log "bootstrap.v35.build.slice.lisp.route.path=$BOOTSTRAP_V35_BUILD_SLICE_LISP_ROUTE_SRC"
+run_case "run-bootstrap-v35-build-slice-lisp-route-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V35_BUILD_SLICE_LISP_ROUTE_SRC"'" 2>&1) || true
+  printf "%s\n" "$out"
+  printf "%s\n" "$out" | grep -q "bootstrap-step.*=build-slice"
+  printf "%s\n" "$out" | grep -q "build-slice.route=lisp-by-extension"
+  printf "%s\n" "$out" | grep -q "build-slice.compiler=nano-jit-lisp"
+  test -x "'"$ROOT_DIR"'/lab/nano-lisp-jit/.build/bootstrap-v35-build-slice-lisp-route.elf"
+  "'"$RUNNER"'" run-expect-exit "'"$ROOT_DIR"'/lab/nano-lisp-jit/.build/bootstrap-v35-build-slice-lisp-route.elf" 42
+'
+
 # --- v3.5 slice 3: build-slice via nano-cc (NANO_BUILD_SLICE_CODEGEN=1) ---
 log "bootstrap.v35.build.slice.source.path=$BOOTSTRAP_V35_BUILD_SLICE_SRC"
 log "v35.nano-cc.build-slice.source.path=$NANO_CC_BUILD_SLICE_SRC"
@@ -991,6 +1018,19 @@ if [ -x "$SELFHOST_DIR/gen2-slice-x86.elf" ]; then
 else
   skip_case "run-bootstrap-v35-selfhost-gen3-plan" "gen2-slice-x86.elf missing"
 fi
+log "bootstrap.v35.selfhost.gen4.source.path=$BOOTSTRAP_V35_SELFHOST_GEN4_SRC"
+run_case "run-bootstrap-v35-selfhost-gen4-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V35_SELFHOST_GEN4_SRC"'" 2>&1) || true
+  printf "%s\n" "$out"
+  printf "%s\n" "$out" | grep -q "build-slice-lisp"
+  printf "%s\n" "$out" | grep -q "build-slice.compiler=nano-jit-lisp"
+  printf "%s\n" "$out" | grep -q "build-slice-lisp.mode=compile-elf64-exe"
+  ! printf "%s\n" "$out" | grep -qE "build-slice\.source=.*nano-cc-[^.]+\.c"
+  test -x "'"$SELFHOST_DIR"'/v35-gen4-slice-min-x86.elf"
+  test -x "'"$SELFHOST_DIR"'/v35-gen4-slice-add-x86.elf"
+  test -f "'"$SELFHOST_DIR"'/v35-gen4-nano-jit.com"
+  test -f "'"$SELFHOST_DIR"'/v35-gen4-arithmetic.lbin"
+'
 
 # --- bootstrap-v25 native selfpack (pack-ape per plan) ---
 V25_NATIVE_SELFPACK_COM="$NANO_JIT_COM"

@@ -316,6 +316,12 @@ v3.5: nano-cc（nano-jit 作为 cc 编译器）
 │  │  ├─ **G** parse golden CI（`nano-cc-add.parse.golden`）
 │  │  └─ **H** gen2/gen3 hash 确定性供应链
 │  └─ 偿还优先级：P0 parse+.o → P1 genesis 审计+禁 cc → P2 实验 C/D/G → P3 v4 loader/pack
+├─ Lisp-only 进化线（**L0 签收** · [`v3.5/LISP-ONLY.md`](v3.5/LISP-ONLY.md)）
+│  ├─ `nano-jit-slice-{min,add}.lisp` + `build-slice-lisp`（多函数走 `compile-elf64-exe` fallback）
+│  ├─ `(build-slice "*.lisp" …)` → `build-slice.route=lisp-by-extension`
+│  ├─ `bootstrap-v35-lisp-only-matrix` / `bootstrap-v35-selfhost-gen4`（计划内零 `.c` 输入）
+│  ├─ AI 约定：新 slice 只增 `.lisp` + bootstrap；`.c` legacy 对照
+│  └─ 下一里程碑 L1：pack x86 用 Lisp slice；L2：DSL 内联 IR，去掉 companion 文件名依赖
 ├─ slice 0: nano-cc 证据门禁（**100%**）
 │  ├─ sample：`samples/nano-cc-hello.c`（`main` return 42）+ `nano-cc-bad.c`
 │  ├─ CLI：`nano-cc compile input.c -o out.elf`（genesis runner 或 `nano-jit.com`）
