@@ -36,7 +36,9 @@ static void usage(const char *argv0) {
   fprintf(stderr, "  %s pack-ape-bare output.ape x86_64.elf aarch64.elf\n", argv0);
   fprintf(stderr, "  %s pack-app output.com x86_64.elf aarch64.elf program.%s\n", argv0, BLOB_EXT);
   fprintf(stderr, "  %s nano-cc compile input.c -o output.elf\n", argv0);
+  fprintf(stderr, "  %s nano-cc parse input.c\n", argv0);
   fprintf(stderr, "  %s nano-cc-compile-expect-exit expected input.c output.elf\n", argv0);
+  fprintf(stderr, "  %s nano-cc-parse-expect-exit expected input.c\n", argv0);
 }
 
 int main(int argc, char **argv) {
@@ -157,8 +159,28 @@ int main(int argc, char **argv) {
       strcmp(argv[4], "-o") == 0) {
     return cmd_nano_cc_compile(argv[3], argv[5]);
   }
+  if (argc >= 2 && strcmp(argv[1], "nano-cc") == 0 && argc == 4 && strcmp(argv[2], "parse") == 0) {
+    return cmd_nano_cc_parse(argv[3]);
+  }
   if (argc >= 2 && strcmp(argv[1], "nano-cc-compile-expect-exit") == 0 && argc == 5) {
     return cmd_nano_cc_compile_expect_exit(argv[2], argv[3], argv[4]);
+  }
+  if (argc >= 2 && strcmp(argv[1], "nano-cc-parse-expect-exit") == 0 && argc == 4) {
+    size_t expected = 0;
+    int actual;
+    if (!parse_size_arg(argv[2], &expected) || expected > 255) {
+      fprintf(stderr, "nano-cc-parse-expect-exit=bad_expected\n");
+      return 1;
+    }
+    actual = cmd_nano_cc_parse(argv[3]);
+    printf("nano-cc-parse-expect-exit.expected=%zu\n", expected);
+    printf("nano-cc-parse-expect-exit.actual=%d\n", actual);
+    if ((size_t)actual == expected) {
+      printf("nano-cc-parse-expect-exit.ok=1\n");
+      return 0;
+    }
+    fprintf(stderr, "nano-cc-parse-expect-exit=mismatch expected=%zu actual=%d\n", expected, actual);
+    return 1;
   }
   usage(argv[0]);
   return 2;

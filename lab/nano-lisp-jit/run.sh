@@ -64,6 +64,7 @@ BOOTSTRAP_V35_BUILD_SLICE_AARCH64_SRC="$LAB_DIR/samples/bootstrap-v35-build-slic
 BOOTSTRAP_V35_GENESIS_SHRINK_SRC="$LAB_DIR/samples/bootstrap-v35-genesis-shrink.lisp"
 NANO_CC_HELLO_SRC="$LAB_DIR/samples/nano-cc-hello.c"
 NANO_CC_ADD_SRC="$LAB_DIR/samples/nano-cc-add.c"
+NANO_CC_ADD_BAD_SIG_SRC="$LAB_DIR/samples/nano-cc-add-bad-sig.c"
 NANO_CC_BUILD_SLICE_SRC="$LAB_DIR/samples/nano-cc-build-slice.c"
 NANO_CC_BAD_SRC="$LAB_DIR/samples/nano-cc-bad.c"
 NANO_CC_HELLO_ELF="$BUILD_DIR/bootstrap-v35-nano-cc-hello.elf"
@@ -762,6 +763,24 @@ run_case "run-bootstrap-v35-nano-cc-hello-plan" bash -c '
   printf "%s\n" "$out" | grep -q "nano-cc.exit_code=42"
   test -x "'"$NANO_CC_HELLO_ELF"'"
 '
+
+# --- v3.5 slice 1: nano-cc parse (add-parse dump) ---
+run_case "nano-cc-parse-hello" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" nano-cc parse "'"$NANO_CC_HELLO_SRC"'" 2>&1)
+  printf "%s\n" "$out"
+  printf "%s\n" "$out" | grep -q "nano-cc.parse.kind=main_return"
+  printf "%s\n" "$out" | grep -q "nano-cc.parse.exit_code=42"
+'
+run_case "nano-cc-parse-add" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" nano-cc parse "'"$NANO_CC_ADD_SRC"'" 2>&1)
+  printf "%s\n" "$out"
+  printf "%s\n" "$out" | grep -q "nano-cc.parse.kind=add_module"
+  printf "%s\n" "$out" | grep -q "nano-cc.parse.add_a=40"
+  printf "%s\n" "$out" | grep -q "nano-cc.parse.add_b=2"
+  printf "%s\n" "$out" | grep -q "nano-cc.parse.exit_code=42"
+'
+run_case "nano-cc-parse-add-bad-expect2" \
+  "$RUNNER" nano-cc-parse-expect-exit 2 "$NANO_CC_ADD_BAD_SIG_SRC"
 
 # --- v3.5 slice 2: nano-cc add via companion .lisp + compile-elf64-exe ---
 log "v35.nano-cc.add.source.path=$NANO_CC_ADD_SRC"

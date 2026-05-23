@@ -342,7 +342,7 @@ v3.5: nano-cc（nano-jit 作为 cc 编译器）
 | 切片 | 状态 | 说明 |
 |------|------|------|
 | slice 0 nano-cc 证据门禁 | **100%** | `nano-cc compile -o`、bootstrap-v35、负向 exit 2 |
-| slice 1 C-subset 前端 | **0%** | 完整 parse/lower；add 在 slice 2 companion |
+| slice 1 C-subset 前端 | **scoped** | `nano-cc parse` + `add_parse_fail` 负向 |
 | slice 2 x86_64 add | **100%** scoped | `nano-cc-add` + companion lisp |
 | slice 3 `build-slice` 切换 | **100%** scoped | `NANO_BUILD_SLICE_CODEGEN=1` |
 | slice 4 aarch64 nano-cc | **scoped** | `NANO_CC_ARCH` + qemu；[`v3.5/AARCH64.md`](v3.5/AARCH64.md) |

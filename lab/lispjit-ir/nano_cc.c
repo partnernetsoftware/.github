@@ -152,6 +152,7 @@ static int nano_cc_compile_via_companion_lisp(const char *src_path, const char *
   }
   if (!nano_cc_parse_add_module((const char *)src, n, &a, &b)) {
     free(src);
+    fprintf(stderr, "nano-cc=add_parse_fail reason=unsupported_stmt path=%s\n", src_path);
     return -1;
   }
   free(src);
@@ -170,6 +171,37 @@ static int nano_cc_compile_via_companion_lisp(const char *src_path, const char *
   printf("nano-cc.output=%s\n", out_path);
   printf("nano-cc.exit_code=%d\n", a + b);
   return 0;
+}
+
+static int cmd_nano_cc_parse(const char *src_path) {
+  size_t n = 0;
+  unsigned char *src = read_file(src_path, &n);
+  int code = 0;
+  int a = 0;
+  int b = 0;
+  if (!src) {
+    fprintf(stderr, "nano-cc=read_fail path=%s\n", src_path);
+    return 1;
+  }
+  if (nano_cc_parse_main_return((const char *)src, n, &code)) {
+    free(src);
+    printf("nano-cc.parse.path=%s\n", src_path);
+    printf("nano-cc.parse.kind=main_return\n");
+    printf("nano-cc.parse.exit_code=%d\n", code);
+    return 0;
+  }
+  if (nano_cc_parse_add_module((const char *)src, n, &a, &b)) {
+    free(src);
+    printf("nano-cc.parse.path=%s\n", src_path);
+    printf("nano-cc.parse.kind=add_module\n");
+    printf("nano-cc.parse.add_a=%d\n", a);
+    printf("nano-cc.parse.add_b=%d\n", b);
+    printf("nano-cc.parse.exit_code=%d\n", a + b);
+    return 0;
+  }
+  free(src);
+  fprintf(stderr, "nano-cc=add_parse_fail reason=unsupported_stmt path=%s\n", src_path);
+  return 2;
 }
 
 static int nano_cc_can_compile_path(const char *src_path) {

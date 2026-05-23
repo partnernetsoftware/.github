@@ -5,7 +5,7 @@
 | 切片 | 状态 | 说明 |
 |------|------|------|
 | slice 0 nano-cc 证据门禁 | **100%** | `nano-cc compile … -o`、bootstrap、`nano-cc-bad` exit 2 |
-| slice 1 C-subset 前端 | **0%** | 完整 parse/lower；add 路径已在 slice 2 companion |
+| slice 1 C-subset 前端 | **scoped** | `nano-cc parse` dump；`nano-cc-add-bad-sig` exit 2 |
 | slice 2 x86_64 add | **100%** scoped | companion `.lisp` + `nano-cc-add` exit 42 |
 | slice 3 `build-slice` 切换 | **100%** scoped | `NANO_BUILD_SLICE_CODEGEN=1` + `nano-cc-*.c` |
 | slice 4 aarch64 nano-cc | **scoped** | `NANO_CC_ARCH` exit42；[`AARCH64.md`](AARCH64.md) |
