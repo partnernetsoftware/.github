@@ -7,7 +7,8 @@
 | **v3.5-scoped** | **已完成 · CLOSED** | `catalog.signoff.gates` 全绿；无新工程任务 |
 | **v3.5-terminal** | **已完成 · CLOSED** | wave-5 + `terminal_gates`；维护仅回归，不扩 scope |
 | **v4 slice-0** | **scoped 签收 · 完成** | `v4-slice0-scoped` |
-| **v4 slice-1** | **scoped 签收 · 完成** | `v4-slice1-scoped` assess 100%；见 [`../v4/SLICE1.md`](../v4/SLICE1.md) |
+| **v4 slice-1** | **scoped 签收 · 完成** | 见 [`../v4/SLICE1.md`](../v4/SLICE1.md) |
+| **v4 lisp-only（plan）** | **门禁收紧** | `v4-lisp-only-scoped`：全 v4 plan 无 `.c` + gen5 锚点；**非**零 C 实现 → [`../v4/LISP-ONLY.md`](../v4/LISP-ONLY.md) |
 
 ## 规则
 

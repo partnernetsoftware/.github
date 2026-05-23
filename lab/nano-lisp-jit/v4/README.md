@@ -2,6 +2,8 @@
 
 **前置**：v3.5-scoped + v3.5-terminal 已签收（见 [`../v3.5/DECISION.md`](../v3.5/DECISION.md)）。
 
+**「全 Lisp」口径**：见 [`LISP-ONLY.md`](LISP-ONLY.md) — v4 **plan 层**可无 `.c` 引用；**runner/codegen 层**仍含 C（slice-2 才攻真 codegen）。
+
 ## 范围（首波）
 
 | 轨 | 目标 | 非目标（本波） |
@@ -18,7 +20,7 @@ tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v4.yaml dispatch 
 tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v4.yaml agent-team --auto-exec
 ```
 
-**签收**：`v4-slice0-scoped` 已完成；`v4-slice1-scoped` **已完成**（参数化 aarch64 add-emit + S1 signal 样本）— 见 [`SLICE1.md`](SLICE1.md)。
+**签收**：slice-0/1 已完成；当前门禁 **`v4-lisp-only-scoped`**（plan 无 `.c` + gen5 锚点 + 回归）— 见 [`SLICE1.md`](SLICE1.md)、[`LISP-ONLY.md`](LISP-ONLY.md)。
 
 **小队**：四角色固定进程 — `agent-team --auto-exec --auto-done`（一进程一角色，保持上下文稳定）。
 

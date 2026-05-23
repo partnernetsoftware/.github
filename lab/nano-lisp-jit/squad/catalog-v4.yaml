@@ -24,7 +24,7 @@ supervisor:
   task_timeout_sec: 3600
   stuck_policy: fail
 signoff:
-  id: v4-slice1-scoped
+  id: v4-lisp-only-scoped
   require_terminal: false
   gates:
     - id: v35-regression-run
@@ -74,6 +74,21 @@ signoff:
       file: ".build/v4-slice1.evidence"
       results_key: v4.slice1
       min_pass: 1
+    - id: v4-plans-no-c
+      check: results
+      file: ".build/v4-lisp-only.evidence"
+      results_key: v4.plans_no_c
+      min_pass: 1
+    - id: v35-gen5-plan-no-c
+      check: artifact
+      path_glob: "samples/bootstrap-v35-selfhost-gen5.lisp"
+      plan_must_not_match: '\\.c'
+    - id: v4-gen5-anchor-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v4-gen5-anchor.lisp"
+    - id: v4-lisp-only-doc
+      check: artifact
+      path_glob: "v4/LISP-ONLY.md"
 
 tasks:
   v4-aarch64-aot-plan:
@@ -193,6 +208,33 @@ tasks:
       - "assess v4-slice1-scoped ready"
       - "v4/README + SLICE1.md"
       - "REFLECTION slice-1 行"
+  wave5-v4-lisp-only-honesty:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "v4/LISP-ONLY.md"
+      - "samples/bootstrap-v4-gen5-anchor.lisp"
+      - ".build/v4-lisp-only.evidence"
+      - "run.sh"
+    accept:
+      - "v4-bootstrap-plans-no-c"
+      - "run-bootstrap-v4-gen5-anchor-plan"
+      - "LISP-ONLY.md 三层表"
+  wave5-v4-gen5-regression:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths: ["run.sh", "samples/bootstrap-v35-selfhost-gen5.lisp"]
+    accept:
+      - "run-bootstrap-v35-selfhost-gen5-plan still pass"
+      - "gen5 plan no .c"
+  wave5-v4-R:
+    assign_role: reviewer
+    priority: meta
+    depends: [wave5-v4-lisp-only-honesty, wave5-v4-gen5-regression]
+    accept:
+      - "assess v4-lisp-only-scoped ready"
+      - "v4/README 链到 LISP-ONLY.md"
+      - "REFLECTION 诚实口径一行"
 
 verify:
   commands:

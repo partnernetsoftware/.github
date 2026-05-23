@@ -80,6 +80,8 @@ BOOTSTRAP_V4_SQUAD_SIGNAL_SRC="$LAB_DIR/samples/bootstrap-v4-squad-signal.lisp"
 V4_AARCH64_SCOUT_ELF="$BUILD_DIR/bootstrap-v4-aarch64-add-scout.elf"
 V4_SLICE1_ADD7_ELF="$BUILD_DIR/bootstrap-v4-slice1-add7.elf"
 V4_SLICE1_EVIDENCE="$BUILD_DIR/v4-slice1.evidence"
+BOOTSTRAP_V4_GEN5_ANCHOR_SRC="$LAB_DIR/samples/bootstrap-v4-gen5-anchor.lisp"
+V4_LISP_ONLY_EVIDENCE="$BUILD_DIR/v4-lisp-only.evidence"
 BOOTSTRAP_V35_NANO_CC_AARCH64_SRC="$LAB_DIR/samples/bootstrap-v35-nano-cc-aarch64.lisp"
 BOOTSTRAP_V35_BUILD_SLICE_AARCH64_SRC="$LAB_DIR/samples/bootstrap-v35-build-slice-aarch64.lisp"
 BOOTSTRAP_V35_BUILD_SLICE_LISP_AARCH64_SRC="$LAB_DIR/samples/bootstrap-v35-build-slice-lisp-aarch64.lisp"
@@ -1346,6 +1348,25 @@ if has_qemu_aarch64 && [ -f "$V4_SLICE1_ADD7_ELF" ]; then
 else
   skip_case "qemu-aarch64-v4-slice1-add7-exit7" "no qemu or slice1 add7 elf"
 fi
+run_case "v4-bootstrap-plans-no-c" bash -c '
+  bad=0
+  for f in "'"$LAB_DIR"'"/samples/bootstrap-v4-*.lisp; do
+    [ -f "$f" ] || continue
+    if awk "!/^[[:space:]]*;/ && /\.c/" "$f" | grep -q .; then
+      echo "v4.plan.bad=$f"
+      bad=1
+    fi
+  done
+  test "$bad" -eq 0
+  echo "v4.plans_no_c=1" >> "'"$V4_LISP_ONLY_EVIDENCE"'"
+'
+run_case "run-bootstrap-v4-gen5-anchor-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_GEN5_ANCHOR_SRC"'" 2>&1) || true
+  printf "%s\n" "$out"
+  printf "%s\n" "$out" | grep -q "bootstrap-step.*=file"
+  ! awk "!/^[[:space:]]*;/ && /\.c/" "'"$BOOTSTRAP_V35_SELFHOST_GEN5_SRC"'" | grep -q .
+  echo "v4.gen5_anchor=1" >> "'"$V4_LISP_ONLY_EVIDENCE"'"
+'
 
 # --- bootstrap-v25 native selfpack (pack-ape per plan) ---
 V25_NATIVE_SELFPACK_COM="$NANO_JIT_COM"
