@@ -14,6 +14,8 @@
 当前 squad 是 **host 造工具**：Python（`squad_cli.py` / SQLite）+ shell（`squad.sh` / tmux）。  
 **终局**：nano lisp 工具链成熟后，用 **同一套 bootstrap / slice runner** 实现派单、锁、`run-loop` 与 leader 信号，**不再依赖** host Python/shell 编排层。v3.5 先用 host 工具验证协议；协议（catalog + signals + leader/follower）应保持稳定，便于移植到 `.lisp`。
 
+**v4 步骤列表**（dispatch / signals / run-loop → bootstrap 子命令、slice S0–S5）：[`v4/README.md` §Bootstrap 替代 Python squad](../v4/README.md#bootstrap-替代-python-squad草图)。
+
 ---
 
 ## 三层耦合（推荐）
