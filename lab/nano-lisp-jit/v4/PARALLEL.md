@@ -35,3 +35,12 @@ tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v4.yaml dispatch 
 |----|---------|------|
 | A | `wave16-v4-ir-table-v2` | `ir.table.version=v2` + add16 |
 | B | `wave16-v4-squad-dispatch` | `bootstrap-v4-squad-s6-dispatch.lisp` |
+
+## wave24（洋葱 mindmap · 并行）
+
+| 轨 | 任务 | 交付 |
+|----|------|------|
+| A | `wave24-v4-plan-words` | `v4-ir-words-v1.txt` + `plan-words-v1` / v5 + add19 |
+| B | `wave24-v4-mindmap` | [`MINDMAP.md`](MINDMAP.md) + `bootstrap-v4-squad-mindmap-tick.lisp` |
+| R | `wave24-v4-R` | assess `v4-complete` ready |
+

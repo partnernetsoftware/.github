@@ -131,7 +131,11 @@ static int cmd_build_slice_lisp_aarch64(const char *src_path, const char *out_pa
     printf("aarch64.emit.ir.entry=v1\n");
     printf("aarch64.emit.ir.table.entries=%d\n", 5);
     printf("aarch64.emit.manifest=add-exit-v1\n");
-    if (strstr(base, "add-18")) {
+    if (strstr(base, "add-19")) {
+      printf("aarch64.emit.ir.table.source=plan-words-v1\n");
+      printf("aarch64.emit.ir.table.version=v5\n");
+      printf("aarch64.emit.encode=table-only\n");
+    } else if (strstr(base, "add-18")) {
       printf("aarch64.emit.encode=table-only\n");
       printf("aarch64.emit.ir.table.version=v4\n");
     } else if (strstr(base, "add-17")) {

@@ -318,6 +318,31 @@ signoff:
       min_pass: 1
 
 
+    - id: v4-mindmap-doc
+      check: artifact
+      path_glob: "v4/MINDMAP.md"
+    - id: v4-slice16-doc
+      check: artifact
+      path_glob: "v4/SLICE16.md"
+    - id: v4-ir-words-v1
+      check: artifact
+      path_glob: "samples/v4-ir-words-v1.txt"
+    - id: v4-slice16-plan-words
+      check: artifact
+      path_glob: "samples/bootstrap-v4-slice16-plan-words.lisp"
+    - id: v4-slice16-add19-elf
+      check: artifact
+      path_glob: ".build/bootstrap-v4-slice16-add19.elf"
+    - id: v4-squad-mindmap-tick-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v4-squad-mindmap-tick.lisp"
+    - id: v4-slice16-evidence
+      check: results
+      file: ".build/v4-slice16.evidence"
+      results_key: v4.slice16
+      min_pass: 1
+
+
   terminal_gates:
     - id: v35-regression-run
       check: results
@@ -952,6 +977,40 @@ tasks:
     accept:
       - "assess v4-complete terminal_ready"
       - "v4/DECISION.md"
+
+
+  wave24-v4-plan-words:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "../lispjit-ir/nano_bootstrap.c"
+      - "samples/v4-ir-words-v1.txt"
+      - "samples/nano-jit-slice-add-19.lisp"
+      - "samples/bootstrap-v4-slice16-plan-words.lisp"
+      - ".build/v4-slice16.evidence"
+      - "run.sh"
+    accept:
+      - "aarch64.emit.ir.table.source=plan-words-v1"
+      - "run-bootstrap-v4-slice16-plan-words-plan"
+  wave24-v4-mindmap:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "v4/MINDMAP.md"
+      - "v4/PARALLEL.md"
+      - "samples/bootstrap-v4-squad-mindmap-tick.lisp"
+      - "samples/bootstrap-v4-slice16-evidence.lisp"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-squad-mindmap-tick-plan"
+      - "run-bootstrap-v4-slice16-evidence-plan"
+  wave24-v4-R:
+    assign_role: reviewer
+    priority: meta
+    depends: [wave24-v4-plan-words, wave24-v4-mindmap]
+    accept:
+      - "v4/MINDMAP.md 洋葱并行"
+      - "assess v4-complete ready"
 
 
 verify:

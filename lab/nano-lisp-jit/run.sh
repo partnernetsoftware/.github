@@ -139,6 +139,11 @@ BOOTSTRAP_V4_SQUAD_ASSESS_SCOPED_SRC="$LAB_DIR/samples/bootstrap-v4-squad-assess
 V4_SLICE15_ADD18_ELF="$BUILD_DIR/bootstrap-v4-slice15-add18.elf"
 V4_SLICE15_EVIDENCE="$BUILD_DIR/v4-slice15.evidence"
 V4_TERMINAL_EVIDENCE="$BUILD_DIR/v4-terminal.evidence"
+BOOTSTRAP_V4_SLICE16_PLAN_WORDS_SRC="$LAB_DIR/samples/bootstrap-v4-slice16-plan-words.lisp"
+BOOTSTRAP_V4_SLICE16_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v4-slice16-evidence.lisp"
+BOOTSTRAP_V4_SQUAD_MINDMAP_TICK_SRC="$LAB_DIR/samples/bootstrap-v4-squad-mindmap-tick.lisp"
+V4_SLICE16_ADD19_ELF="$BUILD_DIR/bootstrap-v4-slice16-add19.elf"
+V4_SLICE16_EVIDENCE="$BUILD_DIR/v4-slice16.evidence"
 SQUAD_SH="$ROOT_DIR/tools/squad/squad.sh"
 CATALOG_V4="$LAB_DIR/squad/catalog-v4.yaml"
 BOOTSTRAP_V35_NANO_CC_AARCH64_SRC="$LAB_DIR/samples/bootstrap-v35-nano-cc-aarch64.lisp"
@@ -1694,6 +1699,24 @@ run_case "run-bootstrap-v4-squad-assess-scoped-ready-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SQUAD_ASSESS_SCOPED_SRC"'" 2>&1) || true
   test -f "'"$LAB_DIR"'/v4/COMPLETE-SCOPED.md"
   test -f "'"$LAB_DIR"'/squad/catalog-v4.yaml"
+'
+
+run_case "run-bootstrap-v4-slice16-plan-words-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE16_PLAN_WORDS_SRC"'" 2>&1) || true
+  printf "%s
+" "$out" | grep -q "aarch64.emit.ir.table.source=plan-words-v1"
+  printf "%s
+" "$out" | grep -q "aarch64.emit.ir.table.version=v5"
+  test -f "'"$V4_SLICE16_ADD19_ELF"'"
+'
+run_case "run-bootstrap-v4-squad-mindmap-tick-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SQUAD_MINDMAP_TICK_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/MINDMAP.md"
+'
+run_case "run-bootstrap-v4-slice16-evidence-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE16_EVIDENCE_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/SLICE16.md"
+  { echo "v4.slice16=1"; } >> "'"$V4_SLICE16_EVIDENCE"'"
 '
 run_case "run-bootstrap-v4-terminal-build-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && test -f "'"$BOOTSTRAP_REPORT"'"

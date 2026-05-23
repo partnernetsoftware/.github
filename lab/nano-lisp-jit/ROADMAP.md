@@ -392,7 +392,7 @@ v3.5 **scoped + terminal** 已签收。**v4 当前 signoff**：`v4-slice9-scoped
 **直接回答「是否已摆脱 `.c` 自举」**：**否** — 见 [`v4/LISP-ONLY.md`](v4/LISP-ONLY.md) 三层表；[`v4/REFLECTION.md`](v4/REFLECTION.md) track R。
 
 ```text
-v4: 终局切片 + 产品轨（catalog-v4.yaml · signoff v4-slice9-scoped）
+v4: 终局切片 + 产品轨（catalog-v4.yaml · signoff v4-complete + post-v4 MINDMAP）
 ├─ 【诚实口径】三层（mindmap 每圈都要标 scoped / 终局）
 │  ├─ A Plan：bootstrap-v4-*.lisp 不引用 .c 源 → v4-lisp-only-scoped ✅
 │  ├─ B Runner：lispjit.c + nano_*.c 仍编译/执行 plan → 未消除 ❌
@@ -430,7 +430,7 @@ v4: 终局切片 + 产品轨（catalog-v4.yaml · signoff v4-slice9-scoped）
 | VM/AOT aarch64 | **0%** | **pending** | mindmap 原「真 codegen」目标未达成 |
 | 全仓库零 `.c` | **0%** | **pending** | 非 v4 已签收含义 |
 
-**v4 整体**：**`v4-complete`（scoped + terminal native）** / **终局自举 ~15%**。详见 [`v4/DECISION.md`](v4/DECISION.md)、[`v4/README.md`](v4/README.md)。
+**v4 整体**：**`v4-complete`** + post-v4 洋葱圈 S16（[`v4/MINDMAP.md`](v4/MINDMAP.md)）。终局自举 ~15%。
 
 ### 0. 证据基线
 
