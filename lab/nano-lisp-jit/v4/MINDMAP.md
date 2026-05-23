@@ -19,13 +19,15 @@
 
 ## 并行法则（每波）
 
+**扩散 → 收敛 → 洋葱修正**（见 [`PARALLEL.md`](PARALLEL.md)）：先并发铺开整表/整图/整批门禁，再**一次** `run.sh`，最后由内圈向外修；禁止碎补式「一刀一 op」。
+
 ```text
-轨 A · codegen    engineer-a  → nano_*.c + nano-jit-slice-add-N + .evidence
-轨 B · 编排/文档  engineer-b  → bootstrap-v4-squad-* + v4/*.md
-轨 R · 签收      reviewer    → 一次 run.sh → assess → sync-md
+轨 A · 契约/codegen  engineer-a  → ir-table/words 整份 + 样本族
+轨 B · plan/编排      engineer-b  → bootstrap 图 + squad-* + v4/*.md
+轨 R · 签收          reviewer    → 一次 run.sh → assess → sync-md
 ```
 
-快路径：双轨实现 → **一次** `bash lab/nano-lisp-jit/run.sh`（勿空转 `agent-team`）。见 [`skills/squad-parallel/`](../../skills/squad-parallel/)。
+快路径：多轨扩散写完 → **一次** `bash lab/nano-lisp-jit/run.sh`（勿空转 `agent-team`）。见 [`skills/squad-parallel/`](../../skills/squad-parallel/)。
 
 ## 洋葱圈（由外向内 · TDD）
 
