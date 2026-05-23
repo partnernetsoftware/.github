@@ -1,6 +1,6 @@
 # v3.5 parallel slices 1–6
 
-Slice **0** 已 **100%** 签收。并行分支 **2/3/4/5** 已合并到 `cursor/nano-jit-v35-parallel-f186`；**1/6** 仍待办。见 [`../ROADMAP.md`](../ROADMAP.md) v3.5 mindmap。
+Slice **0** 已 **100%** 签收。并行分支 **2/3/4/5** 已合并到 `cursor/nano-jit-v35-parallel-f186`；**1** 仍待办；**6** kickoff ~scoped。见 [`../ROADMAP.md`](../ROADMAP.md) v3.5 mindmap。
 
 ## 并行轨道
 
@@ -11,7 +11,7 @@ Slice **0** 已 **100%** 签收。并行分支 **2/3/4/5** 已合并到 `cursor/
 | C | 3 `build-slice` 切换 | `NANO_BUILD_SLICE_CODEGEN=1` | slice 2 add 路径 | **100%** scoped |
 | D | 4 aarch64 nano-cc | `NANO_CC_ARCH` + qemu | slice 0 hello | **scoped** |
 | E | 5 gen3 自举 | `bootstrap-v35-selfhost-gen3` | slice 3 | **100%** scoped |
-| F | 6 Genesis 收缩 | pin + `NANO_REGENESIS` | slice 5 | **0%** |
+| F | 6 Genesis 收缩 | pin + `NANO_REGENESIS` | slice 5 | **~scoped kickoff** |
 
 ## 洋葱顺序（每条轨道内）
 
@@ -85,8 +85,9 @@ env NANO_SELFHOST_THOROUGH=1 NANO_SLICE_COMPILER=native bash lab/nano-lisp-jit/b
 ### slice 6 — genesis shrink
 
 ```bash
+bash lab/nano-lisp-jit/run.sh   # run-bootstrap-v35-genesis-shrink-plan
 env NANO_REGENESIS=1 NANO_SLICE_COMPILER=native bash lab/nano-lisp-jit/build_nano_jit.sh   # 仅有意刷新 pin
-# 开发：genesis/manifest.txt + CI 默认无 cc lispjit.c
+# 开发：genesis/manifest.txt + CI 默认无 cc lispjit.c — GENESIS-SHRINK.md
 ```
 
 ## 错误码索引

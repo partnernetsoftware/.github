@@ -326,10 +326,10 @@ v3.5: nano-cc（nano-jit 作为 cc 编译器）
 │  ├─ 对比：gen2 vs gen3 slice hash 允许相同（确定性）或版本化 bump
 │  ├─ 门禁：`selfhost-v35-gen3-*` in `build_nano_jit.sh`
 │  └─ 验收：**日常重建**不再调用 host `cc` 编 `lispjit.c`（Genesis pin 除外；pack 直引 genesis）
-├─ slice 6: 收缩 Genesis（**0%** · 并行 track F）
+├─ slice 6: 收缩 Genesis（**~scoped kickoff** · 并行 track F）
 │  ├─ pin：`third_party/nano-genesis/` 或 hash 锁定的最小 seed ELF
-│  ├─ 文档：何时允许重编 genesis（安全/ libc 变更），何时禁止
-│  └─ 验收：CI 默认无 `cc lispjit.c`；仅 `NANO_REGENESIS=1` 打破 pin
+│  ├─ 文档：何时允许重编 genesis（安全/ libc 变更），何时禁止 — [`v3.5/GENESIS-SHRINK.md`](v3.5/GENESIS-SHRINK.md)
+│  └─ 验收：CI 默认无 `cc lispjit.c`；仅 `NANO_REGENESIS=1` 打破 pin — `run-bootstrap-v35-genesis-shrink-plan`
 └─ 验收（v3.5 整体 scoped）
    ├─ `build-slice` 默认 nano-cc；host `cc` 仅 fallback/文档化
    ├─ gen3 selfhost 证据入库（bootstrap DSL + build 矩阵）
@@ -347,9 +347,9 @@ v3.5: nano-cc（nano-jit 作为 cc 编译器）
 | slice 3 `build-slice` 切换 | **100%** scoped | `NANO_BUILD_SLICE_CODEGEN=1` |
 | slice 4 aarch64 nano-cc | **scoped** | `NANO_CC_ARCH` + qemu；[`v3.5/AARCH64.md`](v3.5/AARCH64.md) |
 | slice 5 gen3 自举 | **100%** scoped | `bootstrap-v35-selfhost-gen3`、genesis pin pack |
-| slice 6 Genesis 收缩 | **0%** | pin seed + `NANO_REGENESIS` |
+| slice 6 Genesis 收缩 | **~scoped kickoff** | [`v3.5/GENESIS-SHRINK.md`](v3.5/GENESIS-SHRINK.md)、`bootstrap-v35-genesis-shrink` |
 
-**v3.5 整体**：**~50%** — slice 0–5 scoped 合并签收。下一刀 slice 1 全量 C-subset 或 slice 6 genesis 收缩。见 [`v3.5/README.md`](v3.5/README.md)、[`v3.5/PARALLEL.md`](v3.5/PARALLEL.md)。
+**v3.5 整体**：**~55%** — slice 0–5 scoped + slice 6 genesis shrink kickoff。下一刀 slice 1 全量 C-subset 或 slice 6 pin 最小化。见 [`v3.5/README.md`](v3.5/README.md)、[`v3.5/PARALLEL.md`](v3.5/PARALLEL.md)。
 
 ### 0. 证据基线
 

@@ -10,9 +10,9 @@
 | slice 3 `build-slice` 切换 | **100%** scoped | `NANO_BUILD_SLICE_CODEGEN=1` + `nano-cc-*.c` |
 | slice 4 aarch64 nano-cc | **scoped** | `NANO_CC_ARCH` exit42；[`AARCH64.md`](AARCH64.md) |
 | slice 5 gen3 自举 | **100%** scoped | `bootstrap-v35-selfhost-gen3`、genesis pin pack |
-| slice 6 Genesis 收缩 | **0%** | |
+| slice 6 Genesis 收缩 | **~scoped kickoff** | [`GENESIS-SHRINK.md`](GENESIS-SHRINK.md)、`bootstrap-v35-genesis-shrink` |
 
-**v3.5 整体**：**~50%**
+**v3.5 整体**：**~55%**
 
 ## slice 0 证据
 
@@ -36,6 +36,10 @@ env NANO_SLICE_COMPILER=native bash lab/nano-lisp-jit/build_nano_jit.sh   # run-
 ## slice 4 aarch64（route B）
 
 见 [`AARCH64.md`](AARCH64.md)。`run.sh`：`nano-cc-compile-hello-aarch64`、`nano-cc-qemu-aarch64-hello-exit42`（无 qemu 则 skip）。
+
+## slice 6 genesis shrink（scoped kickoff）
+
+见 [`GENESIS-SHRINK.md`](GENESIS-SHRINK.md)。`run.sh`：`run-bootstrap-v35-genesis-shrink-plan`。
 
 ## 目标
 
