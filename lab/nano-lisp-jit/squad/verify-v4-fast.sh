@@ -18,6 +18,9 @@ run_plan() {
 }
 run_plan "$LAB_DIR/samples/bootstrap-v4-slice10-add15.lisp" "aarch64.emit.ir_surface=manifest-v1"
 run_plan "$LAB_DIR/samples/bootstrap-v4-slice11-add16.lisp" "aarch64.emit.encode=manifest-v1"
+run_plan "$LAB_DIR/samples/bootstrap-v4-slice12-add17.lisp" "aarch64.emit.ir_source=plan-lisp-v1"
+run_plan "$LAB_DIR/samples/bootstrap-v4-slice12-add17.lisp" "aarch64.add=10+7"
+test -f "$LAB_DIR/samples/v4-aarch64-add-exit-ops.lisp"
 test -f "$LAB_DIR/samples/v4-aarch64-add-exit-ops.manifest"
 grep -q "^encode " "$LAB_DIR/samples/v4-aarch64-add-exit-ops.manifest"
 echo "verify-v4-fast.ok=1"

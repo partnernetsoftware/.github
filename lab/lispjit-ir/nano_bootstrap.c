@@ -119,6 +119,7 @@ static int cmd_build_slice_lisp_aarch64(const char *src_path, const char *out_pa
       return 2;
     }
     free(src);
+    nano_aarch64_add_exit_ir_lisp_refresh();
     rc = emit_aarch64_add_exit_file(out_path, a, b);
     if (!rc) {
       fprintf(stderr, "build-slice-lisp=aarch64_emit_fail\n");
@@ -130,6 +131,9 @@ static int cmd_build_slice_lisp_aarch64(const char *src_path, const char *out_pa
     printf("aarch64.emit.ir_surface=manifest-v1\n");
     printf("aarch64.emit.encode=manifest-v1\n");
     printf("aarch64.emit.manifest=%s\n", nano_aarch64_add_exit_manifest_default_path());
+    printf("aarch64.emit.ir_lisp=%s\n", nano_aarch64_add_exit_lisp_default_path());
+    if (nano_aarch64_add_exit_ir_lisp_valid())
+      printf("aarch64.emit.ir_source=plan-lisp-v1\n");
     printf("aarch64.emit.lowering.ops=%d\n", 5);
     printf("build-slice-lisp.aarch64.profile=%s\n", base);
     printf("build-slice-lisp.aarch64.add=%d+%d\n", a, b);

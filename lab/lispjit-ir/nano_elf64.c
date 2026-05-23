@@ -428,6 +428,85 @@ const char *nano_aarch64_add_exit_manifest_default_path(void) {
   return "lab/nano-lisp-jit/samples/v4-aarch64-add-exit-ops.manifest";
 }
 
+const char *nano_aarch64_add_exit_lisp_default_path(void) {
+  const char *env = getenv("NANO_A64_ADD_EXIT_IR_LISP");
+  if (env && env[0]) return env;
+  return "lab/nano-lisp-jit/samples/v4-aarch64-add-exit-ops.lisp";
+}
+
+static int a64_add_exit_ir_lisp_valid;
+
+int nano_aarch64_add_exit_ir_lisp_valid(void) {
+  return a64_add_exit_ir_lisp_valid;
+}
+
+static const char *a64_add_exit_v1_op_to_name(unsigned op) {
+  switch (op) {
+  case A64_ADD_EXIT_OP_MOVZ_X0:
+    return "movz_x0";
+  case A64_ADD_EXIT_OP_MOVZ_X1:
+    return "movz_x1";
+  case A64_ADD_EXIT_OP_ADD_X0_X1:
+    return "add_x0_x1";
+  case A64_ADD_EXIT_OP_MOVZ_X8:
+    return "movz_x8";
+  case A64_ADD_EXIT_OP_SVC0:
+    return "svc0";
+  default:
+    return NULL;
+  }
+}
+
+static int a64_add_exit_v1_parse_lisp_ops(const char *path, char names[][64], size_t cap,
+                                          size_t *out_n) {
+  size_t src_n = 0;
+  unsigned char *src;
+  const char *p;
+  const char *end;
+  const char *ops;
+  size_t n = 0;
+  if (!path || !names || !out_n || !cap) return 0;
+  src = read_file(path, &src_n);
+  if (!src || !src_n) {
+    free(src);
+    return 0;
+  }
+  p = (const char *)src;
+  end = p + src_n;
+  ops = strstr(p, "(ops");
+  if (!ops) {
+    free(src);
+    return 0;
+  }
+  p = ops + 4;
+  while (p < end) {
+    while (p < end && (*p == ' ' || *p == '\t' || *p == '\n' || *p == '\r')) ++p;
+    if (p >= end || *p == ')') break;
+    {
+      size_t i = 0;
+      while (p < end && (('a' <= *p && *p <= 'z') || ('0' <= *p && *p <= '9') || *p == '_')) {
+        if (i + 1 >= 64) {
+          free(src);
+          return 0;
+        }
+        names[n][i++] = *p++;
+      }
+      if (!i) {
+        free(src);
+        return 0;
+      }
+      names[n][i] = '\0';
+      if (++n > cap) {
+        free(src);
+        return 0;
+      }
+    }
+  }
+  free(src);
+  *out_n = n;
+  return 1;
+}
+
 static int a64_add_exit_v1_op_from_name(const char *name, unsigned *out) {
   if (!name || !out) return 0;
   if (strcmp(name, "movz_x0") == 0) {
@@ -560,6 +639,29 @@ static int a64_add_exit_v1_load_manifest(const char *path, unsigned char *order,
   a64_add_exit_encode_from_manifest = 1;
   *out_n = n;
   return 1;
+}
+
+void nano_aarch64_add_exit_ir_lisp_refresh(void) {
+  unsigned char manifest_order[A64_ADD_EXIT_OP_COUNT];
+  char lisp_names[A64_ADD_EXIT_OP_COUNT][64];
+  size_t manifest_n = 0;
+  size_t lisp_n = 0;
+  size_t i;
+  a64_add_exit_ir_lisp_valid = 0;
+  if (!a64_add_exit_v1_load_manifest(nano_aarch64_add_exit_manifest_default_path(), manifest_order,
+                                     sizeof(manifest_order), &manifest_n)) {
+    return;
+  }
+  if (!a64_add_exit_v1_parse_lisp_ops(nano_aarch64_add_exit_lisp_default_path(), lisp_names,
+                                      A64_ADD_EXIT_OP_COUNT, &lisp_n)) {
+    return;
+  }
+  if (lisp_n != manifest_n || lisp_n != A64_ADD_EXIT_OP_COUNT) return;
+  for (i = 0; i < lisp_n; ++i) {
+    const char *want = a64_add_exit_v1_op_to_name(manifest_order[i]);
+    if (!want || strcmp(lisp_names[i], want) != 0) return;
+  }
+  a64_add_exit_ir_lisp_valid = 1;
 }
 
 static int a64_add_exit_v1_resolve_op_order(unsigned char *order, size_t cap, size_t *out_n) {
