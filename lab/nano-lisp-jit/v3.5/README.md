@@ -1,11 +1,11 @@
 # v3.5 — nano-cc 扩展
 
-**Status: slice 0–5 scoped + slice 4 aarch64** — v3 完全 100% 已签收。
+**Status: slice 0–5 scoped + slice 4 aarch64** — v3 完全 100% 已签收。并行波次已合并，见 [`PARALLEL.md`](PARALLEL.md)。
 
 | 切片 | 状态 | 说明 |
 |------|------|------|
 | slice 0 nano-cc 证据门禁 | **100%** | `nano-cc compile … -o`、bootstrap、`nano-cc-bad` exit 2 |
-| slice 1 C-subset 前端 | **0%** | |
+| slice 1 C-subset 前端 | **0%** | 完整 parse/lower；add 路径已在 slice 2 companion |
 | slice 2 x86_64 add | **100%** scoped | companion `.lisp` + `nano-cc-add` exit 42 |
 | slice 3 `build-slice` 切换 | **100%** scoped | `NANO_BUILD_SLICE_CODEGEN=1` + `nano-cc-*.c` |
 | slice 4 aarch64 nano-cc | **scoped** | `NANO_CC_ARCH` exit42；[`AARCH64.md`](AARCH64.md) |
