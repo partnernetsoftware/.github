@@ -1,6 +1,6 @@
 # v3.5 parallel slices 1–6
 
-Slice **0** 已 **100%** 签收。wave2 已合并 `main`；**wave3** 开发三轨 + **反思轨 R** 进行中。见 [`../ROADMAP.md`](../ROADMAP.md) v3.5 mindmap、[`REFLECTION.md`](REFLECTION.md)。
+Slice **0** 已 **100%** 签收。wave4 已合并 `main`（L1 pack / L3 lisp aarch64 / codegen default）。开发最多 3 轨 + **反思轨 R**。见 [`../ROADMAP.md`](../ROADMAP.md)、[`LISP-ONLY.md`](LISP-ONLY.md)、[`REFLECTION.md`](REFLECTION.md)。
 
 ## 并行轨道
 
