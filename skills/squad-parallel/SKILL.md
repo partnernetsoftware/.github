@@ -56,6 +56,8 @@ tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v4.yaml assess
 | **engineer-a / engineer-b** | `member_tick`：claim → verify → done（`touch_paths` 锁） |
 | **reviewer** | 依赖型 meta 任务、`sync-md`、assess 签收 |
 
+**禁止串行包办**：同一波内 engineer-a / engineer-b 须 **touch_paths 不重叠**；Agent 应 **同时** `run-wave.sh`（四路 tmux）+ **并行子任务**（两路实现），勿先写完 A 再写 B。
+
 开新波前在 `catalog-v4.yaml` 增加 `waveN-*` 任务与 `signoff.id` 门禁；实现落在工程师 `touch_paths` 内。
 
 ## 实现与签收顺序
