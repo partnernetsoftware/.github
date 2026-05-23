@@ -15,4 +15,4 @@ Evidence: `bootstrap-v3-codegen-smoke.lisp`；`bootstrap-v3-selfhost-gen3.lisp`�
 
 **`build-slice-lisp`**: `nano-jit-slice-min.lisp` → `compile-elf64-code`（零 cc）.
 
-Next: **4b-3** — full `lispjit.c` via expanded `nano-cc`（v3 完全 100% 阻塞项；v3.5 冻结）。
+4b-3 已签收（genesis-pin）。v3.5 扩展 nano-cc：见 [`../v3.5/README.md`](../v3.5/README.md)。

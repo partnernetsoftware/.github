@@ -55,6 +55,11 @@ BOOTSTRAP_V3_SELFHOST_GEN1_SRC="$LAB_DIR/samples/bootstrap-v3-selfhost-gen1.lisp
 BOOTSTRAP_V3_SELFHOST_GEN2_SRC="$LAB_DIR/samples/bootstrap-v3-selfhost-gen2.lisp"
 BOOTSTRAP_V3_BUILD_SLICE_LISP_SRC="$LAB_DIR/samples/bootstrap-v3-build-slice-lisp.lisp"
 BOOTSTRAP_V3_CODEGEN_SMOKE_SRC="$LAB_DIR/samples/bootstrap-v3-codegen-smoke.lisp"
+BOOTSTRAP_V35_NANO_CC_HELLO_SRC="$LAB_DIR/samples/bootstrap-v35-nano-cc-hello.lisp"
+NANO_CC_HELLO_SRC="$LAB_DIR/samples/nano-cc-hello.c"
+NANO_CC_BAD_SRC="$LAB_DIR/samples/nano-cc-bad.c"
+NANO_CC_HELLO_ELF="$BUILD_DIR/bootstrap-v35-nano-cc-hello.elf"
+NANO_CC_HELLO_CLI_ELF="$BUILD_DIR/nano-cc-hello-cli.elf"
 BOOTSTRAP_V3_SELFHOST_GEN3_SRC="$LAB_DIR/samples/bootstrap-v3-selfhost-gen3.lisp"
 SELFHOST_DIR="$LAB_DIR/.build/nano-jit/selfhost"
 DATA_GOOD_OBJ="$BUILD_DIR/data-good.o"
@@ -723,6 +728,25 @@ run_case "run-bootstrap-v3-vm-matrix-plan" bash -c '
   printf "%s\n" "$out"
   printf "%s\n" "$out" | grep -q "bootstrap-step.*=compile"
   printf "%s\n" "$out" | grep -q "bootstrap-step.*=compile-expect-exit"
+'
+
+# --- v3.5 slice 0: nano-cc CLI + bootstrap DSL ---
+log "v35.nano-cc.hello.source.path=$NANO_CC_HELLO_SRC"
+run_case "nano-cc-compile-hello-cli" bash -c '
+  cd "'"$ROOT_DIR"'" && "'"$RUNNER"'" nano-cc compile "'"$NANO_CC_HELLO_SRC"'" -o "'"$NANO_CC_HELLO_CLI_ELF"'"
+  test -x "'"$NANO_CC_HELLO_CLI_ELF"'"
+'
+run_case "nano-cc-run-hello-exit42" \
+  "$RUNNER" run-expect-exit "$NANO_CC_HELLO_CLI_ELF" 42
+run_case "nano-cc-compile-bad-expect2" \
+  "$RUNNER" nano-cc-compile-expect-exit 2 "$NANO_CC_BAD_SRC" "$BUILD_DIR/nano-cc-bad.elf"
+log "bootstrap.v35.nano-cc.hello.source.path=$BOOTSTRAP_V35_NANO_CC_HELLO_SRC"
+run_case "run-bootstrap-v35-nano-cc-hello-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V35_NANO_CC_HELLO_SRC"'" 2>&1) || true
+  printf "%s\n" "$out"
+  printf "%s\n" "$out" | grep -q "bootstrap-step.*=nano-cc-compile"
+  printf "%s\n" "$out" | grep -q "nano-cc.exit_code=42"
+  test -x "'"$NANO_CC_HELLO_ELF"'"
 '
 
 # --- bootstrap-v3 slice 4b codegen (lisp + nano-cc, no host cc for smoke artifacts) ---

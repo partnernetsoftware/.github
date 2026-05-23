@@ -330,6 +330,17 @@ static int parse_bootstrap_plan(const char *src, BootstrapPlan *plan) {
         free(head);
         return 0;
       }
+    } else if (strcmp(head, "nano-cc-compile") == 0) {
+      char *arg0 = parse_string(&p);
+      char *arg1 = parse_string(&p);
+      int ok = arg0 && arg1 && eat(&p, ')') &&
+               bootstrap_add_step(plan, BOOTSTRAP_STEP_NANO_CC_COMPILE, arg0, arg1, NULL, NULL);
+      if (!ok) {
+        free(arg0);
+        free(arg1);
+        free(head);
+        return 0;
+      }
     } else if (strcmp(head, "build-slice") == 0 || strcmp(head, "build-slice-lisp") == 0) {
       char *arg0 = parse_string(&p);
       char *arg1 = parse_string(&p);
@@ -701,6 +712,9 @@ static int cmd_run_bootstrap_plan(const char *plan_path) {
     } else if (step->kind == BOOTSTRAP_STEP_BUILD_SLICE_LISP) {
       printf("bootstrap-step.%zu=build-slice-lisp\n", i);
       rc = cmd_build_slice_lisp(step->arg0, step->arg1, step->arg2);
+    } else if (step->kind == BOOTSTRAP_STEP_NANO_CC_COMPILE) {
+      printf("bootstrap-step.%zu=nano-cc-compile\n", i);
+      rc = cmd_nano_cc_compile(step->arg0, step->arg1);
     } else if (step->kind == BOOTSTRAP_STEP_INSPECT_APE) {
       printf("bootstrap-step.%zu=inspect-ape\n", i);
       rc = cmd_inspect_ape(step->arg0);

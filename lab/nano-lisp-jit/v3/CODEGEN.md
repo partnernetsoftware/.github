@@ -1,7 +1,7 @@
 # v3 slice 4b — Lisp / nano-cc / genesis-pin codegen
 
 v3 **完全 100%** = slice 0–3 + slice 4 编排 + **4b-1 + 4b-2 + 4b-3**。  
-**v3.5 在 v3 完全 100% 前不启动**（见 [`../v3.5/README.md`](../v3.5/README.md)）。
+**v3.5 已启动**（slice 0+）— 见 [`../v3.5/README.md`](../v3.5/README.md)。
 
 ## 三级
 

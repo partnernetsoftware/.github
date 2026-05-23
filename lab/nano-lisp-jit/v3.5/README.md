@@ -1,7 +1,28 @@
-# v3.5 kickoff — nano-cc 扩展
+# v3.5 — nano-cc 扩展
 
-**Status: 可启动** — v3 **完全 100%** 已签收（含 genesis-pin 4b-3）。
+**Status: slice 0 100%** — v3 完全 100% 已签收。
 
-v3 日常对 `lispjit.c` 使用 **genesis-pin**（零 host `cc`）。v3.5 目标：用扩展的 **nano-cc** 逐步生成 slice 字节，减少对 pin 复制的依赖。
+| 切片 | 状态 | 说明 |
+|------|------|------|
+| slice 0 nano-cc 证据门禁 | **100%** | `nano-cc compile … -o`、bootstrap、`nano-cc-bad` exit 2 |
+| slice 1 C-subset 前端 | **0%** | |
+| slice 2 x86_64 对象发射 | **0%** | |
+| slice 3 `build-slice` 切换 | **0%** | |
+| slice 4 aarch64 nano-cc | **0%** | |
+| slice 5 gen3 自举 | **0%** | |
+| slice 6 Genesis 收缩 | **0%** | |
 
-见 [`../ROADMAP.md`](../ROADMAP.md) → **v3.5 洋葱 TDD mindmap**、[`../v3/CODEGEN.md`](../v3/CODEGEN.md)。
+**v3.5 整体**：**~15%**
+
+## slice 0 证据
+
+```bash
+bash lab/nano-lisp-jit/run.sh   # nano-cc-compile-hello-cli, nano-cc-run-hello-exit42, v35 plan
+```
+
+样例：`samples/bootstrap-v35-nano-cc-hello.lisp`、`samples/nano-cc-bad.c`  
+错误码：[`ERROR-CODES.md`](ERROR-CODES.md)
+
+## 目标
+
+用扩展 **nano-cc** 逐步生成 slice，替代仅依赖 [`../genesis/`](../genesis/) pin 复制。见 [`../ROADMAP.md`](../ROADMAP.md) v3.5 mindmap。

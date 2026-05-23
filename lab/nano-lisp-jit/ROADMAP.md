@@ -341,7 +341,7 @@ v3.5: nano-cc（nano-jit 作为 cc 编译器）
 
 | 切片 | 状态 | 说明 |
 |------|------|------|
-| slice 0 nano-cc 证据门禁 | **0%** | `nano-cc` CLI + hello.c smoke |
+| slice 0 nano-cc 证据门禁 | **100%** | `nano-cc compile -o`、bootstrap-v35、负向 exit 2 |
 | slice 1 C-subset 前端 | **0%** | parse/lower → IR |
 | slice 2 x86_64 对象发射 | **0%** | object+link 对齐 host cc 行为 |
 | slice 3 `build-slice` 切换 | **0%** | `build-slice.role=nano-cc` |
@@ -349,7 +349,7 @@ v3.5: nano-cc（nano-jit 作为 cc 编译器）
 | slice 5 gen3 自举 | **0%** | nano-cc 重建 slice，零日常 host `cc` |
 | slice 6 Genesis 收缩 | **0%** | pin seed + `NANO_REGENESIS` |
 
-**v3.5 整体**：**0%** — mindmap 已立；待 slice 0 开工。Kickoff：[`v3.5/README.md`](v3.5/README.md)。
+**v3.5 整体**：**~15%** — slice 0 签收。下一刀 slice 1 C-subset 前端。见 [`v3.5/README.md`](v3.5/README.md)。
 
 ### 0. 证据基线
 

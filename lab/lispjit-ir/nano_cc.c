@@ -78,3 +78,27 @@ static int cmd_nano_cc_compile(const char *src_path, const char *out_path) {
   printf("nano-cc.exit_code=%d\n", code);
   return 0;
 }
+
+static int cmd_nano_cc_compile_expect_exit(const char *expected_s, const char *src_path,
+                                           const char *out_path) {
+  size_t expected = 0;
+  int actual;
+  if (!expected_s || !src_path || !out_path) {
+    fprintf(stderr, "nano-cc-compile-expect-exit=bad_args\n");
+    return 1;
+  }
+  if (!parse_size_arg(expected_s, &expected) || expected > 255) {
+    fprintf(stderr, "nano-cc-compile-expect-exit=bad_expected\n");
+    return 1;
+  }
+  actual = cmd_nano_cc_compile(src_path, out_path);
+  printf("nano-cc-compile-expect-exit.expected=%zu\n", expected);
+  printf("nano-cc-compile-expect-exit.actual=%d\n", actual);
+  if ((size_t)actual == expected) {
+    printf("nano-cc-compile-expect-exit.ok=1\n");
+    return 0;
+  }
+  fprintf(stderr, "nano-cc-compile-expect-exit=mismatch expected=%zu actual=%d\n", expected,
+          actual);
+  return 1;
+}

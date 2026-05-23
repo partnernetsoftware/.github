@@ -35,6 +35,8 @@ static void usage(const char *argv0) {
   fprintf(stderr, "  %s pack-ape output.com x86_64.elf aarch64.elf\n", argv0);
   fprintf(stderr, "  %s pack-ape-bare output.ape x86_64.elf aarch64.elf\n", argv0);
   fprintf(stderr, "  %s pack-app output.com x86_64.elf aarch64.elf program.%s\n", argv0, BLOB_EXT);
+  fprintf(stderr, "  %s nano-cc compile input.c -o output.elf\n", argv0);
+  fprintf(stderr, "  %s nano-cc-compile-expect-exit expected input.c output.elf\n", argv0);
 }
 
 int main(int argc, char **argv) {
@@ -150,6 +152,13 @@ int main(int argc, char **argv) {
   }
   if (argc >= 2 && strcmp(argv[1], "pack-app") == 0 && argc == 6) {
     return cmd_pack_app(argv[2], argv[3], argv[4], argv[5]);
+  }
+  if (argc >= 2 && strcmp(argv[1], "nano-cc") == 0 && argc == 6 && strcmp(argv[2], "compile") == 0 &&
+      strcmp(argv[4], "-o") == 0) {
+    return cmd_nano_cc_compile(argv[3], argv[5]);
+  }
+  if (argc >= 2 && strcmp(argv[1], "nano-cc-compile-expect-exit") == 0 && argc == 5) {
+    return cmd_nano_cc_compile_expect_exit(argv[2], argv[3], argv[4]);
   }
   usage(argv[0]);
   return 2;
