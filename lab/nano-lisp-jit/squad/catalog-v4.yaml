@@ -283,6 +283,31 @@ signoff:
       results_key: v4.slice11_ir_table
       min_pass: 1
 
+    - id: v4-post-v4-doc
+      check: artifact
+      path_glob: "v4/POST-V4.md"
+    - id: v4-slice15-doc
+      check: artifact
+      path_glob: "v4/SLICE15.md"
+    - id: v4-slice15-add18-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v4-slice15-table-only.lisp"
+    - id: v4-slice15-add18-elf
+      check: artifact
+      path_glob: ".build/bootstrap-v4-slice15-add18.elf"
+    - id: v4-build-graph-smoke-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v4-build-graph-smoke.lisp"
+    - id: v4-squad-s9-done-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v4-squad-s9-done.lisp"
+    - id: v4-slice15-evidence
+      check: results
+      file: ".build/v4-slice15.evidence"
+      results_key: v4.slice15
+      min_pass: 1
+
+
   terminal_gates:
     - id: v35-regression-run
       check: results
@@ -833,6 +858,50 @@ tasks:
     accept:
       - "assess v4-complete-scoped scoped_ready"
       - "v4/COMPLETE-SCOPED.md"
+      - "sync-md v4/SQUAD.md"
+
+
+  wave21-v4-emit-table-only:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "../lispjit-ir/nano_elf64.c"
+      - "../lispjit-ir/nano_bootstrap.c"
+      - "samples/nano-jit-slice-add-18.lisp"
+      - "samples/bootstrap-v4-slice15-table-only.lisp"
+      - ".build/v4-slice15.evidence"
+      - "run.sh"
+    accept:
+      - "aarch64.emit.encode=table-only"
+      - "aarch64.emit.ir.table.version=v4"
+      - "run-bootstrap-v4-slice15-table-only-plan"
+  wave21-v4-build-graph:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v4-build-graph-smoke.lisp"
+      - "v4/POST-V4.md"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-build-graph-smoke-plan"
+  wave21-v4-squad-done:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v4-squad-s9-done.lisp"
+      - "v4/SLICE15.md"
+      - "samples/bootstrap-v4-slice15-evidence.lisp"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-squad-s9-done-plan"
+      - "run-bootstrap-v4-slice15-evidence-plan"
+  wave21-v4-R:
+    assign_role: reviewer
+    priority: meta
+    depends: [wave21-v4-emit-table-only, wave21-v4-build-graph, wave21-v4-squad-done]
+    accept:
+      - "v4/POST-V4.md 反思调整"
+      - "assess v4-complete-scoped scoped_ready"
       - "sync-md v4/SQUAD.md"
 
 

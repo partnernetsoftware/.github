@@ -18,6 +18,8 @@
 | **S7** | `v4-slice7-scoped` | **`aarch64.emit.profile=add-exit-v1`** + add11 样本 | IR 驱动 emit |
 | **S8** | `v4-slice8-scoped` | insn 数组 lowering + add13 | opcode 枚举 |
 | **S9** | `v4-slice9-scoped` | `A64_ADD_EXIT_OP_*` + add14 | VM emit |
+| **S10–S14** | `v4-complete-scoped` | IR entry/table v1–v3、manifest、并行闭合 | 零宿主 |
+| **S15** | post-v4 | `encode=table-only` + IR table v4 + add18 | VM emit |
 
 **三层「全 Lisp」**：仍见 [`LISP-ONLY.md`](LISP-ONLY.md) — plan 层无 `.c`；codegen 层仍是 C stub。
 
@@ -62,7 +64,6 @@
 
 | 日期 | 摘要 |
 |------|------|
-| 2026-05-23 | **wave15**：`v4-slice10-scoped` + `PARALLEL.md` 双轨；terminal 回归不挡 scoped；IR entry v1 + S6 assess 样本 |
 | 2026-05-23 | **mindmap 调整**：ROADMAP v4 洋葱图改为三层诚实口径 + 双轨完成度表；澄清 S9≠终局自举 |
 | 2026-05-23 | **wave14**：`v4-slice9-scoped` — opcode 序表 + `lowering.ops=5` + add14；`squad-parallel` 实跑 |
 | 2026-05-23 | **方法学固化**：[`skills/squad-parallel/`](../../skills/squad-parallel/) Agent Skill（`.cursor/skills` 链接） |
