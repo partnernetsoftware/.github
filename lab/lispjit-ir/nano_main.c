@@ -36,6 +36,7 @@ static void usage(const char *argv0) {
   fprintf(stderr, "  %s pack-ape-bare output.ape x86_64.elf aarch64.elf\n", argv0);
   fprintf(stderr, "  %s pack-app output.com x86_64.elf aarch64.elf program.%s\n", argv0, BLOB_EXT);
   fprintf(stderr, "  %s nano-cc compile input.c -o output.elf\n", argv0);
+  fprintf(stderr, "  %s nano-cc compile-obj input.c -o output.o\n", argv0);
   fprintf(stderr, "  %s nano-cc parse input.c\n", argv0);
   fprintf(stderr, "  %s nano-cc-compile-expect-exit expected input.c output.elf\n", argv0);
   fprintf(stderr, "  %s nano-cc-parse-expect-exit expected input.c\n", argv0);
@@ -158,6 +159,10 @@ int main(int argc, char **argv) {
   if (argc >= 2 && strcmp(argv[1], "nano-cc") == 0 && argc == 6 && strcmp(argv[2], "compile") == 0 &&
       strcmp(argv[4], "-o") == 0) {
     return cmd_nano_cc_compile(argv[3], argv[5]);
+  }
+  if (argc >= 2 && strcmp(argv[1], "nano-cc") == 0 && argc == 6 &&
+      strcmp(argv[2], "compile-obj") == 0 && strcmp(argv[4], "-o") == 0) {
+    return cmd_nano_cc_compile_obj(argv[3], argv[5]);
   }
   if (argc >= 2 && strcmp(argv[1], "nano-cc") == 0 && argc == 4 && strcmp(argv[2], "parse") == 0) {
     return cmd_nano_cc_parse(argv[3]);

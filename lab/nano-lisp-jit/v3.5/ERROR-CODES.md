@@ -19,19 +19,27 @@ C-subset frontend beyond `int main(){ return N; }` — token/parse/lower for `in
 
 | Exit | When | stderr tag |
 |------|------|------------|
+| **0** | parse OK | stable dump on stdout (`nano-cc.parse.*`) |
+| **1** | read fail / expect mismatch | `nano-cc=read_fail`, `nano-cc-parse-expect-exit=mismatch` |
 | **2** | parse / lower reject | `nano-cc=add_parse_fail reason=*` |
 | **2** | legacy alias (pre-add-parse) | `nano-cc=unsupported_source` + `reason=add_parse` in plan logs |
 
-| reason | Sample (planned) |
-|--------|------------------|
-| `bad_signature` | non-`int` return or arity ≠ 2 |
-| `bad_token` | lexer cannot tokenize input |
-| `unsupported_stmt` | body not `return a+b` pattern yet |
-| `dump_mismatch` | parse dump hash ≠ golden |
+| reason | Sample |
+|--------|--------|
+| `unsupported_stmt` | signature/body/call pattern mismatch — `samples/nano-cc-add-bad-sig.c` (non-`int add`), `samples/nano-cc-add-bad-body.c` (`return a-b`) |
+| `bad_signature` | reserved — non-`int` return or arity ≠ 2 (today reported as `unsupported_stmt`) |
+| `bad_token` | reserved — lexer cannot tokenize input |
+| `dump_mismatch` | `run.sh` `nano-cc-parse-add-golden` — stdout missing a line from `samples/nano-cc-add.parse.golden` |
 
-Positive path (planned): `samples/nano-cc-add.c` — compile + run exit matches hand-written `.lisp` 等价路径。
+Positive path: `samples/nano-cc-add.c` — `nano-cc parse` dump matches `samples/nano-cc-add.parse.golden`; compile + run exit matches hand-written `.lisp` 等价路径。
 
-CLI (planned): `nano-cc parse input.c` → stable dump on stdout; failures use **exit 2**.
+CLI: `nano-cc parse input.c` → stable dump on stdout (`nano-cc.parse.path=`, `kind=`, `add_a=`, `add_b=`, `exit_code=`); failures use **exit 2**.
+
+`run.sh` gates: `nano-cc-parse-add-golden`, `nano-cc-parse-add-bad-expect2`, `nano-cc-parse-add-bad-body-expect2`.
+
+## compile-obj emit (slice 2)
+
+CLI: `nano-cc compile-obj input.c -o out.o` → relocatable ELF64 object (`main` immediate-return via `emit_elf64_obj_ret_file`); emit fail **exit 3** tag `nano-cc=emit_obj_fail`.
 
 ## build-slice-codegen (slice 3)
 
