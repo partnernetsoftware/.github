@@ -53,3 +53,14 @@
 | 终局整体 | **15–22%** | catalog ready ≠ 零宿主 |
 
 **并发上限**：四轨 = A/B/C/D 各一工作面（对应 squad 四角色规模），单波一次收敛。
+
+## wave30（洋葱内圈 · 四轨）
+
+| 维度 | wave30 后 | Δ |
+|------|-----------|---|
+| Plan | ~93% | `v4-onion-rings-v1.lisp` 圈索引 |
+| 编排 | ~24% | supervise/signal/resume 链 |
+| 构建 | ~36% | contract-regression 锚点 |
+| 终局整体 | **15–22%** | 见 [`PROGRESS.md`](PROGRESS.md) |
+
+**catalog**：`v4-complete` ready=True（合 main 时以本表为准）。

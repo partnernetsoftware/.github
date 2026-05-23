@@ -72,6 +72,7 @@
 | 2026-05-23 | **wave13**：**agent-team 四角色 tmux 实跑**（`--auto-exec --auto-done`）完成 lowering-table + add13；修复 `spawn_agent_team` tmux argv |
 | 2026-05-23 | **wave12**：S7 emit profile + add11；`parse_add_operands` 已读 plan 内 `(i64 …)`，profile 标记可观测 |
 | 2026-05-23 | **wave11**：本文件 + S6 codegen kickoff；调整 wave11+ 双轨策略 |
+| 2026-05-23 | **wave30**：洋葱圈索引 + 四轨 supervise/contract 回归 |
 | 2026-05-23 | **wave29**：四轨扩散 ≤4 并发；plan 双 results-min；`v4-plan-manifest-v1.lisp` |
 | 2026-05-23 | **wave27–28**：扩散收敛（整表+words-v2 交叉验证）；反思固化 PARALLEL 禁止碎补；`EVAL.md` 合 main 进度 |
 | 2026-05-23 | S0–S5 汇总入账；小队 §2 调整表与 `SQUAD_VERIFY` 实践 |
