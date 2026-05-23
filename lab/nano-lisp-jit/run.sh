@@ -1419,14 +1419,23 @@ run_case "squad-v4-supervise-once" bash -c '
   printf "%s\n" "$out" | grep -q "supervise-tick:"
 '
 run_case "squad-v4-run-loop-engineer-once" bash -c '
-  cd "'"$ROOT_DIR"'" && out=$("'"$SQUAD_SH"'" --catalog "'"$CATALOG_V4"'" run-loop --role engineer-a --once --auto-exec 2>&1) || true
+  ae=" --auto-exec"
+  if [[ "${SQUAD_VERIFY:-}" = "1" ]]; then ae=" --no-auto-exec"; fi
+  cd "'"$ROOT_DIR"'" && out=$("'"$SQUAD_SH"'" --catalog "'"$CATALOG_V4"'" run-loop --role engineer-a --once${ae} 2>&1) || true
   printf "%s\n" "$out"
   printf "%s\n" "$out" | grep -q "run-loop role=engineer-a"
 '
 run_case "squad-v4-run-loop-reviewer-once" bash -c '
-  cd "'"$ROOT_DIR"'" && out=$("'"$SQUAD_SH"'" --catalog "'"$CATALOG_V4"'" run-loop --role reviewer --once 2>&1) || true
+  ae=""
+  if [[ "${SQUAD_VERIFY:-}" = "1" ]]; then ae=" --no-auto-exec"; fi
+  cd "'"$ROOT_DIR"'" && out=$("'"$SQUAD_SH"'" --catalog "'"$CATALOG_V4"'" run-loop --role reviewer --once${ae} 2>&1) || true
   printf "%s\n" "$out"
   printf "%s\n" "$out" | grep -q "run-loop role=reviewer"
+'
+run_case "squad-v4-resume-resets-wave" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$SQUAD_SH"'" --catalog "'"$CATALOG_V4"'" resume --reason run-sh-smoke 2>&1) || true
+  printf "%s\n" "$out"
+  printf "%s\n" "$out" | grep -q "wave=1"
 '
 run_case "run-bootstrap-v4-slice3-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE3_EVIDENCE_SRC"'" 2>&1) || true

@@ -145,14 +145,16 @@ def cmd_resume(ctx: SquadContext, args: argparse.Namespace) -> int:
     store.set_meta("halt", False)
     store.set_meta("halt_reason", None)
     store.set_meta("supervisor_outcome", None)
-    wave = int(store.get_meta("wave", 1) or 1) + 1
-    store.set_meta("wave", wave)
+    epoch = int(store.get_meta("epoch", 0) or 0) + 1
+    store.set_meta("epoch", epoch)
+    store.set_meta("wave", 1)
+    store.set_meta("idle_waves", 0)
     store.set_signal("supervisor", "running", reason=args.reason or "resume")
     for rid in ctx.all_role_ids():
         if rid != "commander":
             store.set_signal(rid, "running", reason="wave_open")
     store.export_json()
-    print(f"resumed wave={wave} leader=running")
+    print(f"resumed epoch={epoch} wave=1 leader=running")
     return 0
 
 
@@ -228,7 +230,11 @@ def _run_verify_steps(ctx: SquadContext, args: argparse.Namespace, steps: list) 
         if not script:
             continue
         cwd = ctx.resolve_path(step.get("cwd", "."))
-        env = {**subprocess.os.environ, **(step.get("env") or {})}
+        env = {
+            **subprocess.os.environ,
+            **(step.get("env") or {}),
+            "SQUAD_VERIFY": "1",
+        }
         r = subprocess.run(
             ["bash", str(ctx.resolve_path(script))],
             cwd=cwd,

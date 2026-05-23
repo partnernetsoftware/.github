@@ -31,6 +31,8 @@ tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v4.yaml run-loop 
 
 `run-loop` 正常退出仅 **`complete` | `failed` | `timeout`**；迭代用尽 → `timeout`。
 
+**防卡住**：每波先 `resume`（重置 `wave=1`、递增 `epoch`，清 `halt`）；signoff 已 100% 且任务全 done 时指挥长应快速 `complete`，不再空转叠 `wave`。并行时 claim 遇 path 锁会 `wait_lock` 轮询，不立刻失败。
+
 ### Leader 信号（`signals` 表 subject=`supervisor`）
 
 | 信号 | 含义 |

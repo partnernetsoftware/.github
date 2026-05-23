@@ -29,7 +29,7 @@ def _run_verify(ctx: SquadContext, *, quick: bool = True) -> int:
     cmd.append("verify")
     if quick:
         cmd.append("--quick")
-    r = subprocess.run(cmd, cwd=ctx.project_root)
+    r = subprocess.run(cmd, cwd=ctx.project_root, env={**subprocess.os.environ, "SQUAD_VERIFY": "1"})
     return r.returncode
 
 
@@ -58,8 +58,14 @@ def execute_member_action(
             result["executed"] = "claim"
             result["detail"] = f"claimed {tid}"
         except SquadLockError as e:
-            result["ok"] = False
-            result["detail"] = str(e)
+            msg = str(e)
+            # Path held by another role — poll until merge_order releases it.
+            if " locked by " in msg:
+                result["executed"] = "wait_lock"
+                result["detail"] = msg
+            else:
+                result["ok"] = False
+                result["detail"] = msg
         return result
 
     if action == "work" and tid and auto_verify:

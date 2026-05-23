@@ -58,5 +58,21 @@ class TeamReadyTests(unittest.TestCase):
         self.assertEqual(code, 3)
 
 
+    def test_resume_resets_wave_counter(self):
+        catalog = Path(__file__).resolve().parents[3] / "lab/nano-lisp-jit/squad/catalog-v4.yaml"
+        ctx = SquadContext(
+            project_root=Path(__file__).resolve().parents[3],
+            catalog=catalog,
+        )
+        store = SquadStore(ctx)
+        store.set_meta("wave", 99)
+        from engine.commands import cmd_resume
+        import argparse
+
+        cmd_resume(ctx, argparse.Namespace(reason="test"))
+        self.assertEqual(int(store.get_meta("wave", 0)), 1)
+        self.assertGreater(int(store.get_meta("epoch", 0)), 0)
+
+
 if __name__ == "__main__":
     unittest.main()

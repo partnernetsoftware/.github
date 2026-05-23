@@ -23,6 +23,7 @@ supervisor:
   max_waves: 80
   task_timeout_sec: 3600
   stuck_policy: fail
+  idle_waves_max: 12
 signoff:
   id: v4-slice3-scoped
   require_terminal: false
@@ -329,6 +330,27 @@ tasks:
       - "assess v4-slice3-scoped ready"
       - "v4/SLICE3.md"
       - "REFLECTION slice-3 行"
+  wave8-squad-stuck-fix:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths: ["tools/squad/engine/supervisor.py", "tools/squad/engine/commands.py", "tools/squad/README.md"]
+    accept:
+      - "resume 重置 wave=1 / epoch++"
+      - "signoff ready 时空闲不再叠 wave"
+  wave8-v4-s4-doc:
+    assign_role: engineer-a
+    priority: P1
+    touch_paths: ["v4/README.md", "tools/squad/README.md"]
+    accept:
+      - "agent-team 四角色流程"
+      - "run.sh squad-v4-commander-complete-smoke"
+  wave8-v4-R:
+    assign_role: reviewer
+    priority: meta
+    depends: [wave8-squad-stuck-fix, wave8-v4-s4-doc]
+    accept:
+      - "assess v4-slice3-scoped ready"
+      - "REFLECTION stuck-fix 行"
 
 verify:
   commands:

@@ -293,6 +293,7 @@ def supervise_tick(
         release_team(ctx, store, "all_tasks_done")
         tick["outcome"] = OUTCOME_COMPLETE
         tick["leader"] = OUTCOME_COMPLETE
+        return tick
 
     return tick
 
@@ -315,6 +316,7 @@ def run_supervise(
     store.set_meta("supervisor_started_at", _utc_now())
     store.set_meta("supervisor_outcome", None)
     store.set_meta("halt", False)
+    store.set_meta("idle_waves", 0)
     store.set_signal("supervisor", "running", reason="leader run-loop")
 
     last_progress = start
@@ -347,11 +349,17 @@ def run_supervise(
                 else (3 if tick["outcome"] == OUTCOME_TIMEOUT else 1)
             )
 
+        if team_mode(ctx) and team_ready_to_release(ctx, store):
+            release_team(ctx, store, "signoff_and_all_tasks_done")
+            store.export_json()
+            return OUTCOME_COMPLETE, 0
+
         if tick.get("dispatched") or tick.get("percent_auto", 0) > int(
             store.get_meta("last_progress_percent", 0) or 0
         ):
             last_progress = time.time()
             store.set_meta("last_progress_percent", tick["percent_auto"])
+            store.set_meta("idle_waves", 0)
         elif time.time() - last_progress > task_timeout_sec and pending_worker_tasks(ctx, store):
             if stuck_policy == "timeout":
                 outcome = OUTCOME_TIMEOUT
@@ -368,10 +376,16 @@ def run_supervise(
             for tid in ctx.tasks
             if ctx.task_assign_role(tid) in ctx.worker_roles()
         )
-        if not inflight and not pending_worker_tasks(ctx, store):
+        any_pending = pending_any_tasks(ctx, store)
+
+        if not inflight and not any_pending:
+            if tick.get("ready"):
+                release_team(ctx, store, "signoff_and_all_tasks_done")
+                store.export_json()
+                return OUTCOME_COMPLETE, 0
             wave += 1
             store.set_meta("wave", wave)
-            if wave > max_waves and not tick.get("ready"):
+            if wave > max_waves:
                 outcome = OUTCOME_FAILED
                 store.set_meta("supervisor_outcome", OUTCOME_FAILED)
                 store.set_meta("halt", True)
@@ -379,6 +393,22 @@ def run_supervise(
                 store.set_signal("supervisor", OUTCOME_FAILED, reason=store.get_meta("halt_reason"))
                 store.export_json()
                 return outcome, 1
+        elif not inflight and tick.get("ready"):
+            idle = int(store.get_meta("idle_waves", 0) or 0) + 1
+            store.set_meta("idle_waves", idle)
+            if team_ready_to_release(ctx, store):
+                release_team(ctx, store, "signoff_and_all_tasks_done")
+                store.export_json()
+                return OUTCOME_COMPLETE, 0
+            cfg_idle = int(_supervisor_cfg(ctx).get("idle_waves_max", 12))
+            if idle > cfg_idle:
+                outcome = OUTCOME_TIMEOUT
+                store.set_meta("supervisor_outcome", OUTCOME_TIMEOUT)
+                store.set_meta("halt", True)
+                store.set_meta("halt_reason", f"idle_waves>{cfg_idle}")
+                store.set_signal("supervisor", OUTCOME_TIMEOUT, reason=store.get_meta("halt_reason"))
+                store.export_json()
+                return outcome, 3
 
         if once:
             return "", 2
@@ -409,6 +439,11 @@ def member_tick(
     if leader in TERMINAL_LEADER:
         result["action"] = "stand_down"
         result["reason"] = f"leader={leader}"
+        return result
+
+    if leader == "standby" and team_ready_to_release(ctx, store):
+        result["action"] = "stand_down"
+        result["reason"] = "team_ready"
         return result
 
     if leader not in LEADER_ACTIVE and leader != "running":
@@ -555,7 +590,11 @@ def run_member_loop(
             tick["auto_exec"] = ex
             if ex.get("suggest_done"):
                 print(f"[{role}] {ex['suggest_done']}", file=sys.stderr)
-            if not ex.get("ok", True) and action != "await_leader":
+            if ex.get("executed") == "wait_lock":
+                store.export_json()
+                time.sleep(poll_interval_sec)
+                continue
+            if not ex.get("ok", True) and action not in ("await_leader", "wait_dispatch"):
                 store.export_json()
                 return OUTCOME_FAILED, 1
 
