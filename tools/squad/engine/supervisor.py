@@ -206,12 +206,14 @@ def supervise_tick(
         tick["leader"] = "standby"
         tick["signoff_ready"] = True
     elif report["ready"] and not team_mode(ctx):
-        tick["outcome"] = OUTCOME_COMPLETE
-        store.set_meta("supervisor_outcome", OUTCOME_COMPLETE)
-        store.set_meta("halt", True)
-        store.set_meta("halt_reason", "signoff")
-        store.set_signal("supervisor", OUTCOME_COMPLETE, reason="assess.ready")
-        return tick
+        if team_ready_to_release(ctx, store):
+            release_team(ctx, store, "signoff_and_all_tasks_done")
+            tick["outcome"] = OUTCOME_COMPLETE
+            tick["leader"] = OUTCOME_COMPLETE
+            return tick
+        store.set_signal("supervisor", "standby", reason="signoff_ready_team_busy")
+        tick["leader"] = "standby"
+        tick["signoff_ready"] = True
 
     wf = worker_failed(store, ctx)
     tf = task_failed(store.load_snapshot())
@@ -508,6 +510,7 @@ def run_member_loop(
     stuck_policy: str,
     once: bool = False,
     auto_exec: bool = False,
+    auto_done: bool = False,
 ) -> tuple[str, int]:
     """
     Unified run-loop for every catalog role.
@@ -548,7 +551,7 @@ def run_member_loop(
         if auto_exec and action in ("claim", "work", "timeout"):
             from .member_exec import execute_member_action
 
-            ex = execute_member_action(ctx, store, role, tick)
+            ex = execute_member_action(ctx, store, role, tick, auto_done=auto_done)
             tick["auto_exec"] = ex
             if ex.get("suggest_done"):
                 print(f"[{role}] {ex['suggest_done']}", file=sys.stderr)
@@ -584,8 +587,9 @@ def run_member_loop(
             return "tick", 2
         time.sleep(poll_interval_sec)
 
+    store.set_signal(role, OUTCOME_TIMEOUT, reason=f"max_iter={max_iter}")
     store.export_json()
-    return "max_iter", 2
+    return OUTCOME_TIMEOUT, 3
 
 
 def spawn_agent_team(
@@ -594,12 +598,14 @@ def spawn_agent_team(
     poll_sec: float = 8.0,
     max_iter: int = 500,
     auto_exec: bool = True,
+    auto_done: bool = False,
 ) -> int:
     """Start tmux sessions — each runs the same `squad run-loop --role`."""
     root = ctx.project_root
     squad = root / "tools/squad/squad.sh"
     cat_flag = f'--catalog "{ctx.catalog_path}"'
     ae = " --auto-exec" if auto_exec else ""
+    ad = " --auto-done" if auto_done else ""
     tmux = "tmux -f /exec-daemon/tmux.portal.conf"
     roles = ["commander", "engineer-a", "engineer-b", "reviewer"]
     for name in roles:
@@ -613,7 +619,7 @@ def spawn_agent_team(
             f"cd {root!s} && {squad!s} {cat_flag} resume --reason agent-team 2>/dev/null; "
             f"{squad!s} {cat_flag} dispatch --force --include-meta --max-tasks 4 2>/dev/null; "
             f"{squad!s} {cat_flag} run-loop --role {name} --max-iter {max_iter} "
-            f"--poll-interval {poll_sec}{ae}"
+            f"--poll-interval {poll_sec}{ae}{ad}"
         )
         subprocess.run(
             [tmux, "new-session", "-d", "-s", session, "-c", str(root), "--", "bash", "-lc", cmd],

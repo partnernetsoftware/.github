@@ -26,4 +26,5 @@ assess.ready（scoped ∧ terminal）            → v3.5 全线完成 → 小�
 ## 当前动作（wave-5 后）
 
 - v3.5：**无剩余阻塞**（aarch64 全 AOT 明确归入 v4）。
-- v4：`tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v4.yaml agent-team`
+- v4：`tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v4.yaml agent-team --auto-exec --auto-done`
+- squad **wave2**：`run-loop` 仅 `complete|failed|timeout` 解散；`auto_done` 闭环工单（见 `squad/PROTOCOL.md`）

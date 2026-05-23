@@ -416,6 +416,7 @@ def _supervisor_options(ctx: SquadContext, args: argparse.Namespace) -> dict:
         "stuck_policy": args.stuck_policy or cfg.get("stuck_policy", "fail"),
         "max_iter": int(args.max_iter if getattr(args, "max_iter", None) is not None else cfg.get("max_iter", 500)),
         "auto_exec": _resolve_auto_exec(ctx, args),
+        "auto_done": _resolve_auto_done(ctx, args),
     }
 
 
@@ -424,6 +425,13 @@ def _resolve_auto_exec(ctx: SquadContext, args: argparse.Namespace) -> bool:
     if getattr(args, "auto_exec", None) is not None:
         return bool(args.auto_exec)
     return bool(cfg.get("auto_exec", False))
+
+
+def _resolve_auto_done(ctx: SquadContext, args: argparse.Namespace) -> bool:
+    cfg = ctx.catalog.get("supervisor") or {}
+    if getattr(args, "auto_done", None) is not None:
+        return bool(args.auto_done)
+    return bool(cfg.get("auto_done", False))
 
 
 def cmd_supervise(ctx: SquadContext, args: argparse.Namespace) -> int:
@@ -547,6 +555,7 @@ def cmd_run_loop(ctx: SquadContext, args: argparse.Namespace) -> int:
         stuck_policy=opts["stuck_policy"],
         once=args.once,
         auto_exec=opts["auto_exec"],
+        auto_done=opts["auto_done"],
     )
     store.export_json()
     if args.json:
@@ -563,7 +572,10 @@ def cmd_agent_team(ctx: SquadContext, args: argparse.Namespace) -> int:
     poll = float(args.poll_interval if args.poll_interval is not None else 8.0)
     max_iter = int(args.max_iter if args.max_iter is not None else 500)
     auto_exec = _resolve_auto_exec(ctx, args)
-    return spawn_agent_team(ctx, poll_sec=poll, max_iter=max_iter, auto_exec=auto_exec)
+    auto_done = _resolve_auto_done(ctx, args)
+    return spawn_agent_team(
+        ctx, poll_sec=poll, max_iter=max_iter, auto_exec=auto_exec, auto_done=auto_done
+    )
 
 
 def cmd_worker_tick(ctx: SquadContext, args: argparse.Namespace) -> int:

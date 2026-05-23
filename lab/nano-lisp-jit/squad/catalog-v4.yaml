@@ -17,6 +17,7 @@ dispatch:
 supervisor:
   team_mode: true
   auto_exec: true
+  auto_done: true
   timeout_sec: 7200
   poll_interval_sec: 15
   max_waves: 50
@@ -84,6 +85,26 @@ tasks:
     accept:
       - "assess v4-kickoff ready"
       - "POSTMORTEM 链实践记录一句"
+  wave2-squad-triple-exit:
+    assign_role: engineer-b
+    priority: P1
+    touch_paths: ["tools/squad/README.md", "squad/PROTOCOL.md"]
+    accept:
+      - "退出语义仅 complete|failed|timeout"
+      - "max_iter 映射 timeout；auto_done 文档"
+  wave2-v4-s0-assess-sample:
+    assign_role: engineer-a
+    priority: P1
+    touch_paths: ["samples/bootstrap-v4-squad-assess.lisp", "v4/README.md"]
+    accept:
+      - "bootstrap-v4-squad-assess.lisp S0 smoke"
+  wave2-v4-R:
+    assign_role: reviewer
+    priority: meta
+    depends: [wave2-squad-triple-exit, wave2-v4-s0-assess-sample]
+    accept:
+      - "assess v4-kickoff ready"
+      - "REFLECTION wave2 三态+auto_done 实践"
 
 verify:
   commands:

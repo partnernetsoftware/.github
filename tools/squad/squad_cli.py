@@ -175,6 +175,12 @@ def main() -> int:
         default=None,
         help="Auto claim/verify on member tick (default: catalog supervisor.auto_exec)",
     )
+    rl.add_argument(
+        "--auto-done",
+        action=argparse.BooleanOptionalAction,
+        default=None,
+        help="After verify OK, auto release_done (default: catalog supervisor.auto_done)",
+    )
     rl.add_argument("--json", action="store_true")
     rl.set_defaults(func=cmd_run_loop)
 
@@ -186,6 +192,12 @@ def main() -> int:
         action=argparse.BooleanOptionalAction,
         default=None,
         help="Pass --auto-exec to each run-loop",
+    )
+    at.add_argument(
+        "--auto-done",
+        action=argparse.BooleanOptionalAction,
+        default=None,
+        help="Pass --auto-done to each run-loop",
     )
     at.set_defaults(func=cmd_agent_team)
 

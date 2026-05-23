@@ -40,10 +40,11 @@ def execute_member_action(
     tick: dict[str, Any],
     *,
     auto_verify: bool = True,
+    auto_done: bool = False,
 ) -> dict[str, Any]:
     """
     Run claim / verify when tick requests it. Returns {executed, ok, detail, suggest_done}.
-    Does not auto-commit or auto-done (needs human/agent confirmation).
+    With auto_done, calls release_done after verify passes (no git commit).
     """
     result: dict[str, Any] = {"executed": None, "ok": True, "detail": "", "suggest_done": None}
     action = tick.get("action")
@@ -68,10 +69,20 @@ def execute_member_action(
         result["detail"] = f"verify exit={code}"
         if result["ok"]:
             commit = _git_short_commit(ctx.project_root)
-            result["suggest_done"] = (
-                f"tools/squad/squad.sh --catalog {ctx.catalog_path} "
-                f"done {role} {tid} --commit {commit}"
-            )
+            touch = list(spec.get("touch_paths") or [])
+            if auto_done:
+                try:
+                    store.release_done(role, tid, commit, touch)
+                    result["executed"] = "done"
+                    result["detail"] = f"auto_done {tid} @{commit}"
+                except SquadLockError as e:
+                    result["ok"] = False
+                    result["detail"] = str(e)
+            else:
+                result["suggest_done"] = (
+                    f"tools/squad/squad.sh --catalog {ctx.catalog_path} "
+                    f"done {role} {tid} --commit {commit}"
+                )
         return result
 
     if action == "timeout" and tid:

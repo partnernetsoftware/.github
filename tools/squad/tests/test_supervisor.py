@@ -11,7 +11,7 @@ if str(_ROOT) not in sys.path:
 
 from engine.context import SquadContext
 from engine.db import SquadStore
-from engine.supervisor import team_ready_to_release
+from engine.supervisor import OUTCOME_TIMEOUT, run_member_loop, team_ready_to_release
 
 
 class TeamReadyTests(unittest.TestCase):
@@ -31,6 +31,31 @@ class TeamReadyTests(unittest.TestCase):
             if store.task_status(tid) == "pending":
                 self.assertFalse(team_ready_to_release(ctx, store))
                 break
+
+
+    def test_max_iter_maps_to_timeout(self):
+        catalog = Path(__file__).resolve().parents[3] / "lab/nano-lisp-jit/squad/catalog-v4.yaml"
+        ctx = SquadContext(
+            project_root=Path(__file__).resolve().parents[3],
+            catalog=catalog,
+        )
+        store = SquadStore(ctx)
+        store.set_signal("supervisor", "running", reason="test")
+        outcome, code = run_member_loop(
+            ctx,
+            store,
+            "engineer-a",
+            max_iter=1,
+            poll_interval_sec=0.01,
+            timeout_sec=7200,
+            max_tasks=2,
+            task_timeout_sec=3600,
+            stuck_policy="fail",
+            once=False,
+            auto_exec=False,
+        )
+        self.assertEqual(outcome, OUTCOME_TIMEOUT)
+        self.assertEqual(code, 3)
 
 
 if __name__ == "__main__":

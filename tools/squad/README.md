@@ -26,8 +26,10 @@ tools/squad/squad.sh run-loop --role reviewer
 tools/squad/squad.sh agent-team --auto-exec
 
 # 队员自动 claim + verify（verify 持 flock，避免与 run.sh 竞写 evidence）
-tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v4.yaml run-loop --role engineer-a --auto-exec
+tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v4.yaml run-loop --role engineer-a --auto-exec --auto-done
 ```
+
+`run-loop` 正常退出仅 **`complete` | `failed` | `timeout`**；迭代用尽 → `timeout`。
 
 ### Leader 信号（`signals` 表 subject=`supervisor`）
 
@@ -51,7 +53,7 @@ tools/squad/squad.sh supervise --once    # 仅 leader 调试
 
 ## 配置
 
-项目根 `.squadrc.yaml` → `catalog.yaml`；`supervisor.team_mode: true`（默认）启用 leader/follower 分离。`supervisor.auto_exec: true` 时 follower 在 tick 内自动 `claim`/`verify`（成功时 stderr 打印建议的 `done` 命令）；`verify` 使用 `.squad/verify.lock` 串行化。
+项目根 `.squadrc.yaml` → `catalog.yaml`；`supervisor.team_mode: true`（默认）启用 leader/follower 分离。`auto_exec` + `auto_done` 可闭环 claim→verify→done；`verify` 使用 `.squad/verify.lock` 串行化。无 `team_mode` 时也不再仅凭 `assess.ready` 解散，须任务全终态。
 
 ## Cloud Agent 并行
 

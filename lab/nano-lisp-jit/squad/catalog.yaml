@@ -23,6 +23,7 @@ dispatch:
 supervisor:
   team_mode: true
   auto_exec: true
+  auto_done: true
   timeout_sec: 7200
   poll_interval_sec: 15
   max_waves: 50
@@ -169,6 +170,19 @@ tasks:
       - "assess terminal_ready=true"
       - "SQUAD.md 停止条件与 catalog 对齐"
       - "v4 kickoff 文档若 terminal 全绿"
+  wave2-v35-squad-triple-exit:
+    assign_role: engineer-a
+    priority: P2
+    touch_paths: ["v3.5/DECISION.md", "tools/squad/README.md"]
+    accept:
+      - "DECISION 记 squad 三态退出 + auto_done 实践"
+  wave2-v35-R:
+    assign_role: reviewer
+    priority: meta
+    depends: [wave2-v35-squad-triple-exit]
+    accept:
+      - "assess terminal_ready=true"
+      - "v3.5 维护波次收口"
 
 verify:
   commands:

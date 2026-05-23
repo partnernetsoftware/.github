@@ -18,7 +18,7 @@ tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v4.yaml dispatch 
 tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v4.yaml agent-team --auto-exec
 ```
 
-**实践波次**（`wave-practice-*`）：验证 host squad 的 `--auto-exec` + `verify.lock` + 四角色 `run-loop`；终局仍由 catalog `signoff` 与 reviewer meta 任务收口。
+**实践波次**：`wave-practice-*`（auto-exec）；**wave2**（三态退出 + `auto_done` + `bootstrap-v4-squad-assess.lisp` S0）。四角色 `agent-team --auto-exec --auto-done`。
 
 ## 证据
 
