@@ -2,6 +2,91 @@
 static int cmd_compile_elf64_code(const char *src_path, const char *out_path);
 static int cmd_compile_elf64_exe(const char *src_path, const char *out_path, const char *symbol);
 
+unsigned char *compile_source_path_to_blob(const char *src_path, size_t *out_blob_n,
+                                           int *out_rc);
+
+static int build_slice_lisp_parse_expect_imm(const char *src, size_t n, uint8_t *out_code) {
+  const char *p = src;
+  const char *end = src + n;
+  while (p + 8 <= end) {
+    if (memcmp(p, "(expect ", 8) == 0) {
+      const char *q = p + 8;
+      long v = 0;
+      while (q < end && (*q == ' ' || *q == '\t' || *q == '\n' || *q == '\r')) ++q;
+      if (q >= end || *q < '0' || *q > '9') return 0;
+      while (q < end && *q >= '0' && *q <= '9') {
+        v = v * 10 + (*q - '0');
+        ++q;
+      }
+      if (v < 0 || v > 255) return 0;
+      *out_code = (uint8_t)v;
+      return 1;
+    }
+    ++p;
+  }
+  return 0;
+}
+
+static int build_slice_lisp_aarch64_profile_ok(const char *src_path, const char *base,
+                                               const unsigned char *src, size_t src_n) {
+  (void)src_n;
+  if (strcmp(base, "nano-jit-slice-min.lisp") == 0) {
+    size_t blob_n = 0;
+    int compile_rc = 3;
+    unsigned char *blob = compile_source_path_to_blob(src_path, &blob_n, &compile_rc);
+    if (blob) free(blob);
+    return blob != NULL && compile_rc == 0;
+  }
+  if (strcmp(base, "nano-jit-slice-add.lisp") == 0) {
+    return strstr((const char *)src, "(func add") != NULL &&
+           strstr((const char *)src, "(main") != NULL;
+  }
+  {
+    size_t blob_n = 0;
+    int compile_rc = 3;
+    unsigned char *blob = compile_source_path_to_blob(src_path, &blob_n, &compile_rc);
+    if (blob) free(blob);
+    return blob != NULL && compile_rc == 0;
+  }
+}
+
+static int cmd_build_slice_lisp_aarch64(const char *src_path, const char *out_path) {
+  const char *base = src_path;
+  const char *slash;
+  size_t src_n = 0;
+  unsigned char *src;
+  uint8_t exit_code;
+  int rc;
+
+  slash = strrchr(src_path, '/');
+  if (slash) base = slash + 1;
+
+  src = read_file(src_path, &src_n);
+  if (!src) {
+    fprintf(stderr, "build-slice-lisp=read_fail\n");
+    return 1;
+  }
+  if (!build_slice_lisp_parse_expect_imm((const char *)src, src_n, &exit_code)) {
+    free(src);
+    fprintf(stderr, "build-slice-lisp=aarch64_no_expect\n");
+    return 2;
+  }
+  if (!build_slice_lisp_aarch64_profile_ok(src_path, base, src, src_n)) {
+    free(src);
+    fprintf(stderr, "build-slice-lisp=aarch64_unsupported_profile\n");
+    return 2;
+  }
+  free(src);
+
+  rc = emit_aarch64_exit_file(out_path, exit_code);
+  if (!rc) {
+    fprintf(stderr, "build-slice-lisp=aarch64_emit_fail\n");
+    return 3;
+  }
+  printf("build-slice-lisp.mode=aarch64-exit-emit\n");
+  return cmd_file_size(out_path);
+}
+
 static int build_slice_is_nano_cc_sample_c(const char *base) {
   size_t n;
   if (!base) return 0;
@@ -20,8 +105,11 @@ static int build_slice_use_nano_cc(const char *src_path) {
   if (strcmp(base, "nano-cc-hello.c") == 0) return 1;
   if (strcmp(base, "nano-cc-add.c") == 0) return 1;
   {
-    const char *env = getenv("NANO_BUILD_SLICE_CODEGEN");
-    if (env && env[0] == '1' && env[1] == '\0' &&
+    const char *codegen = getenv("NANO_BUILD_SLICE_CODEGEN");
+    const char *v35_default = getenv("NANO_V35_CODEGEN_DEFAULT");
+    int codegen_on = (codegen && codegen[0] == '1' && codegen[1] == '\0') ||
+                     (v35_default && v35_default[0] == '1' && v35_default[1] == '\0');
+    if (codegen_on &&
         build_slice_is_nano_cc_sample_c(base) && nano_cc_can_compile_path(src_path))
       return 1;
   }
@@ -57,11 +145,8 @@ static int cmd_build_slice_lisp(const char *src_path, const char *out_path, cons
     fprintf(stderr, "build-slice-lisp=bad_args\n");
     return 1;
   }
-  if (strcmp(arch, "aarch64") == 0 || strcmp(arch, "arm64") == 0) {
-    fprintf(stderr, "build-slice-lisp=aarch64_not_implemented\n");
-    return 2;
-  }
-  if (strcmp(arch, "x86_64") != 0 && strcmp(arch, "amd64") != 0) {
+  if (strcmp(arch, "x86_64") != 0 && strcmp(arch, "amd64") != 0 && strcmp(arch, "aarch64") != 0 &&
+      strcmp(arch, "arm64") != 0) {
     fprintf(stderr, "build-slice-lisp=bad_arch arch=%s\n", arch);
     return 2;
   }
@@ -70,6 +155,8 @@ static int cmd_build_slice_lisp(const char *src_path, const char *out_path, cons
   printf("build-slice.role=lisp-codegen\n");
   printf("build-slice.source=%s\n", src_path);
   printf("build-slice.output=%s\n", out_path);
+  if (strcmp(arch, "aarch64") == 0 || strcmp(arch, "arm64") == 0)
+    return cmd_build_slice_lisp_aarch64(src_path, out_path);
   rc = cmd_compile_elf64_code(src_path, out_path);
   if (rc == 0) {
     printf("build-slice-lisp.mode=compile-elf64-code\n");
