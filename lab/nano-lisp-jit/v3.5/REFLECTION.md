@@ -115,6 +115,7 @@ P3（架构债，v4）
 
 | 日期 | 摘要 |
 |------|------|
+| 2026-05-23 | **wave8-v4-R**：`v4-slice3-scoped` **scoped 签收维持** — squad 防卡住（`resume` epoch++ 重置 wave=1、`idle_waves_max`、signoff ready 时 `team_ready` complete、claim `wait_lock`）；`run.sh squad-v4-resume-resets-wave` smoke + agent-team 四角色流程文档；reviewer `--auto-exec` 279 pass assess **100%** ready |
 | 2026-05-23 | **wave7-v4-R**：`v4-slice3-scoped` **scoped 签收** — squad S3 once tick（`squad-v4-supervise-once` + `run-loop-engineer-once` + `run-loop-reviewer-once`）+ `bootstrap-v4-squad-s3-*-once.lisp` + `.build/v4-slice3.evidence`；reviewer `--auto-exec` 278 pass assess **100%** ready；[`v4/README.md`](../v4/README.md) 记 slice-3 完成 |
 | 2026-05-23 | **wave6-v4-R**：`v4-slice2-scoped` **scoped 签收** — squad S2 state（`bootstrap-v4-squad-s2-state.lisp` + `state-v4.db`）+ gen5v2 锚点（`bootstrap-v4-gen5-via-gen2-anchor.lisp`）+ `.build/v4-slice2.evidence`；reviewer `--auto-exec` 272 pass assess **100%** ready；[`v4/README.md`](../v4/README.md) 记 slice-2 完成 |
 | 2026-05-23 | 初版：技术债表、缺陷、实验 H、P0–P3；入 ROADMAP mindmap track R |

@@ -1,14 +1,14 @@
 {
   "version": 2,
   "apiVersion": "squad-state/v2",
-  "wave": 59,
+  "wave": 1,
   "signoff_percent": 100,
-  "halt": true,
+  "halt": false,
   "assignments": {
     "commander": null,
-    "engineer-b": null,
     "engineer-a": null,
-    "reviewer": null
+    "reviewer": null,
+    "engineer-b": null
   },
   "tasks": {
     "v4-aarch64-aot-plan": {
@@ -130,6 +130,21 @@
       "status": "done",
       "assign_role": "reviewer",
       "commit": "05a6584"
+    },
+    "wave8-v4-s4-doc": {
+      "status": "done",
+      "assign_role": "engineer-a",
+      "commit": "0fe395d"
+    },
+    "wave8-v4-R": {
+      "status": "done",
+      "assign_role": "reviewer",
+      "commit": "0fe395d"
+    },
+    "wave8-squad-stuck-fix": {
+      "status": "done",
+      "assign_role": "engineer-b",
+      "commit": "0e38ef9"
     }
   },
   "findings": [],
@@ -139,7 +154,7 @@
     "engineer-a",
     "engineer-b"
   ],
-  "halt_reason": "signoff_and_all_tasks_done",
+  "halt_reason": null,
   "last_assess": {
     "signoff_id": "v4-slice3-scoped",
     "percent_auto": 100,
@@ -153,7 +168,7 @@
       {
         "id": "v35-regression-run",
         "ok": true,
-        "detail": "results.txt val=278 need>=257",
+        "detail": "results.txt val=279 need>=257",
         "manual": false
       },
       {
@@ -317,7 +332,7 @@
       {
         "id": "v35-regression-run",
         "ok": true,
-        "detail": "results.txt val=278 need>=257",
+        "detail": "results.txt val=279 need>=257",
         "manual": false
       },
       {
@@ -480,5 +495,5 @@
     "terminal": [],
     "manual": []
   },
-  "updated_at": "2026-05-23T09:50:47.160069+00:00"
+  "updated_at": "2026-05-23T10:19:24.468638+00:00"
 }
