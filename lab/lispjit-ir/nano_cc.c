@@ -3,6 +3,17 @@
 static int cmd_compile_elf64_exe(const char *src_path, const char *out_path,
                                  const char *symbol);
 
+static int nano_cc_target_is_aarch64(void) {
+  const char *arch = getenv("NANO_CC_ARCH");
+  if (!arch) return 0;
+  return strcmp(arch, "aarch64") == 0 || strcmp(arch, "arm64") == 0;
+}
+
+static int nano_cc_emit_exit(const char *out_path, uint8_t code) {
+  if (nano_cc_target_is_aarch64()) return emit_aarch64_exit_file(out_path, code);
+  return emit_elf64_exit_file(out_path, code);
+}
+
 static int nano_cc_skip_ws(const char **p, const char *end) {
   while (*p < end && ((**p) == ' ' || (**p) == '\t' || (**p) == '\n' || (**p) == '\r'))
     ++*p;
@@ -192,12 +203,13 @@ static int cmd_nano_cc_compile(const char *src_path, const char *out_path) {
   }
   if (nano_cc_parse_main_return((const char *)src, n, &code)) {
     free(src);
-    if (!emit_elf64_exit_file(out_path, (uint8_t)code)) {
+    if (!nano_cc_emit_exit(out_path, (uint8_t)code)) {
       fprintf(stderr, "nano-cc=emit_fail path=%s\n", out_path);
       return 3;
     }
     printf("nano-cc.source=%s\n", src_path);
     printf("nano-cc.output=%s\n", out_path);
+    printf("nano-cc.arch=%s\n", nano_cc_target_is_aarch64() ? "aarch64" : "x86_64");
     printf("nano-cc.exit_code=%d\n", code);
     return 0;
   }

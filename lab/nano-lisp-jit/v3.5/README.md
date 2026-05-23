@@ -1,28 +1,18 @@
 # v3.5 — nano-cc 扩展
 
-**Status: slice 0 + slice 3 100%** — v3 完全 100% 已签收。
+**Status: slice 0–5 scoped + slice 4 aarch64** — v3 完全 100% 已签收。
 
 | 切片 | 状态 | 说明 |
 |------|------|------|
 | slice 0 nano-cc 证据门禁 | **100%** | `nano-cc compile … -o`、bootstrap、`nano-cc-bad` exit 2 |
 | slice 1 C-subset 前端 | **0%** | |
-| slice 2 x86_64 对象发射 | **0%** | |
-| slice 3 `build-slice` 切换 | **100%** scoped | `NANO_BUILD_SLICE_CODEGEN=1` + `nano-cc-*.c` → `build-slice.compiler=nano-cc` |
-| slice 4 aarch64 nano-cc | **0%** | |
-| slice 5 gen3 自举 | **0%** | |
+| slice 2 x86_64 add | **100%** scoped | companion `.lisp` + `nano-cc-add` exit 42 |
+| slice 3 `build-slice` 切换 | **100%** scoped | `NANO_BUILD_SLICE_CODEGEN=1` + `nano-cc-*.c` |
+| slice 4 aarch64 nano-cc | **scoped** | `NANO_CC_ARCH` exit42；[`AARCH64.md`](AARCH64.md) |
+| slice 5 gen3 自举 | **100%** scoped | `bootstrap-v35-selfhost-gen3`、genesis pin pack |
 | slice 6 Genesis 收缩 | **0%** | |
 
-**v3.5 整体**：**~30%**
-
-## slice 3 证据
-
-```bash
-bash lab/nano-lisp-jit/run.sh   # run-bootstrap-v35-build-slice-plan
-env NANO_SLICE_COMPILER=native bash lab/nano-lisp-jit/build_nano_jit.sh   # run-bootstrap-v35-build-slice-native-slice
-```
-
-样例：`samples/bootstrap-v35-build-slice.lisp`、`samples/nano-cc-add.c`  
-环境：`NANO_BUILD_SLICE_CODEGEN=1` 启用 `build-slice` 对 `nano-cc-*.c` 走 nano-cc（非 genesis-pin / host `cc`）。
+**v3.5 整体**：**~50%**
 
 ## slice 0 证据
 
@@ -32,6 +22,20 @@ bash lab/nano-lisp-jit/run.sh   # nano-cc-compile-hello-cli, nano-cc-run-hello-e
 
 样例：`samples/bootstrap-v35-nano-cc-hello.lisp`、`samples/nano-cc-bad.c`  
 错误码：[`ERROR-CODES.md`](ERROR-CODES.md)
+
+## slice 3 证据
+
+```bash
+bash lab/nano-lisp-jit/run.sh   # run-bootstrap-v35-build-slice-plan
+env NANO_SLICE_COMPILER=native bash lab/nano-lisp-jit/build_nano_jit.sh   # run-bootstrap-v35-build-slice-native-slice
+```
+
+样例：`samples/bootstrap-v35-build-slice.lisp`、`samples/nano-cc-add.c`  
+环境：`NANO_BUILD_SLICE_CODEGEN=1`
+
+## slice 4 aarch64（route B）
+
+见 [`AARCH64.md`](AARCH64.md)。`run.sh`：`nano-cc-compile-hello-aarch64`、`nano-cc-qemu-aarch64-hello-exit42`（无 qemu 则 skip）。
 
 ## 目标
 

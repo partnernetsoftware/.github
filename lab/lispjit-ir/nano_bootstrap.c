@@ -29,7 +29,12 @@ static int build_slice_use_nano_cc(const char *src_path) {
 
 static int build_slice_via_nano_cc(const char *src_path, const char *out_path, const char *arch) {
   int rc;
-  if (strcmp(arch, "x86_64") != 0 && strcmp(arch, "amd64") != 0) {
+  int had_aarch64_env = nano_cc_target_is_aarch64();
+  if (strcmp(arch, "aarch64") == 0 || strcmp(arch, "arm64") == 0) {
+    setenv("NANO_CC_ARCH", "aarch64", 1);
+  } else if (strcmp(arch, "x86_64") == 0 || strcmp(arch, "amd64") == 0) {
+    unsetenv("NANO_CC_ARCH");
+  } else {
     fprintf(stderr, "build-slice=nano_cc_arch_unsupported arch=%s\n", arch);
     return 2;
   }
@@ -39,6 +44,8 @@ static int build_slice_via_nano_cc(const char *src_path, const char *out_path, c
   printf("build-slice.source=%s\n", src_path);
   printf("build-slice.output=%s\n", out_path);
   rc = cmd_nano_cc_compile(src_path, out_path);
+  if (!had_aarch64_env) unsetenv("NANO_CC_ARCH");
+  else setenv("NANO_CC_ARCH", "aarch64", 1);
   if (rc != 0) return rc;
   return cmd_file_size(out_path);
 }

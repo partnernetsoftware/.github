@@ -49,6 +49,7 @@ static void exec_section_layout_fill(ExecSectionLayout *layout, size_t code_n, s
 }
 
 #define ELF64_MACHINE_X86_64 62u
+#define ELF64_MACHINE_AARCH64 183u
 
 typedef struct {
   const char *name;
@@ -76,10 +77,11 @@ static void wr_elf64_ident(unsigned char *p) {
   p[6] = 1;
 }
 
-static void wr_elf64_ehdr_exec(unsigned char *p, uint64_t entry, uint64_t phoff, uint16_t phnum) {
+static void wr_elf64_ehdr_exec(unsigned char *p, uint64_t entry, uint64_t phoff, uint16_t phnum,
+                               uint16_t machine) {
   wr_elf64_ident(p);
   wr16(p + 16, 2);
-  wr16(p + 18, ELF64_MACHINE_X86_64);
+  wr16(p + 18, machine);
   wr32(p + 20, 1);
   wr64(p + 24, entry);
   wr64(p + 32, phoff);
@@ -149,7 +151,7 @@ static void wr_elf64_rela(unsigned char *p, uint64_t off, uint32_t sym_idx, uint
 static int emit_elf64_exec_sections_file(const char *out_path, const unsigned char *code,
                                          size_t code_n, const unsigned char *rodata,
                                          size_t rodata_n, const unsigned char *data,
-                                         size_t data_n) {
+                                         size_t data_n, uint16_t machine) {
   ExecSectionLayout layout = {0};
   size_t file_n = 0;
   int nph = 1 + (rodata_n > 0) + (data_n > 0);
@@ -157,7 +159,7 @@ static int emit_elf64_exec_sections_file(const char *out_path, const unsigned ch
   unsigned char *out = (unsigned char *)calloc(1, file_n);
   if (!out) return 0;
 
-  wr_elf64_ehdr_exec(out, layout.text_va, ELF64_EHDR_SIZE, (uint16_t)nph);
+  wr_elf64_ehdr_exec(out, layout.text_va, ELF64_EHDR_SIZE, (uint16_t)nph, machine);
   size_t ph = ELF64_EHDR_SIZE;
   size_t text_off = layout.text_va - ELF64_EXEC_BASE;
   wr_elf64_phdr(out + ph, 1, 5, text_off, layout.text_va, layout.text_va, code_n, code_n, 0x1000);
@@ -183,8 +185,8 @@ static int emit_elf64_exec_sections_file(const char *out_path, const unsigned ch
 }
 
 static int emit_elf64_exec_rx_file(const char *out_path, const unsigned char *code,
-                                   size_t code_n) {
-  return emit_elf64_exec_sections_file(out_path, code, code_n, NULL, 0, NULL, 0);
+                                   size_t code_n, uint16_t machine) {
+  return emit_elf64_exec_sections_file(out_path, code, code_n, NULL, 0, NULL, 0, machine);
 }
 
 static int elf64_obj_local_info(const Elf64ObjSymbol *syms, size_t sym_count, uint32_t *out) {
@@ -284,7 +286,7 @@ done:
 }
 
 static int emit_elf64_code_file(const char *out_path, const unsigned char *code, size_t code_n) {
-  return emit_elf64_exec_rx_file(out_path, code, code_n);
+  return emit_elf64_exec_rx_file(out_path, code, code_n, ELF64_MACHINE_X86_64);
 }
 
 static int emit_elf64_obj_text_file(const char *out_path, const char *symbol,
@@ -388,6 +390,18 @@ static int emit_elf64_obj_call_file(const char *out_path, const char *local, con
     {1, 2, 4, -4},
   };
   return emit_elf64_obj_file(out_path, text, sizeof(text), syms, 2, relas, 1);
+}
+
+int emit_aarch64_exit_file(const char *out_path, uint8_t exit_code) {
+  unsigned char code[12];
+  uint32_t mov_x8 = 0xd2800000u | (93u << 5) | 8u;
+  uint32_t mov_x0 = 0xd2800000u | ((uint32_t)exit_code << 5);
+  uint32_t svc0 = 0xd4000001u;
+  memset(code, 0, sizeof(code));
+  wr32(code + 0, mov_x8);
+  wr32(code + 4, mov_x0);
+  wr32(code + 8, svc0);
+  return emit_elf64_exec_rx_file(out_path, code, sizeof(code), ELF64_MACHINE_AARCH64);
 }
 
 int emit_elf64_exit_file(const char *out_path, uint8_t exit_code) {
@@ -836,7 +850,7 @@ static int cmd_link_elf64_exe(int argc, char **argv) {
   }
 
   if (!emit_elf64_exec_sections_file(out_path, code.data, code.len, rodata.data, rodata.len,
-                                     data_buf.data, data_buf.len)) {
+                                     data_buf.data, data_buf.len, ELF64_MACHINE_X86_64)) {
     fprintf(stderr, "link-elf64-exe=write_fail path=%s\n", out_path);
     rc = 5;
     goto done;
