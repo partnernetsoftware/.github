@@ -880,6 +880,7 @@ else
   skip_case "nano-cc-qemu-aarch64-build-slice-lisp-exit42" "no qemu-aarch64-static or qemu-aarch64"
 fi
 
+# --- v3.5 L1: pack-ape x86 from Lisp-built slice (aarch64 genesis) ---
 log "bootstrap.v35.pack.lisp.x86.path=$BOOTSTRAP_V35_PACK_LISP_X86_SRC"
 run_case "run-bootstrap-v35-pack-lisp-x86-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V35_PACK_LISP_X86_SRC"'" 2>&1) || true

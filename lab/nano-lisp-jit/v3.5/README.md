@@ -14,7 +14,7 @@
 
 **Lisp-only 线 L0**：见 [`LISP-ONLY.md`](LISP-ONLY.md)（新增 slice 只写 `.lisp`）。
 
-**v3.5 整体**：**~60%**
+**v3.5 整体**：**~65%**（Lisp-only L0–L1 + L3 scoped）
 
 ## slice 0 证据
 

@@ -372,7 +372,8 @@ v3.5: nano-cc（nano-jit 作为 cc 编译器）
 | slice 1 C-subset 前端 | **scoped** | `nano-cc parse` + `add_parse_fail` 负向 |
 | slice 2 x86_64 emit | **kickoff** | `nano-cc compile-obj` + link smoke |
 | slice 3 `build-slice` 切换 | **100%** scoped | `NANO_BUILD_SLICE_CODEGEN=1` |
-| slice 4 aarch64 nano-cc | **scoped** | `NANO_CC_ARCH` + qemu；[`v3.5/AARCH64.md`](v3.5/AARCH64.md) |
+| slice 4 aarch64 nano-cc | **scoped** | `NANO_CC_ARCH` + `build-slice-lisp` aarch64；[`v3.5/AARCH64.md`](v3.5/AARCH64.md) |
+| Lisp-only L1 pack | **scoped** | `bootstrap-v35-pack-lisp-x86` |
 | slice 5 gen3 自举 | **100%** scoped | `bootstrap-v35-selfhost-gen3`、genesis pin pack |
 | slice 6 Genesis 收缩 | **scoped** | genesis-shrink + `audit_genesis_shrink.sh` |
 | 反思轨 R | **持续** | [`v3.5/REFLECTION.md`](v3.5/REFLECTION.md) |
