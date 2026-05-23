@@ -194,6 +194,12 @@ BOOTSTRAP_V4_LISP_ONLY_TICK_SRC="$LAB_DIR/samples/bootstrap-v4-lisp-only-tick.li
 BOOTSTRAP_V4_SLICE32_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v4-slice32-evidence.lisp"
 V4_SLICE32_ADD27_ELF="$BUILD_DIR/bootstrap-v4-slice32-add27.elf"
 V4_SLICE32_EVIDENCE="$BUILD_DIR/v4-slice32.evidence"
+BOOTSTRAP_V4_WAVE33_DIFFUSION_SRC="$LAB_DIR/samples/bootstrap-v4-wave33-diffusion.lisp"
+BOOTSTRAP_V4_BUILD_GRAPH_TICK_SRC="$LAB_DIR/samples/bootstrap-v4-build-graph-tick.lisp"
+BOOTSTRAP_V4_ASSESS_CHAIN_TICK_SRC="$LAB_DIR/samples/bootstrap-v4-assess-chain-tick.lisp"
+BOOTSTRAP_V4_SLICE33_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v4-slice33-evidence.lisp"
+V4_SLICE33_ADD28_ELF="$BUILD_DIR/bootstrap-v4-slice33-add28.elf"
+V4_SLICE33_EVIDENCE="$BUILD_DIR/v4-slice33.evidence"
 SQUAD_SH="$ROOT_DIR/tools/squad/squad.sh"
 CATALOG_V4="$LAB_DIR/squad/catalog-v4.yaml"
 BOOTSTRAP_V35_NANO_CC_AARCH64_SRC="$LAB_DIR/samples/bootstrap-v35-nano-cc-aarch64.lisp"
@@ -1973,6 +1979,31 @@ run_case "run-bootstrap-v4-slice32-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE32_EVIDENCE_SRC"'" 2>&1) || true
   test -f "'"$LAB_DIR"'/v4/SLICE32.md"
   { echo "v4.slice32=1"; } >> "'"$V4_SLICE32_EVIDENCE"'"
+'
+
+
+run_case "run-bootstrap-v4-wave33-diffusion-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && test -f "'"$BOOTSTRAP_REPORT"'"
+  out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE33_DIFFUSION_SRC"'" 2>&1) || true
+  printf "%s
+" "$out" | grep -q "aarch64.emit.ir.table.verified=plan-lisp-v1-full"
+  test -f "'"$V4_SLICE33_ADD28_ELF"'"
+'
+
+run_case "run-bootstrap-v4-build-graph-tick-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_BUILD_GRAPH_TICK_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/samples/bootstrap-v4-build-graph-full.lisp"
+'
+
+run_case "run-bootstrap-v4-assess-chain-tick-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_ASSESS_CHAIN_TICK_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/samples/bootstrap-v4-host-reduce.lisp"
+'
+
+run_case "run-bootstrap-v4-slice33-evidence-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE33_EVIDENCE_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/SLICE33.md"
+  { echo "v4.slice33=1"; } >> "'"$V4_SLICE33_EVIDENCE"'"
 '
 
 run_case "run-bootstrap-v4-slice16-plan-words-plan" bash -c '

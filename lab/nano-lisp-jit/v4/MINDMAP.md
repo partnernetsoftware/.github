@@ -102,3 +102,7 @@
 ## wave32
 
 见 SLICE32.md · host-reduce 洋葱四轨
+
+## wave33
+
+见 SLICE33.md · build-graph 洋葱四轨

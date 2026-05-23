@@ -89,3 +89,17 @@
 | 终局整体 | **15–22%** | 见 [`PROGRESS.md`](PROGRESS.md) |
 
 **并发**：四轨 A/B/C/D（≤4）；扩散→一次 `run.sh`→assess→洋葱。
+
+## wave33（build-graph 洋葱 · 四轨）
+
+| 维度 | wave33 后 | Δ |
+|------|-----------|---|
+| Plan | ~95% | build-graph 多锚点 + assess 链 |
+| Codegen | ~30% | add28 复用 verified 整表 |
+| 编排 | ~27% | assess-chain + host-reduce 锚点 |
+| 构建 | ~39% | build-graph-tick + PARALLEL |
+| 终局整体 | **15–22%** | 见 [`PROGRESS.md`](PROGRESS.md) |
+
+**并发**：四轨 A/B/C/D（≤4）；扩散→一次 `run.sh`→assess→洋葱。
+
+**catalog**：`v4-complete` ready=True（合 main 时以本表为准）。
