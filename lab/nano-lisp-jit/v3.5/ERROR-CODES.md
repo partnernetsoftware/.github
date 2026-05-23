@@ -65,7 +65,8 @@ Target logs (slice 3 签收):
 |-----|---------|
 | `NANO_CC=1` | prefer nano-cc for eligible sources (`lispjit.c` 子集) |
 | `NANO_CC_FALLBACK=1` | allow host `cc` when nano-cc cannot compile |
-| `NANO_BUILD_SLICE_CODEGEN=1` | v3 4b-2 dev flag (`nano-cc-hello.c` only today) |
+| `NANO_BUILD_SLICE_CODEGEN=1` | explicit per-run flag: route `nano-cc-*.c` through nano-cc in `build-slice` |
+| `NANO_V35_CODEGEN_DEFAULT=1` | subprocess default: same routing as `NANO_BUILD_SLICE_CODEGEN=1` without setting it in every test script |
 | `NANO_SLICE_ALLOW_HOST_CC=1` | v3 genesis-pin 时代回退 host `cc`（slice 3 后 deprecated） |
 
 Planned sample: `samples/bootstrap-v35-build-slice.lisp` — assert `build-slice.role=nano-cc` and no silent `stage0-bridge`.

@@ -20,8 +20,11 @@ static int build_slice_use_nano_cc(const char *src_path) {
   if (strcmp(base, "nano-cc-hello.c") == 0) return 1;
   if (strcmp(base, "nano-cc-add.c") == 0) return 1;
   {
-    const char *env = getenv("NANO_BUILD_SLICE_CODEGEN");
-    if (env && env[0] == '1' && env[1] == '\0' &&
+    const char *codegen = getenv("NANO_BUILD_SLICE_CODEGEN");
+    const char *v35_default = getenv("NANO_V35_CODEGEN_DEFAULT");
+    int codegen_on = (codegen && codegen[0] == '1' && codegen[1] == '\0') ||
+                     (v35_default && v35_default[0] == '1' && v35_default[1] == '\0');
+    if (codegen_on &&
         build_slice_is_nano_cc_sample_c(base) && nano_cc_can_compile_path(src_path))
       return 1;
   }

@@ -868,6 +868,17 @@ run_case "run-bootstrap-v35-build-slice-plan" bash -c '
   "'"$RUNNER"'" run-expect-exit "'"$NANO_CC_BUILD_SLICE_ELF"'" 43
 '
 
+# --- v3.5 slice 3: build-slice via nano-cc (NANO_V35_CODEGEN_DEFAULT=1, no per-test NANO_BUILD_SLICE_CODEGEN) ---
+run_case "run-bootstrap-v35-build-slice-default-codegen" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$(NANO_V35_CODEGEN_DEFAULT=1 "'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V35_BUILD_SLICE_SRC"'" 2>&1) || true
+  printf "%s\n" "$out"
+  printf "%s\n" "$out" | grep -q "bootstrap-step.*=build-slice"
+  printf "%s\n" "$out" | grep -q "build-slice.compiler=nano-cc"
+  printf "%s\n" "$out" | grep -q "build-slice.role=lisp-codegen"
+  test -x "'"$NANO_CC_BUILD_SLICE_ELF"'"
+  "'"$RUNNER"'" run-expect-exit "'"$NANO_CC_BUILD_SLICE_ELF"'" 43
+'
+
 # --- v3.5 slice 4: build-slice aarch64 via nano-cc (NANO_BUILD_SLICE_CODEGEN=1) ---
 log "bootstrap.v35.build.slice.aarch64.source.path=$BOOTSTRAP_V35_BUILD_SLICE_AARCH64_SRC"
 run_case "run-bootstrap-v35-build-slice-aarch64-plan" bash -c '
