@@ -20,7 +20,7 @@ tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v4.yaml dispatch 
 tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v4.yaml agent-team --auto-exec
 ```
 
-**签收**：slice-0..3 已完成（**`v4-slice3-scoped`** — S3 once tick）— 见 [`SLICE3.md`](SLICE3.md)。
+**签收**：slice-0..4 已完成（**`v4-slice4-scoped`** — S4 agent-team + commander complete smoke）— 见 [`SLICE4.md`](SLICE4.md)；S3 见 [`SLICE3.md`](SLICE3.md)。
 
 ```bash
 tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v4.yaml agent-team --auto-exec --auto-done
@@ -103,6 +103,7 @@ slice S5 — 与构建图合一
 | `samples/bootstrap-v4-squad-run-loop-once.lisp` | host CLI 入口 smoke |
 | `samples/bootstrap-v4-squad-s3-supervise-once.lisp` | **S3**：leader 单 tick |
 | `samples/bootstrap-v4-squad-s3-member-once.lisp` | **S3**：follower 单 tick |
+| `samples/bootstrap-v4-squad-s4-agent-team.lisp` | **S4**：agent-team 契约 |
 
 首波 **不实现** SQLite FFI；S0–S1 用 checked-in plan + 现有 runner 断言 stdout/exit，与 [`bootstrap-v4-kickoff.lisp`](../samples/bootstrap-v4-kickoff.lisp) 同模式。
 

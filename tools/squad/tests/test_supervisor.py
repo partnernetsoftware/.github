@@ -4,6 +4,7 @@ from __future__ import annotations
 import sys
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 _ROOT = Path(__file__).resolve().parents[1]
 if str(_ROOT) not in sys.path:
@@ -11,7 +12,12 @@ if str(_ROOT) not in sys.path:
 
 from engine.context import SquadContext
 from engine.db import SquadStore
-from engine.supervisor import OUTCOME_TIMEOUT, run_member_loop, team_ready_to_release
+from engine.supervisor import (
+    OUTCOME_TIMEOUT,
+    member_tick,
+    run_member_loop,
+    team_ready_to_release,
+)
 
 
 class TeamReadyTests(unittest.TestCase):
@@ -57,6 +63,14 @@ class TeamReadyTests(unittest.TestCase):
         self.assertEqual(outcome, OUTCOME_TIMEOUT)
         self.assertEqual(code, 3)
 
+
+    @patch("engine.supervisor.team_ready_to_release", return_value=True)
+    def test_member_tick_stand_down_when_team_ready(self, _mock_ready):
+        ctx, store = self._ctx_and_store()
+        store.set_signal("supervisor", "standby", reason="unit_test")
+        result = member_tick(ctx, store, "engineer-a", task_timeout_sec=3600)
+        self.assertEqual(result["action"], "stand_down")
+        self.assertEqual(result["reason"], "team_ready")
 
     def test_resume_resets_wave_counter(self):
         catalog = Path(__file__).resolve().parents[3] / "lab/nano-lisp-jit/squad/catalog-v4.yaml"

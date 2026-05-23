@@ -44,7 +44,9 @@ def team_mode(ctx: SquadContext) -> bool:
 
 def leader_signal(store: SquadStore) -> str:
     sig = store.get_signal("supervisor")
-    return sig["signal"] if sig else "running"
+    if not sig or not sig.get("signal"):
+        return "running"
+    return str(sig["signal"])
 
 
 def pending_any_tasks(ctx: SquadContext, store: SquadStore) -> bool:
@@ -441,9 +443,14 @@ def member_tick(
         result["reason"] = f"leader={leader}"
         return result
 
-    if leader == "standby" and team_ready_to_release(ctx, store):
+    if team_ready_to_release(ctx, store):
         result["action"] = "stand_down"
         result["reason"] = "team_ready"
+        return result
+
+    if leader == "standby" and not pending_any_tasks(ctx, store):
+        result["action"] = "await_leader"
+        result["reason"] = "standby_no_pending"
         return result
 
     if leader not in LEADER_ACTIVE and leader != "running":

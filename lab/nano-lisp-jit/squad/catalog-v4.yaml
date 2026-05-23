@@ -25,7 +25,7 @@ supervisor:
   stuck_policy: fail
   idle_waves_max: 12
 signoff:
-  id: v4-slice3-scoped
+  id: v4-slice4-scoped
   require_terminal: false
   gates:
     - id: v35-regression-run
@@ -126,6 +126,22 @@ signoff:
       check: results
       file: ".build/v4-slice3.evidence"
       results_key: v4.slice3_supervise_once
+      min_pass: 1
+    - id: v4-slice4-doc
+      check: artifact
+      path_glob: "v4/SLICE4.md"
+    - id: v4-squad-s4-agent-team-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v4-squad-s4-agent-team.lisp"
+    - id: v4-slice4-evidence
+      check: results
+      file: ".build/v4-slice4.evidence"
+      results_key: v4.slice4
+      min_pass: 1
+    - id: v4-squad-commander-complete
+      check: results
+      file: ".build/v4-slice4.evidence"
+      results_key: v4.slice4_commander_complete
       min_pass: 1
 
 tasks:
@@ -351,6 +367,33 @@ tasks:
     accept:
       - "assess v4-slice3-scoped ready"
       - "REFLECTION stuck-fix 行"
+  wave9-squad-follower-team-ready:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths: ["tools/squad/engine/supervisor.py", "tools/squad/tests/test_supervisor.py"]
+    accept:
+      - "member_tick team_ready stand_down without standby gate"
+      - "leader_signal empty defaults running"
+  wave9-v4-s4-agent-team:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v4-squad-s4-agent-team.lisp"
+      - "v4/SLICE4.md"
+      - ".build/v4-slice4.evidence"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-squad-s4-agent-team-plan"
+      - "squad-v4-commander-complete-smoke"
+      - "run-bootstrap-v4-slice4-evidence-plan"
+  wave9-v4-R:
+    assign_role: reviewer
+    priority: meta
+    depends: [wave9-squad-follower-team-ready, wave9-v4-s4-agent-team]
+    accept:
+      - "assess v4-slice4-scoped ready"
+      - "v4/README + SLICE4.md"
+      - "REFLECTION slice-4 行"
 
 verify:
   commands:

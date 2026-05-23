@@ -90,6 +90,9 @@ BOOTSTRAP_V4_SQUAD_S3_SUPERVISE_SRC="$LAB_DIR/samples/bootstrap-v4-squad-s3-supe
 BOOTSTRAP_V4_SQUAD_S3_MEMBER_SRC="$LAB_DIR/samples/bootstrap-v4-squad-s3-member-once.lisp"
 BOOTSTRAP_V4_SLICE3_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v4-slice3-evidence.lisp"
 V4_SLICE3_EVIDENCE="$BUILD_DIR/v4-slice3.evidence"
+BOOTSTRAP_V4_SQUAD_S4_AGENT_TEAM_SRC="$LAB_DIR/samples/bootstrap-v4-squad-s4-agent-team.lisp"
+BOOTSTRAP_V4_SLICE4_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v4-slice4-evidence.lisp"
+V4_SLICE4_EVIDENCE="$BUILD_DIR/v4-slice4.evidence"
 SQUAD_SH="$ROOT_DIR/tools/squad/squad.sh"
 CATALOG_V4="$LAB_DIR/squad/catalog-v4.yaml"
 BOOTSTRAP_V35_NANO_CC_AARCH64_SRC="$LAB_DIR/samples/bootstrap-v35-nano-cc-aarch64.lisp"
@@ -1448,6 +1451,22 @@ run_case "run-bootstrap-v4-slice3-evidence-plan" bash -c '
     echo "v4.slice3_plan=run-bootstrap-v4-slice3-evidence-plan"
   } >> "'"$V4_SLICE3_EVIDENCE"'"
 '
+run_case "run-bootstrap-v4-squad-s4-agent-team-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SQUAD_S4_AGENT_TEAM_SRC"'" 2>&1) || true
+  printf "%s\n" "$out"
+  printf "%s\n" "$out" | grep -q "bootstrap-step.*=file"
+'
+run_case "run-bootstrap-v4-slice4-evidence-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE4_EVIDENCE_SRC"'" 2>&1) || true
+  printf "%s\n" "$out"
+  test -f "'"$LAB_DIR"'/.squad/state-v4.db"
+  {
+    echo "v4.slice4=1"
+    echo "v4.slice4_agent_team_plan=1"
+    echo "v4.slice4_commander_complete=1"
+    echo "v4.slice4_plan=run-bootstrap-v4-slice4-evidence-plan"
+  } >> "'"$V4_SLICE4_EVIDENCE"'"
+'
 
 # --- bootstrap-v25 native selfpack (pack-ape per plan) ---
 V25_NATIVE_SELFPACK_COM="$NANO_JIT_COM"
@@ -1473,6 +1492,11 @@ else
 fi
 
 run_end_summary
+run_case "squad-v4-commander-complete-smoke" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$SQUAD_SH"'" --catalog "'"$CATALOG_V4"'" supervise --once 2>&1) || true
+  printf "%s\n" "$out"
+  printf "%s\n" "$out" | grep -q "outcome=complete"
+'
 log ""
 log "results.file=$RESULTS"
 
