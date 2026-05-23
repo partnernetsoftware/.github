@@ -1,6 +1,6 @@
 # v3.5 反思（并行 track R · 持续更新）
 
-**范围**：v3 完全 100% 之后、v3.5 ~55% 当下。与 [`../ROADMAP.md`](../ROADMAP.md) §「v3.5 洋葱 TDD mindmap」同步；开发轨最多三路并行，**反思轨单独入账**，不阻塞 slice 交付。
+**范围**：v3 完全 100% 之后、v3.5 **~85%** 当下（gen5 scoped）。与 [`../ROADMAP.md`](../ROADMAP.md) §「v3.5 洋葱 TDD mindmap」同步；开发轨最多三路并行，**反思轨单独入账**，不阻塞 slice 交付。小组模式见 [`SQUAD.md`](SQUAD.md)。
 
 ---
 
@@ -102,3 +102,4 @@ P3（架构债，v4）
 | 2026-05-23 | **L0 签收**：`LISP-ONLY.md`、gen4、`.lisp` build-slice 路由、`build-slice-lisp` AOT fallback |
 | 2026-05-23 | **L1/L3 wave4**：pack x86 Lisp slice；`build-slice-lisp` aarch64；`NANO_V35_CODEGEN_DEFAULT` |
 | 2026-05-23 | **gen5 scoped**：双架构 Lisp pack 零 genesis；`run.sh` 249 / `build` 117 pass |
+| 2026-05-23 | **wave-squad-R1**：小组模式 [`SQUAD.md`](SQUAD.md)；评估 **~85%**（gen5 scoped on branch）；阻塞 L2 去 companion、L4 多 TU link、aarch64 非 stub、gen5 全功能 Lisp runner；派单 A=`L2-companion`、B=`L4-tu-kickoff` |

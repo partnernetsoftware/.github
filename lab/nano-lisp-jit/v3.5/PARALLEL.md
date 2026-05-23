@@ -12,7 +12,15 @@ Slice **0** 已 **100%** 签收。wave4 已合并 `main`（L1 pack / L3 lisp aar
 | F | 开发 | slice 6 `audit_genesis_shrink.sh` | wave3 `slice6-ci` |
 | — | 已签收 | slice 0/3/5、add、build-slice、aarch64、genesis-shrink plan | **100%** / **scoped** |
 
-（开发轨同时最多 **3** 路；D/E/C 已合并 main，wave3 不再占槽。）
+### 小组模式轨道（[`SQUAD.md`](SQUAD.md) · wave-squad-R1）
+
+| Track | 任务 ID | 洋葱切片 | 状态 |
+|-------|---------|----------|------|
+| **A** | `L2-companion` | P0：去 `nano-cc-add.lisp` companion；`nano-jit-slice-add.lisp` 为 add 真相源 | **派单中** |
+| **B** | `L4-tu-kickoff` | P1：多 `.lisp` → `link-elf64-exe` bootstrap smoke（2 object） | **派单中** |
+| **R** | `wave-squad-R1` | gen5 ~85% 评估；ROADMAP mindmap + REFLECTION §6 汇入 | **本 wave** |
+
+（开发轨同时最多 **3** 路；D/E/C 已合并 main，wave3 不再占槽。小组模式 A/B 占当前开发槽。）
 
 ## 洋葱顺序（每条轨道内）
 

@@ -270,7 +270,7 @@ nano-jit continuation after self-bootstrap v1
 
 **v3 core（slice 0–3）**：**100%** — 反思见 [`v3/REFLECTION.md`](v3/REFLECTION.md)。  
 **v3 完全 100%**：**100%** — 编排 + 4b-1/4b-2/4b-3；见 [`v3/README.md`](v3/README.md)。  
-**v3.5**：**~55%** — slice 0–5 scoped + 1/4/6 kickoff；wave3 并行中。见 [`v3.5/README.md`](v3.5/README.md)、[`v3.5/PARALLEL.md`](v3.5/PARALLEL.md)、[`v3.5/REFLECTION.md`](v3.5/REFLECTION.md)。
+**v3.5**：**~85%** — gen5 scoped；L2/L4/aarch64 非 stub 待签收。小组模式见 [`v3.5/SQUAD.md`](v3.5/SQUAD.md)。见 [`v3.5/README.md`](v3.5/README.md)、[`v3.5/PARALLEL.md`](v3.5/PARALLEL.md)、[`v3.5/REFLECTION.md`](v3.5/REFLECTION.md)。
 
 ### v3.5 洋葱 TDD mindmap（kickoff + 反思轨 R）
 
@@ -322,6 +322,10 @@ v3.5: nano-cc（nano-jit 作为 cc 编译器）
 │  ├─ L0–L1–L3：Lisp slice、pack x86 Lisp、aarch64 exit-stub — **签收**
 │  ├─ gen5 **scoped**：双架构 Lisp pack 零 genesis；加速 3–6 L4/L2 待签收
 │  └─ 判据：每代 `run.sh` 全绿 + plan 无 `.c` + hash 矩阵不退化
+├─ 小组模式（[`v3.5/SQUAD.md`](v3.5/SQUAD.md) · 指挥长派单 · **~85% 非 100%**）
+│  ├─ **A** `L2-companion` — 去 companion；add 真相源 = `nano-jit-slice-add.lisp`
+│  ├─ **B** `L4-tu-kickoff` — 多 `.lisp` TU → `link-elf64-exe` bootstrap smoke
+│  └─ **R** `wave-squad-R1` — gen5 状态 + A/B 缺口入账 ROADMAP/REFLECTION
 ├─ slice 0: nano-cc 证据门禁（**100%**）
 │  ├─ sample：`samples/nano-cc-hello.c`（`main` return 42）+ `nano-cc-bad.c`
 │  ├─ CLI：`nano-cc compile input.c -o out.elf`（genesis runner 或 `nano-jit.com`）
