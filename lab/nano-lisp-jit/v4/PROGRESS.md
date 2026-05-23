@@ -7,9 +7,9 @@
 |------|----------|------|------|
 | Plan（bootstrap 无 .c 源） | 全 plan 无 .c | ✅ gate 常绿 | **~90%** |
 | Runner | Lisp 执行 plan | C `nano-lisp-jit` | **~5%** |
-| Codegen | Lisp IR → 发射 | C 表 stub + plan 字表契约 | **~15%** |
-| 编排 | Lisp `(squad-*)` | Python + shell | **~10%** |
-| 构建 | plan 内 build 图 | `run.sh` + `build_nano_jit.sh` | **~20%** |
+| Codegen | Lisp IR 表 → blob | C stub 读 `v4-ir-table-v1.lisp`（svc0） | **~18%** |
+| 编排 | Lisp `(squad-*)` | `(squad-assess)` 真执行；仍 Python | **~12%** |
+| 构建 | plan 内 build 图 | `(results-min build.pass)` + `run.sh` | **~22%** |
 | 自举 | `.com` 生成下一代 | 未开卷 | **~0%** |
 
 **整体终局**：约 **10–20%**（外圈证据满 ≠ 内圈替换完成）。

@@ -3,6 +3,20 @@
 **签收基线**：[`DECISION.md`](DECISION.md) · **`v4-complete`**（scoped S0–S15 + terminal native）。  
 **本图**：post-v4 洋葱圈 **继续内卷**，每圈标 **scoped / 终局**。
 
+## 终局六维（与 catalog 100% 分离）
+
+| 维度 | 终局目标 | 当前 | 粗估 |
+|------|----------|------|------|
+| Plan | bootstrap 无 .c 源 | gate 常绿 | **~90%** |
+| Runner | Lisp 执行 plan | C `nano-lisp-jit` | **~5%** |
+| Codegen | Lisp IR 表 → blob | C stub 读 `v4-ir-table-v1.lisp`（svc0） | **~18%** |
+| 编排 | Lisp `(squad-*)` | `(squad-assess)` 真调 assess；仍 Python | **~12%** |
+| 构建 | plan 内 build 图 | `(results-min build.pass)` + `run.sh` | **~22%** |
+| 自举 | `.com` 生成下一代 | 未开卷 | **~0%** |
+
+**整体终局 ~10–20%**；**catalog `v4-complete` = 工程洋葱签收**（见 [`PROGRESS.md`](PROGRESS.md)）。
+
+
 ## 并行法则（每波）
 
 ```text
@@ -51,15 +65,23 @@
 | 23 | — | terminal build evidence |
 | **24** | **plan-words-v5 + add19** | **MINDMAP.md + mindmap-tick** |
 
-## 下一圈（wave25 草图）
+## wave26（宿主减量 · 三刀）
+
+| 轨 | 交付 |
+|----|------|
+| A | `(ir-table-lisp …)` + add21 · `ir.op.svc0.from=plan-lisp-v1` |
+| B | `(squad-assess catalog)` + `(results-min build.pass 26)` · [`SLICE18.md`](SLICE18.md) |
+| R | 上表六维 + assess ready |
+
+## 下一圈（wave27 草图）
 
 | 圈 | P0 |
 |----|-----|
-| C1 | C 读 `v4-ir-words-v1.txt` 校验 hash（仍 host） |
-| O1 | `(squad-assess catalog)` 单步 plan |
+| C2 | 第二 op 进 `v4-ir-table-v1.lisp` |
+| O2 | assess 结果写 evidence（减 shell grep） |
 | T1 | cosmocc full build.pass≥119 进 plan |
 
-## wave25（反思调整 · 宿主减量）
+## wave25（plan-words 校验）
 
 | 轨 | 交付 |
 |----|------|

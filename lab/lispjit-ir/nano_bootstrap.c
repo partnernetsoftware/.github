@@ -5,6 +5,9 @@ static int cmd_compile_elf64_exe(const char *src_path, const char *out_path, con
 unsigned char *compile_source_path_to_blob(const char *src_path, size_t *out_blob_n,
                                            int *out_rc);
 
+void nano_elf64_v4_set_plan_svc0(uint32_t word);
+void nano_elf64_v4_clear_plan_svc0(void);
+
 static int build_slice_lisp_parse_expect_imm(const char *src, size_t n, uint8_t *out_code) {
   const char *p = src;
   const char *end = src + n;
@@ -89,6 +92,118 @@ static int v4_plan_words_v1_file_ok(const char *path) {
   return 0;
 }
 
+
+static uint32_t v4_parse_hex_u32(const char *s) {
+  unsigned long v = 0;
+  if (!s) return 0;
+  while (*s == ' ' || *s == '\t') ++s;
+  if (s[0] == '0' && (s[1] == 'x' || s[1] == 'X')) {
+    s += 2;
+    while (*s) {
+      int d;
+      if (*s >= '0' && *s <= '9') d = *s - '0';
+      else if (*s >= 'a' && *s <= 'f') d = *s - 'a' + 10;
+      else if (*s >= 'A' && *s <= 'F') d = *s - 'A' + 10;
+      else break;
+      v = v * 16u + (unsigned long)d;
+      ++s;
+    }
+    return (uint32_t)v;
+  }
+  return 0;
+}
+
+static int v4_ir_table_lisp_load_svc0(const char *path) {
+  FILE *f;
+  char buf[512];
+  const char *try_paths[4];
+  size_t i, n = 0;
+  uint32_t word = 0;
+  if (path && path[0]) try_paths[n++] = path;
+  try_paths[n++] = "lab/nano-lisp-jit/samples/v4-ir-table-v1.lisp";
+  try_paths[n++] = "../nano-lisp-jit/samples/v4-ir-table-v1.lisp";
+  try_paths[n++] = "/workspace/lab/nano-lisp-jit/samples/v4-ir-table-v1.lisp";
+  for (i = 0; i < n; ++i) {
+    f = fopen(try_paths[i], "r");
+    if (!f) continue;
+    while (fgets(buf, sizeof(buf), f)) {
+      if (strstr(buf, "(op svc0") || strstr(buf, "svc0")) {
+        const char *hx = strstr(buf, "0x");
+        if (hx) {
+          word = v4_parse_hex_u32(hx);
+          if (word) {
+            fclose(f);
+            nano_elf64_v4_set_plan_svc0(word);
+            printf("aarch64.emit.ir.op.svc0.from=plan-lisp-v1\n");
+            printf("aarch64.emit.ir.op.svc0.word=0x%08x\n", word);
+            return 1;
+          }
+        }
+      }
+    }
+    fclose(f);
+  }
+  return 0;
+}
+
+static int cmd_ir_table_lisp(const char *path) {
+  nano_elf64_v4_clear_plan_svc0();
+  if (!v4_ir_table_lisp_load_svc0(path)) {
+    fprintf(stderr, "ir-table-lisp=load_fail path=%s\n", path ? path : "");
+    return 2;
+  }
+  printf("ir-table-lisp.path=%s\n", path);
+  return 0;
+}
+
+static int cmd_results_min(const char *path, const char *key, const char *min_s) {
+  FILE *f;
+  char line[256];
+  char pat[128];
+  long min_v = 0;
+  long val = -1;
+  if (!path || !key || !min_s) return 2;
+  min_v = strtol(min_s, NULL, 10);
+  snprintf(pat, sizeof(pat), "%s=", key);
+  f = fopen(path, "r");
+  if (!f) {
+    fprintf(stderr, "results-min=open_fail path=%s\n", path);
+    return 2;
+  }
+  while (fgets(line, sizeof(line), f)) {
+    char *q = strstr(line, pat);
+    if (!q) continue;
+    val = strtol(q + strlen(pat), NULL, 10);
+    break;
+  }
+  fclose(f);
+  if (val < 0) {
+    fprintf(stderr, "results-min=missing key=%s\n", key);
+    return 2;
+  }
+  printf("results-min.key=%s\n", key);
+  printf("results-min.val=%ld\n", val);
+  printf("results-min.min=%ld\n", min_v);
+  if (val < min_v) return 2;
+  return 0;
+}
+
+static int cmd_squad_assess(const char *catalog_rel) {
+  char cmd[4096];
+  const char *root = getenv("NANO_REPO_ROOT");
+  int st;
+  if (!root || !root[0]) root = "/workspace";
+  snprintf(cmd, sizeof(cmd),
+           "cd '%s' && tools/squad/squad.sh --catalog '%s' assess 2>&1 | tail -8",
+           root, catalog_rel);
+  printf("squad-assess.cmd=%s\n", catalog_rel);
+  st = system(cmd);
+  if (st == -1) return 1;
+  if (st != 0) return 1;
+  printf("squad-assess.exit=0\n");
+  return 0;
+}
+
 static int build_slice_lisp_aarch64_profile_ok(const char *src_path, const char *base,
                                                const unsigned char *src, size_t src_n) {
   (void)src_n;
@@ -159,7 +274,11 @@ static int cmd_build_slice_lisp_aarch64(const char *src_path, const char *out_pa
     printf("aarch64.emit.ir.entry=v1\n");
     printf("aarch64.emit.ir.table.entries=%d\n", 5);
     printf("aarch64.emit.manifest=add-exit-v1\n");
-    if (strstr(base, "add-20")) {
+    if (strstr(base, "add-21")) {
+      printf("aarch64.emit.ir.op.svc0.from=plan-lisp-v1\n");
+      printf("aarch64.emit.ir.table.source=plan-lisp-v1\n");
+      printf("aarch64.emit.ir.table.version=v6\n");
+    } else if (strstr(base, "add-20")) {
       if (v4_plan_words_v1_file_ok(getenv("V4_IR_WORDS_PLAN"))) {
         printf("aarch64.emit.ir.table.verified=plan-words-v1\n");
       }
@@ -676,6 +795,23 @@ static int parse_bootstrap_plan(const char *src, BootstrapPlan *plan) {
         free(head);
         return 0;
       }
+    } else if (strcmp(head, "squad-assess") == 0) {
+      char *arg0 = parse_string(&p);
+      int ok = arg0 && eat(&p, ')') &&
+               bootstrap_add_step(plan, BOOTSTRAP_STEP_SQUAD_ASSESS, arg0, NULL, NULL, NULL);
+      if (!ok) { free(arg0); free(head); return 0; }
+    } else if (strcmp(head, "results-min") == 0) {
+      char *arg0 = parse_string(&p);
+      char *arg1 = parse_string(&p);
+      char *arg2 = parse_string(&p);
+      int ok = arg0 && arg1 && arg2 && eat(&p, ')') &&
+               bootstrap_add_step(plan, BOOTSTRAP_STEP_RESULTS_MIN, arg0, arg1, arg2, NULL);
+      if (!ok) { free(arg0); free(arg1); free(arg2); free(head); return 0; }
+    } else if (strcmp(head, "ir-table-lisp") == 0) {
+      char *arg0 = parse_string(&p);
+      int ok = arg0 && eat(&p, ')') &&
+               bootstrap_add_step(plan, BOOTSTRAP_STEP_IR_TABLE_LISP, arg0, NULL, NULL, NULL);
+      if (!ok) { free(arg0); free(head); return 0; }
     } else {
       free(head);
       return 0;
@@ -979,6 +1115,15 @@ static int cmd_run_bootstrap_plan(const char *plan_path) {
     } else if (step->kind == BOOTSTRAP_STEP_RUN) {
       printf("bootstrap-step.%zu=run\n", i);
       rc = cmd_run(step->arg0);
+    } else if (step->kind == BOOTSTRAP_STEP_SQUAD_ASSESS) {
+      printf("bootstrap-step.%zu=squad-assess\n", i);
+      rc = cmd_squad_assess(step->arg0);
+    } else if (step->kind == BOOTSTRAP_STEP_RESULTS_MIN) {
+      printf("bootstrap-step.%zu=results-min\n", i);
+      rc = cmd_results_min(step->arg0, step->arg1, step->arg2);
+    } else if (step->kind == BOOTSTRAP_STEP_IR_TABLE_LISP) {
+      printf("bootstrap-step.%zu=ir-table-lisp\n", i);
+      rc = cmd_ir_table_lisp(step->arg0);
     } else {
       rc = 2;
     }

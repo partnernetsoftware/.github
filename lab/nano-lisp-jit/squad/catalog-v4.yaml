@@ -364,6 +364,27 @@ signoff:
       results_key: v4.slice17
       min_pass: 1
 
+    - id: v4-slice18-doc
+      check: artifact
+      path_glob: "v4/SLICE18.md"
+    - id: v4-ir-table-v1
+      check: artifact
+      path_glob: "samples/v4-ir-table-v1.lisp"
+    - id: v4-slice18-add21-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v4-slice18-ir-table-op.lisp"
+    - id: v4-slice18-add21-elf
+      check: artifact
+      path_glob: ".build/bootstrap-v4-slice18-add21.elf"
+    - id: v4-host-reduce-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v4-host-reduce.lisp"
+    - id: v4-slice18-evidence
+      check: results
+      file: ".build/v4-slice18.evidence"
+      results_key: v4.slice18
+      min_pass: 1
+
 
   terminal_gates:
     - id: v35-regression-run
@@ -1065,6 +1086,42 @@ tasks:
     depends: [wave25-v4-verify-plan-words, wave25-v4-assess-once]
     accept:
       - "v4/PROGRESS.md 终局进度"
+      - "assess v4-complete ready"
+
+
+  wave26-v4-ir-table-lisp:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "../lispjit-ir/nano_bootstrap.c"
+      - "../lispjit-ir/nano_elf64.c"
+      - "../lispjit-ir/nano_types.h"
+      - "samples/v4-ir-table-v1.lisp"
+      - "samples/nano-jit-slice-add-21.lisp"
+      - "samples/bootstrap-v4-slice18-ir-table-op.lisp"
+      - ".build/v4-slice18.evidence"
+      - "run.sh"
+    accept:
+      - "aarch64.emit.ir.op.svc0.from=plan-lisp-v1"
+      - "run-bootstrap-v4-slice18-ir-table-op-plan"
+  wave26-v4-host-reduce:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v4-host-reduce.lisp"
+      - "v4/SLICE18.md"
+      - "v4/MINDMAP.md"
+      - "v4/PROGRESS.md"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-host-reduce-plan"
+      - "run-bootstrap-v4-slice18-evidence-plan"
+  wave26-v4-R:
+    assign_role: reviewer
+    priority: meta
+    depends: [wave26-v4-ir-table-lisp, wave26-v4-host-reduce]
+    accept:
+      - "v4/MINDMAP.md 终局六维"
       - "assess v4-complete ready"
 
 

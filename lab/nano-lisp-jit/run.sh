@@ -149,6 +149,11 @@ BOOTSTRAP_V4_SLICE17_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v4-slice17-evidenc
 BOOTSTRAP_V4_SQUAD_ASSESS_ONCE_SRC="$LAB_DIR/samples/bootstrap-v4-squad-assess-once.lisp"
 V4_SLICE17_ADD20_ELF="$BUILD_DIR/bootstrap-v4-slice17-add20.elf"
 V4_SLICE17_EVIDENCE="$BUILD_DIR/v4-slice17.evidence"
+BOOTSTRAP_V4_SLICE18_IR_TABLE_OP_SRC="$LAB_DIR/samples/bootstrap-v4-slice18-ir-table-op.lisp"
+BOOTSTRAP_V4_SLICE18_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v4-slice18-evidence.lisp"
+BOOTSTRAP_V4_HOST_REDUCE_SRC="$LAB_DIR/samples/bootstrap-v4-host-reduce.lisp"
+V4_SLICE18_ADD21_ELF="$BUILD_DIR/bootstrap-v4-slice18-add21.elf"
+V4_SLICE18_EVIDENCE="$BUILD_DIR/v4-slice18.evidence"
 SQUAD_SH="$ROOT_DIR/tools/squad/squad.sh"
 CATALOG_V4="$LAB_DIR/squad/catalog-v4.yaml"
 BOOTSTRAP_V35_NANO_CC_AARCH64_SRC="$LAB_DIR/samples/bootstrap-v35-nano-cc-aarch64.lisp"
@@ -1722,6 +1727,33 @@ run_case "run-bootstrap-v4-slice17-evidence-plan" bash -c '
   test -f "'"$LAB_DIR"'/v4/SLICE17.md"
   { echo "v4.slice17=1"; } >> "'"$V4_SLICE17_EVIDENCE"'"
 '
+run_case "run-bootstrap-v4-slice18-ir-table-op-plan" bash -c '''
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE18_IR_TABLE_OP_SRC"'" 2>&1) || true
+  printf "%s
+" "$out" | grep -q "aarch64.emit.ir.op.svc0.from=plan-lisp-v1"
+  printf "%s
+" "$out" | grep -q "aarch64.emit.ir.table.version=v6"
+  test -f "'"$V4_SLICE18_ADD21_ELF"'"
+'''
+
+run_case "run-bootstrap-v4-slice18-evidence-plan" bash -c '''
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE18_EVIDENCE_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/SLICE18.md"
+  test -f "'"$V4_SLICE18_ADD21_ELF"'"
+  { echo "v4.slice18=1"; } >> "'"$V4_SLICE18_EVIDENCE"'"
+'''
+
+run_case "run-bootstrap-v4-host-reduce-plan" bash -c '''
+  cd "'"$ROOT_DIR"'" && test -f "'"$BOOTSTRAP_REPORT"'"
+  out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_HOST_REDUCE_SRC"'" 2>&1) || true
+  printf "%s
+" "$out" | grep -q "squad-assess.cmd="
+  printf "%s
+" "$out" | grep -q "results-min.key=build.pass"
+  pass=$(grep -E "^build\.pass=" "'"$BOOTSTRAP_REPORT"'" | tail -1 | cut -d= -f2)
+  test -n "$pass" && test "$pass" -ge 26
+'''
+
 run_case "run-bootstrap-v4-slice16-plan-words-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE16_PLAN_WORDS_SRC"'" 2>&1) || true
   printf "%s

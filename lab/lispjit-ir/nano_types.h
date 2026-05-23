@@ -169,6 +169,9 @@
 #define BOOTSTRAP_STEP_BUILD_SLICE 34u
 #define BOOTSTRAP_STEP_BUILD_SLICE_LISP 35u
 #define BOOTSTRAP_STEP_NANO_CC_COMPILE 36u
+#define BOOTSTRAP_STEP_SQUAD_ASSESS 37u
+#define BOOTSTRAP_STEP_RESULTS_MIN 38u
+#define BOOTSTRAP_STEP_IR_TABLE_LISP 39u
 
 typedef uint64_t (*jit_entry_fn)(void);
 typedef int (*ffi_i32_ptr_fn)(const char *);

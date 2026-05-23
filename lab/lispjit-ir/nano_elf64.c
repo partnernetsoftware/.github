@@ -404,6 +404,19 @@ int emit_aarch64_exit_file(const char *out_path, uint8_t exit_code) {
   return emit_elf64_exec_rx_file(out_path, code, sizeof(code), ELF64_MACHINE_AARCH64);
 }
 
+
+static int v4_emit_svc0_from_plan;
+static uint32_t v4_emit_svc0_plan_word;
+
+void nano_elf64_v4_set_plan_svc0(uint32_t word) {
+  v4_emit_svc0_from_plan = 1;
+  v4_emit_svc0_plan_word = word;
+}
+
+void nano_elf64_v4_clear_plan_svc0(void) {
+  v4_emit_svc0_from_plan = 0;
+}
+
 /* v4 slice-9: opcode-indexed lowering table (still host emit, not VM). */
 enum {
   A64_ADD_EXIT_OP_MOVZ_X0 = 0,
@@ -445,7 +458,11 @@ static uint32_t a64_movz_from_table_v3(unsigned reg, int imm) {
 }
 
 static uint32_t a64_add_exit_v1_encode(unsigned op, int a, int b) {
-  if (a64_ir_uses_fixed_word_v2(op)) return a64_ir_fixed_word_v2[op];
+  if (a64_ir_uses_fixed_word_v2(op)) {
+    if (op == A64_ADD_EXIT_OP_SVC0 && v4_emit_svc0_from_plan)
+      return v4_emit_svc0_plan_word;
+    return a64_ir_fixed_word_v2[op];
+  }
   switch (op) {
   case A64_ADD_EXIT_OP_MOVZ_X0:
     return a64_movz_from_table_v3(0, a);
