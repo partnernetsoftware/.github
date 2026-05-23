@@ -62,6 +62,7 @@ BOOTSTRAP_V35_SELFHOST_GEN3_SRC="$LAB_DIR/samples/bootstrap-v35-selfhost-gen3.li
 BOOTSTRAP_V35_NANO_CC_AARCH64_SRC="$LAB_DIR/samples/bootstrap-v35-nano-cc-aarch64.lisp"
 NANO_CC_HELLO_SRC="$LAB_DIR/samples/nano-cc-hello.c"
 NANO_CC_ADD_SRC="$LAB_DIR/samples/nano-cc-add.c"
+NANO_CC_BUILD_SLICE_SRC="$LAB_DIR/samples/nano-cc-build-slice.c"
 NANO_CC_BAD_SRC="$LAB_DIR/samples/nano-cc-bad.c"
 NANO_CC_HELLO_ELF="$BUILD_DIR/bootstrap-v35-nano-cc-hello.elf"
 NANO_CC_ADD_ELF="$BUILD_DIR/bootstrap-v35-nano-cc-add.elf"
@@ -777,7 +778,7 @@ run_case "run-bootstrap-v35-nano-cc-add-plan" bash -c '
 
 # --- v3.5 slice 3: build-slice via nano-cc (NANO_BUILD_SLICE_CODEGEN=1) ---
 log "bootstrap.v35.build.slice.source.path=$BOOTSTRAP_V35_BUILD_SLICE_SRC"
-log "v35.nano-cc.add.source.path=$NANO_CC_ADD_SRC"
+log "v35.nano-cc.build-slice.source.path=$NANO_CC_BUILD_SLICE_SRC"
 run_case "run-bootstrap-v35-build-slice-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$(NANO_BUILD_SLICE_CODEGEN=1 "'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V35_BUILD_SLICE_SRC"'" 2>&1) || true
   printf "%s\n" "$out"

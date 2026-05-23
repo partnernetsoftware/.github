@@ -30,7 +30,7 @@ bash lab/nano-lisp-jit/run.sh   # run-bootstrap-v35-build-slice-plan
 env NANO_SLICE_COMPILER=native bash lab/nano-lisp-jit/build_nano_jit.sh   # run-bootstrap-v35-build-slice-native-slice
 ```
 
-样例：`samples/bootstrap-v35-build-slice.lisp`、`samples/nano-cc-add.c`  
+样例：`samples/bootstrap-v35-build-slice.lisp`、`samples/nano-cc-build-slice.c`  
 环境：`NANO_BUILD_SLICE_CODEGEN=1`
 
 ## slice 4 aarch64（route B）
