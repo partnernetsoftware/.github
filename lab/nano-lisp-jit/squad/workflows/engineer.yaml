@@ -26,9 +26,13 @@ steps:
   - id: done
     action: cli
     cmd: "squad done <ROLE> --commit <hash> --run-pass <n>"
+  - id: worker-loop
+    action: cli
+    cmd: "squad worker-tick <ROLE>"
+    note: "while action≠idle|halt：claim→work→verify→done；失败 squad fail"
   - id: handoff
     action: cli
-    cmd: "squad signal commander assess"
+    cmd: "squad signal supervisor running --reason handoff"
 outputs:
   - git commit
   - .squad/state.json

@@ -5,6 +5,14 @@ inputs:
   - squad/catalog.yaml
   - .squad/state.json
 steps:
+  - id: supervise-loop
+    action: cli
+    cmd: "squad supervise"
+    note: "while：assess→dispatch→等 A/B 信号；仅 complete|failed|timeout 退出"
+  - id: supervise-tick
+    action: cli
+    cmd: "squad supervise --once"
+    note: "单 tick（CI/Cloud Agent 轮询用）"
   - id: assess
     action: cli
     cmd: "squad assess"
@@ -17,7 +25,7 @@ steps:
   - id: dispatch
     action: cli
     cmd: "squad dispatch --max-tasks 2"
-    note: "按 catalog 中 pending + 角色 A/B 各至多 1 活"
+    note: "由 supervise 内嵌；单独跑仅调试"
   - id: publish-orders
     action: cli
     cmd: "squad sync-md --targets squad-board"

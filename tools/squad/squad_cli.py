@@ -18,13 +18,18 @@ from engine.commands import (
     cmd_dispatch,
     cmd_done,
     cmd_export,
+    cmd_fail,
     cmd_halt,
     cmd_init,
     cmd_reflect,
     cmd_roles,
+    cmd_signal,
     cmd_status,
+    cmd_supervise,
     cmd_sync_md,
+    cmd_task_timeout,
     cmd_verify,
+    cmd_worker_tick,
     cmd_workflow_list,
     cmd_workflow_run,
 )
@@ -95,6 +100,52 @@ def main() -> int:
 
     ex = sub.add_parser("export-json", help="Export .squad/state.json snapshot from DB")
     ex.set_defaults(func=cmd_export)
+
+    sup = sub.add_parser(
+        "supervise",
+        help="Commander while-loop until complete|failed|timeout",
+    )
+    sup.add_argument("--timeout", type=float, help="Global supervisor timeout (seconds)")
+    sup.add_argument("--poll-interval", type=float, help="Sleep between ticks (seconds)")
+    sup.add_argument("--max-waves", type=int)
+    sup.add_argument("--max-tasks", type=int)
+    sup.add_argument("--task-timeout", type=float, help="Per-task in_progress timeout")
+    sup.add_argument(
+        "--stuck-policy",
+        choices=["fail", "timeout", "redispatch"],
+        help="When task exceeds task-timeout",
+    )
+    sup.add_argument("--once", action="store_true", help="Single tick (no sleep loop)")
+    sup.add_argument("--json", action="store_true")
+    sup.set_defaults(func=cmd_supervise)
+
+    sig = sub.add_parser("signal", help="Set role/supervisor signal")
+    sig.add_argument("subject", help="role id or 'supervisor'")
+    sig.add_argument(
+        "signal",
+        choices=["running", "complete", "failed", "timeout"],
+    )
+    sig.add_argument("--task-id", default="")
+    sig.add_argument("--reason", default="")
+    sig.set_defaults(func=cmd_signal)
+
+    fl = sub.add_parser("fail", help="Mark task failed and release locks")
+    fl.add_argument("role")
+    fl.add_argument("task_id")
+    fl.add_argument("--reason", default="")
+    fl.set_defaults(func=cmd_fail)
+
+    to = sub.add_parser("task-timeout", help="Mark task timed out and release locks")
+    to.add_argument("role")
+    to.add_argument("task_id")
+    to.add_argument("--reason", default="")
+    to.set_defaults(func=cmd_task_timeout)
+
+    wt = sub.add_parser("worker-tick", help="One worker-loop step for a role")
+    wt.add_argument("role")
+    wt.add_argument("--task-timeout", type=float)
+    wt.add_argument("--json", action="store_true")
+    wt.set_defaults(func=cmd_worker_tick)
 
     args = p.parse_args()
     try:

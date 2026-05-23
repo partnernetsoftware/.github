@@ -37,12 +37,34 @@ tools/squad/squad.sh workflow-run worker --as-role engineer-a
 
 ### 指挥长 C
 
+**推荐**：`squad supervise`（while 循环，见 `catalog.supervisor`）
+
+1. `squad supervise` — 每 tick：`assess` → 若 ready 则 **complete** 退出
+2. 否则检查 worker `failed`/`timeout` 信号 → **failed** 退出
+3. 否则 `dispatch` 空闲工程兵 → `sleep poll_interval` 直至全局超时 → **timeout**
+4. 每轮结束可 `squad sync-md --targets board`
+
+单 tick（Agent 轮询）：`squad supervise --once`（exit 2=继续，0=complete，1=failed，3=timeout）
+
+### 信号（signals 表）
+
+```bash
+squad signal engineer-a running --task-id L2-companion
+squad signal engineer-a complete --task-id L2-companion
+squad fail engineer-a L2-companion --reason "verify fail"
+squad task-timeout engineer-a L2-companion
+```
+
+### 指挥长 C（旧：手动 assess/dispatch，仅调试）
+
 1. `squad assess` → exit 0 则 `squad halt`
 2. 否则 `squad dispatch --max-tasks 2`
 3. `squad sync-md --targets squad-board`
-4. 通知 A/B：`squad status --role A`
+4. 通知 A/B：`squad status --role engineer-a`
 
 ### 工程兵 A|B
+
+0. `squad worker-tick engineer-a` → 按 `action` 执行（while 直到 idle/complete 或 halt）
 
 1. `squad status --role engineer-a`
 2. `squad claim engineer-a <task_id>`  # SQLite 锁 touch_paths

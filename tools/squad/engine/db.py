@@ -83,6 +83,13 @@ class SquadStore:
               body_json TEXT NOT NULL,
               created_at TEXT NOT NULL
             );
+            CREATE TABLE IF NOT EXISTS signals (
+              subject_id TEXT PRIMARY KEY,
+              signal TEXT NOT NULL,
+              task_id TEXT,
+              reason TEXT,
+              updated_at TEXT NOT NULL
+            );
             """
         )
 
@@ -350,6 +357,105 @@ class SquadStore:
             for t in ("findings", "manual_acks", "path_locks", "tasks", "assignments", "meta"):
                 conn.execute(f"DELETE FROM {t}")
             self._hydrate_conn(conn, self._empty_dict())
+
+    def get_meta(self, key: str, default: Any = None) -> Any:
+        with self._connect() as conn:
+            row = conn.execute("SELECT value FROM meta WHERE key=?", (key,)).fetchone()
+            if row:
+                return json.loads(row["value"])
+        return default
+
+    def set_signal(
+        self,
+        subject_id: str,
+        signal: str,
+        *,
+        task_id: str | None = None,
+        reason: str | None = None,
+    ) -> None:
+        with self.write_tx() as conn:
+            conn.execute(
+                """INSERT OR REPLACE INTO signals(subject_id,signal,task_id,reason,updated_at)
+                   VALUES(?,?,?,?,?)""",
+                (subject_id, signal, task_id, reason, _utc_now()),
+            )
+
+    def get_signal(self, subject_id: str) -> dict[str, Any] | None:
+        with self._connect() as conn:
+            row = conn.execute(
+                "SELECT * FROM signals WHERE subject_id=?", (subject_id,)
+            ).fetchone()
+            if not row:
+                return None
+            return {
+                "subject_id": row["subject_id"],
+                "signal": row["signal"],
+                "task_id": row["task_id"],
+                "reason": row["reason"],
+                "updated_at": row["updated_at"],
+            }
+
+    def list_signals(self, prefix: str | None = None) -> list[dict[str, Any]]:
+        with self._connect() as conn:
+            if prefix:
+                rows = conn.execute(
+                    "SELECT * FROM signals WHERE subject_id LIKE ? ORDER BY subject_id",
+                    (prefix + "%",),
+                ).fetchall()
+            else:
+                rows = conn.execute(
+                    "SELECT * FROM signals ORDER BY subject_id"
+                ).fetchall()
+            return [
+                {
+                    "subject_id": r["subject_id"],
+                    "signal": r["signal"],
+                    "task_id": r["task_id"],
+                    "reason": r["reason"],
+                    "updated_at": r["updated_at"],
+                }
+                for r in rows
+            ]
+
+    def task_set_outcome(
+        self,
+        role: str,
+        task_id: str,
+        outcome: str,
+        *,
+        reason: str | None = None,
+        touch_paths: list[str] | None = None,
+    ) -> None:
+        """Mark task failed|timeout and release role + path locks."""
+        if outcome not in ("failed", "timeout"):
+            raise ValueError(f"invalid outcome: {outcome}")
+        paths = touch_paths or []
+        with self.write_tx(immediate=True) as conn:
+            cur = conn.execute(
+                "SELECT task_id FROM assignments WHERE role_id=?", (role,)
+            ).fetchone()
+            if cur and cur["task_id"] and cur["task_id"] != task_id:
+                raise SquadLockError(f"role {role} on {cur['task_id']}, not {task_id}")
+            extra: dict[str, Any] = {"outcome": outcome}
+            if reason:
+                extra["outcome_reason"] = reason
+            extra["finished_at"] = _utc_now()
+            conn.execute(
+                """UPDATE tasks SET status=?, extra_json=?, updated_at=? WHERE task_id=?""",
+                (
+                    outcome,
+                    json.dumps(extra, ensure_ascii=False),
+                    _utc_now(),
+                    task_id,
+                ),
+            )
+            conn.execute("UPDATE assignments SET task_id=NULL WHERE role_id=?", (role,))
+            for p in paths:
+                conn.execute(
+                    "DELETE FROM path_locks WHERE path=? AND role_id=?",
+                    (p, role),
+                )
+        self.set_signal(role, outcome, task_id=task_id, reason=reason)
 
     def export_json(self, path: Path | None = None) -> Path:
         out = path or self.ctx.state_json_path

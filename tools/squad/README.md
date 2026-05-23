@@ -48,7 +48,26 @@ tools/squad/squad.sh dispatch
 tools/squad/squad.sh claim engineer-a my-task
 tools/squad/squad.sh done engineer-a my-task --commit abc1234
 tools/squad/squad.sh export-json
+tools/squad/squad.sh supervise          # 指挥长 while：complete|failed|timeout
+tools/squad/squad.sh supervise --once  # 单 tick
+tools/squad/squad.sh worker-tick engineer-a
+tools/squad/squad.sh signal engineer-a complete --task-id L2-companion
+tools/squad/squad.sh fail engineer-a L2-companion --reason "verify failed"
 ```
+
+## 监督循环（supervise）
+
+每个并行角色应有 **while**，出口仅三种：
+
+| 出口 | 含义 |
+|------|------|
+| `complete` | `assess.ready`（自动+人工门禁全过） |
+| `failed` | 任务 `failed` / 角色信号 `failed` / `stuck_policy=fail` |
+| `timeout` | 全局 `supervisor.timeout_sec` 或任务 `task_timeout_sec` |
+
+`catalog.supervisor` 配置超时与 `poll_interval_sec`；`signals` 表记录 `supervisor` 与各 `engineer-*` 状态。
+
+**禁止**：只跑一轮 `dispatch` 后在 manual 仍 pending 时停止 — 应 `supervise` 或 Cloud Agent 反复 `supervise --once`。
 
 ## 角色微工作流
 

@@ -13,6 +13,14 @@ from .context import SquadContext, _load_yaml
 from .db import SquadLockError, SquadStore
 from .gates import run_assess
 from .state import empty_state, get_store, load_state, save_state, task_status
+from .supervisor import (
+    OUTCOME_COMPLETE,
+    OUTCOME_FAILED,
+    OUTCOME_TIMEOUT,
+    run_supervise,
+    supervise_tick,
+    worker_tick,
+)
 
 
 def cmd_assess(ctx: SquadContext, args: argparse.Namespace) -> int:
@@ -334,4 +342,140 @@ def cmd_halt(ctx: SquadContext, args: argparse.Namespace) -> int:
 def cmd_roles(ctx: SquadContext, args: argparse.Namespace) -> int:
     for rid, spec in ctx.roles.items():
         print(f"{rid}\tkind={spec.get('kind')}\tworkflow={spec.get('workflow', '-')}")
+    return 0
+
+
+def _supervisor_options(ctx: SquadContext, args: argparse.Namespace) -> dict:
+    cfg = ctx.catalog.get("supervisor") or {}
+    return {
+        "timeout_sec": float(args.timeout if args.timeout is not None else cfg.get("timeout_sec", 7200)),
+        "poll_interval_sec": float(
+            args.poll_interval if args.poll_interval is not None else cfg.get("poll_interval_sec", 15)
+        ),
+        "max_waves": int(args.max_waves if args.max_waves is not None else cfg.get("max_waves", 50)),
+        "max_tasks": int(args.max_tasks if args.max_tasks is not None else ctx.dispatch_cfg.get("max_per_wave", 2)),
+        "task_timeout_sec": float(
+            args.task_timeout if args.task_timeout is not None else cfg.get("task_timeout_sec", 3600)
+        ),
+        "stuck_policy": args.stuck_policy or cfg.get("stuck_policy", "fail"),
+    }
+
+
+def cmd_supervise(ctx: SquadContext, args: argparse.Namespace) -> int:
+    store = get_store(ctx)
+    opts = _supervisor_options(ctx, args)
+    if args.once:
+        tick = supervise_tick(
+            ctx,
+            store,
+            max_tasks=opts["max_tasks"],
+            task_timeout_sec=opts["task_timeout_sec"],
+            stuck_policy=opts["stuck_policy"],
+        )
+        store.export_json()
+        if args.json:
+            print(json.dumps(tick, indent=2, ensure_ascii=False))
+        else:
+            oc = tick.get("outcome") or "continue"
+            print(
+                f"supervise-tick: outcome={oc} ready={tick['ready']} "
+                f"auto={tick['percent_auto']}% dispatched={tick.get('dispatched', 0)}"
+            )
+        if tick.get("outcome") == OUTCOME_COMPLETE:
+            return 0
+        if tick.get("outcome") == OUTCOME_FAILED:
+            return 1
+        if tick.get("outcome") == OUTCOME_TIMEOUT:
+            return 3
+        return 2
+
+    outcome, code = run_supervise(
+        ctx,
+        store,
+        timeout_sec=opts["timeout_sec"],
+        poll_interval_sec=opts["poll_interval_sec"],
+        max_waves=opts["max_waves"],
+        max_tasks=opts["max_tasks"],
+        task_timeout_sec=opts["task_timeout_sec"],
+        stuck_policy=opts["stuck_policy"],
+        once=False,
+    )
+    if args.json:
+        print(json.dumps({"outcome": outcome or "tick", "exit_code": code}, indent=2))
+    else:
+        label = outcome or "interrupted"
+        print(f"supervise: outcome={label} exit={code}")
+    return code
+
+
+def cmd_signal(ctx: SquadContext, args: argparse.Namespace) -> int:
+    store = get_store(ctx)
+    store.set_signal(
+        args.subject,
+        args.signal,
+        task_id=args.task_id or None,
+        reason=args.reason or None,
+    )
+    store.export_json()
+    print(f"signal {args.subject} -> {args.signal}")
+    return 0
+
+
+def cmd_fail(ctx: SquadContext, args: argparse.Namespace) -> int:
+    store = get_store(ctx)
+    spec = ctx.tasks.get(args.task_id) or {}
+    touch = list(spec.get("touch_paths") or [])
+    try:
+        store.task_set_outcome(
+            args.role,
+            args.task_id,
+            "failed",
+            reason=args.reason or "failed",
+            touch_paths=touch,
+        )
+    except SquadLockError as e:
+        print(str(e), file=sys.stderr)
+        return 1
+    store.export_json()
+    print(f"failed {args.role} {args.task_id}")
+    return 0
+
+
+def cmd_task_timeout(ctx: SquadContext, args: argparse.Namespace) -> int:
+    store = get_store(ctx)
+    spec = ctx.tasks.get(args.task_id) or {}
+    touch = list(spec.get("touch_paths") or [])
+    try:
+        store.task_set_outcome(
+            args.role,
+            args.task_id,
+            "timeout",
+            reason=args.reason or "timeout",
+            touch_paths=touch,
+        )
+    except SquadLockError as e:
+        print(str(e), file=sys.stderr)
+        return 1
+    store.export_json()
+    print(f"timeout {args.role} {args.task_id}")
+    return 0
+
+
+def cmd_worker_tick(ctx: SquadContext, args: argparse.Namespace) -> int:
+    store = get_store(ctx)
+    cfg = ctx.catalog.get("supervisor") or {}
+    task_timeout = float(
+        args.task_timeout if args.task_timeout is not None else cfg.get("task_timeout_sec", 3600)
+    )
+    result = worker_tick(ctx, store, args.role, task_timeout_sec=task_timeout)
+    if args.json:
+        print(json.dumps(result, indent=2, ensure_ascii=False))
+    else:
+        print(f"worker-tick {args.role}: action={result.get('action')} task={result.get('task_id')}")
+        if result.get("reason"):
+            print(f"  reason: {result['reason']}")
+        if result.get("pending"):
+            print(f"  pending: {', '.join(result['pending'])}")
+    if result.get("action") == "halt":
+        return 1
     return 0
