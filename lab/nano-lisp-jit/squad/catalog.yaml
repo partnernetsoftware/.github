@@ -106,11 +106,11 @@ verify:
 
 sync:
   board:
-    file: lab/nano-lisp-jit/v3.5/SQUAD.md
+    file: v3.5/SQUAD.md
     template: board
     begin: "<!-- SQUAD_STATE_BEGIN -->"
     end: "<!-- SQUAD_STATE_END -->"
   reflection:
-    file: lab/nano-lisp-jit/v3.5/REFLECTION.md
+    file: v3.5/REFLECTION.md
     template: changelog_row
     changelog_anchor: "## 6. 变更日志\n\n| 日期 | 摘要 |\n|------|------|\n"

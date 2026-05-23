@@ -21,9 +21,30 @@ cd lab/nano-lisp-jit && ./squad/squad.sh assess && ./squad/squad.sh status
 **未签收**：L4 全功能 runner；L2 去 companion；aarch64 非 stub；gen5 由 Lisp 全功能 slice 编排。
 
 <!-- SQUAD_STATE_BEGIN -->
-### 派单板（state 生成 · 勿手改）
+### 派单板（SQLite state 导出 · 勿手改）
 
-运行 `./squad/squad.sh sync-md --targets squad-board` 刷新本块。
+- **project**: `/workspace/lab/nano-lisp-jit`
+- **state.db**: `/workspace/lab/nano-lisp-jit/.squad/state.db`
+- **signoff_id**: `v3.5-lisp-only`
+- **updated_at**: 2026-05-23T07:21:46.588113+00:00
+- **signoff_auto**: 92%
+- **halt**: False
+
+| role | task | status |
+|------|------|--------|
+| reviewer | — | idle |
+| commander | — | idle |
+| engineer-a | — | idle |
+| engineer-b | — | idle |
+
+| task_id | status | commit |
+|---------|--------|--------|
+| L2-companion | done | 7866e4e |
+| L4-runner-1 | done | 5030c7c |
+| L4-tu-kickoff | done | a043fd5 |
+| aarch64-codegen-1 | done | 5030c7c |
+
+**pending**: wave-squad-R1, wave-squad-R2
 <!-- SQUAD_STATE_END -->
 
 ## 派单板（历史 · wave-squad-1）
