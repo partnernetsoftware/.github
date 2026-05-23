@@ -2,13 +2,13 @@
   "version": 2,
   "apiVersion": "squad-state/v2",
   "wave": 1,
-  "signoff_percent": 100,
+  "signoff_percent": 98,
   "halt": false,
   "assignments": {
     "commander": null,
-    "engineer-a": null,
-    "reviewer": null,
-    "engineer-b": null
+    "engineer-b": "wave9-squad-follower-team-ready",
+    "engineer-a": "wave10-v4-add7-regression",
+    "reviewer": "wave10-v4-R"
   },
   "tasks": {
     "v4-aarch64-aot-plan": {
@@ -145,38 +145,53 @@
       "status": "done",
       "assign_role": "engineer-b",
       "commit": "0e38ef9"
+    },
+    "wave9-squad-follower-team-ready": {
+      "status": "assigned",
+      "assign_role": "engineer-b"
+    },
+    "wave9-v4-s4-agent-team": {
+      "status": "done",
+      "assign_role": "engineer-a",
+      "commit": "4dbed7b"
+    },
+    "wave9-v4-R": {
+      "status": "done",
+      "assign_role": "reviewer",
+      "commit": "4dbed7b"
+    },
+    "wave10-v4-add7-regression": {
+      "status": "in_progress",
+      "assign_role": "engineer-a"
+    },
+    "wave10-v4-R": {
+      "status": "in_progress",
+      "assign_role": "reviewer"
     }
   },
   "findings": [],
   "manual_acks": {},
-  "locks": {},
+  "locks": {
+    "samples/bootstrap-v4-slice1-add7.lisp": "engineer-a",
+    ".build/bootstrap-v4-slice1-add7.elf": "engineer-a",
+    ".build/v4-slice5.evidence": "engineer-a",
+    "run.sh": "engineer-a"
+  },
   "merge_order": [
     "engineer-a",
     "engineer-b"
   ],
   "halt_reason": null,
   "last_assess": {
-    "signoff_id": "v4-slice3-scoped",
-    "percent_auto": 100,
+    "signoff_id": "v4-complete-scoped",
+    "percent_auto": 98,
     "percent_scoped": 100,
-    "percent_terminal": 100,
-    "ready": true,
+    "percent_terminal": 50,
+    "ready": false,
     "scoped_ready": true,
-    "terminal_ready": true,
+    "terminal_ready": false,
     "require_terminal": false,
     "auto": [
-      {
-        "id": "v35-regression-run",
-        "ok": true,
-        "detail": "results.txt val=279 need>=257",
-        "manual": false
-      },
-      {
-        "id": "v35-regression-build",
-        "ok": true,
-        "detail": "bootstrap-report.txt val=119 need>=119",
-        "manual": false
-      },
       {
         "id": "v4-readme",
         "ok": true,
@@ -325,23 +340,281 @@
         "id": "v4-squad-supervise-once",
         "ok": true,
         "detail": "v4-slice3.evidence val=1 need>=1",
+        "manual": false
+      },
+      {
+        "id": "v4-slice4-doc",
+        "ok": true,
+        "detail": "v4/SLICE4.md",
+        "manual": false
+      },
+      {
+        "id": "v4-squad-s4-agent-team-plan",
+        "ok": true,
+        "detail": "samples/bootstrap-v4-squad-s4-agent-team.lisp",
+        "manual": false
+      },
+      {
+        "id": "v4-slice4-evidence",
+        "ok": true,
+        "detail": "v4-slice4.evidence val=1 need>=1",
+        "manual": false
+      },
+      {
+        "id": "v4-squad-commander-complete",
+        "ok": true,
+        "detail": "v4-slice4.evidence val=1 need>=1",
+        "manual": false
+      },
+      {
+        "id": "v4-slice5-doc",
+        "ok": true,
+        "detail": "v4/SLICE5.md",
+        "manual": false
+      },
+      {
+        "id": "v4-squad-s5-verify-plan",
+        "ok": true,
+        "detail": "samples/bootstrap-v4-squad-s5-verify-plan.lisp",
+        "manual": false
+      },
+      {
+        "id": "v4-slice5-evidence",
+        "ok": true,
+        "detail": "v4-slice5.evidence val=1 need>=1",
+        "manual": false
+      },
+      {
+        "id": "v4-squad-wave10-smoke",
+        "ok": true,
+        "detail": "v4-slice5.evidence val=1 need>=1",
+        "manual": false
+      },
+      {
+        "id": "v4-reflection-doc",
+        "ok": true,
+        "detail": "v4/REFLECTION.md",
+        "manual": false
+      },
+      {
+        "id": "v4-slice6-doc",
+        "ok": true,
+        "detail": "v4/SLICE6.md",
+        "manual": false
+      },
+      {
+        "id": "v4-codegen-kickoff-plan",
+        "ok": true,
+        "detail": "samples/bootstrap-v4-codegen-kickoff.lisp",
+        "manual": false
+      },
+      {
+        "id": "v4-slice6-evidence",
+        "ok": true,
+        "detail": "v4-slice6.evidence val=1 need>=1",
+        "manual": false
+      },
+      {
+        "id": "v4-elf64-emit-anchor",
+        "ok": true,
+        "detail": "v4-slice6.evidence val=1 need>=1",
+        "manual": false
+      },
+      {
+        "id": "v4-squad-wave11-smoke",
+        "ok": true,
+        "detail": "v4-slice6.evidence val=1 need>=1",
+        "manual": false
+      },
+      {
+        "id": "v4-slice7-doc",
+        "ok": true,
+        "detail": "v4/SLICE7.md",
+        "manual": false
+      },
+      {
+        "id": "v4-slice7-add11-plan",
+        "ok": true,
+        "detail": "samples/bootstrap-v4-slice7-add11.lisp",
+        "manual": false
+      },
+      {
+        "id": "v4-slice7-add11-elf",
+        "ok": true,
+        "detail": ".build/bootstrap-v4-slice7-add11.elf",
+        "manual": false
+      },
+      {
+        "id": "v4-slice7-evidence",
+        "ok": true,
+        "detail": "v4-slice7.evidence val=1 need>=1",
+        "manual": false
+      },
+      {
+        "id": "v4-slice7-emit-profile",
+        "ok": true,
+        "detail": "v4-slice7.evidence val=1 need>=1",
+        "manual": false
+      },
+      {
+        "id": "v4-squad-wave12-smoke",
+        "ok": true,
+        "detail": "v4-slice7.evidence val=1 need>=1",
+        "manual": false
+      },
+      {
+        "id": "v4-slice8-doc",
+        "ok": true,
+        "detail": "v4/SLICE8.md",
+        "manual": false
+      },
+      {
+        "id": "v4-slice8-add13-plan",
+        "ok": true,
+        "detail": "samples/bootstrap-v4-slice8-add13.lisp",
+        "manual": false
+      },
+      {
+        "id": "v4-slice8-add13-elf",
+        "ok": true,
+        "detail": ".build/bootstrap-v4-slice8-add13.elf",
+        "manual": false
+      },
+      {
+        "id": "v4-slice8-evidence",
+        "ok": true,
+        "detail": "v4-slice8.evidence val=1 need>=1",
+        "manual": false
+      },
+      {
+        "id": "v4-slice8-lowering-table",
+        "ok": true,
+        "detail": "v4-slice8.evidence val=1 need>=1",
+        "manual": false
+      },
+      {
+        "id": "v4-slice9-doc",
+        "ok": true,
+        "detail": "v4/SLICE9.md",
+        "manual": false
+      },
+      {
+        "id": "v4-slice9-add14-plan",
+        "ok": true,
+        "detail": "samples/bootstrap-v4-slice9-add14.lisp",
+        "manual": false
+      },
+      {
+        "id": "v4-slice9-add14-elf",
+        "ok": true,
+        "detail": ".build/bootstrap-v4-slice9-add14.elf",
+        "manual": false
+      },
+      {
+        "id": "v4-slice9-evidence",
+        "ok": true,
+        "detail": "v4-slice9.evidence val=1 need>=1",
+        "manual": false
+      },
+      {
+        "id": "v4-slice9-opcode-table",
+        "ok": true,
+        "detail": "v4-slice9.evidence val=1 need>=1",
+        "manual": false
+      },
+      {
+        "id": "v4-parallel-doc",
+        "ok": true,
+        "detail": "v4/PARALLEL.md",
+        "manual": false
+      },
+      {
+        "id": "v4-slice10-doc",
+        "ok": true,
+        "detail": "v4/SLICE10.md",
+        "manual": false
+      },
+      {
+        "id": "v4-slice10-add15-plan",
+        "ok": true,
+        "detail": "samples/bootstrap-v4-slice10-ir-entry.lisp",
+        "manual": false
+      },
+      {
+        "id": "v4-slice10-add15-elf",
+        "ok": true,
+        "detail": ".build/bootstrap-v4-slice10-add15.elf",
+        "manual": false
+      },
+      {
+        "id": "v4-squad-s6-assess-plan",
+        "ok": true,
+        "detail": "samples/bootstrap-v4-squad-s6-assess.lisp",
+        "manual": false
+      },
+      {
+        "id": "v4-slice10-evidence",
+        "ok": true,
+        "detail": "v4-slice10.evidence val=1 need>=1",
+        "manual": false
+      },
+      {
+        "id": "v4-slice10-ir-entry",
+        "ok": true,
+        "detail": "v4-slice10.evidence val=1 need>=1",
+        "manual": false
+      },
+      {
+        "id": "v4-slice11-doc",
+        "ok": true,
+        "detail": "v4/SLICE11.md",
+        "manual": false
+      },
+      {
+        "id": "v4-slice11-add16-plan",
+        "ok": true,
+        "detail": "samples/bootstrap-v4-slice11-ir-table.lisp",
+        "manual": false
+      },
+      {
+        "id": "v4-slice11-add16-elf",
+        "ok": true,
+        "detail": ".build/bootstrap-v4-slice11-add16.elf",
+        "manual": false
+      },
+      {
+        "id": "v4-squad-s6-dispatch-plan",
+        "ok": true,
+        "detail": "samples/bootstrap-v4-squad-s6-dispatch.lisp",
+        "manual": false
+      },
+      {
+        "id": "v4-slice11-evidence",
+        "ok": true,
+        "detail": "v4-slice11.evidence val=1 need>=1",
+        "manual": false
+      },
+      {
+        "id": "v4-slice11-ir-table",
+        "ok": true,
+        "detail": "v4-slice11.evidence val=1 need>=1",
+        "manual": false
+      },
+      {
+        "id": "v35-regression-run",
+        "ok": true,
+        "detail": "results.txt val=271 need>=270",
+        "manual": false
+      },
+      {
+        "id": "v35-regression-build",
+        "ok": false,
+        "detail": "bootstrap-report.txt val=None need>=119",
         "manual": false
       }
     ],
     "scoped": [
       {
-        "id": "v35-regression-run",
-        "ok": true,
-        "detail": "results.txt val=279 need>=257",
-        "manual": false
-      },
-      {
-        "id": "v35-regression-build",
-        "ok": true,
-        "detail": "bootstrap-report.txt val=119 need>=119",
-        "manual": false
-      },
-      {
         "id": "v4-readme",
         "ok": true,
         "detail": "v4/README.md",
@@ -490,10 +763,281 @@
         "ok": true,
         "detail": "v4-slice3.evidence val=1 need>=1",
         "manual": false
+      },
+      {
+        "id": "v4-slice4-doc",
+        "ok": true,
+        "detail": "v4/SLICE4.md",
+        "manual": false
+      },
+      {
+        "id": "v4-squad-s4-agent-team-plan",
+        "ok": true,
+        "detail": "samples/bootstrap-v4-squad-s4-agent-team.lisp",
+        "manual": false
+      },
+      {
+        "id": "v4-slice4-evidence",
+        "ok": true,
+        "detail": "v4-slice4.evidence val=1 need>=1",
+        "manual": false
+      },
+      {
+        "id": "v4-squad-commander-complete",
+        "ok": true,
+        "detail": "v4-slice4.evidence val=1 need>=1",
+        "manual": false
+      },
+      {
+        "id": "v4-slice5-doc",
+        "ok": true,
+        "detail": "v4/SLICE5.md",
+        "manual": false
+      },
+      {
+        "id": "v4-squad-s5-verify-plan",
+        "ok": true,
+        "detail": "samples/bootstrap-v4-squad-s5-verify-plan.lisp",
+        "manual": false
+      },
+      {
+        "id": "v4-slice5-evidence",
+        "ok": true,
+        "detail": "v4-slice5.evidence val=1 need>=1",
+        "manual": false
+      },
+      {
+        "id": "v4-squad-wave10-smoke",
+        "ok": true,
+        "detail": "v4-slice5.evidence val=1 need>=1",
+        "manual": false
+      },
+      {
+        "id": "v4-reflection-doc",
+        "ok": true,
+        "detail": "v4/REFLECTION.md",
+        "manual": false
+      },
+      {
+        "id": "v4-slice6-doc",
+        "ok": true,
+        "detail": "v4/SLICE6.md",
+        "manual": false
+      },
+      {
+        "id": "v4-codegen-kickoff-plan",
+        "ok": true,
+        "detail": "samples/bootstrap-v4-codegen-kickoff.lisp",
+        "manual": false
+      },
+      {
+        "id": "v4-slice6-evidence",
+        "ok": true,
+        "detail": "v4-slice6.evidence val=1 need>=1",
+        "manual": false
+      },
+      {
+        "id": "v4-elf64-emit-anchor",
+        "ok": true,
+        "detail": "v4-slice6.evidence val=1 need>=1",
+        "manual": false
+      },
+      {
+        "id": "v4-squad-wave11-smoke",
+        "ok": true,
+        "detail": "v4-slice6.evidence val=1 need>=1",
+        "manual": false
+      },
+      {
+        "id": "v4-slice7-doc",
+        "ok": true,
+        "detail": "v4/SLICE7.md",
+        "manual": false
+      },
+      {
+        "id": "v4-slice7-add11-plan",
+        "ok": true,
+        "detail": "samples/bootstrap-v4-slice7-add11.lisp",
+        "manual": false
+      },
+      {
+        "id": "v4-slice7-add11-elf",
+        "ok": true,
+        "detail": ".build/bootstrap-v4-slice7-add11.elf",
+        "manual": false
+      },
+      {
+        "id": "v4-slice7-evidence",
+        "ok": true,
+        "detail": "v4-slice7.evidence val=1 need>=1",
+        "manual": false
+      },
+      {
+        "id": "v4-slice7-emit-profile",
+        "ok": true,
+        "detail": "v4-slice7.evidence val=1 need>=1",
+        "manual": false
+      },
+      {
+        "id": "v4-squad-wave12-smoke",
+        "ok": true,
+        "detail": "v4-slice7.evidence val=1 need>=1",
+        "manual": false
+      },
+      {
+        "id": "v4-slice8-doc",
+        "ok": true,
+        "detail": "v4/SLICE8.md",
+        "manual": false
+      },
+      {
+        "id": "v4-slice8-add13-plan",
+        "ok": true,
+        "detail": "samples/bootstrap-v4-slice8-add13.lisp",
+        "manual": false
+      },
+      {
+        "id": "v4-slice8-add13-elf",
+        "ok": true,
+        "detail": ".build/bootstrap-v4-slice8-add13.elf",
+        "manual": false
+      },
+      {
+        "id": "v4-slice8-evidence",
+        "ok": true,
+        "detail": "v4-slice8.evidence val=1 need>=1",
+        "manual": false
+      },
+      {
+        "id": "v4-slice8-lowering-table",
+        "ok": true,
+        "detail": "v4-slice8.evidence val=1 need>=1",
+        "manual": false
+      },
+      {
+        "id": "v4-slice9-doc",
+        "ok": true,
+        "detail": "v4/SLICE9.md",
+        "manual": false
+      },
+      {
+        "id": "v4-slice9-add14-plan",
+        "ok": true,
+        "detail": "samples/bootstrap-v4-slice9-add14.lisp",
+        "manual": false
+      },
+      {
+        "id": "v4-slice9-add14-elf",
+        "ok": true,
+        "detail": ".build/bootstrap-v4-slice9-add14.elf",
+        "manual": false
+      },
+      {
+        "id": "v4-slice9-evidence",
+        "ok": true,
+        "detail": "v4-slice9.evidence val=1 need>=1",
+        "manual": false
+      },
+      {
+        "id": "v4-slice9-opcode-table",
+        "ok": true,
+        "detail": "v4-slice9.evidence val=1 need>=1",
+        "manual": false
+      },
+      {
+        "id": "v4-parallel-doc",
+        "ok": true,
+        "detail": "v4/PARALLEL.md",
+        "manual": false
+      },
+      {
+        "id": "v4-slice10-doc",
+        "ok": true,
+        "detail": "v4/SLICE10.md",
+        "manual": false
+      },
+      {
+        "id": "v4-slice10-add15-plan",
+        "ok": true,
+        "detail": "samples/bootstrap-v4-slice10-ir-entry.lisp",
+        "manual": false
+      },
+      {
+        "id": "v4-slice10-add15-elf",
+        "ok": true,
+        "detail": ".build/bootstrap-v4-slice10-add15.elf",
+        "manual": false
+      },
+      {
+        "id": "v4-squad-s6-assess-plan",
+        "ok": true,
+        "detail": "samples/bootstrap-v4-squad-s6-assess.lisp",
+        "manual": false
+      },
+      {
+        "id": "v4-slice10-evidence",
+        "ok": true,
+        "detail": "v4-slice10.evidence val=1 need>=1",
+        "manual": false
+      },
+      {
+        "id": "v4-slice10-ir-entry",
+        "ok": true,
+        "detail": "v4-slice10.evidence val=1 need>=1",
+        "manual": false
+      },
+      {
+        "id": "v4-slice11-doc",
+        "ok": true,
+        "detail": "v4/SLICE11.md",
+        "manual": false
+      },
+      {
+        "id": "v4-slice11-add16-plan",
+        "ok": true,
+        "detail": "samples/bootstrap-v4-slice11-ir-table.lisp",
+        "manual": false
+      },
+      {
+        "id": "v4-slice11-add16-elf",
+        "ok": true,
+        "detail": ".build/bootstrap-v4-slice11-add16.elf",
+        "manual": false
+      },
+      {
+        "id": "v4-squad-s6-dispatch-plan",
+        "ok": true,
+        "detail": "samples/bootstrap-v4-squad-s6-dispatch.lisp",
+        "manual": false
+      },
+      {
+        "id": "v4-slice11-evidence",
+        "ok": true,
+        "detail": "v4-slice11.evidence val=1 need>=1",
+        "manual": false
+      },
+      {
+        "id": "v4-slice11-ir-table",
+        "ok": true,
+        "detail": "v4-slice11.evidence val=1 need>=1",
+        "manual": false
       }
     ],
-    "terminal": [],
+    "terminal": [
+      {
+        "id": "v35-regression-run",
+        "ok": true,
+        "detail": "results.txt val=271 need>=270",
+        "manual": false
+      },
+      {
+        "id": "v35-regression-build",
+        "ok": false,
+        "detail": "bootstrap-report.txt val=None need>=119",
+        "manual": false
+      }
+    ],
     "manual": []
   },
-  "updated_at": "2026-05-23T10:19:24.468638+00:00"
+  "updated_at": "2026-05-23T13:22:21.353020+00:00"
 }

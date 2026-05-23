@@ -414,9 +414,9 @@ v4: 终局切片 + 产品轨（catalog-v4.yaml · signoff v4-slice9-scoped）
 │  └─ nano-jit.com 生成下一代 .com — 未开始
 ├─ 反思轨 R（常驻）
 │  └─ [`v4/REFLECTION.md`](v4/REFLECTION.md) + 回写本 mindmap；禁止写「v4 = 零 C 仓库」
-└─ 下一洋葱圈（**wave15 已开 · 并行双轨**）
-   ├─ P0 codegen：**进行中** — `aarch64.emit.ir.entry=v1` + add15（[`v4/SLICE10.md`](v4/SLICE10.md)）
-   ├─ P1 编排：**进行中** — `bootstrap-v4-squad-s6-assess.lisp`（[`v4/PARALLEL.md`](v4/PARALLEL.md)）
+└─ 下一洋葱圈（建议 wave15+）
+   ├─ P0 codegen：单 op 从 Lisp IR 表发射（替换 add-exit 手写 encode 之一）
+   ├─ P1 编排：S6 bootstrap 只读 squad-assess（仍可不 SQLite FFI）
    └─ P2 产品轨：NDTSV/SQL/qjs 文档探路（非实现）
 ```
 
@@ -430,7 +430,7 @@ v4: 终局切片 + 产品轨（catalog-v4.yaml · signoff v4-slice9-scoped）
 | VM/AOT aarch64 | **0%** | **pending** | mindmap 原「真 codegen」目标未达成 |
 | 全仓库零 `.c` | **0%** | **pending** | 非 v4 已签收含义 |
 
-**v4 整体**：**scoped ~100%（catalog signoff）** / **终局自举 ~15%（仅 plan 层 + emit 表驱动 stub）**。详见 [`v4/README.md`](v4/README.md)、[`v4/SLICE9.md`](v4/SLICE9.md)。
+**v4 整体**：**scoped 完成（`v4-complete-scoped`）** / **终局自举 ~15%（plan + emit 表驱动 stub）**。详见 [`v4/COMPLETE-SCOPED.md`](v4/COMPLETE-SCOPED.md)、[`v4/PARALLEL.md`](v4/PARALLEL.md)。
 
 ### 0. 证据基线
 

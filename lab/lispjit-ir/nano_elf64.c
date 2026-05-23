@@ -434,13 +434,23 @@ static int a64_ir_uses_fixed_word_v2(unsigned op) {
          op == A64_ADD_EXIT_OP_SVC0;
 }
 
+/* v4 slice-12: movz bases in table (IR table v3). */
+static const uint32_t a64_ir_movz_base_v3[2] = {
+  0xd2800000u,
+  0xd2800000u | 1u,
+};
+
+static uint32_t a64_movz_from_table_v3(unsigned reg, int imm) {
+  return a64_ir_movz_base_v3[reg & 1u] | (((uint32_t)imm & 0xffffu) << 5);
+}
+
 static uint32_t a64_add_exit_v1_encode(unsigned op, int a, int b) {
   if (a64_ir_uses_fixed_word_v2(op)) return a64_ir_fixed_word_v2[op];
   switch (op) {
   case A64_ADD_EXIT_OP_MOVZ_X0:
-    return 0xd2800000u | (((uint32_t)a & 0xffffu) << 5);
+    return a64_movz_from_table_v3(0, a);
   case A64_ADD_EXIT_OP_MOVZ_X1:
-    return 0xd2800000u | (((uint32_t)b & 0xffffu) << 5) | 1u;
+    return a64_movz_from_table_v3(1, b);
   default:
     return 0;
   }
