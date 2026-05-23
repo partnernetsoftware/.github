@@ -2,7 +2,7 @@
 
 **目标**：新增能力默认只写 `.lisp`；`.c` 逐步变为 legacy 对照，便于 AI 在单一 DSL/IR 上协同演进。
 
-## 当前已签收（本线 milestone L0）
+## 当前已签收（本线 milestone L1）
 
 | 能力 | 机制 | 零 `.c` |
 |------|------|---------|
@@ -11,17 +11,18 @@
 | 多函数 slice | `nano-jit-slice-add.lisp`（同原 `nano-cc-add.lisp` 语义） | 是 |
 | 统一 DSL | `(build-slice "*.lisp" …)` → 自动 `build-slice-lisp`（`build-slice.route=lisp-by-extension`） | 是 |
 | 证据 | `bootstrap-v35-lisp-only-matrix.lisp`、`bootstrap-v35-build-slice-lisp-route.lisp` | 计划内零 `.c` |
-| gen4 自举 | `bootstrap-v35-selfhost-gen4.lisp` — 仅 Lisp slice 步骤 | 是（pack 仍引 genesis pin，见 L1） |
+| pack x86 Lisp | `bootstrap-v35-pack-lisp-x86.lisp` — Lisp slice + genesis aarch64 | 是 |
+| gen4 自举 | `bootstrap-v35-selfhost-gen4.lisp` — Lisp slice + pack x86 来自 `v35-gen4-slice-min-x86.elf` | 是（aarch64 仍 genesis pin） |
 
 ```bash
-bash lab/nano-lisp-jit/run.sh   # run-bootstrap-v35-lisp-only-matrix-plan, build-slice-lisp-route, gen4 plan
+bash lab/nano-lisp-jit/run.sh   # pack-lisp-x86, lisp-only-matrix, build-slice-lisp-route, gen4 plan
 ```
 
 ## 洋葱里程碑（向「全 Lisp、无 C」）
 
 ```text
-L0  slice 样例全 Lisp（min/add）+ build-slice 自动路由 .lisp     ← 本提交
-L1  pack-ape 的 x86 slice 来自 Lisp 产物；aarch64 仍 genesis 或 duplicate 文档化
+L0  slice 样例全 Lisp（min/add）+ build-slice 自动路由 .lisp     ← 已签收
+L1  pack-ape 的 x86 slice 来自 Lisp 产物；aarch64 仍 genesis 或 duplicate 文档化  ← 本提交
 L2  用 Lisp 模块描述「编译器子集」替代 nano-cc-add.c（DSL 生成 IR，非 companion 文件）
 L3  build-slice-lisp aarch64（与 v3 cross 同门槛）
 L4  lispjit 功能剖面拆为多个 .lisp TU → link-elf64-exe 链（仍零 host cc）
@@ -46,6 +47,5 @@ L6  AI 协同：仅改 .lisp + bootstrap + golden；禁止新增 .c 除非 NANO_
 
 ## 下一刀（建议并行）
 
-- L1：`pack-ape` 使用 `v35-gen4-slice-*` 作 x86 payload（genesis 仅 aarch64）
 - L2：内联 `nano-jit-slice-add` 为 bootstrap 宏，去掉对 `nano-cc-add.lisp` 文件名依赖
 - L3：`build-slice-lisp` aarch64 smoke

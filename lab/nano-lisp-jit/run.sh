@@ -61,6 +61,7 @@ BOOTSTRAP_V35_BUILD_SLICE_SRC="$LAB_DIR/samples/bootstrap-v35-build-slice.lisp"
 BOOTSTRAP_V35_SELFHOST_GEN3_SRC="$LAB_DIR/samples/bootstrap-v35-selfhost-gen3.lisp"
 BOOTSTRAP_V35_LISP_ONLY_MATRIX_SRC="$LAB_DIR/samples/bootstrap-v35-lisp-only-matrix.lisp"
 BOOTSTRAP_V35_BUILD_SLICE_LISP_ROUTE_SRC="$LAB_DIR/samples/bootstrap-v35-build-slice-lisp-route.lisp"
+BOOTSTRAP_V35_PACK_LISP_X86_SRC="$LAB_DIR/samples/bootstrap-v35-pack-lisp-x86.lisp"
 BOOTSTRAP_V35_SELFHOST_GEN4_SRC="$LAB_DIR/samples/bootstrap-v35-selfhost-gen4.lisp"
 BOOTSTRAP_V35_NANO_CC_AARCH64_SRC="$LAB_DIR/samples/bootstrap-v35-nano-cc-aarch64.lisp"
 BOOTSTRAP_V35_BUILD_SLICE_AARCH64_SRC="$LAB_DIR/samples/bootstrap-v35-build-slice-aarch64.lisp"
@@ -855,6 +856,29 @@ run_case "run-bootstrap-v35-build-slice-lisp-route-plan" bash -c '
   "'"$RUNNER"'" run-expect-exit "'"$ROOT_DIR"'/lab/nano-lisp-jit/.build/bootstrap-v35-build-slice-lisp-route.elf" 42
 '
 
+log "bootstrap.v35.pack.lisp.x86.path=$BOOTSTRAP_V35_PACK_LISP_X86_SRC"
+run_case "run-bootstrap-v35-pack-lisp-x86-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V35_PACK_LISP_X86_SRC"'" 2>&1) || true
+  printf "%s\n" "$out"
+  printf "%s\n" "$out" | grep -q "build-slice-lisp"
+  printf "%s\n" "$out" | grep -q "bootstrap-step.*=pack-ape"
+  printf "%s\n" "$out" | grep -q "bootstrap-step.*=inspect-ape"
+  printf "%s\n" "$out" | grep -q "bootstrap-step.*=run"
+  ! printf "%s\n" "$out" | grep -q "genesis/nano-jit.x86_64"
+  test -x "'"$ROOT_DIR"'/lab/nano-lisp-jit/.build/bootstrap-v35-pack-lisp-x86-slice.elf"
+  test -f "'"$ROOT_DIR"'/lab/nano-lisp-jit/.build/bootstrap-v35-pack-lisp-x86.com"
+  test -f "'"$ROOT_DIR"'/lab/nano-lisp-jit/.build/bootstrap-v35-pack-lisp-x86-arithmetic.lbin"
+  slice_h=$("'"$RUNNER"'" file-hash "'"$ROOT_DIR"'/lab/nano-lisp-jit/.build/bootstrap-v35-pack-lisp-x86-slice.elf" 2>/dev/null | tail -1)
+  genesis_h=$("'"$RUNNER"'" file-hash "'"$LAB_DIR"'/genesis/nano-jit.x86_64" 2>/dev/null | tail -1)
+  printf "pack-lisp.x86.slice.hash=%s\n" "$slice_h"
+  printf "genesis.x86.hash=%s\n" "$genesis_h"
+  [ -n "$slice_h" ] && [ -n "$genesis_h" ] && [ "$slice_h" != "$genesis_h" ]
+  inspect=$("'"$RUNNER"'" inspect-ape "'"$ROOT_DIR"'/lab/nano-lisp-jit/.build/bootstrap-v35-pack-lisp-x86.com" 2>&1) || true
+  printf "%s\n" "$inspect"
+  printf "%s\n" "$inspect" | grep -q "inspect-ape.container=ape-v2"
+  printf "%s\n" "$inspect" | grep -q "inspect-ape.slice.0.hash=$slice_h"
+'
+
 # --- v3.5 slice 3: build-slice via nano-cc (NANO_BUILD_SLICE_CODEGEN=1) ---
 log "bootstrap.v35.build.slice.source.path=$BOOTSTRAP_V35_BUILD_SLICE_SRC"
 log "v35.nano-cc.build-slice.source.path=$NANO_CC_BUILD_SLICE_SRC"
@@ -1026,10 +1050,16 @@ run_case "run-bootstrap-v35-selfhost-gen4-plan" bash -c '
   printf "%s\n" "$out" | grep -q "build-slice.compiler=nano-jit-lisp"
   printf "%s\n" "$out" | grep -q "build-slice-lisp.mode=compile-elf64-exe"
   ! printf "%s\n" "$out" | grep -qE "build-slice\.source=.*nano-cc-[^.]+\.c"
+  printf "%s\n" "$out" | grep -q "bootstrap-step.*=pack-ape"
+  ! printf "%s\n" "$out" | grep -q "genesis/nano-jit.x86_64"
   test -x "'"$SELFHOST_DIR"'/v35-gen4-slice-min-x86.elf"
   test -x "'"$SELFHOST_DIR"'/v35-gen4-slice-add-x86.elf"
   test -f "'"$SELFHOST_DIR"'/v35-gen4-nano-jit.com"
   test -f "'"$SELFHOST_DIR"'/v35-gen4-arithmetic.lbin"
+  slice_h=$("'"$RUNNER"'" file-hash "'"$SELFHOST_DIR"'/v35-gen4-slice-min-x86.elf" 2>/dev/null | tail -1)
+  inspect=$("'"$RUNNER"'" inspect-ape "'"$SELFHOST_DIR"'/v35-gen4-nano-jit.com" 2>&1) || true
+  printf "%s\n" "$inspect"
+  printf "%s\n" "$inspect" | grep -q "inspect-ape.slice.0.hash=$slice_h"
 '
 
 # --- bootstrap-v25 native selfpack (pack-ape per plan) ---

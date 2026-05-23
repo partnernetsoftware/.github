@@ -135,6 +135,7 @@ BOOTSTRAP_V35_BUILD_SLICE_AARCH64="$LAB_DIR/samples/bootstrap-v35-build-slice-aa
 BOOTSTRAP_V35_SELFHOST_GEN3="$LAB_DIR/samples/bootstrap-v35-selfhost-gen3.lisp"
 BOOTSTRAP_V35_SELFHOST_GEN4="$LAB_DIR/samples/bootstrap-v35-selfhost-gen4.lisp"
 BOOTSTRAP_V35_LISP_ONLY_MATRIX="$LAB_DIR/samples/bootstrap-v35-lisp-only-matrix.lisp"
+BOOTSTRAP_V35_PACK_LISP_X86="$LAB_DIR/samples/bootstrap-v35-pack-lisp-x86.lisp"
 BOOTSTRAP_V35_GENESIS_SHRINK="$LAB_DIR/samples/bootstrap-v35-genesis-shrink.lisp"
 SELFHOST_DIR="$BUILD_DIR/selfhost"
 NANO_SELFHOST_THOROUGH="${NANO_SELFHOST_THOROUGH:-1}"
@@ -610,6 +611,15 @@ if [ "$AARCH64_SLICE_SKIPPED" = 1 ]; then
     bash -c "cd \"$ROOT_DIR\" && \"$PACKER\" run-bootstrap-plan \"$BOOTSTRAP_V3_CODEGEN_SMOKE\""
   run_case "run-bootstrap-v35-lisp-only-matrix-native-slice" \
     bash -c "cd \"$ROOT_DIR\" && \"$LAB_DIR/.build/nano-lisp-jit\" run-bootstrap-plan \"$BOOTSTRAP_V35_LISP_ONLY_MATRIX\""
+  run_case "run-bootstrap-v35-pack-lisp-x86-native-slice" \
+    bash -c "cd \"$ROOT_DIR\" && out=\$(\"$LAB_DIR/.build/nano-lisp-jit\" run-bootstrap-plan \"$BOOTSTRAP_V35_PACK_LISP_X86\" 2>&1) || true
+      printf '%s\n' \"\$out\"
+      printf '%s\n' \"\$out\" | grep -q 'bootstrap-step.*=pack-ape'
+      ! printf '%s\n' \"\$out\" | grep -q 'genesis/nano-jit.x86_64'
+      test -f '$BUILD_DIR/../bootstrap-v35-pack-lisp-x86.com'
+      slice_h=\$(\"$LAB_DIR/.build/nano-lisp-jit\" file-hash '$BUILD_DIR/../bootstrap-v35-pack-lisp-x86-slice.elf' 2>/dev/null | tail -1)
+      inspect=\$(\"$LAB_DIR/.build/nano-lisp-jit\" inspect-ape '$BUILD_DIR/../bootstrap-v35-pack-lisp-x86.com' 2>&1) || true
+      printf '%s\n' \"\$inspect\" | grep -q \"inspect-ape.slice.0.hash=\$slice_h\""
   run_case "run-bootstrap-v35-nano-cc-hello-native-slice" \
     bash -c "cd \"$ROOT_DIR\" && \"$PACKER\" run-bootstrap-plan \"$BOOTSTRAP_V35_NANO_CC_HELLO\""
   run_case "run-bootstrap-v35-build-slice-native-slice" \
@@ -749,6 +759,15 @@ run_case "nano-jit-selfpack-run-bootstrap-v3-codegen-smoke" \
   bash -c "cd \"$ROOT_DIR\" && \"$BUILD_DIR/nano-jit.com\" run-bootstrap-plan \"$BOOTSTRAP_V3_CODEGEN_SMOKE\""
 run_case "nano-jit-selfpack-run-bootstrap-v35-nano-cc-hello" \
   bash -c "cd \"$ROOT_DIR\" && \"$BUILD_DIR/nano-jit.com\" run-bootstrap-plan \"$BOOTSTRAP_V35_NANO_CC_HELLO\""
+run_case "nano-jit-selfpack-run-bootstrap-v35-pack-lisp-x86" \
+  bash -c "cd \"$ROOT_DIR\" && out=\$(\"$BUILD_DIR/nano-jit.com\" run-bootstrap-plan \"$BOOTSTRAP_V35_PACK_LISP_X86\" 2>&1) || true
+    printf '%s\n' \"\$out\"
+    printf '%s\n' \"\$out\" | grep -q 'bootstrap-step.*=pack-ape'
+    ! printf '%s\n' \"\$out\" | grep -q 'genesis/nano-jit.x86_64'
+    test -f '$LAB_DIR/.build/bootstrap-v35-pack-lisp-x86.com'
+    slice_h=\$(\"$BUILD_DIR/nano-jit.com\" file-hash '$LAB_DIR/.build/bootstrap-v35-pack-lisp-x86-slice.elf' 2>/dev/null | tail -1)
+    inspect=\$(\"$BUILD_DIR/nano-jit.com\" inspect-ape '$LAB_DIR/.build/bootstrap-v35-pack-lisp-x86.com' 2>&1) || true
+    printf '%s\n' \"\$inspect\" | grep -q \"inspect-ape.slice.0.hash=\$slice_h\""
 run_case "nano-jit-compile-typed-values" "$BUILD_DIR/nano-jit.com" compile "$TYPED_SRC" "$TYPED_BLOB"
 run_case "nano-jit-run-typed-values" "$BUILD_DIR/nano-jit.com" run "$TYPED_BLOB"
 run_case "nano-jit-run-bootstrap-plan" "$BUILD_DIR/nano-jit.com" run-bootstrap-plan "$BOOTSTRAP_PLAN"
@@ -887,6 +906,10 @@ if [ "$NANO_SELFHOST_THOROUGH" = "1" ] && { [ "$(uname -m)" = "x86_64" ] || [ "$
     "'"$SELFHOST_DIR"'/v35-gen4-slice-min-x86.elf"; test $? -eq 42
     "'"$SELFHOST_DIR"'/v35-gen4-slice-add-x86.elf"; test $? -eq 42
     "'"$SELFHOST_DIR"'/gen2-slice-x86.elf" run "'"$SELFHOST_DIR"'/v35-gen4-arithmetic.lbin"
+    slice_h=$("'"$LAB_DIR"'/.build/nano-lisp-jit" file-hash "'"$SELFHOST_DIR"'/v35-gen4-slice-min-x86.elf" 2>/dev/null | tail -1)
+    inspect=$("'"$LAB_DIR"'/.build/nano-lisp-jit" inspect-ape "'"$SELFHOST_DIR"'/v35-gen4-nano-jit.com" 2>&1) || true
+    printf "%s\n" "$inspect"
+    printf "%s\n" "$inspect" | grep -q "inspect-ape.slice.0.hash=$slice_h"
   '
   {
     echo "selfhost.thorough=ok"
