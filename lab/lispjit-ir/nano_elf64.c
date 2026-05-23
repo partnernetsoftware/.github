@@ -404,20 +404,31 @@ int emit_aarch64_exit_file(const char *out_path, uint8_t exit_code) {
   return emit_elf64_exec_rx_file(out_path, code, sizeof(code), ELF64_MACHINE_AARCH64);
 }
 
+/* v4 slice-8: table-driven lowering for add-exit-v1 (still host emit, not VM). */
+static int emit_aarch64_add_exit_v1_lower(int a, int b, unsigned char *code, size_t cap,
+                                          size_t *out_n) {
+  uint32_t insns[5];
+  if (!code || cap < 20) return 0;
+  insns[0] = 0xd2800000u | (((uint32_t)a & 0xffffu) << 5);
+  insns[1] = 0xd2800000u | (((uint32_t)b & 0xffffu) << 5) | 1u;
+  insns[2] = 0x8b010000u;
+  insns[3] = 0xd2800000u | (93u << 5) | 8u;
+  insns[4] = 0xd4000001u;
+  memset(code, 0, cap);
+  wr32(code + 0, insns[0]);
+  wr32(code + 4, insns[1]);
+  wr32(code + 8, insns[2]);
+  wr32(code + 12, insns[3]);
+  wr32(code + 16, insns[4]);
+  *out_n = 20;
+  return 1;
+}
+
 int emit_aarch64_add_exit_file(const char *out_path, int a, int b) {
   unsigned char code[20];
-  uint32_t movz_x0 = 0xd2800000u | (((uint32_t)a & 0xffffu) << 5);
-  uint32_t movz_x1 = 0xd2800000u | (((uint32_t)b & 0xffffu) << 5) | 1u;
-  uint32_t add_x0_x1 = 0x8b010000u;
-  uint32_t movz_x8 = 0xd2800000u | (93u << 5) | 8u;
-  uint32_t svc0 = 0xd4000001u;
-  memset(code, 0, sizeof(code));
-  wr32(code + 0, movz_x0);
-  wr32(code + 4, movz_x1);
-  wr32(code + 8, add_x0_x1);
-  wr32(code + 12, movz_x8);
-  wr32(code + 16, svc0);
-  return emit_elf64_exec_rx_file(out_path, code, sizeof(code), ELF64_MACHINE_AARCH64);
+  size_t code_n = 0;
+  if (!emit_aarch64_add_exit_v1_lower(a, b, code, sizeof(code), &code_n)) return 0;
+  return emit_elf64_exec_rx_file(out_path, code, code_n, ELF64_MACHINE_AARCH64);
 }
 
 int emit_elf64_exit_file(const char *out_path, uint8_t exit_code) {
