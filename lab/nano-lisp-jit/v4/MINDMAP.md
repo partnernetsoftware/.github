@@ -58,3 +58,11 @@
 | C1 | C 读 `v4-ir-words-v1.txt` 校验 hash（仍 host） |
 | O1 | `(squad-assess catalog)` 单步 plan |
 | T1 | cosmocc full build.pass≥119 进 plan |
+
+## wave25（反思调整 · 宿主减量）
+
+| 轨 | 交付 |
+|----|------|
+| A | `ir.table.verified=plan-words-v1`（C 读 `v4-ir-words-v1.txt`）+ add20 |
+| B | [`PROGRESS.md`](PROGRESS.md) 终局六维表 + `bootstrap-v4-squad-assess-once.lisp` |
+| R | `REFLECTION` 区分 catalog vs 终局 % |

@@ -46,3 +46,7 @@
 
 - **terminal**：`build_nano_jit.sh` 证据进 bootstrap plan（dev container / cosmocc）
 - **codegen**：IR 字表由 plan 内 u64 常量列出（仍由 C 读入，但契约在 Lisp）
+
+## 6. wave25
+
+- C 校验 plan 字表；[`PROGRESS.md`](PROGRESS.md) 终局进度表

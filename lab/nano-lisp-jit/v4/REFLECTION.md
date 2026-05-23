@@ -18,8 +18,10 @@
 | **S7** | `v4-slice7-scoped` | **`aarch64.emit.profile=add-exit-v1`** + add11 样本 | IR 驱动 emit |
 | **S8** | `v4-slice8-scoped` | insn 数组 lowering + add13 | opcode 枚举 |
 | **S9** | `v4-slice9-scoped` | `A64_ADD_EXIT_OP_*` + add14 | VM emit |
-| **S10–S14** | `v4-complete-scoped` | IR entry/table v1–v3、manifest、并行闭合 | 零宿主 |
-| **S15** | post-v4 | `encode=table-only` + IR table v4 + add18 | VM emit |
+| **S10–S15** | `v4-complete` scoped | IR entry/table v1–v4、terminal smoke | 零宿主 |
+| **S16–S17** | post-v4 | plan-words 契约；**C 读 plan 字表校验**（add20） | VM emit |
+
+**catalog 100% ≠ 终局 100%**：见 [`PROGRESS.md`](PROGRESS.md)（终局整体约 10–20%）。
 
 **三层「全 Lisp」**：仍见 [`LISP-ONLY.md`](LISP-ONLY.md) — plan 层无 `.c`；codegen 层仍是 C stub。
 

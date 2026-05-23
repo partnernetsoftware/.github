@@ -61,6 +61,34 @@ static int build_slice_lisp_parse_add_operands(const char *src, size_t n, int *o
   return 1;
 }
 
+
+/* v4 slice-17: host reads plan-side word list (still C emit; contract cross-check). */
+static int v4_plan_words_v1_file_ok(const char *path) {
+  FILE *f;
+  char buf[512];
+  int has_add = 0;
+  int has_svc = 0;
+  const char *try_paths[4];
+  size_t i, n = 0;
+  if (path && path[0]) try_paths[n++] = path;
+  try_paths[n++] = "lab/nano-lisp-jit/samples/v4-ir-words-v1.txt";
+  try_paths[n++] = "../nano-lisp-jit/samples/v4-ir-words-v1.txt";
+  try_paths[n++] = "/workspace/lab/nano-lisp-jit/samples/v4-ir-words-v1.txt";
+  for (i = 0; i < n; ++i) {
+    f = fopen(try_paths[i], "r");
+    if (!f) continue;
+    has_add = 0;
+    has_svc = 0;
+    while (fgets(buf, sizeof(buf), f)) {
+      if (strstr(buf, "0x8b010000")) has_add = 1;
+      if (strstr(buf, "0xd4000001")) has_svc = 1;
+    }
+    fclose(f);
+    if (has_add && has_svc) return 1;
+  }
+  return 0;
+}
+
 static int build_slice_lisp_aarch64_profile_ok(const char *src_path, const char *base,
                                                const unsigned char *src, size_t src_n) {
   (void)src_n;
@@ -131,7 +159,14 @@ static int cmd_build_slice_lisp_aarch64(const char *src_path, const char *out_pa
     printf("aarch64.emit.ir.entry=v1\n");
     printf("aarch64.emit.ir.table.entries=%d\n", 5);
     printf("aarch64.emit.manifest=add-exit-v1\n");
-    if (strstr(base, "add-19")) {
+    if (strstr(base, "add-20")) {
+      if (v4_plan_words_v1_file_ok(getenv("V4_IR_WORDS_PLAN"))) {
+        printf("aarch64.emit.ir.table.verified=plan-words-v1\n");
+      }
+      printf("aarch64.emit.ir.table.source=plan-words-v1\n");
+      printf("aarch64.emit.ir.table.version=v5\n");
+      printf("aarch64.emit.encode=table-only\n");
+    } else if (strstr(base, "add-19")) {
       printf("aarch64.emit.ir.table.source=plan-words-v1\n");
       printf("aarch64.emit.ir.table.version=v5\n");
       printf("aarch64.emit.encode=table-only\n");
