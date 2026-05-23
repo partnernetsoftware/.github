@@ -286,6 +286,28 @@ signoff:
       file: ".build/v4-slice11.evidence"
       results_key: v4.slice11_encode_manifest
       min_pass: 1
+    - id: v4-slice12-doc
+      check: artifact
+      path_glob: "v4/SLICE12.md"
+    - id: v4-slice12-ir-lisp
+      check: artifact
+      path_glob: "samples/v4-aarch64-add-exit-ops.lisp"
+    - id: v4-slice12-ir-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v4-slice12-ir-plan.lisp"
+    - id: v4-slice12-add17-elf
+      check: artifact
+      path_glob: ".build/bootstrap-v4-slice12-add17.elf"
+    - id: v4-slice12-evidence
+      check: results
+      file: ".build/v4-slice12.evidence"
+      results_key: v4.slice12
+      min_pass: 1
+    - id: v4-slice12-ir-source
+      check: results
+      file: ".build/v4-slice12.evidence"
+      results_key: v4.slice12_ir_source
+      min_pass: 1
 
 tasks:
   v4-aarch64-aot-plan:

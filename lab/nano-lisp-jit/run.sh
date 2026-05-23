@@ -1673,7 +1673,7 @@ run_case "run-bootstrap-v4-slice12-add17-plan" bash -c '
   test -f "'"$V4_SLICE12_ADD17_ELF"'"
   {
     echo "v4.slice12_add17=1"
-    echo "v4.slice12_ir_source=plan-lisp-v1"
+    echo "v4.slice12_ir_source=1"
     echo "v4.slice12_add17_plan=run-bootstrap-v4-slice12-add17-plan"
   } >> "'"$V4_SLICE12_EVIDENCE"'"
 '

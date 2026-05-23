@@ -1,6 +1,6 @@
 # v4 反思与调整（track R · 持续更新）
 
-**范围**：v3.5-terminal 之后、v4 **signoff `v4-slice11-scoped`**（编排 S0–S5 + codegen S6–S11）。与 [`../v3.5/REFLECTION.md`](../v3.5/REFLECTION.md) 互补；**未达成**全仓库零 `.c` 自举 — 见 [`LISP-ONLY.md`](LISP-ONLY.md)、[`../ROADMAP.md`](../ROADMAP.md) § v4 mindmap。
+**范围**：v3.5-terminal 之后、v4 **signoff `v4-slice12-scoped`**（编排 S0–S5 + codegen S6–S12）。与 [`../v3.5/REFLECTION.md`](../v3.5/REFLECTION.md) 互补；**未达成**全仓库零 `.c` 自举 — 见 [`LISP-ONLY.md`](LISP-ONLY.md)、[`../ROADMAP.md`](../ROADMAP.md) § v4 mindmap。
 
 ---
 
@@ -20,6 +20,7 @@
 | **S9** | `v4-slice9-scoped` | `A64_ADD_EXIT_OP_*` + add14 | VM emit |
 | **S10** | `v4-slice10-scoped` | manifest `op …` 序 + add15 + `ir_surface=manifest-v1` | Lisp IR emit |
 | **S11** | `v4-slice11-scoped` | manifest `encode …` + add16 + `encode=manifest-v1` | C 不解析 manifest |
+| **S12** | `v4-slice12-scoped` | plan `.lisp` IR + `ir_source=plan-lisp-v1` + add17 | runner 读 IR 发射 |
 
 **三层「全 Lisp」**：仍见 [`LISP-ONLY.md`](LISP-ONLY.md) — plan 层无 `.c`；codegen 层 C 读 manifest 表。
 
@@ -65,6 +66,7 @@
 
 | 日期 | 摘要 |
 |------|------|
+| 2026-05-23 | **并行**：wave17 双 Task（engineer-a/B）+ `agent-team` 四路 tmux 同时 dispatch；禁止串行包办两轨 |
 | 2026-05-23 | **效率**：`verify-v4-fast.sh` + catalog `run.sh optional`；波内 `--quick` 不再卡 10min |
 | 2026-05-23 | **wave16**：`v4-slice11-scoped` — manifest `encode` 行 + add16 |
 | 2026-05-23 | **wave15**：`v4-slice10-scoped` — manifest `op` 序 + add15 |
