@@ -25,14 +25,14 @@ supervisor:
   stuck_policy: fail
   idle_waves_max: 12
 signoff:
-  id: v4-slice11-scoped
+  id: v4-slice12-scoped
   require_terminal: false
   gates:
     - id: v35-regression-run
       check: results
       file: ".build/results.txt"
       results_key: tests.pass
-      min_pass: 300
+      min_pass: 303
     - id: v35-regression-build
       check: results
       file: ".build/nano-jit/bootstrap-report.txt"
@@ -755,6 +755,40 @@ tasks:
       - "skills/squad-parallel wave16 fast-verify"
       - "sync-md v4/SQUAD.md"
       - "REFLECTION 效率调整"
+  wave17-v4-plan-ir-lisp:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "samples/v4-aarch64-add-exit-ops.lisp"
+      - "samples/bootstrap-v4-slice12-ir-plan.lisp"
+      - "v4/SLICE12.md"
+      - ".build/v4-slice12.evidence"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-slice12-ir-plan"
+      - "v4-aarch64-add-exit-ops.lisp"
+  wave17-v4-add17-slice:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "lab/lispjit-ir/nano_elf64.c"
+      - "lab/lispjit-ir/nano_bootstrap.c"
+      - "samples/nano-jit-slice-add-17.lisp"
+      - "samples/bootstrap-v4-slice12-add17.lisp"
+      - "squad/verify-v4-fast.sh"
+      - "run.sh"
+    accept:
+      - "aarch64.emit.ir_source=plan-lisp-v1"
+      - "run-bootstrap-v4-slice12-add17-plan"
+      - "aarch64.add=10+7"
+  wave17-v4-R:
+    assign_role: reviewer
+    priority: meta
+    depends: [wave17-v4-plan-ir-lisp, wave17-v4-add17-slice]
+    accept:
+      - "assess v4-slice12-scoped ready"
+      - "skills/squad-parallel wave17 parallel"
+      - "sync-md v4/SQUAD.md"
 
 verify:
   commands:
