@@ -439,6 +439,8 @@ static int check_compile_expect_exit(const char *expected_s, const char *mode,
 
 #include "nano_cc.c"
 
+#include "nano_genesis_pin.c"
+
 #include "nano_bootstrap.c"
 
 #include "nano_aot_x86.c"

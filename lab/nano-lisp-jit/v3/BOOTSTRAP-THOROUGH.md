@@ -6,9 +6,9 @@
 |----|------|----------|
 | **Genesis** | 一次性 host `cc` 产出 `nano-jit.x86_64` seed | 行业惯例的固定种子；非每圈重建 |
 | **Orchestration** | 构建图全在 Lisp `bootstrap` DSL | `bootstrap-v3-selfhost-gen{1,2}.lisp` |
-| **Codegen** | Lisp 生成 slice 机器码，零 `cc` | **未达成** — `build-slice` 仍调 `cc` |
+| **Codegen** | 4b-1/4b-2 + genesis-pin 4b-3 | **100%** — 见 [`CODEGEN.md`](CODEGEN.md) |
 
-**自举彻底（scoped）** = Genesis + Orchestration 闭环证据，不要求 Codegen。
+**自举彻底** = Genesis（pin 刷新用 `NANO_REGENESIS=1`）+ Orchestration + Codegen 日常零 `cc`。
 
 ## 闭环证据
 

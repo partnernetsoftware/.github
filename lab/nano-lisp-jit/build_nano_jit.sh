@@ -102,6 +102,9 @@ COSMO_BIN="$(discover_cosmo_bin)"
 X86_CC="$COSMO_BIN/x86_64-unknown-cosmo-cc"
 ARM_CC="$COSMO_BIN/aarch64-unknown-cosmo-cc"
 BUILD_DIR="$LAB_DIR/.build/nano-jit"
+GENESIS_DIR="$LAB_DIR/genesis"
+GENESIS_X86="$GENESIS_DIR/nano-jit.x86_64"
+GENESIS_AARCH64="$GENESIS_DIR/nano-jit.aarch64"
 NANO_C="$ROOT_DIR/lab/lispjit-ir/lispjit.c"
 STRLEN_SRC="$LAB_DIR/samples/strlen.lisp"
 ARITH_SRC="$LAB_DIR/samples/arithmetic.lisp"
@@ -442,23 +445,56 @@ case "$NANO_SLICE_COMPILER" in
     {
       echo "slice.compiler=native"
       echo "cosmocc.role=aarch64-slice-only-if-present"
+      echo "genesis.pin.dir=$GENESIS_DIR"
     } | tee -a "$REPORT"
-    run_case "build-x86_64-slice" cc -DNANO_LISP_JIT -Os -s "$NANO_C" -ldl -o "$BUILD_DIR/nano-jit.x86_64"
+    if [ "${NANO_REGENESIS:-}" = "1" ]; then
+      run_case "regenesis-build-x86_64-slice" cc -DNANO_LISP_JIT -Os -s "$NANO_C" -ldl \
+        -o "$BUILD_DIR/nano-jit.x86_64"
+      run_case "regenesis-update-genesis-x86_64" bash -c '
+        cp "'"$BUILD_DIR/nano-jit.x86_64"'" "'"$GENESIS_X86"'" && chmod +x "'"$GENESIS_X86"'"
+      '
+      echo "genesis.regenesis=x86_64" | tee -a "$REPORT"
+    else
+      run_case "build-x86_64-slice-genesis-pin" bash -c '
+        test -f "'"$GENESIS_X86"'" && cp "'"$GENESIS_X86"'" "'"$BUILD_DIR/nano-jit.x86_64"'" && chmod +x "'"$BUILD_DIR/nano-jit.x86_64"'"
+      '
+      echo "slice.x86_64.source=genesis-pin" | tee -a "$REPORT"
+    fi
     if cosmocc_bin_usable "$COSMO_BIN"; then
-      run_case "build-aarch64-slice" "$ARM_CC" "${COMMON[@]}" -o "$BUILD_DIR/nano-jit.aarch64"
+      if [ "${NANO_REGENESIS:-}" = "1" ]; then
+        run_case "regenesis-build-aarch64-slice" "$ARM_CC" "${COMMON[@]}" -o "$BUILD_DIR/nano-jit.aarch64"
+        run_case "regenesis-update-genesis-aarch64" bash -c '
+          cp "'"$BUILD_DIR/nano-jit.aarch64"'" "'"$GENESIS_AARCH64"'" && chmod +x "'"$GENESIS_AARCH64"'"
+        '
+      else
+        run_case "build-aarch64-slice-genesis-pin" bash -c '
+          test -f "'"$GENESIS_AARCH64"'" && cp "'"$GENESIS_AARCH64"'" "'"$BUILD_DIR/nano-jit.aarch64"'" && chmod +x "'"$BUILD_DIR/nano-jit.aarch64"'"
+        '
+        echo "slice.aarch64.source=genesis-pin" | tee -a "$REPORT"
+      fi
       echo "slice.aarch64.compiler=cosmocc" | tee -a "$REPORT"
       echo "slice.aarch64.mode=cosmo" | tee -a "$REPORT"
     elif aarch64_cross_cc_available; then
-      ARM_CROSS="$(aarch64_cross_cc)"
-      AARCH64_STATIC_FLAGS="-DNANO_LISP_JIT -Os -s"
-      if has_qemu_aarch64; then
-        AARCH64_STATIC_FLAGS="$AARCH64_STATIC_FLAGS -static"
-        echo "slice.aarch64.link=static-for-qemu" | tee -a "$REPORT"
+      if [ "${NANO_REGENESIS:-}" = "1" ]; then
+        ARM_CROSS="$(aarch64_cross_cc)"
+        AARCH64_STATIC_FLAGS="-DNANO_LISP_JIT -Os -s"
+        if has_qemu_aarch64; then
+          AARCH64_STATIC_FLAGS="$AARCH64_STATIC_FLAGS -static"
+          echo "slice.aarch64.link=static-for-qemu" | tee -a "$REPORT"
+        fi
+        run_case "regenesis-build-aarch64-slice-cross" "$ARM_CROSS" $AARCH64_STATIC_FLAGS "$NANO_C" -ldl \
+          -o "$BUILD_DIR/nano-jit.aarch64"
+        run_case "regenesis-update-genesis-aarch64-cross" bash -c '
+          cp "'"$BUILD_DIR/nano-jit.aarch64"'" "'"$GENESIS_AARCH64"'" && chmod +x "'"$GENESIS_AARCH64"'"
+        '
+      else
+        run_case "build-aarch64-slice-cross-genesis-pin" bash -c '
+          test -f "'"$GENESIS_AARCH64"'" && cp "'"$GENESIS_AARCH64"'" "'"$BUILD_DIR/nano-jit.aarch64"'" && chmod +x "'"$BUILD_DIR/nano-jit.aarch64"'"
+        '
+        echo "slice.aarch64.source=genesis-pin" | tee -a "$REPORT"
       fi
-      run_case "build-aarch64-slice-cross" "$ARM_CROSS" $AARCH64_STATIC_FLAGS "$NANO_C" -ldl \
-        -o "$BUILD_DIR/nano-jit.aarch64"
       {
-        echo "slice.aarch64.compiler=$ARM_CROSS"
+        echo "slice.aarch64.compiler=native-cross-genesis-pin"
         echo "slice.aarch64.mode=native-cross"
       } | tee -a "$REPORT"
       run_case "verify-aarch64-slice-elf" bash -c '

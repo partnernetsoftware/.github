@@ -19,6 +19,7 @@ Build remains one translation unit: `cc lispjit.c` includes submodules below.
 | `nano_ape.c` | APE v1/v2 pack/inspect/run-ape CLI |
 | `nano_elf64.c` | ELF64 emit (exec/obj), `emit-elf64-*` CLI, tiny linker |
 | `nano_cc.c` | Minimal `nano-cc` C-subset (`int main` + `return imm`) → ELF |
+| `nano_genesis_pin.c` | `build-slice` genesis-pin copy for `lispjit.c` (zero daily host `cc`) |
 | `nano_blob_vm.c` | VM `execute_blob`, dump/hash/resolve/run CLI |
 | `nano_aot_x86.c` | `parse_aot_module`, AOT x86 codegen, `aot-elf64-*`, `(param i64)` |
 | `nano_compile_elf64_cli.c` | `compile-elf64-obj-code`, `compile-elf64-exe` |

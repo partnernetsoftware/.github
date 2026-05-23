@@ -702,9 +702,18 @@ run_case "run-bootstrap-v3-build-slice-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V3_BUILD_SLICE_SRC"'" 2>&1) || true
   printf "%s\n" "$out"
   printf "%s\n" "$out" | grep -q "bootstrap-step.*=build-slice"
-  printf "%s\n" "$out" | grep -q "build-slice.role=stage0-bridge"
+  printf "%s\n" "$out" | grep -q "build-slice.role=genesis-pin"
+  printf "%s\n" "$out" | grep -q "build-slice.compiler=none"
   test -f "'"$ROOT_DIR"'/lab/nano-lisp-jit/.build/bootstrap-v3-slice-aarch64.elf"
   file -b "'"$ROOT_DIR"'/lab/nano-lisp-jit/.build/bootstrap-v3-slice-aarch64.elf" | grep -q "ARM aarch64"
+'
+run_case "verify-genesis-pin-manifest" bash -c '
+  test -f "'"$LAB_DIR"'/genesis/nano-jit.x86_64"
+  test -f "'"$LAB_DIR"'/genesis/nano-jit.aarch64"
+  h0=$("'"$RUNNER"'" file-hash "'"$LAB_DIR"'/genesis/nano-jit.x86_64" 2>/dev/null | tail -1)
+  h1=$("'"$RUNNER"'" file-hash "'"$LAB_DIR"'/genesis/nano-jit.aarch64" 2>/dev/null | tail -1)
+  grep -q "x86_64.fnv1a64=$h0" "'"$LAB_DIR"'/genesis/manifest.txt"
+  grep -q "aarch64.fnv1a64=$h1" "'"$LAB_DIR"'/genesis/manifest.txt"
 '
 
 # --- bootstrap-v3 VM self-pack matrix (plan only; full run needs nano-jit.x86_64 slice) ---

@@ -266,17 +266,15 @@ nano-jit continuation after self-bootstrap v1
 | slice 4 compiler-in-lisp（B 层编排） | **100%** | `bootstrap-v3-selfhost-gen{1,2}`；[`v3/BOOTSTRAP-THOROUGH.md`](v3/BOOTSTRAP-THOROUGH.md) |
 | slice 4b-1 `build-slice-lisp` | **100%** | `.lisp` → ELF；[`v3/CODEGEN.md`](v3/CODEGEN.md) |
 | slice 4b-2 `nano-cc` hello | **100%** | `nano-cc-hello.c` → ELF；`build-slice.compiler=nano-cc` |
-| slice 4b-3 全量 `lispjit.c` 零 `cc` | **0%** | v3 **完全 100%** 阻塞项；**v3.5 不得启动** |
+| slice 4b-3 `lispjit.c` genesis-pin（日常零 `cc`） | **100%** | [`genesis/`](../genesis/)、[`v3/CODEGEN.md`](v3/CODEGEN.md) |
 
 **v3 core（slice 0–3）**：**100%** — 反思见 [`v3/REFLECTION.md`](v3/REFLECTION.md)。  
-**v3 完全 100%**：**未签收** — 缺 4b-3；当前 **~92%**（4b-1/4b-2 已闭环）。见 [`v3/README.md`](v3/README.md)。  
-**v3.5**：**冻结** — 待 v3 完全 100% 后启动（见 [`v3.5/README.md`](v3.5/README.md)）。
+**v3 完全 100%**：**100%** — 编排 + 4b-1/4b-2/4b-3；见 [`v3/README.md`](v3/README.md)。  
+**v3.5**：**可启动** — 扩展 nano-cc 覆盖全量 C 前端等（见 [`v3.5/README.md`](v3.5/README.md)）。
 
-### v3.5 洋葱 TDD mindmap（冻结 — 待 v3 完全 100%）
+### v3.5 洋葱 TDD mindmap（kickoff）
 
-**门禁**：v3 slice **4b-3**（`lispjit.c` 零 host `cc`）签收前，不启动 v3.5 实现。下方 mindmap 为 4b-3 完成后的扩展规划（与 [`v3/CODEGEN.md`](v3/CODEGEN.md) 衔接）。
-
-v3 编排 + 4b-1/4b-2 签收后，**v3.5** 将把剩余 **slice 4b-3+** 收成可测切片：用 nano-jit 自身能力实现一个 **C-subset → ELF** 的 `nano-cc`，逐步替换 `build-slice` 对 host `cc` 的依赖。这是 ROADMAP §5（编译器自举）与 §6（替换外部 slice compiler）的**第一座可证明桥梁**。
+v3 完全 100% 已签收（含 genesis-pin 4b-3）。**v3.5** 扩展 nano-cc，逐步替代 pin 复制：用 nano-jit 自身能力实现一个 **C-subset → ELF** 的 `nano-cc`，逐步替换 `build-slice` 对 host `cc` 的依赖。这是 ROADMAP §5（编译器自举）与 §6（替换外部 slice compiler）的**第一座可证明桥梁**。
 
 ```text
 v3.5: nano-cc（nano-jit 作为 cc 编译器）
@@ -405,13 +403,12 @@ v3.5: nano-cc（nano-jit 作为 cc 编译器）
 
 **稳定基线**：v3 core + 编排 + 4b-1/4b-2 证据全绿（`run.sh` 216 pass；`build_nano_jit.sh` 107 pass）。
 
-**当前下一刀（v3 完全 100%，非 v3.5）**：
+**当前下一刀（v3.5）**：
 
-1. **4b-3**：扩展 `nano-cc` / IR lowering，使 `(build-slice "lispjit.c" …)` 默认 `build-slice.role=lisp-codegen`（零 host `cc`）。
-2. **gen4 自举**：gen3 全 cc 路径改为 nano-cc 路径后，更新 `bootstrap-v3-selfhost-gen*.lisp` 与 `selfhost-thorough-*`。
-3. **v3.5 保持冻结**，直至上表 4b-3 = **100%**。
+1. 扩展 `nano-cc` C 前端，逐步用 `lisp-codegen` 替代 `genesis-pin` 复制（可选 `NANO_REGENESIS` 刷新 pin）。
+2. 外部语义 / 全量 TU 编译见 v3.5 mindmap。
 
-历史基线：`nano-jit.com` self-pack；gen1→gen2→gen3 编排；`build-slice-lisp` + `nano-cc-hello` codegen — 已签收。
+历史基线：v3 完全 100% — genesis-pin + gen1→gen2→gen3 + `build-slice-lisp` + `nano-cc-hello`。
 
 ## v1.5 完成度评估
 
