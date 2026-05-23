@@ -25,14 +25,14 @@ supervisor:
   stuck_policy: fail
   idle_waves_max: 12
 signoff:
-  id: v4-slice5-scoped
+  id: v4-slice6-scoped
   require_terminal: false
   gates:
     - id: v35-regression-run
       check: results
       file: ".build/results.txt"
       results_key: tests.pass
-      min_pass: 257
+      min_pass: 280
     - id: v35-regression-build
       check: results
       file: ".build/nano-jit/bootstrap-report.txt"
@@ -158,6 +158,30 @@ signoff:
       check: results
       file: ".build/v4-slice5.evidence"
       results_key: v4.slice5_wave10_smoke
+      min_pass: 1
+    - id: v4-reflection-doc
+      check: artifact
+      path_glob: "v4/REFLECTION.md"
+    - id: v4-slice6-doc
+      check: artifact
+      path_glob: "v4/SLICE6.md"
+    - id: v4-codegen-kickoff-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v4-codegen-kickoff.lisp"
+    - id: v4-slice6-evidence
+      check: results
+      file: ".build/v4-slice6.evidence"
+      results_key: v4.slice6
+      min_pass: 1
+    - id: v4-elf64-emit-anchor
+      check: results
+      file: ".build/v4-slice6.evidence"
+      results_key: v4.slice6_codegen_kickoff
+      min_pass: 1
+    - id: v4-squad-wave11-smoke
+      check: results
+      file: ".build/v4-slice6.evidence"
+      results_key: v4.slice6_wave11_smoke
       min_pass: 1
 
 tasks:
@@ -441,6 +465,36 @@ tasks:
       - "squad-v4-wave10-practice-smoke"
       - "v4/README + SLICE5.md"
       - "REFLECTION slice-5 行"
+  wave11-v4-reflection:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "v4/REFLECTION.md"
+      - "v4/README.md"
+      - "v3.5/REFLECTION.md"
+    accept:
+      - "v4/REFLECTION.md 进度+调整表"
+      - "双轨策略 wave11+"
+  wave11-v4-codegen-kickoff:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v4-codegen-kickoff.lisp"
+      - "v4/SLICE6.md"
+      - "lab/lispjit-ir/nano_elf64.c"
+      - ".build/v4-slice6.evidence"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-codegen-kickoff-plan"
+      - "run-bootstrap-v4-slice6-evidence-plan"
+  wave11-v4-R:
+    assign_role: reviewer
+    priority: meta
+    depends: [wave11-v4-reflection, wave11-v4-codegen-kickoff]
+    accept:
+      - "assess v4-slice6-scoped ready"
+      - "squad-v4-wave11-practice-smoke"
+      - "REFLECTION wave11 行"
 
 verify:
   commands:

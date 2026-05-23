@@ -20,7 +20,7 @@ tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v4.yaml dispatch 
 tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v4.yaml agent-team --auto-exec
 ```
 
-**签收**：slice-0..5 已完成（**`v4-slice5-scoped`** — S5 工单内嵌 verify plan）— 见 [`SLICE5.md`](SLICE5.md)；S4 见 [`SLICE4.md`](SLICE4.md)。
+**签收**：slice-0..6 进行中（**`v4-slice6-scoped`** — S6 codegen kickoff）— 见 [`SLICE6.md`](SLICE6.md)、[`REFLECTION.md`](REFLECTION.md)；S5 见 [`SLICE5.md`](SLICE5.md)。
 
 ```bash
 tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v4.yaml agent-team --auto-exec --auto-done
@@ -105,6 +105,9 @@ slice S5 — 与构建图合一
 | `samples/bootstrap-v4-squad-s3-member-once.lisp` | **S3**：follower 单 tick |
 | `samples/bootstrap-v4-squad-s4-agent-team.lisp` | **S4**：agent-team 契约 |
 | `samples/bootstrap-v4-squad-s5-verify-plan.lisp` | **S5**：verify-before-done 样本 |
+| `samples/bootstrap-v4-codegen-kickoff.lisp` | **S6**：emit 路径锚点 + add7 回归 |
+
+**反思 / 调整**：[`REFLECTION.md`](REFLECTION.md)（小队实践 + wave11+ 双轨策略）。
 
 首波 **不实现** SQLite FFI；S0–S1 用 checked-in plan + 现有 runner 断言 stdout/exit，与 [`bootstrap-v4-kickoff.lisp`](../samples/bootstrap-v4-kickoff.lisp) 同模式。
 

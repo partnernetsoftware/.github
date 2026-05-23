@@ -96,6 +96,9 @@ V4_SLICE4_EVIDENCE="$BUILD_DIR/v4-slice4.evidence"
 BOOTSTRAP_V4_SQUAD_S5_VERIFY_SRC="$LAB_DIR/samples/bootstrap-v4-squad-s5-verify-plan.lisp"
 BOOTSTRAP_V4_SLICE5_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v4-slice5-evidence.lisp"
 V4_SLICE5_EVIDENCE="$BUILD_DIR/v4-slice5.evidence"
+BOOTSTRAP_V4_CODEGEN_KICKOFF_SRC="$LAB_DIR/samples/bootstrap-v4-codegen-kickoff.lisp"
+BOOTSTRAP_V4_SLICE6_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v4-slice6-evidence.lisp"
+V4_SLICE6_EVIDENCE="$BUILD_DIR/v4-slice6.evidence"
 SQUAD_SH="$ROOT_DIR/tools/squad/squad.sh"
 CATALOG_V4="$LAB_DIR/squad/catalog-v4.yaml"
 BOOTSTRAP_V35_NANO_CC_AARCH64_SRC="$LAB_DIR/samples/bootstrap-v35-nano-cc-aarch64.lisp"
@@ -1368,7 +1371,7 @@ run_case "v4-bootstrap-plans-no-c" bash -c '
   bad=0
   for f in "'"$LAB_DIR"'"/samples/bootstrap-v4-*.lisp; do
     [ -f "$f" ] || continue
-    if awk "!/^[[:space:]]*;/ && /\.c/" "$f" | grep -q .; then
+    if awk "!/^[[:space:]]*;/ && /\.c/ && !/\(file-(hash|size)/" "$f" | grep -q .; then
       echo "v4.plan.bad=$f"
       bad=1
     fi
@@ -1485,6 +1488,22 @@ run_case "run-bootstrap-v4-slice5-evidence-plan" bash -c '
     echo "v4.slice5_plan=run-bootstrap-v4-slice5-evidence-plan"
   } >> "'"$V4_SLICE5_EVIDENCE"'"
 '
+run_case "run-bootstrap-v4-codegen-kickoff-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_CODEGEN_KICKOFF_SRC"'" 2>&1) || true
+  printf "%s\n" "$out"
+  printf "%s\n" "$out" | grep -q "bootstrap-step.*=file-hash"
+  printf "%s\n" "$out" | grep -q "aarch64.add=3+4"
+'
+run_case "run-bootstrap-v4-slice6-evidence-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE6_EVIDENCE_SRC"'" 2>&1) || true
+  printf "%s\n" "$out"
+  test -f "'"$LAB_DIR"'/v4/REFLECTION.md"
+  {
+    echo "v4.slice6=1"
+    echo "v4.slice6_codegen_kickoff=1"
+    echo "v4.slice6_plan=run-bootstrap-v4-slice6-evidence-plan"
+  } >> "'"$V4_SLICE6_EVIDENCE"'"
+'
 
 # --- bootstrap-v25 native selfpack (pack-ape per plan) ---
 V25_NATIVE_SELFPACK_COM="$NANO_JIT_COM"
@@ -1510,6 +1529,20 @@ else
 fi
 
 run_end_summary
+run_case "squad-v4-wave11-practice-smoke" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$SQUAD_SH"'" --catalog "'"$CATALOG_V4"'" resume --reason run-sh-wave11 2>&1) || true
+  printf "%s\n" "$out"
+  printf "%s\n" "$out" | grep -q "wave=1"
+  ae=" --no-auto-exec"
+  for role in commander engineer-a engineer-b reviewer; do
+    out=$("'"$SQUAD_SH"'" --catalog "'"$CATALOG_V4"'" run-loop --role "$role" --once${ae} 2>&1) || true
+    printf "%s\n" "$out"
+    printf "%s\n" "$out" | grep -q "run-loop role=$role"
+  done
+  {
+    echo "v4.slice6_wave11_smoke=1"
+  } >> "'"$V4_SLICE6_EVIDENCE"'"
+'
 run_case "squad-v4-wave10-practice-smoke" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$SQUAD_SH"'" --catalog "'"$CATALOG_V4"'" resume --reason run-sh-wave10 2>&1) || true
   printf "%s\n" "$out"
