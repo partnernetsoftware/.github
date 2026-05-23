@@ -1,39 +1,23 @@
 {
-  "version": 1,
-  "wave": 2,
+  "version": 2,
+  "apiVersion": "squad-state/v2",
+  "wave": 1,
   "signoff_percent": 92,
   "halt": false,
   "assignments": {
-    "A": null,
-    "B": null,
-    "R": null
+    "reviewer": null,
+    "commander": null,
+    "engineer-a": null,
+    "engineer-b": null
   },
-  "tasks": {
-    "L2-companion": {
-      "status": "done",
-      "role": "A",
-      "commit": "7866e4e",
-      "run_pass": 250
-    },
-    "L4-tu-kickoff": {
-      "status": "done",
-      "role": "B",
-      "commit": "a043fd5",
-      "run_pass": 250
-    },
-    "wave-squad-R1": {
-      "status": "done",
-      "role": "R"
-    }
-  },
+  "tasks": {},
   "findings": [],
   "manual_acks": {},
+  "locks": {},
   "merge_order": [
-    "A",
-    "B",
-    "R"
+    "engineer-a",
+    "engineer-b"
   ],
-  "updated_at": "2026-05-23T07:05:37.153122+00:00",
   "last_assess": {
     "signoff_id": "v3.5-lisp-only",
     "percent_auto": 92,
@@ -54,7 +38,7 @@
       {
         "id": "l4-tu-link",
         "ok": true,
-        "detail": "bootstrap-v35-lisp-tu-link.lisp",
+        "detail": "samples/bootstrap-v35-lisp-tu-link.lisp",
         "manual": false
       },
       {
@@ -86,5 +70,6 @@
         "ack": "pending"
       }
     ]
-  }
+  },
+  "updated_at": "2026-05-23T07:15:49.139838+00:00"
 }

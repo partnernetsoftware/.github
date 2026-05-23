@@ -12,28 +12,28 @@
 ## 三层耦合（推荐）
 
 ```text
-catalog.yaml     ← 契约（任务定义、签收门禁、touch_paths）  【少改、review】
-.squad/state.json ← 运行时真相（派单、claim、done、assess） 【常改、可 commit】
-*.md              ← 叙事/洋葱图（由 CLI 生成段落，不手改派单板）
+catalog.yaml       ← 契约（角色、任务、门禁）           【少改】
+.squad/state.db    ← 运行时真相 + 锁（SQLite WAL）      【CLI 独占写】
+.squad/state.json  ← 导出快照（export-json / assess 后）
+*.md               ← 叙事；派单板由 sync-md 生成
 ```
+
+**为何 SQLite 而非 JSON 文件锁**：`claim` / `dispatch` 用 `BEGIN IMMEDIATE` + `path_locks` 主键；冲突时 `SQLITE_BUSY` 指数退避重试，避免两工程兵覆盖同一 `touch_paths`。
 
 ## 角色微工作流
 
 ```bash
-cd lab/nano-lisp-jit
-
-# 查看本角色步骤清单（不执行）
-python3 squad/squad_cli.py role run commander
-python3 squad/squad_cli.py role run reviewer
-python3 squad/squad_cli.py role run engineer --role A
+# 仓库根（有 .squadrc.yaml）
+tools/squad/squad.sh workflow-run commander
+tools/squad/squad.sh workflow-run worker --as-role engineer-a
 ```
 
 ### 审查员 R
 
-1. `squad verify`（或 `--quick` 仅 run.sh）
-2. `squad assess` → 写入 `state.last_assess`
-3. `squad reflect --gate <id> --status warn --note "..."`（manual 门禁）
-4. `squad sync-md --targets reflection-changelog`
+1. `squad verify`（catalog.verify.commands）
+2. `squad assess` → SQLite `meta.last_assess` + 导出 `state.json`
+3. `squad reflect --gate <id> --status warn --note "..."`
+4. `squad sync-md --targets board,reflection`
 
 ### 指挥长 C
 
@@ -44,17 +44,18 @@ python3 squad/squad_cli.py role run engineer --role A
 
 ### 工程兵 A|B
 
-1. `squad status --role A` → 看到 `assignments.A`
-2. `squad claim A <task_id>`
+1. `squad status --role engineer-a`
+2. `squad claim engineer-a <task_id>`  # SQLite 锁 touch_paths
 3. 按 `catalog.tasks.<id>.touch_paths` 改代码 + 洋葱验收
-4. `squad verify` → `squad done A <task_id> --commit $(git rev-parse --short HEAD) --run-pass 250`
+4. `squad verify` → `squad done engineer-a <task_id> --commit $(git rev-parse --short HEAD)`
 5. 指挥长再跑 `squad assess`
 
 ## 入口
 
 ```bash
-./squad/squad.sh assess
-./squad/squad.sh dispatch
+tools/squad/squad.sh assess      # 读 catalog + 证据，写 state.db
+tools/squad/squad.sh dispatch
+tools/squad/squad.sh export-json # 可选：给人看 state.json
 ```
 
 ## AI / Cloud Agent 约定
