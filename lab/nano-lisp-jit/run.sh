@@ -56,9 +56,13 @@ BOOTSTRAP_V3_SELFHOST_GEN2_SRC="$LAB_DIR/samples/bootstrap-v3-selfhost-gen2.lisp
 BOOTSTRAP_V3_BUILD_SLICE_LISP_SRC="$LAB_DIR/samples/bootstrap-v3-build-slice-lisp.lisp"
 BOOTSTRAP_V3_CODEGEN_SMOKE_SRC="$LAB_DIR/samples/bootstrap-v3-codegen-smoke.lisp"
 BOOTSTRAP_V35_NANO_CC_HELLO_SRC="$LAB_DIR/samples/bootstrap-v35-nano-cc-hello.lisp"
+BOOTSTRAP_V35_BUILD_SLICE_SRC="$LAB_DIR/samples/bootstrap-v35-build-slice.lisp"
+BOOTSTRAP_V35_SELFHOST_GEN3_SRC="$LAB_DIR/samples/bootstrap-v35-selfhost-gen3.lisp"
 NANO_CC_HELLO_SRC="$LAB_DIR/samples/nano-cc-hello.c"
+NANO_CC_ADD_SRC="$LAB_DIR/samples/nano-cc-add.c"
 NANO_CC_BAD_SRC="$LAB_DIR/samples/nano-cc-bad.c"
 NANO_CC_HELLO_ELF="$BUILD_DIR/bootstrap-v35-nano-cc-hello.elf"
+NANO_CC_BUILD_SLICE_ELF="$BUILD_DIR/bootstrap-v35-build-slice.elf"
 NANO_CC_HELLO_CLI_ELF="$BUILD_DIR/nano-cc-hello-cli.elf"
 BOOTSTRAP_V3_SELFHOST_GEN3_SRC="$LAB_DIR/samples/bootstrap-v3-selfhost-gen3.lisp"
 SELFHOST_DIR="$LAB_DIR/.build/nano-jit/selfhost"
@@ -749,6 +753,19 @@ run_case "run-bootstrap-v35-nano-cc-hello-plan" bash -c '
   test -x "'"$NANO_CC_HELLO_ELF"'"
 '
 
+# --- v3.5 slice 3: build-slice via nano-cc (NANO_BUILD_SLICE_CODEGEN=1) ---
+log "bootstrap.v35.build.slice.source.path=$BOOTSTRAP_V35_BUILD_SLICE_SRC"
+log "v35.nano-cc.add.source.path=$NANO_CC_ADD_SRC"
+run_case "run-bootstrap-v35-build-slice-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$(NANO_BUILD_SLICE_CODEGEN=1 "'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V35_BUILD_SLICE_SRC"'" 2>&1) || true
+  printf "%s\n" "$out"
+  printf "%s\n" "$out" | grep -q "bootstrap-step.*=build-slice"
+  printf "%s\n" "$out" | grep -q "build-slice.compiler=nano-cc"
+  printf "%s\n" "$out" | grep -q "build-slice.role=lisp-codegen"
+  test -x "'"$NANO_CC_BUILD_SLICE_ELF"'"
+  "'"$RUNNER"'" run-expect-exit "'"$NANO_CC_BUILD_SLICE_ELF"'" 43
+'
+
 # --- bootstrap-v3 slice 4b codegen (lisp + nano-cc, no host cc for smoke artifacts) ---
 log "bootstrap.v3.build.slice.lisp.source.path=$BOOTSTRAP_V3_BUILD_SLICE_LISP_SRC"
 run_case "run-bootstrap-v3-build-slice-lisp-plan" bash -c '
@@ -807,6 +824,23 @@ if [ -x "$SELFHOST_DIR/gen2-slice-x86.elf" ]; then
   '
 else
   skip_case "run-bootstrap-v3-selfhost-gen3-plan" "gen2-slice-x86.elf missing"
+fi
+if [ -x "$SELFHOST_DIR/gen2-slice-x86.elf" ]; then
+  log "bootstrap.v35.selfhost.gen3.source.path=$BOOTSTRAP_V35_SELFHOST_GEN3_SRC"
+  run_case "run-bootstrap-v35-selfhost-gen3-plan" bash -c '
+    cd "'"$ROOT_DIR"'" && out=$("'"$SELFHOST_DIR"'/gen2-slice-x86.elf" run-bootstrap-plan "'"$BOOTSTRAP_V35_SELFHOST_GEN3_SRC"'" 2>&1) || true
+    printf "%s\n" "$out"
+    printf "%s\n" "$out" | grep -q "build-slice-lisp"
+    printf "%s\n" "$out" | grep -q "build-slice.compiler=nano-cc"
+    printf "%s\n" "$out" | grep -q "bootstrap-step.*=pack-ape"
+    printf "%s\n" "$out" | grep -q "bootstrap-step.*=run"
+    ! printf "%s\n" "$out" | grep -q "build-slice.role=genesis-pin"
+    test -x "'"$SELFHOST_DIR"'/v35-gen3-slice-lisp-x86.elf"
+    test -x "'"$SELFHOST_DIR"'/v35-gen3-slice-nano-cc-x86.elf"
+    test -f "'"$SELFHOST_DIR"'/v35-gen3-nano-jit.com"
+  '
+else
+  skip_case "run-bootstrap-v35-selfhost-gen3-plan" "gen2-slice-x86.elf missing"
 fi
 
 # --- bootstrap-v25 native selfpack (pack-ape per plan) ---

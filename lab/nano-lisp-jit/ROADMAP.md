@@ -321,11 +321,11 @@ v3.5: nano-cc（nano-jit 作为 cc 编译器）
 │  ├─ 路线 B：先 x86_64-only nano-cc + cross 仅 genesis（文档化缺口）
 │  ├─ sample：qemu-aarch64 跑 nano-cc 产物 arithmetic（延续 v3 slice 2 证据）
 │  └─ 验收：payload hash distinct + qemu compile/run（与 v3 同门槛）
-├─ slice 5: gen3 自举（nano-cc 编 slice）（0%）
+├─ slice 5: gen3 自举（nano-cc 编 slice）（**100% scoped**）
 │  ├─ sample：`bootstrap-v35-selfhost-gen3.lisp` — gen2 runner 调 nano-cc `build-slice` 出 gen3
 │  ├─ 对比：gen2 vs gen3 slice hash 允许相同（确定性）或版本化 bump
-│  ├─ 门禁：`selfhost-gen3-*` in `build_nano_jit.sh`
-│  └─ 验收：**日常重建**不再调用 host `cc` 编 `lispjit.c`（Genesis pin 除外）
+│  ├─ 门禁：`selfhost-v35-gen3-*` in `build_nano_jit.sh`
+│  └─ 验收：**日常重建**不再调用 host `cc` 编 `lispjit.c`（Genesis pin 除外；pack 直引 genesis）
 ├─ slice 6: 收缩 Genesis（0%）
 │  ├─ pin：`third_party/nano-genesis/` 或 hash 锁定的最小 seed ELF
 │  ├─ 文档：何时允许重编 genesis（安全/ libc 变更），何时禁止
@@ -346,10 +346,10 @@ v3.5: nano-cc（nano-jit 作为 cc 编译器）
 | slice 2 x86_64 对象发射 | **0%** | object+link 对齐 host cc 行为 |
 | slice 3 `build-slice` 切换 | **0%** | `build-slice.role=nano-cc` |
 | slice 4 aarch64 nano-cc | **0%** | cross + qemu 证据 |
-| slice 5 gen3 自举 | **0%** | nano-cc 重建 slice，零日常 host `cc` |
+| slice 5 gen3 自举 | **100%** scoped | `bootstrap-v35-selfhost-gen3`、genesis pin pack、零 `lispjit.c` build-slice |
 | slice 6 Genesis 收缩 | **0%** | pin seed + `NANO_REGENESIS` |
 
-**v3.5 整体**：**~15%** — slice 0 签收。下一刀 slice 1 C-subset 前端。见 [`v3.5/README.md`](v3.5/README.md)。
+**v3.5 整体**：**~25%** — slice 0 + slice 5 scoped 签收。下一刀 slice 1 C-subset 前端。见 [`v3.5/README.md`](v3.5/README.md)。
 
 ### 0. 证据基线
 

@@ -1,18 +1,28 @@
 # v3.5 — nano-cc 扩展
 
-**Status: slice 0 100%** — v3 完全 100% 已签收。
+**Status: slice 0 + slice 3 100%** — v3 完全 100% 已签收。
 
 | 切片 | 状态 | 说明 |
 |------|------|------|
 | slice 0 nano-cc 证据门禁 | **100%** | `nano-cc compile … -o`、bootstrap、`nano-cc-bad` exit 2 |
 | slice 1 C-subset 前端 | **0%** | |
 | slice 2 x86_64 对象发射 | **0%** | |
-| slice 3 `build-slice` 切换 | **0%** | |
+| slice 3 `build-slice` 切换 | **100%** scoped | `NANO_BUILD_SLICE_CODEGEN=1` + `nano-cc-*.c` → `build-slice.compiler=nano-cc` |
 | slice 4 aarch64 nano-cc | **0%** | |
 | slice 5 gen3 自举 | **0%** | |
 | slice 6 Genesis 收缩 | **0%** | |
 
-**v3.5 整体**：**~15%**
+**v3.5 整体**：**~30%**
+
+## slice 3 证据
+
+```bash
+bash lab/nano-lisp-jit/run.sh   # run-bootstrap-v35-build-slice-plan
+env NANO_SLICE_COMPILER=native bash lab/nano-lisp-jit/build_nano_jit.sh   # run-bootstrap-v35-build-slice-native-slice
+```
+
+样例：`samples/bootstrap-v35-build-slice.lisp`、`samples/nano-cc-add.c`  
+环境：`NANO_BUILD_SLICE_CODEGEN=1` 启用 `build-slice` 对 `nano-cc-*.c` 走 nano-cc（非 genesis-pin / host `cc`）。
 
 ## slice 0 证据
 
