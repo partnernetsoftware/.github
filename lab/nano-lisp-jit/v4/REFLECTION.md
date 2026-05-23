@@ -1,6 +1,6 @@
 # v4 反思与调整（track R · 持续更新）
 
-**范围**：v3.5-terminal 之后、v4 **S0–S5 scoped 已签收**（`catalog-v4` → `v4-slice5-scoped`）。与 [`../v3.5/REFLECTION.md`](../v3.5/REFLECTION.md) 互补：彼处跨版本债，此处 **v4 编排轨 + codegen 轨**。
+**范围**：v3.5-terminal 之后、v4 **signoff `v4-slice9-scoped`**（编排 S0–S5 + codegen S6–S9）。与 [`../v3.5/REFLECTION.md`](../v3.5/REFLECTION.md) 互补；**未达成**全仓库零 `.c` 自举 — 见 [`LISP-ONLY.md`](LISP-ONLY.md)、[`../ROADMAP.md`](../ROADMAP.md) § v4 mindmap。
 
 ---
 
@@ -62,6 +62,7 @@
 
 | 日期 | 摘要 |
 |------|------|
+| 2026-05-23 | **mindmap 调整**：ROADMAP v4 洋葱图改为三层诚实口径 + 双轨完成度表；澄清 S9≠终局自举 |
 | 2026-05-23 | **wave14**：`v4-slice9-scoped` — opcode 序表 + `lowering.ops=5` + add14；`squad-parallel` 实跑 |
 | 2026-05-23 | **方法学固化**：[`skills/squad-parallel/`](../../skills/squad-parallel/) Agent Skill（`.cursor/skills` 链接） |
 | 2026-05-23 | **wave13**：**agent-team 四角色 tmux 实跑**（`--auto-exec --auto-done`）完成 lowering-table + add13；修复 `spawn_agent_team` tmux argv |

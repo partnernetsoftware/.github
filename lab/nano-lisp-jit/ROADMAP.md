@@ -386,50 +386,51 @@ v3.5: nano-cc（nano-jit 作为 cc 编译器）
 
 **v3.5 整体**：**~100%** — squad signoff 全绿（254 run / 119 build；`v35-signoff.evidence` aarch64-add-emit + gen5-via-gen2）。见 [`v3.5/README.md`](v3.5/README.md)。
 
-### v4 洋葱 TDD mindmap（kickoff · wave-v4）
+### v4 洋葱 TDD mindmap（wave14 · 诚实双轨）
 
-v3.5 **scoped + terminal** 已签收（见 [`v3.5/DECISION.md`](v3.5/DECISION.md)）。**v4** 并行两轨：**slice**（真 aarch64 VM/AOT codegen）与 **编排**（bootstrap 内 squad 状态机，替代 host Python）。
+v3.5 **scoped + terminal** 已签收。**v4 当前 signoff**：`v4-slice9-scoped`（294 `run.sh` pass）。  
+**直接回答「是否已摆脱 `.c` 自举」**：**否** — 见 [`v4/LISP-ONLY.md`](v4/LISP-ONLY.md) 三层表；[`v4/REFLECTION.md`](v4/REFLECTION.md) track R。
 
 ```text
-v4: 终局切片 + 产品轨（catalog-v4.yaml）
-├─ 前置（v3.5 冻结）
-│  ├─ v35-regression：run.sh ≥257 / build ≥119
-│  ├─ gen5 dual-arch Lisp pack；aarch64-add-emit stub（v3.5 slice 4 证据）
-│  └─ host squad：tools/squad/*.py 验证 catalog + run-loop 协议
-├─ 目标
-│  ├─ slice：aarch64 VM/AOT 真 codegen（非 add-emit 硬编码）
-│  ├─ 编排：`(squad-* …)` bootstrap 子命令替代 Python dispatch/supervise
-│  └─ 产品：NDTSV / SQL / qjs 探路（文档轨，非本波实现）
-├─ 小组模式（[`v4/SQUAD.md`](v4/SQUAD.md) · catalog-v4 · **kickoff**）
-│  ├─ **A** `v4-aarch64-aot-plan` — **完成** `cd88032`：AARCH64 § v4 slice-0 scout；`bootstrap-v4-aarch64-aot-plan.lisp`
-│  ├─ **B** `v4-squad-lisp-sketch` — **完成** `e371c01`：v4/README Lisp 编排草图（S0–S5）；PROTOCOL 演进链接
-│  └─ **R** `wave-v4-R0` — ROADMAP v4 节点；assess v4-kickoff ready → board sync
-├─ slice-0: aarch64 AOT plan scout（**kickoff** · 复用 v3.5 stub）
-│  ├─ sample：`bootstrap-v4-aarch64-aot-plan.lisp` → `aarch64-add-emit` on `nano-jit-slice-add.lisp`
-│  ├─ 证据：`run.sh` `run-bootstrap-v4-aarch64-aot-plan`；file-size/hash
-│  └─ 非目标：VM/AOT aarch64 codegen；x86 compile-path cross codegen
-├─ slice S0–S5: Lisp squad 编排（**草图** · 见 [`v4/README.md`](v4/README.md)）
-│  ├─ S0：`(squad-assess …)` 只读门禁
-│  ├─ S1–S2：signals + state.db（dispatch/claim）
-│  ├─ S3–S4：`run-loop` leader/follower 单 tick → 完整循环
-│  └─ S5：工单内嵌 verify plan + `(squad-done …)`
-└─ 验收（v4 kickoff wave）
-   ├─ `catalog-v4.yaml` signoff 全绿（v35 回归 + v4 README + kickoff plan）
-   ├─ `run.sh` / `build_nano_jit.sh` 不退化
-   └─ 新样本只增 `samples/bootstrap-v4-*.lisp`
+v4: 终局切片 + 产品轨（catalog-v4.yaml · signoff v4-slice9-scoped）
+├─ 【诚实口径】三层（mindmap 每圈都要标 scoped / 终局）
+│  ├─ A Plan：bootstrap-v4-*.lisp 不引用 .c 源 → v4-lisp-only-scoped ✅
+│  ├─ B Runner：lispjit.c + nano_*.c 仍编译/执行 plan → 未消除 ❌
+│  └─ C Codegen：aarch64 add 仍在 nano_elf64.c emit stub（S6–S9 仅表驱动/refactor）→ 非 VM 自举 ❌
+├─ 轨 1 · 编排（host Python squad · scoped 已交付 S0–S5）
+│  ├─ S0–S2：assess / dispatch / state-v4.db 样本 ✅
+│  ├─ S3–S4：supervise + run-loop --once；agent-team 四角色 ✅
+│  ├─ S5：verify-before-done 样本 ✅
+│  ├─ 方法学：[`skills/squad-parallel/`](../../skills/squad-parallel/) + wave8–14 实跑
+│  └─ 终局 pending：bootstrap 内 `(squad-* …)` 替代 tools/squad/*.py（非本圈声称）
+├─ 轨 2 · codegen（C emit 洋葱 · S0–S9 scoped，仍非真 VM/AOT）
+│  ├─ slice-0/1：aarch64-add-emit scout + add7 参数化 ✅
+│  ├─ slice-2..5：gen5 锚点 / lisp-only 诚实文档 ✅
+│  ├─ S6–S9：emit 清单 → table-v1 → opcode 序表（add7/11/13/14 回归）✅ scoped
+│  └─ 终局 pending：Lisp IR → emit（非 C 内 movz/add/svc 硬编码）；qemu 仅验证 stub ELF
+├─ 轨 3 · 自举终局（未开卷 · 勿与 S9 混淆）
+│  ├─ gen5 plan 由 gen2 bootstrap 跑通（v3.5 锚点）— plan 无 .c，runner 仍 C
+│  ├─ nano-cc 译 lispjit.c 子集 — 未开始
+│  └─ nano-jit.com 生成下一代 .com — 未开始
+├─ 反思轨 R（常驻）
+│  └─ [`v4/REFLECTION.md`](v4/REFLECTION.md) + 回写本 mindmap；禁止写「v4 = 零 C 仓库」
+└─ 下一洋葱圈（建议 wave15+）
+   ├─ P0 codegen：单 op 从 Lisp IR 表发射（替换 add-exit 手写 encode 之一）
+   ├─ P1 编排：S6 bootstrap 只读 squad-assess（仍可不 SQLite FFI）
+   └─ P2 产品轨：NDTSV/SQL/qjs 文档探路（非实现）
 ```
 
-### v4 完成度（工程向 · kickoff）
+### v4 完成度（工程向 · 2026-05-23）
 
-| 切片 | 状态 | 说明 |
-|------|------|------|
-| kickoff 门禁 | **100%** | v35-regression + `v4/README.md` + `bootstrap-v4-kickoff.lisp` |
-| slice-0 aarch64 scout | **kickoff** | `bootstrap-v4-aarch64-aot-plan.lisp`；[`v3.5/AARCH64.md`](v3.5/AARCH64.md) § v4 slice-0 |
-| Lisp squad 草图 | **kickoff** | [`v4/README.md`](v4/README.md) S0–S5 映射；host Python 仍为真相源 |
-| 真 aarch64 VM/AOT | **pending** | v4 slice proper；非 add-emit stub |
-| Lisp `run-loop` 实现 | **pending** | S0 样本尚未入库 |
+| 维度 | scoped | 终局 | 说明 |
+|------|--------|------|------|
+| Plan 无 `.c` | **100%** | 保持 | `v4-bootstrap-plans-no-c`；inventory 允许 `(file-hash …/nano_elf64.c)` |
+| Host squad 协议 | **100%** | Lisp 化 | S0–S5 + `agent-team`；见 SQUAD.md |
+| aarch64 add emit | **scoped** | **pending** | S9 = opcode 表；仍 `emit_aarch64_add_exit_file` in C |
+| VM/AOT aarch64 | **0%** | **pending** | mindmap 原「真 codegen」目标未达成 |
+| 全仓库零 `.c` | **0%** | **pending** | 非 v4 已签收含义 |
 
-**v4 整体**：**kickoff** — wave-v4-R0 签收；assess v4-kickoff ready。见 [`v4/README.md`](v4/README.md)、[`v3.5/DECISION.md`](v3.5/DECISION.md)。
+**v4 整体**：**scoped ~100%（catalog signoff）** / **终局自举 ~15%（仅 plan 层 + emit 表驱动 stub）**。详见 [`v4/README.md`](v4/README.md)、[`v4/SLICE9.md`](v4/SLICE9.md)。
 
 ### 0. 证据基线
 
