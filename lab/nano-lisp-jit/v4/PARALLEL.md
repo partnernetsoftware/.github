@@ -28,3 +28,10 @@ tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v4.yaml dispatch 
 ```
 
 勿在未写代码时长期挂 `agent-team`（见 [`skills/squad-parallel/SKILL.md`](../../skills/squad-parallel/SKILL.md) 提速节）。
+
+## wave16（当前）
+
+| 轨 | 任务 id | 交付 |
+|----|---------|------|
+| A | `wave16-v4-ir-table-v2` | `ir.table.version=v2` + add16 |
+| B | `wave16-v4-squad-dispatch` | `bootstrap-v4-squad-s6-dispatch.lisp` |

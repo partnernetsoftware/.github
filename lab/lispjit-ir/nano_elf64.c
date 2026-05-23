@@ -422,18 +422,25 @@ static const unsigned char a64_add_exit_v1_op_order[A64_ADD_EXIT_OP_COUNT] = {
   A64_ADD_EXIT_OP_SVC0,
 };
 
+/* v4 slice-11: fixed words for non-immediate ops (partial table-driven emit). */
+static const uint32_t a64_ir_fixed_word_v2[A64_ADD_EXIT_OP_COUNT] = {
+  [A64_ADD_EXIT_OP_ADD_X0_X1] = 0x8b010000u,
+  [A64_ADD_EXIT_OP_MOVZ_X8] = 0xd2800000u | (93u << 5) | 8u,
+  [A64_ADD_EXIT_OP_SVC0] = 0xd4000001u,
+};
+
+static int a64_ir_uses_fixed_word_v2(unsigned op) {
+  return op == A64_ADD_EXIT_OP_ADD_X0_X1 || op == A64_ADD_EXIT_OP_MOVZ_X8 ||
+         op == A64_ADD_EXIT_OP_SVC0;
+}
+
 static uint32_t a64_add_exit_v1_encode(unsigned op, int a, int b) {
+  if (a64_ir_uses_fixed_word_v2(op)) return a64_ir_fixed_word_v2[op];
   switch (op) {
   case A64_ADD_EXIT_OP_MOVZ_X0:
     return 0xd2800000u | (((uint32_t)a & 0xffffu) << 5);
   case A64_ADD_EXIT_OP_MOVZ_X1:
     return 0xd2800000u | (((uint32_t)b & 0xffffu) << 5) | 1u;
-  case A64_ADD_EXIT_OP_ADD_X0_X1:
-    return 0x8b010000u;
-  case A64_ADD_EXIT_OP_MOVZ_X8:
-    return 0xd2800000u | (93u << 5) | 8u;
-  case A64_ADD_EXIT_OP_SVC0:
-    return 0xd4000001u;
   default:
     return 0;
   }

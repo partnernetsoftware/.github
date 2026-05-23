@@ -25,7 +25,7 @@ supervisor:
   stuck_policy: fail
   idle_waves_max: 12
 signoff:
-  id: v4-slice10-scoped
+  id: v4-slice11-scoped
   require_terminal: false
   gates:
     - id: v4-readme
@@ -260,6 +260,29 @@ signoff:
       file: ".build/v4-slice10.evidence"
       results_key: v4.slice10_ir_entry
       min_pass: 1
+    - id: v4-slice11-doc
+      check: artifact
+      path_glob: "v4/SLICE11.md"
+    - id: v4-slice11-add16-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v4-slice11-ir-table.lisp"
+    - id: v4-slice11-add16-elf
+      check: artifact
+      path_glob: ".build/bootstrap-v4-slice11-add16.elf"
+    - id: v4-squad-s6-dispatch-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v4-squad-s6-dispatch.lisp"
+    - id: v4-slice11-evidence
+      check: results
+      file: ".build/v4-slice11.evidence"
+      results_key: v4.slice11
+      min_pass: 1
+    - id: v4-slice11-ir-table
+      check: results
+      file: ".build/v4-slice11.evidence"
+      results_key: v4.slice11_ir_table
+      min_pass: 1
+
   terminal_gates:
     - id: v35-regression-run
       check: results
@@ -709,6 +732,40 @@ tasks:
     accept:
       - "assess v4-slice10-scoped scoped_ready"
       - "v4/PARALLEL.md 双轨"
+      - "sync-md v4/SQUAD.md"
+
+
+  wave16-v4-ir-table-v2:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "../lispjit-ir/nano_elf64.c"
+      - "../lispjit-ir/nano_bootstrap.c"
+      - "samples/nano-jit-slice-add-16.lisp"
+      - "samples/bootstrap-v4-slice11-ir-table.lisp"
+      - ".build/v4-slice11.evidence"
+      - "run.sh"
+    accept:
+      - "aarch64.emit.ir.table.version=v2"
+      - "a64_ir_fixed_word_v2"
+      - "run-bootstrap-v4-slice11-ir-table-plan"
+  wave16-v4-squad-dispatch:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v4-squad-s6-dispatch.lisp"
+      - "v4/SLICE11.md"
+      - "samples/bootstrap-v4-slice11-evidence.lisp"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-squad-s6-dispatch-plan"
+      - "run-bootstrap-v4-slice11-evidence-plan"
+  wave16-v4-R:
+    assign_role: reviewer
+    priority: meta
+    depends: [wave16-v4-ir-table-v2, wave16-v4-squad-dispatch]
+    accept:
+      - "assess v4-slice11-scoped scoped_ready"
       - "sync-md v4/SQUAD.md"
 
 
