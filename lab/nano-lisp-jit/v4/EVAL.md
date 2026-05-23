@@ -103,3 +103,17 @@
 **并发**：四轨 A/B/C/D（≤4）；扩散→一次 `run.sh`→assess→洋葱。
 
 **catalog**：`v4-complete` ready=True（合 main 时以本表为准）。
+
+## wave34（plan-contract 洋葱 · 四轨）
+
+| 维度 | wave34 后 | Δ |
+|------|-----------|---|
+| Plan | ~96% | manifest + contract bundle 锚点 |
+| Codegen | ~31% | add29 复用 verified 整表 |
+| 编排 | ~28% | terminal-tick + DECISION 分界 |
+| 构建 | ~40% | plan-contract diffusion |
+| 终局整体 | **15–22%** | 见 [`PROGRESS.md`](PROGRESS.md) |
+
+**并发**：四轨 A/B/C/D（≤4）；扩散→一次 `run.sh`→assess→洋葱。
+
+**catalog**：`v4-complete` ready=True（合 main 时以本表为准）。

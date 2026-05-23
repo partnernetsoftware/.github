@@ -91,3 +91,4 @@
 | wave31 | POST-V4 证据矩阵四轨 + add26 | catalog ready ≠ 零宿主 |
 | wave32 | host-reduce 洋葱 + add27 + lisp-only tick | plan 无 .c ≠ runner 无 C |
 | wave33 | build-graph 洋葱 + assess-chain + add28 | 仍非 Lisp VM emit |
+| wave34 | plan-contract + terminal tick + add29 | scoped/终局分界在 DECISION |

@@ -106,3 +106,7 @@
 ## wave33
 
 见 SLICE33.md · build-graph 洋葱四轨
+
+## wave34
+
+见 SLICE34.md · plan-contract 洋葱四轨

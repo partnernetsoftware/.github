@@ -7,4 +7,5 @@
   (wave 30 "onion-rings")
   (wave 31 "evidence-matrix")
   (wave 32 "host-reduce-onion")
-  (wave 33 "build-graph-onion"))
+  (wave 33 "build-graph-onion")
+  (wave 34 "plan-contract-onion"))
