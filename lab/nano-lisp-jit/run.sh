@@ -3,6 +3,7 @@ set -euo pipefail
 
 LAB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$LAB_DIR/../.." && pwd)"
+cd "$ROOT_DIR"
 BUILD_DIR="$LAB_DIR/.build"
 SRC="$LAB_DIR/samples/strlen.lisp"
 ARITH_SRC="$LAB_DIR/samples/arithmetic.lisp"
