@@ -120,6 +120,10 @@ BOOTSTRAP_V4_SLICE11_ADD16_SRC="$LAB_DIR/samples/bootstrap-v4-slice11-add16.lisp
 BOOTSTRAP_V4_SLICE11_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v4-slice11-evidence.lisp"
 V4_SLICE11_ADD16_ELF="$BUILD_DIR/bootstrap-v4-slice11-add16.elf"
 V4_SLICE11_EVIDENCE="$BUILD_DIR/v4-slice11.evidence"
+V4_AARCH64_ADD_EXIT_OPS_LISP="$LAB_DIR/samples/v4-aarch64-add-exit-ops.lisp"
+BOOTSTRAP_V4_SLICE12_IR_PLAN_SRC="$LAB_DIR/samples/bootstrap-v4-slice12-ir-plan.lisp"
+BOOTSTRAP_V4_SLICE12_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v4-slice12-evidence.lisp"
+V4_SLICE12_EVIDENCE="$BUILD_DIR/v4-slice12.evidence"
 SQUAD_SH="$ROOT_DIR/tools/squad/squad.sh"
 CATALOG_V4="$LAB_DIR/squad/catalog-v4.yaml"
 BOOTSTRAP_V35_NANO_CC_AARCH64_SRC="$LAB_DIR/samples/bootstrap-v35-nano-cc-aarch64.lisp"
@@ -1653,6 +1657,21 @@ if has_qemu_aarch64 && [ -f "$V4_SLICE11_ADD16_ELF" ]; then
 else
   skip_case "qemu-aarch64-v4-slice11-add16-exit16" "no qemu or slice11 add16 elf"
 fi
+run_case "run-bootstrap-v4-slice12-ir-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE12_IR_PLAN_SRC"'" 2>&1) || true
+  printf "%s\n" "$out"
+  test -f "'"$V4_AARCH64_ADD_EXIT_OPS_LISP"'"
+  printf "%s\n" "$out" | grep -q "bootstrap-step.*=file-hash"
+'
+run_case "run-bootstrap-v4-slice12-evidence-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE12_EVIDENCE_SRC"'" 2>&1) || true
+  printf "%s\n" "$out"
+  {
+    echo "v4.slice12=1"
+    echo "v4.slice12_ir_plan=1"
+    echo "v4.slice12_plan=run-bootstrap-v4-slice12-evidence-plan"
+  } >> "'"$V4_SLICE12_EVIDENCE"'"
+'
 run_case "run-bootstrap-v4-slice6-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE6_EVIDENCE_SRC"'" 2>&1) || true
   printf "%s\n" "$out"
