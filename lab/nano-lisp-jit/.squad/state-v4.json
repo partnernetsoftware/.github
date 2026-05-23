@@ -1,7 +1,7 @@
 {
   "version": 2,
   "apiVersion": "squad-state/v2",
-  "wave": 52,
+  "wave": 55,
   "signoff_percent": 100,
   "halt": true,
   "assignments": {
@@ -100,6 +100,21 @@
       "status": "done",
       "assign_role": "reviewer",
       "commit": "7203594"
+    },
+    "wave6-v4-gen5v2-regression": {
+      "status": "done",
+      "assign_role": "engineer-a",
+      "commit": "c6fa877"
+    },
+    "wave6-v4-squad-s2-state": {
+      "status": "done",
+      "assign_role": "engineer-b",
+      "commit": "c6fa877"
+    },
+    "wave6-v4-R": {
+      "status": "done",
+      "assign_role": "reviewer",
+      "commit": "c6fa877"
     }
   },
   "findings": [],
@@ -109,9 +124,9 @@
     "engineer-a",
     "engineer-b"
   ],
-  "halt_reason": "signoff_and_all_tasks_done",
+  "halt_reason": "max_waves=50",
   "last_assess": {
-    "signoff_id": "v4-lisp-only-scoped",
+    "signoff_id": "v4-slice2-scoped",
     "percent_auto": 100,
     "percent_scoped": 100,
     "percent_terminal": 100,
@@ -123,7 +138,7 @@
       {
         "id": "v35-regression-run",
         "ok": true,
-        "detail": "results.txt val=269 need>=257",
+        "detail": "results.txt val=272 need>=257",
         "manual": false
       },
       {
@@ -220,6 +235,36 @@
         "id": "v4-lisp-only-doc",
         "ok": true,
         "detail": "v4/LISP-ONLY.md",
+        "manual": false
+      },
+      {
+        "id": "v4-squad-s2-state-plan",
+        "ok": true,
+        "detail": "samples/bootstrap-v4-squad-s2-state.lisp",
+        "manual": false
+      },
+      {
+        "id": "v4-gen5v2-anchor-plan",
+        "ok": true,
+        "detail": "samples/bootstrap-v4-gen5-via-gen2-anchor.lisp",
+        "manual": false
+      },
+      {
+        "id": "v4-slice2-doc",
+        "ok": true,
+        "detail": "v4/SLICE2.md",
+        "manual": false
+      },
+      {
+        "id": "v4-slice2-evidence",
+        "ok": true,
+        "detail": "v4-slice2.evidence val=1 need>=1",
+        "manual": false
+      },
+      {
+        "id": "v35-gen5v2-plan-no-c",
+        "ok": true,
+        "detail": "",
         "manual": false
       }
     ],
@@ -227,7 +272,7 @@
       {
         "id": "v35-regression-run",
         "ok": true,
-        "detail": "results.txt val=269 need>=257",
+        "detail": "results.txt val=272 need>=257",
         "manual": false
       },
       {
@@ -325,10 +370,40 @@
         "ok": true,
         "detail": "v4/LISP-ONLY.md",
         "manual": false
+      },
+      {
+        "id": "v4-squad-s2-state-plan",
+        "ok": true,
+        "detail": "samples/bootstrap-v4-squad-s2-state.lisp",
+        "manual": false
+      },
+      {
+        "id": "v4-gen5v2-anchor-plan",
+        "ok": true,
+        "detail": "samples/bootstrap-v4-gen5-via-gen2-anchor.lisp",
+        "manual": false
+      },
+      {
+        "id": "v4-slice2-doc",
+        "ok": true,
+        "detail": "v4/SLICE2.md",
+        "manual": false
+      },
+      {
+        "id": "v4-slice2-evidence",
+        "ok": true,
+        "detail": "v4-slice2.evidence val=1 need>=1",
+        "manual": false
+      },
+      {
+        "id": "v35-gen5v2-plan-no-c",
+        "ok": true,
+        "detail": "",
+        "manual": false
       }
     ],
     "terminal": [],
     "manual": []
   },
-  "updated_at": "2026-05-23T09:09:14.815189+00:00"
+  "updated_at": "2026-05-23T09:15:47.524664+00:00"
 }

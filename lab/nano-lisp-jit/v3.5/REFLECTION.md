@@ -115,7 +115,7 @@ P3（架构债，v4）
 
 | 日期 | 摘要 |
 |------|------|
-| 2026-05-23 | squad assess auto=100% ready=True |
+| 2026-05-23 | **wave6-v4-R**：`v4-slice2-scoped` **scoped 签收** — squad S2 state（`bootstrap-v4-squad-s2-state.lisp` + `state-v4.db`）+ gen5v2 锚点（`bootstrap-v4-gen5-via-gen2-anchor.lisp`）+ `.build/v4-slice2.evidence`；reviewer `--auto-exec` 272 pass assess **100%** ready；[`v4/README.md`](../v4/README.md) 记 slice-2 完成 |
 | 2026-05-23 | 初版：技术债表、缺陷、实验 H、P0–P3；入 ROADMAP mindmap track R |
 | 2026-05-23 | **L0 签收**：`LISP-ONLY.md`、gen4、`.lisp` build-slice 路由、`build-slice-lisp` AOT fallback |
 | 2026-05-23 | **L1/L3 wave4**：pack x86 Lisp slice；`build-slice-lisp` aarch64；`NANO_V35_CODEGEN_DEFAULT` |
