@@ -90,3 +90,7 @@
 | A | `ir.table.verified=plan-words-v1`（C 读 `v4-ir-words-v1.txt`）+ add20 |
 | B | [`PROGRESS.md`](PROGRESS.md) 终局六维表 + `bootstrap-v4-squad-assess-once.lisp` |
 | R | `REFLECTION` 区分 catalog vs 终局 % |
+
+## wave30
+
+见 SLICE30.md
