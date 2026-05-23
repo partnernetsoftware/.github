@@ -35,8 +35,14 @@
 | B | `wave21-v4-build-graph` | `bootstrap-v4-build-graph-smoke.lisp` |
 | B | `wave21-v4-squad-done` | `bootstrap-v4-squad-s9-done.lisp` |
 
-## 4. 下一刀（wave22 草图）
+## 4. wave22（本波）
 
-- **terminal**：`build_nano_jit.sh` 证据进 bootstrap plan（非 shell 编排）
+| 轨 | 交付 |
+|----|------|
+| 编排 | `bootstrap-v4-squad-assess-scoped-ready.lisp` — catalog + COMPLETE-SCOPED 锚点 |
+| 文档 | `v4/README.md` 代码地图（Plan / Runner / Codegen） |
+
+## 5. 下一刀（wave23 草图）
+
+- **terminal**：`build_nano_jit.sh` 证据进 bootstrap plan（dev container / cosmocc）
 - **codegen**：IR 字表由 plan 内 u64 常量列出（仍由 C 读入，但契约在 Lisp）
-- **编排**：`(squad-assess catalog)` 单步样本（host 仍执行，plan 为真相）

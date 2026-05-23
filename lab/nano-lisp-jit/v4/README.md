@@ -4,6 +4,31 @@
 
 **「全 Lisp」口径**：见 [`LISP-ONLY.md`](LISP-ONLY.md) — v4 **plan 层**可无 `.c` 引用；**runner/codegen 层**仍含 C（slice-2 才攻真 codegen）。
 
+**签收（当前）**：**`v4-complete-scoped`**（S0–S14 洋葱 + post-v4 **S15**）— [`COMPLETE-SCOPED.md`](COMPLETE-SCOPED.md)、[`POST-V4.md`](POST-V4.md)。**不等于**零宿主或 terminal 119/119。
+
+## 代码地图（三层）
+
+```text
+lab/nano-lisp-jit/
+├─ run.sh              # 门禁真源：bootstrap plan + squad smoke + results.txt
+├─ squad/catalog-v4.yaml  # signoff gates + wave 任务图
+├─ samples/
+│   ├─ bootstrap-v4-*.lisp   # Plan 层（无 .c 引用）
+│   └─ nano-jit-slice-add-*.lisp  # 被 build-slice-lisp 编译的 IR 样本
+├─ v4/SLICE*.md        # 每圈交付说明
+└─ .build/*.elf, v4-slice*.evidence
+
+lab/lispjit-ir/
+├─ nano_bootstrap.c    # build-slice-lisp、run-bootstrap-plan、emit 日志
+└─ nano_elf64.c        # aarch64 add-exit 表驱动 lowering（host stub）
+```
+
+| 层 | 职责 | v4 进度 |
+|----|------|---------|
+| **Plan** | `(bootstrap …)` 步骤 | S0–S15 样本 + 证据 |
+| **Runner** | C `nano-lisp-jit` 执行 plan | v3.5 基线，不退化 |
+| **Codegen** | `emit_aarch64_*` + IR 表 v1–v4 | scoped stub，非 VM |
+
 ## 范围（首波）
 
 | 轨 | 目标 | 非目标（本波） |
@@ -20,7 +45,7 @@ tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v4.yaml dispatch 
 tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v4.yaml agent-team --auto-exec
 ```
 
-**签收**：**[`v4-complete-scoped`](COMPLETE-SCOPED.md)**（S0–S14 + wave15–20 双轨）；历史 slice 见 `SLICE*.md`；并行法 [`skills/squad-parallel/`](../../skills/squad-parallel/)、[`PARALLEL.md`](PARALLEL.md)。
+**签收**：slice-0..9（**`v4-slice9-scoped`** — opcode lowering 表 + add14）— 见 [`SLICE9.md`](SLICE9.md)；并行推进用技能 [`skills/squad-parallel/`](../../skills/squad-parallel/)。
 
 ```bash
 tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v4.yaml agent-team --auto-exec --auto-done

@@ -10,7 +10,7 @@
 |----|------|------|
 | A Plan | 全部 `bootstrap-v4-*.lisp` 无 `.c` 源引用 | ✅ |
 | B Runner | host `nano-lisp-jit` 执行 plan | ✅（v3.5 已接受） |
-| C Codegen scoped | S0–S14：scout → opcode 表 → IR entry/table v1–v3 → manifest | ✅ scoped stub |
+| C Codegen scoped | S0–S15：scout → opcode 表 → IR entry/table v1–v4 → manifest → table-only | ✅ scoped stub |
 | 轨1 编排 scoped | S0–S8 bootstrap 契约（assess/dispatch/signal/resume 样本） | ✅ |
 | 轨2 并行波次 | wave8–20 双轨（codegen ∥ 编排） | ✅ |
 | 轨3 自举终局 | nano-cc / 下一代 `.com` | ❌ 留 post-v4 |

@@ -135,6 +135,7 @@ BOOTSTRAP_V4_SLICE15_TABLE_ONLY_SRC="$LAB_DIR/samples/bootstrap-v4-slice15-table
 BOOTSTRAP_V4_SLICE15_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v4-slice15-evidence.lisp"
 BOOTSTRAP_V4_BUILD_GRAPH_SMOKE_SRC="$LAB_DIR/samples/bootstrap-v4-build-graph-smoke.lisp"
 BOOTSTRAP_V4_SQUAD_S9_DONE_SRC="$LAB_DIR/samples/bootstrap-v4-squad-s9-done.lisp"
+BOOTSTRAP_V4_SQUAD_ASSESS_SCOPED_SRC="$LAB_DIR/samples/bootstrap-v4-squad-assess-scoped-ready.lisp"
 V4_SLICE15_ADD18_ELF="$BUILD_DIR/bootstrap-v4-slice15-add18.elf"
 V4_SLICE15_EVIDENCE="$BUILD_DIR/v4-slice15.evidence"
 SQUAD_SH="$ROOT_DIR/tools/squad/squad.sh"
@@ -1687,6 +1688,11 @@ run_case "run-bootstrap-v4-slice15-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE15_EVIDENCE_SRC"'" 2>&1) || true
   test -f "'"$LAB_DIR"'/v4/SLICE15.md"
   { echo "v4.slice15=1"; } >> "'"$V4_SLICE15_EVIDENCE"'"
+'
+run_case "run-bootstrap-v4-squad-assess-scoped-ready-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SQUAD_ASSESS_SCOPED_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/COMPLETE-SCOPED.md"
+  test -f "'"$LAB_DIR"'/squad/catalog-v4.yaml"
 '
 run_case "run-bootstrap-v4-slice6-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE6_EVIDENCE_SRC"'" 2>&1) || true
