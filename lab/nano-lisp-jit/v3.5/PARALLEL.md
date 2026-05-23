@@ -1,15 +1,15 @@
 # v3.5 parallel slices 1–6
 
-Slice **0** 已 **100%** 签收。并行分支 **2/3/4/5** 已合并到 `cursor/nano-jit-v35-parallel-f186`；**1** 仍待办；**6** kickoff ~scoped。见 [`../ROADMAP.md`](../ROADMAP.md) v3.5 mindmap。
+Slice **0** 已 **100%** 签收。wave2 并行 **1/4-build/6** 已合并 `main`（`nano-cc parse`、build-slice aarch64、genesis-shrink）。见 [`../ROADMAP.md`](../ROADMAP.md) v3.5 mindmap。
 
 ## 并行轨道
 
 | Track | Slice | 焦点 | 硬依赖 | 状态 |
 |-------|-------|------|--------|------|
-| A | 1 C-subset 前端 | `add-parse`、token→IR | slice 0 | **0%** |
+| A | 1 C-subset 前端 | `nano-cc parse` dump | slice 0 | **scoped** |
 | B | 2 x86_64 add | companion lisp + compile-elf64-exe | slice 0 | **100%** scoped |
 | C | 3 `build-slice` 切换 | `NANO_BUILD_SLICE_CODEGEN=1` | slice 2 add 路径 | **100%** scoped |
-| D | 4 aarch64 nano-cc | `NANO_CC_ARCH` + qemu | slice 0 hello | **scoped** |
+| D | 4 aarch64 nano-cc | `NANO_CC_ARCH` + build-slice aarch64 | slice 0 hello | **scoped** |
 | E | 5 gen3 自举 | `bootstrap-v35-selfhost-gen3` | slice 3 | **100%** scoped |
 | F | 6 Genesis 收缩 | pin + `NANO_REGENESIS` | slice 5 | **~scoped kickoff** |
 
