@@ -6,7 +6,7 @@
 
 Multi-product personal codebase:
 - **Jekyll Blog** (root) — GitHub Pages site, `bundle exec jekyll serve` on port 4000
-- **Python MCP Services** (`products/`) — MCP stdio servers (`ctx.py`, `ai.py`, `ctx_store.py`)
+- **Python MCP Services** (`products/`) — MCP stdio servers (`ctx.py`, `ai.py`, `hub.py`, `ctx_store.py`)
 - **CosmoRun** (`cosmorun/`) — C code execution via TinyCC + Cosmopolitan (needs `third_party/cosmocc/` which is gitignored)
 - **TUI** (`tools/tui.ts`) — Bun-based tmux dashboard
 
@@ -17,6 +17,7 @@ Multi-product personal codebase:
 | Jekyll blog | `cd /workspace && bundle exec jekyll serve --host 0.0.0.0 --port 4000` | Requires `bundle install` with local path first |
 | MCP ai.py | `python3 /workspace/products/ai.py server` | Stdio JSON-RPC; pipe JSON to stdin |
 | MCP ctx.py | `python3 /workspace/products/ctx.py server` | Has singleton check that may kill its own process via ps grep; test via direct Python import instead |
+| MCP hub.py | `HUB_TOKEN=... python3 /workspace/products/hub.py server` | Self-hosted login/config vault; bootstrap: `HUB_BOOTSTRAP_KEY=... python3 products/hub.py bootstrap`; data in `HUB_DATA_DIR` or `~/.hub` |
 | TUI | `bun run /workspace/tools/tui.ts status` | Needs `export PATH="$HOME/.bun/bin:$PATH"` |
 
 ### Gotchas
