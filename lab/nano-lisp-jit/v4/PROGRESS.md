@@ -5,14 +5,14 @@
 
 | 维度 | 终局目标 | 当前 | 粗估 |
 |------|----------|------|------|
-| Plan（bootstrap 无 .c 源） | 全 plan 无 .c + manifest + onion-rings | ✅ gate 常绿 | **~93%** |
+| Plan（bootstrap 无 .c 源） | 全 plan 无 .c + manifest + wave-index | ✅ gate 常绿 | **~94%** |
 | Runner | Lisp 执行 plan | C `nano-lisp-jit` | **~5%** |
 | Codegen | Lisp IR 整表 → blob | stub 读五 op `plan-lisp-v1-full` | **~28%** |
-| 编排 | Lisp `(squad-*)` | assess + 编排束 plan | **~24%** |
-| 构建 | plan 内 build 图 | wave27 图 + results-min | **~36%** |
+| 编排 | Lisp `(squad-*)` | assess + commander/evidence-matrix | **~25%** |
+| 构建 | plan 内 build 图 | wave31 add26 + results-min | **~37%** |
 | 自举 | `.com` 生成下一代 | 未开卷 | **~0%** |
 
-**整体终局**：约 **15–22%**（wave27 见 [`EVAL.md`](EVAL.md)）（外圈证据满 ≠ 内圈替换完成）。
+**整体终局**：约 **15–22%**（wave31 见 [`EVAL.md`](EVAL.md) §wave31）（外圈证据满 ≠ 内圈替换完成）。
 
 **调整原则**（并行 + 洋葱）：每波只推进一圈一格；扩散→收敛→洋葱；波末一次 `run.sh`（见 [`PARALLEL.md`](PARALLEL.md)）。
 

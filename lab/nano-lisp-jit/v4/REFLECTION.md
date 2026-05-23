@@ -88,4 +88,4 @@
 | 合 main 带进度评估 | — |
 
 **下一扩散面（未开卷）**：Lisp VM emit；`build.pass≥119` 进 plan（需 cosmocc）；runner 非 C。
-
+| wave31 | POST-V4 证据矩阵四轨 + add26 | catalog ready ≠ 零宿主 |

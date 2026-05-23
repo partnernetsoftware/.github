@@ -490,6 +490,32 @@ signoff:
       file: ".build/v4-slice30.evidence"
       results_key: v4.slice30
       min_pass: 1
+    - id: v4-wave-index-v1
+      check: artifact
+      path_glob: "samples/v4-wave-index-v1.lisp"
+    - id: v4-slice31-doc
+      check: artifact
+      path_glob: "v4/SLICE31.md"
+    - id: v4-wave31-diffusion-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v4-wave31-diffusion.lisp"
+    - id: v4-slice31-add26-elf
+      check: artifact
+      path_glob: ".build/bootstrap-v4-slice31-add26.elf"
+    - id: v4-squad-commander-tick-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v4-squad-commander-tick.lisp"
+    - id: v4-evidence-matrix-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v4-evidence-matrix.lisp"
+    - id: v4-post-v4-tick-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v4-post-v4-tick.lisp"
+    - id: v4-slice31-evidence
+      check: results
+      file: ".build/v4-slice31.evidence"
+      results_key: v4.slice31
+      min_pass: 1
 
   terminal_gates:
     - id: v35-regression-run
@@ -1394,6 +1420,51 @@ tasks:
     depends: [wave30-v4-track-a-codegen, wave30-v4-track-b-orchestration, wave30-v4-track-c-contract, wave30-v4-track-d-onion]
     accept:
       - "v4/EVAL.md wave30"
+      - "assess v4-complete ready"
+
+  wave31-v4-track-a-codegen:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v4-wave31-diffusion.lisp"
+      - "samples/nano-jit-slice-add-26.lisp"
+      - ".build/v4-slice31.evidence"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-wave31-diffusion-plan"
+  wave31-v4-track-b-orchestration:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v4-squad-commander-tick.lisp"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-squad-commander-tick-plan"
+  wave31-v4-track-c-build:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v4-evidence-matrix.lisp"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-evidence-matrix-plan"
+  wave31-v4-track-d-manifest:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "samples/v4-wave-index-v1.lisp"
+      - "samples/bootstrap-v4-post-v4-tick.lisp"
+      - "v4/EVAL.md"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-post-v4-tick-plan"
+      - "run-bootstrap-v4-slice31-evidence-plan"
+  wave31-v4-R:
+    assign_role: reviewer
+    priority: meta
+    depends: [wave31-v4-track-a-codegen, wave31-v4-track-b-orchestration, wave31-v4-track-c-build, wave31-v4-track-d-manifest]
+    accept:
+      - "v4/EVAL.md wave31"
       - "assess v4-complete ready"
 
 

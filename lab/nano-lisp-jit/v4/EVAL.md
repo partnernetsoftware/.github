@@ -64,3 +64,16 @@
 | 终局整体 | **15–22%** | 见 [`PROGRESS.md`](PROGRESS.md) |
 
 **catalog**：`v4-complete` ready=True（合 main 时以本表为准）。
+
+## wave31（POST-V4 证据矩阵 · 四轨）
+
+| 维度 | wave31 后 | Δ |
+|------|-----------|---|
+| Plan | ~94% | `v4-wave-index-v1.lisp` 波次索引 |
+| 编排 | ~25% | commander-tick + evidence-matrix |
+| 构建 | ~37% | add26 + 双 results-min 锚点 |
+| 终局整体 | **15–22%** | 见 [`PROGRESS.md`](PROGRESS.md) |
+
+**并发**：四轨 A/B/C/D（≤4）；扩散→一次 `run.sh`→assess→洋葱。
+
+**catalog**：`v4-complete` ready=True（合 main 时以本表为准）。
