@@ -77,3 +77,15 @@
 **并发**：四轨 A/B/C/D（≤4）；扩散→一次 `run.sh`→assess→洋葱。
 
 **catalog**：`v4-complete` ready=True（合 main 时以本表为准）。
+
+## wave32（host-reduce 洋葱 · 四轨）
+
+| 维度 | wave32 后 | Δ |
+|------|-----------|---|
+| Plan | ~94% | wave-index + lisp-only 锚点 |
+| Codegen | ~29% | add27 复用 verified 整表 |
+| 编排 | ~26% | signal→resume→done 链 |
+| 构建 | ~38% | host-reduce diffusion 锚点 |
+| 终局整体 | **15–22%** | 见 [`PROGRESS.md`](PROGRESS.md) |
+
+**并发**：四轨 A/B/C/D（≤4）；扩散→一次 `run.sh`→assess→洋葱。

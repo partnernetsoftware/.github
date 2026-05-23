@@ -5,4 +5,5 @@
   (wave 28 "words-table-verify")
   (wave 29 "four-track-manifest")
   (wave 30 "onion-rings")
-  (wave 31 "evidence-matrix"))
+  (wave 31 "evidence-matrix")
+  (wave 32 "host-reduce-onion"))

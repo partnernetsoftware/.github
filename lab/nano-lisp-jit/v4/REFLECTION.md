@@ -89,3 +89,4 @@
 
 **下一扩散面（未开卷）**：Lisp VM emit；`build.pass≥119` 进 plan（需 cosmocc）；runner 非 C。
 | wave31 | POST-V4 证据矩阵四轨 + add26 | catalog ready ≠ 零宿主 |
+| wave32 | host-reduce 洋葱 + add27 + lisp-only tick | plan 无 .c ≠ runner 无 C |

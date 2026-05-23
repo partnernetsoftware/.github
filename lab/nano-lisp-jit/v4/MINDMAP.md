@@ -98,3 +98,7 @@
 ## wave31
 
 见 SLICE31.md · evidence-matrix 四轨
+
+## wave32
+
+见 SLICE32.md · host-reduce 洋葱四轨
