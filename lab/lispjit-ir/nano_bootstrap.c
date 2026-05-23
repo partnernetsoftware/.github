@@ -1,6 +1,15 @@
 /* Included from lispjit.c — bootstrap plan DSL parse + run-bootstrap-plan. */
 static int cmd_compile_elf64_code(const char *src_path, const char *out_path);
 
+static int build_slice_is_nano_cc_sample_c(const char *base) {
+  size_t n;
+  if (!base) return 0;
+  n = strlen(base);
+  if (n <= 10) return 0;
+  if (strncmp(base, "nano-cc-", 8) != 0) return 0;
+  return strcmp(base + n - 2, ".c") == 0;
+}
+
 static int build_slice_use_nano_cc(const char *src_path) {
   const char *base = src_path;
   const char *slash;
@@ -10,7 +19,9 @@ static int build_slice_use_nano_cc(const char *src_path) {
   if (strcmp(base, "nano-cc-hello.c") == 0) return 1;
   {
     const char *env = getenv("NANO_BUILD_SLICE_CODEGEN");
-    if (env && env[0] == '1' && env[1] == '\0' && nano_cc_can_compile_path(src_path)) return 1;
+    if (env && env[0] == '1' && env[1] == '\0' &&
+        build_slice_is_nano_cc_sample_c(base) && nano_cc_can_compile_path(src_path))
+      return 1;
   }
   return 0;
 }
