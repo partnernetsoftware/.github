@@ -14,15 +14,25 @@
 **已 scoped**：gen5 双架构 Lisp pack（零 genesis pin）；L0–L3；nano-cc 证据轨。  
 **未签收**：L4 全功能 runner；L2 去 companion；aarch64 非 stub；gen5 由 Lisp 全功能 slice 编排。
 
-## 派单板（本轮）
+## 派单板（本轮 · wave-squad-1）
+
+| 兵 | 任务 ID | 状态 | 验收 |
+|----|---------|------|------|
+| **A** | `L2-companion` | **完成** `7866e4e` | canonical `nano-jit-slice-add.lisp`；删 `nano-cc-add.lisp`；250 pass |
+| **B** | `L4-tu-kickoff` | **完成** `a043fd5` | `bootstrap-v35-lisp-tu-link.lisp` + run/build case |
+| **R** | `wave-squad-R1` | **完成** `20e36c2` | ROADMAP 小组模式 + PARALLEL 表 |
+
+**指挥长判定**：仍 **≠100%** → 开 wave-squad-2（见下）。
+
+## 派单板（wave-squad-2 · 待派）
 
 | 兵 | 任务 ID | 洋葱切片 | 验收 |
 |----|---------|----------|------|
-| **A** | `L2-companion` | P0：nano-cc add 不再依赖 `nano-cc-add.lisp` companion；门禁改以 `nano-jit-slice-add.lisp` 为 add 真相源 | `run.sh` 全绿；plan 日志无 `nano-cc.lisp=` |
-| **B** | `L4-tu-kickoff` | P1：多 `.lisp` → `link-elf64-exe` bootstrap 样例（2 object smoke） | 新 `bootstrap-v35-lisp-tu-link.lisp` + `run.sh` case |
-| **R** | `wave-squad-R1` | 汇入 gen5 状态、小组模式、A/B 缺口 | ROADMAP + REFLECTION 变更日志一行 |
+| **A** | `aarch64-codegen-1` | min profile 从 exit-stub 扩一步（保留 qemu） | 新日志 tag + run case |
+| **B** | `L4-runner-1` | gen5 plan 改由 `v35-gen4-nano-jit.com` 跑（若 slice 仍 stub 则文档化阻塞） | selfhost case 或 skip+REFLECTION |
+| **R** | `wave-squad-R2` | 更新 L2/L4 签收栏；进度 → ~88% | REFLECTION + mindmap |
 
-**合并顺序**：A（`nano_cc.c`/`run.sh`）→ B（samples/bootstrap）→ R（docs）→ C 跑全矩阵。
+**合并顺序**：A → B → R → C 全矩阵。
 
 ## 停止条件
 
