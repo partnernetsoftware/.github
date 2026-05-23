@@ -16,6 +16,8 @@
 | S5 | `v4-slice5-scoped` | verify-before-done 样本 + wave10 四角色 smoke | `(squad-done)` Lisp |
 | **S6** | `v4-slice6-scoped` | codegen **kickoff**（emit 路径清单 + 锚点） | 替换 `emit_aarch64_*` |
 | **S7** | `v4-slice7-scoped` | **`aarch64.emit.profile=add-exit-v1`** + add11 样本 | IR 驱动 emit |
+| **S8** | `v4-slice8-scoped` | insn 数组 lowering + add13 | opcode 枚举 |
+| **S9** | `v4-slice9-scoped` | `A64_ADD_EXIT_OP_*` + add14 | VM emit |
 
 **三层「全 Lisp」**：仍见 [`LISP-ONLY.md`](LISP-ONLY.md) — plan 层无 `.c`；codegen 层仍是 C stub。
 
@@ -60,6 +62,7 @@
 
 | 日期 | 摘要 |
 |------|------|
+| 2026-05-23 | **wave14**：`v4-slice9-scoped` — opcode 序表 + `lowering.ops=5` + add14；`squad-parallel` 实跑 |
 | 2026-05-23 | **方法学固化**：[`skills/squad-parallel/`](../../skills/squad-parallel/) Agent Skill（`.cursor/skills` 链接） |
 | 2026-05-23 | **wave13**：**agent-team 四角色 tmux 实跑**（`--auto-exec --auto-done`）完成 lowering-table + add13；修复 `spawn_agent_team` tmux argv |
 | 2026-05-23 | **wave12**：S7 emit profile + add11；`parse_add_operands` 已读 plan 内 `(i64 …)`，profile 标记可观测 |

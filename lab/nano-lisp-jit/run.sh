@@ -107,6 +107,10 @@ BOOTSTRAP_V4_SLICE8_ADD13_SRC="$LAB_DIR/samples/bootstrap-v4-slice8-add13.lisp"
 BOOTSTRAP_V4_SLICE8_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v4-slice8-evidence.lisp"
 V4_SLICE8_ADD13_ELF="$BUILD_DIR/bootstrap-v4-slice8-add13.elf"
 V4_SLICE8_EVIDENCE="$BUILD_DIR/v4-slice8.evidence"
+BOOTSTRAP_V4_SLICE9_ADD14_SRC="$LAB_DIR/samples/bootstrap-v4-slice9-add14.lisp"
+BOOTSTRAP_V4_SLICE9_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v4-slice9-evidence.lisp"
+V4_SLICE9_ADD14_ELF="$BUILD_DIR/bootstrap-v4-slice9-add14.elf"
+V4_SLICE9_EVIDENCE="$BUILD_DIR/v4-slice9.evidence"
 SQUAD_SH="$ROOT_DIR/tools/squad/squad.sh"
 CATALOG_V4="$LAB_DIR/squad/catalog-v4.yaml"
 BOOTSTRAP_V35_NANO_CC_AARCH64_SRC="$LAB_DIR/samples/bootstrap-v35-nano-cc-aarch64.lisp"
@@ -1502,6 +1506,7 @@ run_case "run-bootstrap-v4-codegen-kickoff-plan" bash -c '
   printf "%s\n" "$out" | grep -q "bootstrap-step.*=file-hash"
   printf "%s\n" "$out" | grep -q "aarch64.add=3+4"
   printf "%s\n" "$out" | grep -q "aarch64.emit.profile=add-exit-v1"
+  printf "%s\n" "$out" | grep -q "aarch64.emit.lowering.ops=5"
 '
 run_case "run-bootstrap-v4-slice7-add11-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE7_ADD11_SRC"'" 2>&1) || true
@@ -1556,6 +1561,33 @@ if has_qemu_aarch64 && [ -f "$V4_SLICE8_ADD13_ELF" ]; then
   '
 else
   skip_case "qemu-aarch64-v4-slice8-add13-exit13" "no qemu or slice8 add13 elf"
+fi
+run_case "run-bootstrap-v4-slice9-add14-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE9_ADD14_SRC"'" 2>&1) || true
+  printf "%s\n" "$out"
+  printf "%s\n" "$out" | grep -q "aarch64.add=6+8"
+  printf "%s\n" "$out" | grep -q "aarch64.emit.lowering.ops=5"
+  test -f "'"$V4_SLICE9_ADD14_ELF"'"
+'
+run_case "run-bootstrap-v4-slice9-evidence-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE9_EVIDENCE_SRC"'" 2>&1) || true
+  printf "%s\n" "$out"
+  {
+    echo "v4.slice9=1"
+    echo "v4.slice9_opcode_table=1"
+    echo "v4.slice9_add14=1"
+    echo "v4.slice9_plan=run-bootstrap-v4-slice9-evidence-plan"
+  } >> "'"$V4_SLICE9_EVIDENCE"'"
+'
+if has_qemu_aarch64 && [ -f "$V4_SLICE9_ADD14_ELF" ]; then
+  run_case "qemu-aarch64-v4-slice9-add14-exit14" bash -c '
+    QEMU_AARCH64="$(command -v qemu-aarch64-static || command -v qemu-aarch64)"
+    rc=$("$QEMU_AARCH64" "'"$V4_SLICE9_ADD14_ELF"'"; echo $?)
+    printf "qemu-aarch64.v4-slice9-add14.exit=%s\n" "$rc"
+    test "$rc" -eq 14
+  '
+else
+  skip_case "qemu-aarch64-v4-slice9-add14-exit14" "no qemu or slice9 add14 elf"
 fi
 run_case "run-bootstrap-v4-slice6-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE6_EVIDENCE_SRC"'" 2>&1) || true

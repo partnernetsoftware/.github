@@ -404,23 +404,51 @@ int emit_aarch64_exit_file(const char *out_path, uint8_t exit_code) {
   return emit_elf64_exec_rx_file(out_path, code, sizeof(code), ELF64_MACHINE_AARCH64);
 }
 
-/* v4 slice-8: table-driven lowering for add-exit-v1 (still host emit, not VM). */
+/* v4 slice-9: opcode-indexed lowering table (still host emit, not VM). */
+enum {
+  A64_ADD_EXIT_OP_MOVZ_X0 = 0,
+  A64_ADD_EXIT_OP_MOVZ_X1,
+  A64_ADD_EXIT_OP_ADD_X0_X1,
+  A64_ADD_EXIT_OP_MOVZ_X8,
+  A64_ADD_EXIT_OP_SVC0,
+  A64_ADD_EXIT_OP_COUNT,
+};
+
+static const unsigned char a64_add_exit_v1_op_order[A64_ADD_EXIT_OP_COUNT] = {
+  A64_ADD_EXIT_OP_MOVZ_X0,
+  A64_ADD_EXIT_OP_MOVZ_X1,
+  A64_ADD_EXIT_OP_ADD_X0_X1,
+  A64_ADD_EXIT_OP_MOVZ_X8,
+  A64_ADD_EXIT_OP_SVC0,
+};
+
+static uint32_t a64_add_exit_v1_encode(unsigned op, int a, int b) {
+  switch (op) {
+  case A64_ADD_EXIT_OP_MOVZ_X0:
+    return 0xd2800000u | (((uint32_t)a & 0xffffu) << 5);
+  case A64_ADD_EXIT_OP_MOVZ_X1:
+    return 0xd2800000u | (((uint32_t)b & 0xffffu) << 5) | 1u;
+  case A64_ADD_EXIT_OP_ADD_X0_X1:
+    return 0x8b010000u;
+  case A64_ADD_EXIT_OP_MOVZ_X8:
+    return 0xd2800000u | (93u << 5) | 8u;
+  case A64_ADD_EXIT_OP_SVC0:
+    return 0xd4000001u;
+  default:
+    return 0;
+  }
+}
+
 static int emit_aarch64_add_exit_v1_lower(int a, int b, unsigned char *code, size_t cap,
                                           size_t *out_n) {
-  uint32_t insns[5];
+  size_t i;
   if (!code || cap < 20) return 0;
-  insns[0] = 0xd2800000u | (((uint32_t)a & 0xffffu) << 5);
-  insns[1] = 0xd2800000u | (((uint32_t)b & 0xffffu) << 5) | 1u;
-  insns[2] = 0x8b010000u;
-  insns[3] = 0xd2800000u | (93u << 5) | 8u;
-  insns[4] = 0xd4000001u;
   memset(code, 0, cap);
-  wr32(code + 0, insns[0]);
-  wr32(code + 4, insns[1]);
-  wr32(code + 8, insns[2]);
-  wr32(code + 12, insns[3]);
-  wr32(code + 16, insns[4]);
-  *out_n = 20;
+  for (i = 0; i < A64_ADD_EXIT_OP_COUNT; ++i) {
+    unsigned op = a64_add_exit_v1_op_order[i];
+    wr32(code + i * 4, a64_add_exit_v1_encode(op, a, b));
+  }
+  *out_n = A64_ADD_EXIT_OP_COUNT * 4;
   return 1;
 }
 

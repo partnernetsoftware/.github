@@ -25,14 +25,14 @@ supervisor:
   stuck_policy: fail
   idle_waves_max: 12
 signoff:
-  id: v4-slice8-scoped
+  id: v4-slice9-scoped
   require_terminal: false
   gates:
     - id: v35-regression-run
       check: results
       file: ".build/results.txt"
       results_key: tests.pass
-      min_pass: 290
+      min_pass: 294
     - id: v35-regression-build
       check: results
       file: ".build/nano-jit/bootstrap-report.txt"
@@ -225,6 +225,25 @@ signoff:
       check: results
       file: ".build/v4-slice8.evidence"
       results_key: v4.slice8_lowering_table
+      min_pass: 1
+    - id: v4-slice9-doc
+      check: artifact
+      path_glob: "v4/SLICE9.md"
+    - id: v4-slice9-add14-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v4-slice9-add14.lisp"
+    - id: v4-slice9-add14-elf
+      check: artifact
+      path_glob: ".build/bootstrap-v4-slice9-add14.elf"
+    - id: v4-slice9-evidence
+      check: results
+      file: ".build/v4-slice9.evidence"
+      results_key: v4.slice9
+      min_pass: 1
+    - id: v4-slice9-opcode-table
+      check: results
+      file: ".build/v4-slice9.evidence"
+      results_key: v4.slice9_opcode_table
       min_pass: 1
 
 tasks:
@@ -600,6 +619,37 @@ tasks:
       - "assess v4-slice8-scoped ready"
       - "sync-md v4/SQUAD.md"
       - "REFLECTION wave13 squad 并行"
+  wave14-v4-opcode-lowering:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "lab/lispjit-ir/nano_elf64.c"
+      - "lab/lispjit-ir/nano_bootstrap.c"
+      - ".build/v4-slice9.evidence"
+      - "run.sh"
+    accept:
+      - "A64_ADD_EXIT_OP_COUNT"
+      - "aarch64.emit.lowering.ops=5"
+      - "run-bootstrap-v4-slice9-evidence-plan"
+  wave14-v4-add14-slice:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "samples/nano-jit-slice-add-14.lisp"
+      - "samples/bootstrap-v4-slice9-add14.lisp"
+      - "v4/SLICE9.md"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-slice9-add14-plan"
+      - "aarch64.add=6+8"
+  wave14-v4-R:
+    assign_role: reviewer
+    priority: meta
+    depends: [wave14-v4-opcode-lowering, wave14-v4-add14-slice]
+    accept:
+      - "assess v4-slice9-scoped ready"
+      - "skills/squad-parallel wave14"
+      - "sync-md v4/SQUAD.md"
 
 verify:
   commands:
