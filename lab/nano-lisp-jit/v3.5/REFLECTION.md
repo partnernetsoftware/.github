@@ -125,3 +125,4 @@ P3（架构债，v4）
 | 2026-05-23 | **wave4-selfhost-refresh**：gen2 `build-slice-lisp` add 曾 `parse=fail` — 根因 genesis x86 pin（`638236d6…`）缺 `(module (func …))` 解析；刷新 pin 自 native `nano-lisp-jit`（`76fb499f…`）+ 重跑 gen1/gen2 bootstrap 后 gen2 可编 `nano-jit-slice-add.lisp`；`run.sh` 255 pass |
 | 2026-05-23 | **wave4-signoff-bootstrap**：`bootstrap-v35-signoff-evidence.lisp` plan（aarch64-add-emit + x86 min smoke）；`v35-signoff.evidence` 含 `signoff_bootstrap_plan` marker |
 | 2026-05-23 | **wave-squad-R3**：wave-4 四角色并行 `run-loop`（reviewer 等 A/B 依赖完成）；§2.3 入账 run-loop 统一、verify 竞态、findings 同步；squad assess **100%** ready；`run.sh` 255 / `build` 119 |
+| 2026-05-23 | **wave-4 小队复盘**：指挥长 `run-loop` 持 `standby` 至 A/B `done` 后 `release`；新发现 **genesis x86 pin 过期** 致 gen2 编不了 add（已刷新 pin）；签收证据迁入 `bootstrap-v35-signoff-evidence.lisp`；终局 aarch64 AOT / 全 plan gen2 跑 gen5 仍属 v4 |
