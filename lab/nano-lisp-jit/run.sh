@@ -65,6 +65,8 @@ BOOTSTRAP_V35_GENESIS_SHRINK_SRC="$LAB_DIR/samples/bootstrap-v35-genesis-shrink.
 NANO_CC_HELLO_SRC="$LAB_DIR/samples/nano-cc-hello.c"
 NANO_CC_ADD_SRC="$LAB_DIR/samples/nano-cc-add.c"
 NANO_CC_ADD_BAD_SIG_SRC="$LAB_DIR/samples/nano-cc-add-bad-sig.c"
+NANO_CC_ADD_BAD_BODY_SRC="$LAB_DIR/samples/nano-cc-add-bad-body.c"
+NANO_CC_ADD_PARSE_GOLDEN="$LAB_DIR/samples/nano-cc-add.parse.golden"
 NANO_CC_BUILD_SLICE_SRC="$LAB_DIR/samples/nano-cc-build-slice.c"
 NANO_CC_BAD_SRC="$LAB_DIR/samples/nano-cc-bad.c"
 NANO_CC_HELLO_ELF="$BUILD_DIR/bootstrap-v35-nano-cc-hello.elf"
@@ -779,8 +781,18 @@ run_case "nano-cc-parse-add" bash -c '
   printf "%s\n" "$out" | grep -q "nano-cc.parse.add_b=2"
   printf "%s\n" "$out" | grep -q "nano-cc.parse.exit_code=42"
 '
+run_case "nano-cc-parse-add-golden" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" nano-cc parse "'"$NANO_CC_ADD_SRC"'" 2>&1)
+  printf "%s\n" "$out"
+  while IFS= read -r line || [ -n "$line" ]; do
+    [ -z "$line" ] && continue
+    printf "%s\n" "$out" | grep -qxF "$line"
+  done < "'"$NANO_CC_ADD_PARSE_GOLDEN"'"
+'
 run_case "nano-cc-parse-add-bad-expect2" \
   "$RUNNER" nano-cc-parse-expect-exit 2 "$NANO_CC_ADD_BAD_SIG_SRC"
+run_case "nano-cc-parse-add-bad-body-expect2" \
+  "$RUNNER" nano-cc-parse-expect-exit 2 "$NANO_CC_ADD_BAD_BODY_SRC"
 
 # --- v3.5 slice 2: nano-cc add via companion .lisp + compile-elf64-exe ---
 log "v35.nano-cc.add.source.path=$NANO_CC_ADD_SRC"

@@ -1,0 +1,4 @@
+nano-cc.parse.kind=add_module
+nano-cc.parse.add_a=40
+nano-cc.parse.add_b=2
+nano-cc.parse.exit_code=42
