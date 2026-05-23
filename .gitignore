@@ -21,3 +21,5 @@ lab/**/*.o
 # Large third-party tools (download separately)
 third_party/cosmocc/
 third_party/zig/
+lab/nano-lisp-jit/.squad/*.db
+lab/nano-lisp-jit/.squad/verify.lock
