@@ -25,9 +25,10 @@ bash lab/nano-lisp-jit/run.sh
 # nano-cc-qemu-aarch64-build-slice-exit43   (when qemu-aarch64-static present)
 # run-bootstrap-v35-build-slice-lisp-aarch64-plan
 # nano-cc-qemu-aarch64-build-slice-lisp-exit42   (when qemu-aarch64-static present)
+# run-bootstrap-v4-aarch64-aot-plan   (v4 slice-0 scout; aarch64-add-emit stub)
 ```
 
-Bootstrap: `samples/bootstrap-v35-nano-cc-aarch64.lisp`, `samples/bootstrap-v35-build-slice-aarch64.lisp`, `samples/bootstrap-v35-build-slice-lisp-aarch64.lisp`
+Bootstrap: `samples/bootstrap-v35-nano-cc-aarch64.lisp`, `samples/bootstrap-v35-build-slice-aarch64.lisp`, `samples/bootstrap-v35-build-slice-lisp-aarch64.lisp`, `samples/bootstrap-v4-aarch64-aot-plan.lisp` (v4 slice-0 scout)
 
 ## Environment
 
@@ -43,5 +44,18 @@ Bootstrap: `samples/bootstrap-v35-nano-cc-aarch64.lisp`, `samples/bootstrap-v35-
 - nano-cc aarch64: **exit42 stub only** — not arithmetic/AOT/multi-section yet.
 - `build-slice-lisp` aarch64: **exit stub only** (`nano-jit-slice-min.lisp`, `nano-jit-slice-add.lisp` via `(expect N)`); no VM/AOT aarch64 codegen yet.
 - qemu smoke required on x86_64 host to execute aarch64 nano-cc ELF (native aarch64 host runs directly).
+
+## v4 slice-0 scope (kickoff plan marker)
+
+v3.5 **slice 4** evidence above stays frozen; v4 **slice-0** only adds a bootstrap plan scout — no new aarch64 codegen yet.
+
+| Artifact | Role | Codegen |
+|----------|------|---------|
+| `samples/bootstrap-v4-aarch64-aot-plan.lisp` | v4 kickoff plan marker | reuses v3.5 `build-slice-lisp.mode=aarch64-add-emit` on `nano-jit-slice-add.lisp` |
+| `.build/bootstrap-v4-aarch64-add-scout.elf` | scout ELF output | hardcoded add stub (`40+2` → exit 42), **not** VM/AOT aarch64 |
+
+**In scope (slice-0)**: `run.sh` case `run-bootstrap-v4-aarch64-aot-plan`; file-size/hash evidence in the bootstrap plan.
+
+**Out of scope (v4 slice proper, see [`../v4/README.md`](../v4/README.md))**: aarch64 VM/AOT codegen from Lisp IR; nano-cc aarch64 arithmetic/multi-section; replacing add-emit stub with x86 compile-path cross codegen.
 
 See also [`../v3/CODEGEN.md`](../v3/CODEGEN.md) genesis-pin policy and [`ERROR-CODES.md`](ERROR-CODES.md).

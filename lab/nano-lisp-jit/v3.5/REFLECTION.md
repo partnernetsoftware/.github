@@ -127,3 +127,4 @@ P3（架构债，v4）
 | 2026-05-23 | **wave-squad-R3**：wave-4 四角色并行 `run-loop`（reviewer 等 A/B 依赖完成）；§2.3 入账 run-loop 统一、verify 竞态、findings 同步；squad assess **100%** ready；`run.sh` 255 / `build` 119 |
 | 2026-05-23 | **wave-4 小队复盘**：指挥长 `run-loop` 持 `standby` 至 A/B `done` 后 `release`；新发现 **genesis x86 pin 过期** 致 gen2 编不了 add（已刷新 pin）；签收证据迁入 `bootstrap-v35-signoff-evidence.lisp`；终局 aarch64 AOT / 全 plan gen2 跑 gen5 仍属 v4 |
 | 2026-05-23 | **合并 main**：见 [`POSTMORTEM-SQUAD-V35.md`](POSTMORTEM-SQUAD-V35.md)（设计/实现/测试/协同自问自答 + P0–P4 改进共识） |
+| 2026-05-23 | **v4 slice-0 kickoff**：`bootstrap-v4-aarch64-aot-plan.lisp` scout（仍 `aarch64-add-emit` stub）；真 VM/AOT aarch64 属 v4 slice — 见 [`AARCH64.md`](AARCH64.md) § v4 slice-0 |
