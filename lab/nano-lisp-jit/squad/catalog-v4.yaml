@@ -16,6 +16,7 @@ dispatch:
   max_per_wave: 2
 supervisor:
   team_mode: true
+  auto_exec: true
   timeout_sec: 7200
   poll_interval_sec: 15
   max_waves: 50
@@ -63,6 +64,26 @@ tasks:
     accept:
       - "ROADMAP v4 节点"
       - "assess v4-kickoff ready"
+  wave-practice-auto-exec-doc:
+    assign_role: engineer-b
+    priority: P1
+    touch_paths: ["tools/squad/README.md", "squad/PROTOCOL.md"]
+    accept:
+      - "文档说明 --auto-exec 与 verify flock"
+  wave-practice-v4-squad-md:
+    assign_role: engineer-a
+    priority: P1
+    touch_paths: ["v4/README.md", "v4/SQUAD.md"]
+    accept:
+      - "v4 README 记 squad 实践波次"
+      - "sync-md 更新 SQUAD.md"
+  wave-practice-R1:
+    assign_role: reviewer
+    priority: meta
+    depends: [wave-practice-auto-exec-doc, wave-practice-v4-squad-md]
+    accept:
+      - "assess v4-kickoff ready"
+      - "POSTMORTEM 链实践记录一句"
 
 verify:
   commands:

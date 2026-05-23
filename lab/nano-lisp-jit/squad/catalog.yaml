@@ -22,6 +22,7 @@ dispatch:
 # 指挥长 supervise：while 直到 complete | failed | timeout（禁止 dispatch 一轮即停）
 supervisor:
   team_mode: true
+  auto_exec: true
   timeout_sec: 7200
   poll_interval_sec: 15
   max_waves: 50

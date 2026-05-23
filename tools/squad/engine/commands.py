@@ -13,6 +13,7 @@ from .context import SquadContext, _load_yaml
 from .db import SquadLockError, SquadStore
 from .gates import run_assess
 from .state import empty_state, get_store, load_state, save_state, task_status
+from .lockfile import flock
 from .supervisor import (
     OUTCOME_COMPLETE,
     OUTCOME_FAILED,
@@ -214,6 +215,12 @@ def cmd_verify(ctx: SquadContext, args: argparse.Namespace) -> int:
     if not steps:
         print("no verify.commands in catalog", file=sys.stderr)
         return 2
+    lock_path = ctx.work_root / ".squad" / "verify.lock"
+    with flock(lock_path):
+        return _run_verify_steps(ctx, args, steps)
+
+
+def _run_verify_steps(ctx: SquadContext, args: argparse.Namespace, steps: list) -> int:
     for step in steps:
         if args.quick and step.get("optional"):
             continue
@@ -408,7 +415,15 @@ def _supervisor_options(ctx: SquadContext, args: argparse.Namespace) -> dict:
         ),
         "stuck_policy": args.stuck_policy or cfg.get("stuck_policy", "fail"),
         "max_iter": int(args.max_iter if getattr(args, "max_iter", None) is not None else cfg.get("max_iter", 500)),
+        "auto_exec": _resolve_auto_exec(ctx, args),
     }
+
+
+def _resolve_auto_exec(ctx: SquadContext, args: argparse.Namespace) -> bool:
+    cfg = ctx.catalog.get("supervisor") or {}
+    if getattr(args, "auto_exec", None) is not None:
+        return bool(args.auto_exec)
+    return bool(cfg.get("auto_exec", False))
 
 
 def cmd_supervise(ctx: SquadContext, args: argparse.Namespace) -> int:
@@ -531,6 +546,7 @@ def cmd_run_loop(ctx: SquadContext, args: argparse.Namespace) -> int:
         task_timeout_sec=opts["task_timeout_sec"],
         stuck_policy=opts["stuck_policy"],
         once=args.once,
+        auto_exec=opts["auto_exec"],
     )
     store.export_json()
     if args.json:
@@ -546,7 +562,8 @@ def cmd_agent_team(ctx: SquadContext, args: argparse.Namespace) -> int:
     cmd_dispatch(ctx, argparse.Namespace(max_tasks=4, force=True, include_meta=True))
     poll = float(args.poll_interval if args.poll_interval is not None else 8.0)
     max_iter = int(args.max_iter if args.max_iter is not None else 500)
-    return spawn_agent_team(ctx, poll_sec=poll, max_iter=max_iter)
+    auto_exec = _resolve_auto_exec(ctx, args)
+    return spawn_agent_team(ctx, poll_sec=poll, max_iter=max_iter, auto_exec=auto_exec)
 
 
 def cmd_worker_tick(ctx: SquadContext, args: argparse.Namespace) -> int:

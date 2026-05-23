@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import subprocess
+import sys
 import time
 from datetime import datetime, timezone
 from typing import Any
@@ -64,12 +65,17 @@ def inflight_assignments(state: dict[str, Any]) -> bool:
 def team_ready_to_release(ctx: SquadContext, store: SquadStore) -> bool:
     state = store.load_snapshot()
     report, _ = run_assess(ctx, state)
-    if not report["ready"]:
+    if not report.get("ready"):
         return False
     if pending_any_tasks(ctx, store):
         return False
     if inflight_assignments(state):
         return False
+    # All catalog tasks must be terminal (done/failed/timeout), not only unassigned pending
+    for tid in ctx.tasks:
+        st = store.task_status(tid)
+        if st in ("pending", "assigned", "in_progress"):
+            return False
     return True
 
 
@@ -501,6 +507,7 @@ def run_member_loop(
     task_timeout_sec: float,
     stuck_policy: str,
     once: bool = False,
+    auto_exec: bool = False,
 ) -> tuple[str, int]:
     """
     Unified run-loop for every catalog role.
@@ -537,6 +544,17 @@ def run_member_loop(
 
         tick = member_tick(ctx, store, role, task_timeout_sec=task_timeout_sec)
         action = tick.get("action", "await_leader")
+
+        if auto_exec and action in ("claim", "work", "timeout"):
+            from .member_exec import execute_member_action
+
+            ex = execute_member_action(ctx, store, role, tick)
+            tick["auto_exec"] = ex
+            if ex.get("suggest_done"):
+                print(f"[{role}] {ex['suggest_done']}", file=sys.stderr)
+            if not ex.get("ok", True) and action != "await_leader":
+                store.export_json()
+                return OUTCOME_FAILED, 1
 
         if action == "stand_down":
             store.export_json()
@@ -575,10 +593,13 @@ def spawn_agent_team(
     *,
     poll_sec: float = 8.0,
     max_iter: int = 500,
+    auto_exec: bool = True,
 ) -> int:
     """Start tmux sessions — each runs the same `squad run-loop --role`."""
     root = ctx.project_root
     squad = root / "tools/squad/squad.sh"
+    cat_flag = f'--catalog "{ctx.catalog_path}"'
+    ae = " --auto-exec" if auto_exec else ""
     tmux = "tmux -f /exec-daemon/tmux.portal.conf"
     roles = ["commander", "engineer-a", "engineer-b", "reviewer"]
     for name in roles:
@@ -589,9 +610,10 @@ def spawn_agent_team(
             check=False,
         )
         cmd = (
-            f"cd {root!s} && {squad!s} resume --reason agent-team 2>/dev/null; "
-            f"{squad!s} dispatch --force --include-meta --max-tasks 4 2>/dev/null; "
-            f"{squad!s} run-loop --role {name} --max-iter {max_iter} --poll-interval {poll_sec}"
+            f"cd {root!s} && {squad!s} {cat_flag} resume --reason agent-team 2>/dev/null; "
+            f"{squad!s} {cat_flag} dispatch --force --include-meta --max-tasks 4 2>/dev/null; "
+            f"{squad!s} {cat_flag} run-loop --role {name} --max-iter {max_iter} "
+            f"--poll-interval {poll_sec}{ae}"
         )
         subprocess.run(
             [tmux, "new-session", "-d", "-s", session, "-c", str(root), "--", "bash", "-lc", cmd],

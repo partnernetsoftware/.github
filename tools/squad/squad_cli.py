@@ -169,12 +169,24 @@ def main() -> int:
     rl.add_argument("--task-timeout", type=float)
     rl.add_argument("--stuck-policy", choices=["fail", "timeout", "redispatch"])
     rl.add_argument("--once", action="store_true")
+    rl.add_argument(
+        "--auto-exec",
+        action=argparse.BooleanOptionalAction,
+        default=None,
+        help="Auto claim/verify on member tick (default: catalog supervisor.auto_exec)",
+    )
     rl.add_argument("--json", action="store_true")
     rl.set_defaults(func=cmd_run_loop)
 
     at = sub.add_parser("agent-team", help="Spawn tmux: 4x run-loop (same tool, different --role)")
     at.add_argument("--poll-interval", type=float, default=8.0)
     at.add_argument("--max-iter", type=int, default=500)
+    at.add_argument(
+        "--auto-exec",
+        action=argparse.BooleanOptionalAction,
+        default=None,
+        help="Pass --auto-exec to each run-loop",
+    )
     at.set_defaults(func=cmd_agent_team)
 
     args = p.parse_args()

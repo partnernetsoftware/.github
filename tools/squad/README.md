@@ -23,7 +23,10 @@ tools/squad/squad.sh run-loop --role engineer-b
 tools/squad/squad.sh run-loop --role reviewer
 
 # 并发小队（tmux 里跑 4 条相同的 run-loop，仅 --role 不同）
-tools/squad/squad.sh agent-team
+tools/squad/squad.sh agent-team --auto-exec
+
+# 队员自动 claim + verify（verify 持 flock，避免与 run.sh 竞写 evidence）
+tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v4.yaml run-loop --role engineer-a --auto-exec
 ```
 
 ### Leader 信号（`signals` 表 subject=`supervisor`）
@@ -48,7 +51,7 @@ tools/squad/squad.sh supervise --once    # 仅 leader 调试
 
 ## 配置
 
-项目根 `.squadrc.yaml` → `catalog.yaml`；`supervisor.team_mode: true`（默认）启用 leader/follower 分离。
+项目根 `.squadrc.yaml` → `catalog.yaml`；`supervisor.team_mode: true`（默认）启用 leader/follower 分离。`supervisor.auto_exec: true` 时 follower 在 tick 内自动 `claim`/`verify`（成功时 stderr 打印建议的 `done` 命令）；`verify` 使用 `.squad/verify.lock` 串行化。
 
 ## Cloud Agent 并行
 

@@ -14,8 +14,11 @@
 
 ```bash
 tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v4.yaml resume
-tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v4.yaml agent-team
+tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v4.yaml dispatch --force --include-meta
+tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v4.yaml agent-team --auto-exec
 ```
+
+**实践波次**（`wave-practice-*`）：验证 host squad 的 `--auto-exec` + `verify.lock` + 四角色 `run-loop`；终局仍由 catalog `signoff` 与 reviewer meta 任务收口。
 
 ## 证据
 

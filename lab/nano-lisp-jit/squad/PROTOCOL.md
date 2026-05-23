@@ -64,6 +64,7 @@ tools/squad/squad.sh agent-team                   # tmux 起 4 条 run-loop
 
 - **同一** `run-loop`，内部 `member_tick`；**禁止** 调用 `supervise`
 - 无任务时 `action=await_leader`，在 while 里 sleep，直到 `supervisor` 为 `complete|failed|timeout`
+- `supervisor.auto_exec: true`（或 CLI `--auto-exec`）：tick 内自动 `claim`、跑 `verify`（持 `.squad/verify.lock`）；verify 通过时 stderr 打印建议的 `done` 命令，不自动提交
 
 ### 信号（signals 表）
 
