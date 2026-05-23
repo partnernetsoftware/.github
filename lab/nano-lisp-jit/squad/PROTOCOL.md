@@ -9,6 +9,13 @@
 | 100% 靠 prose | 指挥长/审查员标准不一致 |
 | AI 读长文 | 信号噪声大 |
 
+## 演进笔记（非当下实现）
+
+当前 squad 是 **host 造工具**：Python（`squad_cli.py` / SQLite）+ shell（`squad.sh` / tmux）。  
+**终局**：nano lisp 工具链成熟后，用 **同一套 bootstrap / slice runner** 实现派单、锁、`run-loop` 与 leader 信号，**不再依赖** host Python/shell 编排层。v3.5 先用 host 工具验证协议；协议（catalog + signals + leader/follower）应保持稳定，便于移植到 `.lisp`。
+
+---
+
 ## 三层耦合（推荐）
 
 ```text

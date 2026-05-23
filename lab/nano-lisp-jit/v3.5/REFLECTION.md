@@ -20,6 +20,7 @@
 | **loader ≠ 纯 ELF** | v2 反思 | memfd+exec 路径；APE-v2 长期目标分层 | 边界探针 [`../../boundary-probes/`](../../boundary-probes/) 持续记账 |
 | **`build_nano_jit.sh` 与 `run.sh` 双矩阵** | v3 | 语义相近但计数独立，cloud 易只跑其一 | 反思轨：CI 模板要求两脚本都跑（已实践） |
 | **并行合并冲突热点** | v3/v3.5 | `nano_cc.c`、`run.sh`、`build_nano_jit.sh` | PARALLEL.md 已列；新 sample/新子命令优先减触碰 |
+| **Squad 编排依赖 Python + shell** | v3.5 小组 | `tools/squad/*.py`、`squad.sh`、`agent-team` 调 tmux | **v4+**：nano lisp 原生 `run-loop` / `dispatch` / SQLite 或 `.lbin` 状态机，替代 host Python；与「构建图解释器」同轨 |
 
 ---
 
