@@ -6,7 +6,8 @@
 |------|------|------|
 | **v3.5-scoped** | **已完成 · CLOSED** | `catalog.signoff.gates` 全绿；无新工程任务 |
 | **v3.5-terminal** | **已完成 · CLOSED** | wave-5 + `terminal_gates`；维护仅回归，不扩 scope |
-| **v4 slice-0** | **scoped 签收 · 完成** | `catalog-v4` `v4-slice0-scoped` assess 100%；真 AOT 归后续 slice |
+| **v4 slice-0** | **scoped 签收 · 完成** | `v4-slice0-scoped` |
+| **v4 slice-1** | **推进中** | `v4-slice1-scoped` — add7 + squad S1；见 [`../v4/SLICE1.md`](../v4/SLICE1.md) |
 
 ## 规则
 

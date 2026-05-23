@@ -71,7 +71,7 @@ static int build_slice_lisp_aarch64_profile_ok(const char *src_path, const char 
     if (blob) free(blob);
     return blob != NULL && compile_rc == 0;
   }
-  if (strcmp(base, "nano-jit-slice-add.lisp") == 0) {
+  if (strncmp(base, "nano-jit-slice-add", 18) == 0) {
     return strstr((const char *)src, "(func add") != NULL &&
            strstr((const char *)src, "(main") != NULL;
   }
@@ -110,7 +110,7 @@ static int cmd_build_slice_lisp_aarch64(const char *src_path, const char *out_pa
     fprintf(stderr, "build-slice-lisp=aarch64_unsupported_profile\n");
     return 2;
   }
-  if (strcmp(base, "nano-jit-slice-add.lisp") == 0) {
+  if (strncmp(base, "nano-jit-slice-add", 18) == 0) {
     int a = 0;
     int b = 0;
     if (!build_slice_lisp_parse_add_operands((const char *)src, src_n, &a, &b)) {

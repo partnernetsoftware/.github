@@ -74,6 +74,12 @@ BOOTSTRAP_V4_SQUAD_DISPATCH_SRC="$LAB_DIR/samples/bootstrap-v4-squad-dispatch.li
 BOOTSTRAP_V4_SQUAD_RUN_LOOP_ONCE_SRC="$LAB_DIR/samples/bootstrap-v4-squad-run-loop-once.lisp"
 BOOTSTRAP_V4_SLICE0_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v4-slice0-evidence.lisp"
 V4_SLICE0_EVIDENCE="$BUILD_DIR/v4-slice0.evidence"
+BOOTSTRAP_V4_SLICE1_ADD7_SRC="$LAB_DIR/samples/bootstrap-v4-slice1-add7.lisp"
+BOOTSTRAP_V4_SLICE1_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v4-slice1-evidence.lisp"
+BOOTSTRAP_V4_SQUAD_SIGNAL_SRC="$LAB_DIR/samples/bootstrap-v4-squad-signal.lisp"
+V4_AARCH64_SCOUT_ELF="$BUILD_DIR/bootstrap-v4-aarch64-add-scout.elf"
+V4_SLICE1_ADD7_ELF="$BUILD_DIR/bootstrap-v4-slice1-add7.elf"
+V4_SLICE1_EVIDENCE="$BUILD_DIR/v4-slice1.evidence"
 BOOTSTRAP_V35_NANO_CC_AARCH64_SRC="$LAB_DIR/samples/bootstrap-v35-nano-cc-aarch64.lisp"
 BOOTSTRAP_V35_BUILD_SLICE_AARCH64_SRC="$LAB_DIR/samples/bootstrap-v35-build-slice-aarch64.lisp"
 BOOTSTRAP_V35_BUILD_SLICE_LISP_AARCH64_SRC="$LAB_DIR/samples/bootstrap-v35-build-slice-lisp-aarch64.lisp"
@@ -1298,6 +1304,48 @@ run_case "run-bootstrap-v4-slice0-evidence-plan" bash -c '
     echo "v4.slice0_plan=run-bootstrap-v4-slice0-evidence-plan"
   } >> "'"$V4_SLICE0_EVIDENCE"'"
 '
+run_case "run-bootstrap-v4-slice1-add7-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE1_ADD7_SRC"'" 2>&1) || true
+  printf "%s\n" "$out"
+  printf "%s\n" "$out" | grep -q "aarch64.add=3+4"
+  test -f "'"$V4_SLICE1_ADD7_ELF"'"
+'
+run_case "run-bootstrap-v4-squad-signal-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SQUAD_SIGNAL_SRC"'" 2>&1) || true
+  printf "%s\n" "$out"
+  printf "%s\n" "$out" | grep -q "bootstrap-step.*=file"
+'
+run_case "run-bootstrap-v4-slice1-evidence-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE1_EVIDENCE_SRC"'" 2>&1) || true
+  printf "%s\n" "$out"
+  printf "%s\n" "$out" | grep -q "aarch64.add=3+4"
+  test -f "'"$V4_SLICE1_ADD7_ELF"'"
+  {
+    echo "v4.slice1=1"
+    echo "v4.slice1_add7=1"
+    echo "v4.slice1_plan=run-bootstrap-v4-slice1-evidence-plan"
+  } >> "'"$V4_SLICE1_EVIDENCE"'"
+'
+if has_qemu_aarch64 && [ -f "$V4_AARCH64_SCOUT_ELF" ]; then
+  run_case "qemu-aarch64-v4-scout-add-exit42" bash -c '
+    QEMU_AARCH64="$(command -v qemu-aarch64-static || command -v qemu-aarch64)"
+    rc=$("$QEMU_AARCH64" "'"$V4_AARCH64_SCOUT_ELF"'"; echo $?)
+    printf "qemu-aarch64.v4-scout.exit=%s\n" "$rc"
+    test "$rc" -eq 42
+  '
+else
+  skip_case "qemu-aarch64-v4-scout-add-exit42" "no qemu or v4 scout elf"
+fi
+if has_qemu_aarch64 && [ -f "$V4_SLICE1_ADD7_ELF" ]; then
+  run_case "qemu-aarch64-v4-slice1-add7-exit7" bash -c '
+    QEMU_AARCH64="$(command -v qemu-aarch64-static || command -v qemu-aarch64)"
+    rc=$("$QEMU_AARCH64" "'"$V4_SLICE1_ADD7_ELF"'"; echo $?)
+    printf "qemu-aarch64.v4-slice1-add7.exit=%s\n" "$rc"
+    test "$rc" -eq 7
+  '
+else
+  skip_case "qemu-aarch64-v4-slice1-add7-exit7" "no qemu or slice1 add7 elf"
+fi
 
 # --- bootstrap-v25 native selfpack (pack-ape per plan) ---
 V25_NATIVE_SELFPACK_COM="$NANO_JIT_COM"

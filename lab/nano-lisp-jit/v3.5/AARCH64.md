@@ -58,4 +58,15 @@ v3.5 **slice 4** evidence above stays frozen; v4 **slice-0** only adds a bootstr
 
 **Out of scope (v4 slice proper, see [`../v4/README.md`](../v4/README.md))**: aarch64 VM/AOT codegen from Lisp IR; nano-cc aarch64 arithmetic/multi-section; replacing add-emit stub with x86 compile-path cross codegen.
 
+## v4 slice-1（参数化 add-emit · scoped）
+
+| Artifact | Role |
+|----------|------|
+| `samples/nano-jit-slice-add-7.lisp` | 3+4→7，验证解析非固定立即数 |
+| `samples/bootstrap-v4-slice1-add7.lisp` | plan + `aarch64.add=3+4` 日志 |
+| `.build/bootstrap-v4-slice1-add7.elf` | emit 输出 |
+| `run.sh` | `run-bootstrap-v4-slice1-*`；可选 `qemu-aarch64-v4-slice1-add7-exit7` |
+
+见 [`../v4/SLICE1.md`](../v4/SLICE1.md)。仍 **非** VM/AOT。
+
 See also [`../v3/CODEGEN.md`](../v3/CODEGEN.md) genesis-pin policy and [`ERROR-CODES.md`](ERROR-CODES.md).
