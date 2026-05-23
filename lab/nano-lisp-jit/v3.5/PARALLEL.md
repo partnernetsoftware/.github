@@ -1,17 +1,18 @@
 # v3.5 parallel slices 1–6
 
-Slice **0** 已 **100%** 签收。wave2 并行 **1/4-build/6** 已合并 `main`（`nano-cc parse`、build-slice aarch64、genesis-shrink）。见 [`../ROADMAP.md`](../ROADMAP.md) v3.5 mindmap。
+Slice **0** 已 **100%** 签收。wave2 已合并 `main`；**wave3** 开发三轨 + **反思轨 R** 进行中。见 [`../ROADMAP.md`](../ROADMAP.md) v3.5 mindmap、[`REFLECTION.md`](REFLECTION.md)。
 
 ## 并行轨道
 
-| Track | Slice | 焦点 | 硬依赖 | 状态 |
-|-------|-------|------|--------|------|
-| A | 1 C-subset 前端 | `nano-cc parse` dump | slice 0 | **scoped** |
-| B | 2 x86_64 add | companion lisp + compile-elf64-exe | slice 0 | **100%** scoped |
-| C | 3 `build-slice` 切换 | `NANO_BUILD_SLICE_CODEGEN=1` | slice 2 add 路径 | **100%** scoped |
-| D | 4 aarch64 nano-cc | `NANO_CC_ARCH` + build-slice aarch64 | slice 0 hello | **scoped** |
-| E | 5 gen3 自举 | `bootstrap-v35-selfhost-gen3` | slice 3 | **100%** scoped |
-| F | 6 Genesis 收缩 | pin + `NANO_REGENESIS` | slice 5 | **~scoped kickoff** |
+| Track | 类型 | 焦点 | 状态 |
+|-------|------|------|------|
+| **R** | **反思**（不占开发名额） | 技术债 / 缺陷 / 底层实验 / P0–P3 | **持续** → [`REFLECTION.md`](REFLECTION.md) |
+| A | 开发 | slice 1 parse golden + 负向 | wave3 `slice1-golden` |
+| B | 开发 | slice 2 `compile-obj` + link | wave3 `slice2-emit` |
+| F | 开发 | slice 6 `audit_genesis_shrink.sh` | wave3 `slice6-ci` |
+| — | 已签收 | slice 0/3/5、add、build-slice、aarch64、genesis-shrink plan | **100%** / **scoped** |
+
+（开发轨同时最多 **3** 路；D/E/C 已合并 main，wave3 不再占槽。）
 
 ## 洋葱顺序（每条轨道内）
 

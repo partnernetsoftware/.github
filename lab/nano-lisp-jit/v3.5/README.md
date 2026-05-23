@@ -1,6 +1,6 @@
 # v3.5 — nano-cc 扩展
 
-**Status: slice 0–5 scoped + slice 4 aarch64** — v3 完全 100% 已签收。并行波次已合并，见 [`PARALLEL.md`](PARALLEL.md)。
+**Status: slice 0–5 scoped + wave3 进行中** — v3 完全 100% 已签收。并行见 [`PARALLEL.md`](PARALLEL.md)；反思见 [`REFLECTION.md`](REFLECTION.md)（技术债、实验、P0–P3）。
 
 | 切片 | 状态 | 说明 |
 |------|------|------|
