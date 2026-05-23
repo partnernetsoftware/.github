@@ -34,6 +34,7 @@
     "engineer-a",
     "engineer-b"
   ],
+  "halt_reason": "signoff_and_all_tasks_done",
   "last_assess": {
     "signoff_id": "v4-kickoff",
     "percent_auto": 100,
@@ -98,6 +99,5 @@
     "terminal": [],
     "manual": []
   },
-  "halt_reason": "signoff_and_all_tasks_done",
-  "updated_at": "2026-05-23T08:01:51.707983+00:00"
+  "updated_at": "2026-05-23T08:01:55.409655+00:00"
 }
