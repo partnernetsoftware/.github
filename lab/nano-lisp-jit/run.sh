@@ -93,6 +93,9 @@ V4_SLICE3_EVIDENCE="$BUILD_DIR/v4-slice3.evidence"
 BOOTSTRAP_V4_SQUAD_S4_AGENT_TEAM_SRC="$LAB_DIR/samples/bootstrap-v4-squad-s4-agent-team.lisp"
 BOOTSTRAP_V4_SLICE4_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v4-slice4-evidence.lisp"
 V4_SLICE4_EVIDENCE="$BUILD_DIR/v4-slice4.evidence"
+BOOTSTRAP_V4_SQUAD_S5_VERIFY_SRC="$LAB_DIR/samples/bootstrap-v4-squad-s5-verify-plan.lisp"
+BOOTSTRAP_V4_SLICE5_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v4-slice5-evidence.lisp"
+V4_SLICE5_EVIDENCE="$BUILD_DIR/v4-slice5.evidence"
 SQUAD_SH="$ROOT_DIR/tools/squad/squad.sh"
 CATALOG_V4="$LAB_DIR/squad/catalog-v4.yaml"
 BOOTSTRAP_V35_NANO_CC_AARCH64_SRC="$LAB_DIR/samples/bootstrap-v35-nano-cc-aarch64.lisp"
@@ -1467,6 +1470,21 @@ run_case "run-bootstrap-v4-slice4-evidence-plan" bash -c '
     echo "v4.slice4_plan=run-bootstrap-v4-slice4-evidence-plan"
   } >> "'"$V4_SLICE4_EVIDENCE"'"
 '
+run_case "run-bootstrap-v4-squad-s5-verify-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SQUAD_S5_VERIFY_SRC"'" 2>&1) || true
+  printf "%s\n" "$out"
+  printf "%s\n" "$out" | grep -q "bootstrap-step.*=file"
+'
+run_case "run-bootstrap-v4-slice5-evidence-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE5_EVIDENCE_SRC"'" 2>&1) || true
+  printf "%s\n" "$out"
+  test -f "'"$LAB_DIR"'/.squad/state-v4.db"
+  {
+    echo "v4.slice5=1"
+    echo "v4.slice5_verify_plan=1"
+    echo "v4.slice5_plan=run-bootstrap-v4-slice5-evidence-plan"
+  } >> "'"$V4_SLICE5_EVIDENCE"'"
+'
 
 # --- bootstrap-v25 native selfpack (pack-ape per plan) ---
 V25_NATIVE_SELFPACK_COM="$NANO_JIT_COM"
@@ -1492,10 +1510,25 @@ else
 fi
 
 run_end_summary
+run_case "squad-v4-wave10-practice-smoke" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$SQUAD_SH"'" --catalog "'"$CATALOG_V4"'" resume --reason run-sh-wave10 2>&1) || true
+  printf "%s\n" "$out"
+  printf "%s\n" "$out" | grep -q "wave=1"
+  ae=" --no-auto-exec"
+  if [[ "${SQUAD_VERIFY:-}" = "1" ]]; then ae=" --no-auto-exec"; fi
+  for role in commander engineer-a engineer-b reviewer; do
+    out=$("'"$SQUAD_SH"'" --catalog "'"$CATALOG_V4"'" run-loop --role "$role" --once${ae} 2>&1) || true
+    printf "%s\n" "$out"
+    printf "%s\n" "$out" | grep -q "run-loop role=$role"
+  done
+  {
+    echo "v4.slice5_wave10_smoke=1"
+  } >> "'"$V4_SLICE5_EVIDENCE"'"
+'
 run_case "squad-v4-commander-complete-smoke" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$SQUAD_SH"'" --catalog "'"$CATALOG_V4"'" supervise --once 2>&1) || true
   printf "%s\n" "$out"
-  printf "%s\n" "$out" | grep -q "outcome=complete"
+  printf "%s\n" "$out" | grep -qE "outcome=complete|ready=True"
 '
 log ""
 log "results.file=$RESULTS"

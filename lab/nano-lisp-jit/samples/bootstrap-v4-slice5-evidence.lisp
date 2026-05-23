@@ -1,0 +1,6 @@
+; v4 slice-5 scoped evidence: S5 verify plan + add7 regression anchor + slice-4 squad anchor.
+(bootstrap
+  (file-size "lab/nano-lisp-jit/samples/bootstrap-v4-squad-s5-verify-plan.lisp")
+  (file-size "lab/nano-lisp-jit/v4/SLICE5.md")
+  (file-hash "lab/nano-lisp-jit/.build/bootstrap-v4-slice1-add7.elf")
+  (file-size "lab/nano-lisp-jit/.build/v4-slice4.evidence"))

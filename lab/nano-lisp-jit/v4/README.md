@@ -20,7 +20,7 @@ tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v4.yaml dispatch 
 tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v4.yaml agent-team --auto-exec
 ```
 
-**签收**：slice-0..4 已完成（**`v4-slice4-scoped`** — S4 agent-team + commander complete smoke）— 见 [`SLICE4.md`](SLICE4.md)；S3 见 [`SLICE3.md`](SLICE3.md)。
+**签收**：slice-0..5 已完成（**`v4-slice5-scoped`** — S5 工单内嵌 verify plan）— 见 [`SLICE5.md`](SLICE5.md)；S4 见 [`SLICE4.md`](SLICE4.md)。
 
 ```bash
 tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v4.yaml agent-team --auto-exec --auto-done
@@ -104,6 +104,7 @@ slice S5 — 与构建图合一
 | `samples/bootstrap-v4-squad-s3-supervise-once.lisp` | **S3**：leader 单 tick |
 | `samples/bootstrap-v4-squad-s3-member-once.lisp` | **S3**：follower 单 tick |
 | `samples/bootstrap-v4-squad-s4-agent-team.lisp` | **S4**：agent-team 契约 |
+| `samples/bootstrap-v4-squad-s5-verify-plan.lisp` | **S5**：verify-before-done 样本 |
 
 首波 **不实现** SQLite FFI；S0–S1 用 checked-in plan + 现有 runner 断言 stdout/exit，与 [`bootstrap-v4-kickoff.lisp`](../samples/bootstrap-v4-kickoff.lisp) 同模式。
 

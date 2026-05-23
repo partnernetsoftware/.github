@@ -27,6 +27,9 @@ tools/squad/squad.sh agent-team --auto-exec
 
 # 队员自动 claim + verify（verify 持 flock，避免与 run.sh 竞写 evidence）
 tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v4.yaml run-loop --role engineer-a --auto-exec --auto-done
+
+# run.sh 内嵌 squad 门禁时设 SQUAD_VERIFY=1：verify 走 catalog verify，run-loop --once 加 --no-auto-exec 防嵌套
+SQUAD_VERIFY=1 lab/nano-lisp-jit/run.sh
 ```
 
 `run-loop` 正常退出仅 **`complete` | `failed` | `timeout`**；迭代用尽 → `timeout`。

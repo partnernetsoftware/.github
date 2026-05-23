@@ -115,6 +115,7 @@ P3（架构债，v4）
 
 | 日期 | 摘要 |
 |------|------|
+| 2026-05-23 | **wave10-v4-R**：`v4-slice5-scoped` — S5 verify plan + add7 回归锚点；`squad-v4-wave10-practice-smoke` 四角色 `--once` |
 | 2026-05-23 | **wave9-v4-R**：`v4-slice4-scoped` — S4 `agent-team` 样本 + `squad-v4-commander-complete-smoke`；follower `team_ready` 即 `stand_down`（不绑 `standby`）；`leader_signal` 空值默认 `running` |
 | 2026-05-23 | **wave8-v4-R**：`v4-slice3-scoped` **scoped 签收维持** — squad 防卡住（`resume` epoch++ 重置 wave=1、`idle_waves_max`、signoff ready 时 `team_ready` complete、claim `wait_lock`）；`run.sh squad-v4-resume-resets-wave` smoke + agent-team 四角色流程文档；reviewer `--auto-exec` 279 pass assess **100%** ready |
 | 2026-05-23 | **wave7-v4-R**：`v4-slice3-scoped` **scoped 签收** — squad S3 once tick（`squad-v4-supervise-once` + `run-loop-engineer-once` + `run-loop-reviewer-once`）+ `bootstrap-v4-squad-s3-*-once.lisp` + `.build/v4-slice3.evidence`；reviewer `--auto-exec` 278 pass assess **100%** ready；[`v4/README.md`](../v4/README.md) 记 slice-3 完成 |
