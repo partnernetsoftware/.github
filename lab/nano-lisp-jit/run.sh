@@ -167,6 +167,13 @@ BOOTSTRAP_V4_ASSESS_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v4-assess-evidence-
 BOOTSTRAP_V4_SLICE28_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v4-slice28-evidence.lisp"
 V4_SLICE28_ADD23_ELF="$BUILD_DIR/bootstrap-v4-slice28-add23.elf"
 V4_SLICE28_EVIDENCE="$BUILD_DIR/v4-slice28.evidence"
+BOOTSTRAP_V4_WAVE29_DIFFUSION_SRC="$LAB_DIR/samples/bootstrap-v4-wave29-diffusion.lisp"
+BOOTSTRAP_V4_SQUAD_FOUR_ROLES_SRC="$LAB_DIR/samples/bootstrap-v4-squad-four-roles.lisp"
+BOOTSTRAP_V4_BUILD_GATES_PLAN_SRC="$LAB_DIR/samples/bootstrap-v4-build-gates-plan.lisp"
+BOOTSTRAP_V4_PLAN_MANIFEST_ANCHOR_SRC="$LAB_DIR/samples/bootstrap-v4-plan-manifest-anchor.lisp"
+BOOTSTRAP_V4_SLICE29_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v4-slice29-evidence.lisp"
+V4_SLICE29_ADD24_ELF="$BUILD_DIR/bootstrap-v4-slice29-add24.elf"
+V4_SLICE29_EVIDENCE="$BUILD_DIR/v4-slice29.evidence"
 SQUAD_SH="$ROOT_DIR/tools/squad/squad.sh"
 CATALOG_V4="$LAB_DIR/squad/catalog-v4.yaml"
 BOOTSTRAP_V35_NANO_CC_AARCH64_SRC="$LAB_DIR/samples/bootstrap-v35-nano-cc-aarch64.lisp"
@@ -1819,6 +1826,43 @@ run_case "run-bootstrap-v4-slice28-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE28_EVIDENCE_SRC"'" 2>&1) || true
   test -f "'"$LAB_DIR"'/v4/SLICE28.md"
   { echo "v4.slice28=1"; } >> "'"$V4_SLICE28_EVIDENCE"'"
+'
+
+run_case "run-bootstrap-v4-wave29-diffusion-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && test -f "'"$BOOTSTRAP_REPORT"'"
+  test -f "'"$LAB_DIR"'/.build/results.txt"
+  out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE29_DIFFUSION_SRC"'" 2>&1) || true
+  printf "%s
+" "$out" | grep -q "aarch64.emit.ir.table.verified=plan-lisp-v1-full"
+  printf "%s
+" "$out" | grep -q "results-min.key=tests.pass"
+  test -f "'"$V4_SLICE29_ADD24_ELF"'"
+'
+
+run_case "run-bootstrap-v4-squad-four-roles-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SQUAD_FOUR_ROLES_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/samples/bootstrap-v4-squad-s4-agent-team.lisp"
+'
+
+run_case "run-bootstrap-v4-build-gates-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && test -f "'"$BOOTSTRAP_REPORT"'"
+  test -f "'"$LAB_DIR"'/.build/results.txt"
+  out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_BUILD_GATES_PLAN_SRC"'" 2>&1) || true
+  printf "%s
+" "$out" | grep -q "results-min.key=build.pass"
+  printf "%s
+" "$out" | grep -q "results-min.key=tests.pass"
+'
+
+run_case "run-bootstrap-v4-plan-manifest-anchor-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_PLAN_MANIFEST_ANCHOR_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/samples/v4-plan-manifest-v1.lisp"
+'
+
+run_case "run-bootstrap-v4-slice29-evidence-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE29_EVIDENCE_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/SLICE29.md"
+  { echo "v4.slice29=1"; } >> "'"$V4_SLICE29_EVIDENCE"'"
 '
 
 run_case "run-bootstrap-v4-slice16-plan-words-plan" bash -c '

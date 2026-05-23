@@ -5,11 +5,11 @@
 
 | 维度 | 终局目标 | 当前 | 粗估 |
 |------|----------|------|------|
-| Plan（bootstrap 无 .c 源） | 全 plan 无 .c | ✅ gate 常绿 | **~90%** |
+| Plan（bootstrap 无 .c 源） | 全 plan 无 .c + manifest | ✅ gate 常绿 | **~92%** |
 | Runner | Lisp 执行 plan | C `nano-lisp-jit` | **~5%** |
 | Codegen | Lisp IR 整表 → blob | stub 读五 op `plan-lisp-v1-full` | **~28%** |
-| 编排 | Lisp `(squad-*)` | assess + 编排束 plan | **~20%** |
-| 构建 | plan 内 build 图 | wave27 图 + results-min | **~32%** |
+| 编排 | Lisp `(squad-*)` | assess + 编排束 plan | **~22%** |
+| 构建 | plan 内 build 图 | wave27 图 + results-min | **~35%** |
 | 自举 | `.com` 生成下一代 | 未开卷 | **~0%** |
 
 **整体终局**：约 **15–22%**（wave27 见 [`EVAL.md`](EVAL.md)）（外圈证据满 ≠ 内圈替换完成）。

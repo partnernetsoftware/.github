@@ -337,7 +337,7 @@ static int cmd_build_slice_lisp_aarch64(const char *src_path, const char *out_pa
     printf("aarch64.emit.ir.entry=v1\n");
     printf("aarch64.emit.ir.table.entries=%d\n", 5);
     printf("aarch64.emit.manifest=add-exit-v1\n");
-    if (strstr(base, "add-22") || strstr(base, "add-23")) {
+    if (strstr(base, "add-22") || strstr(base, "add-23") || strstr(base, "add-24")) {
       printf("aarch64.emit.ir.table.source=plan-lisp-v1-full\n");
       printf("aarch64.emit.ir.table.version=v7\n");
     } else if (strstr(base, "add-21")) {

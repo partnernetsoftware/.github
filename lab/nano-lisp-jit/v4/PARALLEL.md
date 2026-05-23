@@ -34,13 +34,13 @@
 
 `catalog-v4.yaml`：`signoff.id=v4-complete`；`v35-regression-*` 在 `terminal_gates`。
 
-## 多轨并行（每波 ≥2 工程兵 + reviewer）
+## 多轨并行（每波 **≤4** 工作并发 + reviewer）
 
 ```text
 轨 A · codegen/契约  engineer-a  → ir-table/words + 样本族 +（若开卷）stub 读表
 轨 B · 编排/plan     engineer-b  → bootstrap 图 + squad-* + v4/*.md
-轨 C · 构建/门禁     （可选）    → run.sh + catalog gates 批量
-轨 R · 签收          reviewer    → 一次 run.sh → assess → sync-md
+轨 C · 构建/门禁     engineer-b  → results-min 双门禁 + build 样本
+轨 D · 契约/签收     reviewer    → manifest + EVAL + 一次 run.sh → assess
 ```
 
 **禁止**：两轨同改 `run.sh` 同一 case 块；新 case 由收敛轮统一追加。
@@ -65,3 +65,14 @@ tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v4.yaml dispatch 
 | 构建 | `results-min` + build 步骤进同一 plan | `build.pass≥26` |
 
 wave24–26 已签收；后续按上表 **一波扩散**，不再「svc0 一刀、assess 一刀」。
+
+## wave29（四轨模板 · 已跑）
+
+| 轨 | 并发槽 | 交付 |
+|----|--------|------|
+| A | 1 | manifest + wave29-diffusion + add24 |
+| B | 1 | squad-four-roles |
+| C | 1 | build-gates-plan（tests.pass + build.pass） |
+| D | 1 | plan-manifest-anchor + SLICE29 |
+
+**禁止** 同波开 >4 个互斥 `touch_paths` 争用 `nano_bootstrap.c` 同一函数（分轨文件域）。

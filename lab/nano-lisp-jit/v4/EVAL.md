@@ -41,3 +41,15 @@
 | 构建 | build-graph-full（plan 多锚点） |
 
 **终局整体**：仍约 **15–22%**；见 [`PROGRESS.md`](PROGRESS.md)。
+
+## wave29（四轨扩散 · ≤4 并发）
+
+| 维度 | wave29 后 | 说明 |
+|------|-----------|------|
+| Plan | ~92% | `v4-plan-manifest-v1.lisp` 契约清单 |
+| Codegen | ~28% | add24 复用 verified 整表 |
+| 编排 | ~22% | 四角色 squad 锚点 plan |
+| 构建 | ~35% | plan 内 `tests.pass` + `build.pass` 双 results-min |
+| 终局整体 | **15–22%** | catalog ready ≠ 零宿主 |
+
+**并发上限**：四轨 = A/B/C/D 各一工作面（对应 squad 四角色规模），单波一次收敛。

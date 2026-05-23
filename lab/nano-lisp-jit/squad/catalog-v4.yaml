@@ -437,6 +437,33 @@ signoff:
       results_key: v4.slice28
       min_pass: 1
 
+    - id: v4-plan-manifest-v1
+      check: artifact
+      path_glob: "samples/v4-plan-manifest-v1.lisp"
+    - id: v4-slice29-doc
+      check: artifact
+      path_glob: "v4/SLICE29.md"
+    - id: v4-wave29-diffusion-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v4-wave29-diffusion.lisp"
+    - id: v4-slice29-add24-elf
+      check: artifact
+      path_glob: ".build/bootstrap-v4-slice29-add24.elf"
+    - id: v4-squad-four-roles-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v4-squad-four-roles.lisp"
+    - id: v4-build-gates-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v4-build-gates-plan.lisp"
+    - id: v4-plan-manifest-anchor-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v4-plan-manifest-anchor.lisp"
+    - id: v4-slice29-evidence
+      check: results
+      file: ".build/v4-slice29.evidence"
+      results_key: v4.slice29
+      min_pass: 1
+
   terminal_gates:
     - id: v35-regression-run
       check: results
@@ -1246,6 +1273,54 @@ tasks:
     depends: [wave28-v4-diffusion, wave28-v4-orchestration]
     accept:
       - "REFLECTION wave27-28"
+      - "assess v4-complete ready"
+
+
+  wave29-v4-track-a-codegen:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "samples/v4-plan-manifest-v1.lisp"
+      - "samples/bootstrap-v4-wave29-diffusion.lisp"
+      - "samples/nano-jit-slice-add-24.lisp"
+      - ".build/v4-slice29.evidence"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-wave29-diffusion-plan"
+      - "results-min.key=tests.pass"
+  wave29-v4-track-b-orchestration:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v4-squad-four-roles.lisp"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-squad-four-roles-plan"
+  wave29-v4-track-c-build:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v4-build-gates-plan.lisp"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-build-gates-plan"
+  wave29-v4-track-d-manifest:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v4-plan-manifest-anchor.lisp"
+      - "v4/EVAL.md"
+      - "v4/SLICE29.md"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-plan-manifest-anchor-plan"
+      - "run-bootstrap-v4-slice29-evidence-plan"
+  wave29-v4-R:
+    assign_role: reviewer
+    priority: meta
+    depends: [wave29-v4-track-a-codegen, wave29-v4-track-b-orchestration, wave29-v4-track-c-build, wave29-v4-track-d-manifest]
+    accept:
+      - "v4/EVAL.md wave29"
       - "assess v4-complete ready"
 
 
