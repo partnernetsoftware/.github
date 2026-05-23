@@ -11,5 +11,5 @@ echo "squad-parallel: resume reason=$REASON catalog=$CATALOG"
 "$SQUAD" --catalog "$CATALOG" resume --reason "$REASON"
 "$SQUAD" --catalog "$CATALOG" dispatch --force --include-meta
 echo "squad-parallel: starting agent-team (tmux: squad-commander, squad-engineer-a, ...)"
-"$SQUAD" --catalog "$CATALOG" agent-team --auto-exec --auto-done --max-iter 40 --poll-interval 4
+"$SQUAD" --catalog "$CATALOG" agent-team --auto-exec --auto-done --max-iter 500 --poll-interval 2
 echo "squad-parallel: agent-team launched; poll with scripts/poll-tasks.sh"

@@ -26,6 +26,18 @@ paths:
 5. **不要提交** `.squad/*.db`、`verify.lock`、本地漂移的 `state.json`；可提交 `sync-md` 生成的 `v4/SQUAD.md`。
 6. **`auto-exec` 会跑 catalog.verify（常为全量 `run.sh`）**：实现前先本地绿；CI/门禁用 `SQUAD_VERIFY=1`；嵌套 smoke 用 `run-loop --once --no-auto-exec`。
 
+## 提速（觉得 agent-team 太慢时）
+
+**根因**：`agent-team` 的 tmux 里只有 `squad run-loop`（Python 状态机），**不会自动写代码**；`auto-exec` 在 `in_progress` 时每轮打全量 `run.sh`（~15s+）且 `verify.lock` 串行 → 空转极慢。
+
+| 模式 | 何时用 | 做法 |
+|------|--------|------|
+| **快路径（推荐单 Cloud Agent）** | 本波 1–3 个实现任务 | `resume` → `dispatch` → **你改代码** → 本地 `run.sh` 一次 → `done` / `assess`；**不要**只起 `agent-team` 干等 |
+| **四路真并行** | 已开 4 个 Agent，各绑 `--role` | 每路 Agent 自己 `run-loop --role …`（或 tmux），**实现完再**让 tick 跑到 verify |
+| **agent-team** | 要盯状态机 + 自动 claim/done | `poll-interval 2`、`max-iter 500`（见 `run-wave.sh`）；`touch_paths` 未落盘时会 **defer_verify**（不再狂跑 run.sh） |
+
+catalog 默认 `poll_interval_sec: 3`（勿再用 15）。波末仍须 **一次** 全量 `run.sh` 写 `tests.pass` 再 `assess`。
+
 ## 标准波次（Agent 执行）
 
 从仓库根 `/workspace`（或项目根）：

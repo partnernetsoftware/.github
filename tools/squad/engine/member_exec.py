@@ -69,10 +69,23 @@ def execute_member_action(
         return result
 
     if action == "work" and tid and auto_verify:
+        global _last_verify_fail_at
+        ready, why = _touch_paths_ready(ctx, spec)
+        if not ready:
+            result["executed"] = "defer_verify"
+            result["detail"] = why
+            return result
+        cooling, left = _verify_cooldown_active()
+        if cooling:
+            result["executed"] = "defer_verify"
+            result["detail"] = f"verify cooldown {left:.0f}s"
+            return result
         code = _run_verify(ctx, quick=True)
         result["executed"] = "verify"
         result["ok"] = code == 0
         result["detail"] = f"verify exit={code}"
+        if code != 0:
+            _last_verify_fail_at = time.time()
         if result["ok"]:
             commit = _git_short_commit(ctx.project_root)
             touch = list(spec.get("touch_paths") or [])
