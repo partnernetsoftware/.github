@@ -132,3 +132,4 @@ P3（架构债，v4）
 | 2026-05-23 | **wave-practice-R1**：v4 `wave-practice-*` 验证 `--auto-exec` + `verify.lock` + follower `run-loop`（POSTMORTEM Q7–Q8 短程闭环）；assess v4-kickoff **100%** ready |
 | 2026-05-23 | **wave2-v4-R**：v4 `run-loop` 三态退出（complete/failed/timeout）+ `auto_done` + `bootstrap-v4-squad-assess.lisp` S0；reviewer `--auto-exec` 259 pass assess **100%** ready |
 | 2026-05-23 | **wave3-v4-R**：`v4-slice0-scoped` **scoped 签收** — S0–S3 样本（dispatch/run-loop-once/slice0-evidence）+ `.build/v4-slice0.evidence`；assess **100%** ready；[`v4/README.md`](../v4/README.md) 记 slice-0 完成 |
+| 2026-05-23 | **wave4-v4-R**：`v4-slice1-scoped` **scoped 签收** — add7 参数化 aarch64（`bootstrap-v4-slice1-add7.lisp` + `.build/v4-slice1.evidence`）+ `bootstrap-v4-squad-signal.lisp` S1；reviewer `--auto-exec` 267 pass assess **100%** ready；[`v4/README.md`](../v4/README.md) 记 slice-1 完成 |

@@ -18,7 +18,7 @@ tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v4.yaml dispatch 
 tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v4.yaml agent-team --auto-exec
 ```
 
-**签收**：`v4-slice0-scoped` 已完成；当前波次 **`v4-slice1-scoped`**（参数化 aarch64 add-emit + S1 signal 样本）— 见 [`SLICE1.md`](SLICE1.md)。
+**签收**：`v4-slice0-scoped` 已完成；`v4-slice1-scoped` **已完成**（参数化 aarch64 add-emit + S1 signal 样本）— 见 [`SLICE1.md`](SLICE1.md)。
 
 **小队**：四角色固定进程 — `agent-team --auto-exec --auto-done`（一进程一角色，保持上下文稳定）。
 

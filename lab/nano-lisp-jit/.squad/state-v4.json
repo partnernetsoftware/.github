@@ -1,7 +1,7 @@
 {
   "version": 2,
   "apiVersion": "squad-state/v2",
-  "wave": 45,
+  "wave": 50,
   "signoff_percent": 100,
   "halt": true,
   "assignments": {
@@ -70,6 +70,21 @@
       "status": "done",
       "assign_role": "reviewer",
       "commit": "56788ff"
+    },
+    "wave4-v4-squad-signal": {
+      "status": "done",
+      "assign_role": "engineer-b",
+      "commit": "ece6998"
+    },
+    "wave4-v4-slice1-add7": {
+      "status": "done",
+      "assign_role": "engineer-a",
+      "commit": "ece6998"
+    },
+    "wave4-v4-R": {
+      "status": "done",
+      "assign_role": "reviewer",
+      "commit": "ece6998"
     }
   },
   "findings": [],
@@ -79,8 +94,9 @@
     "engineer-a",
     "engineer-b"
   ],
+  "halt_reason": "signoff_and_all_tasks_done",
   "last_assess": {
-    "signoff_id": "v4-slice0-scoped",
+    "signoff_id": "v4-slice1-scoped",
     "percent_auto": 100,
     "percent_scoped": 100,
     "percent_terminal": 100,
@@ -92,7 +108,7 @@
       {
         "id": "v35-regression-run",
         "ok": true,
-        "detail": "results.txt val=262 need>=257",
+        "detail": "results.txt val=267 need>=257",
         "manual": false
       },
       {
@@ -135,6 +151,36 @@
         "id": "v4-slice0-evidence",
         "ok": true,
         "detail": "v4-slice0.evidence val=1 need>=1",
+        "manual": false
+      },
+      {
+        "id": "v4-slice1-add7-elf",
+        "ok": true,
+        "detail": ".build/bootstrap-v4-slice1-add7.elf",
+        "manual": false
+      },
+      {
+        "id": "v4-slice1-add7-plan",
+        "ok": true,
+        "detail": "samples/bootstrap-v4-slice1-add7.lisp",
+        "manual": false
+      },
+      {
+        "id": "v4-squad-signal-plan",
+        "ok": true,
+        "detail": "samples/bootstrap-v4-squad-signal.lisp",
+        "manual": false
+      },
+      {
+        "id": "v4-slice1-doc",
+        "ok": true,
+        "detail": "v4/SLICE1.md",
+        "manual": false
+      },
+      {
+        "id": "v4-slice1-evidence",
+        "ok": true,
+        "detail": "v4-slice1.evidence val=1 need>=1",
         "manual": false
       }
     ],
@@ -142,7 +188,7 @@
       {
         "id": "v35-regression-run",
         "ok": true,
-        "detail": "results.txt val=262 need>=257",
+        "detail": "results.txt val=267 need>=257",
         "manual": false
       },
       {
@@ -186,11 +232,40 @@
         "ok": true,
         "detail": "v4-slice0.evidence val=1 need>=1",
         "manual": false
+      },
+      {
+        "id": "v4-slice1-add7-elf",
+        "ok": true,
+        "detail": ".build/bootstrap-v4-slice1-add7.elf",
+        "manual": false
+      },
+      {
+        "id": "v4-slice1-add7-plan",
+        "ok": true,
+        "detail": "samples/bootstrap-v4-slice1-add7.lisp",
+        "manual": false
+      },
+      {
+        "id": "v4-squad-signal-plan",
+        "ok": true,
+        "detail": "samples/bootstrap-v4-squad-signal.lisp",
+        "manual": false
+      },
+      {
+        "id": "v4-slice1-doc",
+        "ok": true,
+        "detail": "v4/SLICE1.md",
+        "manual": false
+      },
+      {
+        "id": "v4-slice1-evidence",
+        "ok": true,
+        "detail": "v4-slice1.evidence val=1 need>=1",
+        "manual": false
       }
     ],
     "terminal": [],
     "manual": []
   },
-  "halt_reason": "signoff_and_all_tasks_done",
-  "updated_at": "2026-05-23T08:48:42.934591+00:00"
+  "updated_at": "2026-05-23T08:54:04.065869+00:00"
 }

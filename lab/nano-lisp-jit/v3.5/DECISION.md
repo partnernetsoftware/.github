@@ -7,7 +7,7 @@
 | **v3.5-scoped** | **已完成 · CLOSED** | `catalog.signoff.gates` 全绿；无新工程任务 |
 | **v3.5-terminal** | **已完成 · CLOSED** | wave-5 + `terminal_gates`；维护仅回归，不扩 scope |
 | **v4 slice-0** | **scoped 签收 · 完成** | `v4-slice0-scoped` |
-| **v4 slice-1** | **推进中** | `v4-slice1-scoped` — add7 + squad S1；见 [`../v4/SLICE1.md`](../v4/SLICE1.md) |
+| **v4 slice-1** | **scoped 签收 · 完成** | `v4-slice1-scoped` assess 100%；见 [`../v4/SLICE1.md`](../v4/SLICE1.md) |
 
 ## 规则
 
@@ -27,5 +27,5 @@ assess.ready（scoped ∧ terminal）            → v3.5 全线完成 → 小�
 ## 当前动作（wave-5 后）
 
 - v3.5：**CLOSED** — 不再开 squad 工程波次；`assess` 仅作回归哨兵。
-- v4 slice-0：`agent-team --auto-exec --auto-done` 完成 S0–S3 样本 + `v4-slice0.evidence` 后 **scoped 签收**。
+- v4 slice-0/1：**scoped 签收完成**；下一波 **slice-2**（VM/AOT 或 Lisp squad S2+）再开 catalog 任务。
 - squad **wave2**：`run-loop` 仅 `complete|failed|timeout` 解散；`auto_done` 闭环工单（见 `squad/PROTOCOL.md`）
