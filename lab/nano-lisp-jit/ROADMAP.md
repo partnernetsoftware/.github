@@ -386,6 +386,51 @@ v3.5: nano-cc（nano-jit 作为 cc 编译器）
 
 **v3.5 整体**：**~100%** — squad signoff 全绿（254 run / 119 build；`v35-signoff.evidence` aarch64-add-emit + gen5-via-gen2）。见 [`v3.5/README.md`](v3.5/README.md)。
 
+### v4 洋葱 TDD mindmap（kickoff · wave-v4）
+
+v3.5 **scoped + terminal** 已签收（见 [`v3.5/DECISION.md`](v3.5/DECISION.md)）。**v4** 并行两轨：**slice**（真 aarch64 VM/AOT codegen）与 **编排**（bootstrap 内 squad 状态机，替代 host Python）。
+
+```text
+v4: 终局切片 + 产品轨（catalog-v4.yaml）
+├─ 前置（v3.5 冻结）
+│  ├─ v35-regression：run.sh ≥257 / build ≥119
+│  ├─ gen5 dual-arch Lisp pack；aarch64-add-emit stub（v3.5 slice 4 证据）
+│  └─ host squad：tools/squad/*.py 验证 catalog + run-loop 协议
+├─ 目标
+│  ├─ slice：aarch64 VM/AOT 真 codegen（非 add-emit 硬编码）
+│  ├─ 编排：`(squad-* …)` bootstrap 子命令替代 Python dispatch/supervise
+│  └─ 产品：NDTSV / SQL / qjs 探路（文档轨，非本波实现）
+├─ 小组模式（[`v4/SQUAD.md`](v4/SQUAD.md) · catalog-v4 · **kickoff**）
+│  ├─ **A** `v4-aarch64-aot-plan` — **完成** `cd88032`：AARCH64 § v4 slice-0 scout；`bootstrap-v4-aarch64-aot-plan.lisp`
+│  ├─ **B** `v4-squad-lisp-sketch` — **完成** `e371c01`：v4/README Lisp 编排草图（S0–S5）；PROTOCOL 演进链接
+│  └─ **R** `wave-v4-R0` — ROADMAP v4 节点；assess v4-kickoff ready → board sync
+├─ slice-0: aarch64 AOT plan scout（**kickoff** · 复用 v3.5 stub）
+│  ├─ sample：`bootstrap-v4-aarch64-aot-plan.lisp` → `aarch64-add-emit` on `nano-jit-slice-add.lisp`
+│  ├─ 证据：`run.sh` `run-bootstrap-v4-aarch64-aot-plan`；file-size/hash
+│  └─ 非目标：VM/AOT aarch64 codegen；x86 compile-path cross codegen
+├─ slice S0–S5: Lisp squad 编排（**草图** · 见 [`v4/README.md`](v4/README.md)）
+│  ├─ S0：`(squad-assess …)` 只读门禁
+│  ├─ S1–S2：signals + state.db（dispatch/claim）
+│  ├─ S3–S4：`run-loop` leader/follower 单 tick → 完整循环
+│  └─ S5：工单内嵌 verify plan + `(squad-done …)`
+└─ 验收（v4 kickoff wave）
+   ├─ `catalog-v4.yaml` signoff 全绿（v35 回归 + v4 README + kickoff plan）
+   ├─ `run.sh` / `build_nano_jit.sh` 不退化
+   └─ 新样本只增 `samples/bootstrap-v4-*.lisp`
+```
+
+### v4 完成度（工程向 · kickoff）
+
+| 切片 | 状态 | 说明 |
+|------|------|------|
+| kickoff 门禁 | **100%** | v35-regression + `v4/README.md` + `bootstrap-v4-kickoff.lisp` |
+| slice-0 aarch64 scout | **kickoff** | `bootstrap-v4-aarch64-aot-plan.lisp`；[`v3.5/AARCH64.md`](v3.5/AARCH64.md) § v4 slice-0 |
+| Lisp squad 草图 | **kickoff** | [`v4/README.md`](v4/README.md) S0–S5 映射；host Python 仍为真相源 |
+| 真 aarch64 VM/AOT | **pending** | v4 slice proper；非 add-emit stub |
+| Lisp `run-loop` 实现 | **pending** | S0 样本尚未入库 |
+
+**v4 整体**：**kickoff** — wave-v4-R0 签收；assess v4-kickoff ready。见 [`v4/README.md`](v4/README.md)、[`v3.5/DECISION.md`](v3.5/DECISION.md)。
+
 ### 0. 证据基线
 
 - `run.sh`：native 编译、`.lisp -> .lbin`、JIT/FFI 执行、全量 libc resolver。
@@ -436,15 +481,16 @@ v3.5: nano-cc（nano-jit 作为 cc 编译器）
 
 ## 当前下一刀
 
-**稳定基线**：v3 core + 编排 + 4b-1/4b-2 证据全绿（`run.sh` 216 pass；`build_nano_jit.sh` 107 pass）。
+**稳定基线**：v3.5 **~100%** 签收（`run.sh` ≥257 pass；`build_nano_jit.sh` ≥119 pass）；v4 kickoff catalog 全绿。
 
-**当前下一刀（v3.5 并行）**：
+**当前下一刀（v4 kickoff）**：
 
-1. 六轨并行：slice 1 `add-parse`、2 x86 emit、4 aarch64 脚手架（wave 1）；slice 3 `build-slice-codegen` 待 1+2。
-2. 合并顺序与命令：[`v3.5/PARALLEL.md`](v3.5/PARALLEL.md)；错误码 [`v3.5/ERROR-CODES.md`](v3.5/ERROR-CODES.md)。
-3. 基线不退化：`bash lab/nano-lisp-jit/run.sh` + `NANO_SELFHOST_THOROUGH=1 build_nano_jit.sh` 全绿后再 merge 各轨。
+1. **slice-0 后续**：aarch64 VM/AOT codegen 规划落地（超越 `aarch64-add-emit` stub）；见 [`v3.5/AARCH64.md`](v3.5/AARCH64.md) § v4 slice-0 边界。
+2. **编排 S0**：`(squad-assess …)` bootstrap 样本 + `bootstrap-v4-squad-assess.lisp`（见 [`v4/README.md`](v4/README.md)）。
+3. 基线不退化：`bash lab/nano-lisp-jit/run.sh` + `NANO_SELFHOST_THOROUGH=1 build_nano_jit.sh` 全绿后再扩 v4 slice。
+4. 小队：`tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v4.yaml agent-team`。
 
-历史基线：v3 完全 100% — genesis-pin + gen1→gen2→gen3 + `build-slice-lisp` + `nano-cc-hello`。
+历史基线：v3.5 signoff — gen5 dual-arch、aarch64-add-emit、gen5-via-gen2、L2/L4 签收。
 
 ## v1.5 完成度评估
 
