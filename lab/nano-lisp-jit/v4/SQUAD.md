@@ -13,13 +13,13 @@ tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v4.yaml agent-tea
 - **project**: `/workspace/lab/nano-lisp-jit`
 - **state.db**: `/workspace/lab/nano-lisp-jit/.squad/state-v4.db`
 - **signoff_id**: `v4-kickoff`
-- **updated_at**: 2026-05-23T08:01:51.759264+00:00
+- **updated_at**: 2026-05-23T08:14:05.651160+00:00
 - **signoff_auto**: 100%
-- **halt**: True
+- **halt**: False
 
 | role | task | status |
 |------|------|--------|
-| reviewer | — | idle |
+| reviewer | wave-practice-R1 | in_progress |
 | commander | — | idle |
 | engineer-a | — | idle |
 | engineer-b | — | idle |
@@ -28,5 +28,8 @@ tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v4.yaml agent-tea
 |---------|--------|--------|
 | v4-aarch64-aot-plan | done | cd88032 |
 | v4-squad-lisp-sketch | done | e371c01 |
+| wave-practice-R1 | in_progress | — |
+| wave-practice-auto-exec-doc | done | cbef46b |
+| wave-practice-v4-squad-md | done | cbef46b |
 | wave-v4-R0 | done | adb3bd1 |
 <!-- SQUAD_STATE_END -->
