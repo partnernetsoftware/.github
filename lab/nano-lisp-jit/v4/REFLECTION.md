@@ -1,6 +1,6 @@
 # v4 反思与调整（track R · 持续更新）
 
-**范围**：v3.5-terminal 之后、v4 **signoff `v4-slice12-scoped`**（编排 S0–S5 + codegen S6–S12）。与 [`../v3.5/REFLECTION.md`](../v3.5/REFLECTION.md) 互补；**未达成**全仓库零 `.c` 自举 — 见 [`LISP-ONLY.md`](LISP-ONLY.md)、[`../ROADMAP.md`](../ROADMAP.md) § v4 mindmap。
+**范围**：v3.5-terminal 之后、v4 **signoff `v4-slice13-scoped`**（编排 S0–S5 + codegen S6–S13）。与 [`../v3.5/REFLECTION.md`](../v3.5/REFLECTION.md) 互补；**未达成**全仓库零 `.c` 自举 — 见 [`LISP-ONLY.md`](LISP-ONLY.md)、[`../ROADMAP.md`](../ROADMAP.md) § v4 mindmap。
 
 ---
 
@@ -66,7 +66,8 @@
 
 | 日期 | 摘要 |
 |------|------|
-| 2026-05-23 | **并行**：wave17 双 Task（engineer-a/B）+ `agent-team` 四路 tmux 同时 dispatch；禁止串行包办两轨 |
+| 2026-05-23 | **wave18 / S13**：`encode=lisp-v1` — runner 读 plan `(encodes …)`；四角色并行（a=emit，b=add18） |
+| 2026-05-23 | **并行纪律**：最多四角色；工程师分轨 touch_paths；`agent-team` 与实现并行，不串行包办 |
 | 2026-05-23 | **效率**：`verify-v4-fast.sh` + catalog `run.sh optional`；波内 `--quick` 不再卡 10min |
 | 2026-05-23 | **wave16**：`v4-slice11-scoped` — manifest `encode` 行 + add16 |
 | 2026-05-23 | **wave15**：`v4-slice10-scoped` — manifest `op` 序 + add15 |

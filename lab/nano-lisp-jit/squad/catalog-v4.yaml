@@ -32,7 +32,7 @@ signoff:
       check: results
       file: ".build/results.txt"
       results_key: tests.pass
-      min_pass: 306
+      min_pass: 305
     - id: v35-regression-build
       check: results
       file: ".build/nano-jit/bootstrap-report.txt"

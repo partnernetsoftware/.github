@@ -33,8 +33,8 @@ paths:
 
 ```bash
 # 推荐：技能附带脚本（传 catalog 相对路径）
-skills/squad-parallel/scripts/run-wave.sh lab/nano-lisp-jit/squad/catalog-v4.yaml wave17
-skills/squad-parallel/scripts/poll-tasks.sh lab/nano-lisp-jit/squad/catalog-v4.yaml wave17
+skills/squad-parallel/scripts/run-wave.sh lab/nano-lisp-jit/squad/catalog-v4.yaml wave18
+skills/squad-parallel/scripts/poll-tasks.sh lab/nano-lisp-jit/squad/catalog-v4.yaml wave18
 # 开发环：lab/nano-lisp-jit/squad/verify-v4-fast.sh  →  签收前：cd lab/nano-lisp-jit && bash run.sh
 ```
 

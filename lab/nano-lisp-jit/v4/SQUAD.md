@@ -12,10 +12,10 @@ tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v4.yaml agent-tea
 
 - **project**: `/workspace/lab/nano-lisp-jit`
 - **state.db**: `/workspace/lab/nano-lisp-jit/.squad/state-v4.db`
-- **signoff_id**: `v4-slice12-scoped`
-- **updated_at**: 2026-05-23T12:57:38.121977+00:00
+- **signoff_id**: `v4-slice13-scoped`
+- **updated_at**: 2026-05-23T13:14:16.592713+00:00
 - **signoff_auto**: 98%
-- **halt**: False
+- **halt**: True
 
 | role | task | status |
 |------|------|--------|
@@ -56,6 +56,9 @@ tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v4.yaml agent-tea
 | wave17-v4-R | done | 00a4de0 |
 | wave17-v4-add17-slice | done | 00a4de0 |
 | wave17-v4-plan-ir-lisp | done | 00a4de0 |
+| wave18-v4-R | done | 56f61e6 |
+| wave18-v4-add18-slice | done | 56f61e6 |
+| wave18-v4-lisp-encode | done | 56f61e6 |
 | wave2-squad-triple-exit | done | — |
 | wave2-v4-R | done | — |
 | wave2-v4-s0-assess-sample | done | — |
