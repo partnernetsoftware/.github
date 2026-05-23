@@ -414,6 +414,17 @@ enum {
   A64_ADD_EXIT_OP_COUNT,
 };
 
+typedef struct {
+  unsigned char kind; /* 0=fixed, 1=imm_a, 2=imm_b */
+  uint32_t base;
+  uint32_t mask;
+  unsigned shift;
+  unsigned rd;
+  uint32_t fixed;
+} A64AddExitEncodeSpec;
+
+static int a64_add_exit_v1_op_from_name(const char *name, unsigned *out);
+
 static const unsigned char a64_add_exit_v1_op_order_builtin[A64_ADD_EXIT_OP_COUNT] = {
   A64_ADD_EXIT_OP_MOVZ_X0,
   A64_ADD_EXIT_OP_MOVZ_X1,
@@ -435,9 +446,106 @@ const char *nano_aarch64_add_exit_lisp_default_path(void) {
 }
 
 static int a64_add_exit_ir_lisp_valid;
+static int a64_add_exit_encode_from_lisp;
+static A64AddExitEncodeSpec a64_add_exit_lisp_encode[A64_ADD_EXIT_OP_COUNT];
 
 int nano_aarch64_add_exit_ir_lisp_valid(void) {
   return a64_add_exit_ir_lisp_valid;
+}
+
+int nano_aarch64_add_exit_encode_from_lisp(void) {
+  return a64_add_exit_encode_from_lisp;
+}
+
+static uint32_t a64_lisp_parse_hex_atom(const char *s) {
+  if (!s) return 0;
+  while (*s == ' ' || *s == '\t') ++s;
+  if (strncmp(s, "#x", 2) == 0) return (uint32_t)strtoul(s + 2, NULL, 16);
+  return (uint32_t)strtoul(s, NULL, 0);
+}
+
+static unsigned a64_lisp_parse_uint_after(const char *form, const char *tag) {
+  const char *p = strstr(form, tag);
+  if (!p) return 0;
+  p += strlen(tag);
+  return (unsigned)strtoul(p, NULL, 10);
+}
+
+static int a64_add_exit_v1_load_lisp_encodes(const char *path) {
+  size_t src_n = 0;
+  unsigned char *src;
+  const char *p;
+  const char *end;
+  const char *enc;
+  size_t loaded = 0;
+  if (!path) return 0;
+  memset(a64_add_exit_lisp_encode, 0, sizeof(a64_add_exit_lisp_encode));
+  a64_add_exit_encode_from_lisp = 0;
+  src = read_file(path, &src_n);
+  if (!src || !src_n) {
+    free(src);
+    return 0;
+  }
+  p = (const char *)src;
+  end = p + src_n;
+  enc = strstr(p, "(encodes");
+  if (!enc) {
+    free(src);
+    return 0;
+  }
+  p = enc;
+  while (p < end && (p = strstr(p, "(encode ")) != NULL) {
+    char name[64];
+    size_t i = 0;
+    const char *q = p + 8;
+    unsigned op;
+    A64AddExitEncodeSpec *sp;
+    const char *close;
+    while (q < end && *q != ' ' && *q != ')') {
+      if (i + 1 >= sizeof(name)) {
+        free(src);
+        return 0;
+      }
+      name[i++] = *q++;
+    }
+    name[i] = '\0';
+    if (!a64_add_exit_v1_op_from_name(name, &op)) {
+      free(src);
+      return 0;
+    }
+    close = strchr(p, ')');
+    if (!close) {
+      free(src);
+      return 0;
+    }
+    sp = &a64_add_exit_lisp_encode[op];
+    if (strstr(p, "(imm a)")) {
+      sp->kind = 1;
+      sp->base = a64_lisp_parse_hex_atom(strstr(p, "(base ") ? strstr(p, "(base ") + 6 : NULL);
+      sp->mask = a64_lisp_parse_hex_atom(strstr(p, "(mask ") ? strstr(p, "(mask ") + 6 : NULL);
+      sp->shift = a64_lisp_parse_uint_after(p, "(shift ");
+      sp->rd = a64_lisp_parse_uint_after(p, "(rd ");
+    } else if (strstr(p, "(imm b)")) {
+      sp->kind = 2;
+      sp->base = a64_lisp_parse_hex_atom(strstr(p, "(base ") ? strstr(p, "(base ") + 6 : NULL);
+      sp->mask = a64_lisp_parse_hex_atom(strstr(p, "(mask ") ? strstr(p, "(mask ") + 6 : NULL);
+      sp->shift = a64_lisp_parse_uint_after(p, "(shift ");
+      sp->rd = a64_lisp_parse_uint_after(p, "(rd ");
+    } else if (strstr(p, "(fixed ")) {
+      const char *fx = strstr(p, "(fixed ");
+      sp->kind = 0;
+      sp->fixed = a64_lisp_parse_hex_atom(fx ? fx + 7 : NULL);
+    } else {
+      free(src);
+      return 0;
+    }
+    ++loaded;
+    p = close + 1;
+  }
+  free(src);
+  if (loaded != A64_ADD_EXIT_OP_COUNT) return 0;
+  a64_add_exit_encode_from_lisp = 1;
+  return 1;
 }
 
 static const char *a64_add_exit_v1_op_to_name(unsigned op) {
@@ -531,15 +639,6 @@ static int a64_add_exit_v1_op_from_name(const char *name, unsigned *out) {
   }
   return 0;
 }
-
-typedef struct {
-  unsigned char kind; /* 0=fixed, 1=imm_a, 2=imm_b */
-  uint32_t base;
-  uint32_t mask;
-  unsigned shift;
-  unsigned rd;
-  uint32_t fixed;
-} A64AddExitEncodeSpec;
 
 static A64AddExitEncodeSpec a64_add_exit_encode_spec[A64_ADD_EXIT_OP_COUNT];
 static int a64_add_exit_encode_from_manifest;
@@ -661,6 +760,7 @@ void nano_aarch64_add_exit_ir_lisp_refresh(void) {
     const char *want = a64_add_exit_v1_op_to_name(manifest_order[i]);
     if (!want || strcmp(lisp_names[i], want) != 0) return;
   }
+  if (!a64_add_exit_v1_load_lisp_encodes(nano_aarch64_add_exit_lisp_default_path())) return;
   a64_add_exit_ir_lisp_valid = 1;
 }
 
@@ -673,6 +773,16 @@ static int a64_add_exit_v1_resolve_op_order(unsigned char *order, size_t cap, si
 }
 
 static uint32_t a64_add_exit_v1_encode(unsigned op, int a, int b) {
+  if (op < A64_ADD_EXIT_OP_COUNT && a64_add_exit_encode_from_lisp && a64_add_exit_ir_lisp_valid) {
+    const A64AddExitEncodeSpec *sp = &a64_add_exit_lisp_encode[op];
+    if (sp->kind == 0) return sp->fixed;
+    if (sp->kind == 1) {
+      return sp->base | (((uint32_t)a & sp->mask) << sp->shift) | sp->rd;
+    }
+    if (sp->kind == 2) {
+      return sp->base | (((uint32_t)b & sp->mask) << sp->shift) | sp->rd;
+    }
+  }
   if (op < A64_ADD_EXIT_OP_COUNT && a64_add_exit_encode_from_manifest) {
     const A64AddExitEncodeSpec *sp = &a64_add_exit_encode_spec[op];
     if (sp->kind == 0) return sp->fixed;
@@ -705,6 +815,7 @@ static int emit_aarch64_add_exit_v1_lower(int a, int b, unsigned char *code, siz
   unsigned char op_order[A64_ADD_EXIT_OP_COUNT];
   size_t op_n = 0;
   if (!code || cap < 20) return 0;
+  nano_aarch64_add_exit_ir_lisp_refresh();
   if (!a64_add_exit_v1_resolve_op_order(op_order, sizeof(op_order), &op_n)) return 0;
   memset(code, 0, cap);
   for (i = 0; i < op_n; ++i) {

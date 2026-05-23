@@ -1640,7 +1640,7 @@ run_case "run-bootstrap-v4-slice11-add16-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE11_ADD16_SRC"'" 2>&1) || true
   printf "%s\n" "$out"
   printf "%s\n" "$out" | grep -q "aarch64.add=9+7"
-  printf "%s\n" "$out" | grep -q "aarch64.emit.encode=manifest-v1"
+  printf "%s\n" "$out" | grep -Eq "aarch64.emit.encode=(manifest-v1|lisp-v1)"
   test -f "'"$V4_SLICE11_ADD16_ELF"'"
 '
 run_case "run-bootstrap-v4-slice11-evidence-plan" bash -c '
