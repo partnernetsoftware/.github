@@ -33,9 +33,18 @@ Genesis artifacts and hashes: [`../genesis/README.md`](../genesis/README.md), `g
 ```bash
 bash lab/nano-lisp-jit/run.sh
 # run-bootstrap-v35-genesis-shrink-plan
+# genesis-shrink-no-host-cc-build-log
 ```
 
 Bootstrap: `samples/bootstrap-v35-genesis-shrink.lisp` — `build-slice` on `lispjit.c`, assert genesis-pin and no host `cc`.
+
+## Build-level audit (slice 6)
+
+After selfhost/bootstrap, `build_nano_jit.sh` runs `audit_genesis_shrink_log` on `bootstrap-report.txt`. `run.sh` runs the same helper on `results.txt` (`genesis-shrink-no-host-cc-build-log`).
+
+The audit scans build logs for `build-slice.compiler=cc` paired with a subsequent `build-slice.source=…/lispjit.c` in the same build-slice stanza. If found and `NANO_REGENESIS` is unset, the build fails. Intentional pin refresh (`NANO_REGENESIS=1`) skips the check.
+
+Helper: [`../audit_genesis_shrink.sh`](../audit_genesis_shrink.sh).
 
 Optional native-slice matrix (when `NANO_SLICE_COMPILER=native`):
 
