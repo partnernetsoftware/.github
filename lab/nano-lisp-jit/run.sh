@@ -68,6 +68,7 @@ BOOTSTRAP_V35_NANO_CC_AARCH64_SRC="$LAB_DIR/samples/bootstrap-v35-nano-cc-aarch6
 BOOTSTRAP_V35_BUILD_SLICE_AARCH64_SRC="$LAB_DIR/samples/bootstrap-v35-build-slice-aarch64.lisp"
 BOOTSTRAP_V35_BUILD_SLICE_LISP_AARCH64_SRC="$LAB_DIR/samples/bootstrap-v35-build-slice-lisp-aarch64.lisp"
 BOOTSTRAP_V35_GENESIS_SHRINK_SRC="$LAB_DIR/samples/bootstrap-v35-genesis-shrink.lisp"
+BOOTSTRAP_V35_LISP_TU_LINK_SRC="$LAB_DIR/samples/bootstrap-v35-lisp-tu-link.lisp"
 NANO_CC_HELLO_SRC="$LAB_DIR/samples/nano-cc-hello.c"
 NANO_CC_ADD_SRC="$LAB_DIR/samples/nano-cc-add.c"
 NANO_CC_ADD_BAD_SIG_SRC="$LAB_DIR/samples/nano-cc-add-bad-sig.c"
@@ -862,6 +863,21 @@ run_case "run-bootstrap-v35-build-slice-lisp-route-plan" bash -c '
   printf "%s\n" "$out" | grep -q "build-slice.compiler=nano-jit-lisp"
   test -x "'"$ROOT_DIR"'/lab/nano-lisp-jit/.build/bootstrap-v35-build-slice-lisp-route.elf"
   "'"$RUNNER"'" run-expect-exit "'"$ROOT_DIR"'/lab/nano-lisp-jit/.build/bootstrap-v35-build-slice-lisp-route.elf" 42
+'
+
+# --- v3.5 L4 kickoff: multi .lisp TU → compile-elf64-obj-code → link-elf64-exe ---
+log "bootstrap.v35.lisp.tu.link.path=$BOOTSTRAP_V35_LISP_TU_LINK_SRC"
+run_case "run-bootstrap-v35-lisp-tu-link-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V35_LISP_TU_LINK_SRC"'" 2>&1) || true
+  printf "%s\n" "$out"
+  printf "%s\n" "$out" | grep -q "bootstrap-step.*=compile-elf64-obj-code"
+  printf "%s\n" "$out" | grep -q "bootstrap-step.*=link-elf64-exe"
+  printf "%s\n" "$out" | grep -q "bootstrap-step.*=file-hash"
+  printf "%s\n" "$out" | grep -q "bootstrap-step.*=run-expect-exit"
+  test -f "'"$ROOT_DIR"'/lab/nano-lisp-jit/.build/bootstrap-v35-lisp-tu-callee.o"
+  test -f "'"$ROOT_DIR"'/lab/nano-lisp-jit/.build/bootstrap-v35-lisp-tu-main.o"
+  test -x "'"$ROOT_DIR"'/lab/nano-lisp-jit/.build/bootstrap-v35-lisp-tu-linked"
+  "'"$RUNNER"'" run-expect-exit "'"$ROOT_DIR"'/lab/nano-lisp-jit/.build/bootstrap-v35-lisp-tu-linked" 42
 '
 
 # --- v3.5 L3: build-slice-lisp aarch64 exit emit (nano-jit-slice-min.lisp) ---

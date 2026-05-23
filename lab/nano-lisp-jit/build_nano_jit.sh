@@ -138,6 +138,7 @@ BOOTSTRAP_V35_SELFHOST_GEN5="$LAB_DIR/samples/bootstrap-v35-selfhost-gen5.lisp"
 BOOTSTRAP_V35_LISP_ONLY_MATRIX="$LAB_DIR/samples/bootstrap-v35-lisp-only-matrix.lisp"
 BOOTSTRAP_V35_PACK_LISP_X86="$LAB_DIR/samples/bootstrap-v35-pack-lisp-x86.lisp"
 BOOTSTRAP_V35_GENESIS_SHRINK="$LAB_DIR/samples/bootstrap-v35-genesis-shrink.lisp"
+BOOTSTRAP_V35_LISP_TU_LINK="$LAB_DIR/samples/bootstrap-v35-lisp-tu-link.lisp"
 SELFHOST_DIR="$BUILD_DIR/selfhost"
 NANO_SELFHOST_THOROUGH="${NANO_SELFHOST_THOROUGH:-1}"
 FUNC_PARAM_VM_I64_SRC="$LAB_DIR/samples/func-param-vm-i64.lisp"
@@ -612,6 +613,12 @@ if [ "$AARCH64_SLICE_SKIPPED" = 1 ]; then
     bash -c "cd \"$ROOT_DIR\" && \"$PACKER\" run-bootstrap-plan \"$BOOTSTRAP_V3_CODEGEN_SMOKE\""
   run_case "run-bootstrap-v35-lisp-only-matrix-native-slice" \
     bash -c "cd \"$ROOT_DIR\" && \"$LAB_DIR/.build/nano-lisp-jit\" run-bootstrap-plan \"$BOOTSTRAP_V35_LISP_ONLY_MATRIX\""
+  run_case "run-bootstrap-v35-lisp-tu-link-native-slice" \
+    bash -c "cd \"$ROOT_DIR\" && out=\$(\"$LAB_DIR/.build/nano-lisp-jit\" run-bootstrap-plan \"$BOOTSTRAP_V35_LISP_TU_LINK\" 2>&1) || true
+      printf '%s\n' \"\$out\"
+      printf '%s\n' \"\$out\" | grep -q 'bootstrap-step.*=link-elf64-exe'
+      test -x '$BUILD_DIR/../bootstrap-v35-lisp-tu-linked'
+      \"$LAB_DIR/.build/nano-lisp-jit\" run-expect-exit '$BUILD_DIR/../bootstrap-v35-lisp-tu-linked' 42"
   run_case "run-bootstrap-v35-pack-lisp-x86-native-slice" \
     bash -c "cd \"$ROOT_DIR\" && out=\$(\"$LAB_DIR/.build/nano-lisp-jit\" run-bootstrap-plan \"$BOOTSTRAP_V35_PACK_LISP_X86\" 2>&1) || true
       printf '%s\n' \"\$out\"
