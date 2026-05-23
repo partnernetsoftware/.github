@@ -88,6 +88,7 @@
     "engineer-a",
     "engineer-b"
   ],
+  "halt_reason": "signoff_and_all_tasks_done",
   "last_assess": {
     "signoff_id": "v3.5-lisp-only",
     "percent_auto": 100,
@@ -138,6 +139,5 @@
     ],
     "manual": []
   },
-  "halt_reason": "signoff_and_all_tasks_done",
-  "updated_at": "2026-05-23T07:52:14.181719+00:00"
+  "updated_at": "2026-05-23T07:52:31.647711+00:00"
 }

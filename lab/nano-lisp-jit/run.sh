@@ -67,6 +67,7 @@ BOOTSTRAP_V35_SELFHOST_GEN4_SRC="$LAB_DIR/samples/bootstrap-v35-selfhost-gen4.li
 BOOTSTRAP_V35_SELFHOST_GEN5_SRC="$LAB_DIR/samples/bootstrap-v35-selfhost-gen5.lisp"
 BOOTSTRAP_V35_SELFHOST_GEN5_GEN2_SRC="$LAB_DIR/samples/bootstrap-v35-selfhost-gen5-gen2.lisp"
 BOOTSTRAP_V35_SELFHOST_GEN5_VIA_GEN2_SRC="$LAB_DIR/samples/bootstrap-v35-selfhost-gen5-via-gen2.lisp"
+BOOTSTRAP_V35_SIGNOFF_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v35-signoff-evidence.lisp"
 BOOTSTRAP_V35_NANO_CC_AARCH64_SRC="$LAB_DIR/samples/bootstrap-v35-nano-cc-aarch64.lisp"
 BOOTSTRAP_V35_BUILD_SLICE_AARCH64_SRC="$LAB_DIR/samples/bootstrap-v35-build-slice-aarch64.lisp"
 BOOTSTRAP_V35_BUILD_SLICE_LISP_AARCH64_SRC="$LAB_DIR/samples/bootstrap-v35-build-slice-lisp-aarch64.lisp"
@@ -1147,6 +1148,16 @@ run_case "run-bootstrap-v35-selfhost-gen4-plan" bash -c '
   inspect=$("'"$RUNNER"'" inspect-ape "'"$SELFHOST_DIR"'/v35-gen4-nano-jit.com" 2>&1) || true
   printf "%s\n" "$inspect"
   printf "%s\n" "$inspect" | grep -q "inspect-ape.slice.0.hash=$slice_h"
+'
+
+# --- v3.5 wave-4: signoff evidence via bootstrap plan ---
+log "bootstrap.v35.signoff.evidence.path=$BOOTSTRAP_V35_SIGNOFF_EVIDENCE_SRC"
+run_case "run-bootstrap-v35-signoff-evidence-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V35_SIGNOFF_EVIDENCE_SRC"'" 2>&1) || true
+  printf "%s\n" "$out"
+  printf "%s\n" "$out" | grep -q "build-slice-lisp.mode=aarch64-add-emit"
+  test -f "'"$BUILD_DIR"'/bootstrap-v35-signoff-aarch64-add.elf"
+  echo "v35.signoff_bootstrap_plan=1" >> "'"$V35_SIGNOFF_EVIDENCE"'"
 '
 
 # --- v3.5 gen5: dual-arch Lisp pack, zero genesis pin, zero .c ---

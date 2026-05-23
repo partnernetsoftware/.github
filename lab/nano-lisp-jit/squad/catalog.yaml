@@ -103,6 +103,32 @@ tasks:
     assign_role: reviewer
     priority: meta
     accept: ["state 与 assess 同步"]
+  wave4-selfhost-refresh:
+    assign_role: engineer-a
+    priority: P0
+    onion: [bootstrap, native]
+    touch_paths: ["run.sh", "build_nano_jit.sh"]
+    accept:
+      - "gen2-slice 可 build-slice-lisp add x86"
+      - "或 REFLECTION 记录 gen2 阻塞原因"
+  wave4-signoff-bootstrap:
+    assign_role: engineer-b
+    priority: P0
+    onion: [sample, bootstrap, native]
+    touch_paths:
+      - "samples/bootstrap-v35-signoff-evidence.lisp"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v35-signoff-evidence-plan"
+      - "plan 日志含 v35.signoff markers"
+  wave-squad-R3:
+    assign_role: reviewer
+    priority: meta
+    depends: [wave4-selfhost-refresh, wave4-signoff-bootstrap]
+    accept:
+      - "REFLECTION wave-4 实践反思"
+      - "findings 与 assess 一致"
+      - "SQUAD.md sync-md"
 
 verify:
   commands:
