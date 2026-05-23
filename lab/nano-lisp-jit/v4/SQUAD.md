@@ -12,10 +12,10 @@ tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v4.yaml agent-tea
 
 - **project**: `/workspace/lab/nano-lisp-jit`
 - **state.db**: `/workspace/lab/nano-lisp-jit/.squad/state-v4.db`
-- **signoff_id**: `v4-slice3-scoped`
-- **updated_at**: 2026-05-23T10:19:34.545786+00:00
+- **signoff_id**: `v4-slice8-scoped`
+- **updated_at**: 2026-05-23T12:01:30.768122+00:00
 - **signoff_auto**: 100%
-- **halt**: False
+- **halt**: True
 
 | role | task | status |
 |------|------|--------|
@@ -26,31 +26,51 @@ tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v4.yaml agent-tea
 
 | task_id | status | commit |
 |---------|--------|--------|
-| v4-aarch64-aot-plan | done | cd88032 |
-| v4-squad-lisp-sketch | done | e371c01 |
-| wave-practice-R1 | done | f2a5fdd |
-| wave-practice-auto-exec-doc | done | cbef46b |
-| wave-practice-v4-squad-md | done | cbef46b |
-| wave-v4-R0 | done | adb3bd1 |
-| wave2-squad-triple-exit | done | 6287cd7 |
-| wave2-v4-R | done | 6287cd7 |
-| wave2-v4-s0-assess-sample | done | 6287cd7 |
-| wave3-v4-R | done | 56788ff |
-| wave3-v4-slice0-evidence | done | 56788ff |
-| wave3-v4-squad-samples | done | 56788ff |
-| wave4-v4-R | done | ece6998 |
-| wave4-v4-slice1-add7 | done | ece6998 |
-| wave4-v4-squad-signal | done | ece6998 |
-| wave5-v4-R | done | 7203594 |
-| wave5-v4-gen5-regression | done | 7203594 |
-| wave5-v4-lisp-only-honesty | done | 7203594 |
-| wave6-v4-R | done | c6fa877 |
-| wave6-v4-gen5v2-regression | done | c6fa877 |
-| wave6-v4-squad-s2-state | done | c6fa877 |
-| wave7-v4-R | done | 05a6584 |
-| wave7-v4-s3-member-once | done | 05a6584 |
-| wave7-v4-s3-supervise-once | done | 05a6584 |
-| wave8-squad-stuck-fix | done | 0e38ef9 |
-| wave8-v4-R | done | 0fe395d |
-| wave8-v4-s4-doc | done | 0fe395d |
+| v4-aarch64-aot-plan | done | — |
+| v4-squad-lisp-sketch | done | — |
+| wave-practice-R1 | done | — |
+| wave-practice-auto-exec-doc | done | — |
+| wave-practice-v4-squad-md | done | — |
+| wave-v4-R0 | done | — |
+| wave10-v4-R | done | wave10r |
+| wave10-v4-add7-regression | done | f0ca348 |
+| wave10-v4-s5-verify-plan | done | f0ca348 |
+| wave11-v4-R | done | wave11r |
+| wave11-v4-codegen-kickoff | done | wave11a |
+| wave11-v4-reflection | done | wave11b |
+| wave12-v4-R | done | w12r |
+| wave12-v4-add11-slice | done | w12b |
+| wave12-v4-emit-profile | done | w12a |
+| wave13-v4-R | done | 60ccd58 |
+| wave13-v4-add13-slice | done | 60ccd58 |
+| wave13-v4-lowering-table | done | 60ccd58 |
+| wave2-squad-triple-exit | done | — |
+| wave2-v4-R | done | — |
+| wave2-v4-s0-assess-sample | done | — |
+| wave3-v4-R | done | — |
+| wave3-v4-slice0-evidence | done | — |
+| wave3-v4-squad-samples | done | — |
+| wave4-v4-R | done | — |
+| wave4-v4-slice1-add7 | done | — |
+| wave4-v4-squad-signal | done | — |
+| wave5-v4-R | done | — |
+| wave5-v4-gen5-regression | done | — |
+| wave5-v4-lisp-only-honesty | done | — |
+| wave6-v4-R | done | — |
+| wave6-v4-gen5v2-regression | done | — |
+| wave6-v4-squad-s2-state | done | — |
+| wave7-v4-R | done | — |
+| wave7-v4-s3-member-once | done | — |
+| wave7-v4-s3-supervise-once | done | — |
+| wave8-squad-stuck-fix | done | — |
+| wave8-v4-R | done | — |
+| wave8-v4-s4-doc | done | — |
+| wave9-squad-follower-team-ready | done | — |
+| wave9-v4-R | done | — |
+| wave9-v4-s4-agent-team | done | — |
+
+**path_locks**:
+- `.build/v4-slice4.evidence` → engineer-a
+- `samples/bootstrap-v4-squad-s4-agent-team.lisp` → engineer-a
+- `v4/SLICE4.md` → engineer-a
 <!-- SQUAD_STATE_END -->

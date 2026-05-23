@@ -115,6 +115,7 @@ P3（架构债，v4）
 
 | 日期 | 摘要 |
 |------|------|
+| 2026-05-23 | **wave13-v4-R**：`v4-slice8-scoped` — **agent-team 实跑**（tmux 四角色 + auto-exec/done）；emit lowering 表 + add13 |
 | 2026-05-23 | **wave12-v4-R**：`v4-slice7-scoped` — `aarch64.emit.profile=add-exit-v1` + `nano-jit-slice-add-11.lisp`（5+6） |
 | 2026-05-23 | **wave11-v4-R**：`v4-slice6-scoped` — [`v4/REFLECTION.md`](../v4/REFLECTION.md) + codegen kickoff（`nano_elf64.c` hash + add7）；编排/codegen 双轨调整 |
 | 2026-05-23 | **wave10-v4-R**：`v4-slice5-scoped` — S5 verify plan + add7 回归锚点；`squad-v4-wave10-practice-smoke` 四角色 `--once` |

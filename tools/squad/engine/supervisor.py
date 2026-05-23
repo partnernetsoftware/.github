@@ -652,23 +652,22 @@ def spawn_agent_team(
     cat_flag = f'--catalog "{ctx.catalog_path}"'
     ae = " --auto-exec" if auto_exec else ""
     ad = " --auto-done" if auto_done else ""
-    tmux = "tmux -f /exec-daemon/tmux.portal.conf"
+    tmux_bin = ["tmux", "-f", "/exec-daemon/tmux.portal.conf"]
     roles = ["commander", "engineer-a", "engineer-b", "reviewer"]
     for name in roles:
         session = f"squad-{name}"
         subprocess.run(
-            f"{tmux} kill-session -t {session} 2>/dev/null || true",
-            shell=True,
+            [*tmux_bin, "kill-session", "-t", session],
             check=False,
+            stderr=subprocess.DEVNULL,
+            stdout=subprocess.DEVNULL,
         )
         cmd = (
-            f"cd {root!s} && {squad!s} {cat_flag} resume --reason agent-team 2>/dev/null; "
-            f"{squad!s} {cat_flag} dispatch --force --include-meta --max-tasks 4 2>/dev/null; "
-            f"{squad!s} {cat_flag} run-loop --role {name} --max-iter {max_iter} "
+            f"cd {root!s} && {squad!s} {cat_flag} run-loop --role {name} --max-iter {max_iter} "
             f"--poll-interval {poll_sec}{ae}{ad}"
         )
         subprocess.run(
-            [tmux, "new-session", "-d", "-s", session, "-c", str(root), "--", "bash", "-lc", cmd],
+            [*tmux_bin, "new-session", "-d", "-s", session, "-c", str(root), "--", "bash", "-lc", cmd],
             check=False,
         )
     print("agent-team sessions:", ", ".join(f"squad-{r}" for r in roles))

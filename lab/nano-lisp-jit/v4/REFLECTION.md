@@ -67,6 +67,7 @@ tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v4.yaml agent-tea
 
 | 日期 | 摘要 |
 |------|------|
+| 2026-05-23 | **wave13**：**agent-team 四角色 tmux 实跑**（`--auto-exec --auto-done`）完成 lowering-table + add13；修复 `spawn_agent_team` tmux argv |
 | 2026-05-23 | **wave12**：S7 emit profile + add11；`parse_add_operands` 已读 plan 内 `(i64 …)`，profile 标记可观测 |
 | 2026-05-23 | **wave11**：本文件 + S6 codegen kickoff；调整 wave11+ 双轨策略 |
 | 2026-05-23 | S0–S5 汇总入账；小队 §2 调整表与 `SQUAD_VERIFY` 实践 |
