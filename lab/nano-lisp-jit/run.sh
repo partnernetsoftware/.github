@@ -154,6 +154,12 @@ BOOTSTRAP_V4_SLICE18_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v4-slice18-evidenc
 BOOTSTRAP_V4_HOST_REDUCE_SRC="$LAB_DIR/samples/bootstrap-v4-host-reduce.lisp"
 V4_SLICE18_ADD21_ELF="$BUILD_DIR/bootstrap-v4-slice18-add21.elf"
 V4_SLICE18_EVIDENCE="$BUILD_DIR/v4-slice18.evidence"
+BOOTSTRAP_V4_WAVE27_DIFFUSION_SRC="$LAB_DIR/samples/bootstrap-v4-wave27-diffusion.lisp"
+BOOTSTRAP_V4_BUILD_GRAPH_WAVE27_SRC="$LAB_DIR/samples/bootstrap-v4-build-graph-wave27.lisp"
+BOOTSTRAP_V4_SQUAD_ORCH_BUNDLE_SRC="$LAB_DIR/samples/bootstrap-v4-squad-orchestration-bundle.lisp"
+BOOTSTRAP_V4_SLICE27_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v4-slice27-evidence.lisp"
+V4_SLICE27_ADD22_ELF="$BUILD_DIR/bootstrap-v4-slice27-add22.elf"
+V4_SLICE27_EVIDENCE="$BUILD_DIR/v4-slice27.evidence"
 SQUAD_SH="$ROOT_DIR/tools/squad/squad.sh"
 CATALOG_V4="$LAB_DIR/squad/catalog-v4.yaml"
 BOOTSTRAP_V35_NANO_CC_AARCH64_SRC="$LAB_DIR/samples/bootstrap-v35-nano-cc-aarch64.lisp"
@@ -1753,6 +1759,32 @@ run_case "run-bootstrap-v4-host-reduce-plan" bash -c '''
   pass=$(grep -E "^build\.pass=" "'"$BOOTSTRAP_REPORT"'" | tail -1 | cut -d= -f2)
   test -n "$pass" && test "$pass" -ge 26
 '''
+
+
+run_case "run-bootstrap-v4-wave27-diffusion-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE27_DIFFUSION_SRC"'" 2>&1) || true
+  printf "%s
+" "$out" | grep -q "aarch64.emit.ir.table.source=plan-lisp-v1-full"
+  printf "%s
+" "$out" | grep -q "aarch64.emit.ir.table.version=v7"
+  test -f "'"$V4_SLICE27_ADD22_ELF"'"
+'
+
+run_case "run-bootstrap-v4-build-graph-wave27-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_BUILD_GRAPH_WAVE27_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/samples/bootstrap-v4-wave27-diffusion.lisp"
+'
+
+run_case "run-bootstrap-v4-squad-orchestration-bundle-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SQUAD_ORCH_BUNDLE_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/samples/bootstrap-v4-squad-dispatch.lisp"
+'
+
+run_case "run-bootstrap-v4-slice27-evidence-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE27_EVIDENCE_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/EVAL.md"
+  { echo "v4.slice27=1"; } >> "'"$V4_SLICE27_EVIDENCE"'"
+'
 
 run_case "run-bootstrap-v4-slice16-plan-words-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE16_PLAN_WORDS_SRC"'" 2>&1) || true

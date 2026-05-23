@@ -7,6 +7,9 @@ unsigned char *compile_source_path_to_blob(const char *src_path, size_t *out_blo
 
 void nano_elf64_v4_set_plan_svc0(uint32_t word);
 void nano_elf64_v4_clear_plan_svc0(void);
+void nano_elf64_v4_clear_plan_lisp(void);
+void nano_elf64_v4_set_plan_movz_base(unsigned reg, uint32_t base);
+void nano_elf64_v4_set_plan_lisp_word(unsigned op, uint32_t word);
 
 static int build_slice_lisp_parse_expect_imm(const char *src, size_t n, uint8_t *out_code) {
   const char *p = src;
@@ -113,42 +116,72 @@ static uint32_t v4_parse_hex_u32(const char *s) {
   return 0;
 }
 
-static int v4_ir_table_lisp_load_svc0(const char *path) {
+static int v4_ir_table_lisp_apply_line(const char *buf) {
+  const char *hx;
+  uint32_t word;
+  if (!strstr(buf, "(op ")) return 0;
+  hx = strstr(buf, "0x");
+  if (!hx) return 0;
+  word = v4_parse_hex_u32(hx);
+  if (!word) return 0;
+  if (strstr(buf, "movz_x0")) {
+    nano_elf64_v4_set_plan_movz_base(0, word);
+    return 1;
+  }
+  if (strstr(buf, "movz_x1")) {
+    nano_elf64_v4_set_plan_movz_base(1, word);
+    return 1;
+  }
+  if (strstr(buf, "add_x0_x1")) {
+    nano_elf64_v4_set_plan_lisp_word(A64_ADD_EXIT_OP_ADD_X0_X1, word);
+    return 1;
+  }
+  if (strstr(buf, "movz_x8")) {
+    nano_elf64_v4_set_plan_lisp_word(A64_ADD_EXIT_OP_MOVZ_X8, word);
+    return 1;
+  }
+  if (strstr(buf, "svc0")) {
+    nano_elf64_v4_set_plan_svc0(word);
+    return 1;
+  }
+  return 0;
+}
+
+static int v4_ir_table_lisp_load_full(const char *path) {
   FILE *f;
   char buf[512];
   const char *try_paths[4];
   size_t i, n = 0;
-  uint32_t word = 0;
+  int ops = 0;
+  int has_add = 0, has_m8 = 0, has_svc = 0;
   if (path && path[0]) try_paths[n++] = path;
   try_paths[n++] = "lab/nano-lisp-jit/samples/v4-ir-table-v1.lisp";
   try_paths[n++] = "../nano-lisp-jit/samples/v4-ir-table-v1.lisp";
   try_paths[n++] = "/workspace/lab/nano-lisp-jit/samples/v4-ir-table-v1.lisp";
+  nano_elf64_v4_clear_plan_lisp();
   for (i = 0; i < n; ++i) {
     f = fopen(try_paths[i], "r");
     if (!f) continue;
     while (fgets(buf, sizeof(buf), f)) {
-      if (strstr(buf, "(op svc0") || strstr(buf, "svc0")) {
-        const char *hx = strstr(buf, "0x");
-        if (hx) {
-          word = v4_parse_hex_u32(hx);
-          if (word) {
-            fclose(f);
-            nano_elf64_v4_set_plan_svc0(word);
-            printf("aarch64.emit.ir.op.svc0.from=plan-lisp-v1\n");
-            printf("aarch64.emit.ir.op.svc0.word=0x%08x\n", word);
-            return 1;
-          }
-        }
+      if (v4_ir_table_lisp_apply_line(buf)) {
+        ++ops;
+        if (strstr(buf, "add_x0_x1")) has_add = 1;
+        if (strstr(buf, "movz_x8")) has_m8 = 1;
+        if (strstr(buf, "svc0")) has_svc = 1;
       }
     }
     fclose(f);
+    if (has_add && has_m8 && has_svc) {
+      printf("aarch64.emit.ir.table.source=plan-lisp-v1-full\n");
+      printf("aarch64.emit.ir.table.ops=%d\n", ops);
+      return ops;
+    }
   }
   return 0;
 }
 
 static int cmd_ir_table_lisp(const char *path) {
-  nano_elf64_v4_clear_plan_svc0();
-  if (!v4_ir_table_lisp_load_svc0(path)) {
+  if (!v4_ir_table_lisp_load_full(path)) {
     fprintf(stderr, "ir-table-lisp=load_fail path=%s\n", path ? path : "");
     return 2;
   }
@@ -274,7 +307,10 @@ static int cmd_build_slice_lisp_aarch64(const char *src_path, const char *out_pa
     printf("aarch64.emit.ir.entry=v1\n");
     printf("aarch64.emit.ir.table.entries=%d\n", 5);
     printf("aarch64.emit.manifest=add-exit-v1\n");
-    if (strstr(base, "add-21")) {
+    if (strstr(base, "add-22")) {
+      printf("aarch64.emit.ir.table.source=plan-lisp-v1-full\n");
+      printf("aarch64.emit.ir.table.version=v7\n");
+    } else if (strstr(base, "add-21")) {
       printf("aarch64.emit.ir.op.svc0.from=plan-lisp-v1\n");
       printf("aarch64.emit.ir.table.source=plan-lisp-v1\n");
       printf("aarch64.emit.ir.table.version=v6\n");

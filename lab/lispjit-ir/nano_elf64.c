@@ -405,18 +405,6 @@ int emit_aarch64_exit_file(const char *out_path, uint8_t exit_code) {
 }
 
 
-static int v4_emit_svc0_from_plan;
-static uint32_t v4_emit_svc0_plan_word;
-
-void nano_elf64_v4_set_plan_svc0(uint32_t word) {
-  v4_emit_svc0_from_plan = 1;
-  v4_emit_svc0_plan_word = word;
-}
-
-void nano_elf64_v4_clear_plan_svc0(void) {
-  v4_emit_svc0_from_plan = 0;
-}
-
 /* v4 slice-9: opcode-indexed lowering table (still host emit, not VM). */
 enum {
   A64_ADD_EXIT_OP_MOVZ_X0 = 0,
@@ -457,16 +445,62 @@ static uint32_t a64_movz_from_table_v3(unsigned reg, int imm) {
   return a64_ir_movz_base_v3[reg & 1u] | (((uint32_t)imm & 0xffffu) << 5);
 }
 
+static int v4_emit_svc0_from_plan;
+static uint32_t v4_emit_svc0_plan_word;
+static int v4_emit_plan_lisp_full;
+static uint32_t v4_plan_movz_base_v3_override[2];
+static int v4_plan_movz_override;
+static uint32_t v4_plan_fixed_override[A64_ADD_EXIT_OP_COUNT];
+static int v4_plan_fixed_active[A64_ADD_EXIT_OP_COUNT];
+
+void nano_elf64_v4_clear_plan_lisp(void) {
+  v4_emit_svc0_from_plan = 0;
+  v4_emit_plan_lisp_full = 0;
+  v4_plan_movz_override = 0;
+  memset(v4_plan_fixed_active, 0, sizeof(v4_plan_fixed_active));
+}
+
+void nano_elf64_v4_set_plan_movz_base(unsigned reg, uint32_t base) {
+  if (reg < 2) {
+    v4_plan_movz_base_v3_override[reg] = base;
+    v4_plan_movz_override = 1;
+    v4_emit_plan_lisp_full = 1;
+  }
+}
+
+void nano_elf64_v4_set_plan_lisp_word(unsigned op, uint32_t word) {
+  if (op < A64_ADD_EXIT_OP_COUNT) {
+    v4_plan_fixed_override[op] = word;
+    v4_plan_fixed_active[op] = 1;
+    v4_emit_plan_lisp_full = 1;
+  }
+}
+
+void nano_elf64_v4_set_plan_svc0(uint32_t word) {
+  v4_emit_svc0_from_plan = 1;
+  v4_emit_svc0_plan_word = word;
+  nano_elf64_v4_set_plan_lisp_word(A64_ADD_EXIT_OP_SVC0, word);
+}
+
+void nano_elf64_v4_clear_plan_svc0(void) {
+  nano_elf64_v4_clear_plan_lisp();
+}
+
 static uint32_t a64_add_exit_v1_encode(unsigned op, int a, int b) {
   if (a64_ir_uses_fixed_word_v2(op)) {
+    if (v4_plan_fixed_active[op]) return v4_plan_fixed_override[op];
     if (op == A64_ADD_EXIT_OP_SVC0 && v4_emit_svc0_from_plan)
       return v4_emit_svc0_plan_word;
     return a64_ir_fixed_word_v2[op];
   }
   switch (op) {
   case A64_ADD_EXIT_OP_MOVZ_X0:
+    if (v4_plan_movz_override)
+      return v4_plan_movz_base_v3_override[0] | (((uint32_t)a & 0xffffu) << 5);
     return a64_movz_from_table_v3(0, a);
   case A64_ADD_EXIT_OP_MOVZ_X1:
+    if (v4_plan_movz_override)
+      return v4_plan_movz_base_v3_override[1] | (((uint32_t)b & 0xffffu) << 5);
     return a64_movz_from_table_v3(1, b);
   default:
     return 0;

@@ -386,6 +386,30 @@ signoff:
       min_pass: 1
 
 
+    - id: v4-slice27-doc
+      check: artifact
+      path_glob: "v4/SLICE27.md"
+    - id: v4-eval-doc
+      check: artifact
+      path_glob: "v4/EVAL.md"
+    - id: v4-wave27-diffusion-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v4-wave27-diffusion.lisp"
+    - id: v4-slice27-add22-elf
+      check: artifact
+      path_glob: ".build/bootstrap-v4-slice27-add22.elf"
+    - id: v4-build-graph-wave27-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v4-build-graph-wave27.lisp"
+    - id: v4-squad-orchestration-bundle-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v4-squad-orchestration-bundle.lisp"
+    - id: v4-slice27-evidence
+      check: results
+      file: ".build/v4-slice27.evidence"
+      results_key: v4.slice27
+      min_pass: 1
+
   terminal_gates:
     - id: v35-regression-run
       check: results
@@ -1122,6 +1146,44 @@ tasks:
     depends: [wave26-v4-ir-table-lisp, wave26-v4-host-reduce]
     accept:
       - "v4/MINDMAP.md 终局六维"
+      - "assess v4-complete ready"
+
+
+  wave27-v4-diffusion:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "../lispjit-ir/nano_elf64.c"
+      - "../lispjit-ir/nano_bootstrap.c"
+      - "samples/v4-ir-table-v1.lisp"
+      - "samples/nano-jit-slice-add-22.lisp"
+      - "samples/bootstrap-v4-wave27-diffusion.lisp"
+      - ".build/v4-slice27.evidence"
+      - "run.sh"
+    accept:
+      - "aarch64.emit.ir.table.source=plan-lisp-v1-full"
+      - "run-bootstrap-v4-wave27-diffusion-plan"
+  wave27-v4-orchestration:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v4-build-graph-wave27.lisp"
+      - "samples/bootstrap-v4-squad-orchestration-bundle.lisp"
+      - "v4/EVAL.md"
+      - "v4/SLICE27.md"
+      - "v4/MINDMAP.md"
+      - "v4/PROGRESS.md"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-build-graph-wave27-plan"
+      - "run-bootstrap-v4-squad-orchestration-bundle-plan"
+      - "run-bootstrap-v4-slice27-evidence-plan"
+  wave27-v4-R:
+    assign_role: reviewer
+    priority: meta
+    depends: [wave27-v4-diffusion, wave27-v4-orchestration]
+    accept:
+      - "v4/EVAL.md 进度评估"
       - "assess v4-complete ready"
 
 
