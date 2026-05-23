@@ -7,11 +7,45 @@
   "assignments": {
     "reviewer": null,
     "commander": null,
-    "engineer-a": null,
-    "engineer-b": null
+    "engineer-b": null,
+    "engineer-a": null
   },
-  "tasks": {},
-  "findings": [],
+  "tasks": {
+    "L2-companion": {
+      "status": "done",
+      "assign_role": "engineer-a",
+      "commit": "7866e4e"
+    },
+    "L4-tu-kickoff": {
+      "status": "done",
+      "assign_role": "engineer-b",
+      "commit": "a043fd5"
+    },
+    "L4-runner-1": {
+      "status": "done",
+      "assign_role": "engineer-b",
+      "commit": "5030c7c"
+    },
+    "aarch64-codegen-1": {
+      "status": "done",
+      "assign_role": "engineer-a",
+      "commit": "5030c7c"
+    }
+  },
+  "findings": [
+    {
+      "gate": "aarch64-real-codegen",
+      "status": "warn",
+      "note": "add profile exit-emit+qemu; full AOT aarch64 pending",
+      "at": "2026-05-23T07:21:23.482721+00:00"
+    },
+    {
+      "gate": "l4-full-runner-slice",
+      "status": "warn",
+      "note": "gen5g2 via gen2-slice subset; full Lisp runner pending L4",
+      "at": "2026-05-23T07:21:23.535250+00:00"
+    }
+  ],
   "manual_acks": {},
   "locks": {},
   "merge_order": [
@@ -44,13 +78,13 @@
       {
         "id": "tests-run",
         "ok": true,
-        "detail": "results.txt val=250 need>=250",
+        "detail": "results.txt val=253 need>=250",
         "manual": false
       },
       {
         "id": "tests-build",
         "ok": true,
-        "detail": "bootstrap-report.txt val=117 need>=117",
+        "detail": "bootstrap-report.txt val=119 need>=119",
         "manual": false
       }
     ],
@@ -71,5 +105,5 @@
       }
     ]
   },
-  "updated_at": "2026-05-23T07:15:49.139838+00:00"
+  "updated_at": "2026-05-23T07:21:23.591718+00:00"
 }

@@ -39,12 +39,12 @@ signoff:
       check: results
       file: ".build/results.txt"
       results_key: tests.pass
-      min_pass: 250
+      min_pass: 253
     - id: tests-build
       check: results
       file: ".build/nano-jit/bootstrap-report.txt"
       results_key: build.pass
-      min_pass: 117
+      min_pass: 119
   # 人工签收（assess 会 WARN，指挥长须在 state 里显式 ack）
   manual_gates:
     - id: aarch64-real-codegen

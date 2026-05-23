@@ -64,9 +64,12 @@ BOOTSTRAP_V35_BUILD_SLICE_LISP_ROUTE_SRC="$LAB_DIR/samples/bootstrap-v35-build-s
 BOOTSTRAP_V35_PACK_LISP_X86_SRC="$LAB_DIR/samples/bootstrap-v35-pack-lisp-x86.lisp"
 BOOTSTRAP_V35_SELFHOST_GEN4_SRC="$LAB_DIR/samples/bootstrap-v35-selfhost-gen4.lisp"
 BOOTSTRAP_V35_SELFHOST_GEN5_SRC="$LAB_DIR/samples/bootstrap-v35-selfhost-gen5.lisp"
+BOOTSTRAP_V35_SELFHOST_GEN5_GEN2_SRC="$LAB_DIR/samples/bootstrap-v35-selfhost-gen5-gen2.lisp"
 BOOTSTRAP_V35_NANO_CC_AARCH64_SRC="$LAB_DIR/samples/bootstrap-v35-nano-cc-aarch64.lisp"
 BOOTSTRAP_V35_BUILD_SLICE_AARCH64_SRC="$LAB_DIR/samples/bootstrap-v35-build-slice-aarch64.lisp"
 BOOTSTRAP_V35_BUILD_SLICE_LISP_AARCH64_SRC="$LAB_DIR/samples/bootstrap-v35-build-slice-lisp-aarch64.lisp"
+BOOTSTRAP_V35_BUILD_SLICE_LISP_AARCH64_ADD_SRC="$LAB_DIR/samples/bootstrap-v35-build-slice-lisp-aarch64-add.lisp"
+BUILD_SLICE_LISP_AARCH64_ADD_ELF="$BUILD_DIR/bootstrap-v35-build-slice-lisp-aarch64-add.elf"
 BOOTSTRAP_V35_GENESIS_SHRINK_SRC="$LAB_DIR/samples/bootstrap-v35-genesis-shrink.lisp"
 BOOTSTRAP_V35_LISP_TU_LINK_SRC="$LAB_DIR/samples/bootstrap-v35-lisp-tu-link.lisp"
 NANO_CC_HELLO_SRC="$LAB_DIR/samples/nano-cc-hello.c"
@@ -902,6 +905,26 @@ else
   skip_case "nano-cc-qemu-aarch64-build-slice-lisp-exit42" "no qemu-aarch64-static or qemu-aarch64"
 fi
 
+log "bootstrap.v35.build.slice.lisp.aarch64.add.path=$BOOTSTRAP_V35_BUILD_SLICE_LISP_AARCH64_ADD_SRC"
+run_case "run-bootstrap-v35-build-slice-lisp-aarch64-add-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V35_BUILD_SLICE_LISP_AARCH64_ADD_SRC"'" 2>&1) || true
+  printf "%s\n" "$out"
+  printf "%s\n" "$out" | grep -q "build-slice-lisp.mode=aarch64-exit-emit"
+  printf "%s\n" "$out" | grep -q "build-slice-lisp.aarch64.profile=nano-jit-slice-add.lisp"
+  test -f "'"$BUILD_SLICE_LISP_AARCH64_ADD_ELF"'"
+  file -b "'"$BUILD_SLICE_LISP_AARCH64_ADD_ELF"'" | grep -q "ARM aarch64"
+'
+if has_qemu_aarch64 && [ -f "$BUILD_SLICE_LISP_AARCH64_ADD_ELF" ]; then
+  run_case "qemu-aarch64-build-slice-lisp-add-exit42" bash -c '
+    QEMU_AARCH64="$(command -v qemu-aarch64-static || command -v qemu-aarch64)"
+    rc=$("$QEMU_AARCH64" "'"$BUILD_SLICE_LISP_AARCH64_ADD_ELF"'"; echo $?)
+    printf "qemu-aarch64.add-slice.exit=%s\n" "$rc"
+    test "$rc" -eq 42
+  '
+else
+  skip_case "qemu-aarch64-build-slice-lisp-add-exit42" "no qemu or elf missing"
+fi
+
 # --- v3.5 L1: pack-ape x86 from Lisp-built slice (aarch64 genesis) ---
 log "bootstrap.v35.pack.lisp.x86.path=$BOOTSTRAP_V35_PACK_LISP_X86_SRC"
 run_case "run-bootstrap-v35-pack-lisp-x86-plan" bash -c '
@@ -1154,6 +1177,19 @@ if has_qemu_aarch64 && [ -f "$GEN5_SLICE_MIN_AARCH64" ]; then
   '
 else
   skip_case "qemu-aarch64-v35-gen5-slice-min-exit42" "no qemu-aarch64 or slice missing"
+fi
+
+if [ -x "$SELFHOST_DIR/gen2-slice-x86.elf" ]; then
+  run_case "run-bootstrap-v35-selfhost-gen5-gen2-runner-plan" bash -c '
+    cd "'"$ROOT_DIR"'" && out=$("'"$SELFHOST_DIR"'/gen2-slice-x86.elf" run-bootstrap-plan "'"$BOOTSTRAP_V35_SELFHOST_GEN5_GEN2_SRC"'" 2>&1) || true
+    printf "%s\n" "$out"
+    printf "%s\n" "$out" | grep -q "build-slice-lisp"
+    printf "%s\n" "$out" | grep -q "bootstrap-step.*=pack-ape"
+    test -f "'"$SELFHOST_DIR"'/v35-gen5g2-nano-jit.com"
+    test -f "'"$SELFHOST_DIR"'/v35-gen5g2-arithmetic.lbin"
+  '
+else
+  skip_case "run-bootstrap-v35-selfhost-gen5-gen2-runner-plan" "gen2-slice-x86.elf missing (run selfhost gen1/2 first)"
 fi
 
 # --- bootstrap-v25 native selfpack (pack-ape per plan) ---

@@ -138,6 +138,8 @@ BOOTSTRAP_V35_SELFHOST_GEN5="$LAB_DIR/samples/bootstrap-v35-selfhost-gen5.lisp"
 BOOTSTRAP_V35_LISP_ONLY_MATRIX="$LAB_DIR/samples/bootstrap-v35-lisp-only-matrix.lisp"
 BOOTSTRAP_V35_PACK_LISP_X86="$LAB_DIR/samples/bootstrap-v35-pack-lisp-x86.lisp"
 BOOTSTRAP_V35_GENESIS_SHRINK="$LAB_DIR/samples/bootstrap-v35-genesis-shrink.lisp"
+BOOTSTRAP_V35_BUILD_SLICE_LISP_AARCH64_ADD="$LAB_DIR/samples/bootstrap-v35-build-slice-lisp-aarch64-add.lisp"
+BOOTSTRAP_V35_SELFHOST_GEN5_GEN2="$LAB_DIR/samples/bootstrap-v35-selfhost-gen5-gen2.lisp"
 BOOTSTRAP_V35_LISP_TU_LINK="$LAB_DIR/samples/bootstrap-v35-lisp-tu-link.lisp"
 SELFHOST_DIR="$BUILD_DIR/selfhost"
 NANO_SELFHOST_THOROUGH="${NANO_SELFHOST_THOROUGH:-1}"
@@ -638,6 +640,12 @@ if [ "$AARCH64_SLICE_SKIPPED" = 1 ]; then
       printf '%s\n' \"\$out\" | grep -q 'build-slice.compiler=nano-cc'
       test -x '$BUILD_DIR/bootstrap-v35-build-slice-aarch64.elf'
       file -b '$BUILD_DIR/bootstrap-v35-build-slice-aarch64.elf' | grep -q 'ARM aarch64'"
+  run_case "run-bootstrap-v35-build-slice-lisp-aarch64-add-native" bash -c '
+    cd "'"$ROOT_DIR"'" && out=$("'"$LAB_DIR"'/.build/nano-lisp-jit" run-bootstrap-plan "'"$BOOTSTRAP_V35_BUILD_SLICE_LISP_AARCH64_ADD"'" 2>&1) || true
+      printf "%s\n" "$out"
+      printf "%s\n" "$out" | grep -q "build-slice-lisp.aarch64.profile=nano-jit-slice-add.lisp"
+      test -f "'"$LAB_DIR"'/.build/bootstrap-v35-build-slice-lisp-aarch64-add.elf"
+  '
   run_case "run-bootstrap-v35-genesis-shrink-native-slice" \
     bash -c "cd \"$ROOT_DIR\" && out=\$(\"$PACKER\" run-bootstrap-plan \"$BOOTSTRAP_V35_GENESIS_SHRINK\" 2>&1) || true
       printf '%s\n' \"\$out\"
@@ -921,6 +929,14 @@ if [ "$NANO_SELFHOST_THOROUGH" = "1" ] && { [ "$(uname -m)" = "x86_64" ] || [ "$
   '
   run_case "selfhost-v35-gen5-round-native-runner" bash -c '
     cd "'"$ROOT_DIR"'" && "'"$LAB_DIR"'/.build/nano-lisp-jit" run-bootstrap-plan "'"$BOOTSTRAP_V35_SELFHOST_GEN5"'"
+  '
+  run_case "selfhost-v35-gen5-round-gen2-runner" bash -c '
+    cd "'"$ROOT_DIR"'" && "'"$SELFHOST_DIR"'/gen2-slice-x86.elf" run-bootstrap-plan "'"$BOOTSTRAP_V35_SELFHOST_GEN5_GEN2"'"
+  '
+  run_case "selfhost-v35-gen5-round-gen2-artifacts" bash -c '
+    test -f "'"$SELFHOST_DIR"'/v35-gen5g2-nano-jit.com"
+    test -f "'"$SELFHOST_DIR"'/v35-gen5g2-arithmetic.lbin"
+    "'"$SELFHOST_DIR"'/gen2-slice-x86.elf" run "'"$SELFHOST_DIR"'/v35-gen5g2-arithmetic.lbin"
   '
   run_case "selfhost-v35-gen5-round-artifacts" bash -c '
     test -x "'"$SELFHOST_DIR"'/v35-gen5-slice-min-x86.elf"
