@@ -1,13 +1,13 @@
 {
   "version": 2,
   "apiVersion": "squad-state/v2",
-  "wave": 50,
+  "wave": 52,
   "signoff_percent": 100,
   "halt": true,
   "assignments": {
     "commander": null,
-    "engineer-b": null,
     "engineer-a": null,
+    "engineer-b": null,
     "reviewer": null
   },
   "tasks": {
@@ -85,6 +85,21 @@
       "status": "done",
       "assign_role": "reviewer",
       "commit": "ece6998"
+    },
+    "wave5-v4-gen5-regression": {
+      "status": "done",
+      "assign_role": "engineer-a",
+      "commit": "7203594"
+    },
+    "wave5-v4-lisp-only-honesty": {
+      "status": "done",
+      "assign_role": "engineer-b",
+      "commit": "7203594"
+    },
+    "wave5-v4-R": {
+      "status": "done",
+      "assign_role": "reviewer",
+      "commit": "7203594"
     }
   },
   "findings": [],
@@ -96,7 +111,7 @@
   ],
   "halt_reason": "signoff_and_all_tasks_done",
   "last_assess": {
-    "signoff_id": "v4-slice1-scoped",
+    "signoff_id": "v4-lisp-only-scoped",
     "percent_auto": 100,
     "percent_scoped": 100,
     "percent_terminal": 100,
@@ -108,7 +123,7 @@
       {
         "id": "v35-regression-run",
         "ok": true,
-        "detail": "results.txt val=267 need>=257",
+        "detail": "results.txt val=269 need>=257",
         "manual": false
       },
       {
@@ -181,6 +196,30 @@
         "id": "v4-slice1-evidence",
         "ok": true,
         "detail": "v4-slice1.evidence val=1 need>=1",
+        "manual": false
+      },
+      {
+        "id": "v4-plans-no-c",
+        "ok": true,
+        "detail": "v4-lisp-only.evidence val=1 need>=1",
+        "manual": false
+      },
+      {
+        "id": "v35-gen5-plan-no-c",
+        "ok": true,
+        "detail": "",
+        "manual": false
+      },
+      {
+        "id": "v4-gen5-anchor-plan",
+        "ok": true,
+        "detail": "samples/bootstrap-v4-gen5-anchor.lisp",
+        "manual": false
+      },
+      {
+        "id": "v4-lisp-only-doc",
+        "ok": true,
+        "detail": "v4/LISP-ONLY.md",
         "manual": false
       }
     ],
@@ -188,7 +227,7 @@
       {
         "id": "v35-regression-run",
         "ok": true,
-        "detail": "results.txt val=267 need>=257",
+        "detail": "results.txt val=269 need>=257",
         "manual": false
       },
       {
@@ -262,10 +301,34 @@
         "ok": true,
         "detail": "v4-slice1.evidence val=1 need>=1",
         "manual": false
+      },
+      {
+        "id": "v4-plans-no-c",
+        "ok": true,
+        "detail": "v4-lisp-only.evidence val=1 need>=1",
+        "manual": false
+      },
+      {
+        "id": "v35-gen5-plan-no-c",
+        "ok": true,
+        "detail": "",
+        "manual": false
+      },
+      {
+        "id": "v4-gen5-anchor-plan",
+        "ok": true,
+        "detail": "samples/bootstrap-v4-gen5-anchor.lisp",
+        "manual": false
+      },
+      {
+        "id": "v4-lisp-only-doc",
+        "ok": true,
+        "detail": "v4/LISP-ONLY.md",
+        "manual": false
       }
     ],
     "terminal": [],
     "manual": []
   },
-  "updated_at": "2026-05-23T08:54:04.065869+00:00"
+  "updated_at": "2026-05-23T09:09:14.815189+00:00"
 }

@@ -133,4 +133,5 @@ P3（架构债，v4）
 | 2026-05-23 | **wave2-v4-R**：v4 `run-loop` 三态退出（complete/failed/timeout）+ `auto_done` + `bootstrap-v4-squad-assess.lisp` S0；reviewer `--auto-exec` 259 pass assess **100%** ready |
 | 2026-05-23 | **wave3-v4-R**：`v4-slice0-scoped` **scoped 签收** — S0–S3 样本（dispatch/run-loop-once/slice0-evidence）+ `.build/v4-slice0.evidence`；assess **100%** ready；[`v4/README.md`](../v4/README.md) 记 slice-0 完成 |
 | 2026-05-23 | **v4 诚实口径**：非「零 C 仓库」— plan 层 `bootstrap-v4-*` 无 `.c` 引用（`v4-lisp-only.evidence`）+ gen5 锚点；codegen 仍 C stub → [`v4/LISP-ONLY.md`](../v4/LISP-ONLY.md) |
+| 2026-05-23 | **wave5-v4-R**：`v4-lisp-only-scoped` **scoped 签收** — gen5 regression + plan 无 `.c` + gen5 anchor + `LISP-ONLY.md` 三层表；reviewer `--auto-exec` 269 pass assess **100%** ready |
 | 2026-05-23 | **wave4-v4-R**：`v4-slice1-scoped` **scoped 签收** — add7 参数化 aarch64（`bootstrap-v4-slice1-add7.lisp` + `.build/v4-slice1.evidence`）+ `bootstrap-v4-squad-signal.lisp` S1；reviewer `--auto-exec` 267 pass assess **100%** ready；[`v4/README.md`](../v4/README.md) 记 slice-1 完成 |
