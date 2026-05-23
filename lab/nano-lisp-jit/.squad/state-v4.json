@@ -1,0 +1,103 @@
+{
+  "version": 2,
+  "apiVersion": "squad-state/v2",
+  "wave": 13,
+  "signoff_percent": 100,
+  "halt": true,
+  "assignments": {
+    "commander": null,
+    "engineer-a": null,
+    "engineer-b": null,
+    "reviewer": null
+  },
+  "tasks": {
+    "v4-aarch64-aot-plan": {
+      "status": "done",
+      "assign_role": "engineer-a",
+      "commit": "cd88032"
+    },
+    "v4-squad-lisp-sketch": {
+      "status": "done",
+      "assign_role": "engineer-b",
+      "commit": "e371c01"
+    },
+    "wave-v4-R0": {
+      "status": "done",
+      "assign_role": "reviewer",
+      "commit": "adb3bd1"
+    }
+  },
+  "findings": [],
+  "manual_acks": {},
+  "locks": {},
+  "merge_order": [
+    "engineer-a",
+    "engineer-b"
+  ],
+  "last_assess": {
+    "signoff_id": "v4-kickoff",
+    "percent_auto": 100,
+    "percent_scoped": 100,
+    "percent_terminal": 100,
+    "ready": true,
+    "scoped_ready": true,
+    "terminal_ready": true,
+    "require_terminal": false,
+    "auto": [
+      {
+        "id": "v35-regression-run",
+        "ok": true,
+        "detail": "results.txt val=259 need>=257",
+        "manual": false
+      },
+      {
+        "id": "v35-regression-build",
+        "ok": true,
+        "detail": "bootstrap-report.txt val=119 need>=119",
+        "manual": false
+      },
+      {
+        "id": "v4-readme",
+        "ok": true,
+        "detail": "v4/README.md",
+        "manual": false
+      },
+      {
+        "id": "v4-kickoff-plan",
+        "ok": true,
+        "detail": "samples/bootstrap-v4-kickoff.lisp",
+        "manual": false
+      }
+    ],
+    "scoped": [
+      {
+        "id": "v35-regression-run",
+        "ok": true,
+        "detail": "results.txt val=259 need>=257",
+        "manual": false
+      },
+      {
+        "id": "v35-regression-build",
+        "ok": true,
+        "detail": "bootstrap-report.txt val=119 need>=119",
+        "manual": false
+      },
+      {
+        "id": "v4-readme",
+        "ok": true,
+        "detail": "v4/README.md",
+        "manual": false
+      },
+      {
+        "id": "v4-kickoff-plan",
+        "ok": true,
+        "detail": "samples/bootstrap-v4-kickoff.lisp",
+        "manual": false
+      }
+    ],
+    "terminal": [],
+    "manual": []
+  },
+  "halt_reason": "signoff_and_all_tasks_done",
+  "updated_at": "2026-05-23T08:01:51.707983+00:00"
+}
