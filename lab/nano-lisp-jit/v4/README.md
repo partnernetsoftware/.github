@@ -20,7 +20,7 @@ tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v4.yaml dispatch 
 tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v4.yaml agent-team --auto-exec
 ```
 
-**签收**：slice-0..9（**`v4-slice9-scoped`** — opcode lowering 表 + add14）— 见 [`SLICE9.md`](SLICE9.md)；并行推进用技能 [`skills/squad-parallel/`](../../skills/squad-parallel/)。
+**签收**：slice-0..10（**`v4-slice10-scoped`** — manifest IR surface + add15）— 见 [`SLICE10.md`](SLICE10.md)；并行推进用技能 [`skills/squad-parallel/`](../../skills/squad-parallel/)。
 
 ```bash
 tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v4.yaml agent-team --auto-exec --auto-done

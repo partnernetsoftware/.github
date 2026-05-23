@@ -1,6 +1,6 @@
 # v4 反思与调整（track R · 持续更新）
 
-**范围**：v3.5-terminal 之后、v4 **signoff `v4-slice9-scoped`**（编排 S0–S5 + codegen S6–S9）。与 [`../v3.5/REFLECTION.md`](../v3.5/REFLECTION.md) 互补；**未达成**全仓库零 `.c` 自举 — 见 [`LISP-ONLY.md`](LISP-ONLY.md)、[`../ROADMAP.md`](../ROADMAP.md) § v4 mindmap。
+**范围**：v3.5-terminal 之后、v4 **signoff `v4-slice10-scoped`**（编排 S0–S5 + codegen S6–S10）。与 [`../v3.5/REFLECTION.md`](../v3.5/REFLECTION.md) 互补；**未达成**全仓库零 `.c` 自举 — 见 [`LISP-ONLY.md`](LISP-ONLY.md)、[`../ROADMAP.md`](../ROADMAP.md) § v4 mindmap。
 
 ---
 
@@ -18,8 +18,9 @@
 | **S7** | `v4-slice7-scoped` | **`aarch64.emit.profile=add-exit-v1`** + add11 样本 | IR 驱动 emit |
 | **S8** | `v4-slice8-scoped` | insn 数组 lowering + add13 | opcode 枚举 |
 | **S9** | `v4-slice9-scoped` | `A64_ADD_EXIT_OP_*` + add14 | VM emit |
+| **S10** | `v4-slice10-scoped` | manifest `op …` 序 + add15 + `ir_surface=manifest-v1` | Lisp IR emit |
 
-**三层「全 Lisp」**：仍见 [`LISP-ONLY.md`](LISP-ONLY.md) — plan 层无 `.c`；codegen 层仍是 C stub。
+**三层「全 Lisp」**：仍见 [`LISP-ONLY.md`](LISP-ONLY.md) — plan 层无 `.c`；codegen 层仍是 C stub + 外置 manifest。
 
 ---
 
@@ -46,7 +47,7 @@
 3. **签收粒度**：每 slice 独立 `signoff.id`；gate **只增不删**，`min_pass` 随 `run.sh` 计数上调（当前 run ≥280）。
 4. **plan 无 `.c` 扫描**：S6 允许 `(file-hash "…/nano_elf64.c")` 等 **清单锚点**；`run.sh` 排除 `(file-hash|file-size)` 行，避免误报。
 5. **emit 版本化**：`add-exit-v1` 日志锁定当前 stub 契约；换指令序列时 bump profile（wave12）。
-6. **下一硬目标**：`emit_aarch64_add_exit_file` 由 **IR lowering 表** 驱动（非 C 内手写 `movz` 序列）；见 [`SLICE7.md`](SLICE7.md)。
+6. **下一硬目标**：manifest 序表 → **Lisp IR 表** 发射（替换 C `a64_add_exit_v1_encode`）；见 [`SLICE10.md`](SLICE10.md)。
 
 ---
 
@@ -62,6 +63,7 @@
 
 | 日期 | 摘要 |
 |------|------|
+| 2026-05-23 | **wave15**：`v4-slice10-scoped` — `v4-aarch64-add-exit-ops.manifest` + `ir_surface=manifest-v1` + add15；`squad-parallel` 实跑 |
 | 2026-05-23 | **mindmap 调整**：ROADMAP v4 洋葱图改为三层诚实口径 + 双轨完成度表；澄清 S9≠终局自举 |
 | 2026-05-23 | **wave14**：`v4-slice9-scoped` — opcode 序表 + `lowering.ops=5` + add14；`squad-parallel` 实跑 |
 | 2026-05-23 | **方法学固化**：[`skills/squad-parallel/`](../../skills/squad-parallel/) Agent Skill（`.cursor/skills` 链接） |

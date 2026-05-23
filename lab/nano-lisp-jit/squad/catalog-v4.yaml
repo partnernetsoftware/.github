@@ -25,14 +25,14 @@ supervisor:
   stuck_policy: fail
   idle_waves_max: 12
 signoff:
-  id: v4-slice9-scoped
+  id: v4-slice10-scoped
   require_terminal: false
   gates:
     - id: v35-regression-run
       check: results
       file: ".build/results.txt"
       results_key: tests.pass
-      min_pass: 294
+      min_pass: 297
     - id: v35-regression-build
       check: results
       file: ".build/nano-jit/bootstrap-report.txt"
@@ -244,6 +244,28 @@ signoff:
       check: results
       file: ".build/v4-slice9.evidence"
       results_key: v4.slice9_opcode_table
+      min_pass: 1
+    - id: v4-slice10-doc
+      check: artifact
+      path_glob: "v4/SLICE10.md"
+    - id: v4-slice10-manifest
+      check: artifact
+      path_glob: "samples/v4-aarch64-add-exit-ops.manifest"
+    - id: v4-slice10-add15-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v4-slice10-add15.lisp"
+    - id: v4-slice10-add15-elf
+      check: artifact
+      path_glob: ".build/bootstrap-v4-slice10-add15.elf"
+    - id: v4-slice10-evidence
+      check: results
+      file: ".build/v4-slice10.evidence"
+      results_key: v4.slice10
+      min_pass: 1
+    - id: v4-slice10-manifest-surface
+      check: results
+      file: ".build/v4-slice10.evidence"
+      results_key: v4.slice10_manifest
       min_pass: 1
 
 tasks:
@@ -650,6 +672,38 @@ tasks:
       - "assess v4-slice9-scoped ready"
       - "skills/squad-parallel wave14"
       - "sync-md v4/SQUAD.md"
+  wave15-v4-manifest-ir:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "lab/lispjit-ir/nano_elf64.c"
+      - "lab/lispjit-ir/nano_bootstrap.c"
+      - "samples/v4-aarch64-add-exit-ops.manifest"
+      - ".build/v4-slice10.evidence"
+      - "run.sh"
+    accept:
+      - "aarch64.emit.ir_surface=manifest-v1"
+      - "run-bootstrap-v4-slice10-evidence-plan"
+  wave15-v4-add15-slice:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "samples/nano-jit-slice-add-15.lisp"
+      - "samples/bootstrap-v4-slice10-add15.lisp"
+      - "v4/SLICE10.md"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-slice10-add15-plan"
+      - "aarch64.add=7+8"
+  wave15-v4-R:
+    assign_role: reviewer
+    priority: meta
+    depends: [wave15-v4-manifest-ir, wave15-v4-add15-slice]
+    accept:
+      - "assess v4-slice10-scoped ready"
+      - "skills/squad-parallel wave15"
+      - "sync-md v4/SQUAD.md"
+      - "REFLECTION wave15 manifest"
 
 verify:
   commands:

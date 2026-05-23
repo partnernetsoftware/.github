@@ -414,13 +414,87 @@ enum {
   A64_ADD_EXIT_OP_COUNT,
 };
 
-static const unsigned char a64_add_exit_v1_op_order[A64_ADD_EXIT_OP_COUNT] = {
+static const unsigned char a64_add_exit_v1_op_order_builtin[A64_ADD_EXIT_OP_COUNT] = {
   A64_ADD_EXIT_OP_MOVZ_X0,
   A64_ADD_EXIT_OP_MOVZ_X1,
   A64_ADD_EXIT_OP_ADD_X0_X1,
   A64_ADD_EXIT_OP_MOVZ_X8,
   A64_ADD_EXIT_OP_SVC0,
 };
+
+const char *nano_aarch64_add_exit_manifest_default_path(void) {
+  const char *env = getenv("NANO_A64_ADD_EXIT_MANIFEST");
+  if (env && env[0]) return env;
+  return "lab/nano-lisp-jit/samples/v4-aarch64-add-exit-ops.manifest";
+}
+
+static int a64_add_exit_v1_op_from_name(const char *name, unsigned *out) {
+  if (!name || !out) return 0;
+  if (strcmp(name, "movz_x0") == 0) {
+    *out = A64_ADD_EXIT_OP_MOVZ_X0;
+    return 1;
+  }
+  if (strcmp(name, "movz_x1") == 0) {
+    *out = A64_ADD_EXIT_OP_MOVZ_X1;
+    return 1;
+  }
+  if (strcmp(name, "add_x0_x1") == 0) {
+    *out = A64_ADD_EXIT_OP_ADD_X0_X1;
+    return 1;
+  }
+  if (strcmp(name, "movz_x8") == 0) {
+    *out = A64_ADD_EXIT_OP_MOVZ_X8;
+    return 1;
+  }
+  if (strcmp(name, "svc0") == 0) {
+    *out = A64_ADD_EXIT_OP_SVC0;
+    return 1;
+  }
+  return 0;
+}
+
+static int a64_add_exit_v1_load_manifest(const char *path, unsigned char *order, size_t cap,
+                                         size_t *out_n) {
+  FILE *f;
+  char line[256];
+  size_t n = 0;
+  if (!path || !order || !out_n || cap < A64_ADD_EXIT_OP_COUNT) return 0;
+  f = fopen(path, "r");
+  if (!f) return 0;
+  while (fgets(line, sizeof(line), f)) {
+    char *p = line;
+    char *nl;
+    unsigned op;
+    while (*p == ' ' || *p == '\t') ++p;
+    if (*p == '#' || *p == '\n' || *p == '\0') continue;
+    nl = strchr(p, '\n');
+    if (nl) *nl = '\0';
+    if (strncmp(p, "op ", 3) != 0) continue;
+    p += 3;
+    while (*p == ' ' || *p == '\t') ++p;
+    if (!a64_add_exit_v1_op_from_name(p, &op)) {
+      fclose(f);
+      return 0;
+    }
+    if (n >= cap) {
+      fclose(f);
+      return 0;
+    }
+    order[n++] = (unsigned char)op;
+  }
+  fclose(f);
+  if (n != A64_ADD_EXIT_OP_COUNT) return 0;
+  *out_n = n;
+  return 1;
+}
+
+static int a64_add_exit_v1_resolve_op_order(unsigned char *order, size_t cap, size_t *out_n) {
+  const char *path = nano_aarch64_add_exit_manifest_default_path();
+  if (a64_add_exit_v1_load_manifest(path, order, cap, out_n)) return 1;
+  memcpy(order, a64_add_exit_v1_op_order_builtin, A64_ADD_EXIT_OP_COUNT);
+  *out_n = A64_ADD_EXIT_OP_COUNT;
+  return 0;
+}
 
 static uint32_t a64_add_exit_v1_encode(unsigned op, int a, int b) {
   switch (op) {
@@ -442,13 +516,16 @@ static uint32_t a64_add_exit_v1_encode(unsigned op, int a, int b) {
 static int emit_aarch64_add_exit_v1_lower(int a, int b, unsigned char *code, size_t cap,
                                           size_t *out_n) {
   size_t i;
+  unsigned char op_order[A64_ADD_EXIT_OP_COUNT];
+  size_t op_n = 0;
   if (!code || cap < 20) return 0;
+  if (!a64_add_exit_v1_resolve_op_order(op_order, sizeof(op_order), &op_n)) return 0;
   memset(code, 0, cap);
-  for (i = 0; i < A64_ADD_EXIT_OP_COUNT; ++i) {
-    unsigned op = a64_add_exit_v1_op_order[i];
+  for (i = 0; i < op_n; ++i) {
+    unsigned op = op_order[i];
     wr32(code + i * 4, a64_add_exit_v1_encode(op, a, b));
   }
-  *out_n = A64_ADD_EXIT_OP_COUNT * 4;
+  *out_n = op_n * 4;
   return 1;
 }
 

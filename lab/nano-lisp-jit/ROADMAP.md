@@ -386,13 +386,13 @@ v3.5: nano-cc（nano-jit 作为 cc 编译器）
 
 **v3.5 整体**：**~100%** — squad signoff 全绿（254 run / 119 build；`v35-signoff.evidence` aarch64-add-emit + gen5-via-gen2）。见 [`v3.5/README.md`](v3.5/README.md)。
 
-### v4 洋葱 TDD mindmap（wave14 · 诚实双轨）
+### v4 洋葱 TDD mindmap（wave15 · 诚实双轨）
 
-v3.5 **scoped + terminal** 已签收。**v4 当前 signoff**：`v4-slice9-scoped`（294 `run.sh` pass）。  
+v3.5 **scoped + terminal** 已签收。**v4 当前 signoff**：`v4-slice10-scoped`（297 `run.sh` pass）。  
 **直接回答「是否已摆脱 `.c` 自举」**：**否** — 见 [`v4/LISP-ONLY.md`](v4/LISP-ONLY.md) 三层表；[`v4/REFLECTION.md`](v4/REFLECTION.md) track R。
 
 ```text
-v4: 终局切片 + 产品轨（catalog-v4.yaml · signoff v4-slice9-scoped）
+v4: 终局切片 + 产品轨（catalog-v4.yaml · signoff v4-slice10-scoped）
 ├─ 【诚实口径】三层（mindmap 每圈都要标 scoped / 终局）
 │  ├─ A Plan：bootstrap-v4-*.lisp 不引用 .c 源 → v4-lisp-only-scoped ✅
 │  ├─ B Runner：lispjit.c + nano_*.c 仍编译/执行 plan → 未消除 ❌
@@ -406,8 +406,8 @@ v4: 终局切片 + 产品轨（catalog-v4.yaml · signoff v4-slice9-scoped）
 ├─ 轨 2 · codegen（C emit 洋葱 · S0–S9 scoped，仍非真 VM/AOT）
 │  ├─ slice-0/1：aarch64-add-emit scout + add7 参数化 ✅
 │  ├─ slice-2..5：gen5 锚点 / lisp-only 诚实文档 ✅
-│  ├─ S6–S9：emit 清单 → table-v1 → opcode 序表（add7/11/13/14 回归）✅ scoped
-│  └─ 终局 pending：Lisp IR → emit（非 C 内 movz/add/svc 硬编码）；qemu 仅验证 stub ELF
+│  ├─ S6–S10：emit 清单 → table-v1 → opcode 序 → **manifest `op …` 序**（add7/11/13/14/15）✅ scoped
+│  └─ 终局 pending：Lisp IR → emit（非 C encode + 外置 manifest）；qemu 仅验证 stub ELF
 ├─ 轨 3 · 自举终局（未开卷 · 勿与 S9 混淆）
 │  ├─ gen5 plan 由 gen2 bootstrap 跑通（v3.5 锚点）— plan 无 .c，runner 仍 C
 │  ├─ nano-cc 译 lispjit.c 子集 — 未开始

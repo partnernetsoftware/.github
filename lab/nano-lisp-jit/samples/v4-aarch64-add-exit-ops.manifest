@@ -1,0 +1,8 @@
+# v4 slice-10: external IR surface for add-exit-v1 lowering order (scoped).
+version=1
+profile=add-exit-v1
+op movz_x0
+op movz_x1
+op add_x0_x1
+op movz_x8
+op svc0

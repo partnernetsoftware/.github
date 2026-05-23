@@ -111,6 +111,11 @@ BOOTSTRAP_V4_SLICE9_ADD14_SRC="$LAB_DIR/samples/bootstrap-v4-slice9-add14.lisp"
 BOOTSTRAP_V4_SLICE9_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v4-slice9-evidence.lisp"
 V4_SLICE9_ADD14_ELF="$BUILD_DIR/bootstrap-v4-slice9-add14.elf"
 V4_SLICE9_EVIDENCE="$BUILD_DIR/v4-slice9.evidence"
+BOOTSTRAP_V4_SLICE10_ADD15_SRC="$LAB_DIR/samples/bootstrap-v4-slice10-add15.lisp"
+BOOTSTRAP_V4_SLICE10_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v4-slice10-evidence.lisp"
+V4_AARCH64_ADD_EXIT_MANIFEST="$LAB_DIR/samples/v4-aarch64-add-exit-ops.manifest"
+V4_SLICE10_ADD15_ELF="$BUILD_DIR/bootstrap-v4-slice10-add15.elf"
+V4_SLICE10_EVIDENCE="$BUILD_DIR/v4-slice10.evidence"
 SQUAD_SH="$ROOT_DIR/tools/squad/squad.sh"
 CATALOG_V4="$LAB_DIR/squad/catalog-v4.yaml"
 BOOTSTRAP_V35_NANO_CC_AARCH64_SRC="$LAB_DIR/samples/bootstrap-v35-nano-cc-aarch64.lisp"
@@ -1588,6 +1593,34 @@ if has_qemu_aarch64 && [ -f "$V4_SLICE9_ADD14_ELF" ]; then
   '
 else
   skip_case "qemu-aarch64-v4-slice9-add14-exit14" "no qemu or slice9 add14 elf"
+fi
+run_case "run-bootstrap-v4-slice10-add15-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE10_ADD15_SRC"'" 2>&1) || true
+  printf "%s\n" "$out"
+  printf "%s\n" "$out" | grep -q "aarch64.add=7+8"
+  printf "%s\n" "$out" | grep -q "aarch64.emit.ir_surface=manifest-v1"
+  test -f "'"$V4_AARCH64_ADD_EXIT_MANIFEST"'"
+  test -f "'"$V4_SLICE10_ADD15_ELF"'"
+'
+run_case "run-bootstrap-v4-slice10-evidence-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE10_EVIDENCE_SRC"'" 2>&1) || true
+  printf "%s\n" "$out"
+  {
+    echo "v4.slice10=1"
+    echo "v4.slice10_manifest=1"
+    echo "v4.slice10_add15=1"
+    echo "v4.slice10_plan=run-bootstrap-v4-slice10-evidence-plan"
+  } >> "'"$V4_SLICE10_EVIDENCE"'"
+'
+if has_qemu_aarch64 && [ -f "$V4_SLICE10_ADD15_ELF" ]; then
+  run_case "qemu-aarch64-v4-slice10-add15-exit15" bash -c '
+    QEMU_AARCH64="$(command -v qemu-aarch64-static || command -v qemu-aarch64)"
+    rc=$("$QEMU_AARCH64" "'"$V4_SLICE10_ADD15_ELF"'"; echo $?)
+    printf "qemu-aarch64.v4-slice10-add15.exit=%s\n" "$rc"
+    test "$rc" -eq 15
+  '
+else
+  skip_case "qemu-aarch64-v4-slice10-add15-exit15" "no qemu or slice10 add15 elf"
 fi
 run_case "run-bootstrap-v4-slice6-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE6_EVIDENCE_SRC"'" 2>&1) || true
