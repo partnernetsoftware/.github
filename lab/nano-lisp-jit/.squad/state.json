@@ -1,14 +1,14 @@
 {
   "version": 2,
   "apiVersion": "squad-state/v2",
-  "wave": 19,
+  "wave": 21,
   "signoff_percent": 100,
   "halt": true,
   "assignments": {
     "commander": null,
+    "engineer-a": null,
     "reviewer": null,
-    "engineer-b": null,
-    "engineer-a": null
+    "engineer-b": null
   },
   "tasks": {
     "L2-companion": {
@@ -55,6 +55,31 @@
       "status": "done",
       "assign_role": "engineer-a",
       "commit": "7b3f4c0"
+    },
+    "wave-squad-R5": {
+      "status": "done",
+      "assign_role": "reviewer",
+      "commit": "6287cd7"
+    },
+    "wave5-genesis-pin-gate": {
+      "status": "done",
+      "assign_role": "engineer-a",
+      "commit": "6287cd7"
+    },
+    "wave2-v35-squad-triple-exit": {
+      "status": "done",
+      "assign_role": "engineer-a",
+      "commit": "6287cd7"
+    },
+    "wave2-v35-R": {
+      "status": "done",
+      "assign_role": "reviewer",
+      "commit": "6287cd7"
+    },
+    "wave5-gen2-gen5-terminal": {
+      "status": "done",
+      "assign_role": "engineer-b",
+      "commit": "6287cd7"
     }
   },
   "findings": [
@@ -88,7 +113,6 @@
     "engineer-a",
     "engineer-b"
   ],
-  "halt_reason": "signoff_and_all_tasks_done",
   "last_assess": {
     "signoff_id": "v3.5-lisp-only",
     "percent_auto": 100,
@@ -120,7 +144,7 @@
       {
         "id": "tests-run",
         "ok": true,
-        "detail": "results.txt val=255 need>=253",
+        "detail": "results.txt val=259 need>=253",
         "manual": false
       },
       {
@@ -182,7 +206,7 @@
       {
         "id": "tests-run",
         "ok": true,
-        "detail": "results.txt val=255 need>=253",
+        "detail": "results.txt val=259 need>=253",
         "manual": false
       },
       {
@@ -226,5 +250,6 @@
     ],
     "manual": []
   },
-  "updated_at": "2026-05-23T07:57:27.079110+00:00"
+  "halt_reason": "signoff_and_all_tasks_done",
+  "updated_at": "2026-05-23T08:27:18.173117+00:00"
 }

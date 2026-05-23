@@ -130,3 +130,4 @@ P3（架构债，v4）
 | 2026-05-23 | **v3.5-terminal 签收**：`terminal_gates`（gen2×gen5 full、pin=runner）；**v4 kickoff** 小队 `catalog-v4` 全绿 → 见 [`DECISION.md`](DECISION.md)、[`../v4/README.md`](../v4/README.md) |
 | 2026-05-23 | **v4 slice-0 kickoff**：`bootstrap-v4-aarch64-aot-plan.lisp` scout（仍 `aarch64-add-emit` stub）；真 VM/AOT aarch64 属 v4 slice — 见 [`AARCH64.md`](AARCH64.md) § v4 slice-0 |
 | 2026-05-23 | **wave-practice-R1**：v4 `wave-practice-*` 验证 `--auto-exec` + `verify.lock` + follower `run-loop`（POSTMORTEM Q7–Q8 短程闭环）；assess v4-kickoff **100%** ready |
+| 2026-05-23 | **wave2-v4-R**：v4 `run-loop` 三态退出（complete/failed/timeout）+ `auto_done` + `bootstrap-v4-squad-assess.lisp` S0；reviewer `--auto-exec` 259 pass assess **100%** ready |

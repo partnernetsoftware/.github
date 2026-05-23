@@ -1,14 +1,14 @@
 {
   "version": 2,
   "apiVersion": "squad-state/v2",
-  "wave": 26,
+  "wave": 32,
   "signoff_percent": 100,
   "halt": true,
   "assignments": {
     "commander": null,
-    "engineer-a": null,
     "engineer-b": null,
-    "reviewer": null
+    "reviewer": null,
+    "engineer-a": null
   },
   "tasks": {
     "v4-aarch64-aot-plan": {
@@ -40,6 +40,21 @@
       "status": "done",
       "assign_role": "reviewer",
       "commit": "f2a5fdd"
+    },
+    "wave2-squad-triple-exit": {
+      "status": "done",
+      "assign_role": "engineer-b",
+      "commit": "6287cd7"
+    },
+    "wave2-v4-R": {
+      "status": "done",
+      "assign_role": "reviewer",
+      "commit": "6287cd7"
+    },
+    "wave2-v4-s0-assess-sample": {
+      "status": "done",
+      "assign_role": "engineer-a",
+      "commit": "6287cd7"
     }
   },
   "findings": [],
@@ -114,5 +129,5 @@
     "manual": []
   },
   "halt_reason": "signoff_and_all_tasks_done",
-  "updated_at": "2026-05-23T08:21:21.099329+00:00"
+  "updated_at": "2026-05-23T08:23:50.217687+00:00"
 }

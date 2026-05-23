@@ -13,7 +13,7 @@ tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v4.yaml agent-tea
 - **project**: `/workspace/lab/nano-lisp-jit`
 - **state.db**: `/workspace/lab/nano-lisp-jit/.squad/state-v4.db`
 - **signoff_id**: `v4-kickoff`
-- **updated_at**: 2026-05-23T08:14:35.472910+00:00
+- **updated_at**: 2026-05-23T08:24:09.582378+00:00
 - **signoff_auto**: 100%
 - **halt**: True
 
@@ -32,4 +32,7 @@ tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v4.yaml agent-tea
 | wave-practice-auto-exec-doc | done | cbef46b |
 | wave-practice-v4-squad-md | done | cbef46b |
 | wave-v4-R0 | done | adb3bd1 |
+| wave2-squad-triple-exit | done | 6287cd7 |
+| wave2-v4-R | done | 6287cd7 |
+| wave2-v4-s0-assess-sample | done | 6287cd7 |
 <!-- SQUAD_STATE_END -->
