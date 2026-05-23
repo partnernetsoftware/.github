@@ -1,5 +1,7 @@
 # Squad — 通用多角色编排 CLI
 
+> **并行方法学（Agent Skill）**：[`../../skills/squad-parallel/SKILL.md`](../../skills/squad-parallel/SKILL.md) — 四角色 `agent-team`、波次脚本、排障表。
+
 > **演进**：现为 host 层（Python + shell）。nano lisp 工具成熟后，用 Lisp/bootstrap 实现同等 `catalog` + `run-loop` + `signals`，替代对 Python/shell 的依赖；见 `lab/nano-lisp-jit/squad/PROTOCOL.md` §演进笔记。
 
 **一个工具、一个循环**：所有角色都用 `squad run-loop --role <id>`；指挥长（leader）在循环里更新 `signals.supervisor`，队员 **只等 leader 信号**，不因自己看到 100% 就退出。

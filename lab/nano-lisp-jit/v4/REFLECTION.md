@@ -33,14 +33,7 @@
 | assess 96% 瞬态 | `run.sh` 未写 `tests.pass` 就 assess | ✅ commander smoke **在** `run_end_summary` **之后** |
 | 100% 不 dispatch | 仅 worker pending 才继续 | ✅ 新 wave 用 `resume` + `dispatch --force --include-meta` |
 
-**并行标准流程**（四角色一进程一角色）：
-
-```bash
-tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v4.yaml resume --reason <wave>
-tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v4.yaml dispatch --force --include-meta
-tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v4.yaml agent-team --auto-exec --auto-done
-# 本地验证：SQUAD_VERIFY=1 lab/nano-lisp-jit/run.sh
-```
+**并行标准流程**：见仓库技能 **[`skills/squad-parallel/`](../../skills/squad-parallel/)**（`run-wave.sh` / `poll-tasks.sh`）；Agent 须亲自执行，勿只给用户命令。
 
 ---
 
@@ -67,6 +60,7 @@ tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v4.yaml agent-tea
 
 | 日期 | 摘要 |
 |------|------|
+| 2026-05-23 | **方法学固化**：[`skills/squad-parallel/`](../../skills/squad-parallel/) Agent Skill（`.cursor/skills` 链接） |
 | 2026-05-23 | **wave13**：**agent-team 四角色 tmux 实跑**（`--auto-exec --auto-done`）完成 lowering-table + add13；修复 `spawn_agent_team` tmux argv |
 | 2026-05-23 | **wave12**：S7 emit profile + add11；`parse_add_operands` 已读 plan 内 `(i64 …)`，profile 标记可观测 |
 | 2026-05-23 | **wave11**：本文件 + S6 codegen kickoff；调整 wave11+ 双轨策略 |
