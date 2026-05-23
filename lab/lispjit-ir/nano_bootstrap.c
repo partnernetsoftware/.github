@@ -8,6 +8,7 @@ static int build_slice_use_nano_cc(const char *src_path) {
   slash = strrchr(src_path, '/');
   if (slash) base = slash + 1;
   if (strcmp(base, "nano-cc-hello.c") == 0) return 1;
+  if (strcmp(base, "nano-cc-add.c") == 0) return 1;
   {
     const char *env = getenv("NANO_BUILD_SLICE_CODEGEN");
     if (env && env[0] == '1' && env[1] == '\0' && nano_cc_can_compile_path(src_path)) return 1;
