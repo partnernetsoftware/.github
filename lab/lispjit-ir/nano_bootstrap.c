@@ -125,6 +125,7 @@ static int cmd_build_slice_lisp_aarch64(const char *src_path, const char *out_pa
       return 3;
     }
     printf("build-slice-lisp.mode=aarch64-add-emit\n");
+    printf("aarch64.emit.profile=add-exit-v1\n");
     printf("build-slice-lisp.aarch64.profile=%s\n", base);
     printf("build-slice-lisp.aarch64.add=%d+%d\n", a, b);
     return cmd_file_size(out_path);

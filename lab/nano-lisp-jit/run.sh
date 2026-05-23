@@ -99,6 +99,10 @@ V4_SLICE5_EVIDENCE="$BUILD_DIR/v4-slice5.evidence"
 BOOTSTRAP_V4_CODEGEN_KICKOFF_SRC="$LAB_DIR/samples/bootstrap-v4-codegen-kickoff.lisp"
 BOOTSTRAP_V4_SLICE6_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v4-slice6-evidence.lisp"
 V4_SLICE6_EVIDENCE="$BUILD_DIR/v4-slice6.evidence"
+BOOTSTRAP_V4_SLICE7_ADD11_SRC="$LAB_DIR/samples/bootstrap-v4-slice7-add11.lisp"
+BOOTSTRAP_V4_SLICE7_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v4-slice7-evidence.lisp"
+V4_SLICE7_ADD11_ELF="$BUILD_DIR/bootstrap-v4-slice7-add11.elf"
+V4_SLICE7_EVIDENCE="$BUILD_DIR/v4-slice7.evidence"
 SQUAD_SH="$ROOT_DIR/tools/squad/squad.sh"
 CATALOG_V4="$LAB_DIR/squad/catalog-v4.yaml"
 BOOTSTRAP_V35_NANO_CC_AARCH64_SRC="$LAB_DIR/samples/bootstrap-v35-nano-cc-aarch64.lisp"
@@ -1493,7 +1497,35 @@ run_case "run-bootstrap-v4-codegen-kickoff-plan" bash -c '
   printf "%s\n" "$out"
   printf "%s\n" "$out" | grep -q "bootstrap-step.*=file-hash"
   printf "%s\n" "$out" | grep -q "aarch64.add=3+4"
+  printf "%s\n" "$out" | grep -q "aarch64.emit.profile=add-exit-v1"
 '
+run_case "run-bootstrap-v4-slice7-add11-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE7_ADD11_SRC"'" 2>&1) || true
+  printf "%s\n" "$out"
+  printf "%s\n" "$out" | grep -q "aarch64.add=5+6"
+  printf "%s\n" "$out" | grep -q "aarch64.emit.profile=add-exit-v1"
+  test -f "'"$V4_SLICE7_ADD11_ELF"'"
+'
+run_case "run-bootstrap-v4-slice7-evidence-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE7_EVIDENCE_SRC"'" 2>&1) || true
+  printf "%s\n" "$out"
+  {
+    echo "v4.slice7=1"
+    echo "v4.slice7_add11=1"
+    echo "v4.slice7_emit_profile=1"
+    echo "v4.slice7_plan=run-bootstrap-v4-slice7-evidence-plan"
+  } >> "'"$V4_SLICE7_EVIDENCE"'"
+'
+if has_qemu_aarch64 && [ -f "$V4_SLICE7_ADD11_ELF" ]; then
+  run_case "qemu-aarch64-v4-slice7-add11-exit11" bash -c '
+    QEMU_AARCH64="$(command -v qemu-aarch64-static || command -v qemu-aarch64)"
+    rc=$("$QEMU_AARCH64" "'"$V4_SLICE7_ADD11_ELF"'"; echo $?)
+    printf "qemu-aarch64.v4-slice7-add11.exit=%s\n" "$rc"
+    test "$rc" -eq 11
+  '
+else
+  skip_case "qemu-aarch64-v4-slice7-add11-exit11" "no qemu or slice7 add11 elf"
+fi
 run_case "run-bootstrap-v4-slice6-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE6_EVIDENCE_SRC"'" 2>&1) || true
   printf "%s\n" "$out"
@@ -1529,6 +1561,20 @@ else
 fi
 
 run_end_summary
+run_case "squad-v4-wave12-practice-smoke" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$SQUAD_SH"'" --catalog "'"$CATALOG_V4"'" resume --reason run-sh-wave12 2>&1) || true
+  printf "%s\n" "$out"
+  printf "%s\n" "$out" | grep -q "wave=1"
+  ae=" --no-auto-exec"
+  for role in commander engineer-a engineer-b reviewer; do
+    out=$("'"$SQUAD_SH"'" --catalog "'"$CATALOG_V4"'" run-loop --role "$role" --once${ae} 2>&1) || true
+    printf "%s\n" "$out"
+    printf "%s\n" "$out" | grep -q "run-loop role=$role"
+  done
+  {
+    echo "v4.slice7_wave12_smoke=1"
+  } >> "'"$V4_SLICE7_EVIDENCE"'"
+'
 run_case "squad-v4-wave11-practice-smoke" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$SQUAD_SH"'" --catalog "'"$CATALOG_V4"'" resume --reason run-sh-wave11 2>&1) || true
   printf "%s\n" "$out"

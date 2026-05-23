@@ -14,7 +14,8 @@
 | S3 | `v4-slice3-scoped` | `supervise` / `run-loop --once` | 完整 run-loop |
 | S4 | `v4-slice4-scoped` | agent-team 契约 + commander complete smoke | 4× Lisp 并行 |
 | S5 | `v4-slice5-scoped` | verify-before-done 样本 + wave10 四角色 smoke | `(squad-done)` Lisp |
-| **S6** | `v4-slice6-scoped`（本波） | codegen **kickoff**（emit 路径清单 + 锚点） | 替换 `emit_aarch64_*` |
+| **S6** | `v4-slice6-scoped` | codegen **kickoff**（emit 路径清单 + 锚点） | 替换 `emit_aarch64_*` |
+| **S7** | `v4-slice7-scoped` | **`aarch64.emit.profile=add-exit-v1`** + add11 样本 | IR 驱动 emit |
 
 **三层「全 Lisp」**：仍见 [`LISP-ONLY.md`](LISP-ONLY.md) — plan 层无 `.c`；codegen 层仍是 C stub。
 
@@ -49,7 +50,8 @@ tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v4.yaml agent-tea
 2. **证据写入**：短期仍允许 `run.sh` 追加 `.evidence`；中期迁入 **bootstrap plan 单步**（与 S5 叙事一致）。
 3. **签收粒度**：每 slice 独立 `signoff.id`；gate **只增不删**，`min_pass` 随 `run.sh` 计数上调（当前 run ≥280）。
 4. **plan 无 `.c` 扫描**：S6 允许 `(file-hash "…/nano_elf64.c")` 等 **清单锚点**；`run.sh` 排除 `(file-hash|file-size)` 行，避免误报。
-5. **下一硬目标**：`emit_aarch64_add_exit_file` → 由 **Lisp 解析 + IR  lowering** 驱动（非 `nano_bootstrap.c` 里写死立即数）；首步见 [`SLICE6.md`](SLICE6.md)。
+5. **emit 版本化**：`add-exit-v1` 日志锁定当前 stub 契约；换指令序列时 bump profile（wave12）。
+6. **下一硬目标**：`emit_aarch64_add_exit_file` 由 **IR lowering 表** 驱动（非 C 内手写 `movz` 序列）；见 [`SLICE7.md`](SLICE7.md)。
 
 ---
 
@@ -65,5 +67,6 @@ tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v4.yaml agent-tea
 
 | 日期 | 摘要 |
 |------|------|
+| 2026-05-23 | **wave12**：S7 emit profile + add11；`parse_add_operands` 已读 plan 内 `(i64 …)`，profile 标记可观测 |
 | 2026-05-23 | **wave11**：本文件 + S6 codegen kickoff；调整 wave11+ 双轨策略 |
 | 2026-05-23 | S0–S5 汇总入账；小队 §2 调整表与 `SQUAD_VERIFY` 实践 |

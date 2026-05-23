@@ -20,7 +20,7 @@ tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v4.yaml dispatch 
 tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v4.yaml agent-team --auto-exec
 ```
 
-**签收**：slice-0..6 进行中（**`v4-slice6-scoped`** — S6 codegen kickoff）— 见 [`SLICE6.md`](SLICE6.md)、[`REFLECTION.md`](REFLECTION.md)；S5 见 [`SLICE5.md`](SLICE5.md)。
+**签收**：slice-0..7（**`v4-slice7-scoped`** — emit profile + add11）— 见 [`SLICE7.md`](SLICE7.md)；S6 见 [`SLICE6.md`](SLICE6.md)、反思见 [`REFLECTION.md`](REFLECTION.md)。
 
 ```bash
 tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v4.yaml agent-team --auto-exec --auto-done
@@ -106,6 +106,7 @@ slice S5 — 与构建图合一
 | `samples/bootstrap-v4-squad-s4-agent-team.lisp` | **S4**：agent-team 契约 |
 | `samples/bootstrap-v4-squad-s5-verify-plan.lisp` | **S5**：verify-before-done 样本 |
 | `samples/bootstrap-v4-codegen-kickoff.lisp` | **S6**：emit 路径锚点 + add7 回归 |
+| `samples/bootstrap-v4-slice7-add11.lisp` | **S7**：`add-exit-v1` profile + 5+6→11 |
 
 **反思 / 调整**：[`REFLECTION.md`](REFLECTION.md)（小队实践 + wave11+ 双轨策略）。
 
