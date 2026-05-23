@@ -43,7 +43,8 @@
 | 签收 100% 后 wave 卡死 | `assess` / `dispatch` 遇 ready 即 `halt` | `team_mode` + `resume` |
 | 每角色一套 shell/py | `run-role-loop.sh` 与 reviewer 内联 bash 分叉 | 已统一 `squad run-loop --role` |
 | `squad verify` 路径双份 | catalog 写 `lab/.../run.sh` 而 `work_root` 已在 `nano-lisp-jit` | 已改为 `run.sh` |
-| 门禁与叙事不一致 | `findings` 仍留 warn，auto gate 已 pass | **未清**：应 `reflect` 或清 findings |
+| 门禁与叙事不一致 | `findings` 仍留 warn，auto gate 已 pass | **已清** wave-squad-R3：`reflect` pass + 去 stale warn |
+| 并行 verify 竞态 | `run.sh` 与 `build_nano_jit.sh` 同写 `v35-signoff.evidence` / `.build` | **wave-4 暴露**：assess 间歇 85%→100%；应串行 verify 或 evidence 分文件 |
 | 签收证据旁路 | `v35-signoff.evidence` 由 run.sh 写入，非 bootstrap 步骤 | **scoped 可接受**；长期应 plan 内 `(evidence …)` |
 | `run-loop` 不代劳 claim/done | 只提示 action，实现仍靠 Agent 手跑 CLI | **待办**：Lisp 化后内嵌到 slice runner |
 | 多机 Cloud 难共享锁 | SQLite `state.db` 本机 WAL | 预期；远程需单 orchestrator 或导出 JSON 合并 |
@@ -122,3 +123,5 @@ P3（架构债，v4）
 | 2026-05-23 | **wave-squad-R1**：小组模式 [`SQUAD.md`](SQUAD.md)；评估 **~85%**（gen5 scoped on branch）；阻塞 L2 去 companion、L4 多 TU link、aarch64 非 stub、gen5 全功能 Lisp runner；派单 A=`L2-companion`、B=`L4-tu-kickoff` |
 | 2026-05-23 | **wave-squad-R2**：L2/L4/aarch64 签收；**aarch64-add-emit**（`build-slice-lisp.mode=aarch64-add-emit` + qemu）；**gen5-via-gen2**（`bootstrap-v35-selfhost-gen5-via-gen2.lisp` + `v35-signoff.evidence`）；squad assess **100%** ready |
 | 2026-05-23 | **wave4-selfhost-refresh**：gen2 `build-slice-lisp` add 曾 `parse=fail` — 根因 genesis x86 pin（`638236d6…`）缺 `(module (func …))` 解析；刷新 pin 自 native `nano-lisp-jit`（`76fb499f…`）+ 重跑 gen1/gen2 bootstrap 后 gen2 可编 `nano-jit-slice-add.lisp`；`run.sh` 255 pass |
+| 2026-05-23 | **wave4-signoff-bootstrap**：`bootstrap-v35-signoff-evidence.lisp` plan（aarch64-add-emit + x86 min smoke）；`v35-signoff.evidence` 含 `signoff_bootstrap_plan` marker |
+| 2026-05-23 | **wave-squad-R3**：wave-4 四角色并行 `run-loop`（reviewer 等 A/B 依赖完成）；§2.3 入账 run-loop 统一、verify 竞态、findings 同步；squad assess **100%** ready；`run.sh` 255 / `build` 119 |

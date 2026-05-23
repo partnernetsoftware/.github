@@ -1,14 +1,14 @@
 {
   "version": 2,
   "apiVersion": "squad-state/v2",
-  "wave": 6,
+  "wave": 19,
   "signoff_percent": 100,
-  "halt": false,
+  "halt": true,
   "assignments": {
     "commander": null,
+    "reviewer": null,
     "engineer-b": null,
-    "engineer-a": null,
-    "reviewer": null
+    "engineer-a": null
   },
   "tasks": {
     "L2-companion": {
@@ -40,36 +40,43 @@
       "status": "done",
       "assign_role": "reviewer",
       "commit": "b06a23e"
+    },
+    "wave-squad-R3": {
+      "status": "done",
+      "assign_role": "reviewer",
+      "commit": "85fd851"
+    },
+    "wave4-signoff-bootstrap": {
+      "status": "done",
+      "assign_role": "engineer-b",
+      "commit": "50aa10f"
+    },
+    "wave4-selfhost-refresh": {
+      "status": "done",
+      "assign_role": "engineer-a",
+      "commit": "7b3f4c0"
     }
   },
   "findings": [
     {
-      "gate": "aarch64-real-codegen",
-      "status": "warn",
-      "note": "add profile exit-emit+qemu; full AOT aarch64 pending",
-      "at": "2026-05-23T07:21:23.482721+00:00"
-    },
-    {
-      "gate": "l4-full-runner-slice",
-      "status": "warn",
-      "note": "gen5g2 via gen2-slice subset; full Lisp runner pending L4",
-      "at": "2026-05-23T07:21:23.535250+00:00"
-    },
-    {
-      "note": "reviewer wave",
-      "at": "2026-05-23T07:35:54.021863+00:00"
+      "note": "wave-squad-R3: wave-4 complete; assess 100%; gen2 build-slice-lisp add + signoff bootstrap plan",
+      "at": "2026-05-23T07:47:47.532471+00:00"
     },
     {
       "gate": "aarch64-real-codegen",
       "status": "pass",
-      "note": "evidence v35-signoff.evidence",
-      "at": "2026-05-23T07:37:26.947237+00:00"
+      "note": "wave-squad-R3 verify; v35-signoff.evidence aarch64_add_emit",
+      "at": "2026-05-23T07:52:03.028086+00:00"
     },
     {
       "gate": "l4-full-runner-slice",
       "status": "pass",
-      "note": "gen5-via-gen2 plan",
-      "at": "2026-05-23T07:37:27.003796+00:00"
+      "note": "wave-squad-R3 verify; gen5-via-gen2 evidence",
+      "at": "2026-05-23T07:52:03.028086+00:00"
+    },
+    {
+      "note": "wave-squad-R3: parallel run-loop wave-4; assess 100%; stale warn cleared",
+      "at": "2026-05-23T07:52:03.028086+00:00"
     }
   ],
   "manual_acks": {
@@ -107,7 +114,7 @@
       {
         "id": "tests-run",
         "ok": true,
-        "detail": "results.txt val=254 need>=253",
+        "detail": "results.txt val=255 need>=253",
         "manual": false
       },
       {
@@ -131,6 +138,6 @@
     ],
     "manual": []
   },
-  "halt_reason": null,
-  "updated_at": "2026-05-23T07:42:23.123718+00:00"
+  "halt_reason": "signoff_and_all_tasks_done",
+  "updated_at": "2026-05-23T07:52:14.181719+00:00"
 }
