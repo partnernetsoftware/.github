@@ -183,6 +183,13 @@ tasks:
     accept:
       - "assess terminal_ready=true"
       - "v3.5 维护波次收口"
+  wave3-v35-closed:
+    assign_role: reviewer
+    priority: meta
+    depends: []
+    accept:
+      - "DECISION.md 标 v3.5 CLOSED"
+      - "assess terminal_ready=true"
 
 verify:
   commands:

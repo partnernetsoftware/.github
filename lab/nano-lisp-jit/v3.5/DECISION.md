@@ -4,9 +4,9 @@
 
 | 档位 | 状态 | 依据 |
 |------|------|------|
-| **v3.5-scoped** | **已完成** | `catalog.signoff.gates` 全绿；已合并 `main` |
-| **v3.5-terminal** | **已完成** | wave-5：`gen2×gen5` full plan、pin=runner、`terminal_gates` 全绿；`run.sh` 257 pass |
-| **v4 产品轨** | **已启动** | `squad/catalog-v4.yaml` + wave-v4 小队 |
+| **v3.5-scoped** | **已完成 · CLOSED** | `catalog.signoff.gates` 全绿；无新工程任务 |
+| **v3.5-terminal** | **已完成 · CLOSED** | wave-5 + `terminal_gates`；维护仅回归，不扩 scope |
+| **v4 slice-0** | **推进中 → scoped 签收** | `catalog-v4` `v4-slice0-scoped`；真 AOT 归后续 slice |
 
 ## 规则
 
@@ -25,6 +25,6 @@ assess.ready（scoped ∧ terminal）            → v3.5 全线完成 → 小�
 
 ## 当前动作（wave-5 后）
 
-- v3.5：**无剩余阻塞**（aarch64 全 AOT 明确归入 v4）。
-- v4：`tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v4.yaml agent-team --auto-exec --auto-done`
+- v3.5：**CLOSED** — 不再开 squad 工程波次；`assess` 仅作回归哨兵。
+- v4 slice-0：`agent-team --auto-exec --auto-done` 完成 S0–S3 样本 + `v4-slice0.evidence` 后 **scoped 签收**。
 - squad **wave2**：`run-loop` 仅 `complete|failed|timeout` 解散；`auto_done` 闭环工单（见 `squad/PROTOCOL.md`）

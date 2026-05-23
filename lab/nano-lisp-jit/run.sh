@@ -70,6 +70,10 @@ BOOTSTRAP_V35_SELFHOST_GEN5_VIA_GEN2_SRC="$LAB_DIR/samples/bootstrap-v35-selfhos
 BOOTSTRAP_V35_SIGNOFF_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v35-signoff-evidence.lisp"
 BOOTSTRAP_V4_KICKOFF_SRC="$LAB_DIR/samples/bootstrap-v4-kickoff.lisp"
 BOOTSTRAP_V4_AARCH64_AOT_SRC="$LAB_DIR/samples/bootstrap-v4-aarch64-aot-plan.lisp"
+BOOTSTRAP_V4_SQUAD_DISPATCH_SRC="$LAB_DIR/samples/bootstrap-v4-squad-dispatch.lisp"
+BOOTSTRAP_V4_SQUAD_RUN_LOOP_ONCE_SRC="$LAB_DIR/samples/bootstrap-v4-squad-run-loop-once.lisp"
+BOOTSTRAP_V4_SLICE0_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v4-slice0-evidence.lisp"
+V4_SLICE0_EVIDENCE="$BUILD_DIR/v4-slice0.evidence"
 BOOTSTRAP_V35_NANO_CC_AARCH64_SRC="$LAB_DIR/samples/bootstrap-v35-nano-cc-aarch64.lisp"
 BOOTSTRAP_V35_BUILD_SLICE_AARCH64_SRC="$LAB_DIR/samples/bootstrap-v35-build-slice-aarch64.lisp"
 BOOTSTRAP_V35_BUILD_SLICE_LISP_AARCH64_SRC="$LAB_DIR/samples/bootstrap-v35-build-slice-lisp-aarch64.lisp"
@@ -1271,6 +1275,28 @@ run_case "run-bootstrap-v4-aarch64-aot-plan" bash -c '
   printf "%s\n" "$out"
   printf "%s\n" "$out" | grep -q "build-slice-lisp"
   test -f "'"$BUILD_DIR"'/bootstrap-v4-aarch64-add-scout.elf"
+'
+run_case "run-bootstrap-v4-squad-dispatch-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SQUAD_DISPATCH_SRC"'" 2>&1) || true
+  printf "%s\n" "$out"
+  printf "%s\n" "$out" | grep -q "bootstrap-step.*=file"
+'
+run_case "run-bootstrap-v4-squad-run-loop-once-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SQUAD_RUN_LOOP_ONCE_SRC"'" 2>&1) || true
+  printf "%s\n" "$out"
+  printf "%s\n" "$out" | grep -q "bootstrap-step.*=file"
+'
+run_case "run-bootstrap-v4-slice0-evidence-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE0_EVIDENCE_SRC"'" 2>&1) || true
+  printf "%s\n" "$out"
+  printf "%s\n" "$out" | grep -q "build-slice-lisp"
+  test -f "'"$BUILD_DIR"'/bootstrap-v4-aarch64-add-scout.elf"
+  {
+    echo "v4.slice0=1"
+    echo "v4.aarch64_scout=1"
+    echo "v4.squad_s0_s3=1"
+    echo "v4.slice0_plan=run-bootstrap-v4-slice0-evidence-plan"
+  } >> "'"$V4_SLICE0_EVIDENCE"'"
 '
 
 # --- bootstrap-v25 native selfpack (pack-ape per plan) ---

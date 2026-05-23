@@ -24,7 +24,7 @@ supervisor:
   task_timeout_sec: 3600
   stuck_policy: fail
 signoff:
-  id: v4-kickoff
+  id: v4-slice0-scoped
   require_terminal: false
   gates:
     - id: v35-regression-run
@@ -43,6 +43,20 @@ signoff:
     - id: v4-kickoff-plan
       check: artifact
       path_glob: "samples/bootstrap-v4-kickoff.lisp"
+    - id: v4-aarch64-scout-elf
+      check: artifact
+      path_glob: ".build/bootstrap-v4-aarch64-add-scout.elf"
+    - id: v4-squad-dispatch-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v4-squad-dispatch.lisp"
+    - id: v4-squad-run-loop-once-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v4-squad-run-loop-once.lisp"
+    - id: v4-slice0-evidence
+      check: results
+      file: ".build/v4-slice0.evidence"
+      results_key: v4.slice0
+      min_pass: 1
 
 tasks:
   v4-aarch64-aot-plan:
@@ -105,6 +119,34 @@ tasks:
     accept:
       - "assess v4-kickoff ready"
       - "REFLECTION wave2 三态+auto_done 实践"
+  wave3-v4-squad-samples:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v4-squad-dispatch.lisp"
+      - "samples/bootstrap-v4-squad-run-loop-once.lisp"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-squad-dispatch-plan"
+      - "run-bootstrap-v4-squad-run-loop-once-plan"
+  wave3-v4-slice0-evidence:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v4-slice0-evidence.lisp"
+      - ".build/v4-slice0.evidence"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-slice0-evidence-plan"
+      - "v4.slice0=1 in evidence"
+  wave3-v4-R:
+    assign_role: reviewer
+    priority: meta
+    depends: [wave3-v4-squad-samples, wave3-v4-slice0-evidence]
+    accept:
+      - "assess v4-slice0-scoped ready"
+      - "v4/README 记 slice-0 scoped 完成"
+      - "DECISION v3.5 CLOSED"
 
 verify:
   commands:
