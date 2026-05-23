@@ -134,6 +134,7 @@ BOOTSTRAP_V35_BUILD_SLICE="$LAB_DIR/samples/bootstrap-v35-build-slice.lisp"
 BOOTSTRAP_V35_BUILD_SLICE_AARCH64="$LAB_DIR/samples/bootstrap-v35-build-slice-aarch64.lisp"
 BOOTSTRAP_V35_SELFHOST_GEN3="$LAB_DIR/samples/bootstrap-v35-selfhost-gen3.lisp"
 BOOTSTRAP_V35_SELFHOST_GEN4="$LAB_DIR/samples/bootstrap-v35-selfhost-gen4.lisp"
+BOOTSTRAP_V35_SELFHOST_GEN5="$LAB_DIR/samples/bootstrap-v35-selfhost-gen5.lisp"
 BOOTSTRAP_V35_LISP_ONLY_MATRIX="$LAB_DIR/samples/bootstrap-v35-lisp-only-matrix.lisp"
 BOOTSTRAP_V35_PACK_LISP_X86="$LAB_DIR/samples/bootstrap-v35-pack-lisp-x86.lisp"
 BOOTSTRAP_V35_GENESIS_SHRINK="$LAB_DIR/samples/bootstrap-v35-genesis-shrink.lisp"
@@ -910,6 +911,26 @@ if [ "$NANO_SELFHOST_THOROUGH" = "1" ] && { [ "$(uname -m)" = "x86_64" ] || [ "$
     inspect=$("'"$LAB_DIR"'/.build/nano-lisp-jit" inspect-ape "'"$SELFHOST_DIR"'/v35-gen4-nano-jit.com" 2>&1) || true
     printf "%s\n" "$inspect"
     printf "%s\n" "$inspect" | grep -q "inspect-ape.slice.0.hash=$slice_h"
+  '
+  run_case "selfhost-v35-gen5-round-native-runner" bash -c '
+    cd "'"$ROOT_DIR"'" && "'"$LAB_DIR"'/.build/nano-lisp-jit" run-bootstrap-plan "'"$BOOTSTRAP_V35_SELFHOST_GEN5"'"
+  '
+  run_case "selfhost-v35-gen5-round-artifacts" bash -c '
+    test -x "'"$SELFHOST_DIR"'/v35-gen5-slice-min-x86.elf"
+    test -x "'"$SELFHOST_DIR"'/v35-gen5-slice-add-x86.elf"
+    test -f "'"$SELFHOST_DIR"'/v35-gen5-slice-min-aarch64.elf"
+    test -f "'"$SELFHOST_DIR"'/v35-gen5-nano-jit.com"
+    "'"$SELFHOST_DIR"'/v35-gen5-slice-min-x86.elf"; test $? -eq 42
+    "'"$SELFHOST_DIR"'/v35-gen5-slice-add-x86.elf"; test $? -eq 42
+    "'"$LAB_DIR"'/.build/nano-lisp-jit" run "'"$SELFHOST_DIR"'/v35-gen5-arithmetic.lbin"
+    slice_x=$("'"$LAB_DIR"'/.build/nano-lisp-jit" file-hash "'"$SELFHOST_DIR"'/v35-gen5-slice-min-x86.elf" 2>/dev/null | tail -1)
+    slice_a=$("'"$LAB_DIR"'/.build/nano-lisp-jit" file-hash "'"$SELFHOST_DIR"'/v35-gen5-slice-min-aarch64.elf" 2>/dev/null | tail -1)
+    test -n "$slice_x" && test -n "$slice_a" && test "$slice_x" != "$slice_a"
+    inspect=$("'"$LAB_DIR"'/.build/nano-lisp-jit" inspect-ape "'"$SELFHOST_DIR"'/v35-gen5-nano-jit.com" 2>&1) || true
+    printf "%s\n" "$inspect"
+    printf "%s\n" "$inspect" | grep -q "inspect-ape.slice.0.hash=$slice_x"
+    printf "%s\n" "$inspect" | grep -q "inspect-ape.slice.1.hash=$slice_a"
+    ! printf "%s\n" "$inspect" | grep -q "638236d602fed349"
   '
   {
     echo "selfhost.thorough=ok"

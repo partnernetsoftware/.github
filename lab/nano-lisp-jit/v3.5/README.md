@@ -1,48 +1,37 @@
-# v3.5 — nano-cc 扩展
+# v3.5 — Lisp-only 自主进化（主轨）+ nano-cc 实验轨
 
-**Status: slice 0–5 scoped + wave3 进行中** — v3 完全 100% 已签收。并行见 [`PARALLEL.md`](PARALLEL.md)；反思见 [`REFLECTION.md`](REFLECTION.md)（技术债、实验、P0–P3）。
+**Status: ~85%（gen5 scoped）** — L0–L3 + **gen5 双架构 Lisp pack**（零 genesis pin、计划内零 `.c`）已证据化。并行见 [`PARALLEL.md`](PARALLEL.md)；反思见 [`REFLECTION.md`](REFLECTION.md)。
 
-| 切片 | 状态 | 说明 |
-|------|------|------|
-| slice 0 nano-cc 证据门禁 | **100%** | `nano-cc compile … -o`、bootstrap、`nano-cc-bad` exit 2 |
-| slice 1 C-subset 前端 | **scoped** | `nano-cc parse` dump；`nano-cc-add-bad-sig` exit 2 |
-| slice 2 x86_64 add | **100%** scoped | companion `.lisp` + `nano-cc-add` exit 42 |
-| slice 3 `build-slice` 切换 | **100%** scoped | `NANO_BUILD_SLICE_CODEGEN=1` + `nano-cc-*.c` |
-| slice 4 aarch64 nano-cc | **scoped** | `NANO_CC_ARCH` exit42；[`AARCH64.md`](AARCH64.md) |
-| slice 5 gen3 自举 | **100%** scoped | `bootstrap-v35-selfhost-gen3`、genesis pin pack |
-| slice 6 Genesis 收缩 | **~scoped kickoff** | [`GENESIS-SHRINK.md`](GENESIS-SHRINK.md)、`bootstrap-v35-genesis-shrink` |
+| 切片 / 线 | 状态 | 说明 |
+|-----------|------|------|
+| Lisp-only L0–L3 | **签收** | [`LISP-ONLY.md`](LISP-ONLY.md) |
+| gen5 双架构 pack | **scoped** | `bootstrap-v35-selfhost-gen5.lisp` |
+| gen4 | **scoped** | 计划无 `.c`；aarch64 pack 曾用 genesis |
+| nano-cc slice 0–3 | **scoped/100%** | 实验轨 |
+| slice 6 Genesis 收缩 | **scoped** | [`GENESIS-SHRINK.md`](GENESIS-SHRINK.md) |
+| L4 全功能 Lisp slice | **未签收** | 多 TU link；gen5 编排仍 native runner |
 
-**Lisp-only 线 L0**：见 [`LISP-ONLY.md`](LISP-ONLY.md)（新增 slice 只写 `.lisp`）。
+**v3.5 整体**：**~85%** — 签收尚缺：L4 全功能 runner、aarch64 非 stub。
 
-**v3.5 整体**：**~65%**（Lisp-only L0–L1 + L3 scoped）
-
-## slice 0 证据
+## gen5 证据
 
 ```bash
-bash lab/nano-lisp-jit/run.sh   # nano-cc-compile-hello-cli, nano-cc-run-hello-exit42, v35 plan
+bash lab/nano-lisp-jit/run.sh   # run-bootstrap-v35-selfhost-gen5-plan, qemu-aarch64-v35-gen5-*
+env NANO_SELFHOST_THOROUGH=1 NANO_SLICE_COMPILER=native bash lab/nano-lisp-jit/build_nano_jit.sh
 ```
 
-样例：`samples/bootstrap-v35-nano-cc-hello.lisp`、`samples/nano-cc-bad.c`  
-错误码：[`ERROR-CODES.md`](ERROR-CODES.md)
+样例：`samples/bootstrap-v35-selfhost-gen5.lisp` — x86 min/add + aarch64 min/add → `pack-ape`（无 `genesis/nano-jit.*`）。
 
-## slice 3 证据
+## 其它证据
 
-```bash
-bash lab/nano-lisp-jit/run.sh   # run-bootstrap-v35-build-slice-plan
-env NANO_SLICE_COMPILER=native bash lab/nano-lisp-jit/build_nano_jit.sh   # run-bootstrap-v35-build-slice-native-slice
-```
+- gen4：`bootstrap-v35-selfhost-gen4.lisp`
+- Lisp-only 矩阵：`bootstrap-v35-lisp-only-matrix.lisp`
+- nano-cc：[`ERROR-CODES.md`](ERROR-CODES.md)
 
-样例：`samples/bootstrap-v35-build-slice.lisp`、`samples/nano-cc-build-slice.c`  
-环境：`NANO_BUILD_SLICE_CODEGEN=1`
+## 下一刀
 
-## slice 4 aarch64（route B）
+1. L4：多 `.lisp` TU → 全功能 runner slice
+2. L2：去 `nano-cc-add.c` companion
+3. aarch64 真实 codegen
 
-见 [`AARCH64.md`](AARCH64.md)。`run.sh`：`nano-cc-compile-hello-aarch64`、`nano-cc-qemu-aarch64-hello-exit42`（无 qemu 则 skip）。
-
-## slice 6 genesis shrink（scoped kickoff）
-
-见 [`GENESIS-SHRINK.md`](GENESIS-SHRINK.md)。`run.sh`：`run-bootstrap-v35-genesis-shrink-plan`。
-
-## 目标
-
-用扩展 **nano-cc** 逐步生成 slice，替代仅依赖 [`../genesis/`](../genesis/) pin 复制。见 [`../ROADMAP.md`](../ROADMAP.md) v3.5 mindmap。
+Mindmap：[`../ROADMAP.md`](../ROADMAP.md)

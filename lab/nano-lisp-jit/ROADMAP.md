@@ -320,7 +320,7 @@ v3.5: nano-cc（nano-jit 作为 cc 编译器）
 │  ├─ 赌注：编辑面 = `.lisp` + bootstrap + golden；C 仅 genesis/legacy
 │  ├─ 档位：A–B **已达**；C genesis-pin；D− gen4 计划无 C；E 加速通道 **进行中**
 │  ├─ L0–L1–L3：Lisp slice、pack x86 Lisp、aarch64 exit-stub — **签收**
-│  ├─ 加速 3–6：去 companion、Lisp TU link-pack、gen5 零 C 零 pin 复制
+│  ├─ gen5 **scoped**：双架构 Lisp pack 零 genesis；加速 3–6 L4/L2 待签收
 │  └─ 判据：每代 `run.sh` 全绿 + plan 无 `.c` + hash 矩阵不退化
 ├─ slice 0: nano-cc 证据门禁（**100%**）
 │  ├─ sample：`samples/nano-cc-hello.c`（`main` return 42）+ `nano-cc-bad.c`
@@ -375,10 +375,11 @@ v3.5: nano-cc（nano-jit 作为 cc 编译器）
 | slice 4 aarch64 nano-cc | **scoped** | `NANO_CC_ARCH` + `build-slice-lisp` aarch64；[`v3.5/AARCH64.md`](v3.5/AARCH64.md) |
 | Lisp-only L1 pack | **scoped** | `bootstrap-v35-pack-lisp-x86` |
 | slice 5 gen3 自举 | **100%** scoped | `bootstrap-v35-selfhost-gen3`、genesis pin pack |
+| gen5 Lisp dual-arch pack | **scoped** | `bootstrap-v35-selfhost-gen5`、零 genesis pin |
 | slice 6 Genesis 收缩 | **scoped** | genesis-shrink + `audit_genesis_shrink.sh` |
 | 反思轨 R | **持续** | [`v3.5/REFLECTION.md`](v3.5/REFLECTION.md) |
 
-**v3.5 整体**：**~65%** — 开发三轨 + 反思轨 R。下一刀 P0：去 companion + parse/IR 契约。见 [`v3.5/README.md`](v3.5/README.md)、[`v3.5/PARALLEL.md`](v3.5/PARALLEL.md)、[`v3.5/REFLECTION.md`](v3.5/REFLECTION.md)。
+**v3.5 整体**：**~85%** — gen5 scoped；签收尚缺 L4 全功能 runner、aarch64 非 stub。下一刀 L4/L2。见 [`v3.5/README.md`](v3.5/README.md)。
 
 ### 0. 证据基线
 

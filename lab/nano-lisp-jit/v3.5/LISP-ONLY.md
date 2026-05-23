@@ -19,7 +19,7 @@
 | **A** 用户态全 Lisp | 实验/产品逻辑只写 `.lisp` | **已达** |
 | **B** slice 增量全 Lisp | 新能力用 `build-slice-lisp` / `.lisp` 路由 | **L0–L3 已达** |
 | **C** 日常零 host `cc` | 重建 runner 不碰 `cc`/`lispjit.c` | **genesis-pin**（复制，非生成） |
-| **D** 自举闭环无 C 输入 | gen{N+1} bootstrap **计划内无 `.c`**，且 **无 pin 复制** | **gen4 计划无 C**；pack 仍部分 genesis |
+| **D** 自举闭环无 C 输入 | gen{N+1} bootstrap **计划内无 `.c`**，且 **无 pin 复制** | **gen5 scoped**：双架构 Lisp pack，无 genesis pin |
 | **E** 自主进化加速 | AI 只改 Lisp 面 + 门禁自动红；每轮 `run.sh`+build 分钟级证据 | **进行中** |
 
 **目标**：尽快从 **D−**（计划无 C、产物仍 pin）推进到 **D+**（Lisp 生成 x86+aarch64 slice），再冲 **E**。
@@ -38,7 +38,8 @@
 | 统一 DSL | `(build-slice "*.lisp" …)` → 自动 `build-slice-lisp`（`build-slice.route=lisp-by-extension`） | 是 |
 | 证据 | `bootstrap-v35-lisp-only-matrix.lisp`、`bootstrap-v35-build-slice-lisp-route.lisp` | 计划内零 `.c` |
 | pack x86 Lisp | `bootstrap-v35-pack-lisp-x86.lisp` — Lisp slice + genesis aarch64 | 是 |
-| gen4 自举 | `bootstrap-v35-selfhost-gen4.lisp` — Lisp slice + pack x86 来自 `v35-gen4-slice-min-x86.elf` | 是（aarch64 仍 genesis pin） |
+| gen4 自举 | `bootstrap-v35-selfhost-gen4.lisp` — Lisp slice + pack x86 来自 Lisp ELF | 是（aarch64 仍 genesis pin） |
+| gen5 自举 | `bootstrap-v35-selfhost-gen5.lisp` — 双架构 Lisp slice + pack，零 genesis | 是（编排 runner 仍 native；slice 为 stub profile） |
 
 ```bash
 bash lab/nano-lisp-jit/run.sh   # pack-lisp-x86, lisp-only-matrix, build-slice-lisp-route, gen4 plan
@@ -111,4 +112,4 @@ L6  AI 协同：仅改 .lisp + bootstrap + golden；禁止新增 .c 除非 NANO_
 
 - **L2 / 加速 3**：单一真相源 `.lisp`；弱化 `nano-cc-add.c` companion
 - **L4 / 加速 4**：Lisp 编多 TU → link → pack（x86 先签收）
-- **gen5 / 加速 6**：下一代 bootstrap **零 `.c`、零 genesis x86 复制**（允许 genesis 仅作灾备）
+- **gen5 / 加速 6**：**已 scoped** — 见 `bootstrap-v35-selfhost-gen5.lisp`；下一：gen5 由 Lisp 全功能 slice runner 执行（L4）

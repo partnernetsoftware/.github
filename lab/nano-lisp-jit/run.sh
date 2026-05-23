@@ -63,6 +63,7 @@ BOOTSTRAP_V35_LISP_ONLY_MATRIX_SRC="$LAB_DIR/samples/bootstrap-v35-lisp-only-mat
 BOOTSTRAP_V35_BUILD_SLICE_LISP_ROUTE_SRC="$LAB_DIR/samples/bootstrap-v35-build-slice-lisp-route.lisp"
 BOOTSTRAP_V35_PACK_LISP_X86_SRC="$LAB_DIR/samples/bootstrap-v35-pack-lisp-x86.lisp"
 BOOTSTRAP_V35_SELFHOST_GEN4_SRC="$LAB_DIR/samples/bootstrap-v35-selfhost-gen4.lisp"
+BOOTSTRAP_V35_SELFHOST_GEN5_SRC="$LAB_DIR/samples/bootstrap-v35-selfhost-gen5.lisp"
 BOOTSTRAP_V35_NANO_CC_AARCH64_SRC="$LAB_DIR/samples/bootstrap-v35-nano-cc-aarch64.lisp"
 BOOTSTRAP_V35_BUILD_SLICE_AARCH64_SRC="$LAB_DIR/samples/bootstrap-v35-build-slice-aarch64.lisp"
 BOOTSTRAP_V35_BUILD_SLICE_LISP_AARCH64_SRC="$LAB_DIR/samples/bootstrap-v35-build-slice-lisp-aarch64.lisp"
@@ -1097,6 +1098,42 @@ run_case "run-bootstrap-v35-selfhost-gen4-plan" bash -c '
   printf "%s\n" "$inspect"
   printf "%s\n" "$inspect" | grep -q "inspect-ape.slice.0.hash=$slice_h"
 '
+
+# --- v3.5 gen5: dual-arch Lisp pack, zero genesis pin, zero .c ---
+log "bootstrap.v35.selfhost.gen5.source.path=$BOOTSTRAP_V35_SELFHOST_GEN5_SRC"
+run_case "run-bootstrap-v35-selfhost-gen5-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V35_SELFHOST_GEN5_SRC"'" 2>&1) || true
+  printf "%s\n" "$out"
+  printf "%s\n" "$out" | grep -q "build-slice-lisp"
+  printf "%s\n" "$out" | grep -q "build-slice-lisp.mode=aarch64-exit-emit"
+  printf "%s\n" "$out" | grep -q "bootstrap-step.*=pack-ape"
+  ! printf "%s\n" "$out" | grep -q "genesis/nano-jit"
+  ! printf "%s\n" "$out" | grep -qE "build-slice\.source=.*\.c"
+  test -x "'"$SELFHOST_DIR"'/v35-gen5-slice-min-x86.elf"
+  test -x "'"$SELFHOST_DIR"'/v35-gen5-slice-add-x86.elf"
+  test -f "'"$SELFHOST_DIR"'/v35-gen5-slice-min-aarch64.elf"
+  test -f "'"$SELFHOST_DIR"'/v35-gen5-slice-add-aarch64.elf"
+  test -f "'"$SELFHOST_DIR"'/v35-gen5-nano-jit.com"
+  test -f "'"$SELFHOST_DIR"'/v35-gen5-arithmetic.lbin"
+  slice_x=$("'"$RUNNER"'" file-hash "'"$SELFHOST_DIR"'/v35-gen5-slice-min-x86.elf" 2>/dev/null | tail -1)
+  slice_a=$("'"$RUNNER"'" file-hash "'"$SELFHOST_DIR"'/v35-gen5-slice-min-aarch64.elf" 2>/dev/null | tail -1)
+  test -n "$slice_x" && test -n "$slice_a" && test "$slice_x" != "$slice_a"
+  inspect=$("'"$RUNNER"'" inspect-ape "'"$SELFHOST_DIR"'/v35-gen5-nano-jit.com" 2>&1) || true
+  printf "%s\n" "$inspect"
+  printf "%s\n" "$inspect" | grep -q "inspect-ape.slice.0.hash=$slice_x"
+  printf "%s\n" "$inspect" | grep -q "inspect-ape.slice.1.hash=$slice_a"
+'
+GEN5_SLICE_MIN_AARCH64="$SELFHOST_DIR/v35-gen5-slice-min-aarch64.elf"
+if has_qemu_aarch64 && [ -f "$GEN5_SLICE_MIN_AARCH64" ]; then
+  run_case "qemu-aarch64-v35-gen5-slice-min-exit42" bash -c '
+    QEMU_AARCH64="$(command -v qemu-aarch64-static || command -v qemu-aarch64)"
+    rc=$("$QEMU_AARCH64" "'"$GEN5_SLICE_MIN_AARCH64"'"; echo $?)
+    printf "qemu-aarch64.gen5-slice-min.exit=%s\n" "$rc"
+    test "$rc" -eq 42
+  '
+else
+  skip_case "qemu-aarch64-v35-gen5-slice-min-exit42" "no qemu-aarch64 or slice missing"
+fi
 
 # --- bootstrap-v25 native selfpack (pack-ape per plan) ---
 V25_NATIVE_SELFPACK_COM="$NANO_JIT_COM"
