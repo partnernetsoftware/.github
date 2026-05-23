@@ -24,7 +24,7 @@ supervisor:
   task_timeout_sec: 3600
   stuck_policy: fail
 signoff:
-  id: v4-slice2-scoped
+  id: v4-slice3-scoped
   require_terminal: false
   gates:
     - id: v35-regression-run
@@ -107,6 +107,25 @@ signoff:
       check: artifact
       path_glob: "samples/bootstrap-v35-selfhost-gen5-via-gen2.lisp"
       plan_must_not_match: '\\.c'
+    - id: v4-squad-s3-supervise-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v4-squad-s3-supervise-once.lisp"
+    - id: v4-squad-s3-member-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v4-squad-s3-member-once.lisp"
+    - id: v4-slice3-doc
+      check: artifact
+      path_glob: "v4/SLICE3.md"
+    - id: v4-slice3-evidence
+      check: results
+      file: ".build/v4-slice3.evidence"
+      results_key: v4.slice3
+      min_pass: 1
+    - id: v4-squad-supervise-once
+      check: results
+      file: ".build/v4-slice3.evidence"
+      results_key: v4.slice3_supervise_once
+      min_pass: 1
 
 tasks:
   v4-aarch64-aot-plan:
@@ -281,6 +300,35 @@ tasks:
       - "assess v4-slice2-scoped ready"
       - "v4/README + SLICE2.md"
       - "REFLECTION slice-2 行"
+  wave7-v4-s3-supervise-once:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v4-squad-s3-supervise-once.lisp"
+      - "tools/squad/engine/supervisor.py"
+      - "run.sh"
+    accept:
+      - "squad-v4-supervise-once"
+      - "run-bootstrap-v4-squad-s3-supervise-once-plan"
+  wave7-v4-s3-member-once:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v4-squad-s3-member-once.lisp"
+      - "tools/squad/engine/member_exec.py"
+      - "run.sh"
+    accept:
+      - "squad-v4-run-loop-engineer-once"
+      - "run-bootstrap-v4-squad-s3-member-once-plan"
+  wave7-v4-R:
+    assign_role: reviewer
+    priority: meta
+    depends: [wave7-v4-s3-supervise-once, wave7-v4-s3-member-once]
+    accept:
+      - "squad-v4-run-loop-reviewer-once"
+      - "assess v4-slice3-scoped ready"
+      - "v4/SLICE3.md"
+      - "REFLECTION slice-3 行"
 
 verify:
   commands:

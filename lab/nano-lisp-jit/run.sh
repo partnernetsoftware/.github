@@ -86,6 +86,12 @@ BOOTSTRAP_V4_SQUAD_S2_STATE_SRC="$LAB_DIR/samples/bootstrap-v4-squad-s2-state.li
 BOOTSTRAP_V4_GEN5_VIA_GEN2_ANCHOR_SRC="$LAB_DIR/samples/bootstrap-v4-gen5-via-gen2-anchor.lisp"
 BOOTSTRAP_V4_SLICE2_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v4-slice2-evidence.lisp"
 V4_SLICE2_EVIDENCE="$BUILD_DIR/v4-slice2.evidence"
+BOOTSTRAP_V4_SQUAD_S3_SUPERVISE_SRC="$LAB_DIR/samples/bootstrap-v4-squad-s3-supervise-once.lisp"
+BOOTSTRAP_V4_SQUAD_S3_MEMBER_SRC="$LAB_DIR/samples/bootstrap-v4-squad-s3-member-once.lisp"
+BOOTSTRAP_V4_SLICE3_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v4-slice3-evidence.lisp"
+V4_SLICE3_EVIDENCE="$BUILD_DIR/v4-slice3.evidence"
+SQUAD_SH="$ROOT_DIR/tools/squad/squad.sh"
+CATALOG_V4="$LAB_DIR/squad/catalog-v4.yaml"
 BOOTSTRAP_V35_NANO_CC_AARCH64_SRC="$LAB_DIR/samples/bootstrap-v35-nano-cc-aarch64.lisp"
 BOOTSTRAP_V35_BUILD_SLICE_AARCH64_SRC="$LAB_DIR/samples/bootstrap-v35-build-slice-aarch64.lisp"
 BOOTSTRAP_V35_BUILD_SLICE_LISP_AARCH64_SRC="$LAB_DIR/samples/bootstrap-v35-build-slice-lisp-aarch64.lisp"
@@ -1396,6 +1402,42 @@ run_case "run-bootstrap-v4-slice2-evidence-plan" bash -c '
     echo "v4.slice2_gen5v2_anchor=1"
     echo "v4.slice2_plan=run-bootstrap-v4-slice2-evidence-plan"
   } >> "'"$V4_SLICE2_EVIDENCE"'"
+'
+run_case "run-bootstrap-v4-squad-s3-supervise-once-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SQUAD_S3_SUPERVISE_SRC"'" 2>&1) || true
+  printf "%s\n" "$out"
+  printf "%s\n" "$out" | grep -q "bootstrap-step.*=file"
+'
+run_case "run-bootstrap-v4-squad-s3-member-once-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SQUAD_S3_MEMBER_SRC"'" 2>&1) || true
+  printf "%s\n" "$out"
+  printf "%s\n" "$out" | grep -q "bootstrap-step.*=file"
+'
+run_case "squad-v4-supervise-once" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$SQUAD_SH"'" --catalog "'"$CATALOG_V4"'" supervise --once 2>&1) || true
+  printf "%s\n" "$out"
+  printf "%s\n" "$out" | grep -q "supervise-tick:"
+'
+run_case "squad-v4-run-loop-engineer-once" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$SQUAD_SH"'" --catalog "'"$CATALOG_V4"'" run-loop --role engineer-a --once --auto-exec 2>&1) || true
+  printf "%s\n" "$out"
+  printf "%s\n" "$out" | grep -q "run-loop role=engineer-a"
+'
+run_case "squad-v4-run-loop-reviewer-once" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$SQUAD_SH"'" --catalog "'"$CATALOG_V4"'" run-loop --role reviewer --once 2>&1) || true
+  printf "%s\n" "$out"
+  printf "%s\n" "$out" | grep -q "run-loop role=reviewer"
+'
+run_case "run-bootstrap-v4-slice3-evidence-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE3_EVIDENCE_SRC"'" 2>&1) || true
+  printf "%s\n" "$out"
+  test -f "'"$LAB_DIR"'/.squad/state-v4.db"
+  {
+    echo "v4.slice3=1"
+    echo "v4.slice3_supervise_once=1"
+    echo "v4.slice3_member_once=1"
+    echo "v4.slice3_plan=run-bootstrap-v4-slice3-evidence-plan"
+  } >> "'"$V4_SLICE3_EVIDENCE"'"
 '
 
 # --- bootstrap-v25 native selfpack (pack-ape per plan) ---
