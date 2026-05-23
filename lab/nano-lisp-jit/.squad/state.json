@@ -1,0 +1,90 @@
+{
+  "version": 1,
+  "wave": 2,
+  "signoff_percent": 92,
+  "halt": false,
+  "assignments": {
+    "A": null,
+    "B": null,
+    "R": null
+  },
+  "tasks": {
+    "L2-companion": {
+      "status": "done",
+      "role": "A",
+      "commit": "7866e4e",
+      "run_pass": 250
+    },
+    "L4-tu-kickoff": {
+      "status": "done",
+      "role": "B",
+      "commit": "a043fd5",
+      "run_pass": 250
+    },
+    "wave-squad-R1": {
+      "status": "done",
+      "role": "R"
+    }
+  },
+  "findings": [],
+  "manual_acks": {},
+  "merge_order": [
+    "A",
+    "B",
+    "R"
+  ],
+  "updated_at": "2026-05-23T07:05:37.153122+00:00",
+  "last_assess": {
+    "signoff_id": "v3.5-lisp-only",
+    "percent_auto": 92,
+    "ready": false,
+    "auto": [
+      {
+        "id": "gen5-no-c",
+        "ok": true,
+        "detail": "",
+        "manual": false
+      },
+      {
+        "id": "gen5-dual-arch-pack",
+        "ok": true,
+        "detail": "",
+        "manual": false
+      },
+      {
+        "id": "l4-tu-link",
+        "ok": true,
+        "detail": "bootstrap-v35-lisp-tu-link.lisp",
+        "manual": false
+      },
+      {
+        "id": "tests-run",
+        "ok": true,
+        "detail": "results.txt val=250 need>=250",
+        "manual": false
+      },
+      {
+        "id": "tests-build",
+        "ok": true,
+        "detail": "bootstrap-report.txt val=117 need>=117",
+        "manual": false
+      }
+    ],
+    "manual": [
+      {
+        "id": "aarch64-real-codegen",
+        "ok": false,
+        "detail": "aarch64 非仅 exit-stub",
+        "manual": true,
+        "ack": "pending"
+      },
+      {
+        "id": "l4-full-runner-slice",
+        "ok": false,
+        "detail": "gen5 由全功能 Lisp slice 跑 plan",
+        "manual": true,
+        "ack": "pending"
+      }
+    ]
+  }
+}

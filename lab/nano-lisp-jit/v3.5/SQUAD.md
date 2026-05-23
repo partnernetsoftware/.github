@@ -1,6 +1,12 @@
 # v3.5 小组并行模式（审查员 / 指挥长 / 工程兵）
 
+> **协议升级**：派单与签收以 [`../squad/PROTOCOL.md`](../squad/PROTOCOL.md) + `.squad/state.json` 为准；本文件派单板由 `squad sync-md` 生成，勿手改标记块。
+
 **签收判据（100% 才全员停）**：见 [`LISP-ONLY.md`](LISP-ONLY.md) § v3.5 完成定义 + [`README.md`](README.md)。
+
+```bash
+cd lab/nano-lisp-jit && ./squad/squad.sh assess && ./squad/squad.sh status
+```
 
 | 角色 | 职责 | 产出物 |
 |------|------|--------|
@@ -14,7 +20,13 @@
 **已 scoped**：gen5 双架构 Lisp pack（零 genesis pin）；L0–L3；nano-cc 证据轨。  
 **未签收**：L4 全功能 runner；L2 去 companion；aarch64 非 stub；gen5 由 Lisp 全功能 slice 编排。
 
-## 派单板（本轮 · wave-squad-1）
+<!-- SQUAD_STATE_BEGIN -->
+### 派单板（state 生成 · 勿手改）
+
+运行 `./squad/squad.sh sync-md --targets squad-board` 刷新本块。
+<!-- SQUAD_STATE_END -->
+
+## 派单板（历史 · wave-squad-1）
 
 | 兵 | 任务 ID | 状态 | 验收 |
 |----|---------|------|------|

@@ -1,0 +1,31 @@
+# 指挥长 C · 微工作流
+role: C
+name: 指挥长
+inputs:
+  - squad/catalog.yaml
+  - .squad/state.json
+steps:
+  - id: assess
+    action: cli
+    cmd: "squad assess"
+    branch:
+      exit_0: stop-squad
+      exit_1: dispatch
+  - id: stop-squad
+    action: cli
+    cmd: "squad halt --reason 'v3.5 signoff 100%'"
+  - id: dispatch
+    action: cli
+    cmd: "squad dispatch --max-tasks 2"
+    note: "按 catalog 中 pending + 角色 A/B 各至多 1 活"
+  - id: publish-orders
+    action: cli
+    cmd: "squad sync-md --targets squad-board"
+  - id: set-merge-order
+    action: edit-state
+    field: merge_order
+    value: ["A", "B", "R"]
+outputs:
+  - .squad/state.json
+  - ../v3.5/SQUAD.md  # 派单板由 state 生成
+loop: "每 wave 结束或 A/B done 后重复 assess"

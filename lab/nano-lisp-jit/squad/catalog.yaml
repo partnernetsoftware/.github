@@ -1,0 +1,73 @@
+# v3.5 签收清单（机器可读）— 指挥长 assess 的唯一真相源
+version: 1
+signoff:
+  id: v3.5-lisp-only
+  percent_cap: 100
+  gates:
+    - id: gen5-no-c
+      check: artifact
+      path_glob: "samples/bootstrap-v35-selfhost-gen5.lisp"
+      plan_must_not_match: '\\.c'
+    - id: gen5-dual-arch-pack
+      check: artifact
+      path_glob: "samples/bootstrap-v35-selfhost-gen5.lisp"
+      plan_must_match: 'build-slice-lisp'
+      plan_must_not_match: 'genesis/nano-jit'
+    - id: l4-tu-link
+      check: artifact
+      path_glob: "samples/bootstrap-v35-lisp-tu-link.lisp"
+    - id: tests-run
+      check: results
+      file: ".build/results.txt"
+      results_key: tests.pass
+      min_pass: 250
+    - id: tests-build
+      check: results
+      file: ".build/nano-jit/bootstrap-report.txt"
+      results_key: build.pass
+      min_pass: 117
+  # 人工签收（assess 会 WARN，指挥长须在 state 里显式 ack）
+  manual_gates:
+    - id: aarch64-real-codegen
+      description: "aarch64 非仅 exit-stub"
+    - id: l4-full-runner-slice
+      description: "gen5 由全功能 Lisp slice 跑 plan"
+
+tasks:
+  L2-companion:
+    role: A
+    priority: P0
+    onion: [sample, native, bootstrap]
+    touch_paths: ["lab/lispjit-ir/nano_cc.c", "run.sh"]
+    accept:
+      - "run.sh 0 fail"
+      - "plan 无 nano-cc.lisp= 或仅 canonical"
+  L4-tu-kickoff:
+    role: B
+    priority: P1
+    onion: [sample, native, bootstrap]
+    touch_paths: ["samples/bootstrap-v35-lisp-tu-link.lisp", "run.sh"]
+    accept:
+      - "run-bootstrap-v35-lisp-tu-link-plan"
+  aarch64-codegen-1:
+    role: A
+    priority: P1
+    onion: [native, bootstrap]
+    depends: [L4-tu-kickoff]
+    accept:
+      - "新 build-slice-lisp.mode tag"
+      - "qemu aarch64 pass"
+  L4-runner-1:
+    role: B
+    priority: P1
+    depends: [L4-tu-kickoff]
+    accept:
+      - "selfhost gen5 或 documented skip"
+  wave-squad-R1:
+    role: R
+    priority: meta
+    accept: ["REFLECTION changelog", "ROADMAP 小组节点"]
+  wave-squad-R2:
+    role: R
+    priority: meta
+    accept: ["state 与 assess 同步"]
