@@ -121,3 +121,4 @@ P3（架构债，v4）
 | 2026-05-23 | **gen5 scoped**：双架构 Lisp pack 零 genesis；`run.sh` 249 / `build` 117 pass |
 | 2026-05-23 | **wave-squad-R1**：小组模式 [`SQUAD.md`](SQUAD.md)；评估 **~85%**（gen5 scoped on branch）；阻塞 L2 去 companion、L4 多 TU link、aarch64 非 stub、gen5 全功能 Lisp runner；派单 A=`L2-companion`、B=`L4-tu-kickoff` |
 | 2026-05-23 | **wave-squad-R2**：L2/L4/aarch64 签收；**aarch64-add-emit**（`build-slice-lisp.mode=aarch64-add-emit` + qemu）；**gen5-via-gen2**（`bootstrap-v35-selfhost-gen5-via-gen2.lisp` + `v35-signoff.evidence`）；squad assess **100%** ready |
+| 2026-05-23 | **wave4-selfhost-refresh**：gen2 `build-slice-lisp` add 曾 `parse=fail` — 根因 genesis x86 pin（`638236d6…`）缺 `(module (func …))` 解析；刷新 pin 自 native `nano-lisp-jit`（`76fb499f…`）+ 重跑 gen1/gen2 bootstrap 后 gen2 可编 `nano-jit-slice-add.lisp`；`run.sh` 255 pass |

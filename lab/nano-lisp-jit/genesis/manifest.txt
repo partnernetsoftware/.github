@@ -1,5 +1,5 @@
 # fnv1a64 and byte size for pinned genesis slices (regenerate with NANO_REGENESIS=1)
-x86_64.bytes=121504
-x86_64.fnv1a64=638236d602fed349
+x86_64.bytes=129712
+x86_64.fnv1a64=76fb499f1ea46e70
 aarch64.bytes=663488
 aarch64.fnv1a64=506f292bd1482e43
