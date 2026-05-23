@@ -1,6 +1,6 @@
 # v4 反思与调整（track R · 持续更新）
 
-**范围**：v3.5-terminal 之后、v4 **signoff `v4-slice10-scoped`**（编排 S0–S5 + codegen S6–S10）。与 [`../v3.5/REFLECTION.md`](../v3.5/REFLECTION.md) 互补；**未达成**全仓库零 `.c` 自举 — 见 [`LISP-ONLY.md`](LISP-ONLY.md)、[`../ROADMAP.md`](../ROADMAP.md) § v4 mindmap。
+**范围**：v3.5-terminal 之后、v4 **signoff `v4-slice11-scoped`**（编排 S0–S5 + codegen S6–S11）。与 [`../v3.5/REFLECTION.md`](../v3.5/REFLECTION.md) 互补；**未达成**全仓库零 `.c` 自举 — 见 [`LISP-ONLY.md`](LISP-ONLY.md)、[`../ROADMAP.md`](../ROADMAP.md) § v4 mindmap。
 
 ---
 
@@ -19,8 +19,9 @@
 | **S8** | `v4-slice8-scoped` | insn 数组 lowering + add13 | opcode 枚举 |
 | **S9** | `v4-slice9-scoped` | `A64_ADD_EXIT_OP_*` + add14 | VM emit |
 | **S10** | `v4-slice10-scoped` | manifest `op …` 序 + add15 + `ir_surface=manifest-v1` | Lisp IR emit |
+| **S11** | `v4-slice11-scoped` | manifest `encode …` + add16 + `encode=manifest-v1` | C 不解析 manifest |
 
-**三层「全 Lisp」**：仍见 [`LISP-ONLY.md`](LISP-ONLY.md) — plan 层无 `.c`；codegen 层仍是 C stub + 外置 manifest。
+**三层「全 Lisp」**：仍见 [`LISP-ONLY.md`](LISP-ONLY.md) — plan 层无 `.c`；codegen 层 C 读 manifest 表。
 
 ---
 
@@ -31,7 +32,8 @@
 | 指挥长 wave 飙高 | `resume` 未重置 wave | ✅ `epoch++` + `wave=1` |
 | signoff 100% 空转 | `ready` 仍 `wave++` | ✅ `team_ready` → `complete` |
 | follower 签收后空等 | 仅 `standby` 才 `stand_down` | ✅ `team_ready` 即 `stand_down` |
-| `auto-exec` 超时 | 嵌套全量 `run.sh` verify | ✅ `SQUAD_VERIFY=1` + `--no-auto-exec`；**默认**手跑或 `done` |
+| `auto-exec` 超时 | 嵌套全量 `run.sh` verify | ✅ catalog **fast 首条** + `run.sh optional`；`verify --quick` 仅跑 fast |
+| **整轮 10min+** | 每波 agent-team 全量 `run.sh` | ✅ 开发用 `verify-v4-fast.sh`；**签收前**一次 `run.sh` |
 | commander smoke 红 | 新 wave 任务 pending 时 `outcome=continue` | ✅ smoke 接受 `ready=True` |
 | assess 96% 瞬态 | `run.sh` 未写 `tests.pass` 就 assess | ✅ commander smoke **在** `run_end_summary` **之后** |
 | 100% 不 dispatch | 仅 worker pending 才继续 | ✅ 新 wave 用 `resume` + `dispatch --force --include-meta` |
@@ -63,7 +65,9 @@
 
 | 日期 | 摘要 |
 |------|------|
-| 2026-05-23 | **wave15**：`v4-slice10-scoped` — `v4-aarch64-add-exit-ops.manifest` + `ir_surface=manifest-v1` + add15；`squad-parallel` 实跑 |
+| 2026-05-23 | **效率**：`verify-v4-fast.sh` + catalog `run.sh optional`；波内 `--quick` 不再卡 10min |
+| 2026-05-23 | **wave16**：`v4-slice11-scoped` — manifest `encode` 行 + add16 |
+| 2026-05-23 | **wave15**：`v4-slice10-scoped` — manifest `op` 序 + add15 |
 | 2026-05-23 | **mindmap 调整**：ROADMAP v4 洋葱图改为三层诚实口径 + 双轨完成度表；澄清 S9≠终局自举 |
 | 2026-05-23 | **wave14**：`v4-slice9-scoped` — opcode 序表 + `lowering.ops=5` + add14；`squad-parallel` 实跑 |
 | 2026-05-23 | **方法学固化**：[`skills/squad-parallel/`](../../skills/squad-parallel/) Agent Skill（`.cursor/skills` 链接） |

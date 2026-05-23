@@ -24,7 +24,8 @@ paths:
 3. **队员禁止 `supervise`**；禁止因 `assess.ready` 自行退出；跟 `signals.supervisor` 三态走。
 4. **每波先 `resume`**（`wave=1`、`epoch++`），再 `dispatch --force --include-meta`。
 5. **不要提交** `.squad/*.db`、`verify.lock`、本地漂移的 `state.json`；可提交 `sync-md` 生成的 `v4/SQUAD.md`。
-6. **`auto-exec` 会跑 catalog.verify（常为全量 `run.sh`）**：实现前先本地绿；CI/门禁用 `SQUAD_VERIFY=1`；嵌套 smoke 用 `run-loop --once --no-auto-exec`。
+6. **`auto-exec` 走 `verify --quick`**：catalog 第一条应为 **`squad/verify-v4-fast.sh`**（~30s）；全量 `run.sh` 标 `optional: true`，仅 `squad verify`（无 `--quick`）或签收前手跑。
+7. **签收前必跑一次全量 `run.sh`** 写 `.build/results.txt`，再 `assess`（assess 不跑 verify）。
 
 ## 标准波次（Agent 执行）
 
@@ -32,8 +33,9 @@ paths:
 
 ```bash
 # 推荐：技能附带脚本（传 catalog 相对路径）
-skills/squad-parallel/scripts/run-wave.sh lab/nano-lisp-jit/squad/catalog-v4.yaml wave15
-skills/squad-parallel/scripts/poll-tasks.sh lab/nano-lisp-jit/squad/catalog-v4.yaml wave15
+skills/squad-parallel/scripts/run-wave.sh lab/nano-lisp-jit/squad/catalog-v4.yaml wave16
+skills/squad-parallel/scripts/poll-tasks.sh lab/nano-lisp-jit/squad/catalog-v4.yaml wave16
+# 开发环：lab/nano-lisp-jit/squad/verify-v4-fast.sh  →  签收前：cd lab/nano-lisp-jit && bash run.sh
 ```
 
 或等价手工：
@@ -58,9 +60,9 @@ tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v4.yaml assess
 
 ## 实现与签收顺序
 
-1. 在 feature 分支写代码 + `run.sh` 门禁 + evidence 样本。
-2. `run.sh` / `build_nano_jit.sh` 本地通过。
-3. **再** `run-wave.sh` 启动四角色；轮询至本波 `wave*-v4-*` 为 `done`。
+1. 在 feature 分支写代码 + `verify-v4-fast.sh` 迭代 + evidence 样本。
+2. **签收前** 一次全量 `bash run.sh`（更新 `results.txt`）。
+3. **再** `run-wave.sh` 启动四角色（队员 verify 仅 fast）；轮询至本波 `wave*-v4-*` 为 `done`。
 4. `sync-md`、`assess` 100% → `git commit` → `push` → 合入 `main`。
 5. 更新 `v4/REFLECTION.md` 变更日志一行（可选）。
 

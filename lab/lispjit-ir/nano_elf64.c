@@ -453,12 +453,77 @@ static int a64_add_exit_v1_op_from_name(const char *name, unsigned *out) {
   return 0;
 }
 
+typedef struct {
+  unsigned char kind; /* 0=fixed, 1=imm_a, 2=imm_b */
+  uint32_t base;
+  uint32_t mask;
+  unsigned shift;
+  unsigned rd;
+  uint32_t fixed;
+} A64AddExitEncodeSpec;
+
+static A64AddExitEncodeSpec a64_add_exit_encode_spec[A64_ADD_EXIT_OP_COUNT];
+static int a64_add_exit_encode_from_manifest;
+
+static int a64_add_exit_v1_parse_kv_uint(const char *kv, const char *key, uint32_t *out) {
+  size_t klen = strlen(key);
+  if (strncmp(kv, key, klen) != 0 || kv[klen] != '=') return 0;
+  *out = (uint32_t)strtoul(kv + klen + 1, NULL, 0);
+  return 1;
+}
+
+static int a64_add_exit_v1_parse_encode_line(const char *p) {
+  char name[64];
+  unsigned op;
+  const char *tok;
+  char *save = NULL;
+  char buf[256];
+  int i;
+  if (strncmp(p, "encode ", 7) != 0) return 1;
+  p += 7;
+  for (i = 0; p[i] && p[i] != ' ' && p[i] != '\t'; ++i) {
+    if (i + 1 >= (int)sizeof(name)) return 0;
+    name[i] = p[i];
+  }
+  name[i] = '\0';
+  p += i;
+  if (!a64_add_exit_v1_op_from_name(name, &op)) return 0;
+  strncpy(buf, p, sizeof(buf) - 1);
+  buf[sizeof(buf) - 1] = '\0';
+  memset(&a64_add_exit_encode_spec[op], 0, sizeof(a64_add_exit_encode_spec[op]));
+  tok = strtok_r(buf, " \t", &save);
+  while (tok) {
+    uint32_t u = 0;
+    if (strcmp(tok, "imm=a") == 0) {
+      a64_add_exit_encode_spec[op].kind = 1;
+    } else if (strcmp(tok, "imm=b") == 0) {
+      a64_add_exit_encode_spec[op].kind = 2;
+    } else if (a64_add_exit_v1_parse_kv_uint(tok, "fixed", &u)) {
+      a64_add_exit_encode_spec[op].kind = 0;
+      a64_add_exit_encode_spec[op].fixed = u;
+    } else if (a64_add_exit_v1_parse_kv_uint(tok, "base", &u)) {
+      a64_add_exit_encode_spec[op].base = u;
+    } else if (a64_add_exit_v1_parse_kv_uint(tok, "mask", &u)) {
+      a64_add_exit_encode_spec[op].mask = u;
+    } else if (strncmp(tok, "shift=", 6) == 0) {
+      a64_add_exit_encode_spec[op].shift = (unsigned)strtoul(tok + 6, NULL, 0);
+    } else if (strncmp(tok, "rd=", 3) == 0) {
+      a64_add_exit_encode_spec[op].rd = (unsigned)strtoul(tok + 3, NULL, 0);
+    }
+    tok = strtok_r(NULL, " \t", &save);
+  }
+  return 1;
+}
+
 static int a64_add_exit_v1_load_manifest(const char *path, unsigned char *order, size_t cap,
                                          size_t *out_n) {
   FILE *f;
   char line[256];
   size_t n = 0;
+  size_t enc = 0;
   if (!path || !order || !out_n || cap < A64_ADD_EXIT_OP_COUNT) return 0;
+  memset(a64_add_exit_encode_spec, 0, sizeof(a64_add_exit_encode_spec));
+  a64_add_exit_encode_from_manifest = 0;
   f = fopen(path, "r");
   if (!f) return 0;
   while (fgets(line, sizeof(line), f)) {
@@ -469,6 +534,14 @@ static int a64_add_exit_v1_load_manifest(const char *path, unsigned char *order,
     if (*p == '#' || *p == '\n' || *p == '\0') continue;
     nl = strchr(p, '\n');
     if (nl) *nl = '\0';
+    if (strncmp(p, "encode ", 7) == 0) {
+      if (!a64_add_exit_v1_parse_encode_line(p)) {
+        fclose(f);
+        return 0;
+      }
+      ++enc;
+      continue;
+    }
     if (strncmp(p, "op ", 3) != 0) continue;
     p += 3;
     while (*p == ' ' || *p == '\t') ++p;
@@ -483,7 +556,8 @@ static int a64_add_exit_v1_load_manifest(const char *path, unsigned char *order,
     order[n++] = (unsigned char)op;
   }
   fclose(f);
-  if (n != A64_ADD_EXIT_OP_COUNT) return 0;
+  if (n != A64_ADD_EXIT_OP_COUNT || enc != A64_ADD_EXIT_OP_COUNT) return 0;
+  a64_add_exit_encode_from_manifest = 1;
   *out_n = n;
   return 1;
 }
@@ -497,6 +571,16 @@ static int a64_add_exit_v1_resolve_op_order(unsigned char *order, size_t cap, si
 }
 
 static uint32_t a64_add_exit_v1_encode(unsigned op, int a, int b) {
+  if (op < A64_ADD_EXIT_OP_COUNT && a64_add_exit_encode_from_manifest) {
+    const A64AddExitEncodeSpec *sp = &a64_add_exit_encode_spec[op];
+    if (sp->kind == 0) return sp->fixed;
+    if (sp->kind == 1) {
+      return sp->base | (((uint32_t)a & sp->mask) << sp->shift) | sp->rd;
+    }
+    if (sp->kind == 2) {
+      return sp->base | (((uint32_t)b & sp->mask) << sp->shift) | sp->rd;
+    }
+  }
   switch (op) {
   case A64_ADD_EXIT_OP_MOVZ_X0:
     return 0xd2800000u | (((uint32_t)a & 0xffffu) << 5);

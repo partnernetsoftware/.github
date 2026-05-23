@@ -25,14 +25,14 @@ supervisor:
   stuck_policy: fail
   idle_waves_max: 12
 signoff:
-  id: v4-slice10-scoped
+  id: v4-slice11-scoped
   require_terminal: false
   gates:
     - id: v35-regression-run
       check: results
       file: ".build/results.txt"
       results_key: tests.pass
-      min_pass: 297
+      min_pass: 300
     - id: v35-regression-build
       check: results
       file: ".build/nano-jit/bootstrap-report.txt"
@@ -266,6 +266,25 @@ signoff:
       check: results
       file: ".build/v4-slice10.evidence"
       results_key: v4.slice10_manifest
+      min_pass: 1
+    - id: v4-slice11-doc
+      check: artifact
+      path_glob: "v4/SLICE11.md"
+    - id: v4-slice11-add16-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v4-slice11-add16.lisp"
+    - id: v4-slice11-add16-elf
+      check: artifact
+      path_glob: ".build/bootstrap-v4-slice11-add16.elf"
+    - id: v4-slice11-evidence
+      check: results
+      file: ".build/v4-slice11.evidence"
+      results_key: v4.slice11
+      min_pass: 1
+    - id: v4-slice11-encode-manifest
+      check: results
+      file: ".build/v4-slice11.evidence"
+      results_key: v4.slice11_encode_manifest
       min_pass: 1
 
 tasks:
@@ -704,12 +723,48 @@ tasks:
       - "skills/squad-parallel wave15"
       - "sync-md v4/SQUAD.md"
       - "REFLECTION wave15 manifest"
+  wave16-v4-manifest-encode:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "lab/lispjit-ir/nano_elf64.c"
+      - "samples/v4-aarch64-add-exit-ops.manifest"
+      - "squad/verify-v4-fast.sh"
+      - ".build/v4-slice11.evidence"
+      - "run.sh"
+    accept:
+      - "aarch64.emit.encode=manifest-v1"
+      - "run-bootstrap-v4-slice11-evidence-plan"
+  wave16-v4-add16-slice:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "samples/nano-jit-slice-add-16.lisp"
+      - "samples/bootstrap-v4-slice11-add16.lisp"
+      - "v4/SLICE11.md"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-slice11-add16-plan"
+      - "aarch64.add=9+7"
+  wave16-v4-R:
+    assign_role: reviewer
+    priority: meta
+    depends: [wave16-v4-manifest-encode, wave16-v4-add16-slice]
+    accept:
+      - "assess v4-slice11-scoped ready"
+      - "skills/squad-parallel wave16 fast-verify"
+      - "sync-md v4/SQUAD.md"
+      - "REFLECTION 效率调整"
 
 verify:
   commands:
+    - script: squad/verify-v4-fast.sh
+      cwd: .
+      fail_on_nonzero: true
     - script: run.sh
       cwd: .
       fail_on_nonzero: true
+      optional: true
 
 sync:
   board:

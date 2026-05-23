@@ -386,38 +386,84 @@ v3.5: nano-cc（nano-jit 作为 cc 编译器）
 
 **v3.5 整体**：**~100%** — squad signoff 全绿（254 run / 119 build；`v35-signoff.evidence` aarch64-add-emit + gen5-via-gen2）。见 [`v3.5/README.md`](v3.5/README.md)。
 
-### v4 洋葱 TDD mindmap（wave15 · 诚实双轨）
+### v4 洋葱 TDD mindmap（wave16+ · 分轨展开）
 
-v3.5 **scoped + terminal** 已签收。**v4 当前 signoff**：`v4-slice10-scoped`（297 `run.sh` pass）。  
-**直接回答「是否已摆脱 `.c` 自举」**：**否** — 见 [`v4/LISP-ONLY.md`](v4/LISP-ONLY.md) 三层表；[`v4/REFLECTION.md`](v4/REFLECTION.md) track R。
+v3.5 **scoped + terminal** 已签收。  
+**工程签收（catalog）**：`v4-slice11-scoped`（300 `run.sh` pass · 代码已绿）。  
+**流程卡点**：分支 `cursor/v4-wave16-encode-manifest-f186` 上 slice-11 **未 commit**；catalog 中 wave16 任务仍为 `assigned`（需 commit → `run-wave` → assess）。  
+**北极星（终局）**：Plan 无 `.c` 且 **Runner/Codegen 由 Lisp 自举** — 见 [`v4/LISP-ONLY.md`](v4/LISP-ONLY.md)；**当前否**。
 
 ```text
-v4: 终局切片 + 产品轨（catalog-v4.yaml · signoff v4-slice10-scoped）
-├─ 【诚实口径】三层（mindmap 每圈都要标 scoped / 终局）
-│  ├─ A Plan：bootstrap-v4-*.lisp 不引用 .c 源 → v4-lisp-only-scoped ✅
-│  ├─ B Runner：lispjit.c + nano_*.c 仍编译/执行 plan → 未消除 ❌
-│  └─ C Codegen：aarch64 add 仍在 nano_elf64.c emit stub（S6–S9 仅表驱动/refactor）→ 非 VM 自举 ❌
-├─ 轨 1 · 编排（host Python squad · scoped 已交付 S0–S5）
-│  ├─ S0–S2：assess / dispatch / state-v4.db 样本 ✅
-│  ├─ S3–S4：supervise + run-loop --once；agent-team 四角色 ✅
-│  ├─ S5：verify-before-done 样本 ✅
-│  ├─ 方法学：[`skills/squad-parallel/`](../../skills/squad-parallel/) + wave8–14 实跑
-│  └─ 终局 pending：bootstrap 内 `(squad-* …)` 替代 tools/squad/*.py（非本圈声称）
-├─ 轨 2 · codegen（C emit 洋葱 · S0–S9 scoped，仍非真 VM/AOT）
-│  ├─ slice-0/1：aarch64-add-emit scout + add7 参数化 ✅
-│  ├─ slice-2..5：gen5 锚点 / lisp-only 诚实文档 ✅
-│  ├─ S6–S10：emit 清单 → table-v1 → opcode 序 → **manifest `op …` 序**（add7/11/13/14/15）✅ scoped
-│  └─ 终局 pending：Lisp IR → emit（非 C encode + 外置 manifest）；qemu 仅验证 stub ELF
-├─ 轨 3 · 自举终局（未开卷 · 勿与 S9 混淆）
-│  ├─ gen5 plan 由 gen2 bootstrap 跑通（v3.5 锚点）— plan 无 .c，runner 仍 C
-│  ├─ nano-cc 译 lispjit.c 子集 — 未开始
-│  └─ nano-jit.com 生成下一代 .com — 未开始
-├─ 反思轨 R（常驻）
-│  └─ [`v4/REFLECTION.md`](v4/REFLECTION.md) + 回写本 mindmap；禁止写「v4 = 零 C 仓库」
-└─ 下一洋葱圈（建议 wave15+）
-   ├─ P0 codegen：单 op 从 Lisp IR 表发射（替换 add-exit 手写 encode 之一）
-   ├─ P1 编排：S6 bootstrap 只读 squad-assess（仍可不 SQLite FFI）
-   └─ P2 产品轨：NDTSV/SQL/qjs 文档探路（非实现）
+v4 北极星：nano-jit 自举闭环（plan → lbin → emit/VM → 下一代 .com）
+│
+├─【口径轴】每层标 scoped ✅ / 终局 ❌（禁止混写「v4=零 C」）
+│   ├─ A · Plan     bootstrap-v4-*.lisp 不 #include / 不 compile .c  → scoped ✅  终局=保持
+│   ├─ B · Runner   lispjit.c + nano_*.c 执行 plan                    → scoped ✅  终局=替换 ❌
+│   └─ C · Codegen  aarch64 add-exit stub                           → scoped 表驱动 ✅  终局=IR VM ❌
+│
+├─【轨 W · 工程效率】（不增产品面 · 降波次耗时）
+│   ├─ W0  verify-v4-fast.sh（~2s compile + slice10/11 smoke）     ✅ catalog verify 首条
+│   ├─ W1  run.sh optional + verify --quick（agent-team 不跑 10min） ✅
+│   └─ W2  签收 ritual：开发 fast → 波前/波后 一次全量 run.sh → assess   📋 纪律
+│
+├─【轨 1 · 编排 · Host Squad】signoff 子树 v4-squad-*（S0–S5 已 scoped 封板）
+│   ├─ 1.1 协议面（冻结）
+│   │   ├─ assess / dispatch / state-v4.db / touch_paths          ✅ S0–S2
+│   │   ├─ supervise + run-loop --once + agent-team 四角色       ✅ S3–S4
+│   │   └─ verify-before-done + wave10 smoke                      ✅ S5
+│   ├─ 1.2 方法学
+│   │   └─ skills/squad-parallel + catalog-v4.yaml 波次任务       ✅ wave8–16 定义
+│   └─ 1.3 终局（P1 · 勿与 S11 混）
+│       ├─ bootstrap `(squad-assess …)` 只读 JSON（无 SQLite FFI）  ⬜ wave17+
+│       ├─ `(squad-dispatch …)` / `(squad-done …)` 声明式           ⬜
+│       └─ 替代 tools/squad/*.py host 层                           ⬜ 终局
+│
+├─【轨 2 · Codegen · add-exit 洋葱】signoff 子树 v4-slice*（S0–S11 scoped 已交付）
+│   ├─ 2.1 侦察与参数化
+│   │   ├─ S0  aarch64 scout ELF                                 ✅
+│   │   └─ S1  add7 参数化 aarch64-add-emit                        ✅
+│   ├─ 2.2 锚点与诚实文档
+│   │   ├─ S2  state-v4.db + gen5v2 锚点                         ✅
+│   │   ├─ S3–S5  squad 样本 + lisp-only 文档                    ✅
+│   │   └─ S6  codegen kickoff（emit 路径清单）                    ✅
+│   ├─ 2.3 emit 契约版本化（仍在 C · nano_elf64.c）
+│   │   ├─ S7   profile add-exit-v1 + add11                       ✅
+│   │   ├─ S8   insn 数组 lowering + add13                        ✅
+│   │   ├─ S9   opcode 枚举序表 + add14                           ✅
+│   │   ├─ S10  manifest `op …` 序 + ir_surface=manifest-v1 + add15  ✅
+│   │   └─ S11  manifest `encode …` + encode=manifest-v1 + add16      ✅ 代码绿 / 待签收
+│   └─ 2.4 终局 codegen（P0 · 按 slice 切，可并行子枝）
+│       ├─ S12  plan 侧 IR：`samples/v4-aarch64-add-exit-ops.lisp`（数据，无 C 解析）  ⬜
+│       ├─ S13  runner 读 Lisp IR 表 emit 单 op（去 C encode switch）                  ⬜
+│       ├─ S14  全序 lowering 由 IR 驱动（非 manifest 文本）                           ⬜
+│       ├─ S15  第二 profile（如 sub-exit-v1）证明可扩展                               ⬜
+│       └─ S16  qemu + 回归矩阵 add17..add20（仅验证，不伪造 pass）                    ⬜
+│
+├─【轨 3 · 自举终局】（未开卷 · 依赖轨 2 的 S14+）
+│   ├─ 3.1 gen5 plan @ gen2 runner（v3.5 锚点，plan 已无 .c）        ✅ 锚点保持
+│   ├─ 3.2 nano-cc 编译 lispjit.c 子集 → ELF                       ⬜
+│   ├─ 3.3 nano-jit.com 自生成下一代 .com                          ⬜
+│   └─ 3.4 仓库级「零 .c」叙事仅在 3.3 签收后成立                    ⬜
+│
+├─【轨 4 · 产品探路】（P2 · 文档 only）
+│   ├─ NDTSV / 数据平面叙事                                         ⬜
+│   ├─ SQL / ctx_store 与 squad 状态                                 ⬜
+│   └─ qjs / 嵌入脚本边界                                            ⬜
+│
+└─【轨 R · 反思】[`v4/REFLECTION.md`](v4/REFLECTION.md)
+    ├─ 每波 1 行变更日志 + 效率/范围调整表
+    └─ 回写本 mindmap（scoped vs 终局）
+
+并行分工建议（下一波 wave17+）
+┌─────────────┬──────────────────┬─────────────────────────────┐
+│ 角色/轨     │ 拥有目录         │ 下一 slice                  │
+├─────────────┼──────────────────┼─────────────────────────────┤
+│ engineer-a  │ nano_elf64.c     │ S12–S13 IR 表（codegen）    │
+│ engineer-b  │ samples/ v4/     │ S12 plan + add17 回归       │
+│ reviewer    │ catalog SQUAD.md │ 签收 + assess + sync-md     │
+│ commander   │ —                │ resume/dispatch（不碰代码） │
+└─────────────┴──────────────────┴─────────────────────────────┘
+门禁：`verify-v4-fast` 迭代 → 全量 `run.sh` → `assess v4-sliceN-scoped`
 ```
 
 ### v4 完成度（工程向 · 2026-05-23）
@@ -426,11 +472,12 @@ v4: 终局切片 + 产品轨（catalog-v4.yaml · signoff v4-slice10-scoped）
 |------|--------|------|------|
 | Plan 无 `.c` | **100%** | 保持 | `v4-bootstrap-plans-no-c`；inventory 允许 `(file-hash …/nano_elf64.c)` |
 | Host squad 协议 | **100%** | Lisp 化 | S0–S5 + `agent-team`；见 SQUAD.md |
-| aarch64 add emit | **scoped** | **pending** | S9 = opcode 表；仍 `emit_aarch64_add_exit_file` in C |
-| VM/AOT aarch64 | **0%** | **pending** | mindmap 原「真 codegen」目标未达成 |
-| 全仓库零 `.c` | **0%** | **pending** | 非 v4 已签收含义 |
+| aarch64 add emit | **scoped** | **pending** | S11 = manifest op+encode；仍 C 解析 |
+| VM/AOT aarch64 | **0%** | **pending** | S12–S16（IR 驱动 emit） |
+| Host squad Lisp 化 | **0%** | **pending** | 轨 1.3 wave17+ |
+| 全仓库零 `.c` | **0%** | **pending** | 轨 3.4；非当前 catalog 含义 |
 
-**v4 整体**：**scoped ~100%（catalog signoff）** / **终局自举 ~15%（仅 plan 层 + emit 表驱动 stub）**。详见 [`v4/README.md`](v4/README.md)、[`v4/SLICE9.md`](v4/SLICE9.md)。
+**v4 整体**：**scoped 编排 100% + codegen S0–S11 代码绿** / **终局自举 ~20%**（plan + manifest 表）。详见 [`v4/README.md`](v4/README.md)、[`v4/SLICE11.md`](v4/SLICE11.md)。
 
 ### 0. 证据基线
 

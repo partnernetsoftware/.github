@@ -128,6 +128,7 @@ static int cmd_build_slice_lisp_aarch64(const char *src_path, const char *out_pa
     printf("aarch64.emit.profile=add-exit-v1\n");
     printf("aarch64.emit.lowering=table-v1\n");
     printf("aarch64.emit.ir_surface=manifest-v1\n");
+    printf("aarch64.emit.encode=manifest-v1\n");
     printf("aarch64.emit.manifest=%s\n", nano_aarch64_add_exit_manifest_default_path());
     printf("aarch64.emit.lowering.ops=%d\n", 5);
     printf("build-slice-lisp.aarch64.profile=%s\n", base);

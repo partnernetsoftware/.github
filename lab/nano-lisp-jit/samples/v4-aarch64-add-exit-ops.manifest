@@ -1,4 +1,4 @@
-# v4 slice-10: external IR surface for add-exit-v1 lowering order (scoped).
+# v4 slice-10/11: external IR surface + encode table for add-exit-v1 (scoped).
 version=1
 profile=add-exit-v1
 op movz_x0
@@ -6,3 +6,8 @@ op movz_x1
 op add_x0_x1
 op movz_x8
 op svc0
+encode movz_x0 imm=a base=0xd2800000 mask=0xffff shift=5 rd=0
+encode movz_x1 imm=b base=0xd2800000 mask=0xffff shift=5 rd=1
+encode add_x0_x1 fixed=0x8b010000
+encode movz_x8 fixed=0xd2800ba8
+encode svc0 fixed=0xd4000001
