@@ -316,12 +316,12 @@ v3.5: nano-cc（nano-jit 作为 cc 编译器）
 │  │  ├─ **G** parse golden CI（`nano-cc-add.parse.golden`）
 │  │  └─ **H** gen2/gen3 hash 确定性供应链
 │  └─ 偿还优先级：P0 parse+.o → P1 genesis 审计+禁 cc → P2 实验 C/D/G → P3 v4 loader/pack
-├─ Lisp-only 进化线（**L0 签收** · [`v3.5/LISP-ONLY.md`](v3.5/LISP-ONLY.md)）
-│  ├─ `nano-jit-slice-{min,add}.lisp` + `build-slice-lisp`（多函数走 `compile-elf64-exe` fallback）
-│  ├─ `(build-slice "*.lisp" …)` → `build-slice.route=lisp-by-extension`
-│  ├─ `bootstrap-v35-lisp-only-matrix` / `bootstrap-v35-selfhost-gen4`（计划内零 `.c` 输入）
-│  ├─ AI 约定：新 slice 只增 `.lisp` + bootstrap；`.c` legacy 对照
-│  └─ 下一里程碑 L1：pack x86 用 Lisp slice；L2：DSL 内联 IR，去掉 companion 文件名依赖
+├─ Lisp-only / AI 自主进化（[`v3.5/LISP-ONLY.md`](v3.5/LISP-ONLY.md) North star）
+│  ├─ 赌注：编辑面 = `.lisp` + bootstrap + golden；C 仅 genesis/legacy
+│  ├─ 档位：A–B **已达**；C genesis-pin；D− gen4 计划无 C；E 加速通道 **进行中**
+│  ├─ L0–L1–L3：Lisp slice、pack x86 Lisp、aarch64 exit-stub — **签收**
+│  ├─ 加速 3–6：去 companion、Lisp TU link-pack、gen5 零 C 零 pin 复制
+│  └─ 判据：每代 `run.sh` 全绿 + plan 无 `.c` + hash 矩阵不退化
 ├─ slice 0: nano-cc 证据门禁（**100%**）
 │  ├─ sample：`samples/nano-cc-hello.c`（`main` return 42）+ `nano-cc-bad.c`
 │  ├─ CLI：`nano-cc compile input.c -o out.elf`（genesis runner 或 `nano-jit.com`）
@@ -378,7 +378,7 @@ v3.5: nano-cc（nano-jit 作为 cc 编译器）
 | slice 6 Genesis 收缩 | **scoped** | genesis-shrink + `audit_genesis_shrink.sh` |
 | 反思轨 R | **持续** | [`v3.5/REFLECTION.md`](v3.5/REFLECTION.md) |
 
-**v3.5 整体**：**~55%** — 开发三轨 + 反思轨 R。下一刀 P0：去 companion + parse/IR 契约。见 [`v3.5/README.md`](v3.5/README.md)、[`v3.5/PARALLEL.md`](v3.5/PARALLEL.md)、[`v3.5/REFLECTION.md`](v3.5/REFLECTION.md)。
+**v3.5 整体**：**~65%** — 开发三轨 + 反思轨 R。下一刀 P0：去 companion + parse/IR 契约。见 [`v3.5/README.md`](v3.5/README.md)、[`v3.5/PARALLEL.md`](v3.5/PARALLEL.md)、[`v3.5/REFLECTION.md`](v3.5/REFLECTION.md)。
 
 ### 0. 证据基线
 

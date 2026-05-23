@@ -13,7 +13,7 @@
 | **nano-cc 实为模式匹配** | v3.5 slice 0–2 | `strstr`/固定签名 + companion `.lisp` 绕道 | slice 1 真 lexer/IR；slice 2 真 `.o` 发射，删除 companion 依赖 |
 | **`add` 路径双轨** | slice 2 | C 样例 + `nano-cc-add.lisp` + `compile-elf64-exe` | 单轨：`parse → lower → emit`，dump hash 与 lisp 路径对齐 |
 | **AOT 双参 / VM 用户 `call`** | v2.5 反思 | AOT 有 `(param i64)`×2；VM `OP_CALL_FUNC` 仅 smoke | v3 已 scoped；v4 前不宜在 v3.5 扩面，避免 scope 漂移 |
-| **`build-slice-lisp` 无 aarch64** | v3 4b-1 | `aarch64_not_implemented` | slice 4 对齐：Lisp codegen slice 与 nano-cc 同门槛 |
+| **`build-slice-lisp` aarch64 仅 exit-stub** | L3 签收 | min/add profile `emit_aarch64_exit` | 加速 4：真实 aarch64 codegen，非 stub |
 | **`NANO_BUILD_SLICE_CODEGEN=1` 非默认** | slice 3 | 易忘 env，CI 与文档分裂 | slice 6：默认启用 + `NANO_CC_FALLBACK=1` 显式才 host `cc` |
 | **aarch64「100%」与 x86 duplicate oracle** | v2.5/v3 | cosmocc 缺失时 payload 表可能 x86 填两行 | 文档化 + 门禁：禁止静默 duplicate（hash 必须 distinct 或 skip） |
 | **`pack-ape` Mode A vs bare/stub** | v2.5 | 默认仍 shell 包装 | 产品化在 v4；v3.5 仅记录，不改默认 |
@@ -88,7 +88,9 @@ P3（架构债，v4）
 | A–F | 开发（最多 3 路并发） | 交付 slice；**若引入新债**在本文件 §1 增行 |
 | **R** | 反思 | 每 wave 更新 §1–§4 + 推动 ROADMAP mindmap「反思 · v3.5」节点 |
 
-**Wave3 开发建议**（与反思一致）：slice 2 `.o` emit 脚手架 ∥ slice 6 `cc` 审计 gate ∥ slice 1 parse golden。
+**Wave3+ 开发建议**（与反思一致）：L2 去 companion ∥ L4 Lisp TU link-pack ∥ gen5 零 C 自举。
+
+**North star**：AI 协同自主进化 — 见 [`LISP-ONLY.md`](LISP-ONLY.md) § North star / 加速通道。
 
 ---
 
