@@ -1,8 +1,9 @@
 {
-  "next_wave": 211,
-  "next_add": 206,
-  "last_tests_pass": 1044,
-  "last_batch": { "lo": 183, "hi": 210 },
+  "next_wave": 253,
+  "next_add": 248,
+  "last_tests_pass": 1212,
+  "last_batch": { "lo": 225, "hi": 252 },
   "status": "idle",
-  "updated_at": "2026-05-24T08:45:00.000Z"
+  "updated_at": "2026-05-24T12:25:00.000Z",
+  "notes": "wave225-252 gate OK (+112); 4x cc onion.batch/wave"
 }

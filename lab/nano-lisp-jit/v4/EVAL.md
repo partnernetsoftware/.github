@@ -657,3 +657,43 @@ python3 lab/nano-lisp-jit/tools/gen-v4-wave-batch.py 166 182
 bash lab/nano-lisp-jit/tools/v4-diffuse-then-cc.sh
 bash lab/nano-lisp-jit/run.sh
 ```
+
+## wave211–224（Cursor Agent CLI 试跑 · 14 波）
+
+gen 211–224 · add206–219 · `v4-agent-diffuse.sh`（需 `CURSOR_API_KEY`；本批 Cloud Agent 代填 C）
+
+| 维度 | 说明 |
+|------|------|
+| Plan | 一次 gen 扩散 |
+| Codegen | `aarch64.emit.cli.worker=cursor-agent` · `cli.diffuse=1` |
+| Worker | `tools/agent-diffuse/w*.txt` + `agent -p --trust --force` |
+| 终局整体 | **15–22%** | gate **1100** (+56) |
+
+```bash
+python3 lab/nano-lisp-jit/tools/gen-v4-wave-batch.py 211 224
+bash lab/nano-lisp-jit/tools/v4-agent-diffuse.sh   # 或 Commander 直改 C
+export NANO_SLICE_COMPILER=native && bash lab/nano-lisp-jit/run.sh
+```
+
+## wave225–252（洋葱快进 · 28 波 · 4×cc）
+
+| 维度 | wave252 后 | Δ | 说明 |
+|------|-------------|---|------|
+| Plan | ~98% | — | 一次 gen 扩散 |
+| Codegen | **~59%** | +1% | `onion.batch=225-252` · `onion.wave=225-252` |
+| tests.pass | **1212** | +112 | 28 波 × 4 轨 / 1× run.sh |
+| 终局整体 | **16–23%** | +1% | MINDMAP 洋葱圈记账 |
+
+```bash
+python3 lab/nano-lisp-jit/tools/gen-v4-wave-batch.py 225 252
+bash lab/nano-lisp-jit/tools/v4-diffuse-then-cc.sh   # ≤4 workers
+export NANO_SLICE_COMPILER=native && bash lab/nano-lisp-jit/run.sh
+```
+
+## 合 main 进度评估（wave211–252 累计）
+
+| 指标 | main 前 (210) | 本合批后 | Δ |
+|------|---------------|----------|---|
+| tests.pass | 1044 | **1212** | +168 |
+| next_wave | 211 | **253** | +42 波签收 |
+| 终局整体 | 15–22% | **16–23%** | catalog≠终局 |

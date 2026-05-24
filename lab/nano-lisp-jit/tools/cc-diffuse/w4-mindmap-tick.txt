@@ -1,0 +1,1 @@
+Worker 4 · lab/nano-lisp-jit/v4/MINDMAP.md：在 Codegen 圈补一行「wave225–252 · 洋葱快进 · diffuse+4cc」。不改 SLICE 长文。CC_DONE worker=4

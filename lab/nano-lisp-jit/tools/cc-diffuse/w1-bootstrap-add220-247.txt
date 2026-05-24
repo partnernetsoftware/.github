@@ -1,0 +1,1 @@
+Worker 1 · lab/lispjit-ir/nano_bootstrap.c：在 add-219 链后扩展 strstr 到 add-220 … add-247（对齐 gen 225–252）。仅改 C；`bash lab/nano-lisp-jit/build_nano_jit.sh` 验证。结束输出 CC_DONE worker=1

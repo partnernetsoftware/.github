@@ -342,7 +342,9 @@ static int cmd_build_slice_lisp_aarch64(const char *src_path, const char *out_pa
     printf("aarch64.emit.add.bytes=20\n");
     printf("aarch64.emit.add.verified=plan-lisp-v1-full\n");
     printf("aarch64.emit.onion.tdd=diffuse-then-cc\n");
+    printf("aarch64.emit.onion.batch=225-252\n");
     printf("aarch64.emit.fast.batch=1\n");
+    printf("aarch64.emit.cli.worker=cursor-agent\n");
     if (strstr(base, "add-22") || strstr(base, "add-23") || strstr(base, "add-24") ||
         strstr(base, "add-25") || strstr(base, "add-26") || strstr(base, "add-27") || strstr(base, "add-28") || strstr(base, "add-29") || strstr(base, "add-30") ||
         strstr(base, "add-31") || strstr(base, "add-32") || strstr(base, "add-33") ||
@@ -498,7 +500,49 @@ static int cmd_build_slice_lisp_aarch64(const char *src_path, const char *out_pa
         strstr(base, "add-202") ||
         strstr(base, "add-203") ||
         strstr(base, "add-204") ||
-        strstr(base, "add-205")) {
+        strstr(base, "add-205") ||
+        strstr(base, "add-206") ||
+        strstr(base, "add-207") ||
+        strstr(base, "add-208") ||
+        strstr(base, "add-209") ||
+        strstr(base, "add-210") ||
+        strstr(base, "add-211") ||
+        strstr(base, "add-212") ||
+        strstr(base, "add-213") ||
+        strstr(base, "add-214") ||
+        strstr(base, "add-215") ||
+        strstr(base, "add-216") ||
+        strstr(base, "add-217") ||
+        strstr(base, "add-218") ||
+        strstr(base, "add-219") ||
+        strstr(base, "add-220") ||
+        strstr(base, "add-221") ||
+        strstr(base, "add-222") ||
+        strstr(base, "add-223") ||
+        strstr(base, "add-224") ||
+        strstr(base, "add-225") ||
+        strstr(base, "add-226") ||
+        strstr(base, "add-227") ||
+        strstr(base, "add-228") ||
+        strstr(base, "add-229") ||
+        strstr(base, "add-230") ||
+        strstr(base, "add-231") ||
+        strstr(base, "add-232") ||
+        strstr(base, "add-233") ||
+        strstr(base, "add-234") ||
+        strstr(base, "add-235") ||
+        strstr(base, "add-236") ||
+        strstr(base, "add-237") ||
+        strstr(base, "add-238") ||
+        strstr(base, "add-239") ||
+        strstr(base, "add-240") ||
+        strstr(base, "add-241") ||
+        strstr(base, "add-242") ||
+        strstr(base, "add-243") ||
+        strstr(base, "add-244") ||
+        strstr(base, "add-245") ||
+        strstr(base, "add-246") ||
+        strstr(base, "add-247")) {
       printf("aarch64.emit.ir.table.source=plan-lisp-v1-full\n");
       printf("aarch64.emit.ir.table.version=v7\n");
     } else if (strstr(base, "add-21")) {
