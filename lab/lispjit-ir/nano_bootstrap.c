@@ -726,6 +726,10 @@ static int cmd_build_slice(const char *src_path, const char *out_path, const cha
     return cmd_build_slice_lisp(src_path, out_path, arch);
   }
   if (build_slice_use_nano_cc(src_path)) return build_slice_via_nano_cc(src_path, out_path, arch);
+  {
+    int reuse_rc = 0;
+    if (build_slice_try_selfhost_reuse(src_path, out_path, arch, &reuse_rc)) return reuse_rc;
+  }
   if (build_slice_use_genesis_pin(src_path))
     return build_slice_via_genesis_pin(src_path, out_path, arch);
   if (strcmp(arch, "aarch64") == 0 || strcmp(arch, "arm64") == 0) {

@@ -264,6 +264,24 @@
       "status": "done",
       "deps": ["zero-host-gen15-genesis-pin"],
       "accept": ["zero.host.nested_com_runner=1", "gen15.com runs gen16"]
+    },
+    {
+      "id": "zero-host-gen17-selfhost-reuse",
+      "layer": 19,
+      "ring": "自举",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen16-nested-runner"],
+      "accept": ["zero.host.selfhost_reuse=1", "build-slice.role=selfhost-reuse"]
+    },
+    {
+      "id": "zero-host-gen18-ir-table-com",
+      "layer": 20,
+      "ring": "Codegen",
+      "goal_dim": "Codegen",
+      "status": "done",
+      "deps": ["zero-host-gen17-selfhost-reuse", "codegen-ir-emit"],
+      "accept": ["zero.host.ir_table_on_com=1", "aarch64.emit.profile=ir-exit-v1"]
     }
   ]
 }

@@ -25,8 +25,19 @@ static int build_slice_allow_host_cc(void) {
   return 0;
 }
 
-static int build_slice_use_genesis_pin(const char *src_path) {
-  return build_slice_is_lispjit_c(src_path) && !build_slice_allow_host_cc();
+static int build_slice_use_selfhost_reuse(const char *src_path) {
+  const char *v;
+  if (!build_slice_is_lispjit_c(src_path)) return 0;
+  v = getenv("NANO_BUILD_SLICE_SELFHOST_REUSE");
+  return v && v[0] == '1' && v[1] == '\0';
+}
+
+static const char *selfhost_reuse_pin_for_arch(const char *arch) {
+  if (strcmp(arch, "x86_64") == 0 || strcmp(arch, "amd64") == 0)
+    return getenv("NANO_SELFHOST_REUSE_X86");
+  if (strcmp(arch, "aarch64") == 0 || strcmp(arch, "arm64") == 0)
+    return getenv("NANO_SELFHOST_REUSE_AARCH64");
+  return NULL;
 }
 
 static int build_slice_copy_genesis_pin(const char *pin_path, const char *out_path) {
@@ -48,6 +59,38 @@ static int build_slice_copy_genesis_pin(const char *pin_path, const char *out_pa
   }
   free(data);
   return 0;
+}
+
+static int build_slice_via_selfhost_reuse(const char *src_path, const char *out_path,
+                                          const char *arch) {
+  const char *pin = selfhost_reuse_pin_for_arch(arch);
+  int rc;
+  if (!pin || !pin[0]) {
+    fprintf(stderr, "build-slice=selfhost_reuse_missing arch=%s\n", arch);
+    return 2;
+  }
+  printf("build-slice.compiler=none\n");
+  printf("build-slice.arch=%s\n", arch);
+  printf("build-slice.role=selfhost-reuse\n");
+  printf("build-slice.selfhost_reuse=%s\n", pin);
+  printf("build-slice.source=%s\n", src_path);
+  printf("build-slice.output=%s\n", out_path);
+  rc = build_slice_copy_genesis_pin(pin, out_path);
+  if (rc != 0) return rc;
+  return cmd_file_size(out_path);
+}
+
+static int build_slice_use_genesis_pin(const char *src_path) {
+  if (build_slice_use_selfhost_reuse(src_path)) return 0;
+  return build_slice_is_lispjit_c(src_path) && !build_slice_allow_host_cc();
+}
+
+/* Called from cmd_build_slice; returns 1 if reuse path ran (*out_rc valid). */
+static int build_slice_try_selfhost_reuse(const char *src_path, const char *out_path,
+                                          const char *arch, int *out_rc) {
+  if (!build_slice_use_selfhost_reuse(src_path)) return 0;
+  *out_rc = build_slice_via_selfhost_reuse(src_path, out_path, arch);
+  return 1;
 }
 
 static int build_slice_via_genesis_pin(const char *src_path, const char *out_path,

@@ -199,6 +199,12 @@ ZERO_HOST_GEN15_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-gen15-lispjit-genes
 ZERO_HOST_GEN15_COM="$BUILD_DIR/nano-jit/selfhost/zero-host-gen15-nano-jit.com"
 ZERO_HOST_GEN16_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-gen16-gen14-runs-gen5.lisp"
 ZERO_HOST_GEN16_COM="$BUILD_DIR/nano-jit/selfhost/zero-host-gen16-nano-jit.com"
+ZERO_HOST_GEN17_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-gen17-selfhost-reuse.lisp"
+ZERO_HOST_GEN17_COM="$BUILD_DIR/nano-jit/selfhost/zero-host-gen17-nano-jit.com"
+ZERO_HOST_GEN18_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-gen18-ir-table-via-gen17.lisp"
+ZERO_HOST_GEN18_COM="$BUILD_DIR/nano-jit/selfhost/zero-host-gen18-nano-jit.com"
+ZERO_HOST_REUSE_X86="$BUILD_DIR/nano-jit/selfhost/zero-host-gen15-slice-x86.elf"
+ZERO_HOST_REUSE_AARCH64="$BUILD_DIR/nano-jit/selfhost/zero-host-gen15-slice-aarch64.elf"
 ZERO_HOST_EVIDENCE="$BUILD_DIR/v4-zero-host-bootstrap.evidence"
 NANO_JIT_COM="$BUILD_DIR/nano-jit/nano-jit.com"
 BOOTSTRAP_V4_SLICE16_PLAN_WORDS_SRC="$LAB_DIR/samples/bootstrap-v4-slice16-plan-words.lisp"
@@ -8208,6 +8214,33 @@ else
   skip_case "run-bootstrap-v4-zero-host-gen15-lispjit-genesis-pin-plan" "zero-host-gen9-nano-jit.com missing"
   skip_case "run-bootstrap-v4-zero-host-gen16-nested-com-plan" "zero-host-gen9-nano-jit.com missing"
   skip_case "run-bootstrap-v4-zero-host-phase3-evidence" "zero-host-gen9-nano-jit.com missing"
+fi
+if [ -f "$ZERO_HOST_REUSE_X86" ] && [ -f "$ZERO_HOST_REUSE_AARCH64" ] && host_is_linux_x86_64; then
+  run_case "run-bootstrap-v4-zero-host-gen17-selfhost-reuse-plan" bash -c '
+    cd "'"$ROOT_DIR"'" && out=$(NANO_BUILD_SLICE_SELFHOST_REUSE=1 \
+      NANO_SELFHOST_REUSE_X86="'"$ZERO_HOST_REUSE_X86"'" \
+      NANO_SELFHOST_REUSE_AARCH64="'"$ZERO_HOST_REUSE_AARCH64"'" \
+      "'"$RUNNER"'" run-bootstrap-plan "'"$ZERO_HOST_GEN17_SRC"'" 2>&1) || true
+    test -f "'"$ZERO_HOST_GEN17_COM"'"
+    printf "%s\n" "$out" | grep -q "build-slice.role=selfhost-reuse"
+    ! printf "%s\n" "$out" | grep -q "genesis/"
+  '
+  run_case "run-bootstrap-v4-zero-host-gen18-ir-table-via-gen17-plan" bash -c '
+    cd "'"$ROOT_DIR"'" && test -f "'"$ZERO_HOST_GEN17_COM"'"
+    out=$("'"$ZERO_HOST_GEN17_COM"'" run-bootstrap-plan "'"$ZERO_HOST_GEN18_SRC"'" 2>&1) || true
+    test -f "'"$ZERO_HOST_GEN18_COM"'"
+    printf "%s\n" "$out" | grep -q "bootstrap-step.*=ir-table-lisp"
+    printf "%s\n" "$out" | grep -q "aarch64.emit.profile=ir-exit-v1"
+  '
+  run_case "run-bootstrap-v4-zero-host-phase4-evidence" bash -c '
+    echo "zero.host.selfhost_reuse=1" >> "'"$ZERO_HOST_EVIDENCE"'"
+    echo "zero.host.ir_table_on_com=1" >> "'"$ZERO_HOST_EVIDENCE"'"
+    echo "zero.host.chain=g2-g18" >> "'"$ZERO_HOST_EVIDENCE"'"
+  '
+else
+  skip_case "run-bootstrap-v4-zero-host-gen17-selfhost-reuse-plan" "gen15 reuse slices missing"
+  skip_case "run-bootstrap-v4-zero-host-gen18-ir-table-via-gen17-plan" "gen17.com missing"
+  skip_case "run-bootstrap-v4-zero-host-phase4-evidence" "gen15 reuse slices missing"
 fi
 if [ -f "$ZERO_HOST_GEN10_APP" ] && [ -f "$ZERO_HOST_GEN13_COM" ]; then
   run_case "run-bootstrap-v4-zero-host-chain-complete-plan" bash -c '
