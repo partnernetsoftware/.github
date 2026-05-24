@@ -5,7 +5,7 @@ tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v4.yaml assess
 tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v4.yaml agent-team
 ```
 
-见 [`README.md`](README.md)、[`../v3.5/DECISION.md`](../v3.5/DECISION.md)。
+见 [`README.md`](README.md)、[`../v3.5/DECISION.md`](../archive/versions/v3.5/DECISION.md)。
 
 <!-- SQUAD_STATE_BEGIN -->
 ### 派单板（SQLite state 导出 · 勿手改）

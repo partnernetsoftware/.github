@@ -38,3 +38,4 @@
 3. 单波并发 **≤4**（A/B/C/D）；禁止 >4 并行轨。
 4. 失败：修门禁 → 不重开已签收波。
 5. 本文件：每批合 main 后更新「队列」与「当前指针」。
+6. 目录卫生：合 main 前可 `bash tools/clean-lab.sh`；见 [`../MAINTENANCE.md`](../MAINTENANCE.md)。

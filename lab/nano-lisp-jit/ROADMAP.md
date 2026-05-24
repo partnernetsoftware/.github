@@ -199,7 +199,7 @@ nano-jit continuation after self-bootstrap v1
 │  ├─ 设计：A/B 自举分层；VM/AOT 参数与 exit 2 统一
 │  ├─ 实现：PARAM 不计入 PC；cross aarch64 + qemu static smoke
 │  ├─ 测试：self-packed v3 矩阵 + build.pass/skip/fail
-│  └─ 下一圈：**v3.5 并行** — slice 0 100%；切片 1–6 见 [`v3.5/PARALLEL.md`](v3.5/PARALLEL.md)
+│  └─ 下一圈：**v3.5 并行** — slice 0 100%；切片 1–6 见 [`v3.5/PARALLEL.md`](archive/versions/v3.5/PARALLEL.md)
 ├─ v2.5: v2 反思收口（把 scoped 缺口变成可测切片）
 │  ├─ 反思 · 设计（v2 发现的问题）
 │  │  ├─ scoped 100% 与 mindmap 脱节：「richer IR/VM 参数」只落了 AOT 单 `(param i64)`，VM 仍无参
@@ -270,13 +270,13 @@ nano-jit continuation after self-bootstrap v1
 
 **v3 core（slice 0–3）**：**100%** — 反思见 [`v3/REFLECTION.md`](v3/REFLECTION.md)。  
 **v3 完全 100%**：**100%** — 编排 + 4b-1/4b-2/4b-3；见 [`v3/README.md`](v3/README.md)。  
-**v3.5**：**~100%** — squad signoff 全绿（gen5 dual-arch、aarch64-add-emit、gen5-via-gen2、L2/L4 签收）。小组模式见 [`v3.5/SQUAD.md`](v3.5/SQUAD.md)。见 [`v3.5/README.md`](v3.5/README.md)、[`v3.5/PARALLEL.md`](v3.5/PARALLEL.md)、[`v3.5/REFLECTION.md`](v3.5/REFLECTION.md)。
+**v3.5**：**~100%** — squad signoff 全绿（gen5 dual-arch、aarch64-add-emit、gen5-via-gen2、L2/L4 签收）。小组模式见 [`v3.5/SQUAD.md`](archive/versions/v3.5/SQUAD.md)。见 [`v3.5/README.md`](archive/versions/v3.5/README.md)、[`v3.5/PARALLEL.md`](archive/versions/v3.5/PARALLEL.md)、[`v3.5/REFLECTION.md`](archive/versions/v3.5/REFLECTION.md)。
 
 ### v3.5 洋葱 TDD mindmap（kickoff + 反思轨 R）
 
 v3 完全 100% 已签收（含 genesis-pin 4b-3）。**v3.5** 扩展 nano-cc，逐步替代 pin 复制：用 nano-jit 自身能力实现一个 **C-subset → ELF** 的 `nano-cc`，逐步替换 `build-slice` 对 host `cc` 的依赖。这是 ROADMAP §5（编译器自举）与 §6（替换外部 slice compiler）的**第一座可证明桥梁**。
 
-**并行约定**：开发轨最多 **3 路**；**反思轨 R** 常驻（不占开发名额），每 wave 更新 [`v3.5/REFLECTION.md`](v3.5/REFLECTION.md) 并回写本 mindmap。
+**并行约定**：开发轨最多 **3 路**；**反思轨 R** 常驻（不占开发名额），每 wave 更新 [`v3.5/REFLECTION.md`](archive/versions/v3.5/REFLECTION.md) 并回写本 mindmap。
 
 ```text
 v3.5: nano-cc（nano-jit 作为 cc 编译器）
@@ -295,7 +295,7 @@ v3.5: nano-cc（nano-jit 作为 cc 编译器）
 │  ├─ 已有资产可复用：`compile-elf64-*` / `aot-elf64-obj-code` / `link-elf64-exe` / section+reloc
 │  ├─ 缺口：无 C 前端；无 `#include` 展开；无 SysV 全 ABI；aarch64 后端独立于 x86_64
 │  └─ 风险：试图一次译全 `lispjit.c` 会爆炸 — 必须 C-subset 洋葱切片
-├─ 反思 · v3.5 持续（**track R** · [`v3.5/REFLECTION.md`](v3.5/REFLECTION.md)）
+├─ 反思 · v3.5 持续（**track R** · [`v3.5/REFLECTION.md`](archive/versions/v3.5/REFLECTION.md)）
 │  ├─ 技术债（未清理）
 │  │  ├─ companion `.lisp` 绕道 add — 非真 C 编译器（**P0**）
 │  │  ├─ genesis pin 仍承载全量 `lispjit.c` slice（**P1**）
@@ -316,13 +316,13 @@ v3.5: nano-cc（nano-jit 作为 cc 编译器）
 │  │  ├─ **G** parse golden CI（`nano-cc-add.parse.golden`）
 │  │  └─ **H** gen2/gen3 hash 确定性供应链
 │  └─ 偿还优先级：P0 parse+.o → P1 genesis 审计+禁 cc → P2 实验 C/D/G → P3 v4 loader/pack
-├─ Lisp-only / AI 自主进化（[`v3.5/LISP-ONLY.md`](v3.5/LISP-ONLY.md) North star）
+├─ Lisp-only / AI 自主进化（[`v3.5/LISP-ONLY.md`](archive/versions/v3.5/LISP-ONLY.md) North star）
 │  ├─ 赌注：编辑面 = `.lisp` + bootstrap + golden；C 仅 genesis/legacy
 │  ├─ 档位：A–B **已达**；C genesis-pin；D− gen4 计划无 C；E 加速通道 **进行中**
 │  ├─ L0–L1–L3：Lisp slice、pack x86 Lisp、aarch64 exit-stub — **签收**
 │  ├─ gen5 **签收**：双架构 Lisp pack 零 genesis；gen5-via-gen2 由 gen2 slice runner 编排
 │  └─ 判据：每代 `run.sh` 全绿 + plan 无 `.c` + hash 矩阵不退化
-├─ 小组模式（[`v3.5/SQUAD.md`](v3.5/SQUAD.md) · 指挥长派单 · **~100%**）
+├─ 小组模式（[`v3.5/SQUAD.md`](archive/versions/v3.5/SQUAD.md) · 指挥长派单 · **~100%**）
 │  ├─ **A** `L2-companion` — **完成** `7866e4e`：去 companion；add 真相源 = `nano-jit-slice-add.lisp`
 │  ├─ **B** `L4-tu-kickoff` / `L4-runner-1` — **完成** `a043fd5`/`5030c7c`：多 TU link + gen5-via-gen2
 │  ├─ **A** `aarch64-codegen-1` — **完成** `5030c7c`：`aarch64-add-emit` + qemu
@@ -331,7 +331,7 @@ v3.5: nano-cc（nano-jit 作为 cc 编译器）
 │  ├─ sample：`samples/nano-cc-hello.c`（`main` return 42）+ `nano-cc-bad.c`
 │  ├─ CLI：`nano-cc compile input.c -o out.elf`（genesis runner 或 `nano-jit.com`）
 │  ├─ native：`run.sh` `nano-cc-compile-hello-cli` / `nano-cc-run-hello-exit42`
-│  ├─ 负向：syntax error / unsupported construct → exit 2（[`v3.5/ERROR-CODES.md`](v3.5/ERROR-CODES.md)）
+│  ├─ 负向：syntax error / unsupported construct → exit 2（[`v3.5/ERROR-CODES.md`](archive/versions/v3.5/ERROR-CODES.md)）
 │  └─ 验收：不依赖 host `cc` 生成 hello ELF（genesis 编 runner 一次可接受）
 ├─ slice 1: C-subset 前端（**scoped** · track A）
 │  ├─ 已：`nano-cc parse`；`add_parse_fail`；golden + `nano-cc-add-bad-{sig,body}.c`（wave3）
@@ -358,14 +358,14 @@ v3.5: nano-cc（nano-jit 作为 cc 编译器）
 │  ├─ 门禁：`selfhost-v35-gen3-*` in `build_nano_jit.sh`
 │  └─ 验收：**日常重建**不再调用 host `cc` 编 `lispjit.c`（Genesis pin 除外；pack 直引 genesis）
 ├─ slice 6: 收缩 Genesis（**scoped** · track F）
-│  ├─ 已：[`GENESIS-SHRINK.md`](v3.5/GENESIS-SHRINK.md)、`bootstrap-v35-genesis-shrink`、plan 断言
+│  ├─ 已：[`GENESIS-SHRINK.md`](archive/versions/v3.5/GENESIS-SHRINK.md)、`bootstrap-v35-genesis-shrink`、plan 断言
 │  ├─ wave3：`audit_genesis_shrink.sh` — build/run 日志禁 `lispjit.c` + `compiler=cc`（无 `NANO_REGENESIS=1`）
 │  └─ 验收：CI 两脚本全绿 + 审计失败即红
 └─ 验收（v3.5 整体 scoped）
    ├─ `build-slice` 默认 nano-cc；host `cc` 仅 fallback/文档化
    ├─ gen3 selfhost 证据入库（bootstrap DSL + build 矩阵）
    ├─ v2/v2.5/v3 全量 fixture 不退化
-   ├─ **反思轨 R**：[`v3.5/REFLECTION.md`](v3.5/REFLECTION.md) 与 mindmap 同步（技术债/实验/P0–P3）
+   ├─ **反思轨 R**：[`v3.5/REFLECTION.md`](archive/versions/v3.5/REFLECTION.md) 与 mindmap 同步（技术债/实验/P0–P3）
    └─ ROADMAP / `v3.5/README.md` / `v3.5/PARALLEL.md` 进度可追踪（非「实现 cc」空话）
 ```
 
@@ -377,14 +377,14 @@ v3.5: nano-cc（nano-jit 作为 cc 编译器）
 | slice 1 C-subset 前端 | **scoped** | `nano-cc parse` + `add_parse_fail` 负向 |
 | slice 2 x86_64 emit | **kickoff** | `nano-cc compile-obj` + link smoke |
 | slice 3 `build-slice` 切换 | **100%** scoped | `NANO_BUILD_SLICE_CODEGEN=1` |
-| slice 4 aarch64 nano-cc | **scoped** | `NANO_CC_ARCH` + `build-slice-lisp` aarch64；[`v3.5/AARCH64.md`](v3.5/AARCH64.md) |
+| slice 4 aarch64 nano-cc | **scoped** | `NANO_CC_ARCH` + `build-slice-lisp` aarch64；[`v3.5/AARCH64.md`](archive/versions/v3.5/AARCH64.md) |
 | Lisp-only L1 pack | **scoped** | `bootstrap-v35-pack-lisp-x86` |
 | slice 5 gen3 自举 | **100%** scoped | `bootstrap-v35-selfhost-gen3`、genesis pin pack |
 | gen5 Lisp dual-arch pack | **scoped** | `bootstrap-v35-selfhost-gen5`、零 genesis pin |
 | slice 6 Genesis 收缩 | **scoped** | genesis-shrink + `audit_genesis_shrink.sh` |
-| 反思轨 R | **持续** | [`v3.5/REFLECTION.md`](v3.5/REFLECTION.md) |
+| 反思轨 R | **持续** | [`v3.5/REFLECTION.md`](archive/versions/v3.5/REFLECTION.md) |
 
-**v3.5 整体**：**~100%** — squad signoff 全绿（254 run / 119 build；`v35-signoff.evidence` aarch64-add-emit + gen5-via-gen2）。见 [`v3.5/README.md`](v3.5/README.md)。
+**v3.5 整体**：**~100%** — squad signoff 全绿（254 run / 119 build；`v35-signoff.evidence` aarch64-add-emit + gen5-via-gen2）。见 [`v3.5/README.md`](archive/versions/v3.5/README.md)。
 
 ### v4 洋葱 TDD mindmap（wave14 · 诚实双轨）
 
@@ -486,7 +486,7 @@ v4: 终局切片 + 产品轨（catalog-v4.yaml · signoff v4-complete + post-v4 
 
 **当前下一刀（v4 kickoff）**：
 
-1. **slice-0 后续**：aarch64 VM/AOT codegen 规划落地（超越 `aarch64-add-emit` stub）；见 [`v3.5/AARCH64.md`](v3.5/AARCH64.md) § v4 slice-0 边界。
+1. **slice-0 后续**：aarch64 VM/AOT codegen 规划落地（超越 `aarch64-add-emit` stub）；见 [`v3.5/AARCH64.md`](archive/versions/v3.5/AARCH64.md) § v4 slice-0 边界。
 2. **编排 S0**：`(squad-assess …)` bootstrap 样本 + `bootstrap-v4-squad-assess.lisp`（见 [`v4/README.md`](v4/README.md)）。
 3. 基线不退化：`bash lab/nano-lisp-jit/run.sh` + `NANO_SELFHOST_THOROUGH=1 build_nano_jit.sh` 全绿后再扩 v4 slice。
 4. 小队：`tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v4.yaml agent-team`。

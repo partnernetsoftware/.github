@@ -22,12 +22,11 @@ lab/**/*.o
 third_party/cosmocc/
 third_party/zig/
 
-# nano-lisp-jit squad runtime (local only)
+# nano-lisp-jit runtime (regenerated locally)
 lab/nano-lisp-jit/.squad/*.db
+lab/nano-lisp-jit/.squad/*.db-*
 lab/nano-lisp-jit/.squad/verify.lock
 lab/nano-lisp-jit/.squad/state-v4.json
+lab/nano-lisp-jit/.squad/state.json
 lab/nano-lisp-jit/.build/*.evidence
 lab/nano-lisp-jit/.build/v4*.evidence
-lab/nano-lisp-jit/.squad/*.db
-lab/nano-lisp-jit/.squad/verify.lock
-lab/nano-lisp-jit/.squad/state-v4.json

@@ -1,6 +1,6 @@
 # v4 反思与调整（track R · 持续更新）
 
-**范围**：v3.5-terminal 之后、v4 **signoff `v4-slice9-scoped`**（编排 S0–S5 + codegen S6–S9）。与 [`../v3.5/REFLECTION.md`](../v3.5/REFLECTION.md) 互补；**未达成**全仓库零 `.c` 自举 — 见 [`LISP-ONLY.md`](LISP-ONLY.md)、[`../ROADMAP.md`](../ROADMAP.md) § v4 mindmap。
+**范围**：v3.5-terminal 之后、v4 **signoff `v4-slice9-scoped`**（编排 S0–S5 + codegen S6–S9）。与 [`../v3.5/REFLECTION.md`](../archive/versions/v3.5/REFLECTION.md) 互补；**未达成**全仓库零 `.c` 自举 — 见 [`LISP-ONLY.md`](LISP-ONLY.md)、[`../ROADMAP.md`](../ROADMAP.md) § v4 mindmap。
 
 ---
 

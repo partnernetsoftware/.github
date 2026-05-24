@@ -1,6 +1,6 @@
 # v4 — 终局切片 + 产品轨
 
-**前置**：v3.5-scoped + v3.5-terminal 已签收（见 [`../v3.5/DECISION.md`](../v3.5/DECISION.md)）。
+**前置**：v3.5-scoped + v3.5-terminal 已签收（见 [`../v3.5/DECISION.md`](../archive/versions/v3.5/DECISION.md)）。
 
 **「全 Lisp」口径**：见 [`LISP-ONLY.md`](LISP-ONLY.md) — v4 **plan 层**可无 `.c` 引用；**runner/codegen 层**仍含 C（slice-2 才攻真 codegen）。
 
