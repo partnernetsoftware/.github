@@ -548,6 +548,114 @@ WAVES = {
         b_test="v4/MINDMAP.md",
         c_test="v4/EVAL.md",
     ),
+    98: dict(
+        title="evidence-matrix-recap",
+        a=76,
+        b_track="evmatrix",
+        c_track="resume",
+        b_files=[
+            "samples/bootstrap-v4-evidence-matrix.lisp",
+            "samples/bootstrap-v4-wave72-evmatrix-tick.lisp",
+            "v4/SLICE72.md",
+        ],
+        c_files=[
+            "samples/bootstrap-v4-wave72-resume-tick.lisp",
+            "samples/bootstrap-v4-squad-resume-tick.lisp",
+            "v4/SLICE60.md",
+        ],
+        b_test="samples/bootstrap-v4-evidence-matrix.lisp",
+        c_test="v4/SLICE72.md",
+    ),
+    99: dict(
+        title="terminal-onion",
+        a=77,
+        b_track="terminal",
+        c_track="onion",
+        b_files=[
+            "samples/bootstrap-v4-wave67-terminal-tick.lisp",
+            "samples/bootstrap-v4-terminal-build-evidence.lisp",
+            "v4/SLICE58.md",
+        ],
+        c_files=[
+            "samples/bootstrap-v4-wave58-onion-tick.lisp",
+            "samples/bootstrap-v4-wave40-onion-tick.lisp",
+            "v4/SLICE40.md",
+        ],
+        b_test="samples/bootstrap-v4-terminal-build-evidence.lisp",
+        c_test="v4/SLICE58.md",
+    ),
+    100: dict(
+        title="ir-words-scout",
+        a=78,
+        b_track="irwords",
+        c_track="irtable",
+        b_files=[
+            "samples/bootstrap-v4-wave44-diffusion.lisp",
+            "samples/v4-ir-words-v2.txt",
+            "v4/SLICE44.md",
+        ],
+        c_files=[
+            "samples/bootstrap-v4-wave56-irtable-tick.lisp",
+            "samples/v4-ir-table-v1.lisp",
+            "v4/SLICE56.md",
+        ],
+        b_test="samples/v4-ir-words-v2.txt",
+        c_test="samples/v4-ir-table-v1.lisp",
+    ),
+    101: dict(
+        title="post-v4-anchor",
+        a=79,
+        b_track="postv4",
+        c_track="scoped",
+        b_files=[
+            "samples/bootstrap-v4-wave49-postv4-tick.lisp",
+            "samples/bootstrap-v4-wave58-postv4-tick.lisp",
+            "v4/POST-V4.md",
+        ],
+        c_files=[
+            "v4/COMPLETE-SCOPED.md",
+            "samples/bootstrap-v4-wave46-kickoff-tick.lisp",
+            "v4/SLICE46.md",
+        ],
+        b_test="v4/POST-V4.md",
+        c_test="v4/COMPLETE-SCOPED.md",
+    ),
+    102: dict(
+        title="autonomous-milestone-2",
+        a=80,
+        b_track="autonomous",
+        c_track="longrun",
+        b_files=[
+            "samples/bootstrap-v4-wave55-autonomous-tick.lisp",
+            "v4/DECISION.md",
+            "v4/SLICE55.md",
+        ],
+        c_files=[
+            "v4/LONG-RUN-TODO.md",
+            "v4/longrun-state.json",
+            "v4/MINDMAP.md",
+        ],
+        b_test="v4/DECISION.md",
+        c_test="v4/LONG-RUN-TODO.md",
+    ),
+    103: dict(
+        title="orchestration-bundle",
+        a=81,
+        b_track="orchestration",
+        c_track="dispatch",
+        b_files=[
+            "samples/bootstrap-v4-squad-orchestration-bundle.lisp",
+            "samples/bootstrap-v4-wave36-orchestration-tick.lisp",
+            "v4/SLICE36.md",
+        ],
+        c_files=[
+            "samples/bootstrap-v4-squad-dispatch.lisp",
+            "samples/bootstrap-v4-squad-run-loop-once.lisp",
+            "v4/SQUAD.md",
+        ],
+        b_test="samples/bootstrap-v4-squad-orchestration-bundle.lisp",
+        c_test="v4/SQUAD.md",
+    ),
 }
 
 
@@ -664,6 +772,7 @@ run_case "run-bootstrap-v4-slice{w}-evidence-plan" bash -c '
     block = "\n".join(vars_lines) + "\n"
     if f"V4_SLICE{meta[0]['wave']}_ADD" not in run:
         for anchor in (
+            'V4_SLICE97_EVIDENCE="$BUILD_DIR/v4-slice97.evidence"\n',
             'V4_SLICE91_EVIDENCE="$BUILD_DIR/v4-slice91.evidence"\n',
             'V4_SLICE88_EVIDENCE="$BUILD_DIR/v4-slice88.evidence"\n',
             'V4_SLICE85_EVIDENCE="$BUILD_DIR/v4-slice85.evidence"\n',
@@ -679,6 +788,7 @@ run_case "run-bootstrap-v4-slice{w}-evidence-plan" bash -c '
     ins = "".join(cases)
     if f"run-bootstrap-v4-wave{meta[0]['wave']}-diffusion-plan" not in run:
         for marker in (
+            'run_case "run-bootstrap-v4-slice97-evidence-plan"',
             'run_case "run-bootstrap-v4-slice91-evidence-plan"',
             'run_case "run-bootstrap-v4-slice88-evidence-plan"',
             'run_case "run-bootstrap-v4-slice85-evidence-plan"',

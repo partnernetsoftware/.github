@@ -394,3 +394,21 @@
 **wave 索引**：至 **97** · **tests.pass=592** · 指针 **98**
 
 **方法**：`bun run skills/nano-lisp-jit-v4-longrun/nano-lisp-jit-v4-longrun.ts loop --batches 2 --goal wave97`
+
+## wave98–100（longrun apply · ≤4 轨/波）
+
+| 维度 | wave100 后 | 说明 |
+|------|-------------|------|
+| Codegen | ~49% | add 续批 verified |
+| 终局整体 | **15–22%** | skill apply |
+
+**方法**：`bun run skills/nano-lisp-jit-v4-longrun/nano-lisp-jit-v4-longrun.ts apply 98 100`
+
+## wave101–103（longrun apply · ≤4 轨/波）
+
+| 维度 | wave103 后 | 说明 |
+|------|-------------|------|
+| Codegen | ~49% | add 续批 verified |
+| 终局整体 | **15–22%** | skill apply |
+
+**方法**：`bun run skills/nano-lisp-jit-v4-longrun/nano-lisp-jit-v4-longrun.ts apply 101 103`

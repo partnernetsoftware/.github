@@ -104,4 +104,5 @@
 | wave80–82 | ir-table-scout + emit-manifest + four-track-autonomous；native 门禁回绿 | add75–77；下一指针 wave83 |
 | wave83–85 | reflection-resume + lisp-only-terminal + codegen-emit 续批；仍保持 ≤4 轨/波 | add78–80；下一指针 wave86 |
 | wave86–88 | runner-plan + squad-evidence + onion-mindmap-close 续批 | add81–83 |
-| wave92–97 | skill longrun 2 批 apply 全绿（无 cc repair） | add87–92；指针 98 |
+| wave92–97 | skill longrun 2 批 apply 全绿 | add87–92 |
+| wave98–103 | evidence/terminal/ir-words/post-v4/orchestration | add93–98；指针 104 |

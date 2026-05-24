@@ -1,11 +1,11 @@
 {
-  "next_wave": 98,
-  "next_add": 93,
-  "last_tests_pass": 592,
+  "next_wave": 104,
+  "next_add": 99,
+  "last_tests_pass": 616,
   "last_batch": {
-    "lo": 95,
-    "hi": 97
+    "lo": 101,
+    "hi": 103
   },
   "status": "idle",
-  "updated_at": "2026-05-24T04:25:19.574Z"
+  "updated_at": "2026-05-24T04:35:34.535Z"
 }
