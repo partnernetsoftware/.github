@@ -79,15 +79,17 @@ bun run skills/nano-lisp-jit-v4-longrun/nano-lisp-jit-v4-longrun.ts loop --batch
 - [x] **wave80–82** · add75–77 · ir-table-scout / emit-manifest-chain / four-track-autonomous
 - [x] **wave83–85** · add78–80 · reflection-resume / lisp-only-terminal / codegen-emit-milestone
 - [x] **wave86–88** · add81–83 · runner-plan / squad-evidence / onion-mindmap-close
-- [ ] wave89+ … 直至终局 100% 或 Lisp emit 实质线开卷
+- [x] **wave89–91** · add84–86 · host-reduce / ir-table / four-track
+- [x] **wave92–97** · add87–92 · skill longrun 2 批
+- [ ] wave98+ … 直至终局 100% 或 Lisp emit 实质线开卷
 
 ## 当前指针
 
 | 项 | 值 |
 |----|-----|
-| 下一波 | **92** |
-| 下一 add | **87** (67+17) |
-| 末次门禁 | tests.pass=568 · build.pass=27（native） |
+| 下一波 | **98** |
+| 下一 add | **93** (76+17) |
+| 末次门禁 | tests.pass=592 · [`longrun-state.json`](longrun-state.json) |
 | 终局粗估 | **15–22%**（[`EVAL.md`](EVAL.md) 最新 §） |
 
 ## 自循环规则

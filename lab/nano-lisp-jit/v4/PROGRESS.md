@@ -7,12 +7,12 @@
 |------|----------|------|------|
 | Plan（bootstrap 无 .c 源） | 全 plan 无 .c + manifest + wave-index | ✅ gate 常绿 | **~98%** |
 | Runner | Lisp 执行 plan | C `nano-lisp-jit` + runner/terminal/resume 锚点 | **~6%** |
-| Codegen | Lisp IR 整表 → blob | stub 读五 op `plan-lisp-v1-full` | **~50%** |
-| 编排 | Lisp `(squad-*)` | assess + evidence-matrix 深链 | **~47%** |
-| 构建 | plan 内 build 图 | wave88 add83 + results-min | **~59%** |
+| Codegen | Lisp IR 整表 → blob | stub 读五 op `plan-lisp-v1-full` | **~51%** |
+| 编排 | Lisp `(squad-*)` | commander/assess + longrun skill 锚点 | **~48%** |
+| 构建 | plan 内 build 图 | wave97 add92 + results-min | **~60%** |
 | 自举 | `.com` 生成下一代 | 未开卷 | **~0%** |
 
-**整体终局（catalog ready 后继续自主）**：约 **15–22%**（wave86–88 见 [`EVAL.md`](EVAL.md) §wave86–88）（外圈证据满 ≠ 内圈替换完成）。
+**整体终局（catalog ready 后继续自主）**：约 **15–22%**（wave92–97 见 [`EVAL.md`](EVAL.md) §wave92–97）（外圈证据满 ≠ 内圈替换完成）。
 
 **调整原则**（并行 + 洋葱）：每波只推进一圈一格；扩散→收敛→洋葱；波末一次 `run.sh`（见 [`PARALLEL.md`](PARALLEL.md)）。
 

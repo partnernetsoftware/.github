@@ -103,4 +103,5 @@
 | wave77–79 | commander-resume + build-graph-onion + longrun-milestone；自循环 TODO 状态机 | add72–74；`LONG-RUN-TODO` 技巧表 |
 | wave80–82 | ir-table-scout + emit-manifest + four-track-autonomous；native 门禁回绿 | add75–77；下一指针 wave83 |
 | wave83–85 | reflection-resume + lisp-only-terminal + codegen-emit 续批；仍保持 ≤4 轨/波 | add78–80；下一指针 wave86 |
-| wave86–88 | runner-plan + squad-evidence + onion-mindmap-close 续批；runner/plan/evidence/onion 交叉锚定 | add81–83；下一指针 wave89 |
+| wave86–88 | runner-plan + squad-evidence + onion-mindmap-close 续批 | add81–83 |
+| wave92–97 | skill longrun 2 批 apply 全绿（无 cc repair） | add87–92；指针 98 |

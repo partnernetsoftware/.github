@@ -380,3 +380,17 @@
 | 终局整体 | **15–22%** | deterministic apply |
 
 **方法**：`v4-apply-batch.py 89 91` → `run.sh` gate。
+
+## wave92–97（skill longrun · 2 批 × ≤4 轨/波）
+
+| 维度 | wave97 后 | Δ |
+|------|-----------|---|
+| Plan | ~98% | longrun-skill + commander + mindmap 锚点 |
+| Codegen | ~51% | add87–92 verified |
+| 编排 | ~48% | squad-commander-chain |
+| 构建 | ~60% | build-graph-recap |
+| 终局整体 | **15–22%** | VM emit 未开卷 |
+
+**wave 索引**：至 **97** · **tests.pass=592** · 指针 **98**
+
+**方法**：`bun run skills/nano-lisp-jit-v4-longrun/nano-lisp-jit-v4-longrun.ts loop --batches 2 --goal wave97`
