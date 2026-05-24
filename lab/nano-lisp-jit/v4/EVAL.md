@@ -303,3 +303,19 @@
 **方法**：≤4 轨/波 → 一次 `run.sh` → 洋葱（MINDMAP/SLICE）→ 合 main；`gen-v4-wave-batch.py 74 76`。
 
 **门禁**：`tests.pass=507`；`build.pass=26`（main 归档后 catalog `build.pass≥119` 需 cosmocc，与波次样本 `26` 并存）。
+
+## wave77–79（长程自主 · 洋葱 TDD · ≤4 并发/波）
+
+| 维度 | wave79 后 | Δ |
+|------|-----------|---|
+| Plan | ~98% | commander-resume + build-graph + longrun 锚点 |
+| Codegen | ~47% | add72–74 verified 整表 |
+| 编排 | ~44% | squad commander/resume 深链 |
+| 构建 | ~56% | 三波 diffusion |
+| 终局整体 | **15–22%** | 自循环 TODO 状态机入账 |
+
+**wave 索引**：至 **79**。
+
+**方法**：`gen-v4-wave-batch.py 77 79`；`LONG-RUN-TODO.md` 自循环状态机。
+
+**门禁**：`tests.pass=519`；`build.pass=26`。

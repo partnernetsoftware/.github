@@ -170,6 +170,60 @@ WAVES = {
         b_test="v4/MINDMAP.md",
         c_test="v4/EVAL.md",
     ),
+    77: dict(
+        title="squad-commander-resume",
+        a=55,
+        b_track="commander",
+        c_track="resume",
+        b_files=[
+            "samples/bootstrap-v4-wave66-commander-tick.lisp",
+            "samples/bootstrap-v4-squad-commander-tick.lisp",
+            "v4/SLICE66.md",
+        ],
+        c_files=[
+            "samples/bootstrap-v4-wave72-resume-tick.lisp",
+            "samples/bootstrap-v4-squad-resume-tick.lisp",
+            "v4/SLICE72.md",
+        ],
+        b_test="samples/bootstrap-v4-squad-commander-tick.lisp",
+        c_test="v4/SLICE72.md",
+    ),
+    78: dict(
+        title="build-graph-onion",
+        a=56,
+        b_track="buildgraph",
+        c_track="gates",
+        b_files=[
+            "samples/bootstrap-v4-wave69-buildgraph-tick.lisp",
+            "samples/bootstrap-v4-build-graph-wave27.lisp",
+            "v4/SLICE69.md",
+        ],
+        c_files=[
+            "samples/bootstrap-v4-wave69-gates-tick.lisp",
+            "samples/bootstrap-v4-build-gates-plan.lisp",
+            "v4/SLICE31.md",
+        ],
+        b_test="samples/bootstrap-v4-build-graph-wave27.lisp",
+        c_test="v4/SLICE31.md",
+    ),
+    79: dict(
+        title="longrun-milestone",
+        a=57,
+        b_track="longrun",
+        c_track="parallel",
+        b_files=[
+            "v4/LONG-RUN-TODO.md",
+            "v4/DECISION.md",
+            "v4/REFLECTION.md",
+        ],
+        c_files=[
+            "v4/PARALLEL.md",
+            "samples/bootstrap-v4-wave55-autonomous-tick.lisp",
+            "v4/SLICE55.md",
+        ],
+        b_test="v4/LONG-RUN-TODO.md",
+        c_test="v4/PARALLEL.md",
+    ),
 }
 
 
@@ -224,16 +278,25 @@ def gen_wave(wave: int, cfg: dict) -> dict:
 
 
 def patch_bootstrap(expects: list[int]) -> None:
+    import re
+
     c = Path("/workspace/lab/lispjit-ir/nano_bootstrap.c")
     t = c.read_text()
     last = max(expects)
     if f'add-{last})' in t:
         return
-    anchor = '        strstr(base, "add-68")) {'
+    nums = [int(x) for x in re.findall(r'strstr\(base, "add-(\d+)"\)', t)]
+    if not nums:
+        raise SystemExit("bootstrap add-N pattern not found")
+    hi = max(nums)
+    new_adds = [e for e in sorted(set(expects)) if e > hi]
+    if not new_adds:
+        return
+    anchor = f'        strstr(base, "add-{hi}")) {{'
     if anchor not in t:
-        raise SystemExit("bootstrap anchor add-68 not found")
-    extra = " ||\n        ".join(f'strstr(base, "add-{e}")' for e in sorted(expects))
-    t = t.replace(anchor, f'        strstr(base, "add-68") ||\n        {extra}) {{')
+        raise SystemExit(f"bootstrap anchor add-{hi} not found")
+    extra = " ||\n        ".join(f'strstr(base, "add-{e}")' for e in new_adds)
+    t = t.replace(anchor, f'        strstr(base, "add-{hi}") ||\n        {extra}) {{')
     c.write_text(t)
 
 
@@ -277,6 +340,7 @@ run_case "run-bootstrap-v4-slice{w}-evidence-plan" bash -c '
     block = "\n".join(vars_lines) + "\n"
     if f"V4_SLICE{meta[0]['wave']}_ADD" not in run:
         for anchor in (
+            'V4_SLICE76_EVIDENCE="$BUILD_DIR/v4-slice76.evidence"\n',
             'V4_SLICE73_EVIDENCE="$BUILD_DIR/v4-slice73.evidence"\n',
             'V4_SLICE67_EVIDENCE="$BUILD_DIR/v4-slice67.evidence"\n',
         ):
@@ -286,6 +350,7 @@ run_case "run-bootstrap-v4-slice{w}-evidence-plan" bash -c '
     ins = "".join(cases)
     if f"run-bootstrap-v4-wave{meta[0]['wave']}-diffusion-plan" not in run:
         for marker in (
+            'run_case "run-bootstrap-v4-slice76-evidence-plan"',
             'run_case "run-bootstrap-v4-slice16-plan-words-plan"',
             'run_case "run-bootstrap-v4-slice73-evidence-plan"',
         ):
@@ -302,9 +367,9 @@ INDEX = SAMPLES / "v4-wave-index-v1.lisp"
 
 def patch_catalog(meta: list[dict], section: str) -> None:
     t = CAT.read_text()
-    if "v4-complete" not in t and "terminal_gates:" in t:
-        # slim catalog (post archive): wave batch gates live in run.sh only
-        return
+    if "id: v4-slice9-scoped" in t and "terminal_gates:" not in t:
+        # slim catalog: wave batch gates live in run.sh only; still append tasks
+        gates = []
     gates = []
     tasks = []
     for m in meta:
