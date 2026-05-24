@@ -4049,7 +4049,7 @@ const CLI_MAINT_CMDS: Record<string, LeafCmdSpec> = {
     needsTmux: false,
   },
   serve: {
-    summary: "本地 HTTP+WS 服务（给 mux-gui / 浏览器 / Electron）",
+    summary: "本地 HTTP+WS 服务（给 mux-gui / 浏览器）",
     usage: "[--port=N]",
     run: cliServe,
     needsTmux: true,
@@ -4160,7 +4160,7 @@ function cliInstallRmux(ctx: CliCtx): number {
   return installRmuxPortable(force);
 }
 
-// PART:serve — 本地 HTTP+WS 后端，给 mux-gui / 浏览器 / Electron 用
+// PART:serve — 本地 HTTP+WS 后端，给 mux-gui / 浏览器 用
 //
 // 路由（所有路由都校验 token，token 是启动时生成的随机串）:
 //   GET  /                            → 重定向到 /index.html

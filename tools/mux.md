@@ -102,5 +102,5 @@ mux agent wait builder --corr <id>          # 阻塞等回复
 ## 路线图
 
 - [ ] `mux serve` — 本地 HTTP + WS，暴露 `syncTree / capturePane` 给前端，复用现有数据层
-- [ ] `mux gui` — Electron 薄壳载入 `serve`，自动安装 Electron 到 `~/electron/<version>/`（同 rmux 模式）；`--browser` fallback 直开浏览器
+- [ ] GUI 直接走浏览器（不引入 Electron）；agent 视觉通过 computer-use MCP 截 Chrome 窗口或后端 capture-pane 文本
 - [ ] rmux 兼容性回归集：跑一遍主要命令路径，文档化所有 quirk
