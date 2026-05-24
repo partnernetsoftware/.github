@@ -319,3 +319,19 @@
 **方法**：`gen-v4-wave-batch.py 77 79`；`LONG-RUN-TODO.md` 自循环状态机。
 
 **门禁**：`tests.pass=519`；`build.pass=26`。
+
+## wave80–82（长程自主 · 洋葱 TDD · ≤4 并发/波）
+
+| 维度 | wave82 后 | Δ |
+|------|-----------|---|
+| Plan | ~98% | ir-table / emit-manifest / four-track 锚点续链 |
+| Codegen | ~48% | add75–77 verified 整表 |
+| 编排 | ~45% | hostreduce + manifest + contract 交叉引用 |
+| 构建 | ~57% | 三波 diffusion |
+| 终局整体 | **15–22%** | catalog ready；Lisp VM emit 未开卷 |
+
+**wave 索引**：至 **82**。
+
+**方法**：`gen-v4-wave-batch.py 80 82`；ir-table / emit-manifest / four-track 三轨续批。
+
+**门禁**：`tests.pass=532`；`build.pass=26`（native；cosmocc 缺失时 aarch64 slice 跳过）。

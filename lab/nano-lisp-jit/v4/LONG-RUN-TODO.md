@@ -50,15 +50,16 @@
 - [x] **wave71–73** · add66–68 · plan-contract / evidence-matrix / four-track-milestone
 - [x] **wave74–76** · add69–71 · runner-scout / emit-deep / mindmap-autonomous
 - [x] **wave77–79** · add72–74 · commander-resume / build-graph-onion / longrun-milestone
-- [ ] wave80+ … 直至终局 100% 或 Lisp emit 实质线开卷
+- [x] **wave80–82** · add75–77 · ir-table-scout / emit-manifest-chain / four-track-autonomous
+- [ ] wave83+ … 直至终局 100% 或 Lisp emit 实质线开卷
 
 ## 当前指针
 
 | 项 | 值 |
 |----|-----|
-| 下一波 | **80** |
-| 下一 add | **75** (58+17) |
-| 末次门禁 | tests.pass=519 · build.pass=26（catalog build≥119 待 cosmocc） |
+| 下一波 | **83** |
+| 下一 add | **78** (61+17) |
+| 末次门禁 | tests.pass=532 · build.pass=26（native；cosmocc 缺失时 aarch64 skip） |
 | 终局粗估 | **15–22%**（[`EVAL.md`](EVAL.md) 最新 §） |
 
 ## 自循环规则

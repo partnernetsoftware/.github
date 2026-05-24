@@ -224,6 +224,60 @@ WAVES = {
         b_test="v4/LONG-RUN-TODO.md",
         c_test="v4/PARALLEL.md",
     ),
+    80: dict(
+        title="ir-table-scout-deep",
+        a=58,
+        b_track="irtable",
+        c_track="hostreduce",
+        b_files=[
+            "samples/bootstrap-v4-wave56-irtable-tick.lisp",
+            "samples/bootstrap-v4-wave68-irtable-tick.lisp",
+            "samples/v4-ir-table-v1.lisp",
+        ],
+        c_files=[
+            "samples/bootstrap-v4-wave32-diffusion.lisp",
+            "samples/bootstrap-v4-wave70-hostreduce-tick.lisp",
+            "v4/SLICE32.md",
+        ],
+        b_test="samples/bootstrap-v4-wave68-irtable-tick.lisp",
+        c_test="samples/bootstrap-v4-wave70-hostreduce-tick.lisp",
+    ),
+    81: dict(
+        title="emit-manifest-chain",
+        a=59,
+        b_track="emit",
+        c_track="manifest",
+        b_files=[
+            "samples/bootstrap-v4-wave65-emit-tick.lisp",
+            "samples/bootstrap-v4-codegen-kickoff.lisp",
+            "v4/SLICE41.md",
+        ],
+        c_files=[
+            "samples/v4-plan-manifest-v1.lisp",
+            "samples/bootstrap-v4-wave48-manifest-tick.lisp",
+            "v4/SLICE48.md",
+        ],
+        b_test="samples/bootstrap-v4-wave65-emit-tick.lisp",
+        c_test="samples/v4-plan-manifest-v1.lisp",
+    ),
+    82: dict(
+        title="four-track-autonomous",
+        a=60,
+        b_track="fourtrack",
+        c_track="contract",
+        b_files=[
+            "samples/bootstrap-v4-wave57-fourtrack-tick.lisp",
+            "samples/bootstrap-v4-wave73-fourtrack-tick.lisp",
+            "v4/SLICE57.md",
+        ],
+        c_files=[
+            "samples/bootstrap-v4-plan-contract-tick.lisp",
+            "samples/bootstrap-v4-wave71-contract-tick.lisp",
+            "v4/SLICE34.md",
+        ],
+        b_test="samples/bootstrap-v4-wave73-fourtrack-tick.lisp",
+        c_test="samples/bootstrap-v4-wave71-contract-tick.lisp",
+    ),
 }
 
 

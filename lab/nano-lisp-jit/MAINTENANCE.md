@@ -12,6 +12,7 @@
 | [`squad/catalog-v4.yaml`](squad/catalog-v4.yaml) | v4 门禁 |
 | [`run.sh`](run.sh) · [`build_nano_jit.sh`](build_nano_jit.sh) | 收敛入口 |
 | [`tools/gen-v4-wave-batch.py`](tools/gen-v4-wave-batch.py) | 批量生波 |
+| [`tools/cc-task-*.txt`](tools/) + `~/.local/bin/cc-huoshan1-ds4pro` | 编程下手（见仓库 `tools/agents/`） |
 
 ## 归档区
 
