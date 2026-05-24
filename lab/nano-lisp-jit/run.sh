@@ -222,6 +222,15 @@ ZERO_HOST_GEN24_COM="$BUILD_DIR/nano-jit/selfhost/zero-host-gen24-nano-jit.com"
 ZERO_HOST_GEN24_SLICE_X86="$BUILD_DIR/nano-jit/selfhost/zero-host-gen24-slice-x86.elf"
 ZERO_HOST_GEN26_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-gen26-lispjit-from-lisp-on-gen25-com.lisp"
 ZERO_HOST_GEN26_SLICE_X86="$BUILD_DIR/nano-jit/selfhost/zero-host-gen26-slice-x86.elf"
+ZERO_HOST_GEN27_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-gen27-lispjit-from-lisp-terminal.lisp"
+ZERO_HOST_GEN27_APP="$BUILD_DIR/nano-jit/selfhost/zero-host-gen27-app.com"
+ZERO_HOST_GEN28_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-gen28-lispjit-from-lisp-linked-tu.lisp"
+ZERO_HOST_GEN28_SLICE_X86="$BUILD_DIR/nano-jit/selfhost/zero-host-gen28-slice-x86.elf"
+ZERO_HOST_GEN29A_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-gen29a-lispjit-from-lisp-slice.lisp"
+ZERO_HOST_GEN29B_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-gen29b-lispjit-slice-reuse-pack.lisp"
+ZERO_HOST_GEN29_SLICE="$BUILD_DIR/nano-jit/selfhost/zero-host-gen29-lisp-slice-x86.elf"
+ZERO_HOST_GEN29_COM="$BUILD_DIR/nano-jit/selfhost/zero-host-gen29-chain.com"
+ZERO_HOST_GEN27_SLICE_AARCH64="$BUILD_DIR/nano-jit/selfhost/zero-host-gen27-slice-aarch64.elf"
 ZERO_HOST_LISPJIT_PROFILE="$LAB_DIR/samples/nano-jit-runner-core.lisp"
 GENESIS_AARCH64_PIN="$LAB_DIR/genesis/nano-jit.aarch64"
 ZERO_HOST_NORTHSTAR_FINAL_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-northstar-final.lisp"
@@ -8368,15 +8377,56 @@ if [ -f "$HOST_NANO_LISP_JIT" ] && host_is_linux_x86_64; then
       printf "%s\n" "$out" | grep -q "run-expect-exit.ok=1"
       echo "zero.host.lispjit_from_lisp_on_com_runner=1" >> "'"$ZERO_HOST_EVIDENCE"'"
     '
+    run_case "run-bootstrap-v4-zero-host-gen27-lispjit-from-lisp-terminal-plan" bash -c '
+      cd "'"$ROOT_DIR"'"
+      out=$(NANO_LISPJIT_FROM_LISP=1 "'"$NANO_JIT_COM"'" run-bootstrap-plan "'"$ZERO_HOST_GEN27_SRC"'" 2>&1) || true
+      test -f "'"$ZERO_HOST_GEN27_APP"'"
+      printf "%s\n" "$out" | grep -q "build-slice.role=lispjit-from-lisp"
+      printf "%s\n" "$out" | grep -q "pack-app.payload.lbin=1"
+      printf "%s\n" "$out" | grep -q "inspect-ape.ok=1"
+      echo "zero.host.lispjit_from_lisp_terminal=1" >> "'"$ZERO_HOST_EVIDENCE"'"
+    '
+    run_case "run-bootstrap-v4-zero-host-gen28-lispjit-from-lisp-linked-tu-plan" bash -c '
+      cd "'"$ROOT_DIR"'"
+      out=$(NANO_LISPJIT_FROM_LISP=1 NANO_LISPJIT_FROM_LISP_PROFILE=linked-tu \
+        "'"$NANO_JIT_COM"'" run-bootstrap-plan "'"$ZERO_HOST_GEN28_SRC"'" 2>&1) || true
+      test -f "'"$ZERO_HOST_GEN28_SLICE_X86"'"
+      printf "%s\n" "$out" | grep -q "build-slice.role=lispjit-from-lisp"
+      printf "%s\n" "$out" | grep -q "build-slice.lispjit_proxy=linked-tu"
+      printf "%s\n" "$out" | grep -q "build-slice-lisp.mode=linked-tu"
+      printf "%s\n" "$out" | grep -q "run-expect-exit.ok=1"
+      echo "zero.host.lispjit_from_lisp_linked_tu=1" >> "'"$ZERO_HOST_EVIDENCE"'"
+    '
+    run_case "run-bootstrap-v4-zero-host-gen29-lispjit-from-lisp-chain-plan" bash -c '
+      cd "'"$ROOT_DIR"'"
+      out_a=$(NANO_LISPJIT_FROM_LISP=1 "'"$NANO_JIT_COM"'" run-bootstrap-plan "'"$ZERO_HOST_GEN29A_SRC"'" 2>&1) || true
+      test -f "'"$ZERO_HOST_GEN29_SLICE"'"
+      printf "%s\n" "$out_a" | grep -q "build-slice.role=lispjit-from-lisp"
+      test -f "'"$ZERO_HOST_GEN27_SLICE_AARCH64"'"
+      out_b=$(NANO_BUILD_SLICE_SELFHOST_REUSE=1 \
+        NANO_SELFHOST_REUSE_X86="'"$ZERO_HOST_GEN29_SLICE"'" \
+        NANO_SELFHOST_REUSE_AARCH64="'"$ZERO_HOST_GEN27_SLICE_AARCH64"'" \
+        "'"$NANO_JIT_COM"'" run-bootstrap-plan "'"$ZERO_HOST_GEN29B_SRC"'" 2>&1) || true
+      test -f "'"$ZERO_HOST_GEN29_COM"'"
+      printf "%s\n" "$out_b" | grep -q "build-slice.role=selfhost-reuse"
+      printf "%s\n" "$out_b" | grep -q "selfhost_reuse=.*gen29-lisp-slice"
+      echo "zero.host.lispjit_from_lisp_chain=1" >> "'"$ZERO_HOST_EVIDENCE"'"
+    '
   else
     skip_case "run-bootstrap-v4-zero-host-gen24-lispjit-from-lisp-via-com-plan" "nano-jit.com missing after regenesis repack"
     skip_case "run-bootstrap-v4-zero-host-gen26-lispjit-from-lisp-on-com-runner-plan" "nano-jit.com missing after regenesis repack"
+    skip_case "run-bootstrap-v4-zero-host-gen27-lispjit-from-lisp-terminal-plan" "nano-jit.com missing after regenesis repack"
+    skip_case "run-bootstrap-v4-zero-host-gen28-lispjit-from-lisp-linked-tu-plan" "nano-jit.com missing after regenesis repack"
+    skip_case "run-bootstrap-v4-zero-host-gen29-lispjit-from-lisp-chain-plan" "nano-jit.com missing after regenesis repack"
   fi
 else
   skip_case "run-bootstrap-v4-zero-host-gen23-lispjit-from-lisp-plan" "host nano-lisp-jit missing"
   skip_case "run-bootstrap-v4-zero-host-regenesis-repack-for-lispjit-from-lisp" "host nano-lisp-jit missing"
   skip_case "run-bootstrap-v4-zero-host-gen24-lispjit-from-lisp-via-com-plan" "host nano-lisp-jit missing"
   skip_case "run-bootstrap-v4-zero-host-gen26-lispjit-from-lisp-on-com-runner-plan" "host nano-lisp-jit missing"
+  skip_case "run-bootstrap-v4-zero-host-gen27-lispjit-from-lisp-terminal-plan" "host nano-lisp-jit missing"
+  skip_case "run-bootstrap-v4-zero-host-gen28-lispjit-from-lisp-linked-tu-plan" "host nano-lisp-jit missing"
+  skip_case "run-bootstrap-v4-zero-host-gen29-lispjit-from-lisp-chain-plan" "host nano-lisp-jit missing"
 fi
 if [ -f "$ZERO_HOST_GEN10_APP" ] && [ -f "$ZERO_HOST_GEN13_COM" ]; then
   run_case "run-bootstrap-v4-zero-host-chain-complete-plan" bash -c '

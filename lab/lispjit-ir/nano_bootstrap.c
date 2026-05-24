@@ -709,6 +709,46 @@ static const char *lispjit_from_lisp_profile_path(void) {
   return "lab/nano-lisp-jit/samples/nano-jit-runner-core.lisp";
 }
 
+static int lispjit_from_lisp_profile_is_linked_tu(void) {
+  const char *p = getenv("NANO_LISPJIT_FROM_LISP_PROFILE");
+  if (!p || !p[0]) return 0;
+  return strcmp(p, "linked-tu") == 0;
+}
+
+static int lispjit_from_lisp_build_linked_tu(const char *out_path, const char *arch) {
+  char callee_o[4096];
+  char main_o[4096];
+  char *link_argv[6];
+  int rc;
+  if (strcmp(arch, "aarch64") == 0 || strcmp(arch, "arm64") == 0) {
+    fprintf(stderr, "lispjit-from-lisp-linked-tu=aarch64_unsupported\n");
+    return 2;
+  }
+  if (strcmp(arch, "x86_64") != 0 && strcmp(arch, "amd64") != 0) {
+    fprintf(stderr, "lispjit-from-lisp-linked-tu=bad_arch arch=%s\n", arch);
+    return 2;
+  }
+  snprintf(callee_o, sizeof(callee_o), "%s.lispjit-tu-callee.o", out_path);
+  snprintf(main_o, sizeof(main_o), "%s.lispjit-tu-main.o", out_path);
+  rc = cmd_compile_elf64_obj_code("lab/nano-lisp-jit/samples/lisp-tu-callee.lisp", callee_o,
+                                  "nano_tu_callee");
+  if (rc != 0) return rc;
+  rc = cmd_compile_elf64_obj_code("lab/nano-lisp-jit/samples/lisp-tu-main.lisp", main_o,
+                                  "nano_tu_main");
+  if (rc != 0) return rc;
+  link_argv[0] = (char *)"run-bootstrap-plan";
+  link_argv[1] = (char *)"link-elf64-exe";
+  link_argv[2] = (char *)out_path;
+  link_argv[3] = (char *)"nano_tu_main";
+  link_argv[4] = main_o;
+  link_argv[5] = callee_o;
+  rc = cmd_link_elf64_exe(6, link_argv);
+  if (rc != 0) return rc;
+  printf("build-slice-lisp.mode=linked-tu\n");
+  printf("build-slice-lisp.link.objects=2\n");
+  return cmd_file_size(out_path);
+}
+
 static int build_slice_use_lispjit_from_lisp(const char *src_path) {
   const char *v;
   if (!build_slice_is_lispjit_c(src_path)) return 0;
@@ -719,13 +759,23 @@ static int build_slice_use_lispjit_from_lisp(const char *src_path) {
 static int build_slice_via_lispjit_from_lisp(const char *src_path, const char *out_path,
                                              const char *arch) {
   const char *profile = lispjit_from_lisp_profile_path();
+  int rc;
   printf("build-slice.compiler=nano-jit-lisp\n");
   printf("build-slice.arch=%s\n", arch);
   printf("build-slice.role=lispjit-from-lisp\n");
-  printf("build-slice.lispjit_proxy=%s\n", profile);
+  if (lispjit_from_lisp_profile_is_linked_tu()) {
+    printf("build-slice.lispjit_proxy=linked-tu\n");
+    printf("build-slice.lispjit_link=callee+main\n");
+  } else {
+    printf("build-slice.lispjit_proxy=%s\n", profile);
+  }
   printf("build-slice.source=%s\n", src_path);
   printf("build-slice.output=%s\n", out_path);
-  return cmd_build_slice_lisp(profile, out_path, arch);
+  if (lispjit_from_lisp_profile_is_linked_tu())
+    rc = lispjit_from_lisp_build_linked_tu(out_path, arch);
+  else
+    rc = cmd_build_slice_lisp(profile, out_path, arch);
+  return rc;
 }
 
 static int build_slice_try_lispjit_from_lisp(const char *src_path, const char *out_path,
