@@ -1,0 +1,133 @@
+{
+  "ssot": "v4/MINDMAP.md",
+  "updated_at": "2026-05-24",
+  "max_parallel": 4,
+  "nodes": [
+    {
+      "id": "gate-baseline",
+      "layer": 0,
+      "ring": "证据",
+      "goal_dim": "Plan",
+      "status": "done",
+      "deps": [],
+      "accept": ["run.sh exit 0", "v4-complete-scoped"]
+    },
+    {
+      "id": "terminal-ldr",
+      "layer": 1,
+      "ring": "loader",
+      "goal_dim": "构建",
+      "status": "done",
+      "deps": ["gate-baseline"],
+      "accept": ["run-ape.payload.load=1", "inspect-ape.universal.loader=v2-payload-table"],
+      "parallel_slot": "W1"
+    },
+    {
+      "id": "terminal-pack",
+      "layer": 1,
+      "ring": "pack",
+      "goal_dim": "构建",
+      "status": "done",
+      "deps": ["gate-baseline"],
+      "accept": ["terminal-bfs.com", "ape-v2 dual slice hash distinct"],
+      "parallel_slot": "W2"
+    },
+    {
+      "id": "terminal-jit",
+      "layer": 1,
+      "ring": "JIT",
+      "goal_dim": "Codegen",
+      "status": "done",
+      "deps": ["gate-baseline"],
+      "accept": ["terminal-bfs-arithmetic.lbin"],
+      "parallel_slot": "W3"
+    },
+    {
+      "id": "terminal-aot",
+      "layer": 1,
+      "ring": "AOT",
+      "goal_dim": "Codegen",
+      "status": "done",
+      "deps": ["gate-baseline"],
+      "accept": ["terminal-bfs-add7.elf"],
+      "parallel_slot": "W4"
+    },
+    {
+      "id": "terminal-com",
+      "layer": 1,
+      "ring": "组装",
+      "goal_dim": "构建",
+      "status": "done",
+      "deps": ["terminal-ldr", "terminal-jit", "terminal-pack"],
+      "accept": ["bootstrap-v4-terminal-com-diffusion-plan"]
+    },
+    {
+      "id": "terminal-boot",
+      "layer": 1,
+      "ring": "自举",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["gate-baseline"],
+      "accept": ["gen1 plan anchor"]
+    },
+    {
+      "id": "com-lbin-in-ape",
+      "layer": 2,
+      "ring": "组装",
+      "goal_dim": "构建",
+      "status": "ready",
+      "deps": ["terminal-com", "terminal-jit", "terminal-pack"],
+      "accept": [".lbin payload row in APE or pack-app chain"],
+      "parallel_slot": "W1",
+      "cc_task": "tools/terminal-bfs-cc/w2-com-plan-review.txt"
+    },
+    {
+      "id": "boot-selfpack-com",
+      "layer": 2,
+      "ring": "自举",
+      "goal_dim": "自举",
+      "status": "ready",
+      "deps": ["terminal-boot", "terminal-com"],
+      "accept": ["nano-jit.com hash in bootstrap plan", "build_nano_jit selfhost matrix"],
+      "parallel_slot": "W2"
+    },
+    {
+      "id": "codegen-ir-emit",
+      "layer": 2,
+      "ring": "Codegen",
+      "goal_dim": "Codegen",
+      "status": "ready",
+      "deps": ["gate-baseline"],
+      "accept": ["one non-add op from v4-ir-table-v1.lisp", "no new add-N-only wave"],
+      "parallel_slot": "W3"
+    },
+    {
+      "id": "runner-squad-dispatch",
+      "layer": 2,
+      "ring": "编排",
+      "goal_dim": "Runner",
+      "status": "ready",
+      "deps": ["gate-baseline"],
+      "accept": ["bootstrap (squad-dispatch …) smoke"],
+      "parallel_slot": "W4"
+    },
+    {
+      "id": "loader-bare-default",
+      "layer": 3,
+      "ring": "loader",
+      "goal_dim": "构建",
+      "status": "blocked",
+      "deps": ["com-lbin-in-ape", "terminal-ldr"],
+      "accept": ["NANO_PACK_APE_MODE=bare default", "no shell dd fallback on CI"]
+    },
+    {
+      "id": "zero-host-bootstrap",
+      "layer": 4,
+      "ring": "自举",
+      "goal_dim": "自举",
+      "status": "blocked",
+      "deps": ["boot-selfpack-com", "codegen-ir-emit", "runner-squad-dispatch"],
+      "accept": ["Lisp build graph emits next .com", "PROGRESS 自举 >50%"]
+    }
+  ]
+}

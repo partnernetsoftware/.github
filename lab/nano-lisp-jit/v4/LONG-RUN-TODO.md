@@ -124,16 +124,16 @@ bun run skills/nano-lisp-jit-v4-longrun/nano-lisp-jit-v4-longrun.ts loop --batch
 4. 失败：修门禁 → cc 补 C → 不重开已签收波。
 5. 目录卫生：合 main 前可 `bash tools/clean-lab.sh`。
 
-### 自循环 TODO 栈（每回合复制勾选）
+### 自循环 TODO 栈（mindmap 扩散 · 每回合复制）
 
-**读指针** → `cat lab/nano-lisp-jit/v4/longrun-state.json`（看 `terminal_bfs`）  
-**扩散** → 1 → `python3 lab/nano-lisp-jit/tools/gen-terminal-bfs.py`（**终局六轨**）  
-**扩散** → 1b → 可选 `gen-v4-wave-batch.py LO HI`（回归网，非主线）  
-**并发**  2 → `bash lab/nano-lisp-jit/tools/v4-terminal-bfs-cc.sh` 或 `v4-diffuse-then-cc.sh`（≤4× cc）  
-**收敛**  3 → `export NANO_SLICE_COMPILER=native && bash lab/nano-lisp-jit/run.sh`  
-**评估**  4 → 更新 `EVAL.md` / `PROGRESS.md` / `MINDMAP.md`  
-**入账**  5 → bump `longrun-state.json` · commit · **合 main**  
-**未 100%** → `LO=next_wave` 回到步骤 1
+**读全局** → `v4/MINDMAP.md` + `python3 tools/mindmap-dp.py ready`  
+**DP 选点** → 最多 4 个 `status=ready` 且 deps 已 done 的节点（见 `mindmap-frontier.json`）  
+**扩散** → 为选中节点铺 plan/样本骨架（`gen-terminal-bfs.py` 或单节点 plan）  
+**并发** → `cc-huoshan1-ds4pro` × ≤4（任务对齐 `mindmap-dp.py next`）  
+**收敛** → 一次 `run.sh`  
+**回写** → **MINDMAP 前沿表** + frontier.json（done → 解锁下层 ready）+ EVAL/PROGRESS  
+**入账** → `longrun-state.json` · commit · 合 main  
+**未 100%** → 回到「读全局」（**禁止**无 frontier 节点的纯 wave++）
 
 ```bash
 # skill 一键（gate-every 降频）

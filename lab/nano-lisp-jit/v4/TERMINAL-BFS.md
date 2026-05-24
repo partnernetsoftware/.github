@@ -15,14 +15,15 @@
 | .com 组装 | **COM** | `bootstrap-v4-terminal-com-assembly.lisp` | LDR+PACK+JIT 链式 plan |
 | 自举 | **BOOT** | `bootstrap-v4-terminal-boot-diffusion.lisp` | 锚定 gen1/selfhost + `nano-jit.com` hash |
 
-## 每回合协议（自循环）
+## 每回合协议（挂在 MINDMAP 活图下）
 
 ```text
-1. 扩散  python3 tools/gen-terminal-bfs.py
+0. python3 tools/mindmap-dp.py ready     # DP：从 MINDMAP/frontier 取就绪节点
+1. 扩散  python3 tools/gen-terminal-bfs.py   # 或按节点写单轨 plan（非 wave 批）
 2. 并发  bash tools/v4-terminal-bfs-cc.sh    # ≤4 × cc-huoshan1-ds4pro
 3. 收敛  export NANO_SLICE_COMPILER=native && bash run.sh
-4. 评估  EVAL.md §terminal-bfs + PROGRESS 六轨勾选
-5. 未终局 → 下一轨加深（非盲目 next_wave++）
+4. 回写  MINDMAP.md + mindmap-frontier.json（done/ready/blocked）
+5. 评估  EVAL.md + PROGRESS 六维
 ```
 
 证据文件：`.build/v4-terminal-bfs.evidence`
