@@ -81,7 +81,8 @@ bun run skills/nano-lisp-jit-v4-longrun/nano-lisp-jit-v4-longrun.ts loop --batch
 - [x] **wave86–88** · add81–83 · runner-plan / squad-evidence / onion-mindmap-close
 - [x] **wave89–91** · add84–86 · host-reduce / ir-table / four-track
 - [x] **wave92–97** · add87–92 · skill longrun 2 批
-- [ ] wave98+ … 直至终局 100% 或 Lisp emit 实质线开卷
+- [x] **wave98–103** · add93–98 · evidence/terminal/ir-words/post-v4/orchestration
+- [ ] wave104+ … 直至终局 100%
 
 ## 当前指针
 

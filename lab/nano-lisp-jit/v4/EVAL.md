@@ -393,7 +393,19 @@
 
 **wave 索引**：至 **97** · **tests.pass=592** · 指针 **98**
 
-**方法**：`bun run skills/nano-lisp-jit-v4-longrun/nano-lisp-jit-v4-longrun.ts loop --batches 2 --goal wave97`
+**方法**：`bun run skills/nano-lisp-jit-v4-longrun/nano-lisp-jit-v4-longrun.ts loop --batches 2 --goal wave103`
+
+## wave98–103（skill longrun · 2 批）
+
+| 维度 | wave103 后 | Δ |
+|------|------------|---|
+| Plan | ~98% | post-v4 + orchestration 锚点 |
+| Codegen | ~52% | add93–98 verified |
+| 编排 | ~49% | squad orchestration-bundle |
+| 构建 | ~61% | 六波 diffusion |
+| 终局整体 | **15–22%** | 指针 **104** |
+
+**门禁**：`tests.pass=616` · skill apply 全绿
 
 ## wave98–100（longrun apply · ≤4 轨/波）
 
