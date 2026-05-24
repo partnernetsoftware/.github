@@ -1,0 +1,1 @@
+Worker 1 · 确认 lab/lispjit-ir/nano_ape.c 已有 run-ape.payload.load=1 与 payload.arch/size；缺则补。build_nano_jit.sh 通过。CC_DONE worker=1

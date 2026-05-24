@@ -1,0 +1,1 @@
+Worker 3 · v4/MINDMAP.md 圈7 补「TERMINAL-BFS 六轨」一行，指向 v4/TERMINAL-BFS.md。CC_DONE worker=3
