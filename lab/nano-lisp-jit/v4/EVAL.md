@@ -583,3 +583,44 @@
 | 终局整体 | **15–22%** | — | catalog≠终局 |
 
 **合 main**：`cursor/v4-wave74-76-autonomous-fc19` → `main` @ bc3c1f0；本批在 `main` 上续推。
+
+## wave140–142（longrun apply · ≤4 轨/波）
+
+| 维度 | wave142 后 | 说明 |
+|------|-------------|------|
+| Codegen | ~49% | add 续批 verified |
+| 终局整体 | **15–22%** | skill apply |
+
+**方法**：`bun run skills/nano-lisp-jit-v4-longrun/nano-lisp-jit-v4-longrun.ts apply 140 142`
+
+## wave143–145（longrun apply · ≤4 轨/波）
+
+| 维度 | wave145 后 | 说明 |
+|------|-------------|------|
+| Codegen | ~49% | add 续批 verified |
+| 终局整体 | **15–22%** | skill apply |
+
+**方法**：`bun run skills/nano-lisp-jit-v4-longrun/nano-lisp-jit-v4-longrun.ts apply 143 145`
+
+## wave146–148（longrun apply · ≤4 轨/波）
+
+| 维度 | wave148 后 | 说明 |
+|------|-------------|------|
+| Codegen | ~49% | add 续批 verified |
+| 终局整体 | **15–22%** | skill apply |
+
+**方法**：`bun run skills/nano-lisp-jit-v4-longrun/nano-lisp-jit-v4-longrun.ts apply 146 148`
+
+## wave140–148（扩散+并发+洋葱 · turbo + cc）
+
+| 维度 | wave148 后 | Δ | 说明 |
+|------|-------------|---|------|
+| Plan | ~98% | — | plan-lisp-v1-full |
+| Runner | ~8% | — | runner/plan/lisp 轨 |
+| Codegen | **~56%** | +1% | **cc**：stdout `add.bytes=20` + extra_grep |
+| 编排 | ~51% | +1% | wave148 onion/mindmap tick |
+| 构建 | ~66% | +1% | add135–143 |
+| tests.pass | **796** | +36 | ≤4 并发：cc∥gen∥skill |
+| 终局整体 | **15–22%** | — | catalog≠零宿主 |
+
+**方法**：`cc-huoshan1-ds4pro` + `loop --batches 3 --gate-every 3 --goal wave148`

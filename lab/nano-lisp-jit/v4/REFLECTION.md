@@ -111,3 +111,4 @@
 | wave113–121 | **cc** emit obs + turbo runner/codegen | add108–116；指针 122 |
 | **dev-agents-team** | [`DEV-AGENTS-TEAM.md`](DEV-AGENTS-TEAM.md) 入账；调度四问 | Commander/Worker/Critic/Memory |
 | wave122–130 | extra_grep emit 验收 + dev-agents-milestone | add117–125；指针 131 |
+| wave140–148 | cc bytes stdout + onion-milestone | add135–143；指针 149 |

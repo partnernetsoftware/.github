@@ -7,14 +7,14 @@
 
 | 维度 | 终局目标 | 当前 | 粗估 |
 |------|----------|------|------|
-| Plan | bootstrap 无 .c 源 | gate 常绿 | **~90%** |
-| Runner | Lisp 执行 plan | C `nano-lisp-jit` | **~5%** |
-| Codegen | Lisp IR 表 → blob | C stub 读 `v4-ir-table-v1.lisp`（svc0） | **~18%** |
-| 编排 | Lisp `(squad-*)` | `(squad-assess)` 真调 assess；仍 Python | **~12%** |
-| 构建 | plan 内 build 图 | `(results-min build.pass)` + `run.sh` | **~22%** |
+| Plan | bootstrap 无 .c 源 | gate 常绿 | **~98%** |
+| Runner | Lisp 执行 plan | C runner 锚点续批 | **~8%** |
+| Codegen | Lisp IR 表 → blob | grep `add.bytes`/`add.result` | **~56%** |
+| 编排 | Lisp `(squad-*)` | onion-milestone | **~51%** |
+| 构建 | plan 内 build 图 | add143 + results-min | **~66%** |
 | 自举 | `.com` 生成下一代 | 未开卷 | **~0%** |
 
-**整体终局 ~10–20%**；**catalog `v4-complete` = 工程洋葱签收**（见 [`PROGRESS.md`](PROGRESS.md)）。
+**整体终局 ~15–22%**；**catalog `v4-complete` = 工程洋葱签收**（见 [`PROGRESS.md`](PROGRESS.md)）。
 
 
 ## 并行法则（每波）
