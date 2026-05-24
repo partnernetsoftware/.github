@@ -337,6 +337,8 @@ static int cmd_build_slice_lisp_aarch64(const char *src_path, const char *out_pa
     printf("aarch64.emit.ir.entry=v1\n");
     printf("aarch64.emit.ir.table.entries=%d\n", 5);
     printf("aarch64.emit.manifest=add-exit-v1\n");
+    printf("aarch64.emit.add.result=%d\n", a + b);
+    printf("aarch64.emit.add.operands=%d+%d\n", a, b);
     if (strstr(base, "add-22") || strstr(base, "add-23") || strstr(base, "add-24") ||
         strstr(base, "add-25") || strstr(base, "add-26") || strstr(base, "add-27") || strstr(base, "add-28") || strstr(base, "add-29") || strstr(base, "add-30") ||
         strstr(base, "add-31") || strstr(base, "add-32") || strstr(base, "add-33") ||
