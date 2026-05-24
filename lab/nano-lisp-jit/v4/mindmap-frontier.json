@@ -1,6 +1,6 @@
 {
   "ssot": "v4/MINDMAP.md",
-  "updated_at": "2026-05-24T18:00:00Z",
+  "updated_at": "2026-05-24T19:30:00Z",
   "max_parallel": 4,
   "nodes": [
     {
@@ -345,6 +345,24 @@
       "status": "done",
       "deps": ["northstar-scoped-done"],
       "accept": ["zero.host.lispjit_from_lisp=1", "build-slice.role=lispjit-from-lisp"]
+    },
+    {
+      "id": "zero-host-gen24-lispjit-from-lisp-via-com",
+      "layer": 28,
+      "ring": "Codegen",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen23-lispjit-from-lisp"],
+      "accept": ["zero.host.lispjit_from_lisp_on_com=1", "zero.host.lispjit_from_lisp_regenesis=1"]
+    },
+    {
+      "id": "zero-host-gen26-lispjit-from-lisp-on-com-runner",
+      "layer": 29,
+      "ring": "Codegen",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen24-lispjit-from-lisp-via-com"],
+      "accept": ["zero.host.lispjit_from_lisp_on_com_runner=1"]
     }
   ]
 }

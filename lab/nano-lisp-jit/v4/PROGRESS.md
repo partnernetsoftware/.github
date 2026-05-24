@@ -17,13 +17,15 @@
 - [x] `zero.host.northstar_scoped_done=1`
 - [ ] 真·Lisp 编出完整 `lispjit.c`（当前仅 runner-core 代理 profile）
 - [x] gen23 门禁：`NANO_LISPJIT_FROM_LISP=1` + `build-slice.role=lispjit-from-lisp`
+- [x] gen24/26：`nano-jit.com`（regenesis repack）上零 host `lispjit.c` slice
+- [ ] 完整 Lisp 编出 `lispjit.c` 本体（非 runner-core 代理）
 
 ### 进度尺
 
 | 维度 | 粗估 |
 |------|------|
 | 自举 / 终局（scoped） | **98%** |
-| 自举（理论 lispjit-from-lisp） | **~5%**（gen23：`lispjit.c` → `nano-jit-runner-core.lisp` 代理 codegen） |
+| 自举（理论 lispjit-from-lisp） | **~15%**（gen23 host；gen24/26 经 regenesis `nano-jit.com`；仍为 runner-core 代理） |
 
 证据：`.build/v4-zero-host-bootstrap.evidence`
 
