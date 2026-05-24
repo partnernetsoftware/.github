@@ -24,4 +24,7 @@
   (wave 47 "supervise-chain")
   (wave 48 "manifest-bundle")
   (wave 49 "post-v4-close")
+  (wave 50 "table-only-v4")
+  (wave 51 "wave27-28-recap")
+  (wave 52 "eval-mindmap-close")
 )

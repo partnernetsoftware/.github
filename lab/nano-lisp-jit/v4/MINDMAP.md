@@ -133,3 +133,7 @@ ir-words → gen5-bridge → scoped-close
 ## wave47–49
 
 supervise → manifest → post-v4-close
+
+## wave50–52
+
+table-only → wave27/28 → eval-close

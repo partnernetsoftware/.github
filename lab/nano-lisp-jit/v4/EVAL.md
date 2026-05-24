@@ -186,3 +186,17 @@
 **方法**：扩散（3×四轨）→ `bash lab/nano-lisp-jit/run.sh` → `assess` → 洋葱（MINDMAP/SLICE）→ 合 **main** 带本表。
 
 **catalog**：`v4-complete` scoped=100% terminal=100% ready=True。
+
+## wave50–52（批量 · 洋葱 TDD · ≤4 并发/波）
+
+| 维度 | wave52 后 | 说明 |
+|------|-----------|------|
+| Plan | ~98% | table-only + wave27/28 + mindmap 收束 |
+| Codegen | ~39% | add45–47 verified 整表 |
+| 编排 | ~36% | evidence-matrix + assess 链 |
+| 构建 | ~48% | 三波 diffusion |
+| 终局整体 | **15–22%** | 见 [`DECISION.md`](DECISION.md) |
+
+**方法**：3×四轨扩散 → `run.sh` → `assess` → 合 **main**（本表 + [`PROGRESS.md`](PROGRESS.md)）。
+
+**catalog**：`v4-complete` ready=True。

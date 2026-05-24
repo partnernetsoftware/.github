@@ -97,3 +97,4 @@
 | wave41–43 | 批量 add36–38 + mindmap 收束 | 合 main 必带 EVAL §wave41–43 |
 | wave44–46 | 批量 add39–41 | 合 main 带 EVAL §wave44–46 |
 | wave47–49 | 批量 add42–44 | 合 main 必带 EVAL §wave47–49 |
+| wave50–52 | 批量 add45–47 | 合 main 带 EVAL §wave50–52 |
