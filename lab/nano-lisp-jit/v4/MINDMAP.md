@@ -148,3 +148,7 @@ catalog 满 → 仍扩散
 ## wave53–55
 
 slice12–14 → squad → autonomous-milestone
+
+## wave59–61
+
+wave26/27 → evidence → codegen-manifest

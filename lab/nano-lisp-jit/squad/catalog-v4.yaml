@@ -1072,6 +1072,68 @@ signoff:
       file: ".build/v4-slice58.evidence"
       results_key: v4.slice58
       min_pass: 1
+    - id: v4-slice59-doc
+      check: artifact
+      path_glob: "v4/SLICE59.md"
+    - id: v4-wave59-diffusion-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v4-wave59-diffusion.lisp"
+    - id: v4-slice59-add54-elf
+      check: artifact
+      path_glob: ".build/bootstrap-v4-slice59-add54.elf"
+    - id: v4-wave59-w27-b-tick
+      check: artifact
+      path_glob: "samples/bootstrap-v4-wave59-wave27-tick.lisp"
+    - id: v4-wave59-w27-c-tick
+      check: artifact
+      path_glob: "samples/bootstrap-v4-wave59-slice28-tick.lisp"
+    - id: v4-slice59-evidence
+      check: results
+      file: ".build/v4-slice59.evidence"
+      results_key: v4.slice59
+      min_pass: 1
+
+    - id: v4-slice60-doc
+      check: artifact
+      path_glob: "v4/SLICE60.md"
+    - id: v4-wave60-diffusion-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v4-wave60-diffusion.lisp"
+    - id: v4-slice60-add55-elf
+      check: artifact
+      path_glob: ".build/bootstrap-v4-slice60-add55.elf"
+    - id: v4-wave60-evid-b-tick
+      check: artifact
+      path_glob: "samples/bootstrap-v4-wave60-evidence-tick.lisp"
+    - id: v4-wave60-evid-c-tick
+      check: artifact
+      path_glob: "samples/bootstrap-v4-wave60-resume-tick.lisp"
+    - id: v4-slice60-evidence
+      check: results
+      file: ".build/v4-slice60.evidence"
+      results_key: v4.slice60
+      min_pass: 1
+
+    - id: v4-slice61-doc
+      check: artifact
+      path_glob: "v4/SLICE61.md"
+    - id: v4-wave61-diffusion-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v4-wave61-diffusion.lisp"
+    - id: v4-slice61-add56-elf
+      check: artifact
+      path_glob: ".build/bootstrap-v4-slice61-add56.elf"
+    - id: v4-wave61-codegen-b-tick
+      check: artifact
+      path_glob: "samples/bootstrap-v4-wave61-codegen-tick.lisp"
+    - id: v4-wave61-codegen-c-tick
+      check: artifact
+      path_glob: "samples/bootstrap-v4-wave61-buildgates-tick.lisp"
+    - id: v4-slice61-evidence
+      check: results
+      file: ".build/v4-slice61.evidence"
+      results_key: v4.slice61
+      min_pass: 1
 
   terminal_gates:
     - id: v35-regression-run
@@ -3199,6 +3261,129 @@ tasks:
     depends: [wave58-v4-track-a-codegen, wave58-v4-track-b-onion, wave58-v4-track-c-postv4, wave58-v4-track-d-evidence]
     accept:
       - "v4/EVAL.md wave56-58"
+      - "assess v4-complete ready"
+
+  wave59-v4-track-a-codegen:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v4-wave59-diffusion.lisp"
+      - "samples/nano-jit-slice-add-54.lisp"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-wave59-diffusion-plan"
+  wave59-v4-track-b-w27:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v4-wave59-wave27-tick.lisp"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-wave59-wave27-tick-plan"
+  wave59-v4-track-c-s28:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v4-wave59-slice28-tick.lisp"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-wave59-slice28-tick-plan"
+  wave59-v4-track-d-evidence:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "v4/SLICE59.md"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-slice59-evidence-plan"
+  wave59-v4-R:
+    assign_role: reviewer
+    priority: meta
+    depends: [wave59-v4-track-a-codegen, wave59-v4-track-b-w27, wave59-v4-track-c-s28, wave59-v4-track-d-evidence]
+    accept:
+      - "v4/EVAL.md wave59-61"
+      - "assess v4-complete ready"
+
+  wave60-v4-track-a-codegen:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v4-wave60-diffusion.lisp"
+      - "samples/nano-jit-slice-add-55.lisp"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-wave60-diffusion-plan"
+  wave60-v4-track-b-evidence:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v4-wave60-evidence-tick.lisp"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-wave60-evidence-tick-plan"
+  wave60-v4-track-c-resume:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v4-wave60-resume-tick.lisp"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-wave60-resume-tick-plan"
+  wave60-v4-track-d-evidence:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "v4/SLICE60.md"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-slice60-evidence-plan"
+  wave60-v4-R:
+    assign_role: reviewer
+    priority: meta
+    depends: [wave60-v4-track-a-codegen, wave60-v4-track-b-evidence, wave60-v4-track-c-resume, wave60-v4-track-d-evidence]
+    accept:
+      - "v4/EVAL.md wave59-61"
+      - "assess v4-complete ready"
+
+  wave61-v4-track-a-codegen:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v4-wave61-diffusion.lisp"
+      - "samples/nano-jit-slice-add-56.lisp"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-wave61-diffusion-plan"
+  wave61-v4-track-b-codegen:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v4-wave61-codegen-tick.lisp"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-wave61-codegen-tick-plan"
+  wave61-v4-track-c-buildgates:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v4-wave61-buildgates-tick.lisp"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-wave61-buildgates-tick-plan"
+  wave61-v4-track-d-evidence:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "v4/SLICE61.md"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-slice61-evidence-plan"
+  wave61-v4-R:
+    assign_role: reviewer
+    priority: meta
+    depends: [wave61-v4-track-a-codegen, wave61-v4-track-b-codegen, wave61-v4-track-c-buildgates, wave61-v4-track-d-evidence]
+    accept:
+      - "v4/EVAL.md wave59-61"
       - "assess v4-complete ready"
 
 

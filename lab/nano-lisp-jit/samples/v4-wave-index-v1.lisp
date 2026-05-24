@@ -33,5 +33,8 @@
   (wave 56 "ir-table-chain")
   (wave 57 "four-track-recap")
   (wave 58 "onion-recap")
+  (wave 59 "wave26-27-recap")
+  (wave 60 "evidence-deep")
+  (wave 61 "codegen-manifest")
 )
 
