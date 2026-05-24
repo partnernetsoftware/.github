@@ -318,6 +318,24 @@
       "status": "done",
       "deps": ["zero-host-gen21-terminal-regenesis"],
       "accept": ["zero.host.chain.complete=1", "g2-g21"]
+    },
+    {
+      "id": "zero-host-gen22-lisp-only-com",
+      "layer": 25,
+      "ring": "Codegen",
+      "goal_dim": "Codegen",
+      "status": "done",
+      "deps": ["zero-host-northstar-scoped-100"],
+      "accept": ["zero.host.lisp_only_com=1", "plan has no lispjit.c"]
+    },
+    {
+      "id": "northstar-scoped-done",
+      "layer": 26,
+      "ring": "终局",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen22-lisp-only-com"],
+      "accept": ["zero.host.northstar_scoped_done=1"]
     }
   ]
 }

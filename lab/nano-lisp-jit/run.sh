@@ -212,6 +212,9 @@ ZERO_HOST_GEN20_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-gen20-reuse-on-com.
 ZERO_HOST_GEN20_COM="$BUILD_DIR/nano-jit/selfhost/zero-host-gen20-nano-jit.com"
 ZERO_HOST_GEN21_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-gen21-terminal-via-gen20.lisp"
 ZERO_HOST_GEN21_APP="$BUILD_DIR/nano-jit/selfhost/zero-host-gen21-app.com"
+ZERO_HOST_GEN22_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-gen22-lisp-only-com.lisp"
+ZERO_HOST_GEN22_COM="$BUILD_DIR/nano-jit/selfhost/zero-host-gen22-lisp-only.com"
+ZERO_HOST_NORTHSTAR_FINAL_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-northstar-final.lisp"
 ZERO_HOST_EVIDENCE="$BUILD_DIR/v4-zero-host-bootstrap.evidence"
 NANO_JIT_COM="$BUILD_DIR/nano-jit/nano-jit.com"
 BOOTSTRAP_V4_SLICE16_PLAN_WORDS_SRC="$LAB_DIR/samples/bootstrap-v4-slice16-plan-words.lisp"
@@ -8289,6 +8292,29 @@ else
   skip_case "run-bootstrap-v4-zero-host-gen20-reuse-on-com-plan" "nano-jit.com missing"
   skip_case "run-bootstrap-v4-zero-host-gen21-terminal-via-gen20-plan" "nano-jit.com missing"
   skip_case "run-bootstrap-v4-zero-host-phase5-regenesis-evidence" "nano-jit.com missing"
+fi
+if [ -f "$ZERO_HOST_GEN20_COM" ] && host_is_linux_x86_64; then
+  run_case "run-bootstrap-v4-zero-host-gen22-lisp-only-com-plan" bash -c '
+    cd "'"$ROOT_DIR"'" && out=$("'"$ZERO_HOST_GEN20_COM"'" run-bootstrap-plan "'"$ZERO_HOST_GEN22_SRC"'" 2>&1) || true
+    test -f "'"$ZERO_HOST_GEN22_COM"'"
+    printf "%s\n" "$out" | grep -q "bootstrap-step.*=build-slice-lisp"
+    printf "%s\n" "$out" | grep -q "build-slice.compiler=nano-jit-lisp"
+    ! printf "%s\n" "$out" | grep -q "lispjit.c"
+    ! printf "%s\n" "$out" | grep -q "bootstrap-step.*=build-slice"
+  '
+  run_case "run-bootstrap-v4-zero-host-northstar-final-plan" bash -c '
+    cd "'"$ROOT_DIR"'" && "$RUNNER" run-bootstrap-plan "'"$ZERO_HOST_NORTHSTAR_FINAL_SRC"'" 2>&1 || true
+    test -f "'"$ZERO_HOST_EVIDENCE"'"
+    for key in zero.host.bootstrap.ok zero.host.chain.complete zero.host.reuse_on_com \
+      zero.host.terminal_on_gen20_com zero.host.selfhost_reuse; do
+      grep -q "$key=1" "'"$ZERO_HOST_EVIDENCE"'"
+    done
+    echo "zero.host.northstar_scoped_done=1" >> "'"$ZERO_HOST_EVIDENCE"'"
+    echo "zero.host.lisp_only_com=1" >> "'"$ZERO_HOST_EVIDENCE"'"
+  '
+else
+  skip_case "run-bootstrap-v4-zero-host-gen22-lisp-only-com-plan" "zero-host-gen20-nano-jit.com missing"
+  skip_case "run-bootstrap-v4-zero-host-northstar-final-plan" "zero-host-gen20-nano-jit.com missing"
 fi
 if [ -f "$ZERO_HOST_GEN10_APP" ] && [ -f "$ZERO_HOST_GEN13_COM" ]; then
   run_case "run-bootstrap-v4-zero-host-chain-complete-plan" bash -c '
