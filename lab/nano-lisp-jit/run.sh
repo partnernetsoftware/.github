@@ -193,6 +193,12 @@ ZERO_HOST_GEN12_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-gen12-nano-cc-codeg
 ZERO_HOST_GEN12_COM="$BUILD_DIR/nano-jit/selfhost/zero-host-gen12-nano-jit.com"
 ZERO_HOST_GEN13_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-gen13-lispjit-route-via-gen12.lisp"
 ZERO_HOST_GEN13_COM="$BUILD_DIR/nano-jit/selfhost/zero-host-gen13-nano-jit.com"
+ZERO_HOST_GEN14_FAT_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-gen14-fat-repack-via-gen9.lisp"
+ZERO_HOST_GEN14_FAT_COM="$BUILD_DIR/nano-jit/selfhost/zero-host-gen14-fat-nano-jit.com"
+ZERO_HOST_GEN15_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-gen15-lispjit-genesis-pin.lisp"
+ZERO_HOST_GEN15_COM="$BUILD_DIR/nano-jit/selfhost/zero-host-gen15-nano-jit.com"
+ZERO_HOST_GEN16_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-gen16-gen14-runs-gen5.lisp"
+ZERO_HOST_GEN16_COM="$BUILD_DIR/nano-jit/selfhost/zero-host-gen16-nano-jit.com"
 ZERO_HOST_EVIDENCE="$BUILD_DIR/v4-zero-host-bootstrap.evidence"
 NANO_JIT_COM="$BUILD_DIR/nano-jit/nano-jit.com"
 BOOTSTRAP_V4_SLICE16_PLAN_WORDS_SRC="$LAB_DIR/samples/bootstrap-v4-slice16-plan-words.lisp"
@@ -8168,11 +8174,40 @@ if [ -f "$ZERO_HOST_GEN9_COM" ] && host_is_linux_x86_64; then
     echo "zero.host.nano_cc_codegen=1" >> "'"$ZERO_HOST_EVIDENCE"'"
     echo "zero.host.lisp_route=1" >> "'"$ZERO_HOST_EVIDENCE"'"
   '
+  run_case "run-bootstrap-v4-zero-host-gen14-fat-repack-plan" bash -c '
+    cd "'"$ROOT_DIR"'" && out=$("'"$ZERO_HOST_GEN9_COM"'" run-bootstrap-plan "'"$ZERO_HOST_GEN14_FAT_SRC"'" 2>&1) || true
+    test -f "'"$ZERO_HOST_GEN14_FAT_COM"'"
+    ! printf "%s\n" "$out" | grep -q "lispjit.c"
+    ! printf "%s\n" "$out" | grep -q "bootstrap-step.*=build-slice"
+  '
+  run_case "run-bootstrap-v4-zero-host-gen15-lispjit-genesis-pin-plan" bash -c '
+    cd "'"$ROOT_DIR"'" && out=$("'"$ZERO_HOST_GEN9_COM"'" run-bootstrap-plan "'"$ZERO_HOST_GEN15_SRC"'" 2>&1) || true
+    test -f "'"$ZERO_HOST_GEN15_COM"'"
+    test "$(stat -c%s "'"$ZERO_HOST_GEN15_COM"'")" -gt 100000
+    printf "%s\n" "$out" | grep -q "build-slice.role=genesis-pin"
+    ! printf "%s\n" "$out" | grep -q "stage0-bridge"
+  '
+  run_case "run-bootstrap-v4-zero-host-gen16-nested-com-plan" bash -c '
+    cd "'"$ROOT_DIR"'" && test -f "'"$ZERO_HOST_GEN15_COM"'"
+    out=$("'"$ZERO_HOST_GEN15_COM"'" run-bootstrap-plan "'"$ZERO_HOST_GEN16_SRC"'" 2>&1) || true
+    test -f "'"$ZERO_HOST_GEN16_COM"'"
+    printf "%s\n" "$out" | grep -q "bootstrap-step.*=build-slice-lisp"
+  '
+  run_case "run-bootstrap-v4-zero-host-phase3-evidence" bash -c '
+    echo "zero.host.repack_no_lispjit=1" >> "'"$ZERO_HOST_EVIDENCE"'"
+    echo "zero.host.lispjit_genesis_pin=1" >> "'"$ZERO_HOST_EVIDENCE"'"
+    echo "zero.host.nested_com_runner=1" >> "'"$ZERO_HOST_EVIDENCE"'"
+    echo "zero.host.chain=g2-g16" >> "'"$ZERO_HOST_EVIDENCE"'"
+  '
 else
   skip_case "run-bootstrap-v4-zero-host-gen11-no-genesis-plan" "zero-host-gen9-nano-jit.com missing"
   skip_case "run-bootstrap-v4-zero-host-gen12-nano-cc-codegen-plan" "zero-host-gen9-nano-jit.com missing"
   skip_case "run-bootstrap-v4-zero-host-gen13-lisp-route-plan" "zero-host-gen9-nano-jit.com missing"
   skip_case "run-bootstrap-v4-zero-host-phase2-evidence" "zero-host-gen9-nano-jit.com missing"
+  skip_case "run-bootstrap-v4-zero-host-gen14-fat-repack-plan" "zero-host-gen9-nano-jit.com missing"
+  skip_case "run-bootstrap-v4-zero-host-gen15-lispjit-genesis-pin-plan" "zero-host-gen9-nano-jit.com missing"
+  skip_case "run-bootstrap-v4-zero-host-gen16-nested-com-plan" "zero-host-gen9-nano-jit.com missing"
+  skip_case "run-bootstrap-v4-zero-host-phase3-evidence" "zero-host-gen9-nano-jit.com missing"
 fi
 if [ -f "$ZERO_HOST_GEN10_APP" ] && [ -f "$ZERO_HOST_GEN13_COM" ]; then
   run_case "run-bootstrap-v4-zero-host-chain-complete-plan" bash -c '
