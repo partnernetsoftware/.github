@@ -8,10 +8,11 @@
   },
   "mindmap_dp": {
     "layer2": "done",
-    "layer3_ready": ["loader-bare-default"],
-    "evidence": ".build/v4-mindmap-dp.evidence"
+    "layer3": "done",
+    "terminal_edge": "touched",
+    "evidence": ".build/v4-terminal-edge.evidence"
   },
   "status": "idle",
-  "updated_at": "2026-05-24T14:25:00.000Z",
-  "notes": "mindmap DP layer2 four nodes implemented"
+  "updated_at": "2026-05-24T16:00:00.000Z",
+  "notes": "terminal-edge-milestone + loader-bare-default; stop wave expansion until layer4"
 }

@@ -10,9 +10,9 @@
 | Codegen | Lisp IR 整表 → blob | onion.batch 225–252 + onion.wave | **~59%** |
 | 编排 | Lisp `(squad-*)` | diffuse+4cc MINDMAP | **~54%** |
 | 构建 | plan 内 build 图 | wave182 add177 | **~68%** |
-| 自举 | `.com` 生成下一代 | 未开卷 | **~0%** |
+| 自举 | `.com` 生成下一代 | edge plan：pack-ape+JIT+pack-app+`nano-jit.com` 单 plan；gen1 仍 optional | **~10%** |
 
-**整体终局**：约 **16–23%**（wave211–252 合批 +112 tests，见 EVAL）。
+**整体终局**：约 **26–30%**（`terminal-edge-milestone` 摸到边；非 tests.pass，见 EVAL）。
 
 **调整原则**（并行 + 洋葱）：每波只推进一圈一格；扩散→收敛→洋葱；波末一次 `run.sh`（见 [`PARALLEL.md`](PARALLEL.md)）。
 

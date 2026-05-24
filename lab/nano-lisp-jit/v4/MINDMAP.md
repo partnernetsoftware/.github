@@ -110,7 +110,14 @@ python3 lab/nano-lisp-jit/tools/mindmap-dp.py next    # W1..W4 与验收句
 | W3 | `codegen-ir-emit` | Codegen | `aarch64.emit.profile=ir-exit-v1` | **done** |
 | W4 | `runner-squad-dispatch` | 编排 | `squad-dispatch.ok=1` bootstrap 步骤 | **done** |
 
-**layer 3 就绪**：`python3 tools/mindmap-dp.py ready` → `loader-bare-default`（≤4 槽下一轮）。
+**layer 3 已签收（terminal edge）**：
+
+| 槽 | 节点 ID | 验收（摘） | 状态 |
+|----|---------|------------|------|
+| W1 | `loader-bare-default` | `pack-ape-bare.mode=bare` · `mindmap-bare.com` | **done** |
+| W2 | `terminal-edge-milestone` | `terminal.edge.ok=1` · 单 plan 链 pack-ape→JIT→pack-app→`nano-jit.com` | **done** |
+
+**layer 4**：`zero-host-bootstrap` 仍 **blocked**（需 gen1/gen2 在 self-packed `.com` 上产出下一代，非 smoke）。
 
 ## 波次地图（wave15–24）
 

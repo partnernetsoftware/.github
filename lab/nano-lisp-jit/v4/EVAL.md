@@ -699,7 +699,21 @@ export NANO_SLICE_COMPILER=native && bash lab/nano-lisp-jit/run.sh
 | codegen-ir-emit | `nano-jit-slice-ir-exit-v1.lisp` · `aarch64.emit.profile=ir-exit-v1` |
 | runner-squad-dispatch | `(squad-dispatch …)` in `nano_bootstrap.c` · `squad-dispatch.ok=1` |
 
-证据：`.build/v4-mindmap-dp.evidence` · frontier 四节点 **done** · `tests.pass=1221`（+4）· layer3 `loader-bare-default` **ready**。
+证据：`.build/v4-mindmap-dp.evidence` · frontier layer2 四节点 **done** · `tests.pass=1221`（+4）。
+
+## terminal edge 摸到边（2026-05-24）
+
+| 节点 | 交付 |
+|------|------|
+| `terminal-edge-milestone` | `bootstrap-v4-terminal-edge.lisp` · `terminal-edge-app.com` · `nano-jit.com` hash |
+| `loader-bare-default` | `bootstrap-v4-mindmap-loader-bare-default.lisp` · `pack-ape-bare.mode=bare` |
+
+证据：`.build/v4-terminal-edge.evidence`（`terminal.edge.ok=1`）· **终局整体 ~26–30%** · **自举 ~10%**（单 plan 链，非 gen2-on-selfpacked-com）。
+
+```bash
+cd /workspace && lab/nano-lisp-jit/.build/nano-lisp-jit run-bootstrap-plan \
+  lab/nano-lisp-jit/samples/bootstrap-v4-terminal-edge.lisp
+```
 
 ## terminal-bfs（终局广度优先 · 六轨）
 
@@ -710,7 +724,7 @@ export NANO_SLICE_COMPILER=native && bash lab/nano-lisp-jit/run.sh
 |----|------|
 | LDR | `inspect-ape.universal.loader=v2-payload-table` + `run-ape.payload.load=1` |
 | COM | `terminal-bfs.com` + `terminal-bfs-arithmetic.lbin` |
-| 终局 | 仍 **16–23%**；BFS 对齐主线，非 wave 计数 |
+| 终局 | **~26–30%**（含 terminal-edge）；BFS 对齐主线，非 wave 计数 |
 
 ```bash
 python3 lab/nano-lisp-jit/tools/gen-terminal-bfs.py

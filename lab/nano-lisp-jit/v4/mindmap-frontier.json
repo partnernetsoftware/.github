@@ -1,6 +1,6 @@
 {
   "ssot": "v4/MINDMAP.md",
-  "updated_at": "2026-05-24T14:25:00Z",
+  "updated_at": "2026-05-24T16:00:00Z",
   "max_parallel": 4,
   "nodes": [
     {
@@ -115,9 +115,20 @@
       "layer": 3,
       "ring": "loader",
       "goal_dim": "构建",
-      "status": "ready",
+      "status": "done",
       "deps": ["com-lbin-in-ape", "terminal-ldr"],
-      "accept": ["NANO_PACK_APE_MODE=bare default", "no shell dd fallback on CI"]
+      "accept": ["pack-ape-bare.mode=bare", "mindmap-bare.com"],
+      "parallel_slot": "W1"
+    },
+    {
+      "id": "terminal-edge-milestone",
+      "layer": 3,
+      "ring": "终局",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["com-lbin-in-ape", "boot-selfpack-com", "terminal-com", "terminal-ldr"],
+      "accept": ["terminal.edge.ok=1", "terminal-edge-app.com", "nano-jit.com hash in edge plan"],
+      "parallel_slot": "W2"
     },
     {
       "id": "zero-host-bootstrap",
@@ -125,7 +136,7 @@
       "ring": "自举",
       "goal_dim": "自举",
       "status": "blocked",
-      "deps": ["boot-selfpack-com", "codegen-ir-emit", "runner-squad-dispatch", "loader-bare-default"],
+      "deps": ["terminal-edge-milestone", "codegen-ir-emit", "runner-squad-dispatch", "loader-bare-default"],
       "accept": ["Lisp build graph emits next .com", "PROGRESS 自举 >50%"]
     }
   ]

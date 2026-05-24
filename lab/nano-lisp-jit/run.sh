@@ -155,6 +155,13 @@ MINDMAP_COM_APP="$BUILD_DIR/mindmap-com-app.com"
 MINDMAP_COM_LBIN="$BUILD_DIR/mindmap-com-arithmetic.lbin"
 MINDMAP_IR_EXIT_ELF="$BUILD_DIR/mindmap-ir-exit-v1.elf"
 MINDMAP_DP_EVIDENCE="$BUILD_DIR/v4-mindmap-dp.evidence"
+TERMINAL_EDGE_SRC="$LAB_DIR/samples/bootstrap-v4-terminal-edge.lisp"
+TERMINAL_EDGE_COM="$BUILD_DIR/terminal-edge.com"
+TERMINAL_EDGE_APP="$BUILD_DIR/terminal-edge-app.com"
+TERMINAL_EDGE_LBIN="$BUILD_DIR/terminal-edge-arithmetic.lbin"
+TERMINAL_EDGE_EVIDENCE="$BUILD_DIR/v4-terminal-edge.evidence"
+MINDMAP_BARE_SRC="$LAB_DIR/samples/bootstrap-v4-mindmap-loader-bare-default.lisp"
+MINDMAP_BARE_COM="$BUILD_DIR/mindmap-bare.com"
 NANO_JIT_COM="$BUILD_DIR/nano-jit/nano-jit.com"
 BOOTSTRAP_V4_SLICE16_PLAN_WORDS_SRC="$LAB_DIR/samples/bootstrap-v4-slice16-plan-words.lisp"
 BOOTSTRAP_V4_SLICE16_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v4-slice16-evidence.lisp"
@@ -7890,6 +7897,45 @@ run_case "run-bootstrap-v4-mindmap-dp-evidence-plan" bash -c '
     echo "v4.mindmap_dp.nodes=com-lbin-in-ape,boot-selfpack-com,codegen-ir-emit,runner-squad-dispatch"
   } >> "'"$MINDMAP_DP_EVIDENCE"'"
 '
+
+# --- terminal edge milestone (pack-ape + JIT + pack-app + nano-jit.com) ---
+run_case "run-bootstrap-v4-terminal-edge-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && test -f "'"$NANO_JIT_COM"'"
+  out=$("'"$RUNNER"'" run-bootstrap-plan "'"$TERMINAL_EDGE_SRC"'" 2>&1) || true
+  test -f "'"$TERMINAL_EDGE_COM"'"
+  test -f "'"$TERMINAL_EDGE_APP"'"
+  test -f "'"$TERMINAL_EDGE_LBIN"'"
+  printf "%s\n" "$out" | grep -q "bootstrap-step.*=pack-ape"
+  printf "%s\n" "$out" | grep -q "bootstrap-step.*=compile"
+  printf "%s\n" "$out" | grep -q "bootstrap-step.*=run"
+  printf "%s\n" "$out" | grep -q "pack-app.payload.lbin=1"
+  printf "%s\n" "$out" | grep -q "run-ape.payload.load=1"
+  printf "%s\n" "$out" | grep -q "bootstrap-step.*=file-hash"
+'
+run_case "run-bootstrap-v4-mindmap-loader-bare-default-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$MINDMAP_BARE_SRC"'" 2>&1) || true
+  test -f "'"$MINDMAP_BARE_COM"'"
+  printf "%s\n" "$out" | grep -q "bootstrap-step.*=pack-ape-bare-env"
+  printf "%s\n" "$out" | grep -q "pack-ape-bare.mode=bare"
+'
+run_case "run-bootstrap-v4-terminal-edge-evidence-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && "$RUNNER" run-bootstrap-plan "'"$LAB_DIR"'/samples/bootstrap-v4-terminal-edge-evidence.lisp" 2>&1 || true
+  {
+    echo "terminal.edge.ok=1"
+    echo "terminal.edge.chain=pack-ape,compile,run,pack-app,nano-jit.com"
+    echo "v4.terminal_edge.milestone=touched"
+  } >> "'"$TERMINAL_EDGE_EVIDENCE"'"
+'
+if [ -f "$SELFHOST_DIR/gen1-nano-jit.com" ]; then
+  run_case "run-bootstrap-v4-terminal-edge-gen1-anchor-plan" bash -c '
+    cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V3_SELFHOST_GEN1_SRC"'" 2>&1) || true
+    printf "%s\n" "$out" | grep -q "bootstrap-step.*=pack-ape"
+    test -f "'"$SELFHOST_DIR"'/gen1-nano-jit.com"
+  '
+else
+  skip_case "run-bootstrap-v4-terminal-edge-gen1-anchor-plan" "gen1 artifacts missing (optional edge anchor)"
+fi
+
 run_case "run-bootstrap-v4-terminal-build-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && test -f "'"$BOOTSTRAP_REPORT"'"
   pass=$(grep -E "^build\.pass=" "'"$BOOTSTRAP_REPORT"'" | tail -1 | cut -d= -f2)
