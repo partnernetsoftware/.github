@@ -67,3 +67,19 @@ All available via `$PATH` (ensure `~/.local/bin` and `~/.bun/bin` are in PATH):
 | byobu | `byobu` | `apt-get install byobu` |
 
 **Note**: All coding agents require their respective API keys to actually run sessions (e.g. `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GOOGLE_API_KEY`). They are installed but not authenticated.
+
+### Volcengine (火山引擎) DeepSeek wrapper scripts
+
+| Script | Backend | Mechanism |
+|---|---|---|
+| `cc-huoshan1-ds4pro` | Claude Code → litellm proxy → Volcengine | litellm 做 Anthropic↔OpenAI 格式转换 |
+| `buddy-huoshan1-ds4pro` | CodeBuddy → Volcengine (直连) | CodeBuddy 原生 OpenAI 兼容 |
+
+**Required secret**: `API_KEY_HUOSHAN_PLAN_1`
+
+Optional overrides (env vars):
+- `HUOSHAN_BASE_URL` — 默认 `https://ark.cn-beijing.volces.com/api/v3`
+- `HUOSHAN_MODEL` — 默认 `deepseek-v4-0324`（改为你的 endpoint ID 如 `ep-xxxxx` 亦可）
+- `LITELLM_PORT` — litellm 代理端口，默认 4100
+
+Scripts 位于 `tools/agents/`，已 symlink 到 `~/.local/bin/`。

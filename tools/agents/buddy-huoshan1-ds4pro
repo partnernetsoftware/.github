@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+# buddy-huoshan1-ds4pro — Run CodeBuddy against Volcengine DeepSeek V4 Pro
+# CodeBuddy natively supports OpenAI-compatible APIs via models.json
+#
+# Required env: API_KEY_HUOSHAN_PLAN_1
+# Optional env: HUOSHAN_BASE_URL (default: https://ark.cn-beijing.volces.com/api/v3)
+#               HUOSHAN_MODEL    (default: deepseek-v4-0324)
+
+set -euo pipefail
+
+: "${API_KEY_HUOSHAN_PLAN_1:?环境变量 API_KEY_HUOSHAN_PLAN_1 未设置}"
+
+HUOSHAN_BASE_URL="${HUOSHAN_BASE_URL:-https://ark.cn-beijing.volces.com/api/v3}"
+HUOSHAN_MODEL="${HUOSHAN_MODEL:-deepseek-v4-0324}"
+
+# Generate models.json for this session
+MODELS_DIR="$HOME/.codebuddy"
+mkdir -p "$MODELS_DIR"
+
+cat > "${MODELS_DIR}/models.json" <<EOF
+{
+  "models": [
+    {
+      "id": "${HUOSHAN_MODEL}",
+      "name": "DeepSeek V4 Pro (Volcengine)",
+      "vendor": "Volcengine",
+      "url": "${HUOSHAN_BASE_URL}/chat/completions",
+      "apiKey": "${API_KEY_HUOSHAN_PLAN_1}",
+      "maxInputTokens": 128000,
+      "maxOutputTokens": 8192,
+      "supportsToolCall": true,
+      "supportsImages": false
+    }
+  ],
+  "availableModels": [
+    "${HUOSHAN_MODEL}"
+  ]
+}
+EOF
+
+exec codebuddy --model "${HUOSHAN_MODEL}" "$@"
