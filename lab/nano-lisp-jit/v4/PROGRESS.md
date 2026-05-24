@@ -7,7 +7,15 @@
 | **北极星 scoped（本仓库验收）** | **✅ 完成** |
 | **lispjit-from-lisp track（gen23–44 门禁）** | **✅ 完成** |
 | **lispjit-from-lisp full runner（gen45–48，~146KB slice）** | **✅ 完成** |
-| **真·语义 100%（Lisp 源码逐行译 `lispjit.c`）** | **进行中 ~70%** |
+| **真·语义 100%（Lisp 源码逐行译 `lispjit.c`）** | **进行中 ~78%** |
+
+### semantic-full track（gen53–56 · tier-9）
+
+- [x] `semantic-full` / `compose-15link`：15 TU 覆盖 `nano_*.c` 全子系统模块
+- [x] 模块 `07-abi` … `12-parse`
+- [x] slice 字节 ≥ compose-9link（单调增长门禁）
+- [x] `zero.host.lispjit_from_lisp_semantic_full_track=1`
+- [ ] slice 字节 **≥ genesis ~154KB** — 终局语义 100%
 
 ### semantic-codegen track（gen49–52 · tier-8）
 
@@ -46,7 +54,7 @@
 |------|------|
 | 自举 / 终局（scoped） | **98%** |
 | **lispjit-from-lisp 工程闭环（含 full slice）** | **✅ 100%** |
-| 自举（C→Lisp 语义翻译） | **~70%** |
+| 自举（C→Lisp 语义翻译） | **~78%** |
 
 证据：`.build/v4-zero-host-bootstrap.evidence`
 
