@@ -4048,6 +4048,12 @@ const CLI_MAINT_CMDS: Record<string, LeafCmdSpec> = {
     run: cliInstallTmux,
     needsTmux: false,
   },
+  serve: {
+    summary: "本地 HTTP+WS 服务（给 mux-gui / 浏览器 / Electron）",
+    usage: "[--port=N]",
+    run: cliServe,
+    needsTmux: true,
+  },
 };
 
 const CLI_TOOL_CMDS: Record<string, LeafCmdSpec> = {
@@ -4154,6 +4160,171 @@ function cliInstallRmux(ctx: CliCtx): number {
   return installRmuxPortable(force);
 }
 
+// PART:serve — 本地 HTTP+WS 后端，给 mux-gui / 浏览器 / Electron 用
+//
+// 路由（所有路由都校验 token，token 是启动时生成的随机串）:
+//   GET  /                            → 重定向到 /index.html
+//   GET  /index.html|/app.js|...      → 静态文件，从 tools/mux-gui/ 取
+//   GET  /api/tree?token=             → JSON 树
+//   GET  /api/capture?target=&lines=  → text/plain pane 快照（含 ANSI）
+//   WS   /api/stream?target=&token=   → 推 base64 增量；客户端发 {data:"..."} 走 send-keys
+//   POST /api/send  {target,data,enter} → send-keys
+//   POST /api/op    {op,target?,name?}   → new-window/kill-session/kill-window
+
+const SERVE_INFO_PATH = join(homedir(), ".tui", "serve.json");
+const GUI_DIR = join(import.meta.dir, "mux-gui");
+
+function serveAuthOk(req: Request, token: string): boolean {
+  const url = new URL(req.url);
+  if (url.searchParams.get("token") === token) return true;
+  const h = req.headers.get("authorization");
+  return h === `Bearer ${token}`;
+}
+
+function serveStatic(pathname: string): Response {
+  const rel = pathname === "/" ? "/index.html" : pathname;
+  const filePath = join(GUI_DIR, rel.replace(/^\/+/, ""));
+  if (!existsSync(filePath)) return new Response("not found", { status: 404 });
+  const type = rel.endsWith(".html") ? "text/html; charset=utf-8"
+    : rel.endsWith(".js") || rel.endsWith(".mjs") ? "application/javascript; charset=utf-8"
+    : rel.endsWith(".ts") ? "application/javascript; charset=utf-8"
+    : rel.endsWith(".css") ? "text/css; charset=utf-8"
+    : rel.endsWith(".json") ? "application/json; charset=utf-8"
+    : "application/octet-stream";
+  return new Response(Bun.file(filePath), { headers: { "content-type": type } });
+}
+
+function serveTreeJson(): unknown[] {
+  return syncTree().map((n) => {
+    const [, idx] = n.target.split(":");
+    return {
+      type: n.type,
+      sessionName: n.sessionName,
+      idx: idx || undefined,
+      target: n.target,
+      title: n.label.replace(/^\s+/, ""),
+      remark: n.remark,
+      agent: n.agent,
+      windowActive: n.windowActive,
+      windowActivity: n.windowActivity,
+    };
+  });
+}
+
+interface StreamSub { target: string; ws: import("bun").ServerWebSocket<{ token: string; target: string; last: string }>; timer: ReturnType<typeof setInterval> | null; }
+
+function cliServe(ctx: CliCtx): number {
+  const portArg = ctx.rest.find((a) => a.startsWith("--port="));
+  const port = portArg ? Number(portArg.split("=")[1]) : 0;
+  const token = randomUUID().replace(/-/g, "");
+  const subs = new Map<unknown, StreamSub>();
+
+  const server = Bun.serve<{ token: string; target: string; last: string }>({
+    port,
+    fetch(req, srv) {
+      const url = new URL(req.url);
+      const p = url.pathname;
+      if (p === "/api/stream") {
+        if (!serveAuthOk(req, token)) return new Response("unauthorized", { status: 401 });
+        const target = url.searchParams.get("target") || "";
+        if (!target) return new Response("missing target", { status: 400 });
+        if (srv.upgrade(req, { data: { token, target, last: "" } })) return undefined as unknown as Response;
+        return new Response("upgrade failed", { status: 500 });
+      }
+      if (p.startsWith("/api/")) {
+        if (!serveAuthOk(req, token)) return new Response("unauthorized", { status: 401 });
+        try {
+          if (p === "/api/tree" && req.method === "GET") {
+            return Response.json(serveTreeJson());
+          }
+          if (p === "/api/capture" && req.method === "GET") {
+            const target = url.searchParams.get("target") || "";
+            const lines = Number(url.searchParams.get("lines") || "200");
+            if (!target) return new Response("missing target", { status: 400 });
+            const text = tmuxApi.capturePaneText(target, lines);
+            return new Response(text, { headers: { "content-type": "text/plain; charset=utf-8" } });
+          }
+          if (p === "/api/send" && req.method === "POST") {
+            return req.json().then((body: { target: string; data: string; enter?: boolean }) => {
+              if (!body.target || typeof body.data !== "string") return new Response("bad request", { status: 400 });
+              tmuxApi.sendKeysLiteral(body.target, body.data);
+              if (body.enter) tmuxApi.sendKeysEnter(body.target);
+              return Response.json({ ok: true });
+            });
+          }
+          if (p === "/api/op" && req.method === "POST") {
+            return req.json().then((body: { op: string; target?: string; name?: string }) => {
+              switch (body.op) {
+                case "new-window":
+                  if (!body.target || !body.name) return new Response("missing target/name", { status: 400 });
+                  tmuxApi.newWindow(body.target.split(":")[0], body.name);
+                  return Response.json({ ok: true });
+                case "kill-window":
+                  if (!body.target) return new Response("missing target", { status: 400 });
+                  tmuxApi.killWindow(body.target);
+                  return Response.json({ ok: true });
+                case "kill-session":
+                  if (!body.target) return new Response("missing target", { status: 400 });
+                  tmuxApi.killSession(body.target.split(":")[0]);
+                  return Response.json({ ok: true });
+                default:
+                  return new Response("unknown op", { status: 400 });
+              }
+            });
+          }
+          return new Response("not found", { status: 404 });
+        } catch (e: unknown) {
+          return new Response(e instanceof Error ? e.message : String(e), { status: 500 });
+        }
+      }
+      return serveStatic(p);
+    },
+    websocket: {
+      open(ws) {
+        const target = ws.data.target;
+        // 轮询版增量推送：每 250ms capture 一次，发 base64 增量
+        const tick = () => {
+          try {
+            const cur = tmuxApi.capturePaneText(target, 200);
+            if (cur !== ws.data.last) {
+              ws.data.last = cur;
+              // v0 轮询版：每次发完整快照，前置 clear+home，让 xterm 重画
+              // 后续可换成 pipe-pane 真增量
+              const frame = "\x1b[2J\x1b[H" + cur;
+              ws.send(Buffer.from(frame, "utf-8").toString("base64"));
+            }
+          } catch { /* swallow capture errors during transition */ }
+        };
+        tick();
+        const timer = setInterval(tick, 250);
+        subs.set(ws, { target, ws, timer });
+      },
+      message(ws, msg) {
+        try {
+          const body = JSON.parse(typeof msg === "string" ? msg : new TextDecoder().decode(msg)) as { data?: string; enter?: boolean };
+          if (typeof body.data === "string") {
+            tmuxApi.sendKeysLiteral(ws.data.target, body.data);
+            if (body.enter) tmuxApi.sendKeysEnter(ws.data.target);
+          }
+        } catch { /* ignore */ }
+      },
+      close(ws) {
+        const s = subs.get(ws);
+        if (s?.timer) clearInterval(s.timer);
+        subs.delete(ws);
+      },
+    },
+  });
+
+  mkdirSync(join(homedir(), ".tui"), { recursive: true });
+  const info = { port: server.port, token, pid: process.pid, url: `http://127.0.0.1:${server.port}/?token=${token}` };
+  writeFileSync(SERVE_INFO_PATH, JSON.stringify(info, null, 2));
+  cliWriteStdout(JSON.stringify(info) + "\n");
+  cliWriteStderr(`mux serve: ${info.url}\n  (info → ${SERVE_INFO_PATH}; Ctrl-C 退出)\n`);
+  // Bun.serve 持有事件循环，调用方在 entry 检测到 serve 子命令时跳过 process.exit
+  return 0;
+}
+
 function resolveSelfScript(): string {
   const fromArgv = process.argv[1];
   if (fromArgv && existsSync(fromArgv)) return fromArgv;
@@ -4231,9 +4402,16 @@ if (import.meta.main) {
   cliInstallPipeGuard(process.stdout);
   cliInstallPipeGuard(process.stderr);
   if (isCliInvocation(process.argv)) {
-    process.exit(runCli(process.argv));
+    const isServe = process.argv.includes("serve");
+    const code = runCli(process.argv);
+    if (isServe) {
+      // cliServe 已经起了 Bun.serve；不 exit，事件循环留给 server
+    } else {
+      process.exit(code);
+    }
+  } else {
+    startTui();
   }
-  startTui();
 }
 
 function startTui(): void {

@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>mux</title>
+  <link rel="stylesheet" href="https://esm.sh/@xterm/xterm@5.5.0/css/xterm.css">
+  <style>
+    html, body { height: 100%; margin: 0; background: #0b0d10; color: #d7dde8; font: 13px system-ui, sans-serif; }
+    #app { height: 100%; display: grid; grid-template-columns: 260px 1fr; }
+    #tree { border-right: 1px solid #252a33; overflow: auto; padding: 8px; }
+    #term { min-width: 0; min-height: 0; padding: 6px; }
+    .node { padding: 5px 7px; border-radius: 5px; cursor: default; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .node.window { padding-left: 20px; cursor: pointer; color: #aeb8c8; }
+    .node.window:hover, .node.active { background: #1c2430; color: #fff; }
+    .node.session { margin-top: 4px; color: #7f8ea3; font-weight: 600; }
+    .error { color: #ff8a8a; padding: 8px; }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <aside id="tree"></aside>
+    <main id="term"></main>
+  </div>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
