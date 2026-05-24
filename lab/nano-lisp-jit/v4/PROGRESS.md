@@ -10,9 +10,9 @@
 | Codegen | Lisp IR 整表 → blob | onion.batch 225–252 + onion.wave | **~59%** |
 | 编排 | Lisp `(squad-*)` | diffuse+4cc MINDMAP | **~54%** |
 | 构建 | plan 内 build 图 | wave182 add177 | **~68%** |
-| 自举 | `.com` 生成下一代 | **gen2→gen3→gen4** 三代 `.com` 链（gen4 纯 build-slice-lisp） | **~45%** |
+| 自举 | `.com` 生成下一代 | **gen2→gen5** 五代链（gen5 双 arch lisp slice pack，无 genesis pin） | **~52%** |
 
-**整体终局**：约 **50%**（三代 com 闭环；genesis pin / stage0 仍在）。
+**整体终局**：约 **55%**（gen5 `zero.host.gen5.ok=1`；gen4 `.com` 为瘦 slice 载荷）。
 
 **调整原则**（并行 + 洋葱）：每波只推进一圈一格；扩散→收敛→洋葱；波末一次 `run.sh`（见 [`PARALLEL.md`](PARALLEL.md)）。
 

@@ -1,9 +1,8 @@
 {
   "next_wave": 253,
-  "next_add": 248,
   "last_tests_pass": 1221,
-  "mindmap_dp": { "layer5": "done", "zero_host_gen3": "via-gen2-com" },
+  "zero_host_chain": "gen2,gen3,gen4,gen5",
   "status": "idle",
-  "updated_at": "2026-05-24T17:00:00.000Z",
-  "notes": "gen2.com runs gen3 plan -> zero-host-gen3-nano-jit.com"
+  "updated_at": "2026-05-24T18:00:00.000Z",
+  "notes": "gen5 dual-arch lisp pack via gen3.com runner"
 }

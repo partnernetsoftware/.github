@@ -722,7 +722,7 @@ export NANO_SLICE_COMPILER=native && bash lab/nano-lisp-jit/run.sh
 
 ## zero-host gen3（2026-05-24）
 
-`zero-host-gen2-nano-jit.com` → `bootstrap-v4-zero-host-gen3-via-gen2-com.lisp` → `zero-host-gen3-nano-jit.com` · `zero.host.gen3.ok=1` · **自举 ~40%** · **终局 ~45–48%**。
+`zero-host-gen2-nano-jit.com` → gen3 → gen4 → **gen3 runner** → gen5 · `zero.host.gen5.ok=1` · **自举 ~52%** · **终局 ~55%**。
 
 ```bash
 cd /workspace && lab/nano-lisp-jit/.build/nano-lisp-jit run-bootstrap-plan \
