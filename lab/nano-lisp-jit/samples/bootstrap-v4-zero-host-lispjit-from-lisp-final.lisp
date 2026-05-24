@@ -7,4 +7,5 @@
   (file-hash "lab/nano-lisp-jit/samples/lispjit-modules/01-runtime-extra.lisp")
   (file-hash "lab/nano-lisp-jit/samples/lispjit-modules/02-compile.lisp")
   (file-hash "lab/nano-lisp-jit/samples/lispjit-modules/03-bootstrap-stub.lisp")
-  (file-size "lab/nano-lisp-jit/samples/bootstrap-v4-zero-host-gen44-lispjit-from-lisp-track-complete.lisp"))
+  (file-hash "lab/nano-lisp-jit/.build/nano-jit/selfhost/zero-host-gen48-full-slice-x86.elf")
+  (file-size "lab/nano-lisp-jit/.build/nano-jit/selfhost/zero-host-gen48-full-slice-x86.elf"))

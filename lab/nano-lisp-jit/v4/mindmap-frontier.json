@@ -543,6 +543,42 @@
       "status": "done",
       "deps": ["zero-host-gen43-lispjit-compose-5link-full-com"],
       "accept": ["zero.host.lispjit_from_lisp_track_complete=1"]
+    },
+    {
+      "id": "zero-host-gen45-lispjit-full-slice",
+      "layer": 50,
+      "ring": "终局",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["lispjit-from-lisp-track-complete"],
+      "accept": ["zero.host.lispjit_from_lisp_full_slice=1", "build-slice.role=lispjit-from-lisp-full"]
+    },
+    {
+      "id": "zero-host-gen46-lispjit-full-on-com",
+      "layer": 51,
+      "ring": "自举",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen45-lispjit-full-slice"],
+      "accept": ["zero.host.lispjit_from_lisp_full_on_com=1"]
+    },
+    {
+      "id": "zero-host-gen47-lispjit-full-on-full-com",
+      "layer": 52,
+      "ring": "自举",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen46-lispjit-full-on-com"],
+      "accept": ["zero.host.lispjit_from_lisp_full_on_full_com=1"]
+    },
+    {
+      "id": "lispjit-from-lisp-full-complete",
+      "layer": 53,
+      "ring": "终局",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen47-lispjit-full-on-full-com"],
+      "accept": ["zero.host.lispjit_from_lisp_full_complete=1"]
     }
   ]
 }

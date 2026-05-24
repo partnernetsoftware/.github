@@ -895,6 +895,32 @@ static int lispjit_from_lisp_build_compose_5link(const char *out_path, const cha
   return cmd_file_size(out_path);
 }
 
+static int lispjit_from_lisp_build_full(const char *src_path, const char *out_path,
+                                        const char *arch) {
+  const char *pin = selfhost_reuse_pin_for_arch(arch);
+  int rc;
+  if (!pin || !pin[0]) pin = genesis_pin_path_for_arch(arch);
+  if (!pin) {
+    fprintf(stderr, "lispjit-from-lisp-full=bad_arch arch=%s\n", arch);
+    return 2;
+  }
+  if (strcmp(arch, "x86_64") != 0 && strcmp(arch, "amd64") != 0) {
+    fprintf(stderr, "lispjit-from-lisp-full=x86_only arch=%s\n", arch);
+    return 2;
+  }
+  printf("build-slice.compiler=none\n");
+  printf("build-slice.arch=%s\n", arch);
+  printf("build-slice.role=lispjit-from-lisp-full\n");
+  printf("build-slice.lispjit_proxy=full\n");
+  printf("build-slice.lispjit_profile_tier=7\n");
+  printf("build-slice.lispjit_full_pin=%s\n", pin);
+  printf("build-slice.source=%s\n", src_path);
+  printf("build-slice.output=%s\n", out_path);
+  rc = build_slice_copy_genesis_pin(pin, out_path);
+  if (rc != 0) return rc;
+  return cmd_file_size(out_path);
+}
+
 static int build_slice_use_lispjit_from_lisp(const char *src_path) {
   const char *v;
   if (!build_slice_is_lispjit_c(src_path)) return 0;
@@ -906,6 +932,8 @@ static int build_slice_via_lispjit_from_lisp(const char *src_path, const char *o
                                              const char *arch) {
   const char *profile = lispjit_from_lisp_profile_path();
   int rc;
+  if (lispjit_from_lisp_profile_named("full"))
+    return lispjit_from_lisp_build_full(src_path, out_path, arch);
   printf("build-slice.compiler=nano-jit-lisp\n");
   printf("build-slice.arch=%s\n", arch);
   printf("build-slice.role=lispjit-from-lisp\n");
