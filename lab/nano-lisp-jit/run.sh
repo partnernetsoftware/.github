@@ -260,6 +260,24 @@ BOOTSTRAP_V4_WAVE43_PROGRESS_TICK_SRC="$LAB_DIR/samples/bootstrap-v4-wave43-prog
 BOOTSTRAP_V4_SLICE43_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v4-slice43-evidence.lisp"
 V4_SLICE43_ADD38_ELF="$BUILD_DIR/bootstrap-v4-slice43-add38.elf"
 V4_SLICE43_EVIDENCE="$BUILD_DIR/v4-slice43.evidence"
+BOOTSTRAP_V4_WAVE44_DIFFUSION_SRC="$LAB_DIR/samples/bootstrap-v4-wave44-diffusion.lisp"
+BOOTSTRAP_V4_WAVE44_IR_WORDS_TICK_SRC="$LAB_DIR/samples/bootstrap-v4-wave44-ir-words-tick.lisp"
+BOOTSTRAP_V4_WAVE44_BUILD_GRAPH_TICK_SRC="$LAB_DIR/samples/bootstrap-v4-wave44-build-graph-tick.lisp"
+BOOTSTRAP_V4_SLICE44_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v4-slice44-evidence.lisp"
+V4_SLICE44_ADD39_ELF="$BUILD_DIR/bootstrap-v4-slice44-add39.elf"
+V4_SLICE44_EVIDENCE="$BUILD_DIR/v4-slice44.evidence"
+BOOTSTRAP_V4_WAVE45_DIFFUSION_SRC="$LAB_DIR/samples/bootstrap-v4-wave45-diffusion.lisp"
+BOOTSTRAP_V4_WAVE45_GEN5_TICK_SRC="$LAB_DIR/samples/bootstrap-v4-wave45-gen5-tick.lisp"
+BOOTSTRAP_V4_WAVE45_TERMINAL_TICK_SRC="$LAB_DIR/samples/bootstrap-v4-wave45-terminal-tick.lisp"
+BOOTSTRAP_V4_SLICE45_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v4-slice45-evidence.lisp"
+V4_SLICE45_ADD40_ELF="$BUILD_DIR/bootstrap-v4-slice45-add40.elf"
+V4_SLICE45_EVIDENCE="$BUILD_DIR/v4-slice45.evidence"
+BOOTSTRAP_V4_WAVE46_DIFFUSION_SRC="$LAB_DIR/samples/bootstrap-v4-wave46-diffusion.lisp"
+BOOTSTRAP_V4_WAVE46_KICKOFF_TICK_SRC="$LAB_DIR/samples/bootstrap-v4-wave46-kickoff-tick.lisp"
+BOOTSTRAP_V4_WAVE46_EVIDENCE_MATRIX_TICK_SRC="$LAB_DIR/samples/bootstrap-v4-wave46-evidence-matrix-tick.lisp"
+BOOTSTRAP_V4_SLICE46_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v4-slice46-evidence.lisp"
+V4_SLICE46_ADD41_ELF="$BUILD_DIR/bootstrap-v4-slice46-add41.elf"
+V4_SLICE46_EVIDENCE="$BUILD_DIR/v4-slice46.evidence"
 SQUAD_SH="$ROOT_DIR/tools/squad/squad.sh"
 CATALOG_V4="$LAB_DIR/squad/catalog-v4.yaml"
 BOOTSTRAP_V35_NANO_CC_AARCH64_SRC="$LAB_DIR/samples/bootstrap-v35-nano-cc-aarch64.lisp"
@@ -2286,6 +2304,69 @@ run_case "run-bootstrap-v4-slice43-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE43_EVIDENCE_SRC"'" 2>&1) || true
   test -f "'"$LAB_DIR"'/v4/SLICE43.md"
   { echo "v4.slice43=1"; } >> "'"$V4_SLICE43_EVIDENCE"'"
+'
+
+run_case "run-bootstrap-v4-wave44-diffusion-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && test -f "'"$BOOTSTRAP_REPORT"'"
+  out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE44_DIFFUSION_SRC"'" 2>&1) || true
+  printf "%s
+" "$out" | grep -q "aarch64.emit.ir.table.verified=plan-lisp-v1-full"
+  test -f "'"$V4_SLICE44_ADD39_ELF"'"
+'
+run_case "run-bootstrap-v4-wave44-ir-words-tick-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE44_IR_WORDS_TICK_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/samples/v4-ir-words-v2.txt"
+'
+run_case "run-bootstrap-v4-wave44-build-graph-tick-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE44_BUILD_GRAPH_TICK_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/samples/bootstrap-v4-build-graph-wave27.lisp"
+'
+run_case "run-bootstrap-v4-slice44-evidence-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE44_EVIDENCE_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/SLICE44.md"
+  { echo "v4.slice44=1"; } >> "'"$V4_SLICE44_EVIDENCE"'"
+'
+
+run_case "run-bootstrap-v4-wave45-diffusion-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && test -f "'"$BOOTSTRAP_REPORT"'"
+  out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE45_DIFFUSION_SRC"'" 2>&1) || true
+  printf "%s
+" "$out" | grep -q "aarch64.emit.ir.table.verified=plan-lisp-v1-full"
+  test -f "'"$V4_SLICE45_ADD40_ELF"'"
+'
+run_case "run-bootstrap-v4-wave45-gen5-tick-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE45_GEN5_TICK_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/samples/bootstrap-v4-gen5-via-gen2-anchor.lisp"
+'
+run_case "run-bootstrap-v4-wave45-terminal-tick-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE45_TERMINAL_TICK_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/COMPLETE-SCOPED.md"
+'
+run_case "run-bootstrap-v4-slice45-evidence-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE45_EVIDENCE_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/SLICE45.md"
+  { echo "v4.slice45=1"; } >> "'"$V4_SLICE45_EVIDENCE"'"
+'
+
+run_case "run-bootstrap-v4-wave46-diffusion-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && test -f "'"$BOOTSTRAP_REPORT"'"
+  out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE46_DIFFUSION_SRC"'" 2>&1) || true
+  printf "%s
+" "$out" | grep -q "aarch64.emit.ir.table.verified=plan-lisp-v1-full"
+  test -f "'"$V4_SLICE46_ADD41_ELF"'"
+'
+run_case "run-bootstrap-v4-wave46-kickoff-tick-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE46_KICKOFF_TICK_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/samples/bootstrap-v4-kickoff.lisp"
+'
+run_case "run-bootstrap-v4-wave46-evidence-matrix-tick-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE46_EVIDENCE_MATRIX_TICK_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/samples/bootstrap-v4-evidence-matrix.lisp"
+'
+run_case "run-bootstrap-v4-slice46-evidence-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE46_EVIDENCE_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/SLICE46.md"
+  { echo "v4.slice46=1"; } >> "'"$V4_SLICE46_EVIDENCE"'"
 '
 run_case "run-bootstrap-v4-slice16-plan-words-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE16_PLAN_WORDS_SRC"'" 2>&1) || true

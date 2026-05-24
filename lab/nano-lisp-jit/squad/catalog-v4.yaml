@@ -762,6 +762,68 @@ signoff:
       file: ".build/v4-slice43.evidence"
       results_key: v4.slice43
       min_pass: 1
+    - id: v4-slice44-doc
+      check: artifact
+      path_glob: "v4/SLICE44.md"
+    - id: v4-wave44-diffusion-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v4-wave44-diffusion.lisp"
+    - id: v4-slice44-add39-elf
+      check: artifact
+      path_glob: ".build/bootstrap-v4-slice44-add39.elf"
+    - id: v4-wave44-irwords-b-tick
+      check: artifact
+      path_glob: "samples/bootstrap-v4-wave44-ir-words-tick.lisp"
+    - id: v4-wave44-irwords-c-tick
+      check: artifact
+      path_glob: "samples/bootstrap-v4-wave44-build-graph-tick.lisp"
+    - id: v4-slice44-evidence
+      check: results
+      file: ".build/v4-slice44.evidence"
+      results_key: v4.slice44
+      min_pass: 1
+
+    - id: v4-slice45-doc
+      check: artifact
+      path_glob: "v4/SLICE45.md"
+    - id: v4-wave45-diffusion-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v4-wave45-diffusion.lisp"
+    - id: v4-slice45-add40-elf
+      check: artifact
+      path_glob: ".build/bootstrap-v4-slice45-add40.elf"
+    - id: v4-wave45-gen5-b-tick
+      check: artifact
+      path_glob: "samples/bootstrap-v4-wave45-gen5-tick.lisp"
+    - id: v4-wave45-gen5-c-tick
+      check: artifact
+      path_glob: "samples/bootstrap-v4-wave45-terminal-tick.lisp"
+    - id: v4-slice45-evidence
+      check: results
+      file: ".build/v4-slice45.evidence"
+      results_key: v4.slice45
+      min_pass: 1
+
+    - id: v4-slice46-doc
+      check: artifact
+      path_glob: "v4/SLICE46.md"
+    - id: v4-wave46-diffusion-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v4-wave46-diffusion.lisp"
+    - id: v4-slice46-add41-elf
+      check: artifact
+      path_glob: ".build/bootstrap-v4-slice46-add41.elf"
+    - id: v4-wave46-scoped-b-tick
+      check: artifact
+      path_glob: "samples/bootstrap-v4-wave46-kickoff-tick.lisp"
+    - id: v4-wave46-scoped-c-tick
+      check: artifact
+      path_glob: "samples/bootstrap-v4-wave46-evidence-matrix-tick.lisp"
+    - id: v4-slice46-evidence
+      check: results
+      file: ".build/v4-slice46.evidence"
+      results_key: v4.slice46
+      min_pass: 1
 
   terminal_gates:
     - id: v35-regression-run
@@ -2238,6 +2300,138 @@ tasks:
     depends: [wave43-v4-track-a-codegen, wave43-v4-track-b-mindmap, wave43-v4-track-c-progress, wave43-v4-track-d-evidence]
     accept:
       - "v4/EVAL.md wave41-43"
+      - "assess v4-complete ready"
+
+  wave44-v4-track-a-codegen:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v4-wave44-diffusion.lisp"
+      - "samples/nano-jit-slice-add-39.lisp"
+      - ".build/v4-slice44.evidence"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-wave44-diffusion-plan"
+  wave44-v4-track-b-irwords:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v4-wave44-ir-words-tick.lisp"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-wave44-ir-words-tick-plan"
+  wave44-v4-track-c-buildgraph:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v4-wave44-build-graph-tick.lisp"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-wave44-build-graph-tick-plan"
+  wave44-v4-track-d-evidence:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "samples/v4-wave-index-v1.lisp"
+      - "v4/SLICE44.md"
+      - "v4/EVAL.md"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-slice44-evidence-plan"
+  wave44-v4-R:
+    assign_role: reviewer
+    priority: meta
+    depends: [wave44-v4-track-a-codegen, wave44-v4-track-b-irwords, wave44-v4-track-c-buildgraph, wave44-v4-track-d-evidence]
+    accept:
+      - "v4/EVAL.md wave44-46"
+      - "assess v4-complete ready"
+
+  wave45-v4-track-a-codegen:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v4-wave45-diffusion.lisp"
+      - "samples/nano-jit-slice-add-40.lisp"
+      - ".build/v4-slice45.evidence"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-wave45-diffusion-plan"
+  wave45-v4-track-b-gen5:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v4-wave45-gen5-tick.lisp"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-wave45-gen5-tick-plan"
+  wave45-v4-track-c-terminal:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v4-wave45-terminal-tick.lisp"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-wave45-terminal-tick-plan"
+  wave45-v4-track-d-evidence:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "samples/v4-wave-index-v1.lisp"
+      - "v4/SLICE45.md"
+      - "v4/EVAL.md"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-slice45-evidence-plan"
+  wave45-v4-R:
+    assign_role: reviewer
+    priority: meta
+    depends: [wave45-v4-track-a-codegen, wave45-v4-track-b-gen5, wave45-v4-track-c-terminal, wave45-v4-track-d-evidence]
+    accept:
+      - "v4/EVAL.md wave44-46"
+      - "assess v4-complete ready"
+
+  wave46-v4-track-a-codegen:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v4-wave46-diffusion.lisp"
+      - "samples/nano-jit-slice-add-41.lisp"
+      - ".build/v4-slice46.evidence"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-wave46-diffusion-plan"
+  wave46-v4-track-b-kickoff:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v4-wave46-kickoff-tick.lisp"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-wave46-kickoff-tick-plan"
+  wave46-v4-track-c-evidence:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v4-wave46-evidence-matrix-tick.lisp"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-wave46-evidence-matrix-tick-plan"
+  wave46-v4-track-d-evidence:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "samples/v4-wave-index-v1.lisp"
+      - "v4/SLICE46.md"
+      - "v4/EVAL.md"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-slice46-evidence-plan"
+  wave46-v4-R:
+    assign_role: reviewer
+    priority: meta
+    depends: [wave46-v4-track-a-codegen, wave46-v4-track-b-kickoff, wave46-v4-track-c-evidence, wave46-v4-track-d-evidence]
+    accept:
+      - "v4/EVAL.md wave44-46"
       - "assess v4-complete ready"
 
 

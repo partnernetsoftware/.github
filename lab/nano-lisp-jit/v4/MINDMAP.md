@@ -125,3 +125,7 @@
 扩散 → run.sh+assess → 修文档圈
 每波 ≤4 轨：A diffusion / B plan / C plan / D evidence
 ```
+
+## wave44–46
+
+ir-words → gen5-bridge → scoped-close

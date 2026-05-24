@@ -95,3 +95,4 @@
 | wave35–37 | 批量 3 波四轨（add30–32）| 提速：单回合收敛，仍非 VM emit |
 | wave38–40 | 批量 add33–35 + IR/onion 锚点 | 终局 % 靠 emit 开卷 |
 | wave41–43 | 批量 add36–38 + mindmap 收束 | 合 main 必带 EVAL §wave41–43 |
+| wave44–46 | 批量 add39–41 | 合 main 带 EVAL §wave44–46 |

@@ -18,4 +18,7 @@
   (wave 41 "emit-manifest")
   (wave 42 "squad-deep")
   (wave 43 "mindmap-close")
+  (wave 44 "ir-words-chain")
+  (wave 45 "gen5-bridge")
+  (wave 46 "scoped-close")
 )
