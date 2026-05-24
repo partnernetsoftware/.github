@@ -424,3 +424,45 @@
 | 终局整体 | **15–22%** | skill apply |
 
 **方法**：`bun run skills/nano-lisp-jit-v4-longrun/nano-lisp-jit-v4-longrun.ts apply 101 103`
+
+## wave104–106（longrun apply · ≤4 轨/波）
+
+| 维度 | wave106 后 | 说明 |
+|------|-------------|------|
+| Codegen | ~49% | add 续批 verified |
+| 终局整体 | **15–22%** | skill apply |
+
+**方法**：`bun run skills/nano-lisp-jit-v4-longrun/nano-lisp-jit-v4-longrun.ts apply 104 106`
+
+## wave107–109（longrun apply · ≤4 轨/波）
+
+| 维度 | wave109 后 | 说明 |
+|------|-------------|------|
+| Codegen | ~49% | add 续批 verified |
+| 终局整体 | **15–22%** | skill apply |
+
+**方法**：`bun run skills/nano-lisp-jit-v4-longrun/nano-lisp-jit-v4-longrun.ts apply 107 109`
+
+## wave110–112（longrun apply · ≤4 轨/波）
+
+| 维度 | wave112 后 | 说明 |
+|------|-------------|------|
+| Codegen | ~49% | add 续批 verified |
+| 终局整体 | **15–22%** | skill apply |
+
+**方法**：`bun run skills/nano-lisp-jit-v4-longrun/nano-lisp-jit-v4-longrun.ts apply 110 112`
+
+## wave104–112（turbo longrun · 3 批 1 gate）
+
+| 维度 | wave112 后 | Δ | 说明 |
+|------|-------------|---|------|
+| Plan | ~98% | — | plan-lisp-v1-full 常绿 |
+| Runner | ~7% | +1% | runner-scout/plan/bridge 续批 |
+| Codegen | ~53% | +1% | emit/codegen 锚点续批 |
+| 编排 | ~49% | — | — |
+| 构建 | ~62% | +1% | add99–107 |
+| 自举 | ~0% | — | 未开卷 |
+| tests.pass | **652** | +36 | turbo `--gate-every 3` |
+| 终局整体 | **15–22%** | — | 外圈证据 ≠ VM emit |
+
+**方法**：`bun run … loop --batches 3 --gate-every 3 --goal wave112`

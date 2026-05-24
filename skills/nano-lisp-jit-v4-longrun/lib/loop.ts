@@ -81,6 +81,7 @@ async function currentBranch(): Promise<string> {
 }
 
 export async function runLoop(opts: LoopOpts): Promise<void> {
+  if (opts.gateEvery < 1) opts.gateEvery = 1;
   acquireLock();
   setStatus("running");
   const start = Date.now();

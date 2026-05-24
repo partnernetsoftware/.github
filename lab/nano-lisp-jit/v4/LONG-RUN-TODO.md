@@ -26,7 +26,7 @@
 
 ```bash
 export PATH="$HOME/.bun/bin:$PATH"
-bun run skills/nano-lisp-jit-v4-longrun/nano-lisp-jit-v4-longrun.ts loop --batches 3 --goal wave95
+bun run skills/nano-lisp-jit-v4-longrun/nano-lisp-jit-v4-longrun.ts loop --batches 3 --gate-every 3 --goal wave112
 ```
 
 **真源**：[`v4/longrun-state.json`](longrun-state.json) · 旧 `v4-longrun-loop.sh` 仅委托 skill
@@ -82,15 +82,16 @@ bun run skills/nano-lisp-jit-v4-longrun/nano-lisp-jit-v4-longrun.ts loop --batch
 - [x] **wave89–91** · add84–86 · host-reduce / ir-table / four-track
 - [x] **wave92–97** · add87–92 · skill longrun 2 批
 - [x] **wave98–103** · add93–98 · evidence/terminal/ir-words/post-v4/orchestration
-- [ ] wave104+ … 直至终局 100%
+- [x] **wave104–112** · add99–107 · turbo runner/emit/codegen（1× run.sh / 9 波）
+- [ ] wave113+ … 直至终局 100%
 
 ## 当前指针
 
 | 项 | 值 |
 |----|-----|
-| 下一波 | **104** |
-| 下一 add | **99** (76+17) |
-| 末次门禁 | tests.pass=616 · [`longrun-state.json`](longrun-state.json) |
+| 下一波 | **113** |
+| 下一 add | **108** (76+17) |
+| 末次门禁 | tests.pass=652 · [`longrun-state.json`](longrun-state.json) |
 | 终局粗估 | **15–22%**（[`EVAL.md`](EVAL.md) 最新 §） |
 
 ## 自循环规则
