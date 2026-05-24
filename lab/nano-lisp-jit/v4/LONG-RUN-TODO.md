@@ -19,7 +19,7 @@
 |------|---------|------|------|
 | **Commander** | Cursor Agent | 目标、`/goal`、PR、终局裁决 | 失败代价高 / 需判断 |
 | **Planner** | Commander 兼 | `WAVES` + `cc-task-*.txt` | 任务树 |
-| **Worker** | gen + **cc** | `gen-v4-wave-batch.py`、`cc-huoshan1-ds4pro` | 可验证、可拆小 |
+| **Worker** | gen + **cc** / **agent** | `gen-v4-wave-batch.py`、`cc-huoshan1-ds4pro`、`v4-agent-diffuse.sh` | 可验证、可拆小 |
 | **Critic** | gate + EVAL 诚实 | `run.sh`、`PROGRESS.md` | 异构验收 |
 | **Integrator** | skill bump + git | `nano-lisp-jit-v4-longrun.ts` | 合并产出 |
 | **Memory** | **state SSOT** | `longrun-state.json` | 程序化管理 |
@@ -103,14 +103,15 @@ bun run skills/nano-lisp-jit-v4-longrun/nano-lisp-jit-v4-longrun.ts loop --batch
 - [x] **wave149–165** · **扩散+5×cc** · 框架一次 gen + 细节并发（tests.pass=864）
 - [x] **wave166–182** · 洋葱先扩散后并发（tests.pass=932）
 - [x] **wave183–210** · **快进 28 波** 1 gate（tests.pass=1044）
-- [ ] wave211+ …
+- [x] **wave211–224** · **Cursor CLI 批** gen + Commander C（`cli.worker` / `cli.diffuse`）
+- [ ] wave225+ …
 
 ## 当前指针
 
 | 项 | 值 |
 |----|-----|
-| 下一波 | **211** |
-| 下一 add | **206** |
+| 下一波 | **225** |
+| 下一 add | **220** |
 | 末次门禁 | tests.pass=**1044** |
 | 终局粗估 | **15–22%**（[`EVAL.md`](EVAL.md) 最新 §） |
 

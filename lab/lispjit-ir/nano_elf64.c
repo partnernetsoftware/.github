@@ -531,6 +531,7 @@ int emit_aarch64_add_exit_file(const char *out_path, int a, int b) {
     fprintf(stderr, "aarch64.emit.profile=add-exit-v2-diffuse\n");
     fprintf(stderr, "aarch64.emit.onion.layer=codegen\n");
     fprintf(stderr, "aarch64.emit.fast-path=1\n");
+    fprintf(stderr, "aarch64.emit.cli.diffuse=1\n");
   }
   return ok;
 }

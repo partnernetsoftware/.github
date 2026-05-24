@@ -9,7 +9,7 @@
   一次 gen WAVES N..M → samples / run.sh / catalog / SLICE 骨架 / index
   不碎补、不每波 gate
 
-阶段 2 · 并发细节（≤5 × cc-huoshan，Worker Pool）
+阶段 2 · 并发细节（≤5 × cc-huoshan 或 ≤3 × `agent -p`，Worker Pool）
   按 touch 文件分片，互不踩：
     W1 bootstrap add 链
     W2 nano_elf64 emit
@@ -26,7 +26,7 @@
 | 任务 | 谁 |
 |------|-----|
 | 框架 / WAVES / 任务树 | Commander |
-| C / run.sh 碎活 | cc × ≤5 |
+| C / run.sh 碎活 | cc × ≤5 或 `bash lab/nano-lisp-jit/tools/v4-agent-diffuse.sh`（需 `CURSOR_API_KEY`） |
 | 门禁 / 诚实进度 | Critic + skill gate |
 | 指针 | Memory = `longrun-state.json` |
 

@@ -1,0 +1,1 @@
+Worker 2 · lab/lispjit-ir/nano_elf64.c：在 aarch64 emit 成功路径增加一行 stderr：aarch64.emit.cli.diffuse=1（紧挨 fast-path 行）。仅改 C，build 验证。AGENT_DONE worker=2
