@@ -1,0 +1,24 @@
+v4 wave140-142 · cc 下手 · Codegen emit.bytes 可验收（Worker · 可验证）
+
+/goal: 扩散轨 A 实质；Composer 已扩 WAVES 140-148；你只改 C + 门禁。
+/loop: build + run.sh 失败则修，最多 3 次。不要 git commit。
+
+## 任务
+
+1. **lab/lispjit-ir/nano_bootstrap.c** — aarch64 add emit 成功路径，在现有
+   `aarch64.emit.add.operands=…` 之后追加 stdout：
+   ```c
+   printf("aarch64.emit.add.bytes=20\n");
+   ```
+   （与 `nano_elf64.c` stderr 行呼应，便于 plan 输出 grep）
+
+2. **lab/nano-lisp-jit/v4/SLICE140.md** — 文件末尾 3 行 §bytes 契约。
+
+3. 验证：
+   ```bash
+   export NANO_SLICE_COMPILER=native
+   bash lab/nano-lisp-jit/build_nano_jit.sh
+   bash lab/nano-lisp-jit/run.sh
+   ```
+
+最后一行 exactly：`CC_DONE tests.pass=N`
