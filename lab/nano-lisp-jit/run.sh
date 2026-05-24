@@ -175,6 +175,9 @@ ZERO_HOST_GEN4_SLICE="$BUILD_DIR/nano-jit/selfhost/zero-host-gen4-slice-min-x86.
 ZERO_HOST_GEN5_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-gen5-via-gen3-com.lisp"
 ZERO_HOST_GEN5_COM="$BUILD_DIR/nano-jit/selfhost/zero-host-gen5-nano-jit.com"
 ZERO_HOST_GEN5_SLICE="$BUILD_DIR/nano-jit/selfhost/zero-host-gen5-slice-min-x86.elf"
+ZERO_HOST_GEN6_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-gen6-full-jit-via-gen3-com.lisp"
+ZERO_HOST_GEN6_COM="$BUILD_DIR/nano-jit/selfhost/zero-host-gen6-nano-jit.com"
+ZERO_HOST_GEN6_SLICE="$BUILD_DIR/nano-jit/selfhost/zero-host-gen6-slice-x86.elf"
 ZERO_HOST_EVIDENCE="$BUILD_DIR/v4-zero-host-bootstrap.evidence"
 NANO_JIT_COM="$BUILD_DIR/nano-jit/nano-jit.com"
 BOOTSTRAP_V4_SLICE16_PLAN_WORDS_SRC="$LAB_DIR/samples/bootstrap-v4-slice16-plan-words.lisp"
@@ -8039,6 +8042,32 @@ else
   skip_case "run-bootstrap-v4-zero-host-gen5-via-gen3-com-plan" "zero-host-gen3-nano-jit.com missing"
   skip_case "run-bootstrap-v4-zero-host-gen5-chain-evidence" "zero-host-gen3-nano-jit.com missing"
   skip_case "run-bootstrap-v4-zero-host-gen5-com-run-ape" "zero-host-gen3-nano-jit.com missing"
+fi
+if [ -f "$ZERO_HOST_GEN3_COM" ] && host_is_linux_x86_64; then
+  run_case "run-bootstrap-v4-zero-host-gen6-full-jit-via-gen3-plan" bash -c '
+    cd "'"$ROOT_DIR"'" && out=$("'"$ZERO_HOST_GEN3_COM"'" run-bootstrap-plan "'"$ZERO_HOST_GEN6_SRC"'" 2>&1) || true
+    printf "%s\n" "$out" | grep -q "bootstrap-step.*=build-slice"
+    printf "%s\n" "$out" | grep -q "bootstrap-step.*=pack-ape"
+    test -x "'"$ZERO_HOST_GEN6_SLICE"'"
+    test -f "'"$ZERO_HOST_GEN6_COM"'"
+    test "$(stat -c%s "'"$ZERO_HOST_GEN6_COM"'")" -gt 100000
+    g5=$("'"$RUNNER"'" file-hash "'"$ZERO_HOST_GEN5_COM"'" 2>/dev/null | tail -1)
+    g6=$("'"$RUNNER"'" file-hash "'"$ZERO_HOST_GEN6_COM"'" 2>/dev/null | tail -1)
+    test -n "$g5" && test -n "$g6" && test "$g5" != "$g6"
+  '
+  run_case "run-bootstrap-v4-zero-host-gen6-runs-gen5-plan" bash -c '
+    cd "'"$ROOT_DIR"'" && test -f "'"$ZERO_HOST_GEN6_COM"'"
+    out=$("'"$ZERO_HOST_GEN6_COM"'" run-bootstrap-plan "'"$ZERO_HOST_GEN5_SRC"'" 2>&1) || true
+    printf "%s\n" "$out" | grep -q "bootstrap-step.*=pack-ape"
+    test -f "'"$ZERO_HOST_GEN5_COM"'"
+  '
+  run_case "run-bootstrap-v4-zero-host-gen6-chain-evidence" bash -c '
+    echo "zero.host.gen6.ok=1" >> "'"$ZERO_HOST_EVIDENCE"'"
+  '
+else
+  skip_case "run-bootstrap-v4-zero-host-gen6-full-jit-via-gen3-plan" "zero-host-gen3-nano-jit.com missing"
+  skip_case "run-bootstrap-v4-zero-host-gen6-runs-gen5-plan" "zero-host-gen3-nano-jit.com missing"
+  skip_case "run-bootstrap-v4-zero-host-gen6-chain-evidence" "zero-host-gen3-nano-jit.com missing"
 fi
 
 run_case "run-bootstrap-v4-terminal-build-evidence-plan" bash -c '

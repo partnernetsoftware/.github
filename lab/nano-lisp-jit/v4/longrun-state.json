@@ -1,8 +1,7 @@
 {
   "next_wave": 253,
-  "last_tests_pass": 1221,
-  "zero_host_chain": "gen2,gen3,gen4,gen5",
+  "zero_host_chain": "gen2-gen6",
   "status": "idle",
-  "updated_at": "2026-05-24T18:00:00.000Z",
-  "notes": "gen5 dual-arch lisp pack via gen3.com runner"
+  "updated_at": "2026-05-24T19:00:00.000Z",
+  "notes": "gen6 full JIT; gen6.com re-executes gen5 bootstrap graph"
 }
