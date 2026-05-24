@@ -448,6 +448,9 @@ run_case "run-bootstrap-v4-slice{w}-evidence-plan" bash -c '
     block = "\n".join(vars_lines) + "\n"
     if f"V4_SLICE{meta[0]['wave']}_ADD" not in run:
         for anchor in (
+            'V4_SLICE85_EVIDENCE="$BUILD_DIR/v4-slice85.evidence"\n',
+            'V4_SLICE82_EVIDENCE="$BUILD_DIR/v4-slice82.evidence"\n',
+            'V4_SLICE79_EVIDENCE="$BUILD_DIR/v4-slice79.evidence"\n',
             'V4_SLICE76_EVIDENCE="$BUILD_DIR/v4-slice76.evidence"\n',
             'V4_SLICE73_EVIDENCE="$BUILD_DIR/v4-slice73.evidence"\n',
             'V4_SLICE67_EVIDENCE="$BUILD_DIR/v4-slice67.evidence"\n',
@@ -458,6 +461,9 @@ run_case "run-bootstrap-v4-slice{w}-evidence-plan" bash -c '
     ins = "".join(cases)
     if f"run-bootstrap-v4-wave{meta[0]['wave']}-diffusion-plan" not in run:
         for marker in (
+            'run_case "run-bootstrap-v4-slice85-evidence-plan"',
+            'run_case "run-bootstrap-v4-slice82-evidence-plan"',
+            'run_case "run-bootstrap-v4-slice79-evidence-plan"',
             'run_case "run-bootstrap-v4-slice76-evidence-plan"',
             'run_case "run-bootstrap-v4-slice16-plan-words-plan"',
             'run_case "run-bootstrap-v4-slice73-evidence-plan"',
