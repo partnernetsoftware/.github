@@ -285,4 +285,263 @@
 
 **方法**：≤4 轨/波 → 一次 `run.sh` → `assess` → 合 main；队列见 [`LONG-RUN-TODO.md`](LONG-RUN-TODO.md)。
 
-**门禁**：：`run.sh` exit 0；`tests.pass=494`；`build.pass=26`；`assess` ready=True。
+**门禁**：`run.sh` exit 0；`tests.pass=494`；`build.pass=26`；`assess` ready=True。
+
+## wave74–76（长程自主 · 洋葱 TDD · ≤4 并发/波）
+
+| 维度 | wave76 后 | Δ |
+|------|-----------|---|
+| Plan | ~98% | runner / emit / mindmap 锚点族 |
+| Codegen | ~46% | add69–71 verified 整表 |
+| 编排 | ~43% | runner-scout + emit-deep 链 |
+| 构建 | ~55% | 三波 diffusion |
+| Runner | ~6% | wave74 lisp-runner-scout 样本 |
+| 终局整体 | **15–22%** | catalog≠零宿主；VM emit 未开卷 |
+
+**wave 索引**：至 **76**。
+
+**方法**：≤4 轨/波 → 一次 `run.sh` → 洋葱（MINDMAP/SLICE）→ 合 main；`gen-v4-wave-batch.py 74 76`。
+
+**门禁**：`tests.pass=507`；`build.pass=26`（main 归档后 catalog `build.pass≥119` 需 cosmocc，与波次样本 `26` 并存）。
+
+## wave77–79（长程自主 · 洋葱 TDD · ≤4 并发/波）
+
+| 维度 | wave79 后 | Δ |
+|------|-----------|---|
+| Plan | ~98% | commander-resume + build-graph + longrun 锚点 |
+| Codegen | ~47% | add72–74 verified 整表 |
+| 编排 | ~44% | squad commander/resume 深链 |
+| 构建 | ~56% | 三波 diffusion |
+| 终局整体 | **15–22%** | 自循环 TODO 状态机入账 |
+
+**wave 索引**：至 **79**。
+
+**方法**：`gen-v4-wave-batch.py 77 79`；`LONG-RUN-TODO.md` 自循环状态机。
+
+**门禁**：`tests.pass=519`；`build.pass=26`。
+
+## wave80–82（长程自主 · 洋葱 TDD · ≤4 并发/波）
+
+| 维度 | wave82 后 | Δ |
+|------|-----------|---|
+| Plan | ~98% | ir-table / emit-manifest / four-track 锚点续链 |
+| Codegen | ~48% | add75–77 verified 整表 |
+| 编排 | ~45% | hostreduce + manifest + contract 交叉引用 |
+| 构建 | ~57% | 三波 diffusion |
+| 终局整体 | **15–22%** | catalog ready；Lisp VM emit 未开卷 |
+
+**wave 索引**：至 **82**。
+
+**方法**：`gen-v4-wave-batch.py 80 82`；ir-table / emit-manifest / four-track 三轨续批。
+
+**门禁**：`tests.pass=532`；`build.pass=26`（native；cosmocc 缺失时 aarch64 slice 跳过）。
+
+## wave83–85（长程自主 · 洋葱 TDD · ≤4 并发/波）
+
+| 维度 | wave85 后 | Δ |
+|------|-----------|---|
+| Plan | ~98% | reflection / lisp-only / codegen 续链 |
+| Runner | ~6% | terminal + resume 锚点补强 |
+| Codegen | ~49% | add78–80 verified 整表 |
+| 编排 | ~46% | reflection-resume + lisponly-terminal 交叉引用 |
+| 构建 | ~58% | 三波 diffusion |
+| 自举 | ~0% | 仍未开卷 Lisp VM emit |
+| 终局整体 | **15–22%** | catalog ready；继续按长程自循环推进 |
+
+**wave 索引**：至 **85**。
+
+**方法**：`gen-v4-wave-batch.py 83 85`；reflection / resume / lisp-only / terminal / codegen / emit 六锚点三波续批。
+
+**门禁**：`tests.pass=544`；`build.pass=27`（native）。
+
+## wave86–88（长程自主 · 洋葱 TDD · ≤4 并发/波）
+
+| 维度 | wave88 后 | Δ |
+|------|-----------|---|
+| Plan | ~98% | runner-plan + plan-contract 再锚定 |
+| Runner | ~6% | runner tick 与 LISP-ONLY/DECISION 交叉引用 |
+| Codegen | ~50% | add81–83 verified 整表 |
+| 编排 | ~47% | assess + evidence-matrix 链补强 |
+| 构建 | ~59% | 三波 diffusion + slice evidence |
+| 自举 | ~0% | 仍未开卷 Lisp VM emit |
+| 终局整体 | **15–22%** | catalog ready；下一批从 wave89 继续 |
+
+**wave 索引**：至 **88**。
+
+**方法**：`gen-v4-wave-batch.py 86 88`；runner/plan、assess/evidence、onion/mindmap 三波续批。
+
+**门禁**：`tests.pass=556`；`build.pass=27`（native）。
+
+## wave89–91（longrun apply · ≤4 轨/波）
+
+| 维度 | wave91 后 | 说明 |
+|------|-------------|------|
+| Codegen | ~49% | add 续批 verified |
+| 终局整体 | **15–22%** | deterministic apply |
+
+**方法**：`v4-apply-batch.py 89 91` → `run.sh` gate。
+
+## wave92–97（skill longrun · 2 批 × ≤4 轨/波）
+
+| 维度 | wave97 后 | Δ |
+|------|-----------|---|
+| Plan | ~98% | longrun-skill + commander + mindmap 锚点 |
+| Codegen | ~51% | add87–92 verified |
+| 编排 | ~48% | squad-commander-chain |
+| 构建 | ~60% | build-graph-recap |
+| 终局整体 | **15–22%** | VM emit 未开卷 |
+
+**wave 索引**：至 **97** · **tests.pass=592** · 指针 **98**
+
+**方法**：`bun run skills/nano-lisp-jit-v4-longrun/nano-lisp-jit-v4-longrun.ts loop --batches 2 --goal wave103`
+
+## wave98–103（skill longrun · 2 批）
+
+| 维度 | wave103 后 | Δ |
+|------|------------|---|
+| Plan | ~98% | post-v4 + orchestration 锚点 |
+| Codegen | ~52% | add93–98 verified |
+| 编排 | ~49% | squad orchestration-bundle |
+| 构建 | ~61% | 六波 diffusion |
+| 终局整体 | **15–22%** | 指针 **104** |
+
+**门禁**：`tests.pass=616` · skill apply 全绿
+
+## wave98–100（longrun apply · ≤4 轨/波）
+
+| 维度 | wave100 后 | 说明 |
+|------|-------------|------|
+| Codegen | ~49% | add 续批 verified |
+| 终局整体 | **15–22%** | skill apply |
+
+**方法**：`bun run skills/nano-lisp-jit-v4-longrun/nano-lisp-jit-v4-longrun.ts apply 98 100`
+
+## wave101–103（longrun apply · ≤4 轨/波）
+
+| 维度 | wave103 后 | 说明 |
+|------|-------------|------|
+| Codegen | ~49% | add 续批 verified |
+| 终局整体 | **15–22%** | skill apply |
+
+**方法**：`bun run skills/nano-lisp-jit-v4-longrun/nano-lisp-jit-v4-longrun.ts apply 101 103`
+
+## wave104–106（longrun apply · ≤4 轨/波）
+
+| 维度 | wave106 后 | 说明 |
+|------|-------------|------|
+| Codegen | ~49% | add 续批 verified |
+| 终局整体 | **15–22%** | skill apply |
+
+**方法**：`bun run skills/nano-lisp-jit-v4-longrun/nano-lisp-jit-v4-longrun.ts apply 104 106`
+
+## wave107–109（longrun apply · ≤4 轨/波）
+
+| 维度 | wave109 后 | 说明 |
+|------|-------------|------|
+| Codegen | ~49% | add 续批 verified |
+| 终局整体 | **15–22%** | skill apply |
+
+**方法**：`bun run skills/nano-lisp-jit-v4-longrun/nano-lisp-jit-v4-longrun.ts apply 107 109`
+
+## wave110–112（longrun apply · ≤4 轨/波）
+
+| 维度 | wave112 后 | 说明 |
+|------|-------------|------|
+| Codegen | ~49% | add 续批 verified |
+| 终局整体 | **15–22%** | skill apply |
+
+**方法**：`bun run skills/nano-lisp-jit-v4-longrun/nano-lisp-jit-v4-longrun.ts apply 110 112`
+
+## wave104–112（turbo longrun · 3 批 1 gate）
+
+| 维度 | wave112 后 | Δ | 说明 |
+|------|-------------|---|------|
+| Plan | ~98% | — | plan-lisp-v1-full 常绿 |
+| Runner | ~7% | +1% | runner-scout/plan/bridge 续批 |
+| Codegen | ~53% | +1% | emit/codegen 锚点续批 |
+| 编排 | ~49% | — | — |
+| 构建 | ~62% | +1% | add99–107 |
+| 自举 | ~0% | — | 未开卷 |
+| tests.pass | **652** | +36 | turbo `--gate-every 3` |
+| 终局整体 | **15–22%** | — | 外圈证据 ≠ VM emit |
+
+**方法**：`bun run … loop --batches 3 --gate-every 3 --goal wave112`
+
+## wave113–115（longrun apply · ≤4 轨/波）
+
+| 维度 | wave115 后 | 说明 |
+|------|-------------|------|
+| Codegen | ~49% | add 续批 verified |
+| 终局整体 | **15–22%** | skill apply |
+
+**方法**：`bun run skills/nano-lisp-jit-v4-longrun/nano-lisp-jit-v4-longrun.ts apply 113 115`
+
+## wave116–118（longrun apply · ≤4 轨/波）
+
+| 维度 | wave118 后 | 说明 |
+|------|-------------|------|
+| Codegen | ~49% | add 续批 verified |
+| 终局整体 | **15–22%** | skill apply |
+
+**方法**：`bun run skills/nano-lisp-jit-v4-longrun/nano-lisp-jit-v4-longrun.ts apply 116 118`
+
+## wave119–121（longrun apply · ≤4 轨/波）
+
+| 维度 | wave121 后 | 说明 |
+|------|-------------|------|
+| Codegen | ~49% | add 续批 verified |
+| 终局整体 | **15–22%** | skill apply |
+
+**方法**：`bun run skills/nano-lisp-jit-v4-longrun/nano-lisp-jit-v4-longrun.ts apply 119 121`
+
+## wave113–121（cc 下手 + turbo · 3 批 1 gate）
+
+| 维度 | wave121 后 | Δ | 说明 |
+|------|-------------|---|------|
+| Plan | ~98% | — | plan-lisp-v1-full |
+| Runner | ~8% | +1% | runner/emit/plan 续批 |
+| Codegen | **~54%** | +1% | **cc**：`add.result` / `add.operands` / `emit.bytes` |
+| 构建 | ~63% | +1% | add108–116 |
+| tests.pass | **688** | +36 | turbo + cc C 层 |
+| 终局整体 | **15–22%** | — | 可观测 ≠ VM emit |
+
+**并行**：Composer 扩 WAVES + `cc-huoshan1-ds4pro` 改 `nano_bootstrap.c`/`nano_elf64.c` → skill `loop --gate-every 3`
+
+## wave122–124（longrun apply · ≤4 轨/波）
+
+| 维度 | wave124 后 | 说明 |
+|------|-------------|------|
+| Codegen | ~49% | add 续批 verified |
+| 终局整体 | **15–22%** | skill apply |
+
+**方法**：`bun run skills/nano-lisp-jit-v4-longrun/nano-lisp-jit-v4-longrun.ts apply 122 124`
+
+## wave125–127（longrun apply · ≤4 轨/波）
+
+| 维度 | wave127 后 | 说明 |
+|------|-------------|------|
+| Codegen | ~49% | add 续批 verified |
+| 终局整体 | **15–22%** | skill apply |
+
+**方法**：`bun run skills/nano-lisp-jit-v4-longrun/nano-lisp-jit-v4-longrun.ts apply 125 127`
+
+## wave128–130（longrun apply · ≤4 轨/波）
+
+| 维度 | wave130 后 | 说明 |
+|------|-------------|------|
+| Codegen | ~49% | add 续批 verified |
+| 终局整体 | **15–22%** | skill apply |
+
+**方法**：`bun run skills/nano-lisp-jit-v4-longrun/nano-lisp-jit-v4-longrun.ts apply 128 130`
+
+## wave122–130（Dev Agents Team + turbo · Critic grep）
+
+| 维度 | wave130 后 | Δ | 说明 |
+|------|-------------|---|------|
+| Plan | ~98% | — | plan-lisp-v1-full |
+| Codegen | **~55%** | +1% | **Critic**：`extra_grep` 验收 `add.result`/`operands` |
+| 编排 | ~50% | +1% | wave130 `DEV-AGENTS-TEAM.md` milestone |
+| tests.pass | **724** | +36 | Commander→Planner→Worker(skill)→Critic |
+| 终局整体 | **15–22%** | — | 强模型控向 + 程序记忆 SSOT |
+
+**工作流**：见 [`DEV-AGENTS-TEAM.md`](DEV-AGENTS-TEAM.md) — 不堆 agent 数，堆调度质量。

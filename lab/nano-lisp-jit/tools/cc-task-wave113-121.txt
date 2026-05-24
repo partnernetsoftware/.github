@@ -1,0 +1,32 @@
+v4 wave113-121 · cc 下手 · Codegen 实质（emit 可观测性）
+
+/goal: 推进 Codegen 轨；≤4 轨/波；Composer 已扩 WAVES 113-121，你只改 C + 门禁验证。
+/loop: build + run.sh 失败则修，最多 3 次。
+
+## 任务（实质，非仅文档）
+
+1. **lab/lispjit-ir/nano_bootstrap.c** — `build-slice-lisp` aarch64 add 路径，emit 成功后追加两行 stdout（所有 add 切片）：
+   ```
+   printf("aarch64.emit.add.result=%d\n", a + b);
+   printf("aarch64.emit.add.operands=%d+%d\n", a, b);
+   ```
+   放在现有 `aarch64.emit.manifest=add-exit-v1` 日志之后。
+
+2. **lab/lispjit-ir/nano_elf64.c** — `emit_aarch64_add_exit_file` 成功写 ELF 后 stderr 一行：
+   ```
+   fprintf(stderr, "nano_elf64.emit.add.bytes=20\n");
+   ```
+
+3. **lab/nano-lisp-jit/v4/SLICE113.md** — 在文件末尾追加 §emit observability（add.result / add.operands / emit.bytes 契约，3–5 行）。
+
+4. **不要**改 `gen-v4-wave-batch.py`、不要 `git commit`。
+
+5. 验证：
+   ```bash
+   export NANO_SLICE_COMPILER=native
+   bash lab/nano-lisp-jit/build_nano_jit.sh
+   bash lab/nano-lisp-jit/run.sh
+   ```
+   失败则诊断修复并重跑（最多 3 次）。
+
+最后一行必须 exactly：`CC_DONE tests.pass=N`

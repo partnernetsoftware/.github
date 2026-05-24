@@ -99,3 +99,15 @@
 | wave47–49 | 批量 add42–44 | 合 main 必带 EVAL §wave47–49 |
 | wave50–52 | 批量 add45–47 | 合 main 带 EVAL §wave50–52 |
 | 长程自主 | catalog ready 后仍按波推进；终局 % 靠 emit 开卷 | wave53–55 add48–50 |
+| wave74–76 | runner-scout + emit-deep + mindmap-autonomous；`gen-v4-wave-batch.py` | add69–71；合 main 带 EVAL §wave74–76 |
+| wave77–79 | commander-resume + build-graph-onion + longrun-milestone；自循环 TODO 状态机 | add72–74；`LONG-RUN-TODO` 技巧表 |
+| wave80–82 | ir-table-scout + emit-manifest + four-track-autonomous；native 门禁回绿 | add75–77；下一指针 wave83 |
+| wave83–85 | reflection-resume + lisp-only-terminal + codegen-emit 续批；仍保持 ≤4 轨/波 | add78–80；下一指针 wave86 |
+| wave86–88 | runner-plan + squad-evidence + onion-mindmap-close 续批 | add81–83 |
+| wave92–97 | skill longrun 2 批 apply 全绿 | add87–92 |
+| wave98–103 | evidence/terminal/ir-words/post-v4/orchestration | add93–98；指针 104 |
+| **turbo 慢因** | 每批全量 `run.sh`（600+ case）+ 外圈 plan 证据 ≠ Runner/Codegen 实质 | ✅ `--gate-every N` + bootstrap stamp skip build |
+| wave104–112 | runner/emit/codegen 续批 + turbo-skill 证据 | add99–107；指针 113 |
+| wave113–121 | **cc** emit obs + turbo runner/codegen | add108–116；指针 122 |
+| **dev-agents-team** | [`DEV-AGENTS-TEAM.md`](DEV-AGENTS-TEAM.md) 入账；调度四问 | Commander/Worker/Critic/Memory |
+| wave122–130 | extra_grep emit 验收 + dev-agents-milestone | add117–125；指针 131 |

@@ -162,3 +162,11 @@ codegen-emit → squad-commander → onion-terminal（长程自主）
 ## wave68–73（长程自循环）
 
 ir-table → build-graph → host-reduce → plan-contract → evidence → four-track-milestone
+
+## wave83–85
+
+reflection/resume → lisp-only/terminal → codegen/emit（长程自主续批）
+
+## wave86–88
+
+runner/plan → assess/evidence-matrix → onion/mindmap-close（长程自主续批）
