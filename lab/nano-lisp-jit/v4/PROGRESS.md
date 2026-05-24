@@ -25,6 +25,7 @@
 - [x] gen31：linked-tu + pack-app partial northstar 门禁
 - [x] gen32/33：完整 `.com` 上 linked-tu 终端 + `ir-exit-v1` tier-2 profile
 - [x] gen34/35：tier-3 **multi-func AOT**（真实 func call codegen，exit 43）
+- [x] gen36–38：tier-4 **multi-func-cf**（控制流/i64 AOT + slice→reuse 链）
 - [x] lispjit-from-lisp track 汇总门禁（`lispjit_from_lisp_track_gates`）
 - [ ] 完整 Lisp 编出 `lispjit.c` 本体（非 proxy profile）
 
@@ -33,7 +34,7 @@
 | 维度 | 粗估 |
 |------|------|
 | 自举 / 终局（scoped） | **98%** |
-| 自举（理论 lispjit-from-lisp） | **~45%**（tier-3 multi-func AOT；仍非完整 `lispjit.c` slice） |
+| 自举（理论 lispjit-from-lisp） | **~50%**（tier-4 控制流 AOT；仍非完整 `lispjit.c` ~146KB slice） |
 
 证据：`.build/v4-zero-host-bootstrap.evidence`
 

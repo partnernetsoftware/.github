@@ -245,6 +245,14 @@ ZERO_HOST_GEN34_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-gen34-lispjit-multi
 ZERO_HOST_GEN34_SLICE="$BUILD_DIR/nano-jit/selfhost/zero-host-gen34-slice-x86.elf"
 ZERO_HOST_GEN35_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-gen35-lispjit-multi-func-on-full-com.lisp"
 ZERO_HOST_GEN35_SLICE="$BUILD_DIR/nano-jit/selfhost/zero-host-gen35-slice-x86.elf"
+ZERO_HOST_GEN36_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-gen36-lispjit-multi-func-cf-aot.lisp"
+ZERO_HOST_GEN36_SLICE="$BUILD_DIR/nano-jit/selfhost/zero-host-gen36-slice-x86.elf"
+ZERO_HOST_GEN37_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-gen37-lispjit-multi-func-cf-on-full-com.lisp"
+ZERO_HOST_GEN37_SLICE="$BUILD_DIR/nano-jit/selfhost/zero-host-gen37-slice-x86.elf"
+ZERO_HOST_GEN38A_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-gen38a-lispjit-mfc-slice.lisp"
+ZERO_HOST_GEN38B_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-gen38b-lispjit-mfc-slice-reuse-pack.lisp"
+ZERO_HOST_GEN38_SLICE="$BUILD_DIR/nano-jit/selfhost/zero-host-gen38-mfc-slice-x86.elf"
+ZERO_HOST_GEN38_COM="$BUILD_DIR/nano-jit/selfhost/zero-host-gen38-chain.com"
 ZERO_HOST_LISPJIT_FINAL_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-lispjit-from-lisp-final.lisp"
 ZERO_HOST_REGENESIS_X86="$BUILD_DIR/nano-jit/nano-jit.x86_64"
 ZERO_HOST_LISPJIT_PROFILE="$LAB_DIR/samples/nano-jit-runner-core.lisp"
@@ -8501,6 +8509,46 @@ if [ -f "$HOST_NANO_LISP_JIT" ] && host_is_linux_x86_64; then
     else
       skip_case "run-bootstrap-v4-zero-host-gen35-lispjit-multi-func-on-full-com-plan" "gen30-full-nano-jit.com missing"
     fi
+    run_case "run-bootstrap-v4-zero-host-gen36-lispjit-multi-func-cf-aot-plan" bash -c '
+      cd "'"$ROOT_DIR"'"
+      out=$(NANO_LISPJIT_FROM_LISP=1 NANO_LISPJIT_FROM_LISP_PROFILE=multi-func-cf \
+        "'"$NANO_JIT_COM"'" run-bootstrap-plan "'"$ZERO_HOST_GEN36_SRC"'" 2>&1) || true
+      test -f "'"$ZERO_HOST_GEN36_SLICE"'"
+      printf "%s\n" "$out" | grep -q "build-slice.lispjit_profile_tier=4"
+      printf "%s\n" "$out" | grep -q "build-slice-lisp.mode=multi-func-cf-aot"
+      printf "%s\n" "$out" | grep -q "build-slice-lisp.aot.control_flow=1"
+      printf "%s\n" "$out" | grep -q "run-expect-exit.ok=1"
+      echo "zero.host.lispjit_from_lisp_multi_func_cf=1" >> "'"$ZERO_HOST_EVIDENCE"'"
+    '
+    if [ -f "'"$ZERO_HOST_GEN30_FULL_COM"'" ]; then
+      run_case "run-bootstrap-v4-zero-host-gen37-lispjit-multi-func-cf-on-full-com-plan" bash -c '
+        cd "'"$ROOT_DIR"'"
+        out=$(NANO_LISPJIT_FROM_LISP=1 NANO_LISPJIT_FROM_LISP_PROFILE=multi-func-cf \
+          "'"$ZERO_HOST_GEN30_FULL_COM"'" run-bootstrap-plan "'"$ZERO_HOST_GEN37_SRC"'" 2>&1) || true
+        test -f "'"$ZERO_HOST_GEN37_SLICE"'"
+        printf "%s\n" "$out" | grep -q "build-slice.lispjit_aot=multi-func-cf"
+        printf "%s\n" "$out" | grep -q "run-expect-exit.actual=43"
+        echo "zero.host.lispjit_from_lisp_multi_func_cf_on_full_com=1" >> "'"$ZERO_HOST_EVIDENCE"'"
+      '
+    else
+      skip_case "run-bootstrap-v4-zero-host-gen37-lispjit-multi-func-cf-on-full-com-plan" "gen30-full-nano-jit.com missing"
+    fi
+    run_case "run-bootstrap-v4-zero-host-gen38-lispjit-mfc-slice-chain-plan" bash -c '
+      cd "'"$ROOT_DIR"'"
+      out_a=$(NANO_LISPJIT_FROM_LISP=1 NANO_LISPJIT_FROM_LISP_PROFILE=multi-func-cf \
+        "'"$NANO_JIT_COM"'" run-bootstrap-plan "'"$ZERO_HOST_GEN38A_SRC"'" 2>&1) || true
+      test -f "'"$ZERO_HOST_GEN38_SLICE"'"
+      printf "%s\n" "$out_a" | grep -q "build-slice.lispjit_profile_tier=4"
+      test -f "'"$ZERO_HOST_GEN27_SLICE_AARCH64"'"
+      out_b=$(NANO_BUILD_SLICE_SELFHOST_REUSE=1 \
+        NANO_SELFHOST_REUSE_X86="'"$ZERO_HOST_GEN38_SLICE"'" \
+        NANO_SELFHOST_REUSE_AARCH64="'"$ZERO_HOST_GEN27_SLICE_AARCH64"'" \
+        "'"$NANO_JIT_COM"'" run-bootstrap-plan "'"$ZERO_HOST_GEN38B_SRC"'" 2>&1) || true
+      test -f "'"$ZERO_HOST_GEN38_COM"'"
+      printf "%s\n" "$out_b" | grep -q "build-slice.role=selfhost-reuse"
+      printf "%s\n" "$out_b" | grep -q "selfhost_reuse=.*gen38-mfc-slice"
+      echo "zero.host.lispjit_from_lisp_mfc_chain=1" >> "'"$ZERO_HOST_EVIDENCE"'"
+    '
     run_case "run-bootstrap-v4-zero-host-lispjit-from-lisp-final-plan" bash -c '
       cd "'"$ROOT_DIR"'" && test -f "'"$ZERO_HOST_EVIDENCE"'"
       for key in zero.host.lispjit_from_lisp zero.host.lispjit_from_lisp_on_full_com \
@@ -8522,6 +8570,9 @@ if [ -f "$HOST_NANO_LISP_JIT" ] && host_is_linux_x86_64; then
     skip_case "run-bootstrap-v4-zero-host-gen33-lispjit-ir-exit-on-full-com-plan" "nano-jit.com missing after regenesis repack"
     skip_case "run-bootstrap-v4-zero-host-gen34-lispjit-multi-func-aot-plan" "nano-jit.com missing after regenesis repack"
     skip_case "run-bootstrap-v4-zero-host-gen35-lispjit-multi-func-on-full-com-plan" "nano-jit.com missing after regenesis repack"
+    skip_case "run-bootstrap-v4-zero-host-gen36-lispjit-multi-func-cf-aot-plan" "nano-jit.com missing after regenesis repack"
+    skip_case "run-bootstrap-v4-zero-host-gen37-lispjit-multi-func-cf-on-full-com-plan" "nano-jit.com missing after regenesis repack"
+    skip_case "run-bootstrap-v4-zero-host-gen38-lispjit-mfc-slice-chain-plan" "nano-jit.com missing after regenesis repack"
     skip_case "run-bootstrap-v4-zero-host-lispjit-from-lisp-final-plan" "nano-jit.com missing after regenesis repack"
   fi
 else
@@ -8538,6 +8589,9 @@ else
   skip_case "run-bootstrap-v4-zero-host-gen33-lispjit-ir-exit-on-full-com-plan" "host nano-lisp-jit missing"
   skip_case "run-bootstrap-v4-zero-host-gen34-lispjit-multi-func-aot-plan" "host nano-lisp-jit missing"
   skip_case "run-bootstrap-v4-zero-host-gen35-lispjit-multi-func-on-full-com-plan" "host nano-lisp-jit missing"
+  skip_case "run-bootstrap-v4-zero-host-gen36-lispjit-multi-func-cf-aot-plan" "host nano-lisp-jit missing"
+  skip_case "run-bootstrap-v4-zero-host-gen37-lispjit-multi-func-cf-on-full-com-plan" "host nano-lisp-jit missing"
+  skip_case "run-bootstrap-v4-zero-host-gen38-lispjit-mfc-slice-chain-plan" "host nano-lisp-jit missing"
   skip_case "run-bootstrap-v4-zero-host-lispjit-from-lisp-final-plan" "host nano-lisp-jit missing"
 fi
 if [ -f "$ZERO_HOST_GEN10_APP" ] && [ -f "$ZERO_HOST_GEN13_COM" ]; then
