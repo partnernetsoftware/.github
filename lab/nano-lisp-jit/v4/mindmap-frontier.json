@@ -435,6 +435,24 @@
       "status": "done",
       "deps": ["zero-host-gen33-lispjit-ir-exit-v1"],
       "accept": ["zero.host.lispjit_from_lisp_track_gates=1"]
+    },
+    {
+      "id": "zero-host-gen34-lispjit-multi-func-aot",
+      "layer": 38,
+      "ring": "Codegen",
+      "goal_dim": "Codegen",
+      "status": "done",
+      "deps": ["lispjit-from-lisp-track-gates"],
+      "accept": ["zero.host.lispjit_from_lisp_multi_func=1"]
+    },
+    {
+      "id": "zero-host-gen35-lispjit-multi-func-full-com",
+      "layer": 39,
+      "ring": "Codegen",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen34-lispjit-multi-func-aot"],
+      "accept": ["zero.host.lispjit_from_lisp_multi_func_on_full_com=1"]
     }
   ]
 }

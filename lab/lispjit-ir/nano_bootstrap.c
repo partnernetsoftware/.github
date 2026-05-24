@@ -760,6 +760,24 @@ static int lispjit_from_lisp_build_linked_tu(const char *out_path, const char *a
   return cmd_file_size(out_path);
 }
 
+static int lispjit_from_lisp_build_multi_func(const char *out_path, const char *arch) {
+  int rc;
+  if (strcmp(arch, "aarch64") == 0 || strcmp(arch, "arm64") == 0) {
+    fprintf(stderr, "lispjit-from-lisp-multi-func=aarch64_unsupported\n");
+    return 2;
+  }
+  if (strcmp(arch, "x86_64") != 0 && strcmp(arch, "amd64") != 0) {
+    fprintf(stderr, "lispjit-from-lisp-multi-func=bad_arch arch=%s\n", arch);
+    return 2;
+  }
+  rc = cmd_compile_elf64_exe("lab/nano-lisp-jit/samples/multi-func.lisp", out_path, "nano_main");
+  if (rc != 0) return rc;
+  printf("build-slice-lisp.mode=multi-func-aot\n");
+  printf("build-slice-lisp.aot.entry=nano_main\n");
+  printf("build-slice-lisp.aot.expect_exit=43\n");
+  return cmd_file_size(out_path);
+}
+
 static int build_slice_use_lispjit_from_lisp(const char *src_path) {
   const char *v;
   if (!build_slice_is_lispjit_c(src_path)) return 0;
@@ -781,6 +799,10 @@ static int build_slice_via_lispjit_from_lisp(const char *src_path, const char *o
   } else if (lispjit_from_lisp_profile_named("ir-exit-v1")) {
     printf("build-slice.lispjit_proxy=ir-exit-v1\n");
     printf("build-slice.lispjit_profile_tier=2\n");
+  } else if (lispjit_from_lisp_profile_named("multi-func")) {
+    printf("build-slice.lispjit_proxy=multi-func\n");
+    printf("build-slice.lispjit_profile_tier=3\n");
+    printf("build-slice.lispjit_aot=multi-func\n");
   } else {
     printf("build-slice.lispjit_proxy=%s\n", profile);
     printf("build-slice.lispjit_profile_tier=1\n");
@@ -789,6 +811,8 @@ static int build_slice_via_lispjit_from_lisp(const char *src_path, const char *o
   printf("build-slice.output=%s\n", out_path);
   if (lispjit_from_lisp_profile_is_linked_tu())
     rc = lispjit_from_lisp_build_linked_tu(out_path, arch);
+  else if (lispjit_from_lisp_profile_named("multi-func"))
+    rc = lispjit_from_lisp_build_multi_func(out_path, arch);
   else
     rc = cmd_build_slice_lisp(profile, out_path, arch);
   return rc;
