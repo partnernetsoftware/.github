@@ -1,9 +1,9 @@
 {
   "next_wave": 225,
   "next_add": 220,
-  "last_tests_pass": 1044,
+  "last_tests_pass": 1100,
   "last_batch": { "lo": 211, "hi": 224 },
-  "status": "running",
-  "updated_at": "2026-05-24T10:40:00.000Z",
-  "notes": "cli-agent batch 211-224: gen + Commander C (agent CLI 无 CURSOR_API_KEY)"
+  "status": "idle",
+  "updated_at": "2026-05-24T11:00:00.000Z",
+  "notes": "cli-agent batch 211-224 gate OK tests.pass=1100 (+56)"
 }

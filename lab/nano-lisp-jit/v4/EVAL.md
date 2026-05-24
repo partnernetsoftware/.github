@@ -667,7 +667,7 @@ gen 211–224 · add206–219 · `v4-agent-diffuse.sh`（需 `CURSOR_API_KEY`；
 | Plan | 一次 gen 扩散 |
 | Codegen | `aarch64.emit.cli.worker=cursor-agent` · `cli.diffuse=1` |
 | Worker | `tools/agent-diffuse/w*.txt` + `agent -p --trust --force` |
-| 终局整体 | **15–22%** | gate 后填 tests.pass |
+| 终局整体 | **15–22%** | gate **1100** (+56) |
 
 ```bash
 python3 lab/nano-lisp-jit/tools/gen-v4-wave-batch.py 211 224

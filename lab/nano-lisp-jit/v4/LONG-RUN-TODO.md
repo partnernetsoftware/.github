@@ -112,7 +112,7 @@ bun run skills/nano-lisp-jit-v4-longrun/nano-lisp-jit-v4-longrun.ts loop --batch
 |----|-----|
 | 下一波 | **225** |
 | 下一 add | **220** |
-| 末次门禁 | tests.pass=**1044** |
+| 末次门禁 | tests.pass=**1100** |
 | 终局粗估 | **15–22%**（[`EVAL.md`](EVAL.md) 最新 §） |
 
 ## 自循环规则
