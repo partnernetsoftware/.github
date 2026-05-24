@@ -7851,7 +7851,7 @@ run_case "run-bootstrap-v4-terminal-boot-diffusion-plan" bash -c '
 '
 run_case "run-bootstrap-v4-terminal-bfs-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && "$RUNNER" run-bootstrap-plan "'"$LAB_DIR"'/samples/bootstrap-v4-terminal-bfs-evidence.lisp" 2>&1 || true
-  { echo "v4.terminal_bfs=1"; echo "v4.terminal_bfs.tracks=LDR,PACK,JIT,AOT,COM,BOOT"; } >> "'"$TERMINAL_BFS_EVIDENCE"'"
+  { echo "v4.terminal_bfs=1"; echo "v4.terminal_bfs.tracks=LDR,PACK,JIT,AOT,COM,BOOT"; } >> "'"$BUILD_DIR"'/v4-terminal-bfs.evidence"
 '
 run_case "run-bootstrap-v4-terminal-build-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && test -f "'"$BOOTSTRAP_REPORT"'"

@@ -1,14 +1,14 @@
 {
   "next_wave": 253,
   "next_add": 248,
-  "last_tests_pass": 1212,
+  "last_tests_pass": 1217,
   "last_batch": { "lo": 225, "hi": 252 },
   "terminal_bfs": {
     "tracks": ["LDR", "PACK", "JIT", "AOT", "COM", "BOOT"],
-    "phase": "spread_done",
+    "phase": "gate_ok",
     "evidence": ".build/v4-terminal-bfs.evidence"
   },
-  "status": "running",
-  "updated_at": "2026-05-24T14:00:00.000Z",
-  "notes": "terminal BFS: goal-aligned breadth-first, not add-N waves"
+  "status": "idle",
+  "updated_at": "2026-05-24T14:30:00.000Z",
+  "notes": "terminal BFS six-track spread; tests.pass +5; payload.load=1"
 }
