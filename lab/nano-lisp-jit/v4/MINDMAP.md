@@ -118,3 +118,10 @@
 ## wave38–40
 
 批量 · SLICE38–40.md
+
+## wave41–43（洋葱 TDD 批量）
+
+```text
+扩散 → run.sh+assess → 修文档圈
+每波 ≤4 轨：A diffusion / B plan / C plan / D evidence
+```

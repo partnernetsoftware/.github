@@ -15,4 +15,7 @@
   (wave 38 "aarch64-scout")
   (wave 39 "ir-table-depth")
   (wave 40 "onion-complete")
+  (wave 41 "emit-manifest")
+  (wave 42 "squad-deep")
+  (wave 43 "mindmap-close")
 )

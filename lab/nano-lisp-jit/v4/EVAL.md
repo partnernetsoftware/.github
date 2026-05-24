@@ -144,3 +144,17 @@
 **方法**：3×四轨扩散 → **一次** `run.sh` → `assess` → 合 main。
 
 **catalog**：`v4-complete` ready=True。
+
+## wave41–43（批量 · 洋葱 TDD · ≤4 并发/波）
+
+| 维度 | wave43 后 | 说明 |
+|------|-----------|------|
+| Plan | ~98% | emit-manifest + squad-deep + mindmap 收束 |
+| Codegen | ~36% | add36–38 verified 整表 |
+| 编排 | ~33% | S3 链 + assess bundle |
+| 构建 | ~45% | 三波 diffusion |
+| 终局整体 | **15–22%** | catalog≠零宿主；emit 开卷才抬终局 |
+
+**方法**：扩散（3×四轨 plan 族）→ **一次** `bash lab/nano-lisp-jit/run.sh` → `assess` → 洋葱文档（MINDMAP/SLICE）→ 合 **main** 带本表。
+
+**catalog**：`v4-complete` scoped=100% terminal=100% ready=True。
