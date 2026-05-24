@@ -106,3 +106,5 @@
 | wave86–88 | runner-plan + squad-evidence + onion-mindmap-close 续批 | add81–83 |
 | wave92–97 | skill longrun 2 批 apply 全绿 | add87–92 |
 | wave98–103 | evidence/terminal/ir-words/post-v4/orchestration | add93–98；指针 104 |
+| **turbo 慢因** | 每批全量 `run.sh`（600+ case）+ 外圈 plan 证据 ≠ Runner/Codegen 实质 | ✅ `--gate-every N` + bootstrap stamp skip build |
+| wave104–112 | runner/emit/codegen 续批 + turbo-skill 证据 | add99–107；指针 113 |

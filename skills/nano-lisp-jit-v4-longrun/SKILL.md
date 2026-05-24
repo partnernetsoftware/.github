@@ -32,9 +32,9 @@ bun run skills/nano-lisp-jit-v4-longrun/nano-lisp-jit-v4-longrun.ts show
 bun run skills/nano-lisp-jit-v4-longrun/nano-lisp-jit-v4-longrun.ts apply 92 94
 bun run skills/nano-lisp-jit-v4-longrun/nano-lisp-jit-v4-longrun.ts gate
 
-# 长驱 /loop
+# 长驱 /loop（turbo：3 批 apply 后 1 次 gate）
 bun run skills/nano-lisp-jit-v4-longrun/nano-lisp-jit-v4-longrun.ts loop \
-  --batches 3 --goal wave95 --timeout 7200
+  --batches 3 --gate-every 3 --goal wave112 --timeout 7200
 ```
 
 ## 分工

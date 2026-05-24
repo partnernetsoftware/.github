@@ -12,6 +12,8 @@ export type LoopOpts = {
   goal: string;
   retries: number;
   autoCommit: boolean;
+  /** 每 N 批 apply 后才跑一次 gate（turbo：3 批 9 波 ≈ 1 次 run.sh） */
+  gateEvery: number;
 };
 
 function log(msg: string): void {
@@ -43,24 +45,24 @@ function goalMet(nextWave: number, goal: string): boolean {
   return m ? nextWave > parseInt(m[1]!, 10) : false;
 }
 
-async function tryBatch(lo: number, hi: number, retries: number): Promise<void> {
+async function applyRange(lo: number, hi: number): Promise<void> {
+  for (let w = lo; w <= hi; w += 3) {
+    const batchHi = Math.min(w + 2, hi);
+    await applyBatch(w, batchHi);
+  }
+}
+
+async function tryTurboGate(lo: number, hi: number, retries: number): Promise<void> {
   for (let a = 1; a <= retries; a++) {
     try {
-      await applyBatch(lo, hi);
-    } catch (e) {
-      log(`apply warn: ${e}`);
-    }
-    try {
-      await runGate();
+      await runGate({ forceBuild: a === 1 });
       return;
     } catch {
-      log(`gate fail attempt ${a} — cc repair`);
+      log(`gate fail attempt ${a} — cc repair ${lo}-${hi}`);
       await runCcRepair(lo, hi);
-      await runGate();
-      return;
     }
   }
-  throw new Error(`batch ${lo}-${hi} failed after ${retries} retries`);
+  throw new Error(`gate ${lo}-${hi} failed after ${retries} retries`);
 }
 
 async function commitBatch(lo: number, hi: number, tp: number): Promise<void> {
@@ -70,7 +72,7 @@ async function commitBatch(lo: number, hi: number, tp: number): Promise<void> {
     log("nothing to commit");
     return;
   }
-  await $`git commit -m ${`v4 wave${lo}-${hi}: longrun skill (tests.pass=${tp})`}`.cwd(repoRoot);
+  await $`git commit -m ${`v4 wave${lo}-${hi}: turbo longrun (tests.pass=${tp})`}`.cwd(repoRoot);
   await $`git push -u origin ${await currentBranch()}`.cwd(repoRoot).nothrow();
 }
 
@@ -88,19 +90,27 @@ export async function runLoop(opts: LoopOpts): Promise<void> {
       if ((Date.now() - start) / 1000 >= opts.timeoutSec) {
         throw new Error(`timeout ${opts.timeoutSec}s`);
       }
+      const burst = Math.min(opts.gateEvery, opts.batches - done);
       const lo = loadState().next_wave;
-      const hi = lo + 2;
-      if (goalMet(lo, opts.goal)) {
-        log(`GOAL ${opts.goal} met`);
-        return;
+      let hi = lo + 2;
+      log(`turbo burst ${burst} batch(es) from wave ${lo}`);
+      for (let b = 0; b < burst; b++) {
+        if (goalMet(lo + b * 3, opts.goal)) {
+          log(`GOAL ${opts.goal} met`);
+          return;
+        }
+        const batchLo = lo + b * 3;
+        const batchHi = batchLo + 2;
+        log(`  apply ${batchLo}-${batchHi}`);
+        await applyBatch(batchLo, batchHi);
+        hi = batchHi;
+        done++;
       }
-      log(`batch ${done + 1}/${opts.batches} waves ${lo}-${hi}`);
-      await tryBatch(lo, hi, opts.retries);
+      await tryTurboGate(lo, hi, opts.retries);
       const tp = readTestsPass();
       bumpState(lo, hi, tp);
       if (opts.autoCommit) await commitBatch(lo, hi, tp);
       log(`OK tests.pass=${tp} next_wave=${hi + 1}`);
-      done++;
     }
     log(`LOOP_OK batches=${done} next=${loadState().next_wave}`);
   } catch (e) {

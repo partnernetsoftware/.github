@@ -656,6 +656,168 @@ WAVES = {
         b_test="samples/bootstrap-v4-squad-orchestration-bundle.lisp",
         c_test="v4/SQUAD.md",
     ),
+    104: dict(
+        title="runner-scout-resume",
+        a=82,
+        b_track="runner",
+        c_track="codegen",
+        b_files=[
+            "samples/bootstrap-v4-wave62-runner-tick.lisp",
+            "samples/bootstrap-v4-wave86-runner-tick.lisp",
+            "v4/SLICE62.md",
+        ],
+        c_files=[
+            "samples/bootstrap-v4-wave61-codegen-tick.lisp",
+            "samples/bootstrap-v4-codegen-kickoff.lisp",
+            "v4/SLICE41.md",
+        ],
+        b_test="samples/bootstrap-v4-wave62-runner-tick.lisp",
+        c_test="samples/bootstrap-v4-codegen-kickoff.lisp",
+    ),
+    105: dict(
+        title="emit-lowering-chain",
+        a=83,
+        b_track="emit",
+        c_track="runner",
+        b_files=[
+            "samples/bootstrap-v4-wave65-emit-tick.lisp",
+            "samples/bootstrap-v4-codegen-kickoff.lisp",
+            "v4/SLICE65.md",
+        ],
+        c_files=[
+            "samples/bootstrap-v4-wave62-runner-tick.lisp",
+            "v4/LISP-ONLY.md",
+            "v4/DECISION.md",
+        ],
+        b_test="samples/bootstrap-v4-wave65-emit-tick.lisp",
+        c_test="v4/LISP-ONLY.md",
+    ),
+    106: dict(
+        title="codegen-table-resume",
+        a=84,
+        b_track="codegen",
+        c_track="emit",
+        b_files=[
+            "samples/bootstrap-v4-wave61-codegen-tick.lisp",
+            "samples/v4-ir-table-v1.lisp",
+            "v4/SLICE61.md",
+        ],
+        c_files=[
+            "samples/bootstrap-v4-wave65-emit-tick.lisp",
+            "samples/bootstrap-v4-codegen-kickoff.lisp",
+            "v4/SLICE65.md",
+        ],
+        b_test="samples/v4-ir-table-v1.lisp",
+        c_test="samples/bootstrap-v4-codegen-kickoff.lisp",
+    ),
+    107: dict(
+        title="runner-plan-v2",
+        a=85,
+        b_track="runner",
+        c_track="lisponly",
+        b_files=[
+            "samples/bootstrap-v4-wave86-runner-tick.lisp",
+            "samples/bootstrap-v4-wave62-runner-tick.lisp",
+            "v4/SLICE86.md",
+        ],
+        c_files=[
+            "samples/bootstrap-v4-wave64-lisponly-tick.lisp",
+            "samples/bootstrap-v4-lisp-only-tick.lisp",
+            "v4/LISP-ONLY.md",
+        ],
+        b_test="samples/bootstrap-v4-wave86-runner-tick.lisp",
+        c_test="v4/LISP-ONLY.md",
+    ),
+    108: dict(
+        title="emit-manifest-v2",
+        a=86,
+        b_track="emit",
+        c_track="codegen",
+        b_files=[
+            "samples/bootstrap-v4-wave65-emit-tick.lisp",
+            "samples/bootstrap-v4-codegen-kickoff.lisp",
+            "v4/SLICE65.md",
+        ],
+        c_files=[
+            "samples/bootstrap-v4-wave61-codegen-tick.lisp",
+            "samples/v4-ir-table-v1.lisp",
+            "v4/SLICE61.md",
+        ],
+        b_test="samples/bootstrap-v4-wave65-emit-tick.lisp",
+        c_test="samples/v4-ir-table-v1.lisp",
+    ),
+    109: dict(
+        title="codegen-milestone-3",
+        a=87,
+        b_track="codegen",
+        c_track="emit",
+        b_files=[
+            "samples/bootstrap-v4-wave61-codegen-tick.lisp",
+            "samples/bootstrap-v4-codegen-kickoff.lisp",
+            "v4/SLICE61.md",
+        ],
+        c_files=[
+            "samples/bootstrap-v4-wave65-emit-tick.lisp",
+            "samples/bootstrap-v4-codegen-kickoff.lisp",
+            "v4/SLICE65.md",
+        ],
+        b_test="samples/bootstrap-v4-wave61-codegen-tick.lisp",
+        c_test="samples/bootstrap-v4-wave65-emit-tick.lisp",
+    ),
+    110: dict(
+        title="runner-lisp-bridge",
+        a=88,
+        b_track="runner",
+        c_track="irtable",
+        b_files=[
+            "samples/bootstrap-v4-wave62-runner-tick.lisp",
+            "samples/bootstrap-v4-wave56-irtable-tick.lisp",
+            "v4/SLICE56.md",
+        ],
+        c_files=[
+            "samples/v4-ir-table-v1.lisp",
+            "samples/v4-ir-words-v2.txt",
+            "v4/SLICE44.md",
+        ],
+        b_test="samples/bootstrap-v4-wave62-runner-tick.lisp",
+        c_test="samples/v4-ir-table-v1.lisp",
+    ),
+    111: dict(
+        title="turbo-skill-evidence",
+        a=89,
+        b_track="longrun",
+        c_track="reflection",
+        b_files=[
+            "v4/LONG-RUN-TODO.md",
+            "v4/longrun-state.json",
+            "v4/MINDMAP.md",
+        ],
+        c_files=[
+            "v4/REFLECTION.md",
+            "v4/PROGRESS.md",
+            "v4/EVAL.md",
+        ],
+        b_test="v4/LONG-RUN-TODO.md",
+        c_test="v4/REFLECTION.md",
+    ),
+    112: dict(
+        title="terminal-runner-codegen",
+        a=90,
+        b_track="runner",
+        c_track="codegen",
+        b_files=[
+            "samples/bootstrap-v4-wave95-runner-tick.lisp",
+            "samples/bootstrap-v4-wave62-runner-tick.lisp",
+            "v4/SLICE95.md",
+        ],
+        c_files=[
+            "samples/bootstrap-v4-wave61-codegen-tick.lisp",
+            "samples/bootstrap-v4-codegen-kickoff.lisp",
+            "v4/SLICE41.md",
+        ],
+        b_test="samples/bootstrap-v4-wave95-runner-tick.lisp",
+        c_test="samples/bootstrap-v4-codegen-kickoff.lisp",
+    ),
 }
 
 
@@ -772,6 +934,7 @@ run_case "run-bootstrap-v4-slice{w}-evidence-plan" bash -c '
     block = "\n".join(vars_lines) + "\n"
     if f"V4_SLICE{meta[0]['wave']}_ADD" not in run:
         for anchor in (
+            'V4_SLICE103_EVIDENCE="$BUILD_DIR/v4-slice103.evidence"\n',
             'V4_SLICE97_EVIDENCE="$BUILD_DIR/v4-slice97.evidence"\n',
             'V4_SLICE91_EVIDENCE="$BUILD_DIR/v4-slice91.evidence"\n',
             'V4_SLICE88_EVIDENCE="$BUILD_DIR/v4-slice88.evidence"\n',
@@ -788,6 +951,7 @@ run_case "run-bootstrap-v4-slice{w}-evidence-plan" bash -c '
     ins = "".join(cases)
     if f"run-bootstrap-v4-wave{meta[0]['wave']}-diffusion-plan" not in run:
         for marker in (
+            'run_case "run-bootstrap-v4-slice103-evidence-plan"',
             'run_case "run-bootstrap-v4-slice97-evidence-plan"',
             'run_case "run-bootstrap-v4-slice91-evidence-plan"',
             'run_case "run-bootstrap-v4-slice88-evidence-plan"',

@@ -16,7 +16,7 @@ import { loadState, syncTodo, setStatus, bumpState } from "./lib/state.ts";
 
 function usage(): never {
   console.log(`commands: show | sync | apply LO HI | gate | bump LO HI TP | loop [opts]
-loop opts: --batches N --goal waveN|terminal --timeout SEC --retries N --no-commit`);
+loop opts: --batches N --gate-every N --goal waveN|terminal --timeout SEC --retries N --no-commit`);
   process.exit(1);
 }
 
@@ -27,10 +27,12 @@ function parseLoopArgs(args: string[]): LoopOpts {
     goal: process.env.V4_LONGRUN_GOAL ?? "",
     retries: parseInt(process.env.V4_LONGRUN_RETRIES ?? "2", 10),
     autoCommit: process.env.V4_LONGRUN_COMMIT !== "0",
+    gateEvery: parseInt(process.env.V4_LONGRUN_GATE_EVERY ?? "1", 10),
   };
   for (let i = 0; i < args.length; i++) {
     const a = args[i];
     if (a === "--batches") opts.batches = parseInt(args[++i]!, 10);
+    else if (a === "--gate-every") opts.gateEvery = parseInt(args[++i]!, 10);
     else if (a === "--goal") opts.goal = args[++i] ?? "";
     else if (a === "--timeout") opts.timeoutSec = parseInt(args[++i]!, 10);
     else if (a === "--retries") opts.retries = parseInt(args[++i]!, 10);
