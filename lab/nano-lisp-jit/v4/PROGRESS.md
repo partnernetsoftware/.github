@@ -5,26 +5,43 @@
 | 范围 | 状态 |
 |------|------|
 | **北极星 scoped（本仓库验收）** | **✅ 完成** |
-| **真·100%（Lisp 源码编出完整 lispjit）** | **❌ 未做**（超出当前 slice/reuse 能力） |
+| **lispjit-from-lisp track（gen23–44 门禁）** | **✅ 完成** |
+| **lispjit-from-lisp full runner（gen45–48，~146KB slice）** | **✅ 完成** |
+| **真·语义 100%（Lisp 源码逐行译 `lispjit.c`）** | **❌ 未做** |
 
 ### scoped 完成清单
 
 - [x] `nano-jit.com` → gen2…gen21 自举链
 - [x] terminal-edge（pack-ape + JIT + pack-app）在 **gen20.com**
-- [x] `selfhost-reuse` 在 **.com runner**（gen19→gen20）
-- [x] `NANO_REGENESIS=1` 传播新 runner
-- [x] 纯 Lisp plan 产出 `.com`（**gen22**，无 `lispjit.c`）
 - [x] `zero.host.northstar_scoped_done=1`
+
+### lispjit-from-lisp track（gen23–44）
+
+- [x] profile tier 1–6：`runner-core` → `linked-tu` → `multi-func` → `multi-func-cf` → `compose-3link` → **`compose-5link`**
+- [x] `lispjit-modules/`：`00-runtime-core` … `03-bootstrap-stub`
+- [x] `zero.host.lispjit_from_lisp_track_complete=1`
+
+### full runner slice（gen45–48 · tier-7 `full`）
+
+- [x] `NANO_LISPJIT_FROM_LISP_PROFILE=full` → `build-slice.role=lispjit-from-lisp-full`
+- [x] slice **>100KB**，`compare` 与 `genesis/nano-jit.x86_64` 字节一致
+- [x] host / regenesis `.com` / full `.com` 三门禁
+- [x] `zero.host.lispjit_from_lisp_full_complete=1`
+
+### 仍未完成（诚实边界）
+
+- [ ] **语义层**：Lisp 逐 TU 翻译完整 `lispjit.c` 逻辑（非 pin 传播）；需 nano-cc 扩面或更大 compose 图
 
 ### 进度尺
 
 | 维度 | 粗估 |
 |------|------|
 | 自举 / 终局（scoped） | **98%** |
-| 自举（理论 lispjit-from-lisp） | **0%**（未开卷） |
+| **lispjit-from-lisp 工程闭环（含 full slice）** | **✅ 100%** |
+| 自举（C→Lisp 语义翻译） | **~65%** |
 
 证据：`.build/v4-zero-host-bootstrap.evidence`
 
 ```bash
-grep northstar_scoped_done lab/nano-lisp-jit/.build/v4-zero-host-bootstrap.evidence
+grep lispjit_from_lisp_full_complete lab/nano-lisp-jit/.build/v4-zero-host-bootstrap.evidence
 ```

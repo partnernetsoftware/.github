@@ -1,6 +1,6 @@
 {
   "ssot": "v4/MINDMAP.md",
-  "updated_at": "2026-05-24T16:30:00Z",
+  "updated_at": "2026-05-25T00:30:00Z",
   "max_parallel": 4,
   "nodes": [
     {
@@ -336,6 +336,249 @@
       "status": "done",
       "deps": ["zero-host-gen22-lisp-only-com"],
       "accept": ["zero.host.northstar_scoped_done=1"]
+    },
+    {
+      "id": "zero-host-gen23-lispjit-from-lisp",
+      "layer": 27,
+      "ring": "Codegen",
+      "goal_dim": "Codegen",
+      "status": "done",
+      "deps": ["northstar-scoped-done"],
+      "accept": ["zero.host.lispjit_from_lisp=1", "build-slice.role=lispjit-from-lisp"]
+    },
+    {
+      "id": "zero-host-gen24-lispjit-from-lisp-via-com",
+      "layer": 28,
+      "ring": "Codegen",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen23-lispjit-from-lisp"],
+      "accept": ["zero.host.lispjit_from_lisp_on_com=1", "zero.host.lispjit_from_lisp_regenesis=1"]
+    },
+    {
+      "id": "zero-host-gen26-lispjit-from-lisp-on-com-runner",
+      "layer": 29,
+      "ring": "Codegen",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen24-lispjit-from-lisp-via-com"],
+      "accept": ["zero.host.lispjit_from_lisp_on_com_runner=1"]
+    },
+    {
+      "id": "zero-host-gen27-lispjit-terminal",
+      "layer": 30,
+      "ring": "终局",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen26-lispjit-from-lisp-on-com-runner"],
+      "accept": ["zero.host.lispjit_from_lisp_terminal=1"]
+    },
+    {
+      "id": "zero-host-gen28-lispjit-linked-tu",
+      "layer": 31,
+      "ring": "Codegen",
+      "goal_dim": "Codegen",
+      "status": "done",
+      "deps": ["zero-host-gen27-lispjit-terminal"],
+      "accept": ["zero.host.lispjit_from_lisp_linked_tu=1"]
+    },
+    {
+      "id": "zero-host-gen29-lispjit-chain",
+      "layer": 32,
+      "ring": "自举",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen28-lispjit-linked-tu"],
+      "accept": ["zero.host.lispjit_from_lisp_chain=1"]
+    },
+    {
+      "id": "zero-host-gen30-lispjit-full-com",
+      "layer": 33,
+      "ring": "自举",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen29-lispjit-chain"],
+      "accept": ["zero.host.lispjit_from_lisp_on_full_com=1"]
+    },
+    {
+      "id": "zero-host-gen31-lispjit-partial-northstar",
+      "layer": 34,
+      "ring": "终局",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen30-lispjit-full-com"],
+      "accept": ["zero.host.lispjit_from_lisp_partial_northstar=1"]
+    },
+    {
+      "id": "zero-host-gen32-lispjit-terminal-full-com",
+      "layer": 35,
+      "ring": "终局",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen31-lispjit-partial-northstar"],
+      "accept": ["zero.host.lispjit_from_lisp_terminal_on_full_com=1"]
+    },
+    {
+      "id": "zero-host-gen33-lispjit-ir-exit-v1",
+      "layer": 36,
+      "ring": "Codegen",
+      "goal_dim": "Codegen",
+      "status": "done",
+      "deps": ["zero-host-gen32-lispjit-terminal-full-com"],
+      "accept": ["zero.host.lispjit_from_lisp_ir_exit_v1=1"]
+    },
+    {
+      "id": "lispjit-from-lisp-track-gates",
+      "layer": 37,
+      "ring": "证据",
+      "goal_dim": "Plan",
+      "status": "done",
+      "deps": ["zero-host-gen33-lispjit-ir-exit-v1"],
+      "accept": ["zero.host.lispjit_from_lisp_track_gates=1"]
+    },
+    {
+      "id": "zero-host-gen34-lispjit-multi-func-aot",
+      "layer": 38,
+      "ring": "Codegen",
+      "goal_dim": "Codegen",
+      "status": "done",
+      "deps": ["lispjit-from-lisp-track-gates"],
+      "accept": ["zero.host.lispjit_from_lisp_multi_func=1"]
+    },
+    {
+      "id": "zero-host-gen35-lispjit-multi-func-full-com",
+      "layer": 39,
+      "ring": "Codegen",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen34-lispjit-multi-func-aot"],
+      "accept": ["zero.host.lispjit_from_lisp_multi_func_on_full_com=1"]
+    },
+    {
+      "id": "zero-host-gen36-lispjit-multi-func-cf",
+      "layer": 40,
+      "ring": "Codegen",
+      "goal_dim": "Codegen",
+      "status": "done",
+      "deps": ["zero-host-gen35-lispjit-multi-func-full-com"],
+      "accept": ["zero.host.lispjit_from_lisp_multi_func_cf=1"]
+    },
+    {
+      "id": "zero-host-gen37-lispjit-multi-func-cf-full-com",
+      "layer": 41,
+      "ring": "Codegen",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen36-lispjit-multi-func-cf"],
+      "accept": ["zero.host.lispjit_from_lisp_multi_func_cf_on_full_com=1"]
+    },
+    {
+      "id": "zero-host-gen38-lispjit-mfc-chain",
+      "layer": 42,
+      "ring": "自举",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen37-lispjit-multi-func-cf-full-com"],
+      "accept": ["zero.host.lispjit_from_lisp_mfc_chain=1"]
+    },
+    {
+      "id": "zero-host-gen39-lispjit-compose-3link",
+      "layer": 43,
+      "ring": "Codegen",
+      "goal_dim": "Codegen",
+      "status": "done",
+      "deps": ["zero-host-gen38-lispjit-mfc-chain"],
+      "accept": ["zero.host.lispjit_from_lisp_compose_3link=1"]
+    },
+    {
+      "id": "zero-host-gen40-lispjit-compose-full-com",
+      "layer": 44,
+      "ring": "自举",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen39-lispjit-compose-3link"],
+      "accept": ["zero.host.lispjit_from_lisp_compose_on_full_com=1"]
+    },
+    {
+      "id": "zero-host-gen41-lispjit-mod-runtime",
+      "layer": 45,
+      "ring": "Codegen",
+      "goal_dim": "Codegen",
+      "status": "done",
+      "deps": ["zero-host-gen40-lispjit-compose-full-com"],
+      "accept": ["zero.host.lispjit_from_lisp_mod_runtime=1"]
+    },
+    {
+      "id": "zero-host-gen41b-lispjit-mod-compile",
+      "layer": 46,
+      "ring": "Codegen",
+      "goal_dim": "Codegen",
+      "status": "done",
+      "deps": ["zero-host-gen41-lispjit-mod-runtime"],
+      "accept": ["zero.host.lispjit_from_lisp_mod_compile=1"]
+    },
+    {
+      "id": "zero-host-gen42-lispjit-compose-5link",
+      "layer": 47,
+      "ring": "Codegen",
+      "goal_dim": "Codegen",
+      "status": "done",
+      "deps": ["zero-host-gen41b-lispjit-mod-compile"],
+      "accept": ["zero.host.lispjit_from_lisp_compose_5link=1"]
+    },
+    {
+      "id": "zero-host-gen43-lispjit-compose-5link-full-com",
+      "layer": 48,
+      "ring": "自举",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen42-lispjit-compose-5link"],
+      "accept": ["zero.host.lispjit_from_lisp_compose_5link_on_full_com=1"]
+    },
+    {
+      "id": "lispjit-from-lisp-track-complete",
+      "layer": 49,
+      "ring": "终局",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen43-lispjit-compose-5link-full-com"],
+      "accept": ["zero.host.lispjit_from_lisp_track_complete=1"]
+    },
+    {
+      "id": "zero-host-gen45-lispjit-full-slice",
+      "layer": 50,
+      "ring": "终局",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["lispjit-from-lisp-track-complete"],
+      "accept": ["zero.host.lispjit_from_lisp_full_slice=1", "build-slice.role=lispjit-from-lisp-full"]
+    },
+    {
+      "id": "zero-host-gen46-lispjit-full-on-com",
+      "layer": 51,
+      "ring": "自举",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen45-lispjit-full-slice"],
+      "accept": ["zero.host.lispjit_from_lisp_full_on_com=1"]
+    },
+    {
+      "id": "zero-host-gen47-lispjit-full-on-full-com",
+      "layer": 52,
+      "ring": "自举",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen46-lispjit-full-on-com"],
+      "accept": ["zero.host.lispjit_from_lisp_full_on_full_com=1"]
+    },
+    {
+      "id": "lispjit-from-lisp-full-complete",
+      "layer": 53,
+      "ring": "终局",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen47-lispjit-full-on-full-com"],
+      "accept": ["zero.host.lispjit_from_lisp_full_complete=1"]
     }
   ]
 }

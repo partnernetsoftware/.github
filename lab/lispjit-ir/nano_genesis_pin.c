@@ -27,7 +27,10 @@ static int build_slice_allow_host_cc(void) {
 
 static int build_slice_use_selfhost_reuse(const char *src_path) {
   const char *v;
+  const char *lispjit_lisp;
   if (!build_slice_is_lispjit_c(src_path)) return 0;
+  lispjit_lisp = getenv("NANO_LISPJIT_FROM_LISP");
+  if (lispjit_lisp && lispjit_lisp[0] == '1' && lispjit_lisp[1] == '\0') return 0;
   v = getenv("NANO_BUILD_SLICE_SELFHOST_REUSE");
   return v && v[0] == '1' && v[1] == '\0';
 }

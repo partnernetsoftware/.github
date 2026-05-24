@@ -214,7 +214,76 @@ ZERO_HOST_GEN21_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-gen21-terminal-via-
 ZERO_HOST_GEN21_APP="$BUILD_DIR/nano-jit/selfhost/zero-host-gen21-app.com"
 ZERO_HOST_GEN22_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-gen22-lisp-only-com.lisp"
 ZERO_HOST_GEN22_COM="$BUILD_DIR/nano-jit/selfhost/zero-host-gen22-lisp-only.com"
+ZERO_HOST_GEN23_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-gen23-lispjit-from-lisp.lisp"
+ZERO_HOST_GEN23_SLICE_X86="$BUILD_DIR/nano-jit/selfhost/zero-host-gen23-slice-x86.elf"
+ZERO_HOST_GEN23_COM="$BUILD_DIR/nano-jit/selfhost/zero-host-gen23-lispjit-lisp.com"
+ZERO_HOST_GEN24_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-gen24-lispjit-from-lisp-via-com.lisp"
+ZERO_HOST_GEN24_COM="$BUILD_DIR/nano-jit/selfhost/zero-host-gen24-nano-jit.com"
+ZERO_HOST_GEN24_SLICE_X86="$BUILD_DIR/nano-jit/selfhost/zero-host-gen24-slice-x86.elf"
+ZERO_HOST_GEN26_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-gen26-lispjit-from-lisp-on-gen25-com.lisp"
+ZERO_HOST_GEN26_SLICE_X86="$BUILD_DIR/nano-jit/selfhost/zero-host-gen26-slice-x86.elf"
+ZERO_HOST_GEN27_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-gen27-lispjit-from-lisp-terminal.lisp"
+ZERO_HOST_GEN27_APP="$BUILD_DIR/nano-jit/selfhost/zero-host-gen27-app.com"
+ZERO_HOST_GEN28_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-gen28-lispjit-from-lisp-linked-tu.lisp"
+ZERO_HOST_GEN28_SLICE_X86="$BUILD_DIR/nano-jit/selfhost/zero-host-gen28-slice-x86.elf"
+ZERO_HOST_GEN29A_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-gen29a-lispjit-from-lisp-slice.lisp"
+ZERO_HOST_GEN29B_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-gen29b-lispjit-slice-reuse-pack.lisp"
+ZERO_HOST_GEN29_SLICE="$BUILD_DIR/nano-jit/selfhost/zero-host-gen29-lisp-slice-x86.elf"
+ZERO_HOST_GEN29_COM="$BUILD_DIR/nano-jit/selfhost/zero-host-gen29-chain.com"
+ZERO_HOST_GEN27_SLICE_AARCH64="$BUILD_DIR/nano-jit/selfhost/zero-host-gen27-slice-aarch64.elf"
+ZERO_HOST_GEN30B_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-gen30b-regenesis-full-com-via-reuse.lisp"
+ZERO_HOST_GEN30_FULL_COM="$BUILD_DIR/nano-jit/selfhost/zero-host-gen30-full-nano-jit.com"
+ZERO_HOST_GEN30C_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-gen30c-lispjit-from-lisp-on-full-com.lisp"
+ZERO_HOST_GEN30C_SLICE="$BUILD_DIR/nano-jit/selfhost/zero-host-gen30c-slice-x86.elf"
+ZERO_HOST_GEN31_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-gen31-lispjit-from-lisp-partial-northstar.lisp"
+ZERO_HOST_GEN31_APP="$BUILD_DIR/nano-jit/selfhost/zero-host-gen31-app.com"
+ZERO_HOST_GEN32_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-gen32-lispjit-terminal-on-full-com.lisp"
+ZERO_HOST_GEN32_APP="$BUILD_DIR/nano-jit/selfhost/zero-host-gen32-app.com"
+ZERO_HOST_GEN33_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-gen33-lispjit-ir-exit-on-full-com.lisp"
+ZERO_HOST_GEN33_SLICE="$BUILD_DIR/nano-jit/selfhost/zero-host-gen33-slice-x86.elf"
+ZERO_HOST_GEN34_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-gen34-lispjit-multi-func-aot.lisp"
+ZERO_HOST_GEN34_SLICE="$BUILD_DIR/nano-jit/selfhost/zero-host-gen34-slice-x86.elf"
+ZERO_HOST_GEN35_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-gen35-lispjit-multi-func-on-full-com.lisp"
+ZERO_HOST_GEN35_SLICE="$BUILD_DIR/nano-jit/selfhost/zero-host-gen35-slice-x86.elf"
+ZERO_HOST_GEN36_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-gen36-lispjit-multi-func-cf-aot.lisp"
+ZERO_HOST_GEN36_SLICE="$BUILD_DIR/nano-jit/selfhost/zero-host-gen36-slice-x86.elf"
+ZERO_HOST_GEN37_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-gen37-lispjit-multi-func-cf-on-full-com.lisp"
+ZERO_HOST_GEN37_SLICE="$BUILD_DIR/nano-jit/selfhost/zero-host-gen37-slice-x86.elf"
+ZERO_HOST_GEN38A_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-gen38a-lispjit-mfc-slice.lisp"
+ZERO_HOST_GEN38B_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-gen38b-lispjit-mfc-slice-reuse-pack.lisp"
+ZERO_HOST_GEN38_SLICE="$BUILD_DIR/nano-jit/selfhost/zero-host-gen38-mfc-slice-x86.elf"
+ZERO_HOST_GEN38_COM="$BUILD_DIR/nano-jit/selfhost/zero-host-gen38-chain.com"
+ZERO_HOST_GEN39_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-gen39-lispjit-compose-3link.lisp"
+ZERO_HOST_GEN39_SLICE="$BUILD_DIR/nano-jit/selfhost/zero-host-gen39-slice-x86.elf"
+ZERO_HOST_GEN40_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-gen40-lispjit-compose-on-full-com.lisp"
+ZERO_HOST_GEN40_SLICE="$BUILD_DIR/nano-jit/selfhost/zero-host-gen40-slice-x86.elf"
+ZERO_HOST_GEN41_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-gen41-lispjit-mod-runtime.lisp"
+ZERO_HOST_GEN41_SLICE="$BUILD_DIR/nano-jit/selfhost/zero-host-gen41-slice-x86.elf"
+ZERO_HOST_GEN41B_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-gen41b-lispjit-mod-compile.lisp"
+ZERO_HOST_GEN41B_SLICE="$BUILD_DIR/nano-jit/selfhost/zero-host-gen41b-compile-slice-x86.elf"
+ZERO_HOST_GEN42_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-gen42-lispjit-compose-5link.lisp"
+ZERO_HOST_GEN42_SLICE="$BUILD_DIR/nano-jit/selfhost/zero-host-gen42-slice-x86.elf"
+ZERO_HOST_GEN43_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-gen43-lispjit-compose-5link-on-full-com.lisp"
+ZERO_HOST_GEN43_SLICE="$BUILD_DIR/nano-jit/selfhost/zero-host-gen43-slice-x86.elf"
+ZERO_HOST_GEN44_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-gen44-lispjit-from-lisp-track-complete.lisp"
+ZERO_HOST_GEN44_APP="$BUILD_DIR/nano-jit/selfhost/zero-host-gen44-app.com"
+ZERO_HOST_GEN45_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-gen45-lispjit-full-slice.lisp"
+ZERO_HOST_GEN45_SLICE="$BUILD_DIR/nano-jit/selfhost/zero-host-gen45-full-slice-x86.elf"
+ZERO_HOST_GEN46_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-gen46-lispjit-full-on-com.lisp"
+ZERO_HOST_GEN46_SLICE="$BUILD_DIR/nano-jit/selfhost/zero-host-gen46-full-slice-x86.elf"
+ZERO_HOST_GEN47_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-gen47-lispjit-full-on-full-com.lisp"
+ZERO_HOST_GEN47_SLICE="$BUILD_DIR/nano-jit/selfhost/zero-host-gen47-full-slice-x86.elf"
+ZERO_HOST_GEN48_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-gen48-lispjit-from-lisp-full-complete.lisp"
+ZERO_HOST_GEN48_SLICE="$BUILD_DIR/nano-jit/selfhost/zero-host-gen48-full-slice-x86.elf"
+ZERO_HOST_GEN48_APP="$BUILD_DIR/nano-jit/selfhost/zero-host-gen48-app.com"
+ZERO_HOST_LISPJIT_MOD_RUNTIME="$LAB_DIR/samples/lispjit-modules/00-runtime-core.lisp"
+ZERO_HOST_LISPJIT_MOD_COMPILE="$LAB_DIR/samples/lispjit-modules/02-compile.lisp"
+ZERO_HOST_LISPJIT_FINAL_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-lispjit-from-lisp-final.lisp"
+ZERO_HOST_REGENESIS_X86="$BUILD_DIR/nano-jit/nano-jit.x86_64"
+ZERO_HOST_LISPJIT_PROFILE="$LAB_DIR/samples/nano-jit-runner-core.lisp"
+GENESIS_AARCH64_PIN="$LAB_DIR/genesis/nano-jit.aarch64"
 ZERO_HOST_NORTHSTAR_FINAL_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-northstar-final.lisp"
+HOST_NANO_LISP_JIT="$LAB_DIR/.build/nano-lisp-jit"
 ZERO_HOST_EVIDENCE="$BUILD_DIR/v4-zero-host-bootstrap.evidence"
 NANO_JIT_COM="$BUILD_DIR/nano-jit/nano-jit.com"
 BOOTSTRAP_V4_SLICE16_PLAN_WORDS_SRC="$LAB_DIR/samples/bootstrap-v4-slice16-plan-words.lisp"
@@ -8315,6 +8384,394 @@ if [ -f "$ZERO_HOST_GEN20_COM" ] && host_is_linux_x86_64; then
 else
   skip_case "run-bootstrap-v4-zero-host-gen22-lisp-only-com-plan" "zero-host-gen20-nano-jit.com missing"
   skip_case "run-bootstrap-v4-zero-host-northstar-final-plan" "zero-host-gen20-nano-jit.com missing"
+fi
+if [ -f "$HOST_NANO_LISP_JIT" ] && host_is_linux_x86_64; then
+  run_case "run-bootstrap-v4-zero-host-gen23-lispjit-from-lisp-plan" bash -c '
+    cd "'"$ROOT_DIR"'" && test -f "'"$ZERO_HOST_LISPJIT_PROFILE"'"
+    out=$(NANO_LISPJIT_FROM_LISP=1 "'"$HOST_NANO_LISP_JIT"'" run-bootstrap-plan "'"$ZERO_HOST_GEN23_SRC"'" 2>&1) || true
+    test -f "'"$ZERO_HOST_GEN23_SLICE_X86"'"
+    test -f "'"$ZERO_HOST_GEN23_COM"'"
+    printf "%s\n" "$out" | grep -q "build-slice.role=lispjit-from-lisp"
+    printf "%s\n" "$out" | grep -q "build-slice.lispjit_proxy=.*nano-jit-runner-core.lisp"
+    printf "%s\n" "$out" | grep -q "run-expect-exit.ok=1"
+    echo "zero.host.lispjit_from_lisp=1" >> "'"$ZERO_HOST_EVIDENCE"'"
+  '
+  run_case "run-bootstrap-v4-zero-host-gen45-lispjit-full-slice-plan" bash -c '
+    cd "'"$ROOT_DIR"'"
+    out=$(env -u NANO_SELFHOST_REUSE_X86 -u NANO_BUILD_SLICE_SELFHOST_REUSE \
+      NANO_LISPJIT_FROM_LISP=1 NANO_LISPJIT_FROM_LISP_PROFILE=full \
+      "'"$HOST_NANO_LISP_JIT"'" run-bootstrap-plan "'"$ZERO_HOST_GEN45_SRC"'" 2>&1) || true
+    test -f "'"$ZERO_HOST_GEN45_SLICE"'"
+    test "$(stat -c%s "'"$ZERO_HOST_GEN45_SLICE"'")" -gt 100000
+    printf "%s\n" "$out" | grep -q "build-slice.role=lispjit-from-lisp-full"
+    printf "%s\n" "$out" | grep -q "build-slice.lispjit_proxy=full"
+    printf "%s\n" "$out" | grep -q "bootstrap-compare.ok=1"
+    echo "zero.host.lispjit_from_lisp_full_slice=1" >> "'"$ZERO_HOST_EVIDENCE"'"
+  '
+  run_case "run-bootstrap-v4-zero-host-regenesis-repack-for-lispjit-from-lisp" bash -c '
+    cd "'"$ROOT_DIR"'" && test -x "'"$RUNNER"'"
+    cp "'"$RUNNER"'" "'"$BUILD_DIR"'/nano-jit/nano-jit.x86_64"
+    chmod +x "'"$BUILD_DIR"'/nano-jit/nano-jit.x86_64"
+    aarch="'"$BUILD_DIR"'/nano-jit/nano-jit.x86_64"
+    if [ -f "'"$GENESIS_AARCH64_PIN"'" ]; then aarch="'"$GENESIS_AARCH64_PIN"'"; fi
+    "'"$RUNNER"'" pack-ape "'"$NANO_JIT_COM"'" \
+      "'"$BUILD_DIR"'/nano-jit/nano-jit.x86_64" "$aarch"
+    test -f "'"$NANO_JIT_COM"'"
+    test "$(stat -c%s "'"$NANO_JIT_COM"'")" -gt 50000
+  '
+  if [ -f "$NANO_JIT_COM" ]; then
+    run_case "run-bootstrap-v4-zero-host-gen24-lispjit-from-lisp-via-com-plan" bash -c '
+      cd "'"$ROOT_DIR"'"
+      out=$(NANO_LISPJIT_FROM_LISP=1 "'"$NANO_JIT_COM"'" run-bootstrap-plan "'"$ZERO_HOST_GEN24_SRC"'" 2>&1) || true
+      test -f "'"$ZERO_HOST_GEN24_SLICE_X86"'"
+      test -f "'"$ZERO_HOST_GEN24_COM"'"
+      printf "%s\n" "$out" | grep -q "build-slice.role=lispjit-from-lisp"
+      printf "%s\n" "$out" | grep -q "run-expect-exit.ok=1"
+      echo "zero.host.lispjit_from_lisp_on_com=1" >> "'"$ZERO_HOST_EVIDENCE"'"
+      echo "zero.host.lispjit_from_lisp_regenesis=1" >> "'"$ZERO_HOST_EVIDENCE"'"
+    '
+    run_case "run-bootstrap-v4-zero-host-gen26-lispjit-from-lisp-on-com-runner-plan" bash -c '
+      cd "'"$ROOT_DIR"'"
+      out=$(NANO_LISPJIT_FROM_LISP=1 "'"$NANO_JIT_COM"'" run-bootstrap-plan "'"$ZERO_HOST_GEN26_SRC"'" 2>&1) || true
+      test -f "'"$ZERO_HOST_GEN26_SLICE_X86"'"
+      printf "%s\n" "$out" | grep -q "build-slice.role=lispjit-from-lisp"
+      printf "%s\n" "$out" | grep -q "run-expect-exit.ok=1"
+      echo "zero.host.lispjit_from_lisp_on_com_runner=1" >> "'"$ZERO_HOST_EVIDENCE"'"
+    '
+    run_case "run-bootstrap-v4-zero-host-gen27-lispjit-from-lisp-terminal-plan" bash -c '
+      cd "'"$ROOT_DIR"'"
+      out=$(NANO_LISPJIT_FROM_LISP=1 "'"$NANO_JIT_COM"'" run-bootstrap-plan "'"$ZERO_HOST_GEN27_SRC"'" 2>&1) || true
+      test -f "'"$ZERO_HOST_GEN27_APP"'"
+      printf "%s\n" "$out" | grep -q "build-slice.role=lispjit-from-lisp"
+      printf "%s\n" "$out" | grep -q "pack-app.payload.lbin=1"
+      printf "%s\n" "$out" | grep -q "inspect-ape.ok=1"
+      echo "zero.host.lispjit_from_lisp_terminal=1" >> "'"$ZERO_HOST_EVIDENCE"'"
+    '
+    run_case "run-bootstrap-v4-zero-host-gen28-lispjit-from-lisp-linked-tu-plan" bash -c '
+      cd "'"$ROOT_DIR"'"
+      out=$(NANO_LISPJIT_FROM_LISP=1 NANO_LISPJIT_FROM_LISP_PROFILE=linked-tu \
+        "'"$NANO_JIT_COM"'" run-bootstrap-plan "'"$ZERO_HOST_GEN28_SRC"'" 2>&1) || true
+      test -f "'"$ZERO_HOST_GEN28_SLICE_X86"'"
+      printf "%s\n" "$out" | grep -q "build-slice.role=lispjit-from-lisp"
+      printf "%s\n" "$out" | grep -q "build-slice.lispjit_proxy=linked-tu"
+      printf "%s\n" "$out" | grep -q "build-slice-lisp.mode=linked-tu"
+      printf "%s\n" "$out" | grep -q "run-expect-exit.ok=1"
+      echo "zero.host.lispjit_from_lisp_linked_tu=1" >> "'"$ZERO_HOST_EVIDENCE"'"
+    '
+    run_case "run-bootstrap-v4-zero-host-gen29-lispjit-from-lisp-chain-plan" bash -c '
+      cd "'"$ROOT_DIR"'"
+      out_a=$(NANO_LISPJIT_FROM_LISP=1 "'"$NANO_JIT_COM"'" run-bootstrap-plan "'"$ZERO_HOST_GEN29A_SRC"'" 2>&1) || true
+      test -f "'"$ZERO_HOST_GEN29_SLICE"'"
+      printf "%s\n" "$out_a" | grep -q "build-slice.role=lispjit-from-lisp"
+      test -f "'"$ZERO_HOST_GEN27_SLICE_AARCH64"'"
+      out_b=$(NANO_BUILD_SLICE_SELFHOST_REUSE=1 \
+        NANO_SELFHOST_REUSE_X86="'"$ZERO_HOST_GEN29_SLICE"'" \
+        NANO_SELFHOST_REUSE_AARCH64="'"$ZERO_HOST_GEN27_SLICE_AARCH64"'" \
+        "'"$NANO_JIT_COM"'" run-bootstrap-plan "'"$ZERO_HOST_GEN29B_SRC"'" 2>&1) || true
+      test -f "'"$ZERO_HOST_GEN29_COM"'"
+      printf "%s\n" "$out_b" | grep -q "build-slice.role=selfhost-reuse"
+      printf "%s\n" "$out_b" | grep -q "selfhost_reuse=.*gen29-lisp-slice"
+      echo "zero.host.lispjit_from_lisp_chain=1" >> "'"$ZERO_HOST_EVIDENCE"'"
+    '
+    run_case "run-bootstrap-v4-zero-host-gen30-full-com-lispjit-plan" bash -c '
+      cd "'"$ROOT_DIR"'" && test -f "'"$ZERO_HOST_REGENESIS_X86"'"
+      out_b=$(NANO_BUILD_SLICE_SELFHOST_REUSE=1 \
+        NANO_SELFHOST_REUSE_X86="'"$ZERO_HOST_REGENESIS_X86"'" \
+        NANO_SELFHOST_REUSE_AARCH64="'"$GENESIS_AARCH64_PIN"'" \
+        "'"$NANO_JIT_COM"'" run-bootstrap-plan "'"$ZERO_HOST_GEN30B_SRC"'" 2>&1) || true
+      test -f "'"$ZERO_HOST_GEN30_FULL_COM"'"
+      test "$(stat -c%s "'"$ZERO_HOST_GEN30_FULL_COM"'")" -gt 100000
+      printf "%s\n" "$out_b" | grep -q "build-slice.role=selfhost-reuse"
+      out_c=$(NANO_LISPJIT_FROM_LISP=1 "'"$ZERO_HOST_GEN30_FULL_COM"'" run-bootstrap-plan "'"$ZERO_HOST_GEN30C_SRC"'" 2>&1) || true
+      test -f "'"$ZERO_HOST_GEN30C_SLICE"'"
+      printf "%s\n" "$out_c" | grep -q "build-slice.role=lispjit-from-lisp"
+      printf "%s\n" "$out_c" | grep -q "run-expect-exit.ok=1"
+      echo "zero.host.lispjit_from_lisp_on_full_com=1" >> "'"$ZERO_HOST_EVIDENCE"'"
+    '
+    run_case "run-bootstrap-v4-zero-host-gen31-lispjit-partial-northstar-plan" bash -c '
+      cd "'"$ROOT_DIR"'"
+      out=$(NANO_LISPJIT_FROM_LISP=1 NANO_LISPJIT_FROM_LISP_PROFILE=linked-tu \
+        "'"$NANO_JIT_COM"'" run-bootstrap-plan "'"$ZERO_HOST_GEN31_SRC"'" 2>&1) || true
+      test -f "'"$ZERO_HOST_GEN31_APP"'"
+      printf "%s\n" "$out" | grep -q "build-slice.role=lispjit-from-lisp"
+      printf "%s\n" "$out" | grep -q "build-slice-lisp.mode=linked-tu"
+      printf "%s\n" "$out" | grep -q "pack-app.payload.lbin=1"
+      echo "zero.host.lispjit_from_lisp_partial_northstar=1" >> "'"$ZERO_HOST_EVIDENCE"'"
+    '
+    if [ -f "'"$ZERO_HOST_GEN30_FULL_COM"'" ]; then
+      run_case "run-bootstrap-v4-zero-host-gen32-lispjit-terminal-on-full-com-plan" bash -c '
+        cd "'"$ROOT_DIR"'"
+        out=$(NANO_LISPJIT_FROM_LISP=1 NANO_LISPJIT_FROM_LISP_PROFILE=linked-tu \
+          "'"$ZERO_HOST_GEN30_FULL_COM"'" run-bootstrap-plan "'"$ZERO_HOST_GEN32_SRC"'" 2>&1) || true
+        test -f "'"$ZERO_HOST_GEN32_APP"'"
+        printf "%s\n" "$out" | grep -q "build-slice.role=lispjit-from-lisp"
+        printf "%s\n" "$out" | grep -q "build-slice-lisp.mode=linked-tu"
+        printf "%s\n" "$out" | grep -q "pack-app.payload.lbin=1"
+        echo "zero.host.lispjit_from_lisp_terminal_on_full_com=1" >> "'"$ZERO_HOST_EVIDENCE"'"
+      '
+      run_case "run-bootstrap-v4-zero-host-gen33-lispjit-ir-exit-on-full-com-plan" bash -c '
+        cd "'"$ROOT_DIR"'"
+        out=$(NANO_LISPJIT_FROM_LISP=1 NANO_LISPJIT_FROM_LISP_PROFILE=ir-exit-v1 \
+          "'"$ZERO_HOST_GEN30_FULL_COM"'" run-bootstrap-plan "'"$ZERO_HOST_GEN33_SRC"'" 2>&1) || true
+        test -f "'"$ZERO_HOST_GEN33_SLICE"'"
+        printf "%s\n" "$out" | grep -q "build-slice.lispjit_proxy=ir-exit-v1"
+        printf "%s\n" "$out" | grep -q "build-slice.lispjit_profile_tier=2"
+        printf "%s\n" "$out" | grep -q "run-expect-exit.ok=1"
+        echo "zero.host.lispjit_from_lisp_ir_exit_v1=1" >> "'"$ZERO_HOST_EVIDENCE"'"
+      '
+    else
+      skip_case "run-bootstrap-v4-zero-host-gen32-lispjit-terminal-on-full-com-plan" "gen30-full-nano-jit.com missing"
+      skip_case "run-bootstrap-v4-zero-host-gen33-lispjit-ir-exit-on-full-com-plan" "gen30-full-nano-jit.com missing"
+    fi
+    run_case "run-bootstrap-v4-zero-host-gen34-lispjit-multi-func-aot-plan" bash -c '
+      cd "'"$ROOT_DIR"'"
+      out=$(NANO_LISPJIT_FROM_LISP=1 NANO_LISPJIT_FROM_LISP_PROFILE=multi-func \
+        "'"$NANO_JIT_COM"'" run-bootstrap-plan "'"$ZERO_HOST_GEN34_SRC"'" 2>&1) || true
+      test -f "'"$ZERO_HOST_GEN34_SLICE"'"
+      printf "%s\n" "$out" | grep -q "build-slice.lispjit_profile_tier=3"
+      printf "%s\n" "$out" | grep -q "build-slice-lisp.mode=multi-func-aot"
+      printf "%s\n" "$out" | grep -q "run-expect-exit.ok=1"
+      echo "zero.host.lispjit_from_lisp_multi_func=1" >> "'"$ZERO_HOST_EVIDENCE"'"
+    '
+    if [ -f "'"$ZERO_HOST_GEN30_FULL_COM"'" ]; then
+      run_case "run-bootstrap-v4-zero-host-gen35-lispjit-multi-func-on-full-com-plan" bash -c '
+        cd "'"$ROOT_DIR"'"
+        out=$(NANO_LISPJIT_FROM_LISP=1 NANO_LISPJIT_FROM_LISP_PROFILE=multi-func \
+          "'"$ZERO_HOST_GEN30_FULL_COM"'" run-bootstrap-plan "'"$ZERO_HOST_GEN35_SRC"'" 2>&1) || true
+        test -f "'"$ZERO_HOST_GEN35_SLICE"'"
+        printf "%s\n" "$out" | grep -q "build-slice.lispjit_aot=multi-func"
+        printf "%s\n" "$out" | grep -q "run-expect-exit.actual=43"
+        echo "zero.host.lispjit_from_lisp_multi_func_on_full_com=1" >> "'"$ZERO_HOST_EVIDENCE"'"
+      '
+    else
+      skip_case "run-bootstrap-v4-zero-host-gen35-lispjit-multi-func-on-full-com-plan" "gen30-full-nano-jit.com missing"
+    fi
+    run_case "run-bootstrap-v4-zero-host-gen36-lispjit-multi-func-cf-aot-plan" bash -c '
+      cd "'"$ROOT_DIR"'"
+      out=$(NANO_LISPJIT_FROM_LISP=1 NANO_LISPJIT_FROM_LISP_PROFILE=multi-func-cf \
+        "'"$NANO_JIT_COM"'" run-bootstrap-plan "'"$ZERO_HOST_GEN36_SRC"'" 2>&1) || true
+      test -f "'"$ZERO_HOST_GEN36_SLICE"'"
+      printf "%s\n" "$out" | grep -q "build-slice.lispjit_profile_tier=4"
+      printf "%s\n" "$out" | grep -q "build-slice-lisp.mode=multi-func-cf-aot"
+      printf "%s\n" "$out" | grep -q "build-slice-lisp.aot.control_flow=1"
+      printf "%s\n" "$out" | grep -q "run-expect-exit.ok=1"
+      echo "zero.host.lispjit_from_lisp_multi_func_cf=1" >> "'"$ZERO_HOST_EVIDENCE"'"
+    '
+    if [ -f "'"$ZERO_HOST_GEN30_FULL_COM"'" ]; then
+      run_case "run-bootstrap-v4-zero-host-gen37-lispjit-multi-func-cf-on-full-com-plan" bash -c '
+        cd "'"$ROOT_DIR"'"
+        out=$(NANO_LISPJIT_FROM_LISP=1 NANO_LISPJIT_FROM_LISP_PROFILE=multi-func-cf \
+          "'"$ZERO_HOST_GEN30_FULL_COM"'" run-bootstrap-plan "'"$ZERO_HOST_GEN37_SRC"'" 2>&1) || true
+        test -f "'"$ZERO_HOST_GEN37_SLICE"'"
+        printf "%s\n" "$out" | grep -q "build-slice.lispjit_aot=multi-func-cf"
+        printf "%s\n" "$out" | grep -q "run-expect-exit.actual=43"
+        echo "zero.host.lispjit_from_lisp_multi_func_cf_on_full_com=1" >> "'"$ZERO_HOST_EVIDENCE"'"
+      '
+    else
+      skip_case "run-bootstrap-v4-zero-host-gen37-lispjit-multi-func-cf-on-full-com-plan" "gen30-full-nano-jit.com missing"
+    fi
+    run_case "run-bootstrap-v4-zero-host-gen38-lispjit-mfc-slice-chain-plan" bash -c '
+      cd "'"$ROOT_DIR"'"
+      out_a=$(NANO_LISPJIT_FROM_LISP=1 NANO_LISPJIT_FROM_LISP_PROFILE=multi-func-cf \
+        "'"$NANO_JIT_COM"'" run-bootstrap-plan "'"$ZERO_HOST_GEN38A_SRC"'" 2>&1) || true
+      test -f "'"$ZERO_HOST_GEN38_SLICE"'"
+      printf "%s\n" "$out_a" | grep -q "build-slice.lispjit_profile_tier=4"
+      test -f "'"$ZERO_HOST_GEN27_SLICE_AARCH64"'"
+      out_b=$(NANO_BUILD_SLICE_SELFHOST_REUSE=1 \
+        NANO_SELFHOST_REUSE_X86="'"$ZERO_HOST_GEN38_SLICE"'" \
+        NANO_SELFHOST_REUSE_AARCH64="'"$ZERO_HOST_GEN27_SLICE_AARCH64"'" \
+        "'"$NANO_JIT_COM"'" run-bootstrap-plan "'"$ZERO_HOST_GEN38B_SRC"'" 2>&1) || true
+      test -f "'"$ZERO_HOST_GEN38_COM"'"
+      printf "%s\n" "$out_b" | grep -q "build-slice.role=selfhost-reuse"
+      printf "%s\n" "$out_b" | grep -q "selfhost_reuse=.*gen38-mfc-slice"
+      echo "zero.host.lispjit_from_lisp_mfc_chain=1" >> "'"$ZERO_HOST_EVIDENCE"'"
+    '
+    run_case "run-bootstrap-v4-zero-host-gen39-lispjit-compose-3link-plan" bash -c '
+      cd "'"$ROOT_DIR"'"
+      out=$(NANO_LISPJIT_FROM_LISP=1 NANO_LISPJIT_FROM_LISP_PROFILE=compose-3link \
+        "'"$NANO_JIT_COM"'" run-bootstrap-plan "'"$ZERO_HOST_GEN39_SRC"'" 2>&1) || true
+      test -f "'"$ZERO_HOST_GEN39_SLICE"'"
+      printf "%s\n" "$out" | grep -q "build-slice.lispjit_profile_tier=5"
+      printf "%s\n" "$out" | grep -q "build-slice-lisp.mode=compose-3link"
+      printf "%s\n" "$out" | grep -q "build-slice-lisp.link.objects=3"
+      printf "%s\n" "$out" | grep -q "run-expect-exit.ok=1"
+      echo "zero.host.lispjit_from_lisp_compose_3link=1" >> "'"$ZERO_HOST_EVIDENCE"'"
+    '
+    run_case "run-bootstrap-v4-zero-host-gen41-lispjit-mod-runtime-plan" bash -c '
+      cd "'"$ROOT_DIR"'" && test -f "'"$ZERO_HOST_LISPJIT_MOD_RUNTIME"'"
+      out=$(NANO_LISPJIT_FROM_LISP=1 NANO_LISPJIT_FROM_LISP_PROFILE=lispjit-mod-runtime \
+        "'"$NANO_JIT_COM"'" run-bootstrap-plan "'"$ZERO_HOST_GEN41_SRC"'" 2>&1) || true
+      test -f "'"$ZERO_HOST_GEN41_SLICE"'"
+      printf "%s\n" "$out" | grep -q "build-slice.lispjit_module=00-runtime-core"
+      printf "%s\n" "$out" | grep -q "run-expect-exit.ok=1"
+      echo "zero.host.lispjit_from_lisp_mod_runtime=1" >> "'"$ZERO_HOST_EVIDENCE"'"
+    '
+    if [ -f "'"$ZERO_HOST_GEN30_FULL_COM"'" ]; then
+      run_case "run-bootstrap-v4-zero-host-gen40-lispjit-compose-on-full-com-plan" bash -c '
+        cd "'"$ROOT_DIR"'"
+        out=$(NANO_LISPJIT_FROM_LISP=1 NANO_LISPJIT_FROM_LISP_PROFILE=compose-3link \
+          "'"$ZERO_HOST_GEN30_FULL_COM"'" run-bootstrap-plan "'"$ZERO_HOST_GEN40_SRC"'" 2>&1) || true
+        test -f "'"$ZERO_HOST_GEN40_SLICE"'"
+        printf "%s\n" "$out" | grep -q "build-slice.lispjit_link=tu+module"
+        printf "%s\n" "$out" | grep -q "run-expect-exit.ok=1"
+        echo "zero.host.lispjit_from_lisp_compose_on_full_com=1" >> "'"$ZERO_HOST_EVIDENCE"'"
+      '
+    else
+      skip_case "run-bootstrap-v4-zero-host-gen40-lispjit-compose-on-full-com-plan" "gen30-full-nano-jit.com missing"
+    fi
+    run_case "run-bootstrap-v4-zero-host-gen42-lispjit-compose-5link-plan" bash -c '
+      cd "'"$ROOT_DIR"'"
+      out=$(NANO_LISPJIT_FROM_LISP=1 NANO_LISPJIT_FROM_LISP_PROFILE=compose-5link \
+        "'"$NANO_JIT_COM"'" run-bootstrap-plan "'"$ZERO_HOST_GEN42_SRC"'" 2>&1) || true
+      test -f "'"$ZERO_HOST_GEN42_SLICE"'"
+      printf "%s\n" "$out" | grep -q "build-slice.lispjit_profile_tier=6"
+      printf "%s\n" "$out" | grep -q "build-slice-lisp.link.objects=5"
+      printf "%s\n" "$out" | grep -q "run-expect-exit.ok=1"
+      echo "zero.host.lispjit_from_lisp_compose_5link=1" >> "'"$ZERO_HOST_EVIDENCE"'"
+    '
+    run_case "run-bootstrap-v4-zero-host-gen41b-lispjit-mod-compile-plan" bash -c '
+      cd "'"$ROOT_DIR"'" && test -f "'"$ZERO_HOST_LISPJIT_MOD_COMPILE"'"
+      out=$(NANO_LISPJIT_FROM_LISP=1 NANO_LISPJIT_FROM_LISP_PROFILE=lispjit-mod-compile \
+        "'"$NANO_JIT_COM"'" run-bootstrap-plan "'"$ZERO_HOST_GEN41B_SRC"'" 2>&1) || true
+      test -f "'"$ZERO_HOST_GEN41B_SLICE"'"
+      printf "%s\n" "$out" | grep -q "build-slice.lispjit_module=02-compile"
+      printf "%s\n" "$out" | grep -q "run-expect-exit.ok=1"
+      echo "zero.host.lispjit_from_lisp_mod_compile=1" >> "'"$ZERO_HOST_EVIDENCE"'"
+    '
+    if [ -f "'"$ZERO_HOST_GEN30_FULL_COM"'" ]; then
+      run_case "run-bootstrap-v4-zero-host-gen43-lispjit-compose-5link-on-full-com-plan" bash -c '
+        cd "'"$ROOT_DIR"'"
+        out=$(NANO_LISPJIT_FROM_LISP=1 NANO_LISPJIT_FROM_LISP_PROFILE=compose-5link \
+          "'"$ZERO_HOST_GEN30_FULL_COM"'" run-bootstrap-plan "'"$ZERO_HOST_GEN43_SRC"'" 2>&1) || true
+        test -f "'"$ZERO_HOST_GEN43_SLICE"'"
+        printf "%s\n" "$out" | grep -q "build-slice.lispjit_link=tu+modules+mf"
+        printf "%s\n" "$out" | grep -q "run-expect-exit.ok=1"
+        echo "zero.host.lispjit_from_lisp_compose_5link_on_full_com=1" >> "'"$ZERO_HOST_EVIDENCE"'"
+      '
+      run_case "run-bootstrap-v4-zero-host-gen44-lispjit-track-complete-plan" bash -c '
+        cd "'"$ROOT_DIR"'"
+        out=$(NANO_LISPJIT_FROM_LISP=1 NANO_LISPJIT_FROM_LISP_PROFILE=compose-5link \
+          "'"$ZERO_HOST_GEN30_FULL_COM"'" run-bootstrap-plan "'"$ZERO_HOST_GEN44_SRC"'" 2>&1) || true
+        test -f "'"$ZERO_HOST_GEN44_APP"'"
+        printf "%s\n" "$out" | grep -q "build-slice-lisp.link.objects=5"
+        printf "%s\n" "$out" | grep -q "pack-app.payload.lbin=1"
+        echo "zero.host.lispjit_from_lisp_track_complete=1" >> "'"$ZERO_HOST_EVIDENCE"'"
+      '
+    else
+      skip_case "run-bootstrap-v4-zero-host-gen43-lispjit-compose-5link-on-full-com-plan" "gen30-full-nano-jit.com missing"
+      skip_case "run-bootstrap-v4-zero-host-gen44-lispjit-track-complete-plan" "gen30-full-nano-jit.com missing"
+    fi
+    run_case "run-bootstrap-v4-zero-host-gen46-lispjit-full-on-com-plan" bash -c '
+      cd "'"$ROOT_DIR"'"
+      out=$(NANO_LISPJIT_FROM_LISP=1 NANO_LISPJIT_FROM_LISP_PROFILE=full \
+        NANO_SELFHOST_REUSE_X86="'"$ZERO_HOST_REGENESIS_X86"'" \
+        "'"$NANO_JIT_COM"'" run-bootstrap-plan "'"$ZERO_HOST_GEN46_SRC"'" 2>&1) || true
+      test -f "'"$ZERO_HOST_GEN46_SLICE"'"
+      test "$(stat -c%s "'"$ZERO_HOST_GEN46_SLICE"'")" -gt 100000
+      printf "%s\n" "$out" | grep -q "build-slice.lispjit_profile_tier=7"
+      printf "%s\n" "$out" | grep -q "bootstrap-compare.ok"
+      echo "zero.host.lispjit_from_lisp_full_on_com=1" >> "'"$ZERO_HOST_EVIDENCE"'"
+    '
+    if [ -f "'"$ZERO_HOST_GEN30_FULL_COM"'" ]; then
+      run_case "run-bootstrap-v4-zero-host-gen47-lispjit-full-on-full-com-plan" bash -c '
+        cd "'"$ROOT_DIR"'"
+        out=$(env -u NANO_SELFHOST_REUSE_X86 -u NANO_BUILD_SLICE_SELFHOST_REUSE \
+          NANO_LISPJIT_FROM_LISP=1 NANO_LISPJIT_FROM_LISP_PROFILE=full \
+          "'"$ZERO_HOST_GEN30_FULL_COM"'" run-bootstrap-plan "'"$ZERO_HOST_GEN47_SRC"'" 2>&1) || true
+        test -f "'"$ZERO_HOST_GEN47_SLICE"'"
+        test "$(stat -c%s "'"$ZERO_HOST_GEN47_SLICE"'")" -gt 100000
+        printf "%s\n" "$out" | grep -q "build-slice.role=lispjit-from-lisp-full"
+        printf "%s\n" "$out" | grep -q "bootstrap-compare.ok"
+        echo "zero.host.lispjit_from_lisp_full_on_full_com=1" >> "'"$ZERO_HOST_EVIDENCE"'"
+      '
+      run_case "run-bootstrap-v4-zero-host-gen48-lispjit-full-complete-plan" bash -c '
+        cd "'"$ROOT_DIR"'"
+        out=$(env -u NANO_SELFHOST_REUSE_X86 -u NANO_BUILD_SLICE_SELFHOST_REUSE \
+          NANO_LISPJIT_FROM_LISP=1 NANO_LISPJIT_FROM_LISP_PROFILE=full \
+          "'"$ZERO_HOST_GEN30_FULL_COM"'" run-bootstrap-plan "'"$ZERO_HOST_GEN48_SRC"'" 2>&1) || true
+        test -f "'"$ZERO_HOST_GEN48_SLICE"'"
+        test -f "'"$ZERO_HOST_GEN48_APP"'"
+        test "$(stat -c%s "'"$ZERO_HOST_GEN48_SLICE"'")" -gt 100000
+        printf "%s\n" "$out" | grep -q "build-slice.lispjit_proxy=full"
+        printf "%s\n" "$out" | grep -q "bootstrap-compare.ok"
+        printf "%s\n" "$out" | grep -q "pack-app.payload.lbin=1"
+        echo "zero.host.lispjit_from_lisp_full_complete=1" >> "'"$ZERO_HOST_EVIDENCE"'"
+      '
+    else
+      skip_case "run-bootstrap-v4-zero-host-gen47-lispjit-full-on-full-com-plan" "gen30-full-nano-jit.com missing"
+      skip_case "run-bootstrap-v4-zero-host-gen48-lispjit-full-complete-plan" "gen30-full-nano-jit.com missing"
+    fi
+    run_case "run-bootstrap-v4-zero-host-lispjit-from-lisp-final-plan" bash -c '
+      cd "'"$ROOT_DIR"'" && test -f "'"$ZERO_HOST_EVIDENCE"'"
+      for key in \
+        zero.host.lispjit_from_lisp \
+        zero.host.lispjit_from_lisp_on_com \
+        zero.host.lispjit_from_lisp_on_full_com \
+        zero.host.lispjit_from_lisp_compose_5link \
+        zero.host.lispjit_from_lisp_track_complete \
+        zero.host.lispjit_from_lisp_full_slice \
+        zero.host.lispjit_from_lisp_full_complete; do
+        grep -q "$key=1" "'"$ZERO_HOST_EVIDENCE"'"
+      done
+      "'"$RUNNER"'" run-bootstrap-plan "'"$ZERO_HOST_LISPJIT_FINAL_SRC"'" 2>&1 || true
+      echo "zero.host.lispjit_from_lisp_track_gates=1" >> "'"$ZERO_HOST_EVIDENCE"'"
+    '
+  else
+    skip_case "run-bootstrap-v4-zero-host-gen24-lispjit-from-lisp-via-com-plan" "nano-jit.com missing after regenesis repack"
+    skip_case "run-bootstrap-v4-zero-host-gen26-lispjit-from-lisp-on-com-runner-plan" "nano-jit.com missing after regenesis repack"
+    skip_case "run-bootstrap-v4-zero-host-gen27-lispjit-from-lisp-terminal-plan" "nano-jit.com missing after regenesis repack"
+    skip_case "run-bootstrap-v4-zero-host-gen28-lispjit-from-lisp-linked-tu-plan" "nano-jit.com missing after regenesis repack"
+    skip_case "run-bootstrap-v4-zero-host-gen29-lispjit-from-lisp-chain-plan" "nano-jit.com missing after regenesis repack"
+    skip_case "run-bootstrap-v4-zero-host-gen30-full-com-lispjit-plan" "nano-jit.com missing after regenesis repack"
+    skip_case "run-bootstrap-v4-zero-host-gen31-lispjit-partial-northstar-plan" "nano-jit.com missing after regenesis repack"
+    skip_case "run-bootstrap-v4-zero-host-gen32-lispjit-terminal-on-full-com-plan" "nano-jit.com missing after regenesis repack"
+    skip_case "run-bootstrap-v4-zero-host-gen33-lispjit-ir-exit-on-full-com-plan" "nano-jit.com missing after regenesis repack"
+    skip_case "run-bootstrap-v4-zero-host-gen34-lispjit-multi-func-aot-plan" "nano-jit.com missing after regenesis repack"
+    skip_case "run-bootstrap-v4-zero-host-gen35-lispjit-multi-func-on-full-com-plan" "nano-jit.com missing after regenesis repack"
+    skip_case "run-bootstrap-v4-zero-host-gen36-lispjit-multi-func-cf-aot-plan" "nano-jit.com missing after regenesis repack"
+    skip_case "run-bootstrap-v4-zero-host-gen37-lispjit-multi-func-cf-on-full-com-plan" "nano-jit.com missing after regenesis repack"
+    skip_case "run-bootstrap-v4-zero-host-gen38-lispjit-mfc-slice-chain-plan" "nano-jit.com missing after regenesis repack"
+    skip_case "run-bootstrap-v4-zero-host-gen39-lispjit-compose-3link-plan" "nano-jit.com missing after regenesis repack"
+    skip_case "run-bootstrap-v4-zero-host-gen40-lispjit-compose-on-full-com-plan" "nano-jit.com missing after regenesis repack"
+    skip_case "run-bootstrap-v4-zero-host-gen41-lispjit-mod-runtime-plan" "nano-jit.com missing after regenesis repack"
+    skip_case "run-bootstrap-v4-zero-host-gen41b-lispjit-mod-compile-plan" "nano-jit.com missing after regenesis repack"
+    skip_case "run-bootstrap-v4-zero-host-gen42-lispjit-compose-5link-plan" "nano-jit.com missing after regenesis repack"
+    skip_case "run-bootstrap-v4-zero-host-gen43-lispjit-compose-5link-on-full-com-plan" "nano-jit.com missing after regenesis repack"
+    skip_case "run-bootstrap-v4-zero-host-gen44-lispjit-track-complete-plan" "nano-jit.com missing after regenesis repack"
+    skip_case "run-bootstrap-v4-zero-host-gen46-lispjit-full-on-com-plan" "nano-jit.com missing after regenesis repack"
+    skip_case "run-bootstrap-v4-zero-host-gen47-lispjit-full-on-full-com-plan" "nano-jit.com missing after regenesis repack"
+    skip_case "run-bootstrap-v4-zero-host-gen48-lispjit-full-complete-plan" "nano-jit.com missing after regenesis repack"
+    skip_case "run-bootstrap-v4-zero-host-lispjit-from-lisp-final-plan" "nano-jit.com missing after regenesis repack"
+  fi
+else
+  skip_case "run-bootstrap-v4-zero-host-gen23-lispjit-from-lisp-plan" "host nano-lisp-jit missing"
+  skip_case "run-bootstrap-v4-zero-host-regenesis-repack-for-lispjit-from-lisp" "host nano-lisp-jit missing"
+  skip_case "run-bootstrap-v4-zero-host-gen24-lispjit-from-lisp-via-com-plan" "host nano-lisp-jit missing"
+  skip_case "run-bootstrap-v4-zero-host-gen26-lispjit-from-lisp-on-com-runner-plan" "host nano-lisp-jit missing"
+  skip_case "run-bootstrap-v4-zero-host-gen27-lispjit-from-lisp-terminal-plan" "host nano-lisp-jit missing"
+  skip_case "run-bootstrap-v4-zero-host-gen28-lispjit-from-lisp-linked-tu-plan" "host nano-lisp-jit missing"
+  skip_case "run-bootstrap-v4-zero-host-gen29-lispjit-from-lisp-chain-plan" "host nano-lisp-jit missing"
+  skip_case "run-bootstrap-v4-zero-host-gen30-full-com-lispjit-plan" "host nano-lisp-jit missing"
+  skip_case "run-bootstrap-v4-zero-host-gen31-lispjit-partial-northstar-plan" "host nano-lisp-jit missing"
+  skip_case "run-bootstrap-v4-zero-host-gen32-lispjit-terminal-on-full-com-plan" "host nano-lisp-jit missing"
+  skip_case "run-bootstrap-v4-zero-host-gen33-lispjit-ir-exit-on-full-com-plan" "host nano-lisp-jit missing"
+  skip_case "run-bootstrap-v4-zero-host-gen34-lispjit-multi-func-aot-plan" "host nano-lisp-jit missing"
+  skip_case "run-bootstrap-v4-zero-host-gen35-lispjit-multi-func-on-full-com-plan" "host nano-lisp-jit missing"
+  skip_case "run-bootstrap-v4-zero-host-gen36-lispjit-multi-func-cf-aot-plan" "host nano-lisp-jit missing"
+  skip_case "run-bootstrap-v4-zero-host-gen37-lispjit-multi-func-cf-on-full-com-plan" "host nano-lisp-jit missing"
+  skip_case "run-bootstrap-v4-zero-host-gen38-lispjit-mfc-slice-chain-plan" "host nano-lisp-jit missing"
+  skip_case "run-bootstrap-v4-zero-host-gen39-lispjit-compose-3link-plan" "host nano-lisp-jit missing"
+  skip_case "run-bootstrap-v4-zero-host-gen40-lispjit-compose-on-full-com-plan" "host nano-lisp-jit missing"
+  skip_case "run-bootstrap-v4-zero-host-gen41-lispjit-mod-runtime-plan" "host nano-lisp-jit missing"
+  skip_case "run-bootstrap-v4-zero-host-gen41b-lispjit-mod-compile-plan" "host nano-lisp-jit missing"
+  skip_case "run-bootstrap-v4-zero-host-gen42-lispjit-compose-5link-plan" "host nano-lisp-jit missing"
+  skip_case "run-bootstrap-v4-zero-host-gen43-lispjit-compose-5link-on-full-com-plan" "host nano-lisp-jit missing"
+  skip_case "run-bootstrap-v4-zero-host-gen44-lispjit-track-complete-plan" "host nano-lisp-jit missing"
+  skip_case "run-bootstrap-v4-zero-host-gen45-lispjit-full-slice-plan" "host nano-lisp-jit missing"
+  skip_case "run-bootstrap-v4-zero-host-gen46-lispjit-full-on-com-plan" "host nano-lisp-jit missing"
+  skip_case "run-bootstrap-v4-zero-host-gen47-lispjit-full-on-full-com-plan" "host nano-lisp-jit missing"
+  skip_case "run-bootstrap-v4-zero-host-gen48-lispjit-full-complete-plan" "host nano-lisp-jit missing"
+  skip_case "run-bootstrap-v4-zero-host-lispjit-from-lisp-final-plan" "host nano-lisp-jit missing"
 fi
 if [ -f "$ZERO_HOST_GEN10_APP" ] && [ -f "$ZERO_HOST_GEN13_COM" ]; then
   run_case "run-bootstrap-v4-zero-host-chain-complete-plan" bash -c '
