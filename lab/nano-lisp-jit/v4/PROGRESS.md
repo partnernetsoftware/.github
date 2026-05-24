@@ -7,12 +7,12 @@
 |------|----------|------|------|
 | Plan（bootstrap 无 .c 源） | 全 plan 无 .c + manifest + wave-index | ✅ gate 常绿 | **~98%** |
 | Runner | Lisp 执行 plan | C `nano-lisp-jit` + runner/terminal/resume 锚点 | **~6%** |
-| Codegen | Lisp IR 整表 → blob | v2-diffuse profile + `add.verified` grep | **~57%** |
-| 编排 | Lisp `(squad-*)` | DIFFUSE-WORKFLOW + 5×cc | **~52%** |
-| 构建 | plan 内 build 图 | wave165 add160 | **~67%** |
+| Codegen | Lisp IR 整表 → blob | onion.layer + onion.tdd + verified | **~58%** |
+| 编排 | Lisp `(squad-*)` | onion-tdd-milestone wave182 | **~53%** |
+| 构建 | plan 内 build 图 | wave182 add177 | **~68%** |
 | 自举 | `.com` 生成下一代 | 未开卷 | **~0%** |
 
-**整体终局**：约 **15–22%**（wave149–165 扩散+5cc，见 [`EVAL.md`](EVAL.md) §wave149–165）。
+**整体终局**：约 **15–22%**（wave166–182，见 [`EVAL.md`](EVAL.md) §wave166–182）。
 
 **调整原则**（并行 + 洋葱）：每波只推进一圈一格；扩散→收敛→洋葱；波末一次 `run.sh`（见 [`PARALLEL.md`](PARALLEL.md)）。
 

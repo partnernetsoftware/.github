@@ -178,3 +178,7 @@ emit-bytes-obs → runner/codegen/emit 四轨扩散 → onion-milestone（`MINDM
 ## wave149–165（先扩散后并发）
 
 一次 `gen 149 165` 框架 → **5× cc** 填肉（bootstrap/elf64/SLICE）→ **1× gate** · tests.pass **864**
+
+## wave166–182（洋葱 TDD 续卷）
+
+`gen 166 182` → 5×cc（onion.layer / onion.tdd / SLICE 洋葱段）→ gate · **tests.pass=932**

@@ -529,6 +529,7 @@ int emit_aarch64_add_exit_file(const char *out_path, int a, int b) {
   if (ok) {
     fprintf(stderr, "nano_elf64.emit.add.bytes=20\n");
     fprintf(stderr, "aarch64.emit.profile=add-exit-v2-diffuse\n");
+    fprintf(stderr, "aarch64.emit.onion.layer=codegen\n");
   }
   return ok;
 }

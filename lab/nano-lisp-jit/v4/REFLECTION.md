@@ -113,3 +113,4 @@
 | wave122–130 | extra_grep emit 验收 + dev-agents-milestone | add117–125；指针 131 |
 | wave140–148 | cc bytes stdout + onion-milestone | add135–143；指针 149 |
 | **diffuse+5cc** | gen149–165 一次扩散 + 5×cc 细节 | tests.pass=864；指针 166 |
+| wave166–182 | 洋葱 TDD 先扩散后并发 | tests.pass=932；指针 183 |

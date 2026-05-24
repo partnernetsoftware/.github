@@ -101,15 +101,16 @@ bun run skills/nano-lisp-jit-v4-longrun/nano-lisp-jit-v4-longrun.ts loop --batch
 - [x] **wave131–139** · add126–134 · post-main（tests.pass=760）
 - [x] **wave140–148** · add135–143 · cc bytes + onion-milestone（tests.pass=796）
 - [x] **wave149–165** · **扩散+5×cc** · 框架一次 gen + 细节并发（tests.pass=864）
-- [ ] wave166+ … 直至终局 100%
+- [x] **wave166–182** · 洋葱先扩散后并发 · add161–177（tests.pass=932）
+- [ ] wave183+ … 直至终局 100%
 
 ## 当前指针
 
 | 项 | 值 |
 |----|-----|
-| 下一波 | **166** |
-| 下一 add | **161** (143+17) |
-| 末次门禁 | tests.pass=864 · [`longrun-state.json`](longrun-state.json) |
+| 下一波 | **183** |
+| 下一 add | **178** (160+17) |
+| 末次门禁 | tests.pass=932 · [`longrun-state.json`](longrun-state.json) |
 | 终局粗估 | **15–22%**（[`EVAL.md`](EVAL.md) 最新 §） |
 
 ## 自循环规则

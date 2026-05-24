@@ -640,3 +640,18 @@ python3 lab/nano-lisp-jit/tools/gen-v4-wave-batch.py 149 165
 bash lab/nano-lisp-jit/tools/v4-diffuse-then-cc.sh
 export NANO_SLICE_COMPILER=native && bash lab/nano-lisp-jit/run.sh
 ```
+
+## wave166–182（洋葱 TDD · 先扩散后并发）
+
+| 维度 | wave182 后 | Δ | 说明 |
+|------|-------------|---|------|
+| Plan | ~98% | — | 17 波一次 gen |
+| Codegen | **~58%** | +1% | `onion.layer` / `onion.tdd` |
+| tests.pass | **932** | +68 | 5×cc ∥ 扩散 |
+| 终局整体 | **15–22%** | — | MINDMAP 洋葱续卷 |
+
+```bash
+python3 lab/nano-lisp-jit/tools/gen-v4-wave-batch.py 166 182
+bash lab/nano-lisp-jit/tools/v4-diffuse-then-cc.sh
+bash lab/nano-lisp-jit/run.sh
+```
