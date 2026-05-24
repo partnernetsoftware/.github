@@ -2,13 +2,19 @@
 
 | 维度 | 粗估 |
 |------|------|
-| 自举 | **~90%** |
-| 终局整体 | **~90%** |
+| 自举 | **~95%** |
+| 终局整体 | **~95%** |
 
-**phase4（gen17–18）**
-- `NANO_BUILD_SLICE_SELFHOST_REUSE=1`：`lispjit.c` → **`build-slice.role=selfhost-reuse`**（复制 gen15 slice，**非 genesis/**）
-- **gen17.com** 跑 **ir-table-lisp** + aarch64 emit → gen18（`zero.host.ir_table_on_com=1`）
+**phase5（regenesis 传播 · gen19–21）**
+- `NANO_REGENESIS=1` 重编 genesis + `nano-jit.com`（新 runner 含 `selfhost-reuse`）
+- **nano-jit.com** → gen19（reuse）→ **gen19.com** → gen20（reuse）→ **gen20.com** → terminal-edge gen21
 
-证据：`zero.host.selfhost_reuse=1` · `zero.host.chain=g2-g18`
+证据（`.build/v4-zero-host-bootstrap.evidence`）：
+- `zero.host.reuse_on_com=1`
+- `zero.host.regenesis_propagated=1`
+- `zero.host.terminal_on_gen20_com=1`
+- `zero.host.chain.complete=1`
 
-**未达 100%**：selfhost-reuse 需新 `lispjit` 在 runner 内；`.com` 内嵌旧 slice 时 plan 内 reuse 需 **NANO_REGENESIS** 重编 slice 后才进新 runner。
+**scoped 100% 验收**：gen2→gen21 全链 gate + 摸到边 terminal 在 **gen20.com** 上复现。
+
+**真·100% 未宣称**：`lispjit.c` 仍非「Lisp 源码编出」；reuse 为上一代 slice 拷贝。

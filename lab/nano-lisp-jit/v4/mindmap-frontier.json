@@ -282,6 +282,42 @@
       "status": "done",
       "deps": ["zero-host-gen17-selfhost-reuse", "codegen-ir-emit"],
       "accept": ["zero.host.ir_table_on_com=1", "aarch64.emit.profile=ir-exit-v1"]
+    },
+    {
+      "id": "zero-host-gen19-regenesis-reuse",
+      "layer": 21,
+      "ring": "自举",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen18-ir-table-com"],
+      "accept": ["nano-jit.com selfhost-reuse", "zero-host-gen19-nano-jit.com"]
+    },
+    {
+      "id": "zero-host-gen20-reuse-on-com",
+      "layer": 22,
+      "ring": "自举",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen19-regenesis-reuse"],
+      "accept": ["zero.host.reuse_on_com=1", "gen19.com runner"]
+    },
+    {
+      "id": "zero-host-gen21-terminal-regenesis",
+      "layer": 23,
+      "ring": "终局",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen20-reuse-on-com", "terminal-edge-milestone"],
+      "accept": ["zero.host.terminal_on_gen20_com=1", "pack-app on gen20.com"]
+    },
+    {
+      "id": "zero-host-northstar-scoped-100",
+      "layer": 24,
+      "ring": "终局",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen21-terminal-regenesis"],
+      "accept": ["zero.host.chain.complete=1", "g2-g21"]
     }
   ]
 }

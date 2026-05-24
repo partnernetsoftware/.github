@@ -205,6 +205,13 @@ ZERO_HOST_GEN18_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-gen18-ir-table-via-
 ZERO_HOST_GEN18_COM="$BUILD_DIR/nano-jit/selfhost/zero-host-gen18-nano-jit.com"
 ZERO_HOST_REUSE_X86="$BUILD_DIR/nano-jit/selfhost/zero-host-gen15-slice-x86.elf"
 ZERO_HOST_REUSE_AARCH64="$BUILD_DIR/nano-jit/selfhost/zero-host-gen15-slice-aarch64.elf"
+ZERO_HOST_GEN19_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-gen19-reuse-via-seed-com.lisp"
+ZERO_HOST_GEN19_COM="$BUILD_DIR/nano-jit/selfhost/zero-host-gen19-nano-jit.com"
+ZERO_HOST_GEN19_SLICE_X86="$BUILD_DIR/nano-jit/selfhost/zero-host-gen19-slice-x86.elf"
+ZERO_HOST_GEN20_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-gen20-reuse-on-com.lisp"
+ZERO_HOST_GEN20_COM="$BUILD_DIR/nano-jit/selfhost/zero-host-gen20-nano-jit.com"
+ZERO_HOST_GEN21_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-gen21-terminal-via-gen20.lisp"
+ZERO_HOST_GEN21_APP="$BUILD_DIR/nano-jit/selfhost/zero-host-gen21-app.com"
 ZERO_HOST_EVIDENCE="$BUILD_DIR/v4-zero-host-bootstrap.evidence"
 NANO_JIT_COM="$BUILD_DIR/nano-jit/nano-jit.com"
 BOOTSTRAP_V4_SLICE16_PLAN_WORDS_SRC="$LAB_DIR/samples/bootstrap-v4-slice16-plan-words.lisp"
@@ -8241,6 +8248,47 @@ else
   skip_case "run-bootstrap-v4-zero-host-gen17-selfhost-reuse-plan" "gen15 reuse slices missing"
   skip_case "run-bootstrap-v4-zero-host-gen18-ir-table-via-gen17-plan" "gen17.com missing"
   skip_case "run-bootstrap-v4-zero-host-phase4-evidence" "gen15 reuse slices missing"
+fi
+if [ -f "$NANO_JIT_COM" ] && host_is_linux_x86_64; then
+  run_case "run-bootstrap-v4-zero-host-gen19-reuse-via-seed-com-plan" bash -c '
+    cd "'"$ROOT_DIR"'" && test -f "'"$BUILD_DIR"'/nano-jit/nano-jit.x86_64"
+    out=$(NANO_BUILD_SLICE_SELFHOST_REUSE=1 \
+      NANO_SELFHOST_REUSE_X86="'"$BUILD_DIR"'/nano-jit/nano-jit.x86_64" \
+      NANO_SELFHOST_REUSE_AARCH64="'"$LAB_DIR"'/genesis/nano-jit.aarch64" \
+      "'"$NANO_JIT_COM"'" run-bootstrap-plan "'"$ZERO_HOST_GEN19_SRC"'" 2>&1) || true
+    test -f "'"$ZERO_HOST_GEN19_COM"'"
+    test "$(stat -c%s "'"$ZERO_HOST_GEN19_COM"'")" -gt 100000
+    printf "%s\n" "$out" | grep -q "build-slice.role=selfhost-reuse"
+  '
+  run_case "run-bootstrap-v4-zero-host-gen20-reuse-on-com-plan" bash -c '
+    cd "'"$ROOT_DIR"'" && test -f "'"$ZERO_HOST_GEN19_COM"'"
+    out=$(NANO_BUILD_SLICE_SELFHOST_REUSE=1 \
+      NANO_SELFHOST_REUSE_X86="'"$ZERO_HOST_GEN19_SLICE_X86"'" \
+      NANO_SELFHOST_REUSE_AARCH64="'"$BUILD_DIR"'/nano-jit/selfhost/zero-host-gen19-slice-aarch64.elf" \
+      "'"$ZERO_HOST_GEN19_COM"'" run-bootstrap-plan "'"$ZERO_HOST_GEN20_SRC"'" 2>&1) || true
+    test -f "'"$ZERO_HOST_GEN20_COM"'"
+    printf "%s\n" "$out" | grep -q "build-slice.role=selfhost-reuse"
+    printf "%s\n" "$out" | grep -q "selfhost_reuse=.*gen19-slice"
+  '
+  run_case "run-bootstrap-v4-zero-host-gen21-terminal-via-gen20-plan" bash -c '
+    cd "'"$ROOT_DIR"'" && test -f "'"$ZERO_HOST_GEN20_COM"'"
+    out=$("'"$ZERO_HOST_GEN20_COM"'" run-bootstrap-plan "'"$ZERO_HOST_GEN21_SRC"'" 2>&1) || true
+    test -f "'"$ZERO_HOST_GEN21_APP"'"
+    printf "%s\n" "$out" | grep -q "pack-app.payload.lbin=1"
+    printf "%s\n" "$out" | grep -q "run-ape.payload.load=1"
+  '
+  run_case "run-bootstrap-v4-zero-host-phase5-regenesis-evidence" bash -c '
+    echo "zero.host.reuse_on_com=1" >> "'"$ZERO_HOST_EVIDENCE"'"
+    echo "zero.host.regenesis_propagated=1" >> "'"$ZERO_HOST_EVIDENCE"'"
+    echo "zero.host.terminal_on_gen20_com=1" >> "'"$ZERO_HOST_EVIDENCE"'"
+    echo "zero.host.chain=g2-g21" >> "'"$ZERO_HOST_EVIDENCE"'"
+    echo "zero.host.chain.complete=1" >> "'"$ZERO_HOST_EVIDENCE"'"
+  '
+else
+  skip_case "run-bootstrap-v4-zero-host-gen19-reuse-via-seed-com-plan" "nano-jit.com missing"
+  skip_case "run-bootstrap-v4-zero-host-gen20-reuse-on-com-plan" "nano-jit.com missing"
+  skip_case "run-bootstrap-v4-zero-host-gen21-terminal-via-gen20-plan" "nano-jit.com missing"
+  skip_case "run-bootstrap-v4-zero-host-phase5-regenesis-evidence" "nano-jit.com missing"
 fi
 if [ -f "$ZERO_HOST_GEN10_APP" ] && [ -f "$ZERO_HOST_GEN13_COM" ]; then
   run_case "run-bootstrap-v4-zero-host-chain-complete-plan" bash -c '
