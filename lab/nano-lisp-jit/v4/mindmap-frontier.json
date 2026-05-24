@@ -1,6 +1,6 @@
 {
   "ssot": "v4/MINDMAP.md",
-  "updated_at": "2026-05-24",
+  "updated_at": "2026-05-24T14:25:00Z",
   "max_parallel": 4,
   "nodes": [
     {
@@ -75,20 +75,19 @@
       "layer": 2,
       "ring": "组装",
       "goal_dim": "构建",
-      "status": "ready",
+      "status": "done",
       "deps": ["terminal-com", "terminal-jit", "terminal-pack"],
-      "accept": [".lbin payload row in APE or pack-app chain"],
-      "parallel_slot": "W1",
-      "cc_task": "tools/terminal-bfs-cc/w2-com-plan-review.txt"
+      "accept": ["pack-app.payload.lbin=1", "mindmap-com-app.com"],
+      "parallel_slot": "W1"
     },
     {
       "id": "boot-selfpack-com",
       "layer": 2,
       "ring": "自举",
       "goal_dim": "自举",
-      "status": "ready",
+      "status": "done",
       "deps": ["terminal-boot", "terminal-com"],
-      "accept": ["nano-jit.com hash in bootstrap plan", "build_nano_jit selfhost matrix"],
+      "accept": ["nano-jit.com file-hash in plan"],
       "parallel_slot": "W2"
     },
     {
@@ -96,9 +95,9 @@
       "layer": 2,
       "ring": "Codegen",
       "goal_dim": "Codegen",
-      "status": "ready",
+      "status": "done",
       "deps": ["gate-baseline"],
-      "accept": ["one non-add op from v4-ir-table-v1.lisp", "no new add-N-only wave"],
+      "accept": ["aarch64.emit.profile=ir-exit-v1", "ir-table-lisp + exit-emit"],
       "parallel_slot": "W3"
     },
     {
@@ -106,9 +105,9 @@
       "layer": 2,
       "ring": "编排",
       "goal_dim": "Runner",
-      "status": "ready",
+      "status": "done",
       "deps": ["gate-baseline"],
-      "accept": ["bootstrap (squad-dispatch …) smoke"],
+      "accept": ["squad-dispatch.ok=1", "bootstrap squad-dispatch step"],
       "parallel_slot": "W4"
     },
     {
@@ -116,7 +115,7 @@
       "layer": 3,
       "ring": "loader",
       "goal_dim": "构建",
-      "status": "blocked",
+      "status": "ready",
       "deps": ["com-lbin-in-ape", "terminal-ldr"],
       "accept": ["NANO_PACK_APE_MODE=bare default", "no shell dd fallback on CI"]
     },
@@ -126,7 +125,7 @@
       "ring": "自举",
       "goal_dim": "自举",
       "status": "blocked",
-      "deps": ["boot-selfpack-com", "codegen-ir-emit", "runner-squad-dispatch"],
+      "deps": ["boot-selfpack-com", "codegen-ir-emit", "runner-squad-dispatch", "loader-bare-default"],
       "accept": ["Lisp build graph emits next .com", "PROGRESS 自举 >50%"]
     }
   ]

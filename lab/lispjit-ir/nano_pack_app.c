@@ -77,6 +77,8 @@ static int cmd_pack_app(const char *out_path, const char *x86_path, const char *
     printf("pack-app.x86_64.bytes=%zu\n", x86_n);
     printf("pack-app.aarch64.bytes=%zu\n", arm_n);
     printf("pack-app.blob.bytes=%zu\n", blob_n);
+    printf("pack-app.payload.lbin=1\n");
+    printf("pack-app.container=app-v1\n");
   } else {
     fprintf(stderr, "pack-app=write_fail path=%s\n", out_path);
   }

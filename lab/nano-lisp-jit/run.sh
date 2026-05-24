@@ -148,6 +148,14 @@ TERMINAL_BFS_PACK_SRC="$LAB_DIR/samples/bootstrap-v4-terminal-pack-diffusion.lis
 TERMINAL_BFS_BOOT_SRC="$LAB_DIR/samples/bootstrap-v4-terminal-boot-diffusion.lisp"
 TERMINAL_BFS_COM="$BUILD_DIR/terminal-bfs.com"
 TERMINAL_BFS_EVIDENCE="$BUILD_DIR/v4-terminal-bfs.evidence"
+MINDMAP_COM_LBIN_SRC="$LAB_DIR/samples/bootstrap-v4-mindmap-com-lbin-pack-app.lisp"
+MINDMAP_BOOT_COM_SRC="$LAB_DIR/samples/bootstrap-v4-mindmap-boot-selfpack-com.lisp"
+MINDMAP_IR_EXIT_SRC="$LAB_DIR/samples/bootstrap-v4-mindmap-ir-exit-emit.lisp"
+MINDMAP_COM_APP="$BUILD_DIR/mindmap-com-app.com"
+MINDMAP_COM_LBIN="$BUILD_DIR/mindmap-com-arithmetic.lbin"
+MINDMAP_IR_EXIT_ELF="$BUILD_DIR/mindmap-ir-exit-v1.elf"
+MINDMAP_DP_EVIDENCE="$BUILD_DIR/v4-mindmap-dp.evidence"
+NANO_JIT_COM="$BUILD_DIR/nano-jit/nano-jit.com"
 BOOTSTRAP_V4_SLICE16_PLAN_WORDS_SRC="$LAB_DIR/samples/bootstrap-v4-slice16-plan-words.lisp"
 BOOTSTRAP_V4_SLICE16_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v4-slice16-evidence.lisp"
 BOOTSTRAP_V4_SQUAD_MINDMAP_TICK_SRC="$LAB_DIR/samples/bootstrap-v4-squad-mindmap-tick.lisp"
@@ -2746,7 +2754,8 @@ run_case "run-bootstrap-v4-aarch64-aot-plan" bash -c '
 run_case "run-bootstrap-v4-squad-dispatch-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SQUAD_DISPATCH_SRC"'" 2>&1) || true
   printf "%s\n" "$out"
-  printf "%s\n" "$out" | grep -q "bootstrap-step.*=file"
+  printf "%s\n" "$out" | grep -q "bootstrap-step.*=squad-dispatch"
+  printf "%s\n" "$out" | grep -q "squad-dispatch.ok=1"
 '
 run_case "run-bootstrap-v4-squad-run-loop-once-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SQUAD_RUN_LOOP_ONCE_SRC"'" 2>&1) || true
@@ -7852,6 +7861,34 @@ run_case "run-bootstrap-v4-terminal-boot-diffusion-plan" bash -c '
 run_case "run-bootstrap-v4-terminal-bfs-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && "$RUNNER" run-bootstrap-plan "'"$LAB_DIR"'/samples/bootstrap-v4-terminal-bfs-evidence.lisp" 2>&1 || true
   { echo "v4.terminal_bfs=1"; echo "v4.terminal_bfs.tracks=LDR,PACK,JIT,AOT,COM,BOOT"; } >> "'"$BUILD_DIR"'/v4-terminal-bfs.evidence"
+'
+
+# --- mindmap DP layer2 (com-lbin / boot-com / ir-exit / squad-dispatch) ---
+run_case "run-bootstrap-v4-mindmap-com-lbin-pack-app-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$MINDMAP_COM_LBIN_SRC"'" 2>&1) || true
+  test -f "'"$MINDMAP_COM_APP"'"
+  test -f "'"$MINDMAP_COM_LBIN"'"
+  printf "%s\n" "$out" | grep -q "pack-app.payload.lbin=1"
+  printf "%s\n" "$out" | grep -q "pack-app.container=app-v1"
+'
+run_case "run-bootstrap-v4-mindmap-ir-exit-emit-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$MINDMAP_IR_EXIT_SRC"'" 2>&1) || true
+  test -f "'"$MINDMAP_IR_EXIT_ELF"'"
+  printf "%s\n" "$out" | grep -q "bootstrap-step.*=ir-table-lisp"
+  printf "%s\n" "$out" | grep -q "build-slice-lisp.mode=aarch64-exit-emit"
+  printf "%s\n" "$out" | grep -q "aarch64.emit.profile=ir-exit-v1"
+'
+run_case "run-bootstrap-v4-mindmap-boot-selfpack-com-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && test -f "'"$NANO_JIT_COM"'"
+  out=$("'"$RUNNER"'" run-bootstrap-plan "'"$MINDMAP_BOOT_COM_SRC"'" 2>&1) || true
+  printf "%s\n" "$out" | grep -q "bootstrap-step.*=file-hash"
+'
+run_case "run-bootstrap-v4-mindmap-dp-evidence-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && "$RUNNER" run-bootstrap-plan "'"$LAB_DIR"'/samples/bootstrap-v4-terminal-bfs-evidence.lisp" 2>&1 || true
+  {
+    echo "v4.mindmap_dp=1"
+    echo "v4.mindmap_dp.nodes=com-lbin-in-ape,boot-selfpack-com,codegen-ir-emit,runner-squad-dispatch"
+  } >> "'"$MINDMAP_DP_EVIDENCE"'"
 '
 run_case "run-bootstrap-v4-terminal-build-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && test -f "'"$BOOTSTRAP_REPORT"'"

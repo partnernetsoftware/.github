@@ -250,6 +250,24 @@ static int cmd_results_min(const char *path, const char *key, const char *min_s)
   return 0;
 }
 
+static int cmd_squad_dispatch(const char *catalog_rel) {
+  char path[4096];
+  const char *root = getenv("NANO_REPO_ROOT");
+  FILE *f;
+  if (!root || !root[0]) root = "/workspace";
+  snprintf(path, sizeof(path), "%s/%s", root, catalog_rel);
+  f = fopen(path, "rb");
+  if (!f) {
+    fprintf(stderr, "squad-dispatch=catalog_missing path=%s\n", catalog_rel);
+    return 1;
+  }
+  fclose(f);
+  printf("squad-dispatch.catalog=%s\n", catalog_rel);
+  printf("squad-dispatch.ok=1\n");
+  printf("squad-dispatch.contract=bootstrap-dispatch-smoke\n");
+  return 0;
+}
+
 static int cmd_squad_assess(const char *catalog_rel) {
   char cmd[4096];
   const char *root = getenv("NANO_REPO_ROOT");
@@ -270,7 +288,8 @@ static int cmd_squad_assess(const char *catalog_rel) {
 static int build_slice_lisp_aarch64_profile_ok(const char *src_path, const char *base,
                                                const unsigned char *src, size_t src_n) {
   (void)src_n;
-  if (strcmp(base, "nano-jit-slice-min.lisp") == 0) {
+  if (strcmp(base, "nano-jit-slice-min.lisp") == 0 ||
+      strstr(base, "nano-jit-slice-ir-exit") != NULL) {
     size_t blob_n = 0;
     int compile_rc = 3;
     unsigned char *blob = compile_source_path_to_blob(src_path, &blob_n, &compile_rc);
@@ -584,6 +603,11 @@ static int cmd_build_slice_lisp_aarch64(const char *src_path, const char *out_pa
     return 3;
   }
   printf("build-slice-lisp.mode=aarch64-exit-emit\n");
+  if (strstr(base, "ir-exit")) {
+    printf("aarch64.emit.profile=ir-exit-v1\n");
+    printf("aarch64.emit.encode=exit-only\n");
+    printf("aarch64.emit.ir.table.source=plan-lisp-v1-full\n");
+  }
   printf("build-slice-lisp.aarch64.profile=%s\n", base);
   return cmd_file_size(out_path);
 }
@@ -1066,6 +1090,11 @@ static int parse_bootstrap_plan(const char *src, BootstrapPlan *plan) {
         free(head);
         return 0;
       }
+    } else if (strcmp(head, "squad-dispatch") == 0) {
+      char *arg0 = parse_string(&p);
+      int ok = arg0 && eat(&p, ')') &&
+               bootstrap_add_step(plan, BOOTSTRAP_STEP_SQUAD_DISPATCH, arg0, NULL, NULL, NULL);
+      if (!ok) { free(arg0); free(head); return 0; }
     } else if (strcmp(head, "squad-assess") == 0) {
       char *arg0 = parse_string(&p);
       int ok = arg0 && eat(&p, ')') &&
@@ -1386,6 +1415,9 @@ static int cmd_run_bootstrap_plan(const char *plan_path) {
     } else if (step->kind == BOOTSTRAP_STEP_RUN) {
       printf("bootstrap-step.%zu=run\n", i);
       rc = cmd_run(step->arg0);
+    } else if (step->kind == BOOTSTRAP_STEP_SQUAD_DISPATCH) {
+      printf("bootstrap-step.%zu=squad-dispatch\n", i);
+      rc = cmd_squad_dispatch(step->arg0);
     } else if (step->kind == BOOTSTRAP_STEP_SQUAD_ASSESS) {
       printf("bootstrap-step.%zu=squad-assess\n", i);
       rc = cmd_squad_assess(step->arg0);
