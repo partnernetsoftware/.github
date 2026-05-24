@@ -1,0 +1,39 @@
+# v4.5 tier0 — plan-only entry (与 v4 catalog 分离)
+apiVersion: squad/v2
+project:
+  root: ..
+  state_db: .squad/state-v45.db
+  state_file: .squad/state-v45.json
+signoff:
+  id: v45-tier0-entry
+  require_terminal: false
+  gates:
+    - id: v45-decision-doc
+      check: artifact
+      path_glob: "v4.5/DECISION.md"
+    - id: v45-readme
+      check: artifact
+      path_glob: "v4.5/README.md"
+    - id: v45-entry-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v45-entry.lisp"
+      plan_must_not_match: '\\.c'
+    - id: v45-verify-smoke-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v45-verify-smoke.lisp"
+      plan_must_not_match: '\\.c'
+    - id: v45-entry-evidence
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.entry.ok
+      min_pass: 1
+    - id: v45-verify-smoke-ran
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.verify.smoke
+      min_pass: 1
+    - id: v35-regression-run
+      check: results
+      file: ".build/results.txt"
+      results_key: tests.pass
+      min_pass: 1212
