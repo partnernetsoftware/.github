@@ -187,6 +187,12 @@ ZERO_HOST_GEN9_COM="$BUILD_DIR/nano-jit/selfhost/zero-host-gen9-nano-jit.com"
 ZERO_HOST_GEN10_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-gen10-via-gen9-com.lisp"
 ZERO_HOST_GEN10_APP="$BUILD_DIR/nano-jit/selfhost/zero-host-gen10-app.com"
 ZERO_HOST_CHAIN_COMPLETE_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-chain-complete.lisp"
+ZERO_HOST_GEN11_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-gen11-no-genesis-pack.lisp"
+ZERO_HOST_GEN11_COM="$BUILD_DIR/nano-jit/selfhost/zero-host-gen11-nano-jit.com"
+ZERO_HOST_GEN12_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-gen12-nano-cc-codegen-via-gen9.lisp"
+ZERO_HOST_GEN12_COM="$BUILD_DIR/nano-jit/selfhost/zero-host-gen12-nano-jit.com"
+ZERO_HOST_GEN13_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-gen13-lispjit-route-via-gen12.lisp"
+ZERO_HOST_GEN13_COM="$BUILD_DIR/nano-jit/selfhost/zero-host-gen13-nano-jit.com"
 ZERO_HOST_EVIDENCE="$BUILD_DIR/v4-zero-host-bootstrap.evidence"
 NANO_JIT_COM="$BUILD_DIR/nano-jit/nano-jit.com"
 BOOTSTRAP_V4_SLICE16_PLAN_WORDS_SRC="$LAB_DIR/samples/bootstrap-v4-slice16-plan-words.lisp"
@@ -8138,19 +8144,49 @@ else
   skip_case "run-bootstrap-v4-zero-host-gen10-via-gen9-com-plan" "zero-host-gen9-nano-jit.com missing"
   skip_case "run-bootstrap-v4-zero-host-gen10-chain-evidence" "zero-host-gen9-nano-jit.com missing"
 fi
-if [ -f "$ZERO_HOST_GEN10_APP" ] && [ -f "$ZERO_HOST_GEN9_COM" ]; then
+if [ -f "$ZERO_HOST_GEN9_COM" ] && host_is_linux_x86_64; then
+  run_case "run-bootstrap-v4-zero-host-gen11-no-genesis-plan" bash -c '
+    cd "'"$ROOT_DIR"'" && out=$("'"$ZERO_HOST_GEN9_COM"'" run-bootstrap-plan "'"$ZERO_HOST_GEN11_SRC"'" 2>&1) || true
+    test -f "'"$ZERO_HOST_GEN11_COM"'"
+    ! printf "%s\n" "$out" | grep -q "genesis/"
+    printf "%s\n" "$out" | grep -q "bootstrap-step.*=build-slice-lisp"
+  '
+  run_case "run-bootstrap-v4-zero-host-gen12-nano-cc-codegen-plan" bash -c '
+    cd "'"$ROOT_DIR"'" && out=$(NANO_BUILD_SLICE_CODEGEN=1 "'"$ZERO_HOST_GEN9_COM"'" run-bootstrap-plan "'"$ZERO_HOST_GEN12_SRC"'" 2>&1) || true
+    test -f "'"$ZERO_HOST_GEN12_COM"'"
+    printf "%s\n" "$out" | grep -q "build-slice.compiler=nano-cc"
+    ! printf "%s\n" "$out" | grep -q "genesis-pin"
+  '
+  run_case "run-bootstrap-v4-zero-host-gen13-lisp-route-plan" bash -c '
+    cd "'"$ROOT_DIR"'" && out=$("'"$ZERO_HOST_GEN9_COM"'" run-bootstrap-plan "'"$ZERO_HOST_GEN13_SRC"'" 2>&1) || true
+    test -f "'"$ZERO_HOST_GEN13_COM"'"
+    printf "%s\n" "$out" | grep -q "build-slice.route=lisp-by-extension"
+    printf "%s\n" "$out" | grep -q "build-slice.compiler=nano-jit-lisp"
+  '
+  run_case "run-bootstrap-v4-zero-host-phase2-evidence" bash -c '
+    echo "zero.host.no_genesis_pack=1" >> "'"$ZERO_HOST_EVIDENCE"'"
+    echo "zero.host.nano_cc_codegen=1" >> "'"$ZERO_HOST_EVIDENCE"'"
+    echo "zero.host.lisp_route=1" >> "'"$ZERO_HOST_EVIDENCE"'"
+  '
+else
+  skip_case "run-bootstrap-v4-zero-host-gen11-no-genesis-plan" "zero-host-gen9-nano-jit.com missing"
+  skip_case "run-bootstrap-v4-zero-host-gen12-nano-cc-codegen-plan" "zero-host-gen9-nano-jit.com missing"
+  skip_case "run-bootstrap-v4-zero-host-gen13-lisp-route-plan" "zero-host-gen9-nano-jit.com missing"
+  skip_case "run-bootstrap-v4-zero-host-phase2-evidence" "zero-host-gen9-nano-jit.com missing"
+fi
+if [ -f "$ZERO_HOST_GEN10_APP" ] && [ -f "$ZERO_HOST_GEN13_COM" ]; then
   run_case "run-bootstrap-v4-zero-host-chain-complete-plan" bash -c '
     cd "'"$ROOT_DIR"'" && "$RUNNER" run-bootstrap-plan "'"$ZERO_HOST_CHAIN_COMPLETE_SRC"'" 2>&1 || true
     test -f "'"$ZERO_HOST_GEN2_COM"'"
-    test -f "'"$ZERO_HOST_GEN9_COM"'"
+    test -f "'"$ZERO_HOST_GEN13_COM"'"
     {
       echo "zero.host.chain.complete=1"
-      echo "zero.host.chain=g2,g3,g4,g5,g6,g7,g8,g9,g10"
+      echo "zero.host.chain=g2-g13"
       echo "zero.host.terminal_edge=gen10-app"
     } >> "'"$ZERO_HOST_EVIDENCE"'"
   '
 else
-  skip_case "run-bootstrap-v4-zero-host-chain-complete-plan" "zero-host gen10 artifacts missing"
+  skip_case "run-bootstrap-v4-zero-host-chain-complete-plan" "zero-host gen10/gen13 artifacts missing"
 fi
 
 run_case "run-bootstrap-v4-terminal-build-evidence-plan" bash -c '

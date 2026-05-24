@@ -210,6 +210,33 @@
       "status": "done",
       "deps": ["zero-host-gen10-terminal-edge"],
       "accept": ["zero.host.chain.complete=1", "gen2..gen10 artifacts"]
+    },
+    {
+      "id": "zero-host-no-genesis-pack",
+      "layer": 13,
+      "ring": "pack",
+      "goal_dim": "构建",
+      "status": "done",
+      "deps": ["zero-host-chain-scoped-complete"],
+      "accept": ["zero.host.no_genesis_pack=1", "gen11 lisp dual-arch pack"]
+    },
+    {
+      "id": "zero-host-nano-cc-codegen",
+      "layer": 14,
+      "ring": "Codegen",
+      "goal_dim": "Codegen",
+      "status": "done",
+      "deps": ["zero-host-no-genesis-pack"],
+      "accept": ["zero.host.nano_cc_codegen=1", "build-slice.compiler=nano-cc"]
+    },
+    {
+      "id": "zero-host-lisp-route-build",
+      "layer": 15,
+      "ring": "Codegen",
+      "goal_dim": "Codegen",
+      "status": "done",
+      "deps": ["zero-host-nano-cc-codegen"],
+      "accept": ["zero.host.lisp_route=1", "build-slice.route=lisp-by-extension"]
     }
   ]
 }
