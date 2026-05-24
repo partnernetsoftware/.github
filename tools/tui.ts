@@ -1,7 +1,8 @@
 #!/usr/bin/env bun
 /**
  * CLI: `tui help`（可 ln -s ~/.local/bin/tui）
- * tmux: `tui install-tmux` → $HOME/tmux/bin/tmux
+ * 默认后端 rmux: `tui install-rmux` → $HOME/rmux/bin/rmux
+ * 兼容回退 tmux: `tui install-tmux` → $HOME/tmux/bin/tmux
  * v0.3 agent: `tui agent register|send|inbox|wait|list` — window 的 @agent 为纯名 id；inbox ~/.tui/inbox/<name>.jsonl
  * CLI 增强: `status` / `inspect` / 全局 `--json` — 供脚本与 agent 拉取结构化车队信息
  * 开发: `tui dev` — bun --watch 热重启（TUI_DEV=1，tmux 会话不中断）
@@ -43,7 +44,7 @@ const TUI_CONFIG = {
   REMARK_KEY: "@remark",
   AGENT_KEY: "@agent",
   AUTO_KEY: "@auto",
-  TITLE: "TMUX 驾驶舱",
+  TITLE: "RMUX 驾驶舱",
   TMUX_HOME: join(homedir(), "tmux"),
   TMUX_PORTABLE_BIN: join(homedir(), "tmux", "bin", "tmux"),
   RMUX_HOME: join(homedir(), "rmux"),
@@ -69,17 +70,16 @@ interface AgentEnvelope {
   body: string;
 }
 
-/** tmux/tmux-builds 官方 static（v3.6a） */
-const TMUX_STATIC_RELEASE = {
-  version: "3.6a",
-  base: "https://github.com/tmux/tmux-builds/releases/download/v3.6a",
-  assets: {
-    "darwin-arm64": { file: "tmux-3.6a-macos-arm64.tar.gz", sha256: "12b5b9f8696e1286897d946649c0a80d0169dd76e018d34476a1fbd34de89a0f" },
-    "darwin-x64": { file: "tmux-3.6a-macos-x86_64.tar.gz", sha256: "b9b12eaeba43acf5671acf3857d947525440b544185a8db34ea557199a090251" },
-    "linux-arm64": { file: "tmux-3.6a-linux-arm64.tar.gz", sha256: "bb5afd9d646df54a7d7c66e198aa22c7d293c7453534f1670f7c540534db8b5e" },
-    "linux-x64": { file: "tmux-3.6a-linux-x86_64.tar.gz", sha256: "c0a772a5e6ca8f129b0111d10029a52e02bcbc8352d5a8c0d3de8466a1e59c2e" },
-  } as Record<string, { file: string; sha256: string }>,
-} as const;
+/** tmux/tmux-builds 官方 static 包，安装时从 GitHub Releases 动态解析 */
+const TMUX_REPO = "tmux/tmux-builds";
+
+/** tmux-builds asset 命名的 os/arch keyword（macos-arm64 / linux-x86_64 等） */
+function tmuxAssetKeyword(): string | null {
+  const os = process.platform === "darwin" ? "macos" : process.platform === "linux" ? "linux" : null;
+  const arch = process.arch === "arm64" ? "arm64" : process.arch === "x64" ? "x86_64" : null;
+  if (!os || !arch) return null;
+  return `${os}-${arch}`;
+}
 
 /** rmux（Helvesec/rmux） — Rust 写的 tmux 兼容多路复用器，安装信息从 GitHub Releases 动态解析 */
 const RMUX_REPO = "Helvesec/rmux";
@@ -189,25 +189,26 @@ function isExecutable(p: string): boolean {
 }
 
 function tmuxPlatformKey(): string | null {
-  const os = process.platform === "darwin" ? "darwin" : process.platform === "linux" ? "linux" : null;
-  const arch = process.arch === "arm64" ? "arm64" : process.arch === "x64" ? "x64" : null;
-  if (!os || !arch) return null;
-  return `${os}-${arch}`;
+  // 仅用于 doctor 输出展示
+  return tmuxAssetKeyword();
 }
 
+/**
+ * 后端解析顺序：TMUX_BIN（显式覆盖） → rmux（默认，跨平台/Rust） → tmux（兼容回退）。
+ * 设 TUI_USE_TMUX=1 强制走 tmux 优先。
+ */
 function resolveTmuxPath(): string | null {
   if (process.env.TMUX_BIN) {
     const p = process.env.TMUX_BIN;
     if (isExecutable(p)) return p;
   }
-  if (process.env.TUI_USE_RMUX === "1") {
-    const r = resolveRmuxPath();
-    if (r) return r;
-  }
-  if (isExecutable(TUI_CONFIG.TMUX_PORTABLE_BIN)) return TUI_CONFIG.TMUX_PORTABLE_BIN;
-  const onPath = Bun.which("tmux");
-  if (onPath) return onPath;
-  return null;
+  const tmuxFirst = process.env.TUI_USE_TMUX === "1";
+  const tryTmux = (): string | null => {
+    if (isExecutable(TUI_CONFIG.TMUX_PORTABLE_BIN)) return TUI_CONFIG.TMUX_PORTABLE_BIN;
+    return Bun.which("tmux") ?? null;
+  };
+  if (tmuxFirst) return tryTmux() ?? resolveRmuxPath();
+  return resolveRmuxPath() ?? tryTmux();
 }
 
 function tmuxBin(): string {
@@ -233,34 +234,48 @@ function sha256File(path: string): string {
 }
 
 function installTmuxPortable(force = false): number {
-  const key = tmuxPlatformKey();
-  const asset = key ? TMUX_STATIC_RELEASE.assets[key] : undefined;
-  if (!asset) {
-    cliWriteStderr(`不支持的平台 ${process.platform}/${process.arch}\n`);
-    return 1;
-  }
   if (!force && isExecutable(TUI_CONFIG.TMUX_PORTABLE_BIN)) {
     cliWriteStdout(`已存在: ${TUI_CONFIG.TMUX_PORTABLE_BIN}\n`);
     return 0;
+  }
+  const kw = tmuxAssetKeyword();
+  if (!kw) {
+    cliWriteStderr(`不支持的平台 ${process.platform}/${process.arch}\n`);
+    return 1;
+  }
+  cliWriteStderr(`查询 ${TMUX_REPO} 最新 release …\n`);
+  const release = ghFetchLatestRelease(TMUX_REPO);
+  if (!release) {
+    cliWriteStderr(`GitHub API 拉取失败；可设 GITHUB_TOKEN 或用 --system\n`);
+    return 1;
+  }
+  const asset = release.assets.find((a) => a.name.endsWith(".tar.gz") && a.name.includes(kw) && !/^LICENSES/i.test(a.name));
+  if (!asset) {
+    cliWriteStderr(`${release.tag_name} 无 ${kw} 预编译包\n`);
+    return 1;
   }
   const binDir = join(TUI_CONFIG.TMUX_HOME, "bin");
   const cacheDir = join(TUI_CONFIG.TMUX_HOME, ".cache");
   mkdirSync(binDir, { recursive: true });
   mkdirSync(cacheDir, { recursive: true });
-  const archive = join(cacheDir, asset.file);
-  const url = `${TMUX_STATIC_RELEASE.base}/${asset.file}`;
-  cliWriteStderr(`下载 ${url}\n`);
-  const dl = Bun.spawnSync(["curl", "-fsSL", "-o", archive, url], { stdout: "pipe", stderr: "pipe" });
+  const archive = join(cacheDir, asset.name);
+  cliWriteStderr(`下载 ${asset.browser_download_url}\n`);
+  const dl = Bun.spawnSync(["curl", "-fsSL", "-o", archive, asset.browser_download_url], { stdout: "pipe", stderr: "pipe" });
   if (dl.exitCode !== 0) {
     cliWriteStderr(`下载失败: ${dl.stderr?.toString() || "curl error"}\n`);
     return 1;
   }
-  const got = sha256File(archive);
-  if (got !== asset.sha256) {
-    cliWriteStderr(`校验失败: expected ${asset.sha256} got ${got}\n`);
-    return 1;
+  const wantSha = ghFetchSha256(release, asset.name);
+  if (wantSha) {
+    const got = sha256File(archive);
+    if (got !== wantSha) {
+      cliWriteStderr(`校验失败: expected ${wantSha} got ${got}\n`);
+      return 1;
+    }
+  } else {
+    cliWriteStderr(`(无 SHA256SUMS，跳过校验)\n`);
   }
-  const extractDir = join(cacheDir, asset.file.replace(/\.tar\.gz$/, ""));
+  const extractDir = join(cacheDir, asset.name.replace(/\.tar\.gz$/, ""));
   rmSync(extractDir, { recursive: true, force: true });
   mkdirSync(extractDir, { recursive: true });
   const untar = Bun.spawnSync(["tar", "-xzf", archive, "-C", extractDir], { stdout: "pipe", stderr: "pipe" });
@@ -268,9 +283,10 @@ function installTmuxPortable(force = false): number {
     cliWriteStderr(`解包失败: ${untar.stderr?.toString()}\n`);
     return 1;
   }
-  const extracted = join(extractDir, "tmux");
-  if (!isExecutable(extracted)) {
-    cliWriteStderr(`解包后未找到可执行文件: ${extracted}\n`);
+  const found = Bun.spawnSync(["find", extractDir, "-type", "f", "-name", "tmux"], { stdout: "pipe" }).stdout?.toString().split("\n").filter(Boolean) ?? [];
+  const extracted = found.find(isExecutable) ?? found[0];
+  if (!extracted) {
+    cliWriteStderr(`解包后未找到可执行文件 tmux\n`);
     return 1;
   }
   copyFileSync(extracted, TUI_CONFIG.TMUX_PORTABLE_BIN);
@@ -682,8 +698,8 @@ const tmuxApi: IMultiplexerBackend = {
     const p = resolveTmuxPath();
     if (!p) {
       const bin = (process.argv[1] || "tui").replace(/^.*\//, "");
-      console.log(`tmux 未找到。运行: ${bin} install-tmux`);
-      console.log(`  系统包管理: ${bin} install-tmux --system`);
+      console.log(`复用器未找到。默认安装 rmux: ${bin} install-rmux`);
+      console.log(`  或 tmux（兼容回退）: ${bin} install-tmux`);
       process.exit(1);
     }
     _resolvedTmuxBin = p;
@@ -3725,7 +3741,7 @@ function cliPaste(ctx: CliCtx): number {
 
 function cliHelp(): number {
   const lines = [
-    `${CLI_BIN} — TMUX 驾驶舱 v${TUI_CONFIG.VERSION} (CLI)`,
+    `${CLI_BIN} — RMUX 驾驶舱 v${TUI_CONFIG.VERSION} (CLI; tmux 兼容回退)`,
     "无子命令 → 进入 TUI",
     "",
     "命令树:",
@@ -4014,21 +4030,21 @@ const CLI_MAINT_CMDS: Record<string, LeafCmdSpec> = {
     needsTmux: false,
   },
   doctor: {
-    summary: "诊断 tmux 路径/版本/quarantine",
+    summary: "诊断后端路径/版本/quarantine",
     run: cliDoctor,
     needsTmux: false,
   },
-  "install-tmux": {
-    summary: "安装 tmux（默认便携版→~/tmux）",
+  "install-rmux": {
+    summary: "安装 rmux（默认后端，Rust 版多路复用器→~/rmux）",
     usage: "[--force] [--system]",
     aliases: ["install"],
-    run: cliInstallTmux,
+    run: cliInstallRmux,
     needsTmux: false,
   },
-  "install-rmux": {
-    summary: "安装 rmux（Rust 版 tmux 替代，默认便携版→~/rmux）",
+  "install-tmux": {
+    summary: "安装 tmux（兼容回退，便携版→~/tmux）",
     usage: "[--force] [--system]",
-    run: cliInstallRmux,
+    run: cliInstallTmux,
     needsTmux: false,
   },
 };
@@ -4113,7 +4129,7 @@ function cliDoctor(_ctx: CliCtx): number {
     const v = Bun.spawnSync([p, "-V"], { stdout: "pipe" }).stdout?.toString().trim();
     lines.push(`version: ${v}`);
   } else {
-    lines.push(`hint: ${CLI_BIN} install-tmux`);
+    lines.push(`hint: ${CLI_BIN} install-rmux  # 默认后端；或 install-tmux 回退`);
   }
   if (process.platform === "darwin" && existsSync(TUI_CONFIG.TMUX_HOME)) {
     const x = Bun.spawnSync(["xattr", "-lr", TUI_CONFIG.TMUX_HOME], { stdout: "pipe" }).stdout?.toString() || "";
@@ -4191,7 +4207,7 @@ function runCli(argv: string[]): number {
   if (cliNeedsTmux(head || "")) {
     const p = resolveTmuxPath();
     if (!p) {
-      cliWriteStderr(`tmux 未找到。运行: ${CLI_BIN} install-tmux\n`);
+      cliWriteStderr(`复用器后端未找到。运行: ${CLI_BIN} install-rmux  (或 install-tmux)\n`);
       return 1;
     }
     _resolvedTmuxBin = p;
@@ -4222,8 +4238,8 @@ if (import.meta.main) {
 function startTui(): void {
   const _tmuxAtStart = resolveTmuxPath();
   if (!_tmuxAtStart) {
-    cliWriteStderr(`tmux 未找到。运行: ${CLI_BIN} install-tmux\n`);
-    cliWriteStderr(`  或系统安装: ${CLI_BIN} install-tmux --system\n`);
+    cliWriteStderr(`复用器后端未找到。默认安装 rmux: ${CLI_BIN} install-rmux\n`);
+    cliWriteStderr(`  或 tmux（兼容回退）: ${CLI_BIN} install-tmux\n`);
     process.exit(1);
   }
   _resolvedTmuxBin = _tmuxAtStart;
@@ -4257,7 +4273,7 @@ function startTui(): void {
     screen.showCursor();
     screen.leaveAltScreen();
     screen.write("\x1b[0m");
-    console.log("TMUX 驾驶舱已经离开，用 tui 重新进入");
+    console.log("驾驶舱已经离开，用 tui 重新进入");
   });
   process.on("SIGINT", () => process.exit(0));
   process.on("SIGTERM", () => process.exit(0));
