@@ -183,6 +183,33 @@
       "status": "done",
       "deps": ["zero-host-gen7-via-gen6-com"],
       "accept": ["zero.host.gen8.ok=1", "gen7.com runner"]
+    },
+    {
+      "id": "zero-host-gen9-via-gen7-com",
+      "layer": 10,
+      "ring": "自举",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen8-via-gen7-com"],
+      "accept": ["zero.host.gen9.ok=1"]
+    },
+    {
+      "id": "zero-host-gen10-terminal-edge",
+      "layer": 11,
+      "ring": "终局",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen9-via-gen7-com", "terminal-edge-milestone"],
+      "accept": ["zero.host.gen10.ok=1", "pack-app.payload.lbin=1 on gen9 runner"]
+    },
+    {
+      "id": "zero-host-chain-scoped-complete",
+      "layer": 12,
+      "ring": "自举",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen10-terminal-edge"],
+      "accept": ["zero.host.chain.complete=1", "gen2..gen10 artifacts"]
     }
   ]
 }

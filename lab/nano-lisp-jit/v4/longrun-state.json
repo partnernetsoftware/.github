@@ -1,5 +1,6 @@
 {
-  "zero_host_chain": "gen2-gen8",
+  "zero_host_chain": "gen2-gen10-complete",
+  "zero_host_status": "scoped-complete",
   "status": "idle",
-  "updated_at": "2026-05-24T19:30:00.000Z"
+  "updated_at": "2026-05-24T20:00:00.000Z"
 }

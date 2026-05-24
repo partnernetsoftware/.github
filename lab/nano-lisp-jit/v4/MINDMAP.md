@@ -117,7 +117,7 @@ python3 lab/nano-lisp-jit/tools/mindmap-dp.py next    # W1..W4 与验收句
 | W1 | `loader-bare-default` | `pack-ape-bare.mode=bare` · `mindmap-bare.com` | **done** |
 | W2 | `terminal-edge-milestone` | `terminal.edge.ok=1` · 单 plan 链 pack-ape→JIT→pack-app→`nano-jit.com` | **done** |
 
-**layer 4–5 已签收**：`nano-jit.com`→gen2 `.com`；`zero-host-gen2-nano-jit.com`→gen3 `.com`（`build-slice-lisp`+`nano-cc`，无 `lispjit.c` build-slice）。证据 `zero.host.gen3.ok=1`。
+**zero-host 链 scoped complete（gen2→gen10）**：fat runner（gen2/3/6/7/9）与 thin pack（gen4/5/8）交替；**gen9.com** 跑通 terminal-edge（pack-ape+JIT+pack-app）。证据 `zero.host.chain.complete=1` · 见 `bootstrap-v4-zero-host-chain-complete.lisp`。
 
 ## 波次地图（wave15–24）
 

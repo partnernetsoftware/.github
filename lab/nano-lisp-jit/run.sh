@@ -182,6 +182,11 @@ ZERO_HOST_GEN7_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-gen7-via-gen6-com.li
 ZERO_HOST_GEN7_COM="$BUILD_DIR/nano-jit/selfhost/zero-host-gen7-nano-jit.com"
 ZERO_HOST_GEN8_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-gen8-via-gen7-com.lisp"
 ZERO_HOST_GEN8_COM="$BUILD_DIR/nano-jit/selfhost/zero-host-gen8-nano-jit.com"
+ZERO_HOST_GEN9_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-gen9-via-gen7-com.lisp"
+ZERO_HOST_GEN9_COM="$BUILD_DIR/nano-jit/selfhost/zero-host-gen9-nano-jit.com"
+ZERO_HOST_GEN10_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-gen10-via-gen9-com.lisp"
+ZERO_HOST_GEN10_APP="$BUILD_DIR/nano-jit/selfhost/zero-host-gen10-app.com"
+ZERO_HOST_CHAIN_COMPLETE_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-chain-complete.lisp"
 ZERO_HOST_EVIDENCE="$BUILD_DIR/v4-zero-host-bootstrap.evidence"
 NANO_JIT_COM="$BUILD_DIR/nano-jit/nano-jit.com"
 BOOTSTRAP_V4_SLICE16_PLAN_WORDS_SRC="$LAB_DIR/samples/bootstrap-v4-slice16-plan-words.lisp"
@@ -8103,6 +8108,49 @@ if [ -f "$ZERO_HOST_GEN7_COM" ] && host_is_linux_x86_64; then
 else
   skip_case "run-bootstrap-v4-zero-host-gen8-via-gen7-com-plan" "zero-host-gen7-nano-jit.com missing"
   skip_case "run-bootstrap-v4-zero-host-gen8-chain-evidence" "zero-host-gen7-nano-jit.com missing"
+fi
+if [ -f "$ZERO_HOST_GEN7_COM" ] && host_is_linux_x86_64; then
+  run_case "run-bootstrap-v4-zero-host-gen9-via-gen7-com-plan" bash -c '
+    cd "'"$ROOT_DIR"'" && out=$("'"$ZERO_HOST_GEN7_COM"'" run-bootstrap-plan "'"$ZERO_HOST_GEN9_SRC"'" 2>&1) || true
+    printf "%s\n" "$out" | grep -q "bootstrap-step.*=pack-ape"
+    test -f "'"$ZERO_HOST_GEN9_COM"'"
+    test "$(stat -c%s "'"$ZERO_HOST_GEN9_COM"'")" -gt 100000
+  '
+  run_case "run-bootstrap-v4-zero-host-gen9-chain-evidence" bash -c '
+    echo "zero.host.gen9.ok=1" >> "'"$ZERO_HOST_EVIDENCE"'"
+  '
+else
+  skip_case "run-bootstrap-v4-zero-host-gen9-via-gen7-com-plan" "zero-host-gen7-nano-jit.com missing"
+  skip_case "run-bootstrap-v4-zero-host-gen9-chain-evidence" "zero-host-gen7-nano-jit.com missing"
+fi
+if [ -f "$ZERO_HOST_GEN9_COM" ] && host_is_linux_x86_64; then
+  run_case "run-bootstrap-v4-zero-host-gen10-via-gen9-com-plan" bash -c '
+    cd "'"$ROOT_DIR"'" && out=$("'"$ZERO_HOST_GEN9_COM"'" run-bootstrap-plan "'"$ZERO_HOST_GEN10_SRC"'" 2>&1) || true
+    test -f "'"$ZERO_HOST_GEN10_APP"'"
+    printf "%s\n" "$out" | grep -q "pack-app.payload.lbin=1"
+    printf "%s\n" "$out" | grep -q "run-ape.payload.load=1"
+    printf "%s\n" "$out" | grep -q "bootstrap-step.*=run"
+  '
+  run_case "run-bootstrap-v4-zero-host-gen10-chain-evidence" bash -c '
+    echo "zero.host.gen10.ok=1" >> "'"$ZERO_HOST_EVIDENCE"'"
+  '
+else
+  skip_case "run-bootstrap-v4-zero-host-gen10-via-gen9-com-plan" "zero-host-gen9-nano-jit.com missing"
+  skip_case "run-bootstrap-v4-zero-host-gen10-chain-evidence" "zero-host-gen9-nano-jit.com missing"
+fi
+if [ -f "$ZERO_HOST_GEN10_APP" ] && [ -f "$ZERO_HOST_GEN9_COM" ]; then
+  run_case "run-bootstrap-v4-zero-host-chain-complete-plan" bash -c '
+    cd "'"$ROOT_DIR"'" && "$RUNNER" run-bootstrap-plan "'"$ZERO_HOST_CHAIN_COMPLETE_SRC"'" 2>&1 || true
+    test -f "'"$ZERO_HOST_GEN2_COM"'"
+    test -f "'"$ZERO_HOST_GEN9_COM"'"
+    {
+      echo "zero.host.chain.complete=1"
+      echo "zero.host.chain=g2,g3,g4,g5,g6,g7,g8,g9,g10"
+      echo "zero.host.terminal_edge=gen10-app"
+    } >> "'"$ZERO_HOST_EVIDENCE"'"
+  '
+else
+  skip_case "run-bootstrap-v4-zero-host-chain-complete-plan" "zero-host gen10 artifacts missing"
 fi
 
 run_case "run-bootstrap-v4-terminal-build-evidence-plan" bash -c '
