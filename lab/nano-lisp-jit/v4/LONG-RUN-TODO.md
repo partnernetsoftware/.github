@@ -88,15 +88,16 @@ bash lab/nano-lisp-jit/tools/v4-longrun-loop.sh
 - [x] **wave77–79** · add72–74 · commander-resume / build-graph-onion / longrun-milestone
 - [x] **wave80–82** · add75–77 · ir-table-scout / emit-manifest-chain / four-track-autonomous
 - [x] **wave83–85** · add78–80 · reflection-resume / lisp-only-terminal / codegen-emit-milestone
-- [ ] wave86+ … 直至终局 100% 或 Lisp emit 实质线开卷
+- [x] **wave86–88** · add81–83 · runner-plan / squad-evidence / onion-mindmap-close
+- [ ] wave89+ … 直至终局 100% 或 Lisp emit 实质线开卷
 
 ## 当前指针
 
 | 项 | 值 |
 |----|-----|
-| 下一波 | **86** |
-| 下一 add | **81** (64+17) |
-| 末次门禁 | tests.pass=544 · build.pass=27（native） |
+| 下一波 | **89** |
+| 下一 add | **87** (67+17) |
+| 末次门禁 | tests.pass=556 · build.pass=27（native） |
 | 终局粗估 | **15–22%**（[`EVAL.md`](EVAL.md) 最新 §） |
 
 ## 自循环规则

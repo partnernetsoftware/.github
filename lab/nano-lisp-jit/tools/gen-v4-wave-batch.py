@@ -332,6 +332,114 @@ WAVES = {
         b_test="samples/bootstrap-v4-wave61-codegen-tick.lisp",
         c_test="samples/bootstrap-v4-wave65-emit-tick.lisp",
     ),
+    86: dict(
+        title="runner-plan-deep",
+        a=64,
+        b_track="runner",
+        c_track="plan",
+        b_files=[
+            "samples/bootstrap-v4-wave62-runner-tick.lisp",
+            "v4/LISP-ONLY.md",
+            "v4/DECISION.md",
+        ],
+        c_files=[
+            "samples/bootstrap-v4-plan-contract-tick.lisp",
+            "v4/SLICE34.md",
+            "v4/DECISION.md",
+        ],
+        b_test="samples/bootstrap-v4-wave62-runner-tick.lisp",
+        c_test="v4/SLICE34.md",
+    ),
+    87: dict(
+        title="squad-evidence-chain",
+        a=65,
+        b_track="assess",
+        c_track="evmatrix",
+        b_files=[
+            "samples/bootstrap-v4-wave42-assess-bundle-tick.lisp",
+            "samples/bootstrap-v4-squad-assess-once.lisp",
+            "v4/SLICE42.md",
+        ],
+        c_files=[
+            "samples/bootstrap-v4-wave48-manifest-tick.lisp",
+            "samples/bootstrap-v4-evidence-matrix.lisp",
+            "v4/SLICE48.md",
+        ],
+        b_test="samples/bootstrap-v4-squad-assess-once.lisp",
+        c_test="v4/SLICE48.md",
+    ),
+    88: dict(
+        title="onion-mindmap-close",
+        a=66,
+        b_track="onion",
+        c_track="mindmap",
+        b_files=[
+            "samples/bootstrap-v4-wave58-onion-tick.lisp",
+            "v4/MINDMAP.md",
+            "v4/PARALLEL.md",
+        ],
+        c_files=[
+            "samples/bootstrap-v4-wave52-mindmap-tick.lisp",
+            "v4/EVAL.md",
+            "v4/PROGRESS.md",
+        ],
+        b_test="v4/MINDMAP.md",
+        c_test="v4/EVAL.md",
+    ),
+    89: dict(
+        title="host-reduce-recap",
+        a=67,
+        b_track="hostreduce",
+        c_track="buildgraph",
+        b_files=[
+            "samples/bootstrap-v4-wave32-host-reduce-tick.lisp",
+            "samples/bootstrap-v4-wave70-hostreduce-tick.lisp",
+            "v4/SLICE32.md",
+        ],
+        c_files=[
+            "samples/bootstrap-v4-wave33-diffusion.lisp",
+            "samples/bootstrap-v4-build-graph-wave27.lisp",
+            "v4/SLICE33.md",
+        ],
+        b_test="samples/bootstrap-v4-wave32-host-reduce-tick.lisp",
+        c_test="v4/SLICE33.md",
+    ),
+    90: dict(
+        title="ir-table-chain",
+        a=68,
+        b_track="irtable",
+        c_track="chain",
+        b_files=[
+            "samples/bootstrap-v4-wave56-irtable-tick.lisp",
+            "samples/bootstrap-v4-wave80-irtable-tick.lisp",
+            "samples/v4-ir-table-v1.lisp",
+        ],
+        c_files=[
+            "samples/bootstrap-v4-wave55-diffusion.lisp",
+            "v4/SLICE56.md",
+            "samples/bootstrap-v4-wave56-diffusion.lisp",
+        ],
+        b_test="samples/v4-ir-table-v1.lisp",
+        c_test="v4/SLICE56.md",
+    ),
+    91: dict(
+        title="four-track-recap",
+        a=69,
+        b_track="fourtrack",
+        c_track="contract",
+        b_files=[
+            "samples/bootstrap-v4-wave73-fourtrack-tick.lisp",
+            "samples/bootstrap-v4-wave82-fourtrack-tick.lisp",
+            "v4/SLICE73.md",
+        ],
+        c_files=[
+            "samples/bootstrap-v4-wave71-contract-tick.lisp",
+            "samples/bootstrap-v4-plan-contract-tick.lisp",
+            "v4/SLICE71.md",
+        ],
+        b_test="samples/bootstrap-v4-wave73-fourtrack-tick.lisp",
+        c_test="v4/SLICE71.md",
+    ),
 }
 
 
@@ -448,6 +556,7 @@ run_case "run-bootstrap-v4-slice{w}-evidence-plan" bash -c '
     block = "\n".join(vars_lines) + "\n"
     if f"V4_SLICE{meta[0]['wave']}_ADD" not in run:
         for anchor in (
+            'V4_SLICE88_EVIDENCE="$BUILD_DIR/v4-slice88.evidence"\n',
             'V4_SLICE85_EVIDENCE="$BUILD_DIR/v4-slice85.evidence"\n',
             'V4_SLICE82_EVIDENCE="$BUILD_DIR/v4-slice82.evidence"\n',
             'V4_SLICE79_EVIDENCE="$BUILD_DIR/v4-slice79.evidence"\n',
@@ -461,6 +570,7 @@ run_case "run-bootstrap-v4-slice{w}-evidence-plan" bash -c '
     ins = "".join(cases)
     if f"run-bootstrap-v4-wave{meta[0]['wave']}-diffusion-plan" not in run:
         for marker in (
+            'run_case "run-bootstrap-v4-slice88-evidence-plan"',
             'run_case "run-bootstrap-v4-slice85-evidence-plan"',
             'run_case "run-bootstrap-v4-slice82-evidence-plan"',
             'run_case "run-bootstrap-v4-slice79-evidence-plan"',

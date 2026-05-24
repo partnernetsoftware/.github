@@ -166,3 +166,7 @@ ir-table → build-graph → host-reduce → plan-contract → evidence → four
 ## wave83–85
 
 reflection/resume → lisp-only/terminal → codegen/emit（长程自主续批）
+
+## wave86–88
+
+runner/plan → assess/evidence-matrix → onion/mindmap-close（长程自主续批）

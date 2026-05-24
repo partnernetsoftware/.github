@@ -353,3 +353,21 @@
 **方法**：`gen-v4-wave-batch.py 83 85`；reflection / resume / lisp-only / terminal / codegen / emit 六锚点三波续批。
 
 **门禁**：`tests.pass=544`；`build.pass=27`（native）。
+
+## wave86–88（长程自主 · 洋葱 TDD · ≤4 并发/波）
+
+| 维度 | wave88 后 | Δ |
+|------|-----------|---|
+| Plan | ~98% | runner-plan + plan-contract 再锚定 |
+| Runner | ~6% | runner tick 与 LISP-ONLY/DECISION 交叉引用 |
+| Codegen | ~50% | add81–83 verified 整表 |
+| 编排 | ~47% | assess + evidence-matrix 链补强 |
+| 构建 | ~59% | 三波 diffusion + slice evidence |
+| 自举 | ~0% | 仍未开卷 Lisp VM emit |
+| 终局整体 | **15–22%** | catalog ready；下一批从 wave89 继续 |
+
+**wave 索引**：至 **88**。
+
+**方法**：`gen-v4-wave-batch.py 86 88`；runner/plan、assess/evidence、onion/mindmap 三波续批。
+
+**门禁**：`tests.pass=556`；`build.pass=27`（native）。

@@ -60,4 +60,7 @@
   (wave 83 "reflection-resume-deep")
   (wave 84 "lisp-only-terminal")
   (wave 85 "codegen-emit-milestone")
+  (wave 86 "runner-plan-deep")
+  (wave 87 "squad-evidence-chain")
+  (wave 88 "onion-mindmap-close")
 )
