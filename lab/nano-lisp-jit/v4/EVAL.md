@@ -371,3 +371,12 @@
 **方法**：`gen-v4-wave-batch.py 86 88`；runner/plan、assess/evidence、onion/mindmap 三波续批。
 
 **门禁**：`tests.pass=556`；`build.pass=27`（native）。
+
+## wave89–91（longrun apply · ≤4 轨/波）
+
+| 维度 | wave91 后 | 说明 |
+|------|-------------|------|
+| Codegen | ~49% | add 续批 verified |
+| 终局整体 | **15–22%** | deterministic apply |
+
+**方法**：`v4-apply-batch.py 89 91` → `run.sh` gate。

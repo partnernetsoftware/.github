@@ -20,26 +20,24 @@
 | 2 | 可选后台 | Task/`cc` | 并行：MINDMAP 洋葱行、assess smoke（与轨 1 无 touch 冲突时） |
 | 3 | 可选后台 | `run.sh` 子集 | 仅当 cc 已提交且 composer 做交叉验证 |
 
-### `/goal` 与 `/loop` 契约
+### `/goal` 与 `/loop` 契约（v2 · state SSOT）
+
+**真源**：[`v4/longrun-state.json`](longrun-state.json)（`LONG-RUN-TODO` 仅展示，由 `v4-longrun-state.py sync` 写入）
 
 ```bash
-# /goal：读到指针 86，目标跑到 wave92 或终局声明 100%
-export V4_LONGRUN_GOAL=wave92
-export V4_LONGRUN_BATCHES=3          # 每轮 3 批 × 3 波 = 9 波
-export V4_LONGRUN_TIMEOUT_SEC=7200
-bash lab/nano-lisp-jit/tools/v4-longrun-loop.sh
+bash lab/nano-lisp-jit/tools/v4-longrun-loop.sh   # 默认 3 批
+# env: V4_LONGRUN_GOAL=wave91  V4_LONGRUN_BATCHES=2  V4_LONGRUN_COMMIT=1
 ```
 
-- **成功**：每批 `CC_DONE` + `run.sh` exit 0 → Composer **commit**（带 EVAL）→ 指针 +=3
-- **失败**：cc 或 gate 非零 → 同批重试 ≤2 → 仍失败则 **FAILED** 退出（不假装完成）
-- **超时**：exit 124；下轮从指针续跑
-- **禁止**：未达 `/goal` 前以「总结」代替下一批
+| 阶段 | 执行者 | 说明 |
+|------|--------|------|
+| apply | `v4-apply-batch.py` | **确定性**生波，不依赖 cc |
+| gate | `build_nano_jit.sh` + `run.sh` | 唯一签收 |
+| repair | `cc-huoshan1-ds4pro` | **仅 gate 失败时** |
+| bump | `v4-longrun-state.py bump` | 写 JSON + sync TODO |
+| commit | loop（`git rev-parse` 根目录） | 防 `lab/lab/` 路径错 |
 
-| 钩子 | 命令 |
-|------|------|
-| 读指针 | `python3 tools/v4-read-pointer.py next_wave` |
-| 生 cc 任务 | `python3 tools/v4-gen-cc-task.py 86 88` |
-| **长驱 loop** | `bash tools/v4-longrun-loop.sh` |
+**禁止**：cc 包办 apply+gate+改指针（双写、路径错、不可重入）。
 
 ```text
 ┌─────────┐   读「当前指针」   ┌──────────┐   gen 三波    ┌─────────┐
@@ -95,9 +93,9 @@ bash lab/nano-lisp-jit/tools/v4-longrun-loop.sh
 
 | 项 | 值 |
 |----|-----|
-| 下一波 | **89** |
+| 下一波 | **92** |
 | 下一 add | **87** (67+17) |
-| 末次门禁 | tests.pass=556 · build.pass=27（native） |
+| 末次门禁 | tests.pass=568 · build.pass=27（native） |
 | 终局粗估 | **15–22%**（[`EVAL.md`](EVAL.md) 最新 §） |
 
 ## 自循环规则

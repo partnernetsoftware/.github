@@ -392,7 +392,7 @@ WAVES = {
         b_track="hostreduce",
         c_track="buildgraph",
         b_files=[
-            "samples/bootstrap-v4-wave32-host-reduce-tick.lisp",
+            "samples/bootstrap-v4-wave56-host-reduce-tick.lisp",
             "samples/bootstrap-v4-wave70-hostreduce-tick.lisp",
             "v4/SLICE32.md",
         ],
@@ -401,7 +401,7 @@ WAVES = {
             "samples/bootstrap-v4-build-graph-wave27.lisp",
             "v4/SLICE33.md",
         ],
-        b_test="samples/bootstrap-v4-wave32-host-reduce-tick.lisp",
+        b_test="samples/bootstrap-v4-wave56-host-reduce-tick.lisp",
         c_test="v4/SLICE33.md",
     ),
     90: dict(

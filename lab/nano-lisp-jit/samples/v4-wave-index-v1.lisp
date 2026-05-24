@@ -63,4 +63,7 @@
   (wave 86 "runner-plan-deep")
   (wave 87 "squad-evidence-chain")
   (wave 88 "onion-mindmap-close")
+  (wave 89 "host-reduce-recap")
+  (wave 90 "ir-table-chain")
+  (wave 91 "four-track-recap")
 )
