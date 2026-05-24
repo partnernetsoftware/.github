@@ -8113,13 +8113,13 @@ run_case "run-bootstrap-v45-entry-plan" bash -c '
   printf "%s\n" "$out" | grep -q "expect.2=ok"
 '
 run_case "run-bootstrap-v45-entry-evidence-plan" bash -c '
-  cd "'"$ROOT_DIR"'" && "$RUNNER" run-bootstrap-plan "'"$BOOTSTRAP_V45_ENTRY_EVIDENCE_SRC"'" 2>&1 || true
+  cd "'"$ROOT_DIR"'" && "'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V45_ENTRY_EVIDENCE_SRC"'" 2>&1 || true
   {
     echo "v45.entry.ok=1"
     echo "v45.verify.smoke=1"
     echo "v45.tier=0"
     echo "v45.runner=nano-lisp-jit"
-    echo "v45.surface=nano-jit.com+*.lisp"
+    echo "v45.surface=nano-jit.com+lisp-plans"
   } >> "'"$V45_ENTRY_EVIDENCE"'"
 '
 if [ -f "$NANO_JIT_COM" ] && host_is_linux_x86_64; then
