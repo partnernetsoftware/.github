@@ -1,6 +1,6 @@
 {
   "ssot": "v4/MINDMAP.md",
-  "updated_at": "2026-05-24T22:30:00Z",
+  "updated_at": "2026-05-24T23:45:00Z",
   "max_parallel": 4,
   "nodes": [
     {
@@ -408,6 +408,33 @@
       "status": "done",
       "deps": ["zero-host-gen30-lispjit-full-com"],
       "accept": ["zero.host.lispjit_from_lisp_partial_northstar=1"]
+    },
+    {
+      "id": "zero-host-gen32-lispjit-terminal-full-com",
+      "layer": 35,
+      "ring": "终局",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen31-lispjit-partial-northstar"],
+      "accept": ["zero.host.lispjit_from_lisp_terminal_on_full_com=1"]
+    },
+    {
+      "id": "zero-host-gen33-lispjit-ir-exit-v1",
+      "layer": 36,
+      "ring": "Codegen",
+      "goal_dim": "Codegen",
+      "status": "done",
+      "deps": ["zero-host-gen32-lispjit-terminal-full-com"],
+      "accept": ["zero.host.lispjit_from_lisp_ir_exit_v1=1"]
+    },
+    {
+      "id": "lispjit-from-lisp-track-gates",
+      "layer": 37,
+      "ring": "证据",
+      "goal_dim": "Plan",
+      "status": "done",
+      "deps": ["zero-host-gen33-lispjit-ir-exit-v1"],
+      "accept": ["zero.host.lispjit_from_lisp_track_gates=1"]
     }
   ]
 }

@@ -23,14 +23,16 @@
 - [x] gen29：lispjit-from-lisp slice → selfhost-reuse → chain `.com`
 - [x] gen30：regenesis 完整 `.com` 上跑 `lispjit-from-lisp`（`lispjit_from_lisp_on_full_com`）
 - [x] gen31：linked-tu + pack-app partial northstar 门禁
-- [ ] 完整 Lisp 编出 `lispjit.c` 本体（非 runner-core / TU 代理）
+- [x] gen32/33：完整 `.com` 上 linked-tu 终端 + `ir-exit-v1` tier-2 profile
+- [x] lispjit-from-lisp track 汇总门禁（`lispjit_from_lisp_track_gates`）
+- [ ] 完整 Lisp 编出 `lispjit.c` 本体（非 proxy profile）
 
 ### 进度尺
 
 | 维度 | 粗估 |
 |------|------|
 | 自举 / 终局（scoped） | **98%** |
-| 自举（理论 lispjit-from-lisp） | **~35%**（gen30 完整 `.com` runner；gen31 partial northstar；仍非完整 lispjit.c） |
+| 自举（理论 lispjit-from-lisp） | **~40%**（gen32–33 完整 `.com` + tier-2 profile；track 门禁已接） |
 
 证据：`.build/v4-zero-host-bootstrap.evidence`
 
