@@ -46,6 +46,8 @@ const TUI_CONFIG = {
   TITLE: "TMUX 驾驶舱",
   TMUX_HOME: join(homedir(), "tmux"),
   TMUX_PORTABLE_BIN: join(homedir(), "tmux", "bin", "tmux"),
+  RMUX_HOME: join(homedir(), "rmux"),
+  RMUX_PORTABLE_BIN: join(homedir(), "rmux", "bin", "rmux"),
   DATA_DIR: join(homedir(), ".tui"),
   INBOX_DIR: join(homedir(), ".tui", "inbox"),
   READ_DIR: join(homedir(), ".tui", "read"),
@@ -78,6 +80,19 @@ const TMUX_STATIC_RELEASE = {
     "linux-x64": { file: "tmux-3.6a-linux-x86_64.tar.gz", sha256: "c0a772a5e6ca8f129b0111d10029a52e02bcbc8352d5a8c0d3de8466a1e59c2e" },
   } as Record<string, { file: string; sha256: string }>,
 } as const;
+
+/** rmux（Helvesec/rmux） — Rust 写的 tmux 兼容多路复用器，安装信息从 GitHub Releases 动态解析 */
+const RMUX_REPO = "Helvesec/rmux";
+
+/** 返回当前主机的 Rust target triple，用于匹配 release asset 名称 */
+function rmuxRustTarget(): string | null {
+  const arch = process.arch === "arm64" ? "aarch64" : process.arch === "x64" ? "x86_64" : null;
+  if (!arch) return null;
+  if (process.platform === "darwin") return `${arch}-apple-darwin`;
+  if (process.platform === "linux") return `${arch}-unknown-linux-gnu`;
+  if (process.platform === "win32") return `${arch}-pc-windows-msvc`;
+  return null;
+}
 
 // PART:ansi-screen
 
@@ -185,6 +200,10 @@ function resolveTmuxPath(): string | null {
     const p = process.env.TMUX_BIN;
     if (isExecutable(p)) return p;
   }
+  if (process.env.TUI_USE_RMUX === "1") {
+    const r = resolveRmuxPath();
+    if (r) return r;
+  }
   if (isExecutable(TUI_CONFIG.TMUX_PORTABLE_BIN)) return TUI_CONFIG.TMUX_PORTABLE_BIN;
   const onPath = Bun.which("tmux");
   if (onPath) return onPath;
@@ -288,6 +307,149 @@ function installTmuxSystem(): number {
     return 1;
   }
   cliWriteStderr(`不支持的平台 ${process.platform}\n`);
+  return 1;
+}
+
+function resolveRmuxPath(): string | null {
+  if (process.env.RMUX_BIN) {
+    const p = process.env.RMUX_BIN;
+    if (isExecutable(p)) return p;
+  }
+  if (isExecutable(TUI_CONFIG.RMUX_PORTABLE_BIN)) return TUI_CONFIG.RMUX_PORTABLE_BIN;
+  const onPath = Bun.which("rmux");
+  if (onPath) return onPath;
+  return null;
+}
+
+interface GhReleaseAsset { name: string; browser_download_url: string; }
+interface GhRelease { tag_name: string; assets: GhReleaseAsset[]; }
+
+function ghFetchLatestRelease(repo: string): GhRelease | null {
+  const url = `https://api.github.com/repos/${repo}/releases/latest`;
+  const args = ["-fsSL", "-H", "Accept: application/vnd.github+json"];
+  if (process.env.GITHUB_TOKEN) args.push("-H", `Authorization: Bearer ${process.env.GITHUB_TOKEN}`);
+  args.push(url);
+  const r = Bun.spawnSync(["curl", ...args], { stdout: "pipe", stderr: "pipe" });
+  if (r.exitCode !== 0) return null;
+  try { return JSON.parse(r.stdout!.toString()) as GhRelease; } catch { return null; }
+}
+
+/** 选最合适的 asset：优先 target triple，再退到 os/arch 关键词，过滤 musl/sha 等 */
+function pickRmuxAsset(release: GhRelease, target: string): GhReleaseAsset | null {
+  const exts = process.platform === "win32" ? [".zip"] : [".tar.gz", ".tgz"];
+  const matchesExt = (n: string) => exts.some((e) => n.endsWith(e));
+  const isMusl = (n: string) => /musl/i.test(n);
+  const preferMusl = process.platform === "linux" && !existsSync("/lib/x86_64-linux-gnu/libc.so.6") && !existsSync("/lib64/libc.so.6");
+  const wantTriple = preferMusl && process.platform === "linux"
+    ? target.replace("-unknown-linux-gnu", "-unknown-linux-musl")
+    : target;
+  const candidates = release.assets.filter((a) => matchesExt(a.name) && !/\.(sha256|sig|asc)$/i.test(a.name));
+  const exact = candidates.find((a) => a.name.includes(wantTriple));
+  if (exact) return exact;
+  const loose = candidates.find((a) => a.name.includes(target));
+  if (loose) return loose;
+  return candidates.find((a) => !isMusl(a.name) && a.name.includes(process.arch === "x64" ? "x86_64" : process.arch)) || null;
+}
+
+/** 从 SHA256SUMS 文件查指定 asset 的 hash；找不到返回 null（不致命，但会警告） */
+function ghFetchSha256(release: GhRelease, assetName: string): string | null {
+  const sums = release.assets.find((a) => /sha256sums?/i.test(a.name));
+  if (!sums) return null;
+  const r = Bun.spawnSync(["curl", "-fsSL", sums.browser_download_url], { stdout: "pipe", stderr: "pipe" });
+  if (r.exitCode !== 0) return null;
+  for (const line of r.stdout!.toString().split(/\r?\n/)) {
+    const m = line.match(/^([0-9a-f]{64})\s+\*?(.+)$/i);
+    if (m && m[2].trim().endsWith(assetName)) return m[1].toLowerCase();
+  }
+  return null;
+}
+
+function installRmuxPortable(force = false): number {
+  if (!force && isExecutable(TUI_CONFIG.RMUX_PORTABLE_BIN)) {
+    cliWriteStdout(`已存在: ${TUI_CONFIG.RMUX_PORTABLE_BIN}\n`);
+    return 0;
+  }
+  const target = rmuxRustTarget();
+  if (!target) {
+    cliWriteStderr(`不支持的平台 ${process.platform}/${process.arch}\n`);
+    return 1;
+  }
+  cliWriteStderr(`查询 ${RMUX_REPO} 最新 release …\n`);
+  const release = ghFetchLatestRelease(RMUX_REPO);
+  if (!release) {
+    cliWriteStderr(`GitHub API 拉取失败；可设 GITHUB_TOKEN 或试 --system\n`);
+    return 1;
+  }
+  const asset = pickRmuxAsset(release, target);
+  if (!asset) {
+    cliWriteStderr(`${release.tag_name} 无 ${target} 预编译包；试: tui install-rmux --system（cargo）\n`);
+    return 1;
+  }
+  const binDir = join(TUI_CONFIG.RMUX_HOME, "bin");
+  const cacheDir = join(TUI_CONFIG.RMUX_HOME, ".cache");
+  mkdirSync(binDir, { recursive: true });
+  mkdirSync(cacheDir, { recursive: true });
+  const archive = join(cacheDir, asset.name);
+  cliWriteStderr(`下载 ${asset.browser_download_url}\n`);
+  const dl = Bun.spawnSync(["curl", "-fsSL", "-o", archive, asset.browser_download_url], { stdout: "pipe", stderr: "pipe" });
+  if (dl.exitCode !== 0) {
+    cliWriteStderr(`下载失败: ${dl.stderr?.toString() || "curl error"}\n`);
+    return 1;
+  }
+  const wantSha = ghFetchSha256(release, asset.name);
+  if (wantSha) {
+    const got = sha256File(archive);
+    if (got !== wantSha) {
+      cliWriteStderr(`校验失败: expected ${wantSha} got ${got}\n`);
+      return 1;
+    }
+  } else {
+    cliWriteStderr(`(无 SHA256SUMS，跳过校验)\n`);
+  }
+  const extractDir = join(cacheDir, asset.name.replace(/\.(tar\.gz|tgz|zip)$/i, ""));
+  rmSync(extractDir, { recursive: true, force: true });
+  mkdirSync(extractDir, { recursive: true });
+  const isZip = /\.zip$/i.test(asset.name);
+  const unpack = isZip
+    ? Bun.spawnSync(["unzip", "-q", archive, "-d", extractDir], { stdout: "pipe", stderr: "pipe" })
+    : Bun.spawnSync(["tar", "-xzf", archive, "-C", extractDir], { stdout: "pipe", stderr: "pipe" });
+  if (unpack.exitCode !== 0) {
+    cliWriteStderr(`解包失败: ${unpack.stderr?.toString()}\n`);
+    return 1;
+  }
+  const binName = process.platform === "win32" ? "rmux.exe" : "rmux";
+  const found = Bun.spawnSync(["find", extractDir, "-type", "f", "-name", binName], { stdout: "pipe" }).stdout?.toString().split("\n").filter(Boolean) ?? [];
+  const extracted = found.find(isExecutable) ?? found[0];
+  if (!extracted) {
+    cliWriteStderr(`解包后未找到可执行文件 ${binName}\n`);
+    return 1;
+  }
+  copyFileSync(extracted, TUI_CONFIG.RMUX_PORTABLE_BIN);
+  chmodSync(TUI_CONFIG.RMUX_PORTABLE_BIN, 0o755);
+  if (process.platform === "darwin") {
+    Bun.spawnSync(["xattr", "-dr", "com.apple.quarantine", TUI_CONFIG.RMUX_HOME], { stdout: "pipe", stderr: "pipe" });
+  }
+  const ver = Bun.spawnSync([TUI_CONFIG.RMUX_PORTABLE_BIN, "-V"], { stdout: "pipe" }).stdout?.toString().trim();
+  cliWriteStdout(`已安装 ${release.tag_name} → ${TUI_CONFIG.RMUX_PORTABLE_BIN}  (${ver})\n`);
+  return 0;
+}
+
+function installRmuxSystem(): number {
+  if (process.platform === "darwin") {
+    const brew = Bun.which("brew");
+    if (brew) {
+      cliWriteStderr("brew install Helvesec/tap/rmux …\n");
+      const r = Bun.spawnSync([brew, "install", "Helvesec/tap/rmux"], { stdin: "inherit", stdout: "inherit", stderr: "inherit" });
+      if (r.exitCode === 0) return 0;
+    }
+  }
+  const cargo = Bun.which("cargo");
+  if (cargo) {
+    cliWriteStderr("cargo install rmux --locked …\n");
+    const r = Bun.spawnSync([cargo, "install", "rmux", "--locked"], { stdin: "inherit", stdout: "inherit", stderr: "inherit" });
+    return r.exitCode ?? 1;
+  }
+  cliWriteStderr("未找到 brew/cargo；请用: tui install-rmux（便携版）\n");
   return 1;
 }
 
@@ -530,19 +692,16 @@ const tmuxApi: IMultiplexerBackend = {
 
 
 // PART:target
-// tmux target 语法陷阱：`=NAME` 在 NAME 同时为 session 名和某 window 名时会歧义匹配到 window。
-// 强制 session 维度一律带尾冒号 `=NAME:`；window 维度 `=NAME:IDX`。所有 target 拼接走这里。
+// 不使用 tmux `=NAME` 精确匹配前缀（rmux 不支持，且 tmux 各子命令支持不一致）。
+// 我们自己生成的 session 名无前缀歧义；尾冒号区分 session vs window target。
 function buildSessTarget(sessionName: string): string {
-  return `=${sessionName}:`;
+  return `${sessionName}:`;
 }
-// session-only 命令（kill-session/has-session/rename-session/attach-session）专用：
-// 这些命令把 `-t` 当 session target 解析，尾冒号会被当成 `session:window` 而把整体降级为 window target，
-// 导致 tmux 报 "can't find session: NAME"（实际是把 `NAME:`<空 window> 当 window 找不到）。
 function buildSessOnlyTarget(sessionName: string): string {
-  return `=${sessionName}`;
+  return sessionName;
 }
 function buildWinTarget(sessionName: string, idx: string | number): string {
-  return `=${sessionName}:${idx}`;
+  return `${sessionName}:${idx}`;
 }
 
 // 统一 set/unset option 入口：val=null → unset；isWindow 控制 -w/-t 维度
@@ -2658,7 +2817,7 @@ function createViewer(sess: string, idx?: string) {
     `'${tb}' set-option -t '${v}' status-justify centre`,
     `'${tb}' set-option -t '${v}' status-style 'bg=white,fg=black'`,
   ].join(" && ");
-  const win = idx ? ` && '${tb}' select-window -t '=${v}:${idx}'` : "";
+  const win = idx ? ` && '${tb}' select-window -t '${v}:${idx}'` : "";
   tmuxShBatch(opts + win);
   tmuxApi.setSessionOption(v, "mouse", "on");
 }
@@ -3866,6 +4025,12 @@ const CLI_MAINT_CMDS: Record<string, LeafCmdSpec> = {
     run: cliInstallTmux,
     needsTmux: false,
   },
+  "install-rmux": {
+    summary: "安装 rmux（Rust 版 tmux 替代，默认便携版→~/rmux）",
+    usage: "[--force] [--system]",
+    run: cliInstallRmux,
+    needsTmux: false,
+  },
 };
 
 const CLI_TOOL_CMDS: Record<string, LeafCmdSpec> = {
@@ -3963,6 +4128,13 @@ function cliInstallTmux(ctx: CliCtx): number {
   const force = ctx.rest.some((a) => a === "--force" || a === "-f");
   if (system) return installTmuxSystem();
   return installTmuxPortable(force);
+}
+
+function cliInstallRmux(ctx: CliCtx): number {
+  const system = ctx.rest.some((a) => a === "--system" || a === "-s");
+  const force = ctx.rest.some((a) => a === "--force" || a === "-f");
+  if (system) return installRmuxSystem();
+  return installRmuxPortable(force);
 }
 
 function resolveSelfScript(): string {
