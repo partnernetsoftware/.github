@@ -21,5 +21,8 @@ lab/**/*.o
 # Large third-party tools (download separately)
 third_party/cosmocc/
 third_party/zig/
+
+# nano-lisp-jit squad runtime (local only)
 lab/nano-lisp-jit/.squad/*.db
 lab/nano-lisp-jit/.squad/verify.lock
+lab/nano-lisp-jit/.squad/state-v4.json
