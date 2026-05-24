@@ -138,6 +138,15 @@
       "status": "done",
       "deps": ["terminal-edge-milestone", "codegen-ir-emit", "runner-squad-dispatch", "loader-bare-default"],
       "accept": ["nano-jit.com run-bootstrap-plan gen2", "zero.host.bootstrap.ok=1", "seed.com hash != next.com"]
+    },
+    {
+      "id": "zero-host-gen3-via-gen2-com",
+      "layer": 5,
+      "ring": "自举",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-bootstrap"],
+      "accept": ["zero.host.gen3.ok=1", "build-slice-lisp+nano-cc", "zero-host-gen3-nano-jit.com"]
     }
   ]
 }

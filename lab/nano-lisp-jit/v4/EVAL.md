@@ -720,6 +720,10 @@ export NANO_SLICE_COMPILER=native && bash lab/nano-lisp-jit/run.sh
 
 **终局整体 ~38–42%** · **自举 ~32%**（闭环在 self-packed `.com`，build-slice 仍经 stage0-bridge/cc）。
 
+## zero-host gen3（2026-05-24）
+
+`zero-host-gen2-nano-jit.com` → `bootstrap-v4-zero-host-gen3-via-gen2-com.lisp` → `zero-host-gen3-nano-jit.com` · `zero.host.gen3.ok=1` · **自举 ~40%** · **终局 ~45–48%**。
+
 ```bash
 cd /workspace && lab/nano-lisp-jit/.build/nano-lisp-jit run-bootstrap-plan \
   lab/nano-lisp-jit/samples/bootstrap-v4-terminal-edge.lisp

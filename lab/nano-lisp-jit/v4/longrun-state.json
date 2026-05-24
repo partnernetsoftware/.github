@@ -2,9 +2,8 @@
   "next_wave": 253,
   "next_add": 248,
   "last_tests_pass": 1221,
-  "terminal_bfs": { "phase": "done" },
-  "mindmap_dp": { "layer4": "done", "zero_host": "gen2-via-com" },
+  "mindmap_dp": { "layer5": "done", "zero_host_gen3": "via-gen2-com" },
   "status": "idle",
-  "updated_at": "2026-05-24T16:30:00.000Z",
-  "notes": "zero-host-bootstrap: nano-jit.com emits zero-host-gen2-nano-jit.com"
+  "updated_at": "2026-05-24T17:00:00.000Z",
+  "notes": "gen2.com runs gen3 plan -> zero-host-gen3-nano-jit.com"
 }

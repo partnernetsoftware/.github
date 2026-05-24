@@ -10,9 +10,9 @@
 | Codegen | Lisp IR 整表 → blob | onion.batch 225–252 + onion.wave | **~59%** |
 | 编排 | Lisp `(squad-*)` | diffuse+4cc MINDMAP | **~54%** |
 | 构建 | plan 内 build 图 | wave182 add177 | **~68%** |
-| 自举 | `.com` 生成下一代 | **`nano-jit.com` → gen2 图 → `zero-host-gen2-nano-jit.com`**（hash≠seed） | **~32%** |
+| 自举 | `.com` 生成下一代 | **gen2.com→gen3.com**（lisp+nano-cc，无 lispjit build-slice） | **~40%** |
 
-**整体终局**：约 **38–42%**（layer4 `zero-host-bootstrap` 签收；仍非 catalog 100%=终局）。
+**整体终局**：约 **45–48%**（gen3 链已跑通；`lispjit.c` 全去 host cc 仍未完成）。
 
 **调整原则**（并行 + 洋葱）：每波只推进一圈一格；扩散→收敛→洋葱；波末一次 `run.sh`（见 [`PARALLEL.md`](PARALLEL.md)）。
 
