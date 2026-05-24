@@ -200,3 +200,37 @@
 **方法**：3×四轨扩散 → `run.sh` → `assess` → 合 **main**（本表 + [`PROGRESS.md`](PROGRESS.md)）。
 
 **catalog**：`v4-complete` ready=True。
+
+## 长程自主推进（catalog ≠ 终局 100%）
+
+| 签收层 | 状态 | 自主策略 |
+|--------|------|----------|
+| catalog `v4-complete` | ready=True（scoped/terminal 满） | **不停止**；继续按波扩散 |
+| 终局六维 | **15–22%** | 未达 100% 前每合 main 更新本表 |
+| 下一硬目标 | Lisp VM emit / runner 去 C | 见 [`REFLECTION.md`](REFLECTION.md) |
+
+**每波固定**：≤4 并发轨 → 一次 `run.sh` → `assess` → 洋葱文档 → 合 main。
+
+## wave53–55（长程自主 · 批量）
+
+| 维度 | wave55 后 | Δ |
+|------|-----------|---|
+| Plan | ~98% | slice12–14 + squad S4–S6 + 自主里程碑 |
+| Codegen | ~40% | add48–50 verified |
+| 编排 | ~37% | squad 深链 |
+| 构建 | ~49% | 三波 diffusion |
+| 终局整体 | **15–22%** | **继续自主，不以 catalog 100% 为停点** |
+
+**catalog**：`v4-complete` ready=True。
+
+
+## wave56–58（长程自主 · 续批）
+
+| 维度 | wave58 后 | Δ |
+|------|-----------|---|
+| Codegen | ~41% | add51–53 |
+| 编排 | ~38% | four-track + host-reduce  recap |
+| 构建 | ~50% | 续三波 diffusion |
+| 终局整体 | **15–22%** | 仍自主推进 |
+
+**wave 索引**：至 **58**。

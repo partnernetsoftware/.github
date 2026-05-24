@@ -27,4 +27,11 @@
   (wave 50 "table-only-v4")
   (wave 51 "wave27-28-recap")
   (wave 52 "eval-mindmap-close")
+  (wave 53 "slice12-14-chain")
+  (wave 54 "squad-s4-s6")
+  (wave 55 "autonomous-milestone")
+  (wave 56 "ir-table-chain")
+  (wave 57 "four-track-recap")
+  (wave 58 "onion-recap")
 )
+

@@ -98,3 +98,4 @@
 | wave44–46 | 批量 add39–41 | 合 main 带 EVAL §wave44–46 |
 | wave47–49 | 批量 add42–44 | 合 main 必带 EVAL §wave47–49 |
 | wave50–52 | 批量 add45–47 | 合 main 带 EVAL §wave50–52 |
+| 长程自主 | catalog ready 后仍按波推进；终局 % 靠 emit 开卷 | wave53–55 add48–50 |

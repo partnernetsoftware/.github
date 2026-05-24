@@ -137,3 +137,14 @@ supervise → manifest → post-v4-close
 ## wave50–52
 
 table-only → wave27/28 → eval-close
+
+## 长程自主（wave53+）
+
+```text
+catalog 满 → 仍扩散
+终局 <100% → 不停
+```
+
+## wave53–55
+
+slice12–14 → squad → autonomous-milestone
