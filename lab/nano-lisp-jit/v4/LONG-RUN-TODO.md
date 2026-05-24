@@ -126,9 +126,10 @@ bun run skills/nano-lisp-jit-v4-longrun/nano-lisp-jit-v4-longrun.ts loop --batch
 
 ### 自循环 TODO 栈（每回合复制勾选）
 
-**读指针** → `cat lab/nano-lisp-jit/v4/longrun-state.json`  
-**扩散** → 1 → `python3 lab/nano-lisp-jit/tools/gen-v4-wave-batch.py LO HI`  
-**并发**  2 → `bash lab/nano-lisp-jit/tools/v4-diffuse-then-cc.sh`（≤4× cc）  
+**读指针** → `cat lab/nano-lisp-jit/v4/longrun-state.json`（看 `terminal_bfs`）  
+**扩散** → 1 → `python3 lab/nano-lisp-jit/tools/gen-terminal-bfs.py`（**终局六轨**）  
+**扩散** → 1b → 可选 `gen-v4-wave-batch.py LO HI`（回归网，非主线）  
+**并发**  2 → `bash lab/nano-lisp-jit/tools/v4-terminal-bfs-cc.sh` 或 `v4-diffuse-then-cc.sh`（≤4× cc）  
 **收敛**  3 → `export NANO_SLICE_COMPILER=native && bash lab/nano-lisp-jit/run.sh`  
 **评估**  4 → 更新 `EVAL.md` / `PROGRESS.md` / `MINDMAP.md`  
 **入账**  5 → bump `longrun-state.json` · commit · **合 main**  

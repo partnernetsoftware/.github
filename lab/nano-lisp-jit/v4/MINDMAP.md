@@ -29,6 +29,8 @@
 
 快路径：多轨扩散写完 → **一次** `bash lab/nano-lisp-jit/run.sh`（勿空转 `agent-team`）。见 [`skills/squad-parallel/`](../../skills/squad-parallel/)。
 
+**终局 BFS**（对齐 loader/.com 主线，非 wave 计数）：[`TERMINAL-BFS.md`](TERMINAL-BFS.md) · `python3 tools/gen-terminal-bfs.py` → `v4-terminal-bfs-cc.sh`（≤4 路 cc）。
+
 ## 洋葱圈（由外向内 · TDD）
 
 ```text
@@ -56,6 +58,9 @@
 圈 5 · 自举终局
   nano-cc / .com 自举
   ❌ 未开卷
+
+圈 7 · TERMINAL-BFS 六轨
+  见 [`TERMINAL-BFS.md`](TERMINAL-BFS.md)
 ```
 
 ## 波次地图（wave15–24）

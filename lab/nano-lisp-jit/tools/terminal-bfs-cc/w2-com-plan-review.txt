@@ -1,0 +1,1 @@
+Worker 2 · 审阅 samples/bootstrap-v4-terminal-com-diffusion.lisp：JIT(compile)+PACK(pack-ape)+LDR(run-ape) 顺序合理；仅改 plan 若缺步骤。CC_DONE worker=2

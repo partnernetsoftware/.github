@@ -3,7 +3,12 @@
   "next_add": 248,
   "last_tests_pass": 1212,
   "last_batch": { "lo": 225, "hi": 252 },
-  "status": "idle",
-  "updated_at": "2026-05-24T12:25:00.000Z",
-  "notes": "wave225-252 gate OK (+112); 4x cc onion.batch/wave"
+  "terminal_bfs": {
+    "tracks": ["LDR", "PACK", "JIT", "AOT", "COM", "BOOT"],
+    "phase": "spread_done",
+    "evidence": ".build/v4-terminal-bfs.evidence"
+  },
+  "status": "running",
+  "updated_at": "2026-05-24T14:00:00.000Z",
+  "notes": "terminal BFS: goal-aligned breadth-first, not add-N waves"
 }
