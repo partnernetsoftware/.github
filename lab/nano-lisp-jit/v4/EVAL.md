@@ -545,3 +545,41 @@
 | 终局整体 | **15–22%** | — | 强模型控向 + 程序记忆 SSOT |
 
 **工作流**：见 [`DEV-AGENTS-TEAM.md`](DEV-AGENTS-TEAM.md) — 不堆 agent 数，堆调度质量。
+
+## wave131–133（longrun apply · ≤4 轨/波）
+
+| 维度 | wave133 后 | 说明 |
+|------|-------------|------|
+| Codegen | ~49% | add 续批 verified |
+| 终局整体 | **15–22%** | skill apply |
+
+**方法**：`bun run skills/nano-lisp-jit-v4-longrun/nano-lisp-jit-v4-longrun.ts apply 131 133`
+
+## wave134–136（longrun apply · ≤4 轨/波）
+
+| 维度 | wave136 后 | 说明 |
+|------|-------------|------|
+| Codegen | ~49% | add 续批 verified |
+| 终局整体 | **15–22%** | skill apply |
+
+**方法**：`bun run skills/nano-lisp-jit-v4-longrun/nano-lisp-jit-v4-longrun.ts apply 134 136`
+
+## wave137–139（longrun apply · ≤4 轨/波）
+
+| 维度 | wave139 后 | 说明 |
+|------|-------------|------|
+| Codegen | ~49% | add 续批 verified |
+| 终局整体 | **15–22%** | skill apply |
+
+**方法**：`bun run skills/nano-lisp-jit-v4-longrun/nano-lisp-jit-v4-longrun.ts apply 137 139`
+
+## wave131–139（post-main · turbo）
+
+| 维度 | wave139 后 | Δ | 说明 |
+|------|-------------|---|------|
+| Plan | ~98% | — | 已 ff **origin/main** |
+| Codegen | ~55% | — | extra_grep 续批 |
+| tests.pass | **760** | +36 | add126–134 |
+| 终局整体 | **15–22%** | — | catalog≠终局 |
+
+**合 main**：`cursor/v4-wave74-76-autonomous-fc19` → `main` @ bc3c1f0；本批在 `main` 上续推。

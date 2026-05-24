@@ -9,10 +9,10 @@
 | Runner | Lisp 执行 plan | C `nano-lisp-jit` + runner/terminal/resume 锚点 | **~6%** |
 | Codegen | Lisp IR 整表 → blob | stub + **grep 验收** `add.result` | **~55%** |
 | 编排 | Lisp `(squad-*)` | dev-agents-milestone + orchestration | **~50%** |
-| 构建 | plan 内 build 图 | wave130 add125 | **~64%** |
+| 构建 | plan 内 build 图 | wave139 add134 · 已合 main | **~65%** |
 | 自举 | `.com` 生成下一代 | 未开卷 | **~0%** |
 
-**整体终局**：约 **15–22%**（[`DEV-AGENTS-TEAM.md`](DEV-AGENTS-TEAM.md) + wave122–130）。
+**整体终局**：约 **15–22%**（wave131–139 post-main，见 [`EVAL.md`](EVAL.md) §wave131–139）。
 
 **调整原则**（并行 + 洋葱）：每波只推进一圈一格；扩散→收敛→洋葱；波末一次 `run.sh`（见 [`PARALLEL.md`](PARALLEL.md)）。
 
