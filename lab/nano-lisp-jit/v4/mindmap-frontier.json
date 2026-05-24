@@ -1,6 +1,6 @@
 {
   "ssot": "v4/MINDMAP.md",
-  "updated_at": "2026-05-24T16:00:00Z",
+  "updated_at": "2026-05-24T16:30:00Z",
   "max_parallel": 4,
   "nodes": [
     {
@@ -135,9 +135,9 @@
       "layer": 4,
       "ring": "自举",
       "goal_dim": "自举",
-      "status": "blocked",
+      "status": "done",
       "deps": ["terminal-edge-milestone", "codegen-ir-emit", "runner-squad-dispatch", "loader-bare-default"],
-      "accept": ["Lisp build graph emits next .com", "PROGRESS 自举 >50%"]
+      "accept": ["nano-jit.com run-bootstrap-plan gen2", "zero.host.bootstrap.ok=1", "seed.com hash != next.com"]
     }
   ]
 }

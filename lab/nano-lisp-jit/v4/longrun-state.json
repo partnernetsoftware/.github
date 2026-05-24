@@ -2,17 +2,9 @@
   "next_wave": 253,
   "next_add": 248,
   "last_tests_pass": 1221,
-  "terminal_bfs": {
-    "tracks": ["LDR", "PACK", "JIT", "AOT", "COM", "BOOT"],
-    "phase": "done"
-  },
-  "mindmap_dp": {
-    "layer2": "done",
-    "layer3": "done",
-    "terminal_edge": "touched",
-    "evidence": ".build/v4-terminal-edge.evidence"
-  },
+  "terminal_bfs": { "phase": "done" },
+  "mindmap_dp": { "layer4": "done", "zero_host": "gen2-via-com" },
   "status": "idle",
-  "updated_at": "2026-05-24T16:00:00.000Z",
-  "notes": "terminal-edge-milestone + loader-bare-default; stop wave expansion until layer4"
+  "updated_at": "2026-05-24T16:30:00.000Z",
+  "notes": "zero-host-bootstrap: nano-jit.com emits zero-host-gen2-nano-jit.com"
 }

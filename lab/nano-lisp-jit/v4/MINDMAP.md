@@ -117,7 +117,7 @@ python3 lab/nano-lisp-jit/tools/mindmap-dp.py next    # W1..W4 与验收句
 | W1 | `loader-bare-default` | `pack-ape-bare.mode=bare` · `mindmap-bare.com` | **done** |
 | W2 | `terminal-edge-milestone` | `terminal.edge.ok=1` · 单 plan 链 pack-ape→JIT→pack-app→`nano-jit.com` | **done** |
 
-**layer 4**：`zero-host-bootstrap` 仍 **blocked**（需 gen1/gen2 在 self-packed `.com` 上产出下一代，非 smoke）。
+**layer 4 已签收**：`zero-host-bootstrap` — `nano-jit.com` 执行 `bootstrap-v4-zero-host-gen2-via-com.lisp` → `zero-host-gen2-nano-jit.com`（`zero.host.bootstrap.ok=1`）。**下一环**：gen3-on-zero-host-com、去 host `cc` build-slice。
 
 ## 波次地图（wave15–24）
 

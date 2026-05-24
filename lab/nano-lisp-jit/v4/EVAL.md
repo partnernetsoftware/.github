@@ -710,6 +710,16 @@ export NANO_SLICE_COMPILER=native && bash lab/nano-lisp-jit/run.sh
 
 证据：`.build/v4-terminal-edge.evidence`（`terminal.edge.ok=1`）· **终局整体 ~26–30%** · **自举 ~10%**（单 plan 链，非 gen2-on-selfpacked-com）。
 
+## zero-host layer4（2026-05-24）
+
+| 交付 | 验收 |
+|------|------|
+| `bootstrap-v4-zero-host-gen2-via-com.lisp` | `nano-jit.com run-bootstrap-plan` → `build-slice` + `pack-ape` |
+| `zero-host-gen2-nano-jit.com` | `file-hash` ≠ seed `nano-jit.com` |
+| evidence | `.build/v4-zero-host-bootstrap.evidence` · `zero.host.bootstrap.ok=1` |
+
+**终局整体 ~38–42%** · **自举 ~32%**（闭环在 self-packed `.com`，build-slice 仍经 stage0-bridge/cc）。
+
 ```bash
 cd /workspace && lab/nano-lisp-jit/.build/nano-lisp-jit run-bootstrap-plan \
   lab/nano-lisp-jit/samples/bootstrap-v4-terminal-edge.lisp

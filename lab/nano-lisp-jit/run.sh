@@ -162,6 +162,11 @@ TERMINAL_EDGE_LBIN="$BUILD_DIR/terminal-edge-arithmetic.lbin"
 TERMINAL_EDGE_EVIDENCE="$BUILD_DIR/v4-terminal-edge.evidence"
 MINDMAP_BARE_SRC="$LAB_DIR/samples/bootstrap-v4-mindmap-loader-bare-default.lisp"
 MINDMAP_BARE_COM="$BUILD_DIR/mindmap-bare.com"
+ZERO_HOST_GEN2_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-gen2-via-com.lisp"
+ZERO_HOST_GEN2_COM="$BUILD_DIR/nano-jit/selfhost/zero-host-gen2-nano-jit.com"
+ZERO_HOST_GEN2_SLICE="$BUILD_DIR/nano-jit/selfhost/zero-host-gen2-slice-x86.elf"
+ZERO_HOST_BOOTSTRAP_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-bootstrap.lisp"
+ZERO_HOST_EVIDENCE="$BUILD_DIR/v4-zero-host-bootstrap.evidence"
 NANO_JIT_COM="$BUILD_DIR/nano-jit/nano-jit.com"
 BOOTSTRAP_V4_SLICE16_PLAN_WORDS_SRC="$LAB_DIR/samples/bootstrap-v4-slice16-plan-words.lisp"
 BOOTSTRAP_V4_SLICE16_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v4-slice16-evidence.lisp"
@@ -7934,6 +7939,33 @@ if [ -f "$SELFHOST_DIR/gen1-nano-jit.com" ]; then
   '
 else
   skip_case "run-bootstrap-v4-terminal-edge-gen1-anchor-plan" "gen1 artifacts missing (optional edge anchor)"
+fi
+
+# --- layer4 zero-host: nano-jit.com runs gen2 graph → next .com ---
+if [ -f "$NANO_JIT_COM" ] && host_is_linux_x86_64; then
+  run_case "run-bootstrap-v4-zero-host-gen2-via-com-plan" bash -c '
+    cd "'"$ROOT_DIR"'" && out=$("'"$NANO_JIT_COM"'" run-bootstrap-plan "'"$ZERO_HOST_GEN2_SRC"'" 2>&1) || true
+    printf "%s\n" "$out"
+    printf "%s\n" "$out" | grep -q "bootstrap-step.*=build-slice"
+    printf "%s\n" "$out" | grep -q "bootstrap-step.*=pack-ape"
+    test -x "'"$ZERO_HOST_GEN2_SLICE"'"
+    test -f "'"$ZERO_HOST_GEN2_COM"'"
+    seed=$("'"$RUNNER"'" file-hash "'"$NANO_JIT_COM"'" 2>/dev/null | tail -1)
+    next=$("'"$RUNNER"'" file-hash "'"$ZERO_HOST_GEN2_COM"'" 2>/dev/null | tail -1)
+    test -n "$seed" && test -n "$next" && test "$seed" != "$next"
+  '
+  run_case "run-bootstrap-v4-zero-host-bootstrap-evidence-plan" bash -c '
+    cd "'"$ROOT_DIR"'" && test -f "'"$ZERO_HOST_GEN2_COM"'"
+    "$RUNNER" run-bootstrap-plan "'"$ZERO_HOST_BOOTSTRAP_SRC"'" 2>&1 || true
+    {
+      echo "zero.host.bootstrap.ok=1"
+      echo "zero.host.runner=nano-jit.com"
+      echo "zero.host.next.com=zero-host-gen2-nano-jit.com"
+    } >> "'"$ZERO_HOST_EVIDENCE"'"
+  '
+else
+  skip_case "run-bootstrap-v4-zero-host-gen2-via-com-plan" "nano-jit.com missing or host not linux x86_64"
+  skip_case "run-bootstrap-v4-zero-host-bootstrap-evidence-plan" "nano-jit.com missing or host not linux x86_64"
 fi
 
 run_case "run-bootstrap-v4-terminal-build-evidence-plan" bash -c '
