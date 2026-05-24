@@ -26,3 +26,4 @@ third_party/zig/
 lab/nano-lisp-jit/.squad/*.db
 lab/nano-lisp-jit/.squad/verify.lock
 lab/nano-lisp-jit/.squad/state-v4.json
+lab/nano-lisp-jit/.build/*.evidence
