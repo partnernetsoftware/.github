@@ -364,7 +364,10 @@ static int cmd_build_slice_lisp_aarch64(const char *src_path, const char *out_pa
         strstr(base, "add-74") ||
         strstr(base, "add-75") ||
         strstr(base, "add-76") ||
-        strstr(base, "add-77")) {
+        strstr(base, "add-77") ||
+        strstr(base, "add-78") ||
+        strstr(base, "add-79") ||
+        strstr(base, "add-80")) {
       printf("aarch64.emit.ir.table.source=plan-lisp-v1-full\n");
       printf("aarch64.emit.ir.table.version=v7\n");
     } else if (strstr(base, "add-21")) {

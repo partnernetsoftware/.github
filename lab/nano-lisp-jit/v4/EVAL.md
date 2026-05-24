@@ -335,3 +335,21 @@
 **方法**：`gen-v4-wave-batch.py 80 82`；ir-table / emit-manifest / four-track 三轨续批。
 
 **门禁**：`tests.pass=532`；`build.pass=26`（native；cosmocc 缺失时 aarch64 slice 跳过）。
+
+## wave83–85（长程自主 · 洋葱 TDD · ≤4 并发/波）
+
+| 维度 | wave85 后 | Δ |
+|------|-----------|---|
+| Plan | ~98% | reflection / lisp-only / codegen 续链 |
+| Runner | ~6% | terminal + resume 锚点补强 |
+| Codegen | ~49% | add78–80 verified 整表 |
+| 编排 | ~46% | reflection-resume + lisponly-terminal 交叉引用 |
+| 构建 | ~58% | 三波 diffusion |
+| 自举 | ~0% | 仍未开卷 Lisp VM emit |
+| 终局整体 | **15–22%** | catalog ready；继续按长程自循环推进 |
+
+**wave 索引**：至 **85**。
+
+**方法**：`gen-v4-wave-batch.py 83 85`；reflection / resume / lisp-only / terminal / codegen / emit 六锚点三波续批。
+
+**门禁**：`tests.pass=544`；`build.pass=27`（native）。

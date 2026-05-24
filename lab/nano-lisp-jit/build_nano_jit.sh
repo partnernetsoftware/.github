@@ -109,6 +109,7 @@ GENESIS_X86="$GENESIS_DIR/nano-jit.x86_64"
 GENESIS_AARCH64="$GENESIS_DIR/nano-jit.aarch64"
 NANO_C="$ROOT_DIR/lab/lispjit-ir/lispjit.c"
 STRLEN_SRC="$LAB_DIR/samples/strlen.lisp"
+LAB_BUILD_DIR="$LAB_DIR/.build"
 ARITH_SRC="$LAB_DIR/samples/arithmetic.lisp"
 ARITH_BLOB="$BUILD_DIR/arithmetic.lbin"
 ARITH_I64_SRC="$LAB_DIR/samples/arithmetic-i64.lisp"
@@ -639,15 +640,15 @@ if [ "$AARCH64_SLICE_SKIPPED" = 1 ]; then
       bash -c "cd \"$ROOT_DIR\" && out=\$(NANO_BUILD_SLICE_CODEGEN=1 \"$PACKER\" run-bootstrap-plan \"$BOOTSTRAP_V35_BUILD_SLICE_AARCH64\" 2>&1) || true
         printf '%s\n' \"\$out\"
         printf '%s\n' \"\$out\" | grep -q 'build-slice.compiler=nano-cc'
-        test -x '$BUILD_DIR/bootstrap-v35-build-slice-aarch64.elf'
-        file -b '$BUILD_DIR/bootstrap-v35-build-slice-aarch64.elf' | grep -q 'ARM aarch64'"
+        test -x '$LAB_BUILD_DIR/bootstrap-v35-build-slice-aarch64.elf'
+        file -b '$LAB_BUILD_DIR/bootstrap-v35-build-slice-aarch64.elf' | grep -q 'ARM aarch64'"
   else
     run_case "run-bootstrap-v35-build-slice-aarch64-native-slice-compile-only" \
       bash -c "cd \"$ROOT_DIR\" && out=\$(NANO_BUILD_SLICE_CODEGEN=1 \"$PACKER\" run-bootstrap-plan \"$BOOTSTRAP_V35_BUILD_SLICE_AARCH64\" 2>&1) || true
         printf '%s\n' \"\$out\"
         printf '%s\n' \"\$out\" | grep -q 'build-slice.compiler=nano-cc'
-        test -f '$BUILD_DIR/bootstrap-v35-build-slice-aarch64.elf'
-        file -b '$BUILD_DIR/bootstrap-v35-build-slice-aarch64.elf' | grep -q 'ARM aarch64'"
+        test -f '$LAB_BUILD_DIR/bootstrap-v35-build-slice-aarch64.elf'
+        file -b '$LAB_BUILD_DIR/bootstrap-v35-build-slice-aarch64.elf' | grep -q 'ARM aarch64'"
     build_skip_case "run-bootstrap-v35-build-slice-aarch64-native-slice-exec" "qemu-aarch64 not available (compile-only)"
   fi
   run_case "run-bootstrap-v35-build-slice-lisp-aarch64-add-native" bash -c '

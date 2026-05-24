@@ -57,5 +57,7 @@
   (wave 80 "ir-table-scout-deep")
   (wave 81 "emit-manifest-chain")
   (wave 82 "four-track-autonomous")
+  (wave 83 "reflection-resume-deep")
+  (wave 84 "lisp-only-terminal")
+  (wave 85 "codegen-emit-milestone")
 )
-

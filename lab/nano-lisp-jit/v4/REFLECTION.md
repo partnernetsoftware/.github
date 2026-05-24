@@ -102,3 +102,4 @@
 | wave74–76 | runner-scout + emit-deep + mindmap-autonomous；`gen-v4-wave-batch.py` | add69–71；合 main 带 EVAL §wave74–76 |
 | wave77–79 | commander-resume + build-graph-onion + longrun-milestone；自循环 TODO 状态机 | add72–74；`LONG-RUN-TODO` 技巧表 |
 | wave80–82 | ir-table-scout + emit-manifest + four-track-autonomous；native 门禁回绿 | add75–77；下一指针 wave83 |
+| wave83–85 | reflection-resume + lisp-only-terminal + codegen-emit 续批；仍保持 ≤4 轨/波 | add78–80；下一指针 wave86 |

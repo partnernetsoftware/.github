@@ -278,6 +278,60 @@ WAVES = {
         b_test="samples/bootstrap-v4-wave73-fourtrack-tick.lisp",
         c_test="samples/bootstrap-v4-wave71-contract-tick.lisp",
     ),
+    83: dict(
+        title="reflection-resume-deep",
+        a=61,
+        b_track="reflection",
+        c_track="resume",
+        b_files=[
+            "samples/bootstrap-v4-wave63-mindmap-tick.lisp",
+            "v4/REFLECTION.md",
+            "v4/SLICE63.md",
+        ],
+        c_files=[
+            "samples/bootstrap-v4-wave72-resume-tick.lisp",
+            "samples/bootstrap-v4-squad-resume-tick.lisp",
+            "v4/SLICE72.md",
+        ],
+        b_test="samples/bootstrap-v4-wave63-mindmap-tick.lisp",
+        c_test="samples/bootstrap-v4-wave72-resume-tick.lisp",
+    ),
+    84: dict(
+        title="lisp-only-terminal",
+        a=62,
+        b_track="lisponly",
+        c_track="terminal",
+        b_files=[
+            "samples/bootstrap-v4-wave64-lisponly-tick.lisp",
+            "v4/LISP-ONLY.md",
+            "v4/SLICE64.md",
+        ],
+        c_files=[
+            "samples/bootstrap-v4-wave67-terminal-tick.lisp",
+            "samples/bootstrap-v4-terminal-build-evidence.lisp",
+            "v4/SLICE58.md",
+        ],
+        b_test="samples/bootstrap-v4-wave64-lisponly-tick.lisp",
+        c_test="samples/bootstrap-v4-wave67-terminal-tick.lisp",
+    ),
+    85: dict(
+        title="codegen-emit-milestone",
+        a=63,
+        b_track="codegen",
+        c_track="emit",
+        b_files=[
+            "samples/bootstrap-v4-wave61-codegen-tick.lisp",
+            "samples/v4-ir-table-v1.lisp",
+            "v4/SLICE61.md",
+        ],
+        c_files=[
+            "samples/bootstrap-v4-wave65-emit-tick.lisp",
+            "samples/bootstrap-v4-codegen-kickoff.lisp",
+            "v4/SLICE41.md",
+        ],
+        b_test="samples/bootstrap-v4-wave61-codegen-tick.lisp",
+        c_test="samples/bootstrap-v4-wave65-emit-tick.lisp",
+    ),
 }
 
 
@@ -510,7 +564,10 @@ def patch_index(meta: list[dict]) -> None:
         w, title = m["wave"], m["title"]
         line = f'  (wave {w} "{title}")'
         if line not in t:
-            t = t.replace(")\n", f"{line}\n)\n", 1)
+            pos = t.rfind("\n)")
+            if pos == -1:
+                raise SystemExit("wave index closing paren not found")
+            t = t[:pos] + "\n" + line + t[pos:]
     INDEX.write_text(t)
 
 

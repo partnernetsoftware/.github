@@ -24,7 +24,7 @@
 | 钩子 | 命令 / 动作 |
 |------|-------------|
 | **生波** | `python3 tools/gen-v4-wave-batch.py $N $((N+2))`（扩 WAVES 表后） |
-| **编程下手** | `~/.local/bin/cc-huoshan1-ds4pro`（C/run.sh 碎活；断链则自写） |
+| **编程下手** | `~/.local/bin/cc-huoshan1-ds4pro -p < tools/cc-task-*.txt`（火山 Claude；需 `API_KEY_HUOSHAN_PLAN_1`） |
 | **收敛** | `export NANO_SLICE_COMPILER=native && bash lab/nano-lisp-jit/run.sh` |
 | **评估** | 写 `EVAL.md` §wave、`PROGRESS.md` 六维、本文件指针 |
 | **卫生** | 合 main 前 `bash tools/clean-lab.sh`（见 [`MAINTENANCE.md`](../MAINTENANCE.md)） |
@@ -51,15 +51,16 @@
 - [x] **wave74–76** · add69–71 · runner-scout / emit-deep / mindmap-autonomous
 - [x] **wave77–79** · add72–74 · commander-resume / build-graph-onion / longrun-milestone
 - [x] **wave80–82** · add75–77 · ir-table-scout / emit-manifest-chain / four-track-autonomous
-- [ ] wave83+ … 直至终局 100% 或 Lisp emit 实质线开卷
+- [x] **wave83–85** · add78–80 · reflection-resume / lisp-only-terminal / codegen-emit-milestone
+- [ ] wave86+ … 直至终局 100% 或 Lisp emit 实质线开卷
 
 ## 当前指针
 
 | 项 | 值 |
 |----|-----|
-| 下一波 | **83** |
-| 下一 add | **78** (61+17) |
-| 末次门禁 | tests.pass=532 · build.pass=26（native；cosmocc 缺失时 aarch64 skip） |
+| 下一波 | **86** |
+| 下一 add | **81** (64+17) |
+| 末次门禁 | tests.pass=544 · build.pass=27（native） |
 | 终局粗估 | **15–22%**（[`EVAL.md`](EVAL.md) 最新 §） |
 
 ## 自循环规则
