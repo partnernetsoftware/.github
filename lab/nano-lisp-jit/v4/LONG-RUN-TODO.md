@@ -82,16 +82,17 @@ bun run skills/nano-lisp-jit-v4-longrun/nano-lisp-jit-v4-longrun.ts loop --batch
 - [x] **wave89–91** · add84–86 · host-reduce / ir-table / four-track
 - [x] **wave92–97** · add87–92 · skill longrun 2 批
 - [x] **wave98–103** · add93–98 · evidence/terminal/ir-words/post-v4/orchestration
-- [x] **wave104–112** · add99–107 · turbo runner/emit/codegen（1× run.sh / 9 波）
-- [ ] wave113+ … 直至终局 100%
+- [x] **wave104–112** · add99–107 · turbo runner/emit/codegen
+- [x] **wave113–121** · add108–116 · cc emit obs + turbo（tests.pass=688）
+- [ ] wave122+ … 直至终局 100%
 
 ## 当前指针
 
 | 项 | 值 |
 |----|-----|
-| 下一波 | **113** |
-| 下一 add | **108** (76+17) |
-| 末次门禁 | tests.pass=652 · [`longrun-state.json`](longrun-state.json) |
+| 下一波 | **122** |
+| 下一 add | **117** (99+17) |
+| 末次门禁 | tests.pass=688 · [`longrun-state.json`](longrun-state.json) |
 | 终局粗估 | **15–22%**（[`EVAL.md`](EVAL.md) 最新 §） |
 
 ## 自循环规则

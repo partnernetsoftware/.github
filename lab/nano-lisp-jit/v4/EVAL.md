@@ -466,3 +466,43 @@
 | 终局整体 | **15–22%** | — | 外圈证据 ≠ VM emit |
 
 **方法**：`bun run … loop --batches 3 --gate-every 3 --goal wave112`
+
+## wave113–115（longrun apply · ≤4 轨/波）
+
+| 维度 | wave115 后 | 说明 |
+|------|-------------|------|
+| Codegen | ~49% | add 续批 verified |
+| 终局整体 | **15–22%** | skill apply |
+
+**方法**：`bun run skills/nano-lisp-jit-v4-longrun/nano-lisp-jit-v4-longrun.ts apply 113 115`
+
+## wave116–118（longrun apply · ≤4 轨/波）
+
+| 维度 | wave118 后 | 说明 |
+|------|-------------|------|
+| Codegen | ~49% | add 续批 verified |
+| 终局整体 | **15–22%** | skill apply |
+
+**方法**：`bun run skills/nano-lisp-jit-v4-longrun/nano-lisp-jit-v4-longrun.ts apply 116 118`
+
+## wave119–121（longrun apply · ≤4 轨/波）
+
+| 维度 | wave121 后 | 说明 |
+|------|-------------|------|
+| Codegen | ~49% | add 续批 verified |
+| 终局整体 | **15–22%** | skill apply |
+
+**方法**：`bun run skills/nano-lisp-jit-v4-longrun/nano-lisp-jit-v4-longrun.ts apply 119 121`
+
+## wave113–121（cc 下手 + turbo · 3 批 1 gate）
+
+| 维度 | wave121 后 | Δ | 说明 |
+|------|-------------|---|------|
+| Plan | ~98% | — | plan-lisp-v1-full |
+| Runner | ~8% | +1% | runner/emit/plan 续批 |
+| Codegen | **~54%** | +1% | **cc**：`add.result` / `add.operands` / `emit.bytes` |
+| 构建 | ~63% | +1% | add108–116 |
+| tests.pass | **688** | +36 | turbo + cc C 层 |
+| 终局整体 | **15–22%** | — | 可观测 ≠ VM emit |
+
+**并行**：Composer 扩 WAVES + `cc-huoshan1-ds4pro` 改 `nano_bootstrap.c`/`nano_elf64.c` → skill `loop --gate-every 3`
