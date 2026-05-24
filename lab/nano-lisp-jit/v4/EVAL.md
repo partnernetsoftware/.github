@@ -117,3 +117,17 @@
 **并发**：四轨 A/B/C/D（≤4）；扩散→一次 `run.sh`→assess→洋葱。
 
 **catalog**：`v4-complete` ready=True（合 main 时以本表为准）。
+
+## wave35–37（批量 · 每波四轨 ≤4 并发）
+
+| 维度 | wave37 后 | 说明 |
+|------|-----------|------|
+| Plan | ~97% | contract / orchestration / gen5 锚点族 |
+| Codegen | ~33% | add30–32 整表 verified |
+| 编排 | ~30% | orchestration-bundle + dispatch 链 |
+| 构建 | ~42% | 三波 diffusion 锚点 |
+| 终局整体 | **15–22%** | catalog ready ≠ 零宿主 |
+
+**方法**：一波扩散 3×四轨 → **一次** `run.sh` → `assess` → 洋葱文档。
+
+**catalog**：`v4-complete` ready=True。

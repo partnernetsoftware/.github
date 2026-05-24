@@ -92,3 +92,4 @@
 | wave32 | host-reduce 洋葱 + add27 + lisp-only tick | plan 无 .c ≠ runner 无 C |
 | wave33 | build-graph 洋葱 + assess-chain + add28 | 仍非 Lisp VM emit |
 | wave34 | plan-contract + terminal tick + add29 | scoped/终局分界在 DECISION |
+| wave35–37 | 批量 3 波四轨（add30–32）| 提速：单回合收敛，仍非 VM emit |
