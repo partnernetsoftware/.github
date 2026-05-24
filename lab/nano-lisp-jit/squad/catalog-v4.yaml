@@ -638,6 +638,68 @@ signoff:
       file: ".build/v4-slice37.evidence"
       results_key: v4.slice37
       min_pass: 1
+    - id: v4-slice38-doc
+      check: artifact
+      path_glob: "v4/SLICE38.md"
+    - id: v4-wave38-diffusion-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v4-wave38-diffusion.lisp"
+    - id: v4-slice38-add33-elf
+      check: artifact
+      path_glob: ".build/bootstrap-v4-slice38-add33.elf"
+    - id: v4-wave38-aarch64-b-tick
+      check: artifact
+      path_glob: "samples/bootstrap-v4-wave38-aarch64-tick.lisp"
+    - id: v4-wave38-aarch64-c-tick
+      check: artifact
+      path_glob: "samples/bootstrap-v4-wave38-slice10-tick.lisp"
+    - id: v4-slice38-evidence
+      check: results
+      file: ".build/v4-slice38.evidence"
+      results_key: v4.slice38
+      min_pass: 1
+
+    - id: v4-slice39-doc
+      check: artifact
+      path_glob: "v4/SLICE39.md"
+    - id: v4-wave39-diffusion-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v4-wave39-diffusion.lisp"
+    - id: v4-slice39-add34-elf
+      check: artifact
+      path_glob: ".build/bootstrap-v4-slice39-add34.elf"
+    - id: v4-wave39-irtable-b-tick
+      check: artifact
+      path_glob: "samples/bootstrap-v4-wave39-irtable-tick.lisp"
+    - id: v4-wave39-irtable-c-tick
+      check: artifact
+      path_glob: "samples/bootstrap-v4-wave39-words-tick.lisp"
+    - id: v4-slice39-evidence
+      check: results
+      file: ".build/v4-slice39.evidence"
+      results_key: v4.slice39
+      min_pass: 1
+
+    - id: v4-slice40-doc
+      check: artifact
+      path_glob: "v4/SLICE40.md"
+    - id: v4-wave40-diffusion-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v4-wave40-diffusion.lisp"
+    - id: v4-slice40-add35-elf
+      check: artifact
+      path_glob: ".build/bootstrap-v4-slice40-add35.elf"
+    - id: v4-wave40-onion-b-tick
+      check: artifact
+      path_glob: "samples/bootstrap-v4-wave40-onion-tick.lisp"
+    - id: v4-wave40-onion-c-tick
+      check: artifact
+      path_glob: "samples/bootstrap-v4-wave40-terminal-tick.lisp"
+    - id: v4-slice40-evidence
+      check: results
+      file: ".build/v4-slice40.evidence"
+      results_key: v4.slice40
+      min_pass: 1
 
   terminal_gates:
     - id: v35-regression-run

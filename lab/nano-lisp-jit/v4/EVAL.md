@@ -131,3 +131,16 @@
 **方法**：一波扩散 3×四轨 → **一次** `run.sh` → `assess` → 洋葱文档。
 
 **catalog**：`v4-complete` ready=True。
+## wave38–40（批量 · 每波四轨 ≤4 并发）
+
+| 维度 | wave40 后 | 说明 |
+|------|-----------|------|
+| Plan | ~98% | aarch64 scout + IR 深度 + onion 收束 |
+| Codegen | ~35% | add33–35 verified 整表 |
+| 编排 | ~32% | slice10–11 + terminal 锚点 |
+| 构建 | ~44% | 三波 diffusion |
+| 终局整体 | **15–22%** | 真提速需 VM emit / runner 去 C |
+
+**方法**：3×四轨扩散 → **一次** `run.sh` → `assess` → 合 main。
+
+**catalog**：`v4-complete` ready=True。
