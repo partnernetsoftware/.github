@@ -1,6 +1,6 @@
 {
   "ssot": "v4/MINDMAP.md",
-  "updated_at": "2026-05-24T21:00:00Z",
+  "updated_at": "2026-05-24T22:30:00Z",
   "max_parallel": 4,
   "nodes": [
     {
@@ -363,6 +363,51 @@
       "status": "done",
       "deps": ["zero-host-gen24-lispjit-from-lisp-via-com"],
       "accept": ["zero.host.lispjit_from_lisp_on_com_runner=1"]
+    },
+    {
+      "id": "zero-host-gen27-lispjit-terminal",
+      "layer": 30,
+      "ring": "终局",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen26-lispjit-from-lisp-on-com-runner"],
+      "accept": ["zero.host.lispjit_from_lisp_terminal=1"]
+    },
+    {
+      "id": "zero-host-gen28-lispjit-linked-tu",
+      "layer": 31,
+      "ring": "Codegen",
+      "goal_dim": "Codegen",
+      "status": "done",
+      "deps": ["zero-host-gen27-lispjit-terminal"],
+      "accept": ["zero.host.lispjit_from_lisp_linked_tu=1"]
+    },
+    {
+      "id": "zero-host-gen29-lispjit-chain",
+      "layer": 32,
+      "ring": "自举",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen28-lispjit-linked-tu"],
+      "accept": ["zero.host.lispjit_from_lisp_chain=1"]
+    },
+    {
+      "id": "zero-host-gen30-lispjit-full-com",
+      "layer": 33,
+      "ring": "自举",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen29-lispjit-chain"],
+      "accept": ["zero.host.lispjit_from_lisp_on_full_com=1"]
+    },
+    {
+      "id": "zero-host-gen31-lispjit-partial-northstar",
+      "layer": 34,
+      "ring": "终局",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen30-lispjit-full-com"],
+      "accept": ["zero.host.lispjit_from_lisp_partial_northstar=1"]
     }
   ]
 }
