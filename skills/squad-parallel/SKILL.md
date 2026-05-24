@@ -1,0 +1,87 @@
+---
+name: squad-parallel
+description: >-
+  Runs v3.5/v4 parallel squad work via tools/squad (four fixed roles, one process
+  per role). Use when the user asks for 并行小组、小队、agent-team、squad 实践、wave 推进,
+  or catalog-v4 dispatch — the agent must execute squad itself, not hand scripts to the user.
+paths:
+  - "tools/squad/**"
+  - "lab/nano-lisp-jit/squad/**"
+  - "lab/nano-lisp-jit/v4/**"
+  - "skills/squad-parallel/**"
+---
+
+# Squad parallel（并行角色小队）
+
+## 成熟度
+
+本技能对应的方法论已在 **nano-lisp-jit v4** 多波（wave8–wave13）实跑验证：`agent-team` + `--auto-exec --auto-done` + `catalog-v4.yaml` 签收闭环。适用于 **host Python squad** 阶段；Lisp 原生 `run-loop` 替换 host 层属后续 slice，协议字段不变。
+
+## 铁律（给 Agent）
+
+1. **你必须亲自跑 squad**，完成 `resume` → `dispatch` → `agent-team`（或四路 `run-loop`），并把代码/证据合入 `main`。禁止只把 bash 命令贴给用户执行。
+2. **一进程一角色**：commander / engineer-a / engineer-b / reviewer 各一条 `run-loop`，禁止每角色一套自定义 shell/py。
+3. **队员禁止 `supervise`**；禁止因 `assess.ready` 自行退出；跟 `signals.supervisor` 三态走。
+4. **每波先 `resume`**（`wave=1`、`epoch++`），再 `dispatch --force --include-meta`。
+5. **不要提交** `.squad/*.db`、`verify.lock`、本地漂移的 `state.json`；可提交 `sync-md` 生成的 `v4/SQUAD.md`。
+6. **`auto-exec` 会跑 catalog.verify（常为全量 `run.sh`）**：实现前先本地绿；CI/门禁用 `SQUAD_VERIFY=1`；嵌套 smoke 用 `run-loop --once --no-auto-exec`。
+
+## 未 100% 仍推进（v4 wave15+）
+
+- **scoped ≠ terminal**：`v35-regression-*` 在 `terminal_gates`；`scoped_ready` 即可开下一波 → [`lab/nano-lisp-jit/v4/PARALLEL.md`](../../lab/nano-lisp-jit/v4/PARALLEL.md)
+- **双轨并行**：`wave15-v4-ir-entry`（engineer-a）+ `wave15-v4-squad-assess`（engineer-b），分 `touch_paths`，合并前各轨本地 `run.sh`
+- **快启动**：`skills/squad-parallel/scripts/fast-wave.sh lab/nano-lisp-jit/squad/catalog-v4.yaml wave15`（只 resume+dispatch，不起 tmux）
+
+## 标准波次（Agent 执行）
+
+从仓库根 `/workspace`（或项目根）：
+
+```bash
+# 并行快路径（单 Agent 实现 A/B 后一次 run.sh）
+skills/squad-parallel/scripts/fast-wave.sh lab/nano-lisp-jit/squad/catalog-v4.yaml wave15
+
+# 全状态机（需四路真 Agent 或接受 defer_verify）
+skills/squad-parallel/scripts/run-wave.sh lab/nano-lisp-jit/squad/catalog-v4.yaml wave14
+skills/squad-parallel/scripts/poll-tasks.sh lab/nano-lisp-jit/squad/catalog-v4.yaml wave14
+```
+
+或等价手工：
+
+```bash
+tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v4.yaml resume --reason <wave>
+tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v4.yaml dispatch --force --include-meta
+tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v4.yaml agent-team --auto-exec --auto-done --max-iter 40 --poll-interval 4
+tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v4.yaml sync-md
+tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v4.yaml assess
+```
+
+## 并行分工（catalog 任务）
+
+| 角色 | 职责 |
+|------|------|
+| **commander** | `supervise` 循环：assess → dispatch → `signals.supervisor`；`team_ready` 时 `complete` |
+| **engineer-a / engineer-b** | `member_tick`：claim → verify → done（`touch_paths` 锁） |
+| **reviewer** | 依赖型 meta 任务、`sync-md`、assess 签收 |
+
+开新波前在 `catalog-v4.yaml` 增加 `waveN-*` 任务与 `signoff.id` 门禁；实现落在工程师 `touch_paths` 内。
+
+## 实现与签收顺序
+
+1. 在 feature 分支写代码 + `run.sh` 门禁 + evidence 样本。
+2. `run.sh` / `build_nano_jit.sh` 本地通过。
+3. **再** `run-wave.sh` 启动四角色；轮询至本波 `wave*-v4-*` 为 `done`。
+4. `sync-md`、`assess` 100% → `git commit` → `push` → 合入 `main`。
+5. 更新 `v4/REFLECTION.md` 变更日志一行（可选）。
+
+## 指挥长 / 门禁
+
+- signoff 100% 但仍有 wave 任务：`supervise --once` 可能 `outcome=continue`（正常）；全任务 terminal 后才是 `complete`。
+- `run.sh` 的 commander smoke 放在 `run_end_summary` **之后**，否则 `tests.pass` 未写入会导致 assess 暂时 &lt;100%。
+
+## 参考
+
+- 工具 README：`tools/squad/README.md`
+- 协议：`lab/nano-lisp-jit/squad/PROTOCOL.md`
+- 实践反思：`lab/nano-lisp-jit/v4/REFLECTION.md` §2
+- 排障表：`references/troubleshooting.md`
+- 协议摘要：`references/protocol-summary.md`

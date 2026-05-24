@@ -1,0 +1,27 @@
+# 审查员 R · 微工作流（由 squad_cli.py role run reviewer 打印）
+role: R
+name: 审查员
+inputs:
+  - squad/catalog.yaml
+  - .squad/state.json
+  - ../ROADMAP.md
+  - ../v3.5/REFLECTION.md
+steps:
+  - id: ingest-evidence
+    action: run
+    cmd: "bash ../run.sh 2>&1 | tail -5; env NANO_SELFHOST_THOROUGH=1 bash ../build_nano_jit.sh 2>&1 | tail -5"
+    optional: true
+  - id: assess-gates
+    action: cli
+    cmd: "squad assess --json"
+  - id: record-finding
+    action: cli
+    cmd: "squad reflect --gate <id> --status pass|fail|warn --note '...'"
+  - id: sync-narrative
+    action: cli
+    cmd: "squad sync-md --targets reflection-changelog"
+    note: "仅生成 REFLECTION §6 一行；不手写派单板"
+outputs:
+  - .squad/state.json
+  - ../v3.5/REFLECTION.md  # 补丁由 sync-md 或人工 review
+exit_when: "assess 已写入 state.findings"

@@ -3,7 +3,7 @@
 目标：生成跨架构可执行的 `nano-lisp-jit.com`，把极小 Lisp-like 源码编译为 portable `.lbin` blob，并在运行时只加载 `.lbin` 执行。
 
 长期目标：推进到可自举的 `nano-jit.com`：用 Lisp/IR 驱动 FFI、JIT、AOT，最终自己编译自己并生成多架构可运行 APE；v3+ 继续作为 AI 友好、图灵完备、可验证的独立基石，逐步吸收 WASM/JVM/JS/SQL 等外部语义。
-路线图、v1 反思、持续进化循环、v1.5/v2/v3+ 洋葱 TDD mindmap 见 `ROADMAP.md`。
+路线图、v1 反思、持续进化循环、v1.5/v2/v3/v3.5 洋葱 TDD mindmap 见 `ROADMAP.md`（v3.5 = nano-cc）。
 `lab/tool-*` 消费者用法与已知摩擦见 `LAB-USAGE-FEEDBACK.md`。
 内存安全借鉴与产品化命名见 `DESIGN-MEMORY-AND-PRODUCT.md`。
 能力边界探测见 `../boundary-probes/`（`run-probes.sh` → `RESULTS.md`）。
@@ -326,7 +326,10 @@ bootstrap DSL 也能描述一条最小 AOT/codegen/tiny-link 构建图，不需�
 - `run-bootstrap-plan`：读取最小 bootstrap DSL，顺序执行 `compile` / `gen-libc-resolve` / `dump` / `file-size` / `file-hash` / `hash` / `compare` / `resolve-quiet` / `pack-ape` / `inspect-ape` / `pack-app` / `inspect-app` / `run-app` / `run` / `emit-elf64-exit` / `emit-elf64-obj-ret` / `emit-elf64-obj-call` / `aot-elf64-exit` / `aot-elf64-obj-ret` / `aot-elf64-code` / `aot-elf64-obj-code` / `compile-elf64-code` / `compile-elf64-obj-code` / `compile-elf64-exe` / `compile-expect-exit` / `link-elf64-exe` / `link-expect-exit` / `run-expect-exit` 子流程，开始把 shell 片段迁到 `.lisp` 描述。
 - `run`：解析 `.lbin`，通过 `dlopen`/`dlsym` 找系统符号，执行 main 指令流。
 - `run-embedded`：从 `.com` 容器内按 payload 偏移直接读取并执行内嵌 blob。
-- `inspect-ape`：读取 nano APE manifest，输出 `ape-v1` container、slice offset 和 size。
+- `inspect-ape`：读取并校验 `ape-v1` manifest（container、slice offset/size/hash）；失败码 2=缺 manifest、3=坏 container、4=坏 offset、5=坏 hash。
+- `inspect-expect-exit`：断言 `inspect-ape` / `inspect-app` 失败码。
+- `run-ape`：按 host arch 从 manifest 抽取 ELF slice 并执行（不依赖 shell stub）。
+- `run-ape-expect-exit`：断言 `run-ape` 退出码。
 - `inspect-app`：读取 AOT app manifest，输出 runtime slice 和 blob 的 offset/size。
 - `run-app`：读取 AOT app manifest，自动定位并执行 `.com` 内嵌 blob。
 - `emit-elf64-exit`：直接写最小 x86_64 Linux ELF，可作为替换 slice compiler 的第一块。
@@ -366,3 +369,9 @@ bash lab/nano-lisp-jit/build_nano_jit.sh
 默认构建使用 `-mtiny`、section GC 和禁用 unwind/stack protector 的 size profile；当前实测 `nano-lisp-jit.com` 约 462KB。
 `build_nano_ape.sh` 使用刚编出的 `nano-lisp-jit` 自身执行 `pack-ape`，打包 x86_64/aarch64 ELF，不调用 `cosmocc` 的 `apelink`；`nano_apelink.py` 仅保留作参考实现。
 `build_nano_jit.sh` 生成 `nano-jit.com` 并写出 `bootstrap-report.txt`；当前仍临时使用 `cosmocc` 编译架构切片，但 `.com` 打包、AOT app 打包和 blob 自测由 `nano-jit` 自己完成。
+
+## v1.5 build_nano_jit
+
+`build_nano_jit.sh` 需要 cosmocc 或 dev container（`third_party/cosmocc` / `/opt/cosmocc/bin`）。
+无 cosmocc 时该脚本无法在 native 主机上运行；可用 `docker-compose.dev.yml` 的 dev 容器执行。
+x86_64 上的 native 验证矩阵由 `run.sh` 覆盖，不依赖 cosmocc。

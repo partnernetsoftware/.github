@@ -4,4 +4,5 @@
   (pack-ape "lab/nano-lisp-jit/.build/bootstrap-ape.com" "lab/nano-lisp-jit/.build/bootstrap-ape-x86.elf" "lab/nano-lisp-jit/.build/bootstrap-ape-arm.elf")
   (inspect-ape "lab/nano-lisp-jit/.build/bootstrap-ape.com")
   (file-size "lab/nano-lisp-jit/.build/bootstrap-ape.com")
+  (run-ape-expect-exit "lab/nano-lisp-jit/.build/bootstrap-ape.com" 42)
   (run-expect-exit "lab/nano-lisp-jit/.build/bootstrap-ape.com" 42))

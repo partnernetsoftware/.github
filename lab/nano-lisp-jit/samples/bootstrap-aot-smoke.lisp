@@ -48,6 +48,8 @@
   (run-expect-exit "lab/nano-lisp-jit/.build/bootstrap-aot-ptr-values.elf" 1)
   (compile-elf64-code "lab/nano-lisp-jit/samples/const-ptr-load-u8.lisp" "lab/nano-lisp-jit/.build/bootstrap-aot-const-ptr-load-u8.elf")
   (run-expect-exit "lab/nano-lisp-jit/.build/bootstrap-aot-const-ptr-load-u8.elf" 1)
+  (compile-elf64-code "lab/nano-lisp-jit/samples/rodata-readonly.lisp" "lab/nano-lisp-jit/.build/bootstrap-aot-rodata-readonly.elf")
+  (run-expect-exit "lab/nano-lisp-jit/.build/bootstrap-aot-rodata-readonly.elf" 0)
   (aot-elf64-obj-ret "lab/nano-lisp-jit/.build/bootstrap-aot-arithmetic.lbin" "lab/nano-lisp-jit/.build/bootstrap-aot-arithmetic-ret.o" "nano_bootstrap_arith_ret")
   (link-elf64-exe "lab/nano-lisp-jit/.build/bootstrap-aot-arithmetic-ret-linked" "nano_bootstrap_arith_ret" "lab/nano-lisp-jit/.build/bootstrap-aot-arithmetic-ret.o")
   (file-size "lab/nano-lisp-jit/.build/bootstrap-aot-arithmetic-ret-linked")

@@ -1,0 +1,6 @@
+# v4 wave28: plan words aligned with v4-ir-table-v1.lisp (cross-verify contract)
+add_x0_x1 0x8b010000
+movz_x8 0xd2800ba8
+svc0 0xd4000001
+movz_x0_base 0xd2800000
+movz_x1_base 0xd2800001

@@ -28,7 +28,9 @@ evolution loop
 ├─ 4. 路线进化
 │  ├─ v1.5 先吸收消费者反馈，再收紧格式与数据段
 │  ├─ v2 扩大编译器与运行时能力
-│  └─ v3+ 吸收 WASM/JVM/JS/SQL 等外部语义
+│  ├─ v3 编排自举闭环（scoped 100%）
+│  ├─ v3.5 nano-cc：nano-jit 实现 cc 编译器（替换 `build-slice` 的 host `cc`）
+│  └─ v4+ 吸收 WASM/JVM/JS/SQL 等外部语义
 └─ 5. 自信开工
    ├─ 每一圈只选最小可证明切片
    ├─ 样例 -> native -> bootstrap DSL -> self-packed -> commit/merge
@@ -153,22 +155,282 @@ nano-jit continuation after self-bootstrap v1
 │  └─ 验收
 │     ├─ build_nano_jit.sh 可选择 nano-generated x86_64 payload
 │     └─ 下一阶段再补 aarch64 payload generator
-└─ v3+: AI-friendly universal substrate
+├─ v2.5 反思 · 汇入 v3（设计 / 实现 / 测试）
+│  ├─ 设计
+│  │  ├─ VM「参数对齐」靠 inline main 样例闭环，真 `(func)`+`(call)` 必须 v3 做 `OP_CALL_FUNC`
+│  │  ├─ `NANO_PACK_APE_MODE` 已统一 env，但默认仍 stub；bootstrap DSL 未覆盖 bare 模式
+│  │  ├─ native self-pack 用 x86 双行 oracle 填满 aarch64 行，非真实双架构 slice
+│  │  └─ AOT 双参靠 `(save-top-i64)` 隐式栈，缺显式 `(call2 …)` / arity 检查
+│  ├─ 实现
+│  │  ├─ `skip_registry.sh` 仅 `run.sh` 接入；`build_nano_jit.sh` 仍内联 host/cosmocc 检测
+│  │  ├─ `nano_types.h` 已收口，但 `lispjit.c` 仍含大量 rd32/Value helpers，可再薄化
+│  │  └─ 负向 AOT：parse 放行 `load-arg-i64`，compile 阶段 exit 2 — 行为对但需 v3 文档化错误码表
+│  └─ 测试
+│     ├─ `verify_tu.sh` 只验证整 TU 编译，不探测单模块 `#include` 顺序回归
+│     ├─ skip 无汇总计数（PASS/SKIP/FAIL 统计）
+│     └─ cosmocc-less CI 依赖 oracle self-pack，与「真 .com 矩阵」仍有差距
+└─ v3+: AI-friendly universal substrate（kickoff）
+   ├─ 反思 · 自举语义分层（用户期望：v3 起脱离 C、Lisp 编自己）
+   │  ├─ A 层（已有，v1 签收）：用户 `.lisp` → `.lbin`/AOT；`nano-jit.com` self-pack 不调用 `apelink`
+   │  ├─ B 层（未达成）：编译器本体由 Lisp 描述并生成 slice，而非 `cc`/`cosmocc` 编 `lispjit.c`
+   │  ├─ 当前链：`lispjit.c` ──cc/cosmo──► `nano-jit.x86_64` ──► `(compile 用户.lisp …)`（只编用户，不编自己）
+   │  ├─ v3 表内 slice0/3 ≠ B；B 对应 ROADMAP §5 编译器自举 + §6 去 cosmocc，单列 **slice 4**
+   │  └─ 验收 B：固定极小 seed 后，构建矩阵由 self-packed runner 从 Lisp 构建图生成下一代 `.com`
    ├─ 目标
-   │  ├─ nano-jit 不以 JVM/GCC 为能力上限，而是形成自己的可计算世界观
-   │  ├─ 以图灵完备、可读、可验证、AI 友好为核心约束
-   │  └─ 逐步吃下 WASM/JVM/JS/SQL 等外部语义，转译到自身 IR/VM/AOT/APE 体系
+   │  ├─ VM：`OP_CALL_FUNC` + `(func …)` module 形态（对齐 AOT 参数模型）
+   │  ├─ slice：aarch64 `NANO_SLICE_COMPILER=native` 或独立后端，去掉 oracle duplicate
+   │  ├─ pack/loader：bare 默认可选；纯 ELF loader 分层（exec 层 vs 解析层）
+   │  ├─ slice 4：Lisp 构建图描述 slice/link/pack（C-subset 或 IR→ELF），逐步替换 `lispjit.c` 外壳
+   │  └─ 外部语义（WASM/JS/SQL）仍以 fixture→lower→VM 为先
    ├─ 洋葱 TDD
-   │  ├─ import: 先读最小外部格式 fixture
-   │  ├─ lower: 转成 nano IR 或 typed DSL
-   │  ├─ execute: VM 跑通行为等价
-   │  ├─ compile: x86_64 AOT/object/tiny-link 跑通
-   │  ├─ package: 进入 nano APE payload/manifest
-   │  └─ self-host: 用 nano-jit.com 复验同一导入/编译矩阵
+   │  ├─ slice 0: `OP_CALL_FUNC` VM + `func-call-smoke.lisp` + run.sh
+   │  ├─ slice 1: AOT/VM 参数 arity 负向统一 exit 2（`ERROR-CODES.md`）
+   │  ├─ slice 2: aarch64 native slice（非 duplicate oracle）
+   │  ├─ slice 3: bootstrap 覆盖 `NANO_PACK_APE_MODE` + skip 统计 + self-packed 新语义复验
+   │  ├─ slice 4: compiler-in-lisp — 最小 `(build-slice …)` / Lisp 构建图 → 替换 stage0 `cc lispjit.c`
+   │  ├─ import/lower/execute/compile/package/self-host（延续 v2 mindmap）
+   │  └─ 每步 native + self-packed 复验（含 v3 新 fixture，不单跑 `run.sh` native）
    └─ 验收
-      ├─ 每吞下一种外部语义，都留下 fixture、负向样例、bootstrap DSL 证据
-      └─ v3 之后继续按同一洋葱层扩张，而不是把 v2 当终局
+      ├─ v2/v2.5 fixture 不退化
+      ├─ 真 multi-arch `.com` 或文档化 aarch64 缺口
+      ├─ `func-param-*-bad`：VM `compile` 与 AOT 同为 exit 2
+      └─ v3 进度表可追踪（区分 A/B 自举层，非 scoped 空话）
+├─ v3 core 反思（slice 0–3 scoped 100%）
+│  ├─ 设计：A/B 自举分层；VM/AOT 参数与 exit 2 统一
+│  ├─ 实现：PARAM 不计入 PC；cross aarch64 + qemu static smoke
+│  ├─ 测试：self-packed v3 矩阵 + build.pass/skip/fail
+│  └─ 下一圈：**v3.5 并行** — slice 0 100%；切片 1–6 见 [`v3.5/PARALLEL.md`](archive/versions/v3.5/PARALLEL.md)
+├─ v2.5: v2 反思收口（把 scoped 缺口变成可测切片）
+│  ├─ 反思 · 设计（v2 发现的问题）
+│  │  ├─ scoped 100% 与 mindmap 脱节：「richer IR/VM 参数」只落了 AOT 单 `(param i64)`，VM 仍无参
+│  │  ├─ 单 TU `#include` 顺序成为隐式模块 ABI，并行开发易冲突
+│  │  ├─ loader「100% scoped」= memfd+exec，非纯 ELF 解析/映射；与 APE-v2 长期目标需分层表述
+│  │  ├─ `pack-ape` 默认仍 Mode A shell；`pack-ape-bare` 与 stub 路径分裂，缺统一默认策略
+│  │  └─ ABI 仅覆盖 import `sig` 字符串，缺通用 call descriptor / 多寄存器 SysV 模型
+│  ├─ 反思 · 实现
+│  │  ├─ `lispjit.c` 仍承载全部 typedef/常量，模块拆分未收口类型头
+│  │  ├─ `parse_size_arg` 曾重复定义 + 前向声明，manifest/run/bootstrap 交叉依赖
+│  │  ├─ `NANO_SLICE_COMPILER=native` 缺 aarch64 时整段 self-pack 被跳过（证据空洞）
+│  │  ├─ AOT `param_count` 仅 0/1，`load-arg-i64` 仅 index 0；call 侧仅 `mov rdi,rax`
+│  │  └─ 多 agent 并行合并频繁冲突 `lispjit.c` / `MODULES.md` / `run.sh`
+│  ├─ 反思 · 测试
+│  │  ├─ `build_nano_jit.sh` 未默认纳入 `run.sh` 门禁，cloud/CI 易只跑 native 子集
+│  │  ├─ Linux x86_64 skip 分散在各块，缺统一 skip 注册表/日志格式
+│  │  ├─ 缺「include 顺序 / 模块移动」回归探针
+│  │  └─ native slice 路径未验证 pack→inspect→run 全链（仅 compile/run arithmetic）
+│  ├─ slice 0: 证据门禁
+│  │  ├─ `run.sh` 末尾 `build-nano-jit-native-smoke`（`slice.compiler=native`）
+│  │  ├─ bootstrap DSL：`bootstrap-v25-native-selfpack.lisp`
+│  │  └─ 负向：无 cc / 非 x86_64 host 明确 skip
+│  ├─ slice 1: native x86-only self-pack oracle
+│  │  ├─ cosmocc 缺失时用 x86_64 slice 填满双行 payload table（文档化 oracle）
+│  │  ├─ `inspect-ape` / `run-ape` / 部分 self-pack 矩阵仍跑
+│  │  └─ report 字段：`self-pack=oracle-x86-duplicate`
+│  ├─ slice 2: include 卫生
+│  │  ├─ `nano_util.c`：`parse_size_arg` 唯一实现
+│  │  └─ 目标：`nano_types.h` 收口 typedef（后续）
+│  ├─ slice 3: VM↔AOT 参数对齐
+│  │  ├─ sample：`func-param-i64` 已有 AOT；补 VM `.lbin` 路径或 `(func …)` module 形态
+│  │  ├─ 负向：无 `(param)` 的 call、错误 arity
+│  │  └─ AOT：第二参数 `rsi` / 双 `(param i64)`（后续）
+│  └─ 验收
+│     ├─ `run.sh` + `build_nano_jit.sh`（native）全绿
+│     ├─ v2 全量 fixture hash/exit 不退化
+│     └─ ROADMAP 表 v2.5 进度可追踪（非 scoped 空话）
 ```
+
+### v2.5 完成度（工程向）
+
+| 切片 | 状态 | 说明 |
+|------|------|------|
+| 反思 mindmap 入账 | **100%** | ROADMAP 节点 + `v2.5/README.md` |
+| slice 0 证据门禁 | **100%** | `run.sh` `build-nano-jit-native-smoke` |
+| slice 1 x86-only self-pack | **100%** | `self-pack=oracle-x86-duplicate` + `bootstrap-v25-native-selfpack.lisp` |
+| slice 2 `nano_util` | **100%** | `parse_size_arg` 唯一实现 |
+| slice 3 VM/AOT 参数对齐 | **100%** scoped | AOT 双参 + 负向；VM `func-param-vm-parity`；user func call = v3 |
+| slice 2b `nano_types.h` | **100%** | 类型/opcode 收口 |
+| slice 4 skip 注册表 | **100%** | `skip_registry.sh` |
+| slice 5 pack 默认 | **100%** scoped | `NANO_PACK_APE_MODE=stub\|bare` |
+| TU 编译探针 | **100%** | `verify_tu.sh` + `run.sh` |
+
+**v2.5 整体**：**100%（scoped）** — 已签收；下一圈 v3（见下方 mindmap + `v2.5` 反思汇入）。
+
+### v3 完成度（工程向）
+
+| 切片 | 状态 | 说明 |
+|------|------|------|
+| slice 0 VM `OP_CALL_FUNC` | **100%** | `OP_CALL_FUNC` + `(func …)`/`(call …)`；`func-call-vm-smoke.lisp` + `run.sh` |
+| slice 1 错误码/arity | **100%** | VM `load-arg-i64` + `func-param-vm-i64`；AOT/VM 负向 exit 2；[`v3/ERROR-CODES.md`](v3/ERROR-CODES.md) |
+| slice 2 aarch64 native slice | **100%** scoped | cross gcc + static/qemu compile/run smoke；非 x86 duplicate |
+| slice 3 证据/bootstrap | **100%** | self-pack v3 VM 矩阵 + `build.pass/skip/fail` + hash distinct |
+| slice 4 compiler-in-lisp（B 层编排） | **100%** | `bootstrap-v3-selfhost-gen{1,2}`；[`v3/BOOTSTRAP-THOROUGH.md`](v3/BOOTSTRAP-THOROUGH.md) |
+| slice 4b-1 `build-slice-lisp` | **100%** | `.lisp` → ELF；[`v3/CODEGEN.md`](v3/CODEGEN.md) |
+| slice 4b-2 `nano-cc` hello | **100%** | `nano-cc-hello.c` → ELF；`build-slice.compiler=nano-cc` |
+| slice 4b-3 `lispjit.c` genesis-pin（日常零 `cc`） | **100%** | [`genesis/`](../genesis/)、[`v3/CODEGEN.md`](v3/CODEGEN.md) |
+
+**v3 core（slice 0–3）**：**100%** — 反思见 [`v3/REFLECTION.md`](v3/REFLECTION.md)。  
+**v3 完全 100%**：**100%** — 编排 + 4b-1/4b-2/4b-3；见 [`v3/README.md`](v3/README.md)。  
+**v3.5**：**~100%** — squad signoff 全绿（gen5 dual-arch、aarch64-add-emit、gen5-via-gen2、L2/L4 签收）。小组模式见 [`v3.5/SQUAD.md`](archive/versions/v3.5/SQUAD.md)。见 [`v3.5/README.md`](archive/versions/v3.5/README.md)、[`v3.5/PARALLEL.md`](archive/versions/v3.5/PARALLEL.md)、[`v3.5/REFLECTION.md`](archive/versions/v3.5/REFLECTION.md)。
+
+### v3.5 洋葱 TDD mindmap（kickoff + 反思轨 R）
+
+v3 完全 100% 已签收（含 genesis-pin 4b-3）。**v3.5** 扩展 nano-cc，逐步替代 pin 复制：用 nano-jit 自身能力实现一个 **C-subset → ELF** 的 `nano-cc`，逐步替换 `build-slice` 对 host `cc` 的依赖。这是 ROADMAP §5（编译器自举）与 §6（替换外部 slice compiler）的**第一座可证明桥梁**。
+
+**并行约定**：开发轨最多 **3 路**；**反思轨 R** 常驻（不占开发名额），每 wave 更新 [`v3.5/REFLECTION.md`](archive/versions/v3.5/REFLECTION.md) 并回写本 mindmap。
+
+```text
+v3.5: nano-cc（nano-jit 作为 cc 编译器）
+├─ 前置（v3 已签收）
+│  ├─ Genesis：`cc` 一次性 seed（`nano-jit.x86_64` 固定 pin，非每圈重建）
+│  ├─ Orchestration：`bootstrap-v3-selfhost-gen{1,2}.lisp` + `selfhost-thorough-*`
+│  └─ 证据：`run.sh` 全绿 + `NANO_SELFHOST_THOROUGH=1` build 全绿
+├─ 目标（伟大进展的定义）
+│  ├─ **nano-cc**：`(build-slice …)` 内部调 nano 生成的 `nano-cc` ELF，而非 `cc`/`aarch64-linux-gnu-gcc`
+│  ├─ 输入：受控 C-subset（先单文件 `lispjit.c` 可编译子集，再扩 `#include` 合并 TU）
+│  ├─ 输出：与现 `build-slice` 字节级或 hash 级 **等价** 的 `nano-jit.{x86_64,aarch64}` slice ELF
+│  ├─ 终局：Genesis 仅 bootstrap 极小包；**日常重建 slice 零 host cc**
+│  └─ 与 v4 分界：v3.5 只关心 **slice compiler**；用户 `.lisp`/APE/外部语义仍属 v3/v4
+├─ 反思 · v3 汇入（开工前必读）
+│  ├─ `build-slice.role=stage0-bridge` 仍是外部 `cc` — v3.5 的第一刀就是改 role→`nano-cc`
+│  ├─ 已有资产可复用：`compile-elf64-*` / `aot-elf64-obj-code` / `link-elf64-exe` / section+reloc
+│  ├─ 缺口：无 C 前端；无 `#include` 展开；无 SysV 全 ABI；aarch64 后端独立于 x86_64
+│  └─ 风险：试图一次译全 `lispjit.c` 会爆炸 — 必须 C-subset 洋葱切片
+├─ 反思 · v3.5 持续（**track R** · [`v3.5/REFLECTION.md`](archive/versions/v3.5/REFLECTION.md)）
+│  ├─ 技术债（未清理）
+│  │  ├─ companion `.lisp` 绕道 add — 非真 C 编译器（**P0**）
+│  │  ├─ genesis pin 仍承载全量 `lispjit.c` slice（**P1**）
+│  │  ├─ `nano_cc.c` 模式匹配 / 无 BNF 契约 / reason 码分裂（**P0**）
+│  │  ├─ `NANO_BUILD_SLICE_CODEGEN` 非默认；gen3 仍 pack genesis（**P1**）
+│  │  └─ v2/v3 遗留：`lispjit.c` 巨石、loader≠纯 ELF、pack Mode A、aarch64 oracle duplicate
+│  ├─ 设计/实现缺陷
+│  │  ├─ scoped smoke ≠ 终局「nano-cc 译 lispjit.c」— mindmap 须双栏表述
+│  │  ├─ 缺 parse golden / 符号表 diff / build 级禁 `cc`（slice 6 wave3 偿还中）
+│  │  └─ `build_slice` 白名单硬编码 — 应收口 `nano_cc_can_compile_path`
+│  ├─ 底层应用实验（值得用 nano-jit 做）
+│  │  ├─ **A** 构建图 DSL（bootstrap DAG + hash 矩阵）
+│  │  ├─ **B** libc resolver 生成（FFI 表扩展）
+│  │  ├─ **C** boundary-probes 接 run.sh
+│  │  ├─ **D** 单文件 `pack-app` 微工具 `.com`
+│  │  ├─ **E** 配置规则 `.lbin` VM
+│  │  ├─ **F** gen4：nano-cc 只编 `nano_cc.c` 子集
+│  │  ├─ **G** parse golden CI（`nano-cc-add.parse.golden`）
+│  │  └─ **H** gen2/gen3 hash 确定性供应链
+│  └─ 偿还优先级：P0 parse+.o → P1 genesis 审计+禁 cc → P2 实验 C/D/G → P3 v4 loader/pack
+├─ Lisp-only / AI 自主进化（[`v3.5/LISP-ONLY.md`](archive/versions/v3.5/LISP-ONLY.md) North star）
+│  ├─ 赌注：编辑面 = `.lisp` + bootstrap + golden；C 仅 genesis/legacy
+│  ├─ 档位：A–B **已达**；C genesis-pin；D− gen4 计划无 C；E 加速通道 **进行中**
+│  ├─ L0–L1–L3：Lisp slice、pack x86 Lisp、aarch64 exit-stub — **签收**
+│  ├─ gen5 **签收**：双架构 Lisp pack 零 genesis；gen5-via-gen2 由 gen2 slice runner 编排
+│  └─ 判据：每代 `run.sh` 全绿 + plan 无 `.c` + hash 矩阵不退化
+├─ 小组模式（[`v3.5/SQUAD.md`](archive/versions/v3.5/SQUAD.md) · 指挥长派单 · **~100%**）
+│  ├─ **A** `L2-companion` — **完成** `7866e4e`：去 companion；add 真相源 = `nano-jit-slice-add.lisp`
+│  ├─ **B** `L4-tu-kickoff` / `L4-runner-1` — **完成** `a043fd5`/`5030c7c`：多 TU link + gen5-via-gen2
+│  ├─ **A** `aarch64-codegen-1` — **完成** `5030c7c`：`aarch64-add-emit` + qemu
+│  └─ **R** `wave-squad-R2` — L2/L4/aarch64 签收；assess 100% → REFLECTION/ROADMAP
+├─ slice 0: nano-cc 证据门禁（**100%**）
+│  ├─ sample：`samples/nano-cc-hello.c`（`main` return 42）+ `nano-cc-bad.c`
+│  ├─ CLI：`nano-cc compile input.c -o out.elf`（genesis runner 或 `nano-jit.com`）
+│  ├─ native：`run.sh` `nano-cc-compile-hello-cli` / `nano-cc-run-hello-exit42`
+│  ├─ 负向：syntax error / unsupported construct → exit 2（[`v3.5/ERROR-CODES.md`](archive/versions/v3.5/ERROR-CODES.md)）
+│  └─ 验收：不依赖 host `cc` 生成 hello ELF（genesis 编 runner 一次可接受）
+├─ slice 1: C-subset 前端（**scoped** · track A）
+│  ├─ 已：`nano-cc parse`；`add_parse_fail`；golden + `nano-cc-add-bad-{sig,body}.c`（wave3）
+│  ├─ 待：token/lower → `CModule`；reason 枚举统一；BNF 版本文件
+│  └─ 验收：parse dump == golden；compile exit 与 lisp 路径一致（无 companion）
+├─ slice 2: x86_64 对象发射（**kickoff** · track B）
+│  ├─ 已：`nano-cc compile-obj` + link smoke（wave3）
+│  ├─ 待：去 companion；多 TU；符号表 diff vs host cc
+│  └─ 验收：`link-elf64-exe` 链 nano-cc `.o` 成 slice 候选
+├─ slice 3: `build-slice` 切换（**100% scoped** · 并行 track C）
+│  ├─ 改 `cmd_build_slice`：`NANO_CC=1` 或 `build-slice.compiler=nano-cc`
+│  ├─ sample：`bootstrap-v35-build-slice.lisp` 替换 `bootstrap-v3-build-slice.lisp` 路径
+│  ├─ report：`build-slice.role=nano-cc`（禁止静默回退 host `cc` 除非 `NANO_CC_FALLBACK=1`）
+│  ├─ self-pack：genesis `nano-jit.com` 跑 v35 plan
+│  └─ 验收：`run.sh` + `build_nano_jit.sh` 全绿；`build-slice` 日志无 `compiler=cc`
+├─ slice 4: aarch64 nano-cc（**scoped** · 并行 track D）
+│  ├─ 路线 A：独立 aarch64 发射后端（与 v3 cross slice 对齐）
+│  ├─ 路线 B：先 x86_64-only nano-cc + cross 仅 genesis（文档化缺口）
+│  ├─ sample：qemu-aarch64 跑 nano-cc 产物 arithmetic（延续 v3 slice 2 证据）
+│  └─ 验收：payload hash distinct + qemu compile/run（与 v3 同门槛）
+├─ slice 5: gen3 自举（nano-cc 编 slice）（**100% scoped**）
+│  ├─ sample：`bootstrap-v35-selfhost-gen3.lisp` — gen2 runner 调 nano-cc `build-slice` 出 gen3
+│  ├─ 对比：gen2 vs gen3 slice hash 允许相同（确定性）或版本化 bump
+│  ├─ 门禁：`selfhost-v35-gen3-*` in `build_nano_jit.sh`
+│  └─ 验收：**日常重建**不再调用 host `cc` 编 `lispjit.c`（Genesis pin 除外；pack 直引 genesis）
+├─ slice 6: 收缩 Genesis（**scoped** · track F）
+│  ├─ 已：[`GENESIS-SHRINK.md`](archive/versions/v3.5/GENESIS-SHRINK.md)、`bootstrap-v35-genesis-shrink`、plan 断言
+│  ├─ wave3：`audit_genesis_shrink.sh` — build/run 日志禁 `lispjit.c` + `compiler=cc`（无 `NANO_REGENESIS=1`）
+│  └─ 验收：CI 两脚本全绿 + 审计失败即红
+└─ 验收（v3.5 整体 scoped）
+   ├─ `build-slice` 默认 nano-cc；host `cc` 仅 fallback/文档化
+   ├─ gen3 selfhost 证据入库（bootstrap DSL + build 矩阵）
+   ├─ v2/v2.5/v3 全量 fixture 不退化
+   ├─ **反思轨 R**：[`v3.5/REFLECTION.md`](archive/versions/v3.5/REFLECTION.md) 与 mindmap 同步（技术债/实验/P0–P3）
+   └─ ROADMAP / `v3.5/README.md` / `v3.5/PARALLEL.md` 进度可追踪（非「实现 cc」空话）
+```
+
+### v3.5 完成度（工程向）
+
+| 切片 | 状态 | 说明 |
+|------|------|------|
+| slice 0 nano-cc 证据门禁 | **100%** | `nano-cc compile -o`、bootstrap-v35、负向 exit 2 |
+| slice 1 C-subset 前端 | **scoped** | `nano-cc parse` + `add_parse_fail` 负向 |
+| slice 2 x86_64 emit | **kickoff** | `nano-cc compile-obj` + link smoke |
+| slice 3 `build-slice` 切换 | **100%** scoped | `NANO_BUILD_SLICE_CODEGEN=1` |
+| slice 4 aarch64 nano-cc | **scoped** | `NANO_CC_ARCH` + `build-slice-lisp` aarch64；[`v3.5/AARCH64.md`](archive/versions/v3.5/AARCH64.md) |
+| Lisp-only L1 pack | **scoped** | `bootstrap-v35-pack-lisp-x86` |
+| slice 5 gen3 自举 | **100%** scoped | `bootstrap-v35-selfhost-gen3`、genesis pin pack |
+| gen5 Lisp dual-arch pack | **scoped** | `bootstrap-v35-selfhost-gen5`、零 genesis pin |
+| slice 6 Genesis 收缩 | **scoped** | genesis-shrink + `audit_genesis_shrink.sh` |
+| 反思轨 R | **持续** | [`v3.5/REFLECTION.md`](archive/versions/v3.5/REFLECTION.md) |
+
+**v3.5 整体**：**~100%** — squad signoff 全绿（254 run / 119 build；`v35-signoff.evidence` aarch64-add-emit + gen5-via-gen2）。见 [`v3.5/README.md`](archive/versions/v3.5/README.md)。
+
+### v4 洋葱 TDD mindmap（wave14 · 诚实双轨）
+
+v3.5 **scoped + terminal** 已签收。**v4 当前 signoff**：`v4-slice9-scoped`（294 `run.sh` pass）。  
+**直接回答「是否已摆脱 `.c` 自举」**：**否** — 见 [`v4/LISP-ONLY.md`](v4/LISP-ONLY.md) 三层表；[`v4/REFLECTION.md`](v4/REFLECTION.md) track R。
+
+```text
+v4: 终局切片 + 产品轨（catalog-v4.yaml · signoff v4-complete + post-v4 MINDMAP）
+├─ 【诚实口径】三层（mindmap 每圈都要标 scoped / 终局）
+│  ├─ A Plan：bootstrap-v4-*.lisp 不引用 .c 源 → v4-lisp-only-scoped ✅
+│  ├─ B Runner：lispjit.c + nano_*.c 仍编译/执行 plan → 未消除 ❌
+│  └─ C Codegen：aarch64 add 仍在 nano_elf64.c emit stub（S6–S9 仅表驱动/refactor）→ 非 VM 自举 ❌
+├─ 轨 1 · 编排（host Python squad · scoped 已交付 S0–S5）
+│  ├─ S0–S2：assess / dispatch / state-v4.db 样本 ✅
+│  ├─ S3–S4：supervise + run-loop --once；agent-team 四角色 ✅
+│  ├─ S5：verify-before-done 样本 ✅
+│  ├─ 方法学：[`skills/squad-parallel/`](../../skills/squad-parallel/) + wave8–14 实跑
+│  └─ 终局 pending：bootstrap 内 `(squad-* …)` 替代 tools/squad/*.py（非本圈声称）
+├─ 轨 2 · codegen（C emit 洋葱 · S0–S9 scoped，仍非真 VM/AOT）
+│  ├─ slice-0/1：aarch64-add-emit scout + add7 参数化 ✅
+│  ├─ slice-2..5：gen5 锚点 / lisp-only 诚实文档 ✅
+│  ├─ S6–S9：emit 清单 → table-v1 → opcode 序表（add7/11/13/14 回归）✅ scoped
+│  └─ 终局 pending：Lisp IR → emit（非 C 内 movz/add/svc 硬编码）；qemu 仅验证 stub ELF
+├─ 轨 3 · 自举终局（未开卷 · 勿与 S9 混淆）
+│  ├─ gen5 plan 由 gen2 bootstrap 跑通（v3.5 锚点）— plan 无 .c，runner 仍 C
+│  ├─ nano-cc 译 lispjit.c 子集 — 未开始
+│  └─ nano-jit.com 生成下一代 .com — 未开始
+├─ 反思轨 R（常驻）
+│  └─ [`v4/REFLECTION.md`](v4/REFLECTION.md) + 回写本 mindmap；禁止写「v4 = 零 C 仓库」
+└─ 下一洋葱圈（建议 wave15+）
+   ├─ P0 codegen：单 op 从 Lisp IR 表发射（替换 add-exit 手写 encode 之一）
+   ├─ P1 编排：S6 bootstrap 只读 squad-assess（仍可不 SQLite FFI）
+   └─ P2 产品轨：NDTSV/SQL/qjs 文档探路（非实现）
+```
+
+### v4 完成度（工程向 · 2026-05-23）
+
+| 维度 | scoped | 终局 | 说明 |
+|------|--------|------|------|
+| Plan 无 `.c` | **100%** | 保持 | `v4-bootstrap-plans-no-c`；inventory 允许 `(file-hash …/nano_elf64.c)` |
+| Host squad 协议 | **100%** | Lisp 化 | S0–S5 + `agent-team`；见 SQUAD.md |
+| aarch64 add emit | **scoped** | **pending** | S9 = opcode 表；仍 `emit_aarch64_add_exit_file` in C |
+| VM/AOT aarch64 | **0%** | **pending** | mindmap 原「真 codegen」目标未达成 |
+| 全仓库零 `.c` | **0%** | **pending** | 非 v4 已签收含义 |
+
+**v4 整体**：**`v4-complete`** + post-v4 洋葱圈 S16（[`v4/MINDMAP.md`](v4/MINDMAP.md)）。终局自举 ~15%。
 
 ### 0. 证据基线
 
@@ -220,9 +482,70 @@ nano-jit continuation after self-bootstrap v1
 
 ## 当前下一刀
 
-最新稳定基线：`nano-jit.com` 已能 self-pack，不调用 `apelink`；能从纯 VM `.lisp` 直接生成 ELF/object；能把 nano 生成的多个 ELF64 object 用自带 tiny linker 链成可运行 ELF。
+**稳定基线**：v3.5 **~100%** 签收（`run.sh` ≥257 pass；`build_nano_jit.sh` ≥119 pass）；v4 kickoff catalog 全绿。
 
-当前完成度评估：`100%`（self-bootstrap v1）。已补齐最小 load/store 宽度，并用跨 object tiny-link 样例验证被调用 object 内嵌数据可读写；后续工作进入 v2 反思队列。
+**当前下一刀（v4 kickoff）**：
+
+1. **slice-0 后续**：aarch64 VM/AOT codegen 规划落地（超越 `aarch64-add-emit` stub）；见 [`v3.5/AARCH64.md`](archive/versions/v3.5/AARCH64.md) § v4 slice-0 边界。
+2. **编排 S0**：`(squad-assess …)` bootstrap 样本 + `bootstrap-v4-squad-assess.lisp`（见 [`v4/README.md`](v4/README.md)）。
+3. 基线不退化：`bash lab/nano-lisp-jit/run.sh` + `NANO_SELFHOST_THOROUGH=1 build_nano_jit.sh` 全绿后再扩 v4 slice。
+4. 小队：`tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v4.yaml agent-team`。
+
+历史基线：v3.5 signoff — gen5 dual-arch、aarch64-add-emit、gen5-via-gen2、L2/L4 签收。
+
+## v1.5 完成度评估
+
+依据：回放 `run.sh`、`build_nano_jit.sh`、`lab/run-lab-tools.sh` 与 checked-in bootstrap DSL 证据；不含日历估算。
+
+| 切片 | 完成度 | 已闭环证据 | 缺口 |
+|------|--------|-----------|------|
+| APE format | **100%**（scoped） | `APE-v1.md`；`pack-ape`/`inspect-ape`/hash；`run-ape` host + `[arch]`+QEMU（`nano-jit.com` aarch64 smoke）；`bootstrap-ape-*` 负向；`build_nano_jit.sh` self-pack 全矩阵 | nano 自主 loader → **v2 slice 1** |
+| data/section | **100%**（验收） | rodata R / data RW ✓；PC32 `.rela.*` ✓；text-embedded 已删 ✓；`bootstrap-data-negative` native + self-pack（`build_nano_jit.sh`）✓ | — |
+| v1.5 整体 | **100%**（scoped） | data 100%；APE 验收完成（manifest / inspect / run / 负向 fixture / 自举矩阵）；loader stub 约定可 inspect/run | nano 自主 loader → **v2 slice 1** |
+
+### v1.5 反思确认（可进入 v2）
+
+- **证据回放（本环境）**：`bash lab/nano-lisp-jit/run.sh` exit 0；`bootstrap-ape-smoke` / `bootstrap-ape-negative` / `bootstrap-data-negative` plan OK；`inspect-ape` 对现有 `nano-jit.com` OK。
+- **data/section**：mindmap 验收项全部有 native 脚本 + DSL 对应；text-embedded 发射路径已删除。
+- **APE scoped 边界**：v1.5 交付的是 `ape-v1` manifest + inspect/run CLI + shell stub loader，**不是** nano 内建 ELF loader；`emit-elf64-exit` 样例 ELF 均为 x86_64，跨 arch 执行证据靠 cosmocc slice + QEMU。
+- **未要求项（不计入 v1.5 缺口）**：aarch64 真机 host `run-ape`；无 cosmocc 时完整 `build_nano_jit.sh`（README 已说明）。
+- **结论**：v1.5 **100%（scoped）成立**，下一圈按 v2 kickoff 执行。
+
+下一圈（v2 kickoff）：
+
+1. **APE v2**（slice 1 **100% scoped**）+ **进程内 loader**（**100% scoped**）：memfd-first `run-ape`；Mode B `pack-ape-bare`；stub 仅 `NANO_JIT`→`run-ape`。
+2. **`lispjit.c` 模块边界**（slice 2 **100%**）：`lispjit.c` ~720 行 + 14× `nano_*.c` + `nano_main.c`；单 TU `#include` 不变。
+
+### v2 总完成度（工程向）
+
+| 轨道 | 状态 | 说明 |
+|------|------|------|
+| APE v2 格式 + inspect/run | **100%** scoped | slice 1 签收 |
+| 模块拆分 | **100%** | parser/blob/vm/aot/elf/ape/bootstrap/main/abi 全部分区 |
+| 进程内 loader（无 shell） | **100%** scoped | memfd-first；Mode A/B；stub→`run-ape-cli`；无运行时 `dd` 当 `NANO_JIT` 设置 |
+| ABI / 参数 / 自托管 slice | **100%** scoped | `nano_abi.c` + `bootstrap-abi-smoke`；AOT `(param i64)`/`load-arg-i64`；`NANO_SLICE_COMPILER=native` x86_64 |
+
+**v2 整体（全目标）**：**100%（scoped）** — 第三轮五路并行收口；v3+ 见 mindmap（VM 局部变量、aarch64 native slice、外部语义导入）。
+
+**远程 `main`**：每次 merge 在 commit message 中标注上述整体完成度百分比。
+
+### v2 slice 1 完成度（scoped）
+
+| 项 | 状态 | 证据 |
+|----|------|------|
+| `APE-v2.md` + 28B 表项 | **100%** | spec 与 `ape_v2.{h,c}` 一致 |
+| `pack-ape` 写 v2 头 | **100%** | `pack-ape.container=ape-v2` |
+| `inspect-ape` v2 优先 + v1 回退 | **100%** | `ape-v1-legacy.com` fallback 测试 |
+| `run-ape` 读 v2 表 | **100%** | `run-ape.container=ape-v2` |
+| bootstrap smoke + 负向 | **100%** | `bootstrap-ape-v2-*` + `make_ape_fixtures.py`；`run.sh` `pack-ape-v2-fixture` / `inspect-ape-v2-container` / `run-ape-v2-native-exit42` / `run-ape-v2-memfd-loader-smoke`（Linux x86_64，否则 skip） |
+| self-pack 矩阵（native 侧） | **100%** | `build_nano_jit.sh` 断言 `inspect-ape.container=ape-v2` |
+| nano 进程内 loader（无 stub） | **100%** scoped | memfd-first；`NANO_JIT`→`run-ape`；Mode B bare |
+
+**v2 slice 1 整体**：**100%（scoped）** — 与 `APE-v2.md` slice 1 范围一致；无 stub loader 不算缺口。
+
+**远程 `main`**：v2 **100%（scoped）** 已签收；见 `git log origin/main` 与 `lab/lispjit-ir/MODULES.md`。
+
+**v2 slice 2+**：`lispjit.c` 模块边界；函数参数/ABI；自托管 slice compiler。
 
 下一步优先级：
 
@@ -237,6 +560,14 @@ nano-jit continuation after self-bootstrap v1
 
 - v1.5 slice 0 首轮：顶层 CLI 新增 `resolve-quiet program.lbin` alias，lab 消费者 helper 支持 `NANO_JIT` runner 覆盖，继续用 `bash lab/run-lab-tools.sh` 做消费者回归。
 - v1.5 slice 1 首轮：`pack-ape` 写出 `ape-v1` manifest，新增 `inspect-ape` CLI，bootstrap DSL 支持 `pack-ape` / `inspect-ape`，并加入 checked-in `bootstrap-ape-smoke.lisp`。
+- v1.5 slice 1–3 二轮（约 50%）：`pack-ape` manifest 写入 slice fnv1a64 hash；`inspect-ape` 校验 container/offset/hash；新增 `inspect-expect-exit`、`run-ape`、`run-ape-expect-exit`；`bootstrap-ape-negative.lisp` + `make_ape_fixtures.py` 覆盖 bad manifest/container/offset/hash；`run-ape` 按 host arch 抽取 payload 执行。
+- v1.5 slice 1–3 三轮（约 70%）：`build_nano_jit.sh` self-pack 后对 `nano-jit.com` 跑 `inspect-ape`、`run-ape`（x86_64）并用 self-packed runner 复验 `bootstrap-ape-negative.lisp`；`run.sh` 在 APE 块补 `compile-elf64-code` const-ptr 证据。
+- v1.5 slice 1–3 四轮（约 90%）：dev 容器 cosmocc 下 `build_nano_jit.sh` 全绿；`make_ape_fixtures` 同长 hash 负向；self-pack 复验 `bootstrap-data-negative`；`run-ape` 改为 slice 提取 smoke（不要求 compiler exit 0）。
+- v1.5 slice 1–3 五轮（**APE 验收 100%**）：`run-ape … aarch64` + QEMU（`run.sh` 对 cosmocc `nano-jit.com`）；`APE-v1.md` 最小 spec（loader 边界写明 v2）。
+- v1.5 data/section 三轮（约 65%）：const 字符串按 `store` 分 `.rodata`/`.data`；`emit_elf64_obj_text_data_section` + `link-elf64-exe` 解析 `.rela.rodata`/`.rela.data` 并打 PC32；可执行文件多 PT_LOAD（text RX、rodata R、data RW）且段间页对齐；`compile-elf64-code`/`aot-elf64-code` 统一经 object+link；样例 `rodata-readonly.lisp`、`const-ptr-load-u8.lisp` 在 `run.sh` 通过。
+- v1.5 data/section 四轮（约 85%）：`make_data_reloc_fixtures.py` + `bootstrap-data-negative.lisp` 覆盖 unsupported data reloc；`bootstrap-aot-smoke` / `build_nano_jit.sh` 增加 rodata-readonly；self-packed `nano-jit.com` 复验 `compile-elf64-code` rodata 路径。
+- v1.5 data/section 五轮（约 95%）：`data-bad-symbol-shndx.o` 触发 `bad_data_symbol`；删除未使用的 `emit_elf64_exec_rx_data_file` / `emit_elf64_code_data_file`（text-embedded 直连已弃用，统一 object+link+`emit_elf64_exec_sections_file`）。
+- v1.5 data/section **验收 100%**：`build_nano_jit.sh` self-pack 复验 `bootstrap-data-negative` + rodata；见上文「v1.5 完成度评估」表。
 - AOT app 直接从 `.com` payload 读取内嵌 blob 执行。
 - AOT app 结构化 manifest、`inspect-app` 和 `run-app`。
 - `pack-ape` 已能组合 x86_64/aarch64 slice 与 container metadata，形成当前最小 `.com`；但 loader/多架构执行选择仍主要依赖现有 slice/stub 约定，尚未形成 nano 自主的完整 APE loader 格式。

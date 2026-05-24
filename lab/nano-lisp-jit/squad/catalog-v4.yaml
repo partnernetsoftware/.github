@@ -1,0 +1,665 @@
+# v4 kickoff — squad/v2（与 v3.5 catalog 分离）
+apiVersion: squad/v2
+project:
+  root: ..
+  state_db: .squad/state-v4.db
+  state_file: .squad/state-v4.json
+locking:
+  backend: sqlite
+roles:
+  reviewer: { kind: meta, workflow: reviewer }
+  commander: { kind: orchestrator, workflow: commander }
+  engineer-a: { kind: worker, workflow: worker }
+  engineer-b: { kind: worker, workflow: worker }
+dispatch:
+  assign_to: [engineer-a, engineer-b]
+  max_per_wave: 2
+supervisor:
+  team_mode: true
+  auto_exec: true
+  auto_done: true
+  timeout_sec: 7200
+  poll_interval_sec: 15
+  max_waves: 80
+  task_timeout_sec: 3600
+  stuck_policy: fail
+  idle_waves_max: 12
+signoff:
+  id: v4-slice9-scoped
+  require_terminal: false
+  gates:
+    - id: v35-regression-run
+      check: results
+      file: ".build/results.txt"
+      results_key: tests.pass
+      min_pass: 294
+    - id: v35-regression-build
+      check: results
+      file: ".build/nano-jit/bootstrap-report.txt"
+      results_key: build.pass
+      min_pass: 119
+    - id: v4-readme
+      check: artifact
+      path_glob: "v4/README.md"
+    - id: v4-kickoff-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v4-kickoff.lisp"
+    - id: v4-aarch64-scout-elf
+      check: artifact
+      path_glob: ".build/bootstrap-v4-aarch64-add-scout.elf"
+    - id: v4-squad-dispatch-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v4-squad-dispatch.lisp"
+    - id: v4-squad-run-loop-once-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v4-squad-run-loop-once.lisp"
+    - id: v4-slice0-evidence
+      check: results
+      file: ".build/v4-slice0.evidence"
+      results_key: v4.slice0
+      min_pass: 1
+    - id: v4-slice1-add7-elf
+      check: artifact
+      path_glob: ".build/bootstrap-v4-slice1-add7.elf"
+    - id: v4-slice1-add7-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v4-slice1-add7.lisp"
+    - id: v4-squad-signal-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v4-squad-signal.lisp"
+    - id: v4-slice1-doc
+      check: artifact
+      path_glob: "v4/SLICE1.md"
+    - id: v4-slice1-evidence
+      check: results
+      file: ".build/v4-slice1.evidence"
+      results_key: v4.slice1
+      min_pass: 1
+    - id: v4-plans-no-c
+      check: results
+      file: ".build/v4-lisp-only.evidence"
+      results_key: v4.plans_no_c
+      min_pass: 1
+    - id: v35-gen5-plan-no-c
+      check: artifact
+      path_glob: "samples/bootstrap-v35-selfhost-gen5.lisp"
+      plan_must_not_match: '\\.c'
+    - id: v4-gen5-anchor-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v4-gen5-anchor.lisp"
+    - id: v4-lisp-only-doc
+      check: artifact
+      path_glob: "v4/LISP-ONLY.md"
+    - id: v4-squad-s2-state-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v4-squad-s2-state.lisp"
+    - id: v4-gen5v2-anchor-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v4-gen5-via-gen2-anchor.lisp"
+    - id: v4-slice2-doc
+      check: artifact
+      path_glob: "v4/SLICE2.md"
+    - id: v4-slice2-evidence
+      check: results
+      file: ".build/v4-slice2.evidence"
+      results_key: v4.slice2
+      min_pass: 1
+    - id: v35-gen5v2-plan-no-c
+      check: artifact
+      path_glob: "samples/bootstrap-v35-selfhost-gen5-via-gen2.lisp"
+      plan_must_not_match: '\\.c'
+    - id: v4-squad-s3-supervise-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v4-squad-s3-supervise-once.lisp"
+    - id: v4-squad-s3-member-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v4-squad-s3-member-once.lisp"
+    - id: v4-slice3-doc
+      check: artifact
+      path_glob: "v4/SLICE3.md"
+    - id: v4-slice3-evidence
+      check: results
+      file: ".build/v4-slice3.evidence"
+      results_key: v4.slice3
+      min_pass: 1
+    - id: v4-squad-supervise-once
+      check: results
+      file: ".build/v4-slice3.evidence"
+      results_key: v4.slice3_supervise_once
+      min_pass: 1
+    - id: v4-slice4-doc
+      check: artifact
+      path_glob: "v4/SLICE4.md"
+    - id: v4-squad-s4-agent-team-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v4-squad-s4-agent-team.lisp"
+    - id: v4-slice4-evidence
+      check: results
+      file: ".build/v4-slice4.evidence"
+      results_key: v4.slice4
+      min_pass: 1
+    - id: v4-squad-commander-complete
+      check: results
+      file: ".build/v4-slice4.evidence"
+      results_key: v4.slice4_commander_complete
+      min_pass: 1
+    - id: v4-slice5-doc
+      check: artifact
+      path_glob: "v4/SLICE5.md"
+    - id: v4-squad-s5-verify-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v4-squad-s5-verify-plan.lisp"
+    - id: v4-slice5-evidence
+      check: results
+      file: ".build/v4-slice5.evidence"
+      results_key: v4.slice5
+      min_pass: 1
+    - id: v4-squad-wave10-smoke
+      check: results
+      file: ".build/v4-slice5.evidence"
+      results_key: v4.slice5_wave10_smoke
+      min_pass: 1
+    - id: v4-reflection-doc
+      check: artifact
+      path_glob: "v4/REFLECTION.md"
+    - id: v4-slice6-doc
+      check: artifact
+      path_glob: "v4/SLICE6.md"
+    - id: v4-codegen-kickoff-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v4-codegen-kickoff.lisp"
+    - id: v4-slice6-evidence
+      check: results
+      file: ".build/v4-slice6.evidence"
+      results_key: v4.slice6
+      min_pass: 1
+    - id: v4-elf64-emit-anchor
+      check: results
+      file: ".build/v4-slice6.evidence"
+      results_key: v4.slice6_codegen_kickoff
+      min_pass: 1
+    - id: v4-squad-wave11-smoke
+      check: results
+      file: ".build/v4-slice6.evidence"
+      results_key: v4.slice6_wave11_smoke
+      min_pass: 1
+    - id: v4-slice7-doc
+      check: artifact
+      path_glob: "v4/SLICE7.md"
+    - id: v4-slice7-add11-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v4-slice7-add11.lisp"
+    - id: v4-slice7-add11-elf
+      check: artifact
+      path_glob: ".build/bootstrap-v4-slice7-add11.elf"
+    - id: v4-slice7-evidence
+      check: results
+      file: ".build/v4-slice7.evidence"
+      results_key: v4.slice7
+      min_pass: 1
+    - id: v4-slice7-emit-profile
+      check: results
+      file: ".build/v4-slice7.evidence"
+      results_key: v4.slice7_emit_profile
+      min_pass: 1
+    - id: v4-squad-wave12-smoke
+      check: results
+      file: ".build/v4-slice7.evidence"
+      results_key: v4.slice7_wave12_smoke
+      min_pass: 1
+    - id: v4-slice8-doc
+      check: artifact
+      path_glob: "v4/SLICE8.md"
+    - id: v4-slice8-add13-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v4-slice8-add13.lisp"
+    - id: v4-slice8-add13-elf
+      check: artifact
+      path_glob: ".build/bootstrap-v4-slice8-add13.elf"
+    - id: v4-slice8-evidence
+      check: results
+      file: ".build/v4-slice8.evidence"
+      results_key: v4.slice8
+      min_pass: 1
+    - id: v4-slice8-lowering-table
+      check: results
+      file: ".build/v4-slice8.evidence"
+      results_key: v4.slice8_lowering_table
+      min_pass: 1
+    - id: v4-slice9-doc
+      check: artifact
+      path_glob: "v4/SLICE9.md"
+    - id: v4-slice9-add14-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v4-slice9-add14.lisp"
+    - id: v4-slice9-add14-elf
+      check: artifact
+      path_glob: ".build/bootstrap-v4-slice9-add14.elf"
+    - id: v4-slice9-evidence
+      check: results
+      file: ".build/v4-slice9.evidence"
+      results_key: v4.slice9
+      min_pass: 1
+    - id: v4-slice9-opcode-table
+      check: results
+      file: ".build/v4-slice9.evidence"
+      results_key: v4.slice9_opcode_table
+      min_pass: 1
+
+tasks:
+  v4-aarch64-aot-plan:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths: ["archive/versions/v3.5/AARCH64.md", "lab/lispjit-ir/nano_bootstrap.c"]
+    accept:
+      - "bootstrap-v4-aarch64-aot-plan.lisp 样例"
+      - "REFLECTION 记 v4 slice-0 范围"
+  v4-squad-lisp-sketch:
+    assign_role: engineer-b
+    priority: P1
+    touch_paths: ["v4/README.md", "squad/PROTOCOL.md"]
+    accept:
+      - "PROTOCOL 或 v4 文档：Lisp 编排替代 Python 的步骤列表"
+  wave-v4-R0:
+    assign_role: reviewer
+    priority: meta
+    depends: [v4-aarch64-aot-plan, v4-squad-lisp-sketch]
+    accept:
+      - "ROADMAP v4 节点"
+      - "assess v4-kickoff ready"
+  wave-practice-auto-exec-doc:
+    assign_role: engineer-b
+    priority: P1
+    touch_paths: ["tools/squad/README.md", "squad/PROTOCOL.md"]
+    accept:
+      - "文档说明 --auto-exec 与 verify flock"
+  wave-practice-v4-squad-md:
+    assign_role: engineer-a
+    priority: P1
+    touch_paths: ["v4/README.md", "v4/SQUAD.md"]
+    accept:
+      - "v4 README 记 squad 实践波次"
+      - "sync-md 更新 SQUAD.md"
+  wave-practice-R1:
+    assign_role: reviewer
+    priority: meta
+    depends: [wave-practice-auto-exec-doc, wave-practice-v4-squad-md]
+    accept:
+      - "assess v4-kickoff ready"
+      - "POSTMORTEM 链实践记录一句"
+  wave2-squad-triple-exit:
+    assign_role: engineer-b
+    priority: P1
+    touch_paths: ["tools/squad/README.md", "squad/PROTOCOL.md"]
+    accept:
+      - "退出语义仅 complete|failed|timeout"
+      - "max_iter 映射 timeout；auto_done 文档"
+  wave2-v4-s0-assess-sample:
+    assign_role: engineer-a
+    priority: P1
+    touch_paths: ["samples/bootstrap-v4-squad-assess.lisp", "v4/README.md"]
+    accept:
+      - "bootstrap-v4-squad-assess.lisp S0 smoke"
+  wave2-v4-R:
+    assign_role: reviewer
+    priority: meta
+    depends: [wave2-squad-triple-exit, wave2-v4-s0-assess-sample]
+    accept:
+      - "assess v4-kickoff ready"
+      - "REFLECTION wave2 三态+auto_done 实践"
+  wave3-v4-squad-samples:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v4-squad-dispatch.lisp"
+      - "samples/bootstrap-v4-squad-run-loop-once.lisp"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-squad-dispatch-plan"
+      - "run-bootstrap-v4-squad-run-loop-once-plan"
+  wave3-v4-slice0-evidence:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v4-slice0-evidence.lisp"
+      - ".build/v4-slice0.evidence"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-slice0-evidence-plan"
+      - "v4.slice0=1 in evidence"
+  wave3-v4-R:
+    assign_role: reviewer
+    priority: meta
+    depends: [wave3-v4-squad-samples, wave3-v4-slice0-evidence]
+    accept:
+      - "assess v4-slice0-scoped ready"
+      - "v4/README 记 slice-0 scoped 完成"
+      - "DECISION v3.5 CLOSED"
+  wave4-v4-slice1-add7:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "samples/nano-jit-slice-add-7.lisp"
+      - "lab/lispjit-ir/nano_bootstrap.c"
+      - "samples/bootstrap-v4-slice1-add7.lisp"
+      - ".build/v4-slice1.evidence"
+      - "run.sh"
+    accept:
+      - "nano-jit-slice-add-* aarch64 profile"
+      - "aarch64.add=3+4 in plan log"
+      - "run-bootstrap-v4-slice1-evidence-plan"
+  wave4-v4-squad-signal:
+    assign_role: engineer-b
+    priority: P1
+    touch_paths:
+      - "samples/bootstrap-v4-squad-signal.lisp"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-squad-signal-plan"
+  wave4-v4-R:
+    assign_role: reviewer
+    priority: meta
+    depends: [wave4-v4-slice1-add7, wave4-v4-squad-signal]
+    accept:
+      - "assess v4-slice1-scoped ready"
+      - "v4/README + SLICE1.md"
+      - "REFLECTION slice-1 行"
+  wave5-v4-lisp-only-honesty:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "v4/LISP-ONLY.md"
+      - "samples/bootstrap-v4-gen5-anchor.lisp"
+      - ".build/v4-lisp-only.evidence"
+      - "run.sh"
+    accept:
+      - "v4-bootstrap-plans-no-c"
+      - "run-bootstrap-v4-gen5-anchor-plan"
+      - "LISP-ONLY.md 三层表"
+  wave5-v4-gen5-regression:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths: ["run.sh", "samples/bootstrap-v35-selfhost-gen5.lisp"]
+    accept:
+      - "run-bootstrap-v35-selfhost-gen5-plan still pass"
+      - "gen5 plan no .c"
+  wave5-v4-R:
+    assign_role: reviewer
+    priority: meta
+    depends: [wave5-v4-lisp-only-honesty, wave5-v4-gen5-regression]
+    accept:
+      - "assess v4-lisp-only-scoped ready"
+      - "v4/README 链到 LISP-ONLY.md"
+      - "REFLECTION 诚实口径一行"
+  wave6-v4-squad-s2-state:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v4-squad-s2-state.lisp"
+      - "lab/nano-lisp-jit/.squad/state-v4.db"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-squad-s2-state-plan"
+      - "state-v4.db exists"
+  wave6-v4-gen5v2-regression:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "run.sh"
+      - "samples/bootstrap-v4-gen5-via-gen2-anchor.lisp"
+      - ".build/v4-slice2.evidence"
+    accept:
+      - "run-bootstrap-v35-selfhost-gen5-via-gen2-plan"
+      - "run-bootstrap-v4-slice2-evidence-plan"
+  wave6-v4-R:
+    assign_role: reviewer
+    priority: meta
+    depends: [wave6-v4-squad-s2-state, wave6-v4-gen5v2-regression]
+    accept:
+      - "assess v4-slice2-scoped ready"
+      - "v4/README + SLICE2.md"
+      - "REFLECTION slice-2 行"
+  wave7-v4-s3-supervise-once:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v4-squad-s3-supervise-once.lisp"
+      - "tools/squad/engine/supervisor.py"
+      - "run.sh"
+    accept:
+      - "squad-v4-supervise-once"
+      - "run-bootstrap-v4-squad-s3-supervise-once-plan"
+  wave7-v4-s3-member-once:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v4-squad-s3-member-once.lisp"
+      - "tools/squad/engine/member_exec.py"
+      - "run.sh"
+    accept:
+      - "squad-v4-run-loop-engineer-once"
+      - "run-bootstrap-v4-squad-s3-member-once-plan"
+  wave7-v4-R:
+    assign_role: reviewer
+    priority: meta
+    depends: [wave7-v4-s3-supervise-once, wave7-v4-s3-member-once]
+    accept:
+      - "squad-v4-run-loop-reviewer-once"
+      - "assess v4-slice3-scoped ready"
+      - "v4/SLICE3.md"
+      - "REFLECTION slice-3 行"
+  wave8-squad-stuck-fix:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths: ["tools/squad/engine/supervisor.py", "tools/squad/engine/commands.py", "tools/squad/README.md"]
+    accept:
+      - "resume 重置 wave=1 / epoch++"
+      - "signoff ready 时空闲不再叠 wave"
+  wave8-v4-s4-doc:
+    assign_role: engineer-a
+    priority: P1
+    touch_paths: ["v4/README.md", "tools/squad/README.md"]
+    accept:
+      - "agent-team 四角色流程"
+      - "run.sh squad-v4-commander-complete-smoke"
+  wave8-v4-R:
+    assign_role: reviewer
+    priority: meta
+    depends: [wave8-squad-stuck-fix, wave8-v4-s4-doc]
+    accept:
+      - "assess v4-slice3-scoped ready"
+      - "REFLECTION stuck-fix 行"
+  wave9-squad-follower-team-ready:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths: ["tools/squad/engine/supervisor.py", "tools/squad/tests/test_supervisor.py"]
+    accept:
+      - "member_tick team_ready stand_down without standby gate"
+      - "leader_signal empty defaults running"
+  wave9-v4-s4-agent-team:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v4-squad-s4-agent-team.lisp"
+      - "v4/SLICE4.md"
+      - ".build/v4-slice4.evidence"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-squad-s4-agent-team-plan"
+      - "squad-v4-commander-complete-smoke"
+      - "run-bootstrap-v4-slice4-evidence-plan"
+  wave9-v4-R:
+    assign_role: reviewer
+    priority: meta
+    depends: [wave9-squad-follower-team-ready, wave9-v4-s4-agent-team]
+    accept:
+      - "assess v4-slice4-scoped ready"
+      - "v4/README + SLICE4.md"
+      - "REFLECTION slice-4 行"
+  wave10-v4-s5-verify-plan:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v4-squad-s5-verify-plan.lisp"
+      - "tools/squad/engine/member_exec.py"
+      - "squad/PROTOCOL.md"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-squad-s5-verify-plan"
+      - "SQUAD_VERIFY auto_exec 文档"
+  wave10-v4-add7-regression:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v4-slice1-add7.lisp"
+      - ".build/bootstrap-v4-slice1-add7.elf"
+      - ".build/v4-slice5.evidence"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-slice1-add7-plan still pass"
+      - "run-bootstrap-v4-slice5-evidence-plan"
+  wave10-v4-R:
+    assign_role: reviewer
+    priority: meta
+    depends: [wave10-v4-s5-verify-plan, wave10-v4-add7-regression]
+    accept:
+      - "assess v4-slice5-scoped ready"
+      - "squad-v4-wave10-practice-smoke"
+      - "v4/README + SLICE5.md"
+      - "REFLECTION slice-5 行"
+  wave11-v4-reflection:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "v4/REFLECTION.md"
+      - "v4/README.md"
+      - "v3.5/REFLECTION.md"
+    accept:
+      - "v4/REFLECTION.md 进度+调整表"
+      - "双轨策略 wave11+"
+  wave11-v4-codegen-kickoff:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v4-codegen-kickoff.lisp"
+      - "v4/SLICE6.md"
+      - "lab/lispjit-ir/nano_elf64.c"
+      - ".build/v4-slice6.evidence"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-codegen-kickoff-plan"
+      - "run-bootstrap-v4-slice6-evidence-plan"
+  wave11-v4-R:
+    assign_role: reviewer
+    priority: meta
+    depends: [wave11-v4-reflection, wave11-v4-codegen-kickoff]
+    accept:
+      - "assess v4-slice6-scoped ready"
+      - "squad-v4-wave11-practice-smoke"
+      - "REFLECTION wave11 行"
+  wave12-v4-emit-profile:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "lab/lispjit-ir/nano_bootstrap.c"
+      - "lab/lispjit-ir/nano_elf64.c"
+      - "run.sh"
+    accept:
+      - "aarch64.emit.profile=add-exit-v1"
+      - "run-bootstrap-v4-codegen-kickoff-plan"
+  wave12-v4-add11-slice:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "samples/nano-jit-slice-add-11.lisp"
+      - "samples/bootstrap-v4-slice7-add11.lisp"
+      - "v4/SLICE7.md"
+      - ".build/v4-slice7.evidence"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-slice7-add11-plan"
+      - "aarch64.add=5+6"
+      - "run-bootstrap-v4-slice7-evidence-plan"
+  wave12-v4-R:
+    assign_role: reviewer
+    priority: meta
+    depends: [wave12-v4-emit-profile, wave12-v4-add11-slice]
+    accept:
+      - "assess v4-slice7-scoped ready"
+      - "squad-v4-wave12-practice-smoke"
+      - "v4/REFLECTION.md + SLICE7.md wave12 行"
+  wave13-v4-lowering-table:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "lab/lispjit-ir/nano_elf64.c"
+      - "lab/lispjit-ir/nano_bootstrap.c"
+      - ".build/v4-slice8.evidence"
+      - "run.sh"
+    accept:
+      - "emit_aarch64_add_exit_v1_lower"
+      - "aarch64.emit.lowering=table-v1"
+      - "run-bootstrap-v4-slice8-evidence-plan"
+  wave13-v4-add13-slice:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "samples/nano-jit-slice-add-13.lisp"
+      - "samples/bootstrap-v4-slice8-add13.lisp"
+      - "v4/SLICE8.md"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-slice8-add13-plan"
+      - "aarch64.add=8+5"
+  wave13-v4-R:
+    assign_role: reviewer
+    priority: meta
+    depends: [wave13-v4-lowering-table, wave13-v4-add13-slice]
+    accept:
+      - "assess v4-slice8-scoped ready"
+      - "sync-md v4/SQUAD.md"
+      - "REFLECTION wave13 squad 并行"
+  wave14-v4-opcode-lowering:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "lab/lispjit-ir/nano_elf64.c"
+      - "lab/lispjit-ir/nano_bootstrap.c"
+      - ".build/v4-slice9.evidence"
+      - "run.sh"
+    accept:
+      - "A64_ADD_EXIT_OP_COUNT"
+      - "aarch64.emit.lowering.ops=5"
+      - "run-bootstrap-v4-slice9-evidence-plan"
+  wave14-v4-add14-slice:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "samples/nano-jit-slice-add-14.lisp"
+      - "samples/bootstrap-v4-slice9-add14.lisp"
+      - "v4/SLICE9.md"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-slice9-add14-plan"
+      - "aarch64.add=6+8"
+  wave14-v4-R:
+    assign_role: reviewer
+    priority: meta
+    depends: [wave14-v4-opcode-lowering, wave14-v4-add14-slice]
+    accept:
+      - "assess v4-slice9-scoped ready"
+      - "skills/squad-parallel wave14"
+      - "sync-md v4/SQUAD.md"
+
+verify:
+  commands:
+    - script: run.sh
+      cwd: .
+      fail_on_nonzero: true
+
+sync:
+  board:
+    file: v4/SQUAD.md
+    template: board
+    begin: "<!-- SQUAD_STATE_BEGIN -->"
+    end: "<!-- SQUAD_STATE_END -->"

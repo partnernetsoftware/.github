@@ -4,6 +4,11 @@ set -euo pipefail
 LAB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$LAB_DIR/../.." && pwd)"
 
+# shellcheck source=skip_registry.sh
+source "$LAB_DIR/skip_registry.sh"
+# shellcheck source=audit_genesis_shrink.sh
+source "$LAB_DIR/audit_genesis_shrink.sh"
+
 discover_cosmo_bin() {
   if [ -n "${COSMO_BIN:-}" ]; then
     printf '%s\n' "$COSMO_BIN"
@@ -29,28 +34,79 @@ discover_cosmo_bin() {
   printf '%s\n' "$ROOT_DIR/third_party/cosmocc/bin"
 }
 
+NANO_SLICE_COMPILER="${NANO_SLICE_COMPILER:-cosmo}"
+
+slice_tool() {
+  if [ -f "$BUILD_DIR/nano-jit.com" ]; then
+    printf '%s\n' "$BUILD_DIR/nano-jit.com"
+  elif [ -x "$BUILD_DIR/nano-jit.x86_64" ]; then
+    printf '%s\n' "$BUILD_DIR/nano-jit.x86_64"
+  else
+    return 1
+  fi
+}
+
 bytes_of() {
-  "$BUILD_DIR/nano-jit.com" file-size "$1"
+  local tool
+  tool="$(slice_tool)" || {
+    stat -c%s "$1"
+    return
+  }
+  "$tool" file-size "$1"
 }
 
 hash_of() {
-  "$BUILD_DIR/nano-jit.com" file-hash "$1"
+  local tool
+  tool="$(slice_tool)" || {
+    printf '0\n'
+    return
+  }
+  "$tool" file-hash "$1"
 }
+
+BUILD_PASS=0
+BUILD_FAIL=0
+BUILD_SKIP=0
 
 run_case() {
   local name="$1"
   shift
   printf '\n## %s\n' "$name" | tee -a "$REPORT"
+  set +e
   "$@" 2>&1 | tee -a "$REPORT"
   local status="${PIPESTATUS[0]}"
+  set -e
   printf 'exit.status=%s\n' "$status" | tee -a "$REPORT"
-  return "$status"
+  if [ "$status" -eq 0 ]; then
+    BUILD_PASS=$((BUILD_PASS + 1))
+  else
+    BUILD_FAIL=$((BUILD_FAIL + 1))
+  fi
+  return 0
+}
+
+build_skip_case() {
+  local name="$1"
+  local reason="$2"
+  BUILD_SKIP=$((BUILD_SKIP + 1))
+  printf '\n## SKIP %s\n' "$name" | tee -a "$REPORT"
+  printf '%s\n' "$reason" | tee -a "$REPORT"
+}
+
+build_end_summary() {
+  printf '\n# build summary\n' | tee -a "$REPORT"
+  printf 'build.pass=%s\n' "$BUILD_PASS" | tee -a "$REPORT"
+  printf 'build.skip=%s\n' "$BUILD_SKIP" | tee -a "$REPORT"
+  printf 'build.fail=%s\n' "$BUILD_FAIL" | tee -a "$REPORT"
 }
 
 COSMO_BIN="$(discover_cosmo_bin)"
 X86_CC="$COSMO_BIN/x86_64-unknown-cosmo-cc"
 ARM_CC="$COSMO_BIN/aarch64-unknown-cosmo-cc"
 BUILD_DIR="$LAB_DIR/.build/nano-jit"
+GENESIS_DIR="$LAB_DIR/genesis"
+GENESIS_X86="$GENESIS_DIR/nano-jit.x86_64"
+GENESIS_AARCH64="$GENESIS_DIR/nano-jit.aarch64"
 NANO_C="$ROOT_DIR/lab/lispjit-ir/lispjit.c"
 STRLEN_SRC="$LAB_DIR/samples/strlen.lisp"
 ARITH_SRC="$LAB_DIR/samples/arithmetic.lisp"
@@ -63,12 +119,45 @@ PTR_SRC="$LAB_DIR/samples/ptr-values.lisp"
 PTR_BLOB="$BUILD_DIR/ptr-values.lbin"
 CONST_PTR_SRC="$LAB_DIR/samples/const-ptr-load-u8.lisp"
 CONST_PTR_BLOB="$BUILD_DIR/const-ptr-load-u8.lbin"
+CONST_PTR_DIRECT_EXE="$BUILD_DIR/const_ptr_load_u8_direct"
+BOOTSTRAP_APE_NEG_SRC="$LAB_DIR/samples/bootstrap-ape-negative.lisp"
+BOOTSTRAP_DATA_NEG_SRC="$LAB_DIR/samples/bootstrap-data-negative.lisp"
+BOOTSTRAP_V25_NATIVE_SELFPACK="$LAB_DIR/samples/bootstrap-v25-native-selfpack.lisp"
+BOOTSTRAP_V3_VM_MATRIX="$LAB_DIR/samples/bootstrap-v3-vm-selfpack-matrix.lisp"
+BOOTSTRAP_V3_BUILD_SLICE="$LAB_DIR/samples/bootstrap-v3-build-slice.lisp"
+BOOTSTRAP_V3_SELFHOST_GEN1="$LAB_DIR/samples/bootstrap-v3-selfhost-gen1.lisp"
+BOOTSTRAP_V3_SELFHOST_GEN2="$LAB_DIR/samples/bootstrap-v3-selfhost-gen2.lisp"
+BOOTSTRAP_V3_CODEGEN_SMOKE="$LAB_DIR/samples/bootstrap-v3-codegen-smoke.lisp"
+BOOTSTRAP_V3_SELFHOST_GEN3="$LAB_DIR/samples/bootstrap-v3-selfhost-gen3.lisp"
+BOOTSTRAP_V35_NANO_CC_HELLO="$LAB_DIR/samples/bootstrap-v35-nano-cc-hello.lisp"
+BOOTSTRAP_V35_BUILD_SLICE="$LAB_DIR/samples/bootstrap-v35-build-slice.lisp"
+BOOTSTRAP_V35_BUILD_SLICE_AARCH64="$LAB_DIR/samples/bootstrap-v35-build-slice-aarch64.lisp"
+BOOTSTRAP_V35_SELFHOST_GEN3="$LAB_DIR/samples/bootstrap-v35-selfhost-gen3.lisp"
+BOOTSTRAP_V35_SELFHOST_GEN4="$LAB_DIR/samples/bootstrap-v35-selfhost-gen4.lisp"
+BOOTSTRAP_V35_SELFHOST_GEN5="$LAB_DIR/samples/bootstrap-v35-selfhost-gen5.lisp"
+BOOTSTRAP_V35_LISP_ONLY_MATRIX="$LAB_DIR/samples/bootstrap-v35-lisp-only-matrix.lisp"
+BOOTSTRAP_V35_PACK_LISP_X86="$LAB_DIR/samples/bootstrap-v35-pack-lisp-x86.lisp"
+BOOTSTRAP_V35_GENESIS_SHRINK="$LAB_DIR/samples/bootstrap-v35-genesis-shrink.lisp"
+BOOTSTRAP_V35_BUILD_SLICE_LISP_AARCH64_ADD="$LAB_DIR/samples/bootstrap-v35-build-slice-lisp-aarch64-add.lisp"
+BOOTSTRAP_V35_SELFHOST_GEN5_GEN2="$LAB_DIR/samples/bootstrap-v35-selfhost-gen5-gen2.lisp"
+BOOTSTRAP_V35_LISP_TU_LINK="$LAB_DIR/samples/bootstrap-v35-lisp-tu-link.lisp"
+SELFHOST_DIR="$BUILD_DIR/selfhost"
+NANO_SELFHOST_THOROUGH="${NANO_SELFHOST_THOROUGH:-1}"
+FUNC_PARAM_VM_I64_SRC="$LAB_DIR/samples/func-param-vm-i64.lisp"
+RODATA_READONLY_SRC="$LAB_DIR/samples/rodata-readonly.lisp"
+APE_FIXTURE_DIR="$LAB_DIR/.build"
+DATA_GOOD_OBJ="$APE_FIXTURE_DIR/data-good.o"
+DATA_BAD_RELOC_TYPE_OBJ="$APE_FIXTURE_DIR/data-bad-reloc-type.o"
+DATA_BAD_RELOC_SYM_OBJ="$APE_FIXTURE_DIR/data-bad-reloc-sym.o"
+DATA_BAD_SYMBOL_SHNDX_OBJ="$APE_FIXTURE_DIR/data-bad-symbol-shndx.o"
 CTRL_SRC="$LAB_DIR/samples/control-flow.lisp"
 CTRL_BLOB="$BUILD_DIR/control-flow.lbin"
 MULTI_SRC="$LAB_DIR/samples/multi-func.lisp"
 MULTI_CTRL_SRC="$LAB_DIR/samples/multi-func-control-flow.lisp"
 MULTI_PTR_SRC="$LAB_DIR/samples/multi-func-ptr.lisp"
 MULTI_BAD_SRC="$LAB_DIR/samples/multi-func-recursive-bad.lisp"
+FUNC_PARAM_MISSING_PARAM_BAD_SRC="$LAB_DIR/samples/func-param-missing-param-bad.lisp"
+FUNC_PARAM_CALL_NO_ARG_BAD_SRC="$LAB_DIR/samples/func-param-call-no-arg-bad.lisp"
 TYPE_BAD_PTR_OP_SRC="$LAB_DIR/samples/type-error-ptr-op-bad.lisp"
 TYPE_BAD_ADD_PTR_SRC="$LAB_DIR/samples/type-error-add-ptr-bad.lisp"
 TYPE_BAD_SUB_PTR_SRC="$LAB_DIR/samples/type-error-sub-ptr-bad.lisp"
@@ -228,6 +317,8 @@ cat > "$BOOTSTRAP_PLAN" <<EOF
   (run-expect-exit "$BUILD_DIR/bootstrap-aot-ptr-values.elf" 1)
   (compile-elf64-code "$CONST_PTR_SRC" "$BUILD_DIR/bootstrap-aot-const-ptr-load-u8.elf")
   (run-expect-exit "$BUILD_DIR/bootstrap-aot-const-ptr-load-u8.elf" 1)
+  (compile-elf64-code "$RODATA_READONLY_SRC" "$BUILD_DIR/bootstrap-aot-rodata-readonly.elf")
+  (run-expect-exit "$BUILD_DIR/bootstrap-aot-rodata-readonly.elf" 0)
   (aot-elf64-obj-ret "$BUILD_DIR/bootstrap-aot-arithmetic.lbin" "$BUILD_DIR/bootstrap-aot-arithmetic-ret.o" "nano_bootstrap_arith_ret")
   (link-elf64-exe "$BUILD_DIR/bootstrap-aot-arithmetic-ret-linked" "nano_bootstrap_arith_ret" "$BUILD_DIR/bootstrap-aot-arithmetic-ret.o")
   (file-size "$BUILD_DIR/bootstrap-aot-arithmetic-ret-linked")
@@ -273,6 +364,10 @@ cat > "$BOOTSTRAP_PLAN" <<EOF
   (run-expect-exit "$BUILD_DIR/bootstrap-aot-multi-ptr-direct.elf" 1)
   (compile-expect-exit 2 compile-elf64-obj-code "$MULTI_BAD_SRC" "$BUILD_DIR/bootstrap-aot-recursive-bad.o" "nano_bootstrap_recursive_bad")
   (compile-expect-exit 2 compile-elf64-exe "$MULTI_BAD_SRC" "$BUILD_DIR/bootstrap-aot-recursive-bad.elf" "nano_bootstrap_recursive_bad")
+  (compile-expect-exit 2 compile-elf64-obj-code "$FUNC_PARAM_MISSING_PARAM_BAD_SRC" "$BUILD_DIR/bootstrap-aot-func-param-missing-param-bad.o" "nano_bootstrap_func_param_missing_param_bad")
+  (compile-expect-exit 2 compile-elf64-exe "$FUNC_PARAM_MISSING_PARAM_BAD_SRC" "$BUILD_DIR/bootstrap-aot-func-param-missing-param-bad.elf" "nano_bootstrap_func_param_missing_param_bad")
+  (compile-expect-exit 2 compile-elf64-obj-code "$FUNC_PARAM_CALL_NO_ARG_BAD_SRC" "$BUILD_DIR/bootstrap-aot-func-param-call-no-arg-bad.o" "nano_bootstrap_func_param_call_no_arg_bad")
+  (compile-expect-exit 2 compile-elf64-exe "$FUNC_PARAM_CALL_NO_ARG_BAD_SRC" "$BUILD_DIR/bootstrap-aot-func-param-call-no-arg-bad.elf" "nano_bootstrap_func_param_call_no_arg_bad")
   (compile-expect-exit 2 compile-elf64-code "$TYPE_BAD_PTR_OP_SRC" "$BUILD_DIR/bootstrap-aot-type-bad-ptr-op.elf")
   (compile-expect-exit 2 compile-elf64-obj-code "$TYPE_BAD_PTR_OP_SRC" "$BUILD_DIR/bootstrap-aot-type-bad-ptr-op.o" "nano_bootstrap_type_bad_ptr_op")
   (compile-expect-exit 2 compile-elf64-exe "$TYPE_BAD_PTR_OP_SRC" "$BUILD_DIR/bootstrap-aot-type-bad-ptr-op-direct.elf" "nano_bootstrap_type_bad_ptr_op")
@@ -322,13 +417,6 @@ cat > "$BOOTSTRAP_PLAN" <<EOF
   (link-expect-exit 2 "$BUILD_DIR/bootstrap-aot-dup-should-fail" "nano_bootstrap_call" "$BUILD_DIR/bootstrap-aot-call42.o" "$BUILD_DIR/bootstrap-aot-ext42.o" "$BUILD_DIR/bootstrap-aot-dup42.o"))
 EOF
 
-if [ ! -x "$X86_CC" ] || [ ! -x "$ARM_CC" ]; then
-  echo "cosmocc=missing"
-  echo "searched=$COSMO_BIN"
-  echo "need=x86_64-unknown-cosmo-cc,aarch64-unknown-cosmo-cc"
-  exit 2
-fi
-
 COMMON=(
   -DNANO_LISP_JIT
   -Os
@@ -344,16 +432,264 @@ COMMON=(
   "$NANO_C"
 )
 
+AARCH64_SLICE_SKIPPED=0
+
 {
   echo "# nano-jit bootstrap"
   echo "stage=0"
   echo "goal=self-pack-multi-arch-com"
-  echo "cosmocc.role=temporary-slice-compiler"
+  echo "slice.compiler.mode=$NANO_SLICE_COMPILER"
   echo "apelink.role=not-used"
 } | tee -a "$REPORT"
 
-run_case "build-x86_64-slice" "$X86_CC" "${COMMON[@]}" -o "$BUILD_DIR/nano-jit.x86_64"
-run_case "build-aarch64-slice" "$ARM_CC" "${COMMON[@]}" -o "$BUILD_DIR/nano-jit.aarch64"
+case "$NANO_SLICE_COMPILER" in
+  native)
+    if ! host_is_linux_x86_64; then
+      {
+        echo "native.slice=unsupported"
+        echo "native.slice.host=$(uname -s)/$(uname -m)"
+        echo "native.slice.need=Linux/x86_64"
+      } | tee -a "$REPORT"
+      exit 2
+    fi
+    if ! command -v cc >/dev/null 2>&1; then
+      echo "native.slice=cc_missing" | tee -a "$REPORT"
+      exit 2
+    fi
+    {
+      echo "slice.compiler=native"
+      echo "cosmocc.role=aarch64-slice-only-if-present"
+      echo "genesis.pin.dir=$GENESIS_DIR"
+    } | tee -a "$REPORT"
+    if [ "${NANO_REGENESIS:-}" = "1" ]; then
+      run_case "regenesis-build-x86_64-slice" cc -DNANO_LISP_JIT -Os -s "$NANO_C" -ldl \
+        -o "$BUILD_DIR/nano-jit.x86_64"
+      run_case "regenesis-update-genesis-x86_64" bash -c '
+        cp "'"$BUILD_DIR/nano-jit.x86_64"'" "'"$GENESIS_X86"'" && chmod +x "'"$GENESIS_X86"'"
+      '
+      echo "genesis.regenesis=x86_64" | tee -a "$REPORT"
+    else
+      run_case "build-x86_64-slice-genesis-pin" bash -c '
+        test -f "'"$GENESIS_X86"'" && cp "'"$GENESIS_X86"'" "'"$BUILD_DIR/nano-jit.x86_64"'" && chmod +x "'"$BUILD_DIR/nano-jit.x86_64"'"
+      '
+      echo "slice.x86_64.source=genesis-pin" | tee -a "$REPORT"
+    fi
+    run_case "build-native-runner-current-tree" cc -DNANO_LISP_JIT -Os -s "$NANO_C" -ldl \
+      -o "$LAB_DIR/.build/nano-lisp-jit"
+    if cosmocc_bin_usable "$COSMO_BIN"; then
+      if [ "${NANO_REGENESIS:-}" = "1" ]; then
+        run_case "regenesis-build-aarch64-slice" "$ARM_CC" "${COMMON[@]}" -o "$BUILD_DIR/nano-jit.aarch64"
+        run_case "regenesis-update-genesis-aarch64" bash -c '
+          cp "'"$BUILD_DIR/nano-jit.aarch64"'" "'"$GENESIS_AARCH64"'" && chmod +x "'"$GENESIS_AARCH64"'"
+        '
+      else
+        run_case "build-aarch64-slice-genesis-pin" bash -c '
+          test -f "'"$GENESIS_AARCH64"'" && cp "'"$GENESIS_AARCH64"'" "'"$BUILD_DIR/nano-jit.aarch64"'" && chmod +x "'"$BUILD_DIR/nano-jit.aarch64"'"
+        '
+        echo "slice.aarch64.source=genesis-pin" | tee -a "$REPORT"
+      fi
+      echo "slice.aarch64.compiler=cosmocc" | tee -a "$REPORT"
+      echo "slice.aarch64.mode=cosmo" | tee -a "$REPORT"
+    elif aarch64_cross_cc_available; then
+      if [ "${NANO_REGENESIS:-}" = "1" ]; then
+        ARM_CROSS="$(aarch64_cross_cc)"
+        AARCH64_STATIC_FLAGS="-DNANO_LISP_JIT -Os -s"
+        if has_qemu_aarch64; then
+          AARCH64_STATIC_FLAGS="$AARCH64_STATIC_FLAGS -static"
+          echo "slice.aarch64.link=static-for-qemu" | tee -a "$REPORT"
+        fi
+        run_case "regenesis-build-aarch64-slice-cross" "$ARM_CROSS" $AARCH64_STATIC_FLAGS "$NANO_C" -ldl \
+          -o "$BUILD_DIR/nano-jit.aarch64"
+        run_case "regenesis-update-genesis-aarch64-cross" bash -c '
+          cp "'"$BUILD_DIR/nano-jit.aarch64"'" "'"$GENESIS_AARCH64"'" && chmod +x "'"$GENESIS_AARCH64"'"
+        '
+      else
+        run_case "build-aarch64-slice-cross-genesis-pin" bash -c '
+          test -f "'"$GENESIS_AARCH64"'" && cp "'"$GENESIS_AARCH64"'" "'"$BUILD_DIR/nano-jit.aarch64"'" && chmod +x "'"$BUILD_DIR/nano-jit.aarch64"'"
+        '
+        echo "slice.aarch64.source=genesis-pin" | tee -a "$REPORT"
+      fi
+      {
+        echo "slice.aarch64.compiler=native-cross-genesis-pin"
+        echo "slice.aarch64.mode=native-cross"
+      } | tee -a "$REPORT"
+      run_case "verify-aarch64-slice-elf" bash -c '
+        file -b "'"$BUILD_DIR/nano-jit.aarch64"'" | grep -q "ARM aarch64"
+      '
+      if has_qemu_aarch64; then
+        QEMU_AARCH64="$(qemu_aarch64_cmd)"
+        run_case "qemu-aarch64-slice-compile-arithmetic" bash -c '
+          "'"$QEMU_AARCH64"'" "'"$BUILD_DIR/nano-jit.aarch64"'" compile "'"$ARITH_SRC"'" \
+            "'"$BUILD_DIR/native-aarch64-arithmetic.lbin"'"
+        '
+        run_case "qemu-aarch64-slice-run-arithmetic" bash -c '
+          "'"$QEMU_AARCH64"'" "'"$BUILD_DIR/nano-jit.aarch64"'" run \
+            "'"$BUILD_DIR/native-aarch64-arithmetic.lbin"'"
+        '
+      else
+        build_skip_case "qemu-aarch64-slice-smoke" "qemu-aarch64-static not installed"
+      fi
+    else
+      {
+        printf '\n## build-aarch64-slice\n'
+        echo "slice.aarch64=skipped"
+        echo "slice.aarch64.reason=cosmocc_missing"
+        echo "slice.aarch64.need=aarch64-unknown-cosmo-cc"
+        echo "searched=$COSMO_BIN"
+        echo "exit.status=0"
+      } | tee -a "$REPORT"
+      AARCH64_SLICE_SKIPPED=1
+    fi
+    ;;
+  cosmo)
+    if ! cosmocc_bin_usable "$COSMO_BIN"; then
+      {
+        echo "cosmocc=missing"
+        echo "searched=$COSMO_BIN"
+        echo "need=x86_64-unknown-cosmo-cc,aarch64-unknown-cosmo-cc"
+        echo "hint=set NANO_SLICE_COMPILER=native on Linux x86_64 with host cc"
+      } | tee -a "$REPORT"
+      exit 2
+    fi
+    {
+      echo "slice.compiler=cosmo"
+      echo "cosmocc.role=temporary-slice-compiler"
+    } | tee -a "$REPORT"
+    run_case "build-x86_64-slice" "$X86_CC" "${COMMON[@]}" -o "$BUILD_DIR/nano-jit.x86_64"
+    run_case "build-aarch64-slice" "$ARM_CC" "${COMMON[@]}" -o "$BUILD_DIR/nano-jit.aarch64"
+    ;;
+  *)
+    {
+      echo "slice.compiler=invalid"
+      echo "slice.compiler.value=$NANO_SLICE_COMPILER"
+      echo "slice.compiler.allowed=native,cosmo"
+    } | tee -a "$REPORT"
+    exit 2
+    ;;
+esac
+
+if [ "$AARCH64_SLICE_SKIPPED" = 1 ]; then
+  PACKER="$BUILD_DIR/nano-jit.x86_64"
+  {
+    printf '\n## self-pack-nano-jit-com\n'
+    echo "self-pack=oracle-x86-duplicate"
+    echo "slice.aarch64=x86_64_duplicate"
+    echo "slice.aarch64.reason=cosmocc_missing"
+  } | tee -a "$REPORT"
+  run_case "self-pack-nano-jit-com" "$PACKER" pack-ape \
+    "$BUILD_DIR/nano-jit.com" \
+    "$BUILD_DIR/nano-jit.x86_64" \
+    "$BUILD_DIR/nano-jit.x86_64"
+  run_case "inspect-nano-jit-com" bash -c '
+    out=$("'"$PACKER"'" inspect-ape "'"$BUILD_DIR/nano-jit.com"'" 2>&1) || exit 1
+    printf "%s\n" "$out"
+    printf "%s\n" "$out" | grep -q "inspect-ape.container=ape-v2"
+  '
+  run_case "run-ape-nano-jit-com-smoke" bash -c '
+    out=$("'"$PACKER"'" run-ape "'"$BUILD_DIR/nano-jit.com"'" 2>&1) || true
+    printf "%s\n" "$out"
+    printf "%s\n" "$out" | grep -q "run-ape.arch="
+  '
+  run_case "native-x86-slice-compile-arithmetic" \
+    "$PACKER" compile "$ARITH_SRC" "$BUILD_DIR/native-smoke-arithmetic.lbin"
+  run_case "native-x86-slice-run-arithmetic" \
+    "$PACKER" run "$BUILD_DIR/native-smoke-arithmetic.lbin"
+  FUNC_CALL_VM_SMOKE_SRC="$LAB_DIR/samples/func-call-vm-smoke.lisp"
+  run_case "native-x86-slice-compile-func-call-vm-smoke" \
+    "$PACKER" compile "$FUNC_CALL_VM_SMOKE_SRC" "$BUILD_DIR/native-smoke-func-call-vm.lbin"
+  run_case "native-x86-slice-run-func-call-vm-smoke" \
+    "$PACKER" run "$BUILD_DIR/native-smoke-func-call-vm.lbin"
+  run_case "native-x86-slice-reject-func-param-missing-param-lbin" \
+    "$PACKER" compile-expect-exit 2 compile "$FUNC_PARAM_MISSING_PARAM_BAD_SRC" \
+    "$BUILD_DIR/native-func-param-missing-param-bad.lbin"
+  run_case "native-x86-slice-reject-func-param-call-no-arg-lbin" \
+    "$PACKER" compile-expect-exit 2 compile "$FUNC_PARAM_CALL_NO_ARG_BAD_SRC" \
+    "$BUILD_DIR/native-func-param-call-no-arg-bad.lbin"
+  run_case "native-x86-slice-compile-func-param-vm-i64" \
+    "$PACKER" compile "$FUNC_PARAM_VM_I64_SRC" "$BUILD_DIR/native-smoke-func-param-vm-i64.lbin"
+  run_case "native-x86-slice-run-func-param-vm-i64" \
+    "$PACKER" run "$BUILD_DIR/native-smoke-func-param-vm-i64.lbin"
+  run_case "run-bootstrap-v3-vm-selfpack-matrix" \
+    bash -c "cd \"$ROOT_DIR\" && \"$PACKER\" run-bootstrap-plan \"$BOOTSTRAP_V3_VM_MATRIX\""
+  run_case "run-bootstrap-v3-codegen-smoke-native-slice" \
+    bash -c "cd \"$ROOT_DIR\" && \"$PACKER\" run-bootstrap-plan \"$BOOTSTRAP_V3_CODEGEN_SMOKE\""
+  run_case "run-bootstrap-v35-lisp-only-matrix-native-slice" \
+    bash -c "cd \"$ROOT_DIR\" && \"$LAB_DIR/.build/nano-lisp-jit\" run-bootstrap-plan \"$BOOTSTRAP_V35_LISP_ONLY_MATRIX\""
+  run_case "run-bootstrap-v35-lisp-tu-link-native-slice" \
+    bash -c "cd \"$ROOT_DIR\" && out=\$(\"$LAB_DIR/.build/nano-lisp-jit\" run-bootstrap-plan \"$BOOTSTRAP_V35_LISP_TU_LINK\" 2>&1) || true
+      printf '%s\n' \"\$out\"
+      printf '%s\n' \"\$out\" | grep -q 'bootstrap-step.*=link-elf64-exe'
+      test -x '$BUILD_DIR/../bootstrap-v35-lisp-tu-linked'
+      \"$LAB_DIR/.build/nano-lisp-jit\" run-expect-exit '$BUILD_DIR/../bootstrap-v35-lisp-tu-linked' 42"
+  run_case "run-bootstrap-v35-pack-lisp-x86-native-slice" \
+    bash -c "cd \"$ROOT_DIR\" && out=\$(\"$LAB_DIR/.build/nano-lisp-jit\" run-bootstrap-plan \"$BOOTSTRAP_V35_PACK_LISP_X86\" 2>&1) || true
+      printf '%s\n' \"\$out\"
+      printf '%s\n' \"\$out\" | grep -q 'bootstrap-step.*=pack-ape'
+      ! printf '%s\n' \"\$out\" | grep -q 'genesis/nano-jit.x86_64'
+      test -f '$BUILD_DIR/../bootstrap-v35-pack-lisp-x86.com'
+      slice_h=\$(\"$LAB_DIR/.build/nano-lisp-jit\" file-hash '$BUILD_DIR/../bootstrap-v35-pack-lisp-x86-slice.elf' 2>/dev/null | tail -1)
+      inspect=\$(\"$LAB_DIR/.build/nano-lisp-jit\" inspect-ape '$BUILD_DIR/../bootstrap-v35-pack-lisp-x86.com' 2>&1) || true
+      printf '%s\n' \"\$inspect\" | grep -q \"inspect-ape.slice.0.hash=\$slice_h\""
+  run_case "run-bootstrap-v35-nano-cc-hello-native-slice" \
+    bash -c "cd \"$ROOT_DIR\" && \"$PACKER\" run-bootstrap-plan \"$BOOTSTRAP_V35_NANO_CC_HELLO\""
+  run_case "run-bootstrap-v35-build-slice-native-slice" \
+    bash -c "cd \"$ROOT_DIR\" && NANO_BUILD_SLICE_CODEGEN=1 \"$PACKER\" run-bootstrap-plan \"$BOOTSTRAP_V35_BUILD_SLICE\""
+  if has_qemu_aarch64; then
+    run_case "run-bootstrap-v35-build-slice-aarch64-native-slice" \
+      bash -c "cd \"$ROOT_DIR\" && out=\$(NANO_BUILD_SLICE_CODEGEN=1 \"$PACKER\" run-bootstrap-plan \"$BOOTSTRAP_V35_BUILD_SLICE_AARCH64\" 2>&1) || true
+        printf '%s\n' \"\$out\"
+        printf '%s\n' \"\$out\" | grep -q 'build-slice.compiler=nano-cc'
+        test -x '$BUILD_DIR/bootstrap-v35-build-slice-aarch64.elf'
+        file -b '$BUILD_DIR/bootstrap-v35-build-slice-aarch64.elf' | grep -q 'ARM aarch64'"
+  else
+    run_case "run-bootstrap-v35-build-slice-aarch64-native-slice-compile-only" \
+      bash -c "cd \"$ROOT_DIR\" && out=\$(NANO_BUILD_SLICE_CODEGEN=1 \"$PACKER\" run-bootstrap-plan \"$BOOTSTRAP_V35_BUILD_SLICE_AARCH64\" 2>&1) || true
+        printf '%s\n' \"\$out\"
+        printf '%s\n' \"\$out\" | grep -q 'build-slice.compiler=nano-cc'
+        test -f '$BUILD_DIR/bootstrap-v35-build-slice-aarch64.elf'
+        file -b '$BUILD_DIR/bootstrap-v35-build-slice-aarch64.elf' | grep -q 'ARM aarch64'"
+    build_skip_case "run-bootstrap-v35-build-slice-aarch64-native-slice-exec" "qemu-aarch64 not available (compile-only)"
+  fi
+  run_case "run-bootstrap-v35-build-slice-lisp-aarch64-add-native" bash -c '
+    cd "'"$ROOT_DIR"'" && out=$("'"$LAB_DIR"'/.build/nano-lisp-jit" run-bootstrap-plan "'"$BOOTSTRAP_V35_BUILD_SLICE_LISP_AARCH64_ADD"'" 2>&1) || true
+      printf "%s\n" "$out"
+      printf "%s\n" "$out" | grep -q "build-slice-lisp.mode=aarch64-add-emit"
+      printf "%s\n" "$out" | grep -q "build-slice-lisp.aarch64.profile=nano-jit-slice-add.lisp"
+      test -f "'"$LAB_DIR"'/.build/bootstrap-v35-build-slice-lisp-aarch64-add.elf"
+  '
+  run_case "run-bootstrap-v35-genesis-shrink-native-slice" \
+    bash -c "cd \"$ROOT_DIR\" && out=\$(\"$PACKER\" run-bootstrap-plan \"$BOOTSTRAP_V35_GENESIS_SHRINK\" 2>&1) || true
+      printf '%s\n' \"\$out\"
+      printf '%s\n' \"\$out\" | grep -q 'build-slice.role=genesis-pin'
+      ! printf '%s\n' \"\$out\" | grep -q 'build-slice.compiler=cc'"
+  run_case "run-bootstrap-v25-native-selfpack" \
+    bash -c "cd \"$ROOT_DIR\" && \"$PACKER\" run-bootstrap-plan \"$BOOTSTRAP_V25_NATIVE_SELFPACK\""
+  if [ "$NANO_SELFHOST_THOROUGH" = "1" ]; then
+    mkdir -p "$SELFHOST_DIR"
+    run_case "selfhost-thorough-round1-genesis-x86-only" bash -c '
+      cd "'"$ROOT_DIR"'" && "'"$PACKER"'" run-bootstrap-plan "'"$BOOTSTRAP_V3_SELFHOST_GEN1"'"
+    '
+    run_case "selfhost-thorough-round2-gen1-slice-x86-only" bash -c '
+      cd "'"$ROOT_DIR"'" && "'"$SELFHOST_DIR"'/gen1-slice-x86.elf" run-bootstrap-plan "'"$BOOTSTRAP_V3_SELFHOST_GEN2"'"
+    '
+  fi
+  {
+    echo "nano-jit.com.bytes=$(bytes_of "$BUILD_DIR/nano-jit.com")"
+    echo "nano-jit.com.fnv1a64=$(hash_of "$BUILD_DIR/nano-jit.com")"
+    echo "nano-jit.x86_64.bytes=$(bytes_of "$BUILD_DIR/nano-jit.x86_64")"
+    echo "nano-jit.x86_64.fnv1a64=$(hash_of "$BUILD_DIR/nano-jit.x86_64")"
+    echo "nano-jit.aarch64.bytes=$(bytes_of "$BUILD_DIR/nano-jit.x86_64")"
+    echo "nano-jit.aarch64.fnv1a64=$(hash_of "$BUILD_DIR/nano-jit.x86_64")"
+  } | tee -a "$REPORT"
+  run_case "audit-genesis-shrink-build-log" audit_genesis_shrink_log "$REPORT"
+  build_end_summary
+  echo "bootstrap.report=$REPORT" | tee -a "$REPORT"
+  ls -l "$BUILD_DIR"/nano-jit.com "$BUILD_DIR"/nano-jit.x86_64 2>/dev/null || ls -l "$BUILD_DIR"/nano-jit.x86_64
+  if [ "$BUILD_FAIL" -gt 0 ] && [ "$BUILD_PASS" -lt 26 ]; then
+    exit 1
+  fi
+  exit 0
+fi
 
 case "$(uname -m)" in
   x86_64|amd64) PACKER="$BUILD_DIR/nano-jit.x86_64" ;;
@@ -369,7 +705,57 @@ run_case "self-pack-nano-jit-com" "$PACKER" pack-ape \
   "$BUILD_DIR/nano-jit.x86_64" \
   "$BUILD_DIR/nano-jit.aarch64"
 
-run_case "inspect-nano-jit-com" "$PACKER" inspect-ape "$BUILD_DIR/nano-jit.com"
+run_case "inspect-nano-jit-com" bash -c '
+  out=$("'"$PACKER"'" inspect-ape "'"$BUILD_DIR/nano-jit.com"'" 2>&1) || exit 1
+  printf "%s\n" "$out"
+  printf "%s\n" "$out" | grep -q "inspect-ape.container=ape-v2"
+'
+
+if [ -f "$BUILD_DIR/nano-jit.aarch64" ] && [ -f "$BUILD_DIR/nano-jit.x86_64" ]; then
+  run_case "native-slice-payload-hash-distinct" bash -c '
+    h0=$("'"$PACKER"'" file-hash "'"$BUILD_DIR/nano-jit.x86_64"'" 2>/dev/null | tail -1)
+    h1=$("'"$PACKER"'" file-hash "'"$BUILD_DIR/nano-jit.aarch64"'" 2>/dev/null | tail -1)
+    printf "slice.x86_64.hash=%s\n" "$h0"
+    printf "slice.aarch64.hash=%s\n" "$h1"
+    [ -n "$h0" ] && [ -n "$h1" ] && [ "$h0" != "$h1" ]
+  '
+fi
+
+if [ "$(uname -m)" = "x86_64" ] || [ "$(uname -m)" = "amd64" ]; then
+  run_case "run-ape-nano-jit-com-smoke" bash -c '
+    out=$("'"$PACKER"'" run-ape "'"$BUILD_DIR/nano-jit.com"'" 2>&1) || true
+    printf "%s\n" "$out"
+    printf "%s\n" "$out" | grep -q "run-ape.arch="
+  '
+  if has_qemu_aarch64; then
+    run_case "run-ape-nano-jit-com-aarch64-smoke" bash -c '
+      out=$("'"$PACKER"'" run-ape "'"$BUILD_DIR/nano-jit.com"'" aarch64 2>&1) || true
+      printf "%s\n" "$out"
+      printf "%s\n" "$out" | grep -q "run-ape.force_arch=aarch64"
+    '
+  else
+    build_skip_case "run-ape-nano-jit-com-aarch64-smoke" "qemu-aarch64 not available"
+  fi
+fi
+
+run_case "make-ape-negative-fixtures-self-pack" python3 "$LAB_DIR/make_ape_fixtures.py" \
+  "$BUILD_DIR/nano-jit.com" "$APE_FIXTURE_DIR"
+run_case "run-bootstrap-ape-negative-self-pack" \
+  bash -c "cd \"$ROOT_DIR\" && \"$BUILD_DIR/nano-jit.com\" run-bootstrap-plan \"$BOOTSTRAP_APE_NEG_SRC\""
+
+rm -f "$APE_FIXTURE_DIR/const-ptr-data-fixtures.lbin" 2>/dev/null || true
+run_case "nano-jit-compile-const-ptr-for-data-fixtures-self-pack" \
+  "$BUILD_DIR/nano-jit.com" compile "$CONST_PTR_SRC" "$APE_FIXTURE_DIR/const-ptr-data-fixtures.lbin"
+run_case "nano-jit-aot-const-ptr-data-good-obj-self-pack" \
+  "$BUILD_DIR/nano-jit.com" aot-elf64-obj-code "$APE_FIXTURE_DIR/const-ptr-data-fixtures.lbin" "$DATA_GOOD_OBJ" nano_main
+run_case "make-data-reloc-negative-fixtures-self-pack" python3 "$LAB_DIR/make_data_reloc_fixtures.py" \
+  "$DATA_GOOD_OBJ" "$DATA_BAD_RELOC_TYPE_OBJ" "$DATA_BAD_RELOC_SYM_OBJ" "$DATA_BAD_SYMBOL_SHNDX_OBJ"
+run_case "run-bootstrap-data-negative-self-pack" \
+  bash -c "cd \"$ROOT_DIR\" && \"$BUILD_DIR/nano-jit.com\" run-bootstrap-plan \"$BOOTSTRAP_DATA_NEG_SRC\""
+run_case "nano-jit-compile-rodata-readonly-elf64-self-pack" \
+  "$BUILD_DIR/nano-jit.com" compile-elf64-code "$RODATA_READONLY_SRC" "$BUILD_DIR/rodata_readonly_self_packed.elf"
+run_case "nano-jit-run-rodata-readonly-elf64-self-pack" \
+  "$BUILD_DIR/nano-jit.com" run-expect-exit "$BUILD_DIR/rodata_readonly_self_packed.elf" 0
 
 {
   echo "nano-jit.com.bytes=$(bytes_of "$BUILD_DIR/nano-jit.com")"
@@ -385,6 +771,30 @@ run_case "nano-jit-compile-arithmetic" "$BUILD_DIR/nano-jit.com" compile "$ARITH
 run_case "nano-jit-run-arithmetic" "$BUILD_DIR/nano-jit.com" run "$ARITH_BLOB"
 run_case "nano-jit-compile-arithmetic-i64" "$BUILD_DIR/nano-jit.com" compile "$ARITH_I64_SRC" "$ARITH_I64_BLOB"
 run_case "nano-jit-run-arithmetic-i64" "$BUILD_DIR/nano-jit.com" run "$ARITH_I64_BLOB"
+FUNC_CALL_VM_SMOKE_SRC="$LAB_DIR/samples/func-call-vm-smoke.lisp"
+run_case "nano-jit-selfpack-compile-func-call-vm-smoke" \
+  "$BUILD_DIR/nano-jit.com" compile "$FUNC_CALL_VM_SMOKE_SRC" "$BUILD_DIR/selfpack-func-call-vm.lbin"
+run_case "nano-jit-selfpack-run-func-call-vm-smoke" \
+  "$BUILD_DIR/nano-jit.com" run "$BUILD_DIR/selfpack-func-call-vm.lbin"
+run_case "nano-jit-selfpack-compile-func-param-vm-i64" \
+  "$BUILD_DIR/nano-jit.com" compile "$FUNC_PARAM_VM_I64_SRC" "$BUILD_DIR/selfpack-func-param-vm-i64.lbin"
+run_case "nano-jit-selfpack-run-func-param-vm-i64" \
+  "$BUILD_DIR/nano-jit.com" run "$BUILD_DIR/selfpack-func-param-vm-i64.lbin"
+run_case "nano-jit-selfpack-run-bootstrap-v3-vm-matrix" \
+  bash -c "cd \"$ROOT_DIR\" && \"$BUILD_DIR/nano-jit.com\" run-bootstrap-plan \"$BOOTSTRAP_V3_VM_MATRIX\""
+run_case "nano-jit-selfpack-run-bootstrap-v3-codegen-smoke" \
+  bash -c "cd \"$ROOT_DIR\" && \"$BUILD_DIR/nano-jit.com\" run-bootstrap-plan \"$BOOTSTRAP_V3_CODEGEN_SMOKE\""
+run_case "nano-jit-selfpack-run-bootstrap-v35-nano-cc-hello" \
+  bash -c "cd \"$ROOT_DIR\" && \"$BUILD_DIR/nano-jit.com\" run-bootstrap-plan \"$BOOTSTRAP_V35_NANO_CC_HELLO\""
+run_case "nano-jit-selfpack-run-bootstrap-v35-pack-lisp-x86" \
+  bash -c "cd \"$ROOT_DIR\" && out=\$(\"$BUILD_DIR/nano-jit.com\" run-bootstrap-plan \"$BOOTSTRAP_V35_PACK_LISP_X86\" 2>&1) || true
+    printf '%s\n' \"\$out\"
+    printf '%s\n' \"\$out\" | grep -q 'bootstrap-step.*=pack-ape'
+    ! printf '%s\n' \"\$out\" | grep -q 'genesis/nano-jit.x86_64'
+    test -f '$LAB_DIR/.build/bootstrap-v35-pack-lisp-x86.com'
+    slice_h=\$(\"$BUILD_DIR/nano-jit.com\" file-hash '$LAB_DIR/.build/bootstrap-v35-pack-lisp-x86-slice.elf' 2>/dev/null | tail -1)
+    inspect=\$(\"$BUILD_DIR/nano-jit.com\" inspect-ape '$LAB_DIR/.build/bootstrap-v35-pack-lisp-x86.com' 2>&1) || true
+    printf '%s\n' \"\$inspect\" | grep -q \"inspect-ape.slice.0.hash=\$slice_h\""
 run_case "nano-jit-compile-typed-values" "$BUILD_DIR/nano-jit.com" compile "$TYPED_SRC" "$TYPED_BLOB"
 run_case "nano-jit-run-typed-values" "$BUILD_DIR/nano-jit.com" run "$TYPED_BLOB"
 run_case "nano-jit-run-bootstrap-plan" "$BUILD_DIR/nano-jit.com" run-bootstrap-plan "$BOOTSTRAP_PLAN"
@@ -438,6 +848,8 @@ run_case "nano-jit-emit-elf64-obj-callee42" "$BUILD_DIR/nano-jit.com" emit-elf64
 run_case "nano-jit-tiny-link-elf64-obj-call42" "$BUILD_DIR/nano-jit.com" link-elf64-exe "$CALL42_LINK_EXE" nano_call "$CALL42_OBJ" "$CALL42_CALLEE_OBJ"
 run_case "nano-jit-run-tiny-linked-call42" "$BUILD_DIR/nano-jit.com" run-expect-exit "$CALL42_LINK_EXE" 42
 run_case "nano-jit-emit-cross-object-const-ptr-call" "$BUILD_DIR/nano-jit.com" emit-elf64-obj-call "$CONST_PTR_CALL_OBJ" nano_const_ptr_call nano_const_ptr_callee
+run_case "nano-jit-compile-const-ptr-elf64-code1" "$BUILD_DIR/nano-jit.com" compile-elf64-code "$CONST_PTR_SRC" "$CONST_PTR_DIRECT_EXE"
+run_case "nano-jit-run-direct-compiled-const-ptr-load-u8-1" "$BUILD_DIR/nano-jit.com" run-expect-exit "$CONST_PTR_DIRECT_EXE" 1
 run_case "nano-jit-compile-cross-object-const-ptr-callee" "$BUILD_DIR/nano-jit.com" compile "$CONST_PTR_SRC" "$CONST_PTR_BLOB"
 run_case "nano-jit-aot-cross-object-const-ptr-callee" "$BUILD_DIR/nano-jit.com" aot-elf64-obj-code "$CONST_PTR_BLOB" "$CONST_PTR_CALLEE_OBJ" nano_const_ptr_callee
 run_case "nano-jit-tiny-link-cross-object-const-ptr-data" "$BUILD_DIR/nano-jit.com" link-elf64-exe "$CONST_PTR_CROSS_LINK_EXE" nano_const_ptr_call "$CONST_PTR_CALL_OBJ" "$CONST_PTR_CALLEE_OBJ"
@@ -464,5 +876,109 @@ run_case "generate-libc-resolve-manifest" "$BUILD_DIR/nano-jit.com" gen-libc-res
 run_case "nano-jit-compile-libc-resolve" "$BUILD_DIR/nano-jit.com" compile "$RESOLVE_SRC" "$RESOLVE_BLOB"
 run_case "nano-jit-resolve-libc" "$BUILD_DIR/nano-jit.com" resolve --quiet "$RESOLVE_BLOB"
 
+if [ "$NANO_SELFHOST_THOROUGH" = "1" ] && { [ "$(uname -m)" = "x86_64" ] || [ "$(uname -m)" = "amd64" ]; }; then
+  mkdir -p "$SELFHOST_DIR"
+  GENESIS_RUNNER="$PACKER"
+  if [ ! -x "$GENESIS_RUNNER" ]; then
+    GENESIS_RUNNER="$BUILD_DIR/nano-jit.x86_64"
+  fi
+  run_case "selfhost-thorough-round1-genesis" bash -c '
+    cd "'"$ROOT_DIR"'" && "'"$GENESIS_RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V3_SELFHOST_GEN1"'"
+  '
+  run_case "selfhost-thorough-round1-artifacts" bash -c '
+    test -x "'"$SELFHOST_DIR"'/gen1-slice-x86.elf"
+    test -f "'"$SELFHOST_DIR"'/gen1-slice-aarch64.elf"
+    test -f "'"$SELFHOST_DIR"'/gen1-nano-jit.com"
+    test -f "'"$SELFHOST_DIR"'/gen1-arithmetic.lbin"
+    file -b "'"$SELFHOST_DIR"'/gen1-slice-aarch64.elf" | grep -q "ARM aarch64"
+    "'"$SELFHOST_DIR"'/gen1-slice-x86.elf" run "'"$SELFHOST_DIR"'/gen1-arithmetic.lbin"
+  '
+  run_case "selfhost-thorough-round2-gen1-slice" bash -c '
+    cd "'"$ROOT_DIR"'" && "'"$SELFHOST_DIR"'/gen1-slice-x86.elf" run-bootstrap-plan "'"$BOOTSTRAP_V3_SELFHOST_GEN2"'"
+  '
+  run_case "selfhost-thorough-round2-artifacts" bash -c '
+    test -x "'"$SELFHOST_DIR"'/gen2-slice-x86.elf"
+    test -f "'"$SELFHOST_DIR"'/gen2-nano-jit.com"
+    test -f "'"$SELFHOST_DIR"'/gen2-arithmetic.lbin"
+    "'"$SELFHOST_DIR"'/gen2-slice-x86.elf" run "'"$SELFHOST_DIR"'/gen2-arithmetic.lbin"
+  '
+  run_case "selfhost-codegen-round3-gen2-runner" bash -c '
+    cd "'"$ROOT_DIR"'" && "'"$SELFHOST_DIR"'/gen2-slice-x86.elf" run-bootstrap-plan "'"$BOOTSTRAP_V3_SELFHOST_GEN3"'"
+  '
+  run_case "selfhost-codegen-round3-artifacts" bash -c '
+    test -x "'"$SELFHOST_DIR"'/gen3-slice-lisp-x86.elf"
+    test -x "'"$SELFHOST_DIR"'/gen3-slice-nano-cc-x86.elf"
+    "'"$SELFHOST_DIR"'/gen3-slice-lisp-x86.elf"; test $? -eq 42
+    "'"$SELFHOST_DIR"'/gen3-slice-nano-cc-x86.elf"; test $? -eq 42
+  '
+  run_case "selfhost-v35-gen3-round-gen2-runner" bash -c '
+    cd "'"$ROOT_DIR"'" && "'"$SELFHOST_DIR"'/gen2-slice-x86.elf" run-bootstrap-plan "'"$BOOTSTRAP_V35_SELFHOST_GEN3"'"
+  '
+  run_case "selfhost-v35-gen3-round-artifacts" bash -c '
+    test -x "'"$SELFHOST_DIR"'/v35-gen3-slice-lisp-x86.elf"
+    test -x "'"$SELFHOST_DIR"'/v35-gen3-slice-nano-cc-x86.elf"
+    test -f "'"$SELFHOST_DIR"'/v35-gen3-nano-jit.com"
+    test -f "'"$SELFHOST_DIR"'/v35-gen3-arithmetic.lbin"
+    "'"$SELFHOST_DIR"'/v35-gen3-slice-lisp-x86.elf"; test $? -eq 42
+    "'"$SELFHOST_DIR"'/v35-gen3-slice-nano-cc-x86.elf"; test $? -eq 42
+    "'"$SELFHOST_DIR"'/gen2-slice-x86.elf" run "'"$SELFHOST_DIR"'/v35-gen3-arithmetic.lbin"
+  '
+  run_case "selfhost-v35-gen4-round-packer-runner" bash -c '
+    cd "'"$ROOT_DIR"'" && "'"$LAB_DIR"'/.build/nano-lisp-jit" run-bootstrap-plan "'"$BOOTSTRAP_V35_SELFHOST_GEN4"'"
+  '
+  run_case "selfhost-v35-gen4-round-artifacts" bash -c '
+    test -x "'"$SELFHOST_DIR"'/v35-gen4-slice-min-x86.elf"
+    test -x "'"$SELFHOST_DIR"'/v35-gen4-slice-add-x86.elf"
+    test -f "'"$SELFHOST_DIR"'/v35-gen4-nano-jit.com"
+    "'"$SELFHOST_DIR"'/v35-gen4-slice-min-x86.elf"; test $? -eq 42
+    "'"$SELFHOST_DIR"'/v35-gen4-slice-add-x86.elf"; test $? -eq 42
+    "'"$SELFHOST_DIR"'/gen2-slice-x86.elf" run "'"$SELFHOST_DIR"'/v35-gen4-arithmetic.lbin"
+    slice_h=$("'"$LAB_DIR"'/.build/nano-lisp-jit" file-hash "'"$SELFHOST_DIR"'/v35-gen4-slice-min-x86.elf" 2>/dev/null | tail -1)
+    inspect=$("'"$LAB_DIR"'/.build/nano-lisp-jit" inspect-ape "'"$SELFHOST_DIR"'/v35-gen4-nano-jit.com" 2>&1) || true
+    printf "%s\n" "$inspect"
+    printf "%s\n" "$inspect" | grep -q "inspect-ape.slice.0.hash=$slice_h"
+  '
+  run_case "selfhost-v35-gen5-round-native-runner" bash -c '
+    cd "'"$ROOT_DIR"'" && "'"$LAB_DIR"'/.build/nano-lisp-jit" run-bootstrap-plan "'"$BOOTSTRAP_V35_SELFHOST_GEN5"'"
+  '
+  run_case "selfhost-v35-gen5-round-gen2-runner" bash -c '
+    cd "'"$ROOT_DIR"'" && "'"$SELFHOST_DIR"'/gen2-slice-x86.elf" run-bootstrap-plan "'"$BOOTSTRAP_V35_SELFHOST_GEN5_GEN2"'"
+  '
+  run_case "selfhost-v35-gen5-round-gen2-artifacts" bash -c '
+    test -f "'"$SELFHOST_DIR"'/v35-gen5g2-nano-jit.com"
+    test -f "'"$SELFHOST_DIR"'/v35-gen5g2-arithmetic.lbin"
+    "'"$SELFHOST_DIR"'/gen2-slice-x86.elf" run "'"$SELFHOST_DIR"'/v35-gen5g2-arithmetic.lbin"
+  '
+  run_case "selfhost-v35-gen5-round-artifacts" bash -c '
+    test -x "'"$SELFHOST_DIR"'/v35-gen5-slice-min-x86.elf"
+    test -x "'"$SELFHOST_DIR"'/v35-gen5-slice-add-x86.elf"
+    test -f "'"$SELFHOST_DIR"'/v35-gen5-slice-min-aarch64.elf"
+    test -f "'"$SELFHOST_DIR"'/v35-gen5-nano-jit.com"
+    "'"$SELFHOST_DIR"'/v35-gen5-slice-min-x86.elf"; test $? -eq 42
+    "'"$SELFHOST_DIR"'/v35-gen5-slice-add-x86.elf"; test $? -eq 42
+    "'"$LAB_DIR"'/.build/nano-lisp-jit" run "'"$SELFHOST_DIR"'/v35-gen5-arithmetic.lbin"
+    slice_x=$("'"$LAB_DIR"'/.build/nano-lisp-jit" file-hash "'"$SELFHOST_DIR"'/v35-gen5-slice-min-x86.elf" 2>/dev/null | tail -1)
+    slice_a=$("'"$LAB_DIR"'/.build/nano-lisp-jit" file-hash "'"$SELFHOST_DIR"'/v35-gen5-slice-min-aarch64.elf" 2>/dev/null | tail -1)
+    test -n "$slice_x" && test -n "$slice_a" && test "$slice_x" != "$slice_a"
+    inspect=$("'"$LAB_DIR"'/.build/nano-lisp-jit" inspect-ape "'"$SELFHOST_DIR"'/v35-gen5-nano-jit.com" 2>&1) || true
+    printf "%s\n" "$inspect"
+    printf "%s\n" "$inspect" | grep -q "inspect-ape.slice.0.hash=$slice_x"
+    printf "%s\n" "$inspect" | grep -q "inspect-ape.slice.1.hash=$slice_a"
+    ! printf "%s\n" "$inspect" | grep -q "638236d602fed349"
+  '
+  {
+    echo "selfhost.thorough=ok"
+    echo "selfhost.gen1.slice.x86.hash=$(hash_of "$SELFHOST_DIR/gen1-slice-x86.elf")"
+    echo "selfhost.gen2.slice.x86.hash=$(hash_of "$SELFHOST_DIR/gen2-slice-x86.elf")"
+  } | tee -a "$REPORT"
+else
+  build_skip_case "selfhost-thorough-round1-genesis" "NANO_SELFHOST_THOROUGH=$NANO_SELFHOST_THOROUGH or non-x86 host"
+fi
+
+run_case "audit-genesis-shrink-build-log" audit_genesis_shrink_log "$REPORT"
+build_end_summary
 echo "bootstrap.report=$REPORT" | tee -a "$REPORT"
 ls -l "$BUILD_DIR"/nano-jit.*
+if [ "$BUILD_FAIL" -gt 0 ]; then
+  exit 1
+fi
