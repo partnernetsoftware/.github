@@ -1,0 +1,10 @@
+Worker 3/5 · bootstrap onion log（勿 commit）
+
+**nano_bootstrap.c** — add 路径在 `add.verified` 后追加：
+`printf("aarch64.emit.onion.tdd=diffuse-then-cc\n");`
+
+**v4/SLICE167.md** — 3 行 §onion TDD。
+
+验证：build only。
+
+最后一行：`CC_DONE worker=3`

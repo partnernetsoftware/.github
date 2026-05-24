@@ -1,0 +1,5 @@
+Worker 5/5 · SLICE175–182 洋葱段（勿 commit）
+
+为 **SLICE175.md … SLICE182.md** 各追加 §洋葱；**SLICE182** 强调 onion-tdd-milestone。
+
+最后一行：`CC_DONE worker=5`
