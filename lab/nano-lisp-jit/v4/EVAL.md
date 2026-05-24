@@ -690,6 +690,17 @@ bash lab/nano-lisp-jit/tools/v4-diffuse-then-cc.sh   # ≤4 workers
 export NANO_SLICE_COMPILER=native && bash lab/nano-lisp-jit/run.sh
 ```
 
+## mindmap DP layer2（/goal 实现 · 2026-05-24）
+
+| 节点 | 交付 |
+|------|------|
+| com-lbin-in-ape | `bootstrap-v4-mindmap-com-lbin-pack-app.lisp` · `pack-app.payload.lbin=1` |
+| boot-selfpack-com | `bootstrap-v4-mindmap-boot-selfpack-com.lisp` · `nano-jit.com` hash/inspect |
+| codegen-ir-emit | `nano-jit-slice-ir-exit-v1.lisp` · `aarch64.emit.profile=ir-exit-v1` |
+| runner-squad-dispatch | `(squad-dispatch …)` in `nano_bootstrap.c` · `squad-dispatch.ok=1` |
+
+证据：`.build/v4-mindmap-dp.evidence` · frontier 四节点 **done** · `tests.pass=1221`（+4）· layer3 `loader-bare-default` **ready**。
+
 ## terminal-bfs（终局广度优先 · 六轨）
 
 **方法**：扩散 `gen-terminal-bfs.py` → ≤4×cc → 一次 `run.sh`  

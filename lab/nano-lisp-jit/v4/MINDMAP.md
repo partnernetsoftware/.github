@@ -101,16 +101,16 @@ python3 lab/nano-lisp-jit/tools/mindmap-dp.py next    # W1..W4 与验收句
   nano-jit.com → 下一代 .com — ❌ layer4 blocked
 ```
 
-## DP 前沿（layer 2 · 当前可并发 ≤4）
+## DP 前沿（layer 2 · 已签收 2026-05-24）
 
 | 槽 | 节点 ID | 环 | 验收（摘） | 状态 |
 |----|---------|-----|------------|------|
-| W1 | `com-lbin-in-ape` | 组装 | `.lbin` 进 APE / pack-app 链 | **ready** |
-| W2 | `boot-selfpack-com` | 自举 | self-packed `nano-jit.com` plan | **ready** |
-| W3 | `codegen-ir-emit` | Codegen | IR 表驱动 1 op（非 add-N） | **ready** |
-| W4 | `runner-squad-dispatch` | 编排 | `(squad-dispatch …)` smoke | **ready** |
+| W1 | `com-lbin-in-ape` | 组装 | `pack-app.payload.lbin=1` · `mindmap-com-app.com` | **done** |
+| W2 | `boot-selfpack-com` | 自举 | `nano-jit.com` hash + inspect-ape v2 | **done** |
+| W3 | `codegen-ir-emit` | Codegen | `aarch64.emit.profile=ir-exit-v1` | **done** |
+| W4 | `runner-squad-dispatch` | 编排 | `squad-dispatch.ok=1` bootstrap 步骤 | **done** |
 
-layer1 六轨（terminal BFS）已 **done** → 解锁上表；完成后把节点标 `done` 并改 `mindmap-frontier.json`，再跑 `mindmap-dp.py ready` 看 layer3。
+**layer 3 就绪**：`python3 tools/mindmap-dp.py ready` → `loader-bare-default`（≤4 槽下一轮）。
 
 ## 波次地图（wave15–24）
 

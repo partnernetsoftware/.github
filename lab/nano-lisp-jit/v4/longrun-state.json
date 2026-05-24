@@ -2,13 +2,16 @@
   "next_wave": 253,
   "next_add": 248,
   "last_tests_pass": 1217,
-  "last_batch": { "lo": 225, "hi": 252 },
   "terminal_bfs": {
     "tracks": ["LDR", "PACK", "JIT", "AOT", "COM", "BOOT"],
-    "phase": "gate_ok",
-    "evidence": ".build/v4-terminal-bfs.evidence"
+    "phase": "done"
+  },
+  "mindmap_dp": {
+    "layer2": "done",
+    "layer3_ready": ["loader-bare-default"],
+    "evidence": ".build/v4-mindmap-dp.evidence"
   },
   "status": "idle",
-  "updated_at": "2026-05-24T14:30:00.000Z",
-  "notes": "terminal BFS six-track spread; tests.pass +5; payload.load=1"
+  "updated_at": "2026-05-24T14:25:00.000Z",
+  "notes": "mindmap DP layer2 four nodes implemented"
 }
