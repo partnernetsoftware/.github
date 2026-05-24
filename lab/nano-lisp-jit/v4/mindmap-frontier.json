@@ -1,6 +1,6 @@
 {
   "ssot": "v4/MINDMAP.md",
-  "updated_at": "2026-05-24T23:45:00Z",
+  "updated_at": "2026-05-25T00:30:00Z",
   "max_parallel": 4,
   "nodes": [
     {
@@ -507,6 +507,42 @@
       "status": "done",
       "deps": ["zero-host-gen40-lispjit-compose-full-com"],
       "accept": ["zero.host.lispjit_from_lisp_mod_runtime=1"]
+    },
+    {
+      "id": "zero-host-gen41b-lispjit-mod-compile",
+      "layer": 46,
+      "ring": "Codegen",
+      "goal_dim": "Codegen",
+      "status": "done",
+      "deps": ["zero-host-gen41-lispjit-mod-runtime"],
+      "accept": ["zero.host.lispjit_from_lisp_mod_compile=1"]
+    },
+    {
+      "id": "zero-host-gen42-lispjit-compose-5link",
+      "layer": 47,
+      "ring": "Codegen",
+      "goal_dim": "Codegen",
+      "status": "done",
+      "deps": ["zero-host-gen41b-lispjit-mod-compile"],
+      "accept": ["zero.host.lispjit_from_lisp_compose_5link=1"]
+    },
+    {
+      "id": "zero-host-gen43-lispjit-compose-5link-full-com",
+      "layer": 48,
+      "ring": "自举",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen42-lispjit-compose-5link"],
+      "accept": ["zero.host.lispjit_from_lisp_compose_5link_on_full_com=1"]
+    },
+    {
+      "id": "lispjit-from-lisp-track-complete",
+      "layer": 49,
+      "ring": "终局",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen43-lispjit-compose-5link-full-com"],
+      "accept": ["zero.host.lispjit_from_lisp_track_complete=1"]
     }
   ]
 }
