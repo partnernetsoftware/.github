@@ -480,6 +480,33 @@
       "status": "done",
       "deps": ["zero-host-gen37-lispjit-multi-func-cf-full-com"],
       "accept": ["zero.host.lispjit_from_lisp_mfc_chain=1"]
+    },
+    {
+      "id": "zero-host-gen39-lispjit-compose-3link",
+      "layer": 43,
+      "ring": "Codegen",
+      "goal_dim": "Codegen",
+      "status": "done",
+      "deps": ["zero-host-gen38-lispjit-mfc-chain"],
+      "accept": ["zero.host.lispjit_from_lisp_compose_3link=1"]
+    },
+    {
+      "id": "zero-host-gen40-lispjit-compose-full-com",
+      "layer": 44,
+      "ring": "自举",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen39-lispjit-compose-3link"],
+      "accept": ["zero.host.lispjit_from_lisp_compose_on_full_com=1"]
+    },
+    {
+      "id": "zero-host-gen41-lispjit-mod-runtime",
+      "layer": 45,
+      "ring": "Codegen",
+      "goal_dim": "Codegen",
+      "status": "done",
+      "deps": ["zero-host-gen40-lispjit-compose-full-com"],
+      "accept": ["zero.host.lispjit_from_lisp_mod_runtime=1"]
     }
   ]
 }
