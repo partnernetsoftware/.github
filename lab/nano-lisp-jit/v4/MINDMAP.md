@@ -1,7 +1,41 @@
-# v4 洋葱 TDD mindmap（并行思维 · 活图）
+# v4 洋葱 TDD mindmap（并行思维 · 活图 · **全局 SSOT**）
 
 **签收基线**：[`DECISION.md`](DECISION.md) · **`v4-complete`**（scoped S0–S15 + terminal native）。  
-**本图**：post-v4 洋葱圈 **继续内卷**，每圈标 **scoped / 终局**。
+**本图**：post-v4 洋葱圈 **继续内卷**；**扩散 = 改这张图 + 并发填就绪节点**，不是盲目 `wave++`。
+
+## 活图扩散循环（mindmap 即扩散面）
+
+```text
+    ┌─────────────────────────────────────────┐
+    │  1. 读 MINDMAP + mindmap-frontier.json │  ← 全局 + DP 就绪集
+    └──────────────────┬──────────────────────┘
+                       ▼
+    ┌─────────────────────────────────────────┐
+    │  2. DP：选 layer 上 status=ready 节点   │  ≤4 个可并行（依赖已满足）
+    └──────────────────┬──────────────────────┘
+                       ▼
+    ┌─────────────────────────────────────────┐
+    │  3. 扩散骨架 + 并发细节                  │  gen-terminal-bfs / gen wave + cc×4
+    └──────────────────┬──────────────────────┘
+                       ▼
+    ┌─────────────────────────────────────────┐
+    │  4. 收敛：一次 run.sh + assess           │
+    └──────────────────┬──────────────────────┘
+                       ▼
+    ┌─────────────────────────────────────────┐
+    │  5. 回写：本文件 + PROGRESS + frontier   │  done → 解锁下一层 ready
+    └──────────────────┬──────────────────────┘
+                       └──────────► 未终局 100% 则回到 1
+```
+
+**DP 技巧**：把节点当成状态图，不是时间表——只挑 **deps 全 done** 的 `ready` 进线程池；`blocked` 等子节点签收后再变 `ready`。
+
+```bash
+python3 lab/nano-lisp-jit/tools/mindmap-dp.py ready   # 本轮可并发谁
+python3 lab/nano-lisp-jit/tools/mindmap-dp.py next    # W1..W4 与验收句
+```
+
+机器可读前沿：[`mindmap-frontier.json`](mindmap-frontier.json) · 终局六轨：[`TERMINAL-BFS.md`](TERMINAL-BFS.md)。
 
 ## 终局六维（与 catalog 100% 分离）
 
@@ -59,9 +93,24 @@
   nano-cc / .com 自举
   ❌ 未开卷
 
-圈 7 · TERMINAL-BFS 六轨
-  见 [`TERMINAL-BFS.md`](TERMINAL-BFS.md)
+圈 6 · loader / pack / .com（TERMINAL-BFS）
+  LDR PACK JIT AOT COM BOOT — layer1 ✅ · layer2 ⏳ 见 frontier
+  [`TERMINAL-BFS.md`](TERMINAL-BFS.md)
+
+圈 7 · 自举终局
+  nano-jit.com → 下一代 .com — ❌ layer4 blocked
 ```
+
+## DP 前沿（layer 2 · 当前可并发 ≤4）
+
+| 槽 | 节点 ID | 环 | 验收（摘） | 状态 |
+|----|---------|-----|------------|------|
+| W1 | `com-lbin-in-ape` | 组装 | `.lbin` 进 APE / pack-app 链 | **ready** |
+| W2 | `boot-selfpack-com` | 自举 | self-packed `nano-jit.com` plan | **ready** |
+| W3 | `codegen-ir-emit` | Codegen | IR 表驱动 1 op（非 add-N） | **ready** |
+| W4 | `runner-squad-dispatch` | 编排 | `(squad-dispatch …)` smoke | **ready** |
+
+layer1 六轨（terminal BFS）已 **done** → 解锁上表；完成后把节点标 `done` 并改 `mindmap-frontier.json`，再跑 `mindmap-dp.py ready` 看 layer3。
 
 ## 波次地图（wave15–24）
 
