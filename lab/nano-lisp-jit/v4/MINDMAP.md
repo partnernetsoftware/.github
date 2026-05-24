@@ -170,3 +170,7 @@ reflection/resume → lisp-only/terminal → codegen/emit（长程自主续批�
 ## wave86–88
 
 runner/plan → assess/evidence-matrix → onion/mindmap-close（长程自主续批）
+
+## wave140–148
+
+emit-bytes-obs → runner/codegen/emit 四轨扩散 → onion-milestone（`MINDMAP`+`LONG-RUN` tick · tests.pass 续涨）
