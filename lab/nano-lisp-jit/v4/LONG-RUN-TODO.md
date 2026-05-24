@@ -104,15 +104,16 @@ bun run skills/nano-lisp-jit-v4-longrun/nano-lisp-jit-v4-longrun.ts loop --batch
 - [x] **wave166–182** · 洋葱先扩散后并发（tests.pass=932）
 - [x] **wave183–210** · **快进 28 波** 1 gate（tests.pass=1044）
 - [x] **wave211–224** · **Cursor CLI 批** gen + Commander C（`cli.worker` / `cli.diffuse`）
-- [ ] wave225+ …
+- [x] **wave225–252** · **洋葱快进 28 波** gen + **4×cc**（tests.pass=1212）
+- [ ] wave253+ …
 
 ## 当前指针
 
 | 项 | 值 |
 |----|-----|
-| 下一波 | **225** |
-| 下一 add | **220** |
-| 末次门禁 | tests.pass=**1100** |
+| 下一波 | **253** |
+| 下一 add | **248** |
+| 末次门禁 | tests.pass=**1212** |
 | 终局粗估 | **15–22%**（[`EVAL.md`](EVAL.md) 最新 §） |
 
 ## 自循环规则
