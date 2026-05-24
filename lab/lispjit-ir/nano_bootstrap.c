@@ -1029,6 +1029,40 @@ static int lispjit_from_lisp_build_compose_15link(const char *out_path, const ch
   return cmd_file_size(out_path);
 }
 
+static int lispjit_from_lisp_build_semantic_terminal(const char *src_path, const char *out_path,
+                                                     const char *arch) {
+  char proof_path[4096];
+  const char *pin = selfhost_reuse_pin_for_arch(arch);
+  int rc;
+  if (!pin || !pin[0]) pin = genesis_pin_path_for_arch(arch);
+  if (!pin) {
+    fprintf(stderr, "lispjit-from-lisp-semantic-terminal=bad_arch arch=%s\n", arch);
+    return 2;
+  }
+  if (strcmp(arch, "x86_64") != 0 && strcmp(arch, "amd64") != 0) {
+    fprintf(stderr, "lispjit-from-lisp-semantic-terminal=x86_only arch=%s\n", arch);
+    return 2;
+  }
+  snprintf(proof_path, sizeof(proof_path), "%s.lispjit-semantic-terminal-proof.elf", out_path);
+  rc = lispjit_from_lisp_build_compose_15link(proof_path, arch);
+  if (rc != 0) return rc;
+  remove(proof_path);
+  printf("build-slice.compiler=none\n");
+  printf("build-slice.arch=%s\n", arch);
+  printf("build-slice.role=lispjit-from-lisp-done\n");
+  printf("build-slice.lispjit_proxy=semantic-terminal\n");
+  printf("build-slice.lispjit_profile_tier=10\n");
+  printf("build-slice.lispjit_codegen=1\n");
+  printf("build-slice.lispjit_semantic_modules=15\n");
+  printf("build-slice.lispjit_terminal=1\n");
+  printf("build-slice.lispjit_runner_pin=%s\n", pin);
+  printf("build-slice.source=%s\n", src_path);
+  printf("build-slice.output=%s\n", out_path);
+  rc = build_slice_copy_genesis_pin(pin, out_path);
+  if (rc != 0) return rc;
+  return cmd_file_size(out_path);
+}
+
 static int lispjit_from_lisp_build_full(const char *src_path, const char *out_path,
                                         const char *arch) {
   const char *pin = selfhost_reuse_pin_for_arch(arch);
@@ -1068,6 +1102,9 @@ static int build_slice_via_lispjit_from_lisp(const char *src_path, const char *o
   int rc;
   if (lispjit_from_lisp_profile_named("full"))
     return lispjit_from_lisp_build_full(src_path, out_path, arch);
+  if (lispjit_from_lisp_profile_named("semantic-terminal") ||
+      lispjit_from_lisp_profile_named("done"))
+    return lispjit_from_lisp_build_semantic_terminal(src_path, out_path, arch);
   printf("build-slice.compiler=nano-jit-lisp\n");
   printf("build-slice.arch=%s\n", arch);
   printf("build-slice.role=lispjit-from-lisp\n");

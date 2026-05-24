@@ -624,6 +624,15 @@
       "status": "done",
       "deps": ["zero-host-gen53-lispjit-semantic-full"],
       "accept": ["zero.host.lispjit_from_lisp_semantic_full_track=1"]
+    },
+    {
+      "id": "lispjit-from-lisp-DONE",
+      "layer": 60,
+      "ring": "终局",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen56-lispjit-semantic-full-track"],
+      "accept": ["zero.host.lispjit_from_lisp_DONE=1", "build-slice.role=lispjit-from-lisp-done"]
     }
   ]
 }
