@@ -1,7 +1,7 @@
 {
   "next_wave": 253,
   "next_add": 248,
-  "last_tests_pass": 1217,
+  "last_tests_pass": 1221,
   "terminal_bfs": {
     "tracks": ["LDR", "PACK", "JIT", "AOT", "COM", "BOOT"],
     "phase": "done"
