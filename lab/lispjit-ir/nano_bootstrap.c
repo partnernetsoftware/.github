@@ -972,6 +972,63 @@ static int lispjit_from_lisp_build_compose_9link(const char *out_path, const cha
   return cmd_file_size(out_path);
 }
 
+static int lispjit_from_lisp_build_compose_15link(const char *out_path, const char *arch) {
+  static const struct {
+    const char *path;
+    const char *sym;
+    const char *tag;
+  } mods[] = {
+      {"lab/nano-lisp-jit/samples/lisp-tu-main.lisp", "nano_tu_main", "main"},
+      {"lab/nano-lisp-jit/samples/lisp-tu-callee.lisp", "nano_tu_callee", "callee"},
+      {"lab/nano-lisp-jit/samples/lispjit-modules/01-runtime-extra.lisp", "nano_lispjit_extra",
+       "extra"},
+      {"lab/nano-lisp-jit/samples/lispjit-modules/00-runtime-core.lisp", "nano_mod_core", "core"},
+      {"lab/nano-lisp-jit/samples/multi-func.lisp", "nano_mf_mod", "mf"},
+      {"lab/nano-lisp-jit/samples/lispjit-modules/03-bootstrap-stub.lisp", "nano_mod_boot",
+       "boot"},
+      {"lab/nano-lisp-jit/samples/lispjit-modules/04-vm.lisp", "nano_mod_vm", "vm"},
+      {"lab/nano-lisp-jit/samples/lispjit-modules/05-aot.lisp", "nano_mod_aot", "aot"},
+      {"lab/nano-lisp-jit/samples/lispjit-modules/06-elf.lisp", "nano_mod_elf", "elf"},
+      {"lab/nano-lisp-jit/samples/lispjit-modules/07-abi.lisp", "nano_mod_abi", "abi"},
+      {"lab/nano-lisp-jit/samples/lispjit-modules/08-manifest.lisp", "nano_mod_manifest",
+       "manifest"},
+      {"lab/nano-lisp-jit/samples/lispjit-modules/09-run.lisp", "nano_mod_run", "run"},
+      {"lab/nano-lisp-jit/samples/lispjit-modules/10-pack.lisp", "nano_mod_pack", "pack"},
+      {"lab/nano-lisp-jit/samples/lispjit-modules/11-ape.lisp", "nano_mod_ape", "ape"},
+      {"lab/nano-lisp-jit/samples/lispjit-modules/12-parse.lisp", "nano_mod_parse", "parse"},
+  };
+  enum { mod_count = (int)(sizeof(mods) / sizeof(mods[0])) };
+  char obj_paths[15][4096];
+  char *link_argv[4 + 15];
+  int rc;
+  size_t i;
+  if (strcmp(arch, "aarch64") == 0 || strcmp(arch, "arm64") == 0) {
+    fprintf(stderr, "lispjit-from-lisp-compose-15link=aarch64_unsupported\n");
+    return 2;
+  }
+  if (strcmp(arch, "x86_64") != 0 && strcmp(arch, "amd64") != 0) {
+    fprintf(stderr, "lispjit-from-lisp-compose-15link=bad_arch arch=%s\n", arch);
+    return 2;
+  }
+  for (i = 0; i < (size_t)mod_count; ++i) {
+    snprintf(obj_paths[i], sizeof(obj_paths[i]), "%s.lispjit-compose15-%s.o", out_path, mods[i].tag);
+    rc = cmd_compile_elf64_obj_code(mods[i].path, obj_paths[i], mods[i].sym);
+    if (rc != 0) return rc;
+  }
+  link_argv[0] = (char *)"run-bootstrap-plan";
+  link_argv[1] = (char *)"link-elf64-exe";
+  link_argv[2] = (char *)out_path;
+  link_argv[3] = (char *)"nano_tu_main";
+  for (i = 0; i < (size_t)mod_count; ++i) link_argv[4 + i] = obj_paths[i];
+  rc = cmd_link_elf64_exe(4 + mod_count, link_argv);
+  if (rc != 0) return rc;
+  printf("build-slice-lisp.mode=compose-15link\n");
+  printf("build-slice-lisp.link.objects=%d\n", mod_count);
+  printf("build-slice.lispjit_codegen=1\n");
+  printf("build-slice-lisp.lispjit_modules=00-12+multi-func\n");
+  return cmd_file_size(out_path);
+}
+
 static int lispjit_from_lisp_build_full(const char *src_path, const char *out_path,
                                         const char *arch) {
   const char *pin = selfhost_reuse_pin_for_arch(arch);
@@ -1043,6 +1100,12 @@ static int build_slice_via_lispjit_from_lisp(const char *src_path, const char *o
     printf("build-slice.lispjit_profile_tier=8\n");
     printf("build-slice.lispjit_link=tu+modules+semantic\n");
     printf("build-slice.lispjit_codegen=1\n");
+  } else if (lispjit_from_lisp_profile_named("compose-15link") ||
+             lispjit_from_lisp_profile_named("semantic-full")) {
+    printf("build-slice.lispjit_proxy=semantic-full\n");
+    printf("build-slice.lispjit_profile_tier=9\n");
+    printf("build-slice.lispjit_link=tu+modules+all-nano\n");
+    printf("build-slice.lispjit_codegen=1\n");
   } else if (lispjit_from_lisp_profile_named("lispjit-mod-runtime")) {
     printf("build-slice.lispjit_proxy=lispjit-mod-runtime\n");
     printf("build-slice.lispjit_profile_tier=1\n");
@@ -1070,6 +1133,9 @@ static int build_slice_via_lispjit_from_lisp(const char *src_path, const char *o
   else if (lispjit_from_lisp_profile_named("compose-9link") ||
            lispjit_from_lisp_profile_named("semantic-codegen"))
     rc = lispjit_from_lisp_build_compose_9link(out_path, arch);
+  else if (lispjit_from_lisp_profile_named("compose-15link") ||
+           lispjit_from_lisp_profile_named("semantic-full"))
+    rc = lispjit_from_lisp_build_compose_15link(out_path, arch);
   else
     rc = cmd_build_slice_lisp(profile, out_path, arch);
   return rc;

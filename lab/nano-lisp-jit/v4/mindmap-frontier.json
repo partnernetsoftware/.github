@@ -606,6 +606,24 @@
       "status": "done",
       "deps": ["zero-host-gen50-lispjit-semantic-on-com"],
       "accept": ["zero.host.lispjit_from_lisp_semantic_track=1"]
+    },
+    {
+      "id": "zero-host-gen53-lispjit-semantic-full",
+      "layer": 57,
+      "ring": "终局",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen52-lispjit-semantic-track"],
+      "accept": ["zero.host.lispjit_from_lisp_semantic_full=1", "build-slice-lisp.link.objects=15"]
+    },
+    {
+      "id": "zero-host-gen56-lispjit-semantic-full-track",
+      "layer": 58,
+      "ring": "终局",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen53-lispjit-semantic-full"],
+      "accept": ["zero.host.lispjit_from_lisp_semantic_full_track=1"]
     }
   ]
 }
