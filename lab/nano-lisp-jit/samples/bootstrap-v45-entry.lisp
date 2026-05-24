@@ -2,6 +2,9 @@
 (bootstrap
   (file-size "lab/nano-lisp-jit/v4.5/DECISION.md")
   (file-size "lab/nano-lisp-jit/samples/bootstrap-v45-verify-smoke.lisp")
+  (file-size "lab/nano-lisp-jit/samples/bootstrap-v45-verify-core.lisp")
+  (file-size "lab/nano-lisp-jit/samples/bootstrap-v45-v4-handoff.lisp")
+  (file-size "lab/nano-lisp-jit/samples/bootstrap-v45-verify-all.lisp")
   (file-size "lab/nano-lisp-jit/samples/bootstrap-v4-kickoff.lisp")
   (file-size "lab/nano-lisp-jit/samples/bootstrap-v4-gen5-anchor.lisp")
   (compile "lab/nano-lisp-jit/samples/arithmetic.lisp"

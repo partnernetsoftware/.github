@@ -28,54 +28,59 @@ genesis/*.x86_64      # 可选 bootstrap pin（非日常 host cc）
 
 | Tier | ID | 完成定义 | 验收键 |
 |------|-----|----------|--------|
-| **0** | `v45-tier0-entry` | `bootstrap-v45-entry.lisp` 绿；`.com` 可跑同 plan（有 `.com` 时） | `v45.entry.ok=1` |
-| **1** | `v45-tier1-verify` | CI/开发者主路径：`nano-jit.com run-bootstrap-plan verify/*.lisp`；无 shell 纵切片 | `v45.verify.plan_only=1` |
-| **2** | `v45-tier2-no-host-cc` | 日常 `build-slice` 禁 silent `stage0-bridge`；仅 genesis-pin / nano-cc / Lisp codegen | `v45.build.no_host_cc=1` |
-| **3** | `v45-tier3-no-c-src` | repo 无 `lispjit.c` 源码；runner 仅 seed + 自举 `.com` | `v45.runner.no_c_src=1` |
-| **4** | `v45-tier4-vm-emit` | C 表驱动 emit → Lisp IR + VM/AOT（对齐 `TERMINAL-BFS` AOT 轨） | `v45.codegen.vm_emit=1` |
+| **0** | `v45-tier0-entry` | `bootstrap-v45-entry.lisp` 绿；`.com` 可跑同 plan | `v45.entry.ok=1` |
+| **1** | `v45-tier1-verify` | **`.com` only** 跑 verify 矩阵（smoke/core/handoff/all/entry） | `v45.verify.plan_only=1` |
+| **2** | `v45-tier2-no-host-cc` | 日常 `build-slice` 禁 silent `stage0-bridge` | `v45.build.no_host_cc=1` |
+| **3** | `v45-tier3-no-c-src` | repo 无 `lispjit.c` 源码 | `v45.runner.no_c_src=1` |
+| **4** | `v45-tier4-vm-emit` | C 表驱动 emit → Lisp IR + VM/AOT | `v45.codegen.vm_emit=1` |
 
-**当前开卷**：**tier0**（本 PR）。
+**当前开卷**：**tier1**（tier0 ✅）。
 
-## tier0 交付（本波）
+## tier1 交付（本波）
 
 | 产物 | 路径 |
 |------|------|
-| 规格 | `v4.5/DECISION.md`（本文件）、`v4.5/README.md` |
-| 入口 plan | `samples/bootstrap-v45-entry.lisp` |
-| verify 纵切片 | `samples/bootstrap-v45-verify-smoke.lisp`（~run.sh 前段 VM 子集） |
-| 证据 rollup | `samples/bootstrap-v45-entry-evidence.lisp` |
-| 门禁 | `run.sh` + `squad/catalog-v45.yaml` |
+| verify 核心 | `samples/bootstrap-v45-verify-core.lisp`（VM+ptr+multi-func+AOT/APE/pack-app） |
+| v4 交接 | `samples/bootstrap-v45-v4-handoff.lisp`（gen60/genesis/.com 锚点） |
+| verify 索引 | `samples/bootstrap-v45-verify-all.lisp` |
+| com-only 门禁 | `run.sh` → `run-bootstrap-v45-com-only-verify-plan` |
 
-### tier0 验收
+### 发行面验收（tier1 · 仅 `.com` + `.lisp`）
 
 ```bash
-# host runner（开发工厂仍可用）
-lab/nano-lisp-jit/.build/nano-lisp-jit run-bootstrap-plan \
-  lab/nano-lisp-jit/samples/bootstrap-v45-entry.lisp
-
-# 发行面路径（需已 build nano-jit.com）
-lab/nano-lisp-jit/.build/nano-jit/nano-jit.com run-bootstrap-plan \
-  lab/nano-lisp-jit/samples/bootstrap-v45-entry.lisp
-
-grep v45.entry.ok=1 lab/nano-lisp-jit/.build/v45-entry.evidence
+COM=lab/nano-lisp-jit/.build/nano-jit/nano-jit.com
+for p in verify-smoke verify-core v4-handoff verify-all entry; do
+  $COM run-bootstrap-plan lab/nano-lisp-jit/samples/bootstrap-v45-$p.lisp
+done
+grep v45.verify.plan_only=1 lab/nano-lisp-jit/.build/v45-entry.evidence
 ```
 
-### tier0 刻意未声称
+### tier1 刻意未声称
 
 - 仓库零 `.sh` / `.c` / `.py`
-- 154KB runner 由 Lisp 全量 codegen（仍可用 genesis pin）
-- 替换 `run.sh` 全部 1212 case
+- `run.sh` 全量 1212 case 已退役
+- 154KB runner Lisp 全量 codegen
+
+## tier0 交付（已签收）
+
+| 产物 | 路径 |
+|------|------|
+| 规格 | `v4.5/DECISION.md`、`v4.5/README.md` |
+| 入口 plan | `samples/bootstrap-v45-entry.lisp` |
+| verify 纵切片 | `samples/bootstrap-v45-verify-smoke.lisp` |
+| 证据 | `.build/v45-entry.evidence` → `v45.entry.ok=1` |
 
 ## 规则
 
 ```text
-v45.entry.ok=1           → tier0 可签收
-v45.verify.plan_only=1   → tier1（未开卷）
-终局六维 100%            → tier4 全部 + 工厂退役策略（另文）
+v45.entry.ok=1           → tier0 ✅
+v45.verify.plan_only=1   → tier1 ✅（本波目标）
+v45.build.no_host_cc=1   → tier2（下一刀）
+终局六维 100%            → tier4 + 工厂退役
 ```
 
-## 下一刀（tier1 草图）
+## 下一刀（tier2 草图）
 
-1. 从 `run.sh` 再抽 50 case → `bootstrap-v45-verify-core.lisp`
-2. CI job 仅：`./nano-jit.com run-bootstrap-plan samples/bootstrap-v45-verify-smoke.lisp`
-3. `catalog-v45.yaml` gate `min_pass` 随 verify 矩阵上调
+1. `build-slice` 遇 `stage0-bridge` → exit 1（除 genesis 刷新路径）
+2. `bootstrap-v45-build-slice-genesis.lisp` 证明日常零 host cc
+3. 证据键 `v45.build.no_host_cc=1`

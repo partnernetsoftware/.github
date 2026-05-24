@@ -1,11 +1,11 @@
-# v4.5 tier0 — plan-only entry (与 v4 catalog 分离)
+# v4.5 tier0–1 — plan-only verify (与 v4 catalog 分离)
 apiVersion: squad/v2
 project:
   root: ..
   state_db: .squad/state-v45.db
   state_file: .squad/state-v45.json
 signoff:
-  id: v45-tier0-entry
+  id: v45-tier1-verify
   require_terminal: false
   gates:
     - id: v45-decision-doc
@@ -22,18 +22,35 @@ signoff:
       check: artifact
       path_glob: "samples/bootstrap-v45-verify-smoke.lisp"
       plan_must_not_match: '\\.c'
+    - id: v45-verify-core-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v45-verify-core.lisp"
+      plan_must_not_match: '\\.c'
+    - id: v45-v4-handoff-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v45-v4-handoff.lisp"
+      plan_must_not_match: '\\.c'
+    - id: v45-verify-all-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v45-verify-all.lisp"
+      plan_must_not_match: '\\.c'
     - id: v45-entry-evidence
       check: results
       file: ".build/v45-entry.evidence"
       results_key: v45.entry.ok
       min_pass: 1
-    - id: v45-verify-smoke-ran
+    - id: v45-verify-plan-only
       check: results
       file: ".build/v45-entry.evidence"
-      results_key: v45.verify.smoke
+      results_key: v45.verify.plan_only
+      min_pass: 1
+    - id: v45-verify-com-only
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.verify.com_only
       min_pass: 1
     - id: v35-regression-run
       check: results
       file: ".build/results.txt"
       results_key: tests.pass
-      min_pass: 1212
+      min_pass: 1297

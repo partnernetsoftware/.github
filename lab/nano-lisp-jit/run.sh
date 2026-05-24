@@ -162,8 +162,13 @@ TERMINAL_EDGE_LBIN="$BUILD_DIR/terminal-edge-arithmetic.lbin"
 TERMINAL_EDGE_EVIDENCE="$BUILD_DIR/v4-terminal-edge.evidence"
 BOOTSTRAP_V45_ENTRY_SRC="$LAB_DIR/samples/bootstrap-v45-entry.lisp"
 BOOTSTRAP_V45_VERIFY_SMOKE_SRC="$LAB_DIR/samples/bootstrap-v45-verify-smoke.lisp"
+BOOTSTRAP_V45_VERIFY_CORE_SRC="$LAB_DIR/samples/bootstrap-v45-verify-core.lisp"
+BOOTSTRAP_V45_V4_HANDOFF_SRC="$LAB_DIR/samples/bootstrap-v45-v4-handoff.lisp"
+BOOTSTRAP_V45_VERIFY_ALL_SRC="$LAB_DIR/samples/bootstrap-v45-verify-all.lisp"
 BOOTSTRAP_V45_ENTRY_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v45-entry-evidence.lisp"
 V45_ENTRY_EVIDENCE="$BUILD_DIR/v45-entry.evidence"
+V45_CORE_APP="$BUILD_DIR/v45-core-app.com"
+V45_HANDOFF_APP="$BUILD_DIR/v45-handoff-app.com"
 V45_SMOKE_EXIT_ELF="$BUILD_DIR/v45-smoke-exit42.elf"
 V45_ENTRY_EXIT_ELF="$BUILD_DIR/bootstrap-v45-entry-exit42.elf"
 MINDMAP_BARE_SRC="$LAB_DIR/samples/bootstrap-v4-mindmap-loader-bare-default.lisp"
@@ -8117,7 +8122,7 @@ run_case "run-bootstrap-v45-entry-evidence-plan" bash -c '
   {
     echo "v45.entry.ok=1"
     echo "v45.verify.smoke=1"
-    echo "v45.tier=0"
+    echo "v45.tier=1"
     echo "v45.runner=nano-lisp-jit"
     echo "v45.surface=nano-jit.com+lisp-plans"
   } >> "'"$V45_ENTRY_EVIDENCE"'"
@@ -8133,6 +8138,51 @@ if [ -f "$NANO_JIT_COM" ] && host_is_linux_x86_64; then
   '
 else
   skip_case "run-bootstrap-v45-via-com-plan" "nano-jit.com missing or host not linux x86_64"
+fi
+run_case "run-bootstrap-v45-verify-core-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V45_VERIFY_CORE_SRC"'" 2>&1) || true
+  printf "%s\n" "$out"
+  test -f "'"$V45_CORE_APP"'"
+  printf "%s\n" "$out" | grep -q "bootstrap-step.*=pack-app"
+  printf "%s\n" "$out" | grep -q "bootstrap-step.*=aot-elf64-exit"
+  printf "%s\n" "$out" | grep -q "run-ape.payload.load=1"
+'
+run_case "run-bootstrap-v45-v4-handoff-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V45_V4_HANDOFF_SRC"'" 2>&1) || true
+  printf "%s\n" "$out"
+  test -f "'"$V45_HANDOFF_APP"'"
+  printf "%s\n" "$out" | grep -q "bootstrap-step.*=file-hash"
+  printf "%s\n" "$out" | grep -q "expect.2=ok"
+'
+run_case "run-bootstrap-v45-verify-all-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V45_VERIFY_ALL_SRC"'" 2>&1) || true
+  printf "%s\n" "$out"
+  test -f "'"$LAB_DIR"'/samples/bootstrap-v45-verify-core.lisp"
+  printf "%s\n" "$out" | grep -q "bootstrap-step.*=file-hash"
+'
+if [ -f "$NANO_JIT_COM" ] && host_is_linux_x86_64; then
+  run_case "run-bootstrap-v45-com-only-verify-plan" bash -c '
+    cd "'"$ROOT_DIR"'"
+    run_v45_com_plan() {
+      local plan="$1"
+      local out
+      out=$("'"$NANO_JIT_COM"'" run-bootstrap-plan "$plan" 2>&1) || return 1
+      printf "%s\n" "$out"
+      printf "%s\n" "$out" | grep -q "bootstrap-step"
+    }
+    run_v45_com_plan "'"$BOOTSTRAP_V45_VERIFY_SMOKE_SRC"'"
+    run_v45_com_plan "'"$BOOTSTRAP_V45_VERIFY_CORE_SRC"'"
+    run_v45_com_plan "'"$BOOTSTRAP_V45_V4_HANDOFF_SRC"'"
+    run_v45_com_plan "'"$BOOTSTRAP_V45_VERIFY_ALL_SRC"'"
+    run_v45_com_plan "'"$BOOTSTRAP_V45_ENTRY_SRC"'"
+    {
+      echo "v45.verify.plan_only=1"
+      echo "v45.verify.com_only=1"
+      echo "v45.verify.plans=smoke,core,handoff,all,entry"
+    } >> "'"$V45_ENTRY_EVIDENCE"'"
+  '
+else
+  skip_case "run-bootstrap-v45-com-only-verify-plan" "nano-jit.com missing or host not linux x86_64"
 fi
 
 # --- layer4 zero-host: nano-jit.com runs gen2 graph → next .com ---
