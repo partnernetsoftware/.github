@@ -10,9 +10,9 @@
 | Codegen | Lisp IR 整表 → blob | onion.batch 225–252 + onion.wave | **~59%** |
 | 编排 | Lisp `(squad-*)` | diffuse+4cc MINDMAP | **~54%** |
 | 构建 | plan 内 build 图 | wave182 add177 | **~68%** |
-| 自举 | `.com` 生成下一代 | **gen6 全量 JIT** 可由 gen6 `.com` 再跑 gen5 图 | **~58%** |
+| 自举 | `.com` 生成下一代 | **gen6→gen7→gen8** 全 `.com` runner 链 | **~65%** |
 
-**整体终局**：约 **60%**（`zero.host.gen6.ok=1`）。
+**整体终局**：约 **68%**（`zero.host.gen8.ok=1`）。
 
 **调整原则**（并行 + 洋葱）：每波只推进一圈一格；扩散→收敛→洋葱；波末一次 `run.sh`（见 [`PARALLEL.md`](PARALLEL.md)）。
 

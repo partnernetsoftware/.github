@@ -165,6 +165,24 @@
       "status": "done",
       "deps": ["zero-host-gen5-via-gen3-com"],
       "accept": ["zero.host.gen6.ok=1", "gen6.com runs gen5 plan", "full lispjit .com >100KB"]
+    },
+    {
+      "id": "zero-host-gen7-via-gen6-com",
+      "layer": 8,
+      "ring": "自举",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen6-full-jit"],
+      "accept": ["zero.host.gen7.ok=1", "gen6.com runner"]
+    },
+    {
+      "id": "zero-host-gen8-via-gen7-com",
+      "layer": 9,
+      "ring": "自举",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen7-via-gen6-com"],
+      "accept": ["zero.host.gen8.ok=1", "gen7.com runner"]
     }
   ]
 }
