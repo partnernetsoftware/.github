@@ -129,3 +129,7 @@
 ## wave44–46
 
 ir-words → gen5-bridge → scoped-close
+
+## wave47–49
+
+supervise → manifest → post-v4-close

@@ -21,4 +21,7 @@
   (wave 44 "ir-words-chain")
   (wave 45 "gen5-bridge")
   (wave 46 "scoped-close")
+  (wave 47 "supervise-chain")
+  (wave 48 "manifest-bundle")
+  (wave 49 "post-v4-close")
 )
