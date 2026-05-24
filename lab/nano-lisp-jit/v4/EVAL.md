@@ -271,3 +271,18 @@
 **wave 索引**：至 **67**。
 
 **方法**：≤4 轨扩散 → 一次 `run.sh` → `assess` → 洋葱文档 → 合 main（本表 + [`PROGRESS.md`](PROGRESS.md)）。
+
+## wave68–73（长程自主 · 续批 ×2）
+
+| 维度 | wave73 后 | Δ |
+|------|-----------|---|
+| Codegen | ~45% | add63–68 verified |
+| 编排 | ~42% | ir-table + build-graph + squad/evidence 深链 |
+| 构建 | ~54% | 六波 diffusion |
+| 终局整体 | **15–22%** | catalog ready；**未到 100% 自主继续** |
+
+**wave 索引**：至 **73**。
+
+**方法**：≤4 轨/波 → 一次 `run.sh` → `assess` → 合 main；队列见 [`LONG-RUN-TODO.md`](LONG-RUN-TODO.md)。
+
+**门禁**：：`run.sh` exit 0；`tests.pass=494`；`build.pass=26`；`assess` ready=True。

@@ -157,3 +157,8 @@ wave26/27 → evidence → codegen-manifest
 ## wave65–67
 
 codegen-emit → squad-commander → onion-terminal（长程自主）
+
+
+## wave68–73（长程自循环）
+
+ir-table → build-graph → host-reduce → plan-contract → evidence → four-track-milestone
