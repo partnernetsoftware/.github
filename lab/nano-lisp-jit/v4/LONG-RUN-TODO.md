@@ -3,6 +3,8 @@
 **停点**：终局六维 **100%**（零 `.c`/`.py`/`.sh`、Lisp VM emit）— 见 [`DECISION.md`](DECISION.md)、[`LISP-ONLY.md`](LISP-ONLY.md)。  
 **catalog `v4-complete` ready=True** 时 **不停止**。
 
+**编排框架**：见 [`DEV-AGENTS-TEAM.md`](DEV-AGENTS-TEAM.md)（Commander / Worker / Critic / Memory 映射 + 调度四问）。
+
 ## 瓶颈对策（实践归纳）
 
 | 瓶颈 | 现象 | 对策 |
@@ -11,14 +13,25 @@
 | **下手未用** | 主 Agent 亲自改 C/run.sh | 编程碎活 **必须**走 `cc-huoshan1-ds4pro` + `tools/cc-task-*.txt` |
 | **长程断档** | 干一轮就总结停 | **`/goal` + `/loop`**：`v4-longrun-loop.sh` 直到成功/失败/超时 |
 
-### 角色分工（≤4 并发）
+### 角色分工（Dev Agents Team · 最小 1+3+1）
+
+| 理论 | V4 实现 | 工具 | 调度 |
+|------|---------|------|------|
+| **Commander** | Cursor Agent | 目标、`/goal`、PR、终局裁决 | 失败代价高 / 需判断 |
+| **Planner** | Commander 兼 | `WAVES` + `cc-task-*.txt` | 任务树 |
+| **Worker** | gen + **cc** | `gen-v4-wave-batch.py`、`cc-huoshan1-ds4pro` | 可验证、可拆小 |
+| **Critic** | gate + EVAL 诚实 | `run.sh`、`PROGRESS.md` | 异构验收 |
+| **Integrator** | skill bump + git | `nano-lisp-jit-v4-longrun.ts` | 合并产出 |
+| **Memory** | **state SSOT** | `longrun-state.json` | 程序化管理 |
+
+旧表（≤4 轨）仍适用：单波 A/B/C/D 扩散；**并行** = Worker Pool（gen ∥ cc），非多 Commander。
 
 | 槽 | 角色 | 工具 | 典型任务 |
 |----|------|------|----------|
-| 0 | **Composer** | Cursor Agent | 读指针、写 cc-task、验收、commit/PR、**禁止**早停总结 |
-| 1 | **cc 下手** | `cc-huoshan1-ds4pro` | `gen-v4-wave-batch`、C/run.sh、修门禁 |
-| 2 | 可选后台 | Task/`cc` | 并行：MINDMAP 洋葱行、assess smoke（与轨 1 无 touch 冲突时） |
-| 3 | 可选后台 | `run.sh` 子集 | 仅当 cc 已提交且 composer 做交叉验证 |
+| 0 | **Commander** | Cursor Agent | 读指针、写 cc-task、Critic 验收、commit/PR |
+| 1 | **Worker (cc)** | `cc-huoshan1-ds4pro` | C/run.sh、emit 实质（**可验证**） |
+| 2 | **Worker (gen)** | `gen-v4-wave-batch.py` | 确定性 apply（**禁止**手改样本） |
+| 3 | **Worker (skill)** | `bun … loop --gate-every` | 批量 apply + 单次 gate |
 
 ### `/goal` 与 `/loop` 契约（skill · Bun TS）
 
@@ -26,7 +39,7 @@
 
 ```bash
 export PATH="$HOME/.bun/bin:$PATH"
-bun run skills/nano-lisp-jit-v4-longrun/nano-lisp-jit-v4-longrun.ts loop --batches 3 --gate-every 3 --goal wave112
+bun run skills/nano-lisp-jit-v4-longrun/nano-lisp-jit-v4-longrun.ts loop --batches 3 --gate-every 3 --goal wave121
 ```
 
 **真源**：[`v4/longrun-state.json`](longrun-state.json) · 旧 `v4-longrun-loop.sh` 仅委托 skill

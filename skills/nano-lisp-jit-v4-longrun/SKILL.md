@@ -39,10 +39,17 @@ bun run skills/nano-lisp-jit-v4-longrun/nano-lisp-jit-v4-longrun.ts loop \
 
 ## 分工
 
+见 [`lab/nano-lisp-jit/v4/DEV-AGENTS-TEAM.md`](../../lab/nano-lisp-jit/v4/DEV-AGENTS-TEAM.md)（Commander / Worker / Critic / Memory）。
+
 | 角色 | 工具 |
 |------|------|
-| Composer | 本 skill 编排、扩 WAVES、commit/PR |
-| cc 下手 | `~/.local/bin/cc-huoshan1-ds4pro`（loop 内 repair 自动调） |
+| Commander | 扩 WAVES、`cc-task`、Critic 验收、commit/PR |
+| Worker (gen) | `gen-v4-wave-batch.py`（确定性 apply） |
+| Worker (cc) | `cc-huoshan1-ds4pro`（可验证 C/run.sh） |
+| Worker (skill) | `loop --gate-every`（批量 + 单次 gate） |
+| Memory | `longrun-state.json` |
+
+**调度四问**：失败代价高→Commander；可验证→Worker；能拆小→Pool；需判断→不上交弱模型。
 
 ## 阶段
 
