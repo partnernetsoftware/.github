@@ -12,7 +12,10 @@
 | [`squad/catalog-v4.yaml`](squad/catalog-v4.yaml) | v4 门禁 |
 | [`run.sh`](run.sh) · [`build_nano_jit.sh`](build_nano_jit.sh) | 收敛入口 |
 | [`tools/gen-v4-wave-batch.py`](tools/gen-v4-wave-batch.py) | 批量生波 |
-| [`tools/cc-task-*.txt`](tools/) + `~/.local/bin/cc-huoshan1-ds4pro` | 编程下手（见仓库 `tools/agents/`） |
+| [`tools/v4-longrun-loop.sh`](tools/v4-longrun-loop.sh) | `/loop` 长驱 |
+| [`tools/v4-gen-cc-task.py`](tools/v4-gen-cc-task.py) | 生 cc 任务 |
+| [`tools/v4-read-pointer.py`](tools/v4-read-pointer.py) | 读 LONG-RUN 指针 |
+| [`tools/cc-task-*.txt`](tools/) + `cc-huoshan1-ds4pro` | 编程下手 |
 
 ## 归档区
 

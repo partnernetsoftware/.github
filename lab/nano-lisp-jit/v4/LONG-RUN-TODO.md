@@ -3,7 +3,43 @@
 **停点**：终局六维 **100%**（零 `.c`/`.py`/`.sh`、Lisp VM emit）— 见 [`DECISION.md`](DECISION.md)、[`LISP-ONLY.md`](LISP-ONLY.md)。  
 **catalog `v4-complete` ready=True** 时 **不停止**。
 
-## 自循环状态机（Agent 每回合照跑）
+## 瓶颈对策（实践归纳）
+
+| 瓶颈 | 现象 | 对策 |
+|------|------|------|
+| **并发不足** | 单 Agent 串行写样本+文档+门禁 | Composer 编排；**耦合低**任务拆后台（见下表）；单波仍 ≤4 轨 |
+| **下手未用** | 主 Agent 亲自改 C/run.sh | 编程碎活 **必须**走 `cc-huoshan1-ds4pro` + `tools/cc-task-*.txt` |
+| **长程断档** | 干一轮就总结停 | **`/goal` + `/loop`**：`v4-longrun-loop.sh` 直到成功/失败/超时 |
+
+### 角色分工（≤4 并发）
+
+| 槽 | 角色 | 工具 | 典型任务 |
+|----|------|------|----------|
+| 0 | **Composer** | Cursor Agent | 读指针、写 cc-task、验收、commit/PR、**禁止**早停总结 |
+| 1 | **cc 下手** | `cc-huoshan1-ds4pro` | `gen-v4-wave-batch`、C/run.sh、修门禁 |
+| 2 | 可选后台 | Task/`cc` | 并行：MINDMAP 洋葱行、assess smoke（与轨 1 无 touch 冲突时） |
+| 3 | 可选后台 | `run.sh` 子集 | 仅当 cc 已提交且 composer 做交叉验证 |
+
+### `/goal` 与 `/loop` 契约
+
+```bash
+# /goal：读到指针 86，目标跑到 wave92 或终局声明 100%
+export V4_LONGRUN_GOAL=wave92
+export V4_LONGRUN_BATCHES=3          # 每轮 3 批 × 3 波 = 9 波
+export V4_LONGRUN_TIMEOUT_SEC=7200
+bash lab/nano-lisp-jit/tools/v4-longrun-loop.sh
+```
+
+- **成功**：每批 `CC_DONE` + `run.sh` exit 0 → Composer **commit**（带 EVAL）→ 指针 +=3
+- **失败**：cc 或 gate 非零 → 同批重试 ≤2 → 仍失败则 **FAILED** 退出（不假装完成）
+- **超时**：exit 124；下轮从指针续跑
+- **禁止**：未达 `/goal` 前以「总结」代替下一批
+
+| 钩子 | 命令 |
+|------|------|
+| 读指针 | `python3 tools/v4-read-pointer.py next_wave` |
+| 生 cc 任务 | `python3 tools/v4-gen-cc-task.py 86 88` |
+| **长驱 loop** | `bash tools/v4-longrun-loop.sh` |
 
 ```text
 ┌─────────┐   读「当前指针」   ┌──────────┐   gen 三波    ┌─────────┐
