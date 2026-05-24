@@ -1,0 +1,1 @@
+Worker 2 · nano_elf64.c emit success: fprintf(stderr,"aarch64.emit.fast-path=1\n"); build only. CC_DONE worker=2

@@ -342,6 +342,7 @@ static int cmd_build_slice_lisp_aarch64(const char *src_path, const char *out_pa
     printf("aarch64.emit.add.bytes=20\n");
     printf("aarch64.emit.add.verified=plan-lisp-v1-full\n");
     printf("aarch64.emit.onion.tdd=diffuse-then-cc\n");
+    printf("aarch64.emit.fast.batch=1\n");
     if (strstr(base, "add-22") || strstr(base, "add-23") || strstr(base, "add-24") ||
         strstr(base, "add-25") || strstr(base, "add-26") || strstr(base, "add-27") || strstr(base, "add-28") || strstr(base, "add-29") || strstr(base, "add-30") ||
         strstr(base, "add-31") || strstr(base, "add-32") || strstr(base, "add-33") ||
@@ -469,7 +470,35 @@ static int cmd_build_slice_lisp_aarch64(const char *src_path, const char *out_pa
         strstr(base, "add-174") ||
         strstr(base, "add-175") ||
         strstr(base, "add-176") ||
-        strstr(base, "add-177")) {
+        strstr(base, "add-177") ||
+        strstr(base, "add-178") ||
+        strstr(base, "add-179") ||
+        strstr(base, "add-180") ||
+        strstr(base, "add-181") ||
+        strstr(base, "add-182") ||
+        strstr(base, "add-183") ||
+        strstr(base, "add-184") ||
+        strstr(base, "add-185") ||
+        strstr(base, "add-186") ||
+        strstr(base, "add-187") ||
+        strstr(base, "add-188") ||
+        strstr(base, "add-189") ||
+        strstr(base, "add-190") ||
+        strstr(base, "add-191") ||
+        strstr(base, "add-192") ||
+        strstr(base, "add-193") ||
+        strstr(base, "add-194") ||
+        strstr(base, "add-195") ||
+        strstr(base, "add-196") ||
+        strstr(base, "add-197") ||
+        strstr(base, "add-198") ||
+        strstr(base, "add-199") ||
+        strstr(base, "add-200") ||
+        strstr(base, "add-201") ||
+        strstr(base, "add-202") ||
+        strstr(base, "add-203") ||
+        strstr(base, "add-204") ||
+        strstr(base, "add-205")) {
       printf("aarch64.emit.ir.table.source=plan-lisp-v1-full\n");
       printf("aarch64.emit.ir.table.version=v7\n");
     } else if (strstr(base, "add-21")) {

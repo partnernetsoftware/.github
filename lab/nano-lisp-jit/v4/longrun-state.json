@@ -1,11 +1,8 @@
 {
-  "next_wave": 183,
-  "next_add": 178,
-  "last_tests_pass": 932,
-  "last_batch": {
-    "lo": 166,
-    "hi": 182
-  },
+  "next_wave": 211,
+  "next_add": 206,
+  "last_tests_pass": 1044,
+  "last_batch": { "lo": 183, "hi": 210 },
   "status": "idle",
-  "updated_at": "2026-05-24T08:36:00.000Z"
+  "updated_at": "2026-05-24T08:45:00.000Z"
 }

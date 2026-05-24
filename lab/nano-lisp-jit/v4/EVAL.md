@@ -641,7 +641,9 @@ bash lab/nano-lisp-jit/tools/v4-diffuse-then-cc.sh
 export NANO_SLICE_COMPILER=native && bash lab/nano-lisp-jit/run.sh
 ```
 
-## wave166–182（洋葱 TDD · 先扩散后并发）
+## wave183–210（快进 · 28 波 1 gate）
+
+tests.pass **1044**（+112）· `fast.batch` / `fast-path` · gen 183–210 + 3×cc（无 SLICE 长文）
 
 | 维度 | wave182 后 | Δ | 说明 |
 |------|-------------|---|------|

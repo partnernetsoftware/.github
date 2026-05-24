@@ -1,0 +1,1 @@
+Worker 3 · nano_bootstrap.c add path: printf("aarch64.emit.fast.batch=1\n"); after onion.tdd line. build only. CC_DONE worker=3
