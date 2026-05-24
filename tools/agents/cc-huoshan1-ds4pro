@@ -1,54 +1,20 @@
 #!/usr/bin/env bash
-# cc-huoshan1-ds4pro — Run Claude Code against Volcengine DeepSeek V4 Pro
-# Uses litellm as a local proxy to translate Anthropic Messages ↔ OpenAI Chat Completions
+# cc-huoshan1-ds4pro — Claude Code 直连火山引擎 Coding Plan
+# 火山引擎 /api/coding 原生支持 Anthropic Messages 协议，无需代理
 #
 # Required env: API_KEY_HUOSHAN_PLAN_1
-# Optional env: HUOSHAN_BASE_URL (default: https://ark.cn-beijing.volces.com/api/v3)
-#               HUOSHAN_MODEL    (default: deepseek-v4-0324)
-#               LITELLM_PORT     (default: 4100)
+# Optional env: HUOSHAN_MODEL (default: deepseek-v3.2)
 
 set -euo pipefail
 
 : "${API_KEY_HUOSHAN_PLAN_1:?环境变量 API_KEY_HUOSHAN_PLAN_1 未设置}"
 
-HUOSHAN_BASE_URL="${HUOSHAN_BASE_URL:-https://ark.cn-beijing.volces.com/api/v3}"
-HUOSHAN_MODEL="${HUOSHAN_MODEL:-deepseek-v4-0324}"
-PORT="${LITELLM_PORT:-4100}"
+HUOSHAN_MODEL="${HUOSHAN_MODEL:-deepseek-v3.2}"
 
-cleanup() {
-  if [[ -n "${PROXY_PID:-}" ]]; then
-    kill "$PROXY_PID" 2>/dev/null || true
-    wait "$PROXY_PID" 2>/dev/null || true
-  fi
-}
-trap cleanup EXIT INT TERM
-
-# Start litellm proxy (translates Anthropic format → OpenAI format → Volcengine)
-litellm --model "openai/${HUOSHAN_MODEL}" \
-  --api_base "$HUOSHAN_BASE_URL" \
-  --api_key "$API_KEY_HUOSHAN_PLAN_1" \
-  --port "$PORT" \
-  --drop_params \
-  --num_workers 1 \
-  > /tmp/litellm-huoshan1.log 2>&1 &
-PROXY_PID=$!
-
-# Wait for proxy to be ready
-for i in $(seq 1 20); do
-  if curl -sf "http://localhost:${PORT}/health" >/dev/null 2>&1; then
-    break
-  fi
-  sleep 0.5
-done
-
-if ! curl -sf "http://localhost:${PORT}/health" >/dev/null 2>&1; then
-  echo "ERROR: litellm proxy failed to start. Check /tmp/litellm-huoshan1.log" >&2
-  exit 1
-fi
-
-# Run Claude Code pointing at local proxy
-export ANTHROPIC_BASE_URL="http://localhost:${PORT}"
-export ANTHROPIC_API_KEY="sk-litellm-proxy"
-export ANTHROPIC_MODEL="openai/${HUOSHAN_MODEL}"
+export ANTHROPIC_BASE_URL="https://ark.cn-beijing.volces.com/api/coding"
+export ANTHROPIC_API_KEY="$API_KEY_HUOSHAN_PLAN_1"
+export ANTHROPIC_MODEL="$HUOSHAN_MODEL"
+# 清除可能冲突的变量
+unset ANTHROPIC_AUTH_TOKEN 2>/dev/null || true
 
 exec claude "$@"
