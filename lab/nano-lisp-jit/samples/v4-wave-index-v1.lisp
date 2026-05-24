@@ -36,5 +36,8 @@
   (wave 59 "wave26-27-recap")
   (wave 60 "evidence-deep")
   (wave 61 "codegen-manifest")
+  (wave 62 "runner-plan-anchor")
+  (wave 63 "reflection-deep")
+  (wave 64 "lisp-only-chain")
 )
 

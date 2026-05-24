@@ -245,3 +245,16 @@
 | 终局整体 | **15–22%** | catalog ready；自主继续 |
 
 **wave 索引**：至 **61**。
+
+## wave62–64（长程自主 · 续批）
+
+| 维度 | wave64 后 | Δ |
+|------|-----------|---|
+| Codegen | ~43% | add57–59 verified |
+| 编排 | ~40% | runner + reflection + lisp-only 深链 |
+| 构建 | ~52% | 三波 diffusion |
+| 终局整体 | **15–22%** | catalog ready；自主继续 |
+
+**wave 索引**：至 **64**。
+
+**门禁**：`run.sh` exit 0；`tests.pass=459`；`build.pass=26`；`assess` ready=True。

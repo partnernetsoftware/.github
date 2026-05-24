@@ -1135,6 +1135,70 @@ signoff:
       results_key: v4.slice61
       min_pass: 1
 
+    - id: v4-slice62-doc
+      check: artifact
+      path_glob: "v4/SLICE62.md"
+    - id: v4-wave62-diffusion-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v4-wave62-diffusion.lisp"
+    - id: v4-slice62-add57-elf
+      check: artifact
+      path_glob: ".build/bootstrap-v4-slice62-add57.elf"
+    - id: v4-wave62-runner-b-tick
+      check: artifact
+      path_glob: "samples/bootstrap-v4-wave62-runner-tick.lisp"
+    - id: v4-wave62-plan-c-tick
+      check: artifact
+      path_glob: "samples/bootstrap-v4-wave62-plan-tick.lisp"
+    - id: v4-slice62-evidence
+      check: results
+      file: ".build/v4-slice62.evidence"
+      results_key: v4.slice62
+      min_pass: 1
+
+    - id: v4-slice63-doc
+      check: artifact
+      path_glob: "v4/SLICE63.md"
+    - id: v4-wave63-diffusion-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v4-wave63-diffusion.lisp"
+    - id: v4-slice63-add58-elf
+      check: artifact
+      path_glob: ".build/bootstrap-v4-slice63-add58.elf"
+    - id: v4-wave63-mindmap-b-tick
+      check: artifact
+      path_glob: "samples/bootstrap-v4-wave63-mindmap-tick.lisp"
+    - id: v4-wave63-parallel-c-tick
+      check: artifact
+      path_glob: "samples/bootstrap-v4-wave63-parallel-tick.lisp"
+    - id: v4-slice63-evidence
+      check: results
+      file: ".build/v4-slice63.evidence"
+      results_key: v4.slice63
+      min_pass: 1
+
+    - id: v4-slice64-doc
+      check: artifact
+      path_glob: "v4/SLICE64.md"
+    - id: v4-wave64-diffusion-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v4-wave64-diffusion.lisp"
+    - id: v4-slice64-add59-elf
+      check: artifact
+      path_glob: ".build/bootstrap-v4-slice64-add59.elf"
+    - id: v4-wave64-lisp-b-tick
+      check: artifact
+      path_glob: "samples/bootstrap-v4-wave64-lisponly-tick.lisp"
+    - id: v4-wave64-scoped-c-tick
+      check: artifact
+      path_glob: "samples/bootstrap-v4-wave64-scoped-tick.lisp"
+    - id: v4-slice64-evidence
+      check: results
+      file: ".build/v4-slice64.evidence"
+      results_key: v4.slice64
+      min_pass: 1
+
+
   terminal_gates:
     - id: v35-regression-run
       check: results
@@ -3385,6 +3449,130 @@ tasks:
     accept:
       - "v4/EVAL.md wave59-61"
       - "assess v4-complete ready"
+
+  wave62-v4-track-a-codegen:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v4-wave62-diffusion.lisp"
+      - "samples/nano-jit-slice-add-57.lisp"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-wave62-diffusion-plan"
+  wave62-v4-track-b-runner:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v4-wave62-runner-tick.lisp"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-wave62-runner-tick-plan"
+  wave62-v4-track-c-plan:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v4-wave62-plan-tick.lisp"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-wave62-plan-tick-plan"
+  wave62-v4-track-d-evidence:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "v4/SLICE62.md"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-slice62-evidence-plan"
+  wave62-v4-R:
+    assign_role: reviewer
+    priority: meta
+    depends: [wave62-v4-track-a-codegen, wave62-v4-track-b-runner, wave62-v4-track-c-plan, wave62-v4-track-d-evidence]
+    accept:
+      - "v4/EVAL.md wave62-64"
+      - "assess v4-complete ready"
+
+  wave63-v4-track-a-codegen:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v4-wave63-diffusion.lisp"
+      - "samples/nano-jit-slice-add-58.lisp"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-wave63-diffusion-plan"
+  wave63-v4-track-b-mindmap:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v4-wave63-mindmap-tick.lisp"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-wave63-mindmap-tick-plan"
+  wave63-v4-track-c-parallel:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v4-wave63-parallel-tick.lisp"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-wave63-parallel-tick-plan"
+  wave63-v4-track-d-evidence:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "v4/SLICE63.md"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-slice63-evidence-plan"
+  wave63-v4-R:
+    assign_role: reviewer
+    priority: meta
+    depends: [wave63-v4-track-a-codegen, wave63-v4-track-b-mindmap, wave63-v4-track-c-parallel, wave63-v4-track-d-evidence]
+    accept:
+      - "v4/EVAL.md wave62-64"
+      - "assess v4-complete ready"
+
+  wave64-v4-track-a-codegen:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v4-wave64-diffusion.lisp"
+      - "samples/nano-jit-slice-add-59.lisp"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-wave64-diffusion-plan"
+  wave64-v4-track-b-lisponly:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v4-wave64-lisponly-tick.lisp"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-wave64-lisponly-tick-plan"
+  wave64-v4-track-c-scoped:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v4-wave64-scoped-tick.lisp"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-wave64-scoped-tick-plan"
+  wave64-v4-track-d-evidence:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "v4/SLICE64.md"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-slice64-evidence-plan"
+  wave64-v4-R:
+    assign_role: reviewer
+    priority: meta
+    depends: [wave64-v4-track-a-codegen, wave64-v4-track-b-lisponly, wave64-v4-track-c-scoped, wave64-v4-track-d-evidence]
+    accept:
+      - "v4/EVAL.md wave62-64"
+      - "assess v4-complete ready"
+
 
 
 verify:
