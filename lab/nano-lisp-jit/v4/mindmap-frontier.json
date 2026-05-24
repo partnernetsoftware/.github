@@ -237,6 +237,33 @@
       "status": "done",
       "deps": ["zero-host-nano-cc-codegen"],
       "accept": ["zero.host.lisp_route=1", "build-slice.route=lisp-by-extension"]
+    },
+    {
+      "id": "zero-host-gen14-repack",
+      "layer": 16,
+      "ring": "pack",
+      "goal_dim": "构建",
+      "status": "done",
+      "deps": ["zero-host-lisp-route-build"],
+      "accept": ["zero.host.repack_no_lispjit=1"]
+    },
+    {
+      "id": "zero-host-gen15-genesis-pin",
+      "layer": 17,
+      "ring": "自举",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen14-repack"],
+      "accept": ["zero.host.lispjit_genesis_pin=1", "no stage0-bridge"]
+    },
+    {
+      "id": "zero-host-gen16-nested-runner",
+      "layer": 18,
+      "ring": "自举",
+      "goal_dim": "Runner",
+      "status": "done",
+      "deps": ["zero-host-gen15-genesis-pin"],
+      "accept": ["zero.host.nested_com_runner=1", "gen15.com runs gen16"]
     }
   ]
 }
