@@ -7,6 +7,7 @@
 | 技能 | 路径 | 何时用 |
 |------|------|--------|
 | **squad-parallel** | [`skills/squad-parallel/`](skills/squad-parallel/)（`.cursor/skills/squad-parallel` 同步） | 并行四角色小队推进 v3.5/v4；Agent **须亲自跑** `agent-team`，勿只贴命令给用户 |
+| **nano-lisp-jit-v4-longrun** | [`skills/nano-lisp-jit-v4-longrun/`](skills/nano-lisp-jit-v4-longrun/) | v4 长程 `/loop`：state SSOT → apply → gate → cc repair；**Bun TS 可执行 skill** |
 
 ### Codebase overview
 

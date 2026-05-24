@@ -20,24 +20,16 @@
 | 2 | 可选后台 | Task/`cc` | 并行：MINDMAP 洋葱行、assess smoke（与轨 1 无 touch 冲突时） |
 | 3 | 可选后台 | `run.sh` 子集 | 仅当 cc 已提交且 composer 做交叉验证 |
 
-### `/goal` 与 `/loop` 契约（v2 · state SSOT）
+### `/goal` 与 `/loop` 契约（skill · Bun TS）
 
-**真源**：[`v4/longrun-state.json`](longrun-state.json)（`LONG-RUN-TODO` 仅展示，由 `v4-longrun-state.py sync` 写入）
+**可执行 skill**：[`skills/nano-lisp-jit-v4-longrun/nano-lisp-jit-v4-longrun.ts`](../../skills/nano-lisp-jit-v4-longrun/nano-lisp-jit-v4-longrun.ts)
 
 ```bash
-bash lab/nano-lisp-jit/tools/v4-longrun-loop.sh   # 默认 3 批
-# env: V4_LONGRUN_GOAL=wave91  V4_LONGRUN_BATCHES=2  V4_LONGRUN_COMMIT=1
+export PATH="$HOME/.bun/bin:$PATH"
+bun run skills/nano-lisp-jit-v4-longrun/nano-lisp-jit-v4-longrun.ts loop --batches 3 --goal wave95
 ```
 
-| 阶段 | 执行者 | 说明 |
-|------|--------|------|
-| apply | `v4-apply-batch.py` | **确定性**生波，不依赖 cc |
-| gate | `build_nano_jit.sh` + `run.sh` | 唯一签收 |
-| repair | `cc-huoshan1-ds4pro` | **仅 gate 失败时** |
-| bump | `v4-longrun-state.py bump` | 写 JSON + sync TODO |
-| commit | loop（`git rev-parse` 根目录） | 防 `lab/lab/` 路径错 |
-
-**禁止**：cc 包办 apply+gate+改指针（双写、路径错、不可重入）。
+**真源**：[`v4/longrun-state.json`](longrun-state.json) · 旧 `v4-longrun-loop.sh` 仅委托 skill
 
 ```text
 ┌─────────┐   读「当前指针」   ┌──────────┐   gen 三波    ┌─────────┐
