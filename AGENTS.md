@@ -77,6 +77,6 @@ All available via `$PATH` (ensure `~/.local/bin` and `~/.bun/bin` are in PATH):
 
 **Required secret**: `API_KEY_HUOSHAN_PLAN_1`
 
-Optional override: `HUOSHAN_MODEL` — 默认 `deepseek-v3.2`，可改为 `ark-code-latest` / `kimi-k2.5` / `glm-4.7` 等 Coding Plan 支持的模型。
+**Required secrets**: `API_KEY_HUOSHAN_PLAN_1`, `MODEL_HUOSHAN_PLAN1_DS4PRO` (模型名，如 Coding Plan 支持的各模型)
 
 Scripts 位于 `tools/agents/`，已 symlink 到 `~/.local/bin/`。无需 litellm 代理（火山引擎 Coding Plan 原生支持 Anthropic 协议）。

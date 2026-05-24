@@ -2,19 +2,16 @@
 # cc-huoshan1-ds4pro — Claude Code 直连火山引擎 Coding Plan
 # 火山引擎 /api/coding 原生支持 Anthropic Messages 协议，无需代理
 #
-# Required env: API_KEY_HUOSHAN_PLAN_1
-# Optional env: HUOSHAN_MODEL (default: deepseek-v3.2)
+# Required env: API_KEY_HUOSHAN_PLAN_1, MODEL_HUOSHAN_PLAN1_DS4PRO
 
 set -euo pipefail
 
 : "${API_KEY_HUOSHAN_PLAN_1:?环境变量 API_KEY_HUOSHAN_PLAN_1 未设置}"
-
-HUOSHAN_MODEL="${HUOSHAN_MODEL:-deepseek-v3.2}"
+: "${MODEL_HUOSHAN_PLAN1_DS4PRO:?环境变量 MODEL_HUOSHAN_PLAN1_DS4PRO 未设置}"
 
 export ANTHROPIC_BASE_URL="https://ark.cn-beijing.volces.com/api/coding"
 export ANTHROPIC_API_KEY="$API_KEY_HUOSHAN_PLAN_1"
-export ANTHROPIC_MODEL="$HUOSHAN_MODEL"
-# 清除可能冲突的变量
+export ANTHROPIC_MODEL="$MODEL_HUOSHAN_PLAN1_DS4PRO"
 unset ANTHROPIC_AUTH_TOKEN 2>/dev/null || true
 
 exec claude "$@"

@@ -2,14 +2,12 @@
 # buddy-huoshan1-ds4pro — CodeBuddy 直连火山引擎 Coding Plan
 # 火山引擎 /api/coding/v3 提供 OpenAI Chat Completions 兼容接口
 #
-# Required env: API_KEY_HUOSHAN_PLAN_1
-# Optional env: HUOSHAN_MODEL (default: deepseek-v3.2)
+# Required env: API_KEY_HUOSHAN_PLAN_1, MODEL_HUOSHAN_PLAN1_DS4PRO
 
 set -euo pipefail
 
 : "${API_KEY_HUOSHAN_PLAN_1:?环境变量 API_KEY_HUOSHAN_PLAN_1 未设置}"
-
-HUOSHAN_MODEL="${HUOSHAN_MODEL:-deepseek-v3.2}"
+: "${MODEL_HUOSHAN_PLAN1_DS4PRO:?环境变量 MODEL_HUOSHAN_PLAN1_DS4PRO 未设置}"
 
 # Generate models.json for CodeBuddy
 MODELS_DIR="$HOME/.codebuddy"
@@ -19,8 +17,8 @@ cat > "${MODELS_DIR}/models.json" <<EOF
 {
   "models": [
     {
-      "id": "${HUOSHAN_MODEL}",
-      "name": "DeepSeek V3.2 (Volcengine Coding Plan)",
+      "id": "${MODEL_HUOSHAN_PLAN1_DS4PRO}",
+      "name": "DeepSeek (Volcengine Coding Plan)",
       "vendor": "Volcengine",
       "url": "https://ark.cn-beijing.volces.com/api/coding/v3/chat/completions",
       "apiKey": "${API_KEY_HUOSHAN_PLAN_1}",
@@ -31,9 +29,9 @@ cat > "${MODELS_DIR}/models.json" <<EOF
     }
   ],
   "availableModels": [
-    "${HUOSHAN_MODEL}"
+    "${MODEL_HUOSHAN_PLAN1_DS4PRO}"
   ]
 }
 EOF
 
-exec codebuddy --model "${HUOSHAN_MODEL}" "$@"
+exec codebuddy --model "${MODEL_HUOSHAN_PLAN1_DS4PRO}" "$@"
