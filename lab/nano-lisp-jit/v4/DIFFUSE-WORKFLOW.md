@@ -6,7 +6,8 @@
 
 ```text
 阶段 1 · 扩散（Commander + gen，分钟级）
-  一次 gen WAVES N..M → samples / run.sh / catalog / SLICE 骨架 / index
+  **终局轨**：`gen-terminal-bfs.py` → 六轨 LDR/PACK/JIT/AOT/COM/BOOT 骨架
+  **回归轨**（可选）：`gen-v4-wave-batch.py N..M` → samples / run.sh / catalog
   不碎补、不每波 gate
 
 阶段 2 · 并发细节（≤5 × cc-huoshan 或 ≤3 × `agent -p`，Worker Pool）

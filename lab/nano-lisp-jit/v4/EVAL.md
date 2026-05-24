@@ -690,6 +690,24 @@ bash lab/nano-lisp-jit/tools/v4-diffuse-then-cc.sh   # ≤4 workers
 export NANO_SLICE_COMPILER=native && bash lab/nano-lisp-jit/run.sh
 ```
 
+## terminal-bfs（终局广度优先 · 六轨）
+
+**方法**：扩散 `gen-terminal-bfs.py` → ≤4×cc → 一次 `run.sh`  
+**轨**：LDR（`run-ape.payload.load`）· PACK · JIT（`.lbin`）· AOT · COM（组装 plan）· BOOT（gen1 锚）
+
+| 轨 | 交付 |
+|----|------|
+| LDR | `inspect-ape.universal.loader=v2-payload-table` + `run-ape.payload.load=1` |
+| COM | `terminal-bfs.com` + `terminal-bfs-arithmetic.lbin` |
+| 终局 | 仍 **16–23%**；BFS 对齐主线，非 wave 计数 |
+
+```bash
+python3 lab/nano-lisp-jit/tools/gen-terminal-bfs.py
+bash lab/nano-lisp-jit/tools/v4-terminal-bfs-cc.sh
+NANO_REGENESIS=1 bash lab/nano-lisp-jit/build_nano_jit.sh   # loader 改 C 后
+bash lab/nano-lisp-jit/run.sh
+```
+
 ## 合 main 进度评估（wave211–252 累计）
 
 | 指标 | main 前 (210) | 本合批后 | Δ |

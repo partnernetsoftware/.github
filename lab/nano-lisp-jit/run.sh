@@ -139,6 +139,15 @@ BOOTSTRAP_V4_SQUAD_ASSESS_SCOPED_SRC="$LAB_DIR/samples/bootstrap-v4-squad-assess
 V4_SLICE15_ADD18_ELF="$BUILD_DIR/bootstrap-v4-slice15-add18.elf"
 V4_SLICE15_EVIDENCE="$BUILD_DIR/v4-slice15.evidence"
 V4_TERMINAL_EVIDENCE="$BUILD_DIR/v4-terminal.evidence"
+
+TERMINAL_BFS_COM_SRC="$LAB_DIR/samples/bootstrap-v4-terminal-com-diffusion.lisp"
+TERMINAL_BFS_LDR_SRC="$LAB_DIR/samples/bootstrap-v4-terminal-ldr-diffusion.lisp"
+TERMINAL_BFS_JIT_SRC="$LAB_DIR/samples/bootstrap-v4-terminal-jit-diffusion.lisp"
+TERMINAL_BFS_AOT_SRC="$LAB_DIR/samples/bootstrap-v4-terminal-aot-diffusion.lisp"
+TERMINAL_BFS_PACK_SRC="$LAB_DIR/samples/bootstrap-v4-terminal-pack-diffusion.lisp"
+TERMINAL_BFS_BOOT_SRC="$LAB_DIR/samples/bootstrap-v4-terminal-boot-diffusion.lisp"
+TERMINAL_BFS_COM="$BUILD_DIR/terminal-bfs.com"
+TERMINAL_BFS_EVIDENCE="$BUILD_DIR/v4-terminal-bfs.evidence"
 BOOTSTRAP_V4_SLICE16_PLAN_WORDS_SRC="$LAB_DIR/samples/bootstrap-v4-slice16-plan-words.lisp"
 BOOTSTRAP_V4_SLICE16_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v4-slice16-evidence.lisp"
 BOOTSTRAP_V4_SQUAD_MINDMAP_TICK_SRC="$LAB_DIR/samples/bootstrap-v4-squad-mindmap-tick.lisp"
@@ -7817,6 +7826,32 @@ run_case "run-bootstrap-v4-slice16-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE16_EVIDENCE_SRC"'" 2>&1) || true
   test -f "'"$LAB_DIR"'/v4/SLICE16.md"
   { echo "v4.slice16=1"; } >> "'"$V4_SLICE16_EVIDENCE"'"
+'
+
+# --- v4 terminal BFS (loader + pack + JIT/AOT + .com) ---
+run_case "run-bootstrap-v4-terminal-ldr-diffusion-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$TERMINAL_BFS_LDR_SRC"'" 2>&1) || true
+  printf "%s\n" "$out" | grep -q "inspect-ape.container=ape-v2"
+  test -f "'"$TERMINAL_BFS_COM"'"
+  printf "%s\n" "$out" | grep -q "run-ape.payload.load=1"
+  printf "%s\n" "$out" | grep -q "inspect-ape.universal.loader=v2-payload-table"
+'
+run_case "run-bootstrap-v4-terminal-jit-diffusion-plan" "$RUNNER" run-bootstrap-plan "$TERMINAL_BFS_JIT_SRC"
+run_case "run-bootstrap-v4-terminal-aot-diffusion-plan" "$RUNNER" run-bootstrap-plan "$TERMINAL_BFS_AOT_SRC"
+run_case "run-bootstrap-v4-terminal-pack-diffusion-plan" "$RUNNER" run-bootstrap-plan "$TERMINAL_BFS_PACK_SRC"
+run_case "run-bootstrap-v4-terminal-com-assembly-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$TERMINAL_BFS_COM_SRC"'" 2>&1) || true
+  test -f "'"$TERMINAL_BFS_COM"'"
+  test -f "'"$BUILD_DIR"'/terminal-bfs-arithmetic.lbin"
+  printf "%s\n" "$out" | grep -q "inspect-ape.container=ape-v2"
+'
+run_case "run-bootstrap-v4-terminal-boot-diffusion-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$TERMINAL_BFS_BOOT_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/samples/bootstrap-v3-selfhost-gen1.lisp"
+'
+run_case "run-bootstrap-v4-terminal-bfs-evidence-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && "$RUNNER" run-bootstrap-plan "'"$LAB_DIR"'/samples/bootstrap-v4-terminal-bfs-evidence.lisp" 2>&1 || true
+  { echo "v4.terminal_bfs=1"; echo "v4.terminal_bfs.tracks=LDR,PACK,JIT,AOT,COM,BOOT"; } >> "'"$BUILD_DIR"'/v4-terminal-bfs.evidence"
 '
 run_case "run-bootstrap-v4-terminal-build-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && test -f "'"$BOOTSTRAP_REPORT"'"

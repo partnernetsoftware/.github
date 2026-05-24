@@ -245,6 +245,9 @@ static int extract_and_run_ape_slice(const unsigned char *data, size_t n,
     return 4;
   }
   const unsigned char *slice = data + abs_off;
+  printf("run-ape.payload.load=1\n");
+  printf("run-ape.payload.arch=%s\n", arch_name ? arch_name : "?");
+  printf("run-ape.payload.size=%zu\n", slice_size);
 #if defined(__linux__)
   /* Linux: memfd+exec before /tmp extract for all run-ape ELF slices (ape-v1 + ape-v2). */
   if (is_elf(slice, slice_size)) {
@@ -434,6 +437,7 @@ static int cmd_inspect_ape(const char *container_path) {
         printf("inspect-ape.slice.%u.size=%llu\n", (unsigned)i, (unsigned long long)r->size);
         printf("inspect-ape.slice.%u.hash=%016llx\n", (unsigned)i, (unsigned long long)r->hash);
       }
+      printf("inspect-ape.universal.loader=v2-payload-table\n");
       printf("inspect-ape.ok=1\n");
     }
     free(data);
