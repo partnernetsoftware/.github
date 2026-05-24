@@ -506,3 +506,42 @@
 | 终局整体 | **15–22%** | — | 可观测 ≠ VM emit |
 
 **并行**：Composer 扩 WAVES + `cc-huoshan1-ds4pro` 改 `nano_bootstrap.c`/`nano_elf64.c` → skill `loop --gate-every 3`
+
+## wave122–124（longrun apply · ≤4 轨/波）
+
+| 维度 | wave124 后 | 说明 |
+|------|-------------|------|
+| Codegen | ~49% | add 续批 verified |
+| 终局整体 | **15–22%** | skill apply |
+
+**方法**：`bun run skills/nano-lisp-jit-v4-longrun/nano-lisp-jit-v4-longrun.ts apply 122 124`
+
+## wave125–127（longrun apply · ≤4 轨/波）
+
+| 维度 | wave127 后 | 说明 |
+|------|-------------|------|
+| Codegen | ~49% | add 续批 verified |
+| 终局整体 | **15–22%** | skill apply |
+
+**方法**：`bun run skills/nano-lisp-jit-v4-longrun/nano-lisp-jit-v4-longrun.ts apply 125 127`
+
+## wave128–130（longrun apply · ≤4 轨/波）
+
+| 维度 | wave130 后 | 说明 |
+|------|-------------|------|
+| Codegen | ~49% | add 续批 verified |
+| 终局整体 | **15–22%** | skill apply |
+
+**方法**：`bun run skills/nano-lisp-jit-v4-longrun/nano-lisp-jit-v4-longrun.ts apply 128 130`
+
+## wave122–130（Dev Agents Team + turbo · Critic grep）
+
+| 维度 | wave130 后 | Δ | 说明 |
+|------|-------------|---|------|
+| Plan | ~98% | — | plan-lisp-v1-full |
+| Codegen | **~55%** | +1% | **Critic**：`extra_grep` 验收 `add.result`/`operands` |
+| 编排 | ~50% | +1% | wave130 `DEV-AGENTS-TEAM.md` milestone |
+| tests.pass | **724** | +36 | Commander→Planner→Worker(skill)→Critic |
+| 终局整体 | **15–22%** | — | 强模型控向 + 程序记忆 SSOT |
+
+**工作流**：见 [`DEV-AGENTS-TEAM.md`](DEV-AGENTS-TEAM.md) — 不堆 agent 数，堆调度质量。

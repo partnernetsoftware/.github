@@ -109,4 +109,5 @@
 | **turbo 慢因** | 每批全量 `run.sh`（600+ case）+ 外圈 plan 证据 ≠ Runner/Codegen 实质 | ✅ `--gate-every N` + bootstrap stamp skip build |
 | wave104–112 | runner/emit/codegen 续批 + turbo-skill 证据 | add99–107；指针 113 |
 | wave113–121 | **cc** emit obs + turbo runner/codegen | add108–116；指针 122 |
-| **dev-agents-team** | 强模型实用板入账 → [`DEV-AGENTS-TEAM.md`](DEV-AGENTS-TEAM.md)；调度四问固化 | Commander/Worker/Critic/Memory 映射 |
+| **dev-agents-team** | [`DEV-AGENTS-TEAM.md`](DEV-AGENTS-TEAM.md) 入账；调度四问 | Commander/Worker/Critic/Memory |
+| wave122–130 | extra_grep emit 验收 + dev-agents-milestone | add117–125；指针 131 |
