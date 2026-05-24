@@ -1,6 +1,6 @@
 # TUI 暂停功能（恢复指南）
 
-源码中已移除大块注释；恢复时按块粘贴回 `tools/tui.ts` 对应位置，并取消 keybind / state 注释。
+源码中已移除大块注释；恢复时按块粘贴回 `tools/mux.ts` 对应位置，并取消 keybind / state 注释。
 
 参考快照：`tools/archive/tui_v4.ts`（v0.4.1，含 g/c/a 启用版）。
 

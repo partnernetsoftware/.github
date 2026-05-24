@@ -1,18 +1,19 @@
 #!/usr/bin/env bun
 /**
- * CLI: `tui help`（可 ln -s ~/.local/bin/tui）
- * 默认后端 rmux: `tui install-rmux` → $HOME/rmux/bin/rmux
- * 兼容回退 tmux: `tui install-tmux` → $HOME/tmux/bin/tmux
- * v0.3 agent: `tui agent register|send|inbox|wait|list` — window 的 @agent 为纯名 id；inbox ~/.tui/inbox/<name>.jsonl
+ * MUX-驾驶舱 — 多路复用器（rmux 默认 / tmux 兼容）之上的车队驾驶舱
+ * CLI: `mux help`（可 ln -s ~/.local/bin/mux）
+ * 默认后端 rmux: `mux install-rmux` → $HOME/rmux/bin/rmux
+ * 兼容回退 tmux: `mux install-tmux` → $HOME/tmux/bin/tmux
+ * v0.3 agent: `mux agent register|send|inbox|wait|list` — window 的 @agent 为纯名 id；inbox ~/.tui/inbox/<name>.jsonl
  * CLI 增强: `status` / `inspect` / 全局 `--json` — 供脚本与 agent 拉取结构化车队信息
- * 开发: `tui dev` — bun --watch 热重启（TUI_DEV=1，tmux 会话不中断）
+ * 开发: `mux dev` — bun --watch 热重启（TUI_DEV=1，复用器会话不中断）
  * 暂停功能恢复: docs/paused-features.md
  *
  * PARTS（章节自索引，改章节时只维护下方 `// PART:` 行）:
- *   rg '^// PART:' tools/tui.ts
- *   rg -n 'PART:drive' tools/tui.ts
- *   bun ~/.cursor/skills/code-outline/scripts/outline.ts tools/tui.ts
- *   bun ~/.cursor/skills/code-outline/scripts/outline.ts tools/tui.ts --part cli-registry
+ *   rg '^// PART:' tools/mux.ts
+ *   rg -n 'PART:drive' tools/mux.ts
+ *   bun ~/.cursor/skills/code-outline/scripts/outline.ts tools/mux.ts
+ *   bun ~/.cursor/skills/code-outline/scripts/outline.ts tools/mux.ts --part cli-registry
  */
 import {
   accessSync, appendFileSync, chmodSync, constants, copyFileSync, existsSync,
@@ -38,13 +39,13 @@ const PREVIEW_LINES = 80;
 const SHELL_COMMS = new Set(["bash", "zsh", "sh", "fish", "dash", "tmux", "-bash", "-zsh"]);
 
 const TUI_CONFIG = {
-  VERSION: '0.5.2',
+  VERSION: '0.6.0',
   VIEWER_SESSION: `__tui_viewer__`,
   TUI_KEYTABLE: "tui_empty",
   REMARK_KEY: "@remark",
   AGENT_KEY: "@agent",
   AUTO_KEY: "@auto",
-  TITLE: "RMUX 驾驶舱",
+  TITLE: "MUX-驾驶舱",
   TMUX_HOME: join(homedir(), "tmux"),
   TMUX_PORTABLE_BIN: join(homedir(), "tmux", "bin", "tmux"),
   RMUX_HOME: join(homedir(), "rmux"),
@@ -3147,7 +3148,7 @@ function handleKey(data: Buffer) {
 
 // PART:cli
 
-const CLI_BIN = (process.argv[1] || "tui").replace(/^.*\//, "");
+const CLI_BIN = (process.argv[1] || "mux").replace(/^.*\//, "");
 
 type CliHandler = (ctx: CliCtx) => number;
 
@@ -3741,7 +3742,7 @@ function cliPaste(ctx: CliCtx): number {
 
 function cliHelp(): number {
   const lines = [
-    `${CLI_BIN} — RMUX 驾驶舱 v${TUI_CONFIG.VERSION} (CLI; tmux 兼容回退)`,
+    `${CLI_BIN} — MUX-驾驶舱 v${TUI_CONFIG.VERSION} (CLI; rmux 默认 / tmux 回退)`,
     "无子命令 → 进入 TUI",
     "",
     "命令树:",
@@ -4156,7 +4157,7 @@ function cliInstallRmux(ctx: CliCtx): number {
 function resolveSelfScript(): string {
   const fromArgv = process.argv[1];
   if (fromArgv && existsSync(fromArgv)) return fromArgv;
-  return join(import.meta.dir, "tui.ts");
+  return join(import.meta.dir, "mux.ts");
 }
 
 function cliDev(ctx: CliCtx): number {
@@ -4164,9 +4165,9 @@ function cliDev(ctx: CliCtx): number {
   const bunArgs = ["--watch", script, ...ctx.rest];
   const label = ctx.rest.length > 0 ? ctx.rest.join(" ") : "(TUI)";
   cliWriteStderr(
-    `[tui dev] ${label}\n` +
+    `[mux dev] ${label}\n` +
     `  watch: bun ${bunArgs.join(" ")}\n` +
-    `  保存 tui.ts 自动重启；Ctrl-C 结束；tmux 内 agent/window 不受影响\n`,
+    `  保存 mux.ts 自动重启；Ctrl-C 结束；复用器内 agent/window 不受影响\n`,
   );
   const env = { ...process.env, TUI_DEV: "1" };
   const r = Bun.spawnSync(["bun", ...bunArgs], {
