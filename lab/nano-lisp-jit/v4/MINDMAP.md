@@ -46,6 +46,7 @@
 
 圈 3 · Codegen stub（表驱动 emit）
   nano_elf64.c：v1 entry → v2 fixed → v3 movz → v4 table-only → v5 plan-words 契约
+  wave225–252 · 洋葱快进 · diffuse+4cc
   ✅ S10–S16 日志回归；❌ VM/AOT 真发射
 
 圈 4 · 编排终局

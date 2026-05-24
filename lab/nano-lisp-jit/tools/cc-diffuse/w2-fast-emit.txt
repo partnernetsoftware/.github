@@ -1,1 +1,1 @@
-Worker 2 · nano_elf64.c emit success: fprintf(stderr,"aarch64.emit.fast-path=1\n"); build only. CC_DONE worker=2
+Worker 2 · lab/lispjit-ir/nano_elf64.c：emit 成功路径增加 stderr：`aarch64.emit.onion.wave=225-252`。仅改 C，build 验证。CC_DONE worker=2

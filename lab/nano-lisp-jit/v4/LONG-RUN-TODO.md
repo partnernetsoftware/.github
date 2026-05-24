@@ -117,9 +117,24 @@ bun run skills/nano-lisp-jit-v4-longrun/nano-lisp-jit-v4-longrun.ts loop --batch
 
 ## 自循环规则
 
-1. 每回合至少完成 **一批（3 波）** 再停。
-2. 合 **main** 必须更新 **EVAL + PROGRESS**（与 catalog 分离）。
-3. 单波并发 **≤4**（A/B/C/D）；禁止 >4 并行轨。
-4. 失败：修门禁 → 不重开已签收波。
-5. 本文件：每批合 main 后更新「队列」与「当前指针」。
-6. 目录卫生：合 main 前可 `bash tools/clean-lab.sh`；见 [`../MAINTENANCE.md`](../MAINTENANCE.md)。
+1. 每回合至少完成 **一批（≥3 波）** 再停；快进批可 **28 波 / 1 gate**。
+2. 合 **main** 必须更新 **EVAL + PROGRESS + 本文件指针**（与 catalog 分离）。
+3. 单波轨道 **≤4**（A/B/C/D）；**Worker Pool ≤4**（cc / gen / skill 分槽）。
+4. 失败：修门禁 → cc 补 C → 不重开已签收波。
+5. 目录卫生：合 main 前可 `bash tools/clean-lab.sh`。
+
+### 自循环 TODO 栈（每回合复制勾选）
+
+**读指针** → `cat lab/nano-lisp-jit/v4/longrun-state.json`  
+**扩散** → 1 → `python3 lab/nano-lisp-jit/tools/gen-v4-wave-batch.py LO HI`  
+**并发**  2 → `bash lab/nano-lisp-jit/tools/v4-diffuse-then-cc.sh`（≤4× cc）  
+**收敛**  3 → `export NANO_SLICE_COMPILER=native && bash lab/nano-lisp-jit/run.sh`  
+**评估**  4 → 更新 `EVAL.md` / `PROGRESS.md` / `MINDMAP.md`  
+**入账**  5 → bump `longrun-state.json` · commit · **合 main**  
+**未 100%** → `LO=next_wave` 回到步骤 1
+
+```bash
+# skill 一键（gate-every 降频）
+bun run skills/nano-lisp-jit-v4-longrun/nano-lisp-jit-v4-longrun.ts loop \
+  --batches 3 --gate-every 3 --goal wave999
+```

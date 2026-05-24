@@ -1012,6 +1012,174 @@ BOOTSTRAP_V4_WAVE210_ONION_TICK_SRC="$LAB_DIR/samples/bootstrap-v4-wave210-onion
 BOOTSTRAP_V4_SLICE210_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v4-slice210-evidence.lisp"
 V4_SLICE210_ADD205_ELF="$BUILD_DIR/bootstrap-v4-slice210-add205.elf"
 V4_SLICE210_EVIDENCE="$BUILD_DIR/v4-slice210.evidence"
+BOOTSTRAP_V4_WAVE225_DIFFUSION_SRC="$LAB_DIR/samples/bootstrap-v4-wave225-diffusion.lisp"
+BOOTSTRAP_V4_WAVE225_IRTABLE_TICK_SRC="$LAB_DIR/samples/bootstrap-v4-wave225-irtable-tick.lisp"
+BOOTSTRAP_V4_WAVE225_EMIT_TICK_SRC="$LAB_DIR/samples/bootstrap-v4-wave225-emit-tick.lisp"
+BOOTSTRAP_V4_SLICE225_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v4-slice225-evidence.lisp"
+V4_SLICE225_ADD220_ELF="$BUILD_DIR/bootstrap-v4-slice225-add220.elf"
+V4_SLICE225_EVIDENCE="$BUILD_DIR/v4-slice225.evidence"
+BOOTSTRAP_V4_WAVE226_DIFFUSION_SRC="$LAB_DIR/samples/bootstrap-v4-wave226-diffusion.lisp"
+BOOTSTRAP_V4_WAVE226_GATES_TICK_SRC="$LAB_DIR/samples/bootstrap-v4-wave226-gates-tick.lisp"
+BOOTSTRAP_V4_WAVE226_CODEGEN_TICK_SRC="$LAB_DIR/samples/bootstrap-v4-wave226-codegen-tick.lisp"
+BOOTSTRAP_V4_SLICE226_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v4-slice226-evidence.lisp"
+V4_SLICE226_ADD221_ELF="$BUILD_DIR/bootstrap-v4-slice226-add221.elf"
+V4_SLICE226_EVIDENCE="$BUILD_DIR/v4-slice226.evidence"
+BOOTSTRAP_V4_WAVE227_DIFFUSION_SRC="$LAB_DIR/samples/bootstrap-v4-wave227-diffusion.lisp"
+BOOTSTRAP_V4_WAVE227_LISPONLY_TICK_SRC="$LAB_DIR/samples/bootstrap-v4-wave227-lisponly-tick.lisp"
+BOOTSTRAP_V4_WAVE227_RUNNER_TICK_SRC="$LAB_DIR/samples/bootstrap-v4-wave227-runner-tick.lisp"
+BOOTSTRAP_V4_SLICE227_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v4-slice227-evidence.lisp"
+V4_SLICE227_ADD222_ELF="$BUILD_DIR/bootstrap-v4-slice227-add222.elf"
+V4_SLICE227_EVIDENCE="$BUILD_DIR/v4-slice227.evidence"
+BOOTSTRAP_V4_WAVE228_DIFFUSION_SRC="$LAB_DIR/samples/bootstrap-v4-wave228-diffusion.lisp"
+BOOTSTRAP_V4_WAVE228_ONION_TICK_SRC="$LAB_DIR/samples/bootstrap-v4-wave228-onion-tick.lisp"
+BOOTSTRAP_V4_WAVE228_MINDMAP_TICK_SRC="$LAB_DIR/samples/bootstrap-v4-wave228-mindmap-tick.lisp"
+BOOTSTRAP_V4_SLICE228_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v4-slice228-evidence.lisp"
+V4_SLICE228_ADD223_ELF="$BUILD_DIR/bootstrap-v4-slice228-add223.elf"
+V4_SLICE228_EVIDENCE="$BUILD_DIR/v4-slice228.evidence"
+BOOTSTRAP_V4_WAVE229_DIFFUSION_SRC="$LAB_DIR/samples/bootstrap-v4-wave229-diffusion.lisp"
+BOOTSTRAP_V4_WAVE229_EMIT_TICK_SRC="$LAB_DIR/samples/bootstrap-v4-wave229-emit-tick.lisp"
+BOOTSTRAP_V4_WAVE229_CODEGEN_TICK_SRC="$LAB_DIR/samples/bootstrap-v4-wave229-codegen-tick.lisp"
+BOOTSTRAP_V4_SLICE229_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v4-slice229-evidence.lisp"
+V4_SLICE229_ADD224_ELF="$BUILD_DIR/bootstrap-v4-slice229-add224.elf"
+V4_SLICE229_EVIDENCE="$BUILD_DIR/v4-slice229.evidence"
+BOOTSTRAP_V4_WAVE230_DIFFUSION_SRC="$LAB_DIR/samples/bootstrap-v4-wave230-diffusion.lisp"
+BOOTSTRAP_V4_WAVE230_RUNNER_TICK_SRC="$LAB_DIR/samples/bootstrap-v4-wave230-runner-tick.lisp"
+BOOTSTRAP_V4_WAVE230_EMIT_TICK_SRC="$LAB_DIR/samples/bootstrap-v4-wave230-emit-tick.lisp"
+BOOTSTRAP_V4_SLICE230_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v4-slice230-evidence.lisp"
+V4_SLICE230_ADD225_ELF="$BUILD_DIR/bootstrap-v4-slice230-add225.elf"
+V4_SLICE230_EVIDENCE="$BUILD_DIR/v4-slice230.evidence"
+BOOTSTRAP_V4_WAVE231_DIFFUSION_SRC="$LAB_DIR/samples/bootstrap-v4-wave231-diffusion.lisp"
+BOOTSTRAP_V4_WAVE231_CODEGEN_TICK_SRC="$LAB_DIR/samples/bootstrap-v4-wave231-codegen-tick.lisp"
+BOOTSTRAP_V4_WAVE231_RUNNER_TICK_SRC="$LAB_DIR/samples/bootstrap-v4-wave231-runner-tick.lisp"
+BOOTSTRAP_V4_SLICE231_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v4-slice231-evidence.lisp"
+V4_SLICE231_ADD226_ELF="$BUILD_DIR/bootstrap-v4-slice231-add226.elf"
+V4_SLICE231_EVIDENCE="$BUILD_DIR/v4-slice231.evidence"
+BOOTSTRAP_V4_WAVE232_DIFFUSION_SRC="$LAB_DIR/samples/bootstrap-v4-wave232-diffusion.lisp"
+BOOTSTRAP_V4_WAVE232_PLAN_TICK_SRC="$LAB_DIR/samples/bootstrap-v4-wave232-plan-tick.lisp"
+BOOTSTRAP_V4_WAVE232_ONION_TICK_SRC="$LAB_DIR/samples/bootstrap-v4-wave232-onion-tick.lisp"
+BOOTSTRAP_V4_SLICE232_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v4-slice232-evidence.lisp"
+V4_SLICE232_ADD227_ELF="$BUILD_DIR/bootstrap-v4-slice232-add227.elf"
+V4_SLICE232_EVIDENCE="$BUILD_DIR/v4-slice232.evidence"
+BOOTSTRAP_V4_WAVE233_DIFFUSION_SRC="$LAB_DIR/samples/bootstrap-v4-wave233-diffusion.lisp"
+BOOTSTRAP_V4_WAVE233_IRTABLE_TICK_SRC="$LAB_DIR/samples/bootstrap-v4-wave233-irtable-tick.lisp"
+BOOTSTRAP_V4_WAVE233_EMIT_TICK_SRC="$LAB_DIR/samples/bootstrap-v4-wave233-emit-tick.lisp"
+BOOTSTRAP_V4_SLICE233_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v4-slice233-evidence.lisp"
+V4_SLICE233_ADD228_ELF="$BUILD_DIR/bootstrap-v4-slice233-add228.elf"
+V4_SLICE233_EVIDENCE="$BUILD_DIR/v4-slice233.evidence"
+BOOTSTRAP_V4_WAVE234_DIFFUSION_SRC="$LAB_DIR/samples/bootstrap-v4-wave234-diffusion.lisp"
+BOOTSTRAP_V4_WAVE234_GATES_TICK_SRC="$LAB_DIR/samples/bootstrap-v4-wave234-gates-tick.lisp"
+BOOTSTRAP_V4_WAVE234_CODEGEN_TICK_SRC="$LAB_DIR/samples/bootstrap-v4-wave234-codegen-tick.lisp"
+BOOTSTRAP_V4_SLICE234_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v4-slice234-evidence.lisp"
+V4_SLICE234_ADD229_ELF="$BUILD_DIR/bootstrap-v4-slice234-add229.elf"
+V4_SLICE234_EVIDENCE="$BUILD_DIR/v4-slice234.evidence"
+BOOTSTRAP_V4_WAVE235_DIFFUSION_SRC="$LAB_DIR/samples/bootstrap-v4-wave235-diffusion.lisp"
+BOOTSTRAP_V4_WAVE235_LISPONLY_TICK_SRC="$LAB_DIR/samples/bootstrap-v4-wave235-lisponly-tick.lisp"
+BOOTSTRAP_V4_WAVE235_RUNNER_TICK_SRC="$LAB_DIR/samples/bootstrap-v4-wave235-runner-tick.lisp"
+BOOTSTRAP_V4_SLICE235_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v4-slice235-evidence.lisp"
+V4_SLICE235_ADD230_ELF="$BUILD_DIR/bootstrap-v4-slice235-add230.elf"
+V4_SLICE235_EVIDENCE="$BUILD_DIR/v4-slice235.evidence"
+BOOTSTRAP_V4_WAVE236_DIFFUSION_SRC="$LAB_DIR/samples/bootstrap-v4-wave236-diffusion.lisp"
+BOOTSTRAP_V4_WAVE236_ONION_TICK_SRC="$LAB_DIR/samples/bootstrap-v4-wave236-onion-tick.lisp"
+BOOTSTRAP_V4_WAVE236_MINDMAP_TICK_SRC="$LAB_DIR/samples/bootstrap-v4-wave236-mindmap-tick.lisp"
+BOOTSTRAP_V4_SLICE236_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v4-slice236-evidence.lisp"
+V4_SLICE236_ADD231_ELF="$BUILD_DIR/bootstrap-v4-slice236-add231.elf"
+V4_SLICE236_EVIDENCE="$BUILD_DIR/v4-slice236.evidence"
+BOOTSTRAP_V4_WAVE237_DIFFUSION_SRC="$LAB_DIR/samples/bootstrap-v4-wave237-diffusion.lisp"
+BOOTSTRAP_V4_WAVE237_EMIT_TICK_SRC="$LAB_DIR/samples/bootstrap-v4-wave237-emit-tick.lisp"
+BOOTSTRAP_V4_WAVE237_CODEGEN_TICK_SRC="$LAB_DIR/samples/bootstrap-v4-wave237-codegen-tick.lisp"
+BOOTSTRAP_V4_SLICE237_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v4-slice237-evidence.lisp"
+V4_SLICE237_ADD232_ELF="$BUILD_DIR/bootstrap-v4-slice237-add232.elf"
+V4_SLICE237_EVIDENCE="$BUILD_DIR/v4-slice237.evidence"
+BOOTSTRAP_V4_WAVE238_DIFFUSION_SRC="$LAB_DIR/samples/bootstrap-v4-wave238-diffusion.lisp"
+BOOTSTRAP_V4_WAVE238_RUNNER_TICK_SRC="$LAB_DIR/samples/bootstrap-v4-wave238-runner-tick.lisp"
+BOOTSTRAP_V4_WAVE238_EMIT_TICK_SRC="$LAB_DIR/samples/bootstrap-v4-wave238-emit-tick.lisp"
+BOOTSTRAP_V4_SLICE238_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v4-slice238-evidence.lisp"
+V4_SLICE238_ADD233_ELF="$BUILD_DIR/bootstrap-v4-slice238-add233.elf"
+V4_SLICE238_EVIDENCE="$BUILD_DIR/v4-slice238.evidence"
+BOOTSTRAP_V4_WAVE239_DIFFUSION_SRC="$LAB_DIR/samples/bootstrap-v4-wave239-diffusion.lisp"
+BOOTSTRAP_V4_WAVE239_IRTABLE_TICK_SRC="$LAB_DIR/samples/bootstrap-v4-wave239-irtable-tick.lisp"
+BOOTSTRAP_V4_WAVE239_EMIT_TICK_SRC="$LAB_DIR/samples/bootstrap-v4-wave239-emit-tick.lisp"
+BOOTSTRAP_V4_SLICE239_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v4-slice239-evidence.lisp"
+V4_SLICE239_ADD234_ELF="$BUILD_DIR/bootstrap-v4-slice239-add234.elf"
+V4_SLICE239_EVIDENCE="$BUILD_DIR/v4-slice239.evidence"
+BOOTSTRAP_V4_WAVE240_DIFFUSION_SRC="$LAB_DIR/samples/bootstrap-v4-wave240-diffusion.lisp"
+BOOTSTRAP_V4_WAVE240_GATES_TICK_SRC="$LAB_DIR/samples/bootstrap-v4-wave240-gates-tick.lisp"
+BOOTSTRAP_V4_WAVE240_CODEGEN_TICK_SRC="$LAB_DIR/samples/bootstrap-v4-wave240-codegen-tick.lisp"
+BOOTSTRAP_V4_SLICE240_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v4-slice240-evidence.lisp"
+V4_SLICE240_ADD235_ELF="$BUILD_DIR/bootstrap-v4-slice240-add235.elf"
+V4_SLICE240_EVIDENCE="$BUILD_DIR/v4-slice240.evidence"
+BOOTSTRAP_V4_WAVE241_DIFFUSION_SRC="$LAB_DIR/samples/bootstrap-v4-wave241-diffusion.lisp"
+BOOTSTRAP_V4_WAVE241_LISPONLY_TICK_SRC="$LAB_DIR/samples/bootstrap-v4-wave241-lisponly-tick.lisp"
+BOOTSTRAP_V4_WAVE241_RUNNER_TICK_SRC="$LAB_DIR/samples/bootstrap-v4-wave241-runner-tick.lisp"
+BOOTSTRAP_V4_SLICE241_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v4-slice241-evidence.lisp"
+V4_SLICE241_ADD236_ELF="$BUILD_DIR/bootstrap-v4-slice241-add236.elf"
+V4_SLICE241_EVIDENCE="$BUILD_DIR/v4-slice241.evidence"
+BOOTSTRAP_V4_WAVE242_DIFFUSION_SRC="$LAB_DIR/samples/bootstrap-v4-wave242-diffusion.lisp"
+BOOTSTRAP_V4_WAVE242_ONION_TICK_SRC="$LAB_DIR/samples/bootstrap-v4-wave242-onion-tick.lisp"
+BOOTSTRAP_V4_WAVE242_MINDMAP_TICK_SRC="$LAB_DIR/samples/bootstrap-v4-wave242-mindmap-tick.lisp"
+BOOTSTRAP_V4_SLICE242_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v4-slice242-evidence.lisp"
+V4_SLICE242_ADD237_ELF="$BUILD_DIR/bootstrap-v4-slice242-add237.elf"
+V4_SLICE242_EVIDENCE="$BUILD_DIR/v4-slice242.evidence"
+BOOTSTRAP_V4_WAVE243_DIFFUSION_SRC="$LAB_DIR/samples/bootstrap-v4-wave243-diffusion.lisp"
+BOOTSTRAP_V4_WAVE243_EMIT_TICK_SRC="$LAB_DIR/samples/bootstrap-v4-wave243-emit-tick.lisp"
+BOOTSTRAP_V4_WAVE243_CODEGEN_TICK_SRC="$LAB_DIR/samples/bootstrap-v4-wave243-codegen-tick.lisp"
+BOOTSTRAP_V4_SLICE243_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v4-slice243-evidence.lisp"
+V4_SLICE243_ADD238_ELF="$BUILD_DIR/bootstrap-v4-slice243-add238.elf"
+V4_SLICE243_EVIDENCE="$BUILD_DIR/v4-slice243.evidence"
+BOOTSTRAP_V4_WAVE244_DIFFUSION_SRC="$LAB_DIR/samples/bootstrap-v4-wave244-diffusion.lisp"
+BOOTSTRAP_V4_WAVE244_RUNNER_TICK_SRC="$LAB_DIR/samples/bootstrap-v4-wave244-runner-tick.lisp"
+BOOTSTRAP_V4_WAVE244_EMIT_TICK_SRC="$LAB_DIR/samples/bootstrap-v4-wave244-emit-tick.lisp"
+BOOTSTRAP_V4_SLICE244_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v4-slice244-evidence.lisp"
+V4_SLICE244_ADD239_ELF="$BUILD_DIR/bootstrap-v4-slice244-add239.elf"
+V4_SLICE244_EVIDENCE="$BUILD_DIR/v4-slice244.evidence"
+BOOTSTRAP_V4_WAVE245_DIFFUSION_SRC="$LAB_DIR/samples/bootstrap-v4-wave245-diffusion.lisp"
+BOOTSTRAP_V4_WAVE245_CODEGEN_TICK_SRC="$LAB_DIR/samples/bootstrap-v4-wave245-codegen-tick.lisp"
+BOOTSTRAP_V4_WAVE245_RUNNER_TICK_SRC="$LAB_DIR/samples/bootstrap-v4-wave245-runner-tick.lisp"
+BOOTSTRAP_V4_SLICE245_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v4-slice245-evidence.lisp"
+V4_SLICE245_ADD240_ELF="$BUILD_DIR/bootstrap-v4-slice245-add240.elf"
+V4_SLICE245_EVIDENCE="$BUILD_DIR/v4-slice245.evidence"
+BOOTSTRAP_V4_WAVE246_DIFFUSION_SRC="$LAB_DIR/samples/bootstrap-v4-wave246-diffusion.lisp"
+BOOTSTRAP_V4_WAVE246_PLAN_TICK_SRC="$LAB_DIR/samples/bootstrap-v4-wave246-plan-tick.lisp"
+BOOTSTRAP_V4_WAVE246_ONION_TICK_SRC="$LAB_DIR/samples/bootstrap-v4-wave246-onion-tick.lisp"
+BOOTSTRAP_V4_SLICE246_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v4-slice246-evidence.lisp"
+V4_SLICE246_ADD241_ELF="$BUILD_DIR/bootstrap-v4-slice246-add241.elf"
+V4_SLICE246_EVIDENCE="$BUILD_DIR/v4-slice246.evidence"
+BOOTSTRAP_V4_WAVE247_DIFFUSION_SRC="$LAB_DIR/samples/bootstrap-v4-wave247-diffusion.lisp"
+BOOTSTRAP_V4_WAVE247_IRTABLE_TICK_SRC="$LAB_DIR/samples/bootstrap-v4-wave247-irtable-tick.lisp"
+BOOTSTRAP_V4_WAVE247_EMIT_TICK_SRC="$LAB_DIR/samples/bootstrap-v4-wave247-emit-tick.lisp"
+BOOTSTRAP_V4_SLICE247_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v4-slice247-evidence.lisp"
+V4_SLICE247_ADD242_ELF="$BUILD_DIR/bootstrap-v4-slice247-add242.elf"
+V4_SLICE247_EVIDENCE="$BUILD_DIR/v4-slice247.evidence"
+BOOTSTRAP_V4_WAVE248_DIFFUSION_SRC="$LAB_DIR/samples/bootstrap-v4-wave248-diffusion.lisp"
+BOOTSTRAP_V4_WAVE248_GATES_TICK_SRC="$LAB_DIR/samples/bootstrap-v4-wave248-gates-tick.lisp"
+BOOTSTRAP_V4_WAVE248_CODEGEN_TICK_SRC="$LAB_DIR/samples/bootstrap-v4-wave248-codegen-tick.lisp"
+BOOTSTRAP_V4_SLICE248_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v4-slice248-evidence.lisp"
+V4_SLICE248_ADD243_ELF="$BUILD_DIR/bootstrap-v4-slice248-add243.elf"
+V4_SLICE248_EVIDENCE="$BUILD_DIR/v4-slice248.evidence"
+BOOTSTRAP_V4_WAVE249_DIFFUSION_SRC="$LAB_DIR/samples/bootstrap-v4-wave249-diffusion.lisp"
+BOOTSTRAP_V4_WAVE249_LISPONLY_TICK_SRC="$LAB_DIR/samples/bootstrap-v4-wave249-lisponly-tick.lisp"
+BOOTSTRAP_V4_WAVE249_RUNNER_TICK_SRC="$LAB_DIR/samples/bootstrap-v4-wave249-runner-tick.lisp"
+BOOTSTRAP_V4_SLICE249_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v4-slice249-evidence.lisp"
+V4_SLICE249_ADD244_ELF="$BUILD_DIR/bootstrap-v4-slice249-add244.elf"
+V4_SLICE249_EVIDENCE="$BUILD_DIR/v4-slice249.evidence"
+BOOTSTRAP_V4_WAVE250_DIFFUSION_SRC="$LAB_DIR/samples/bootstrap-v4-wave250-diffusion.lisp"
+BOOTSTRAP_V4_WAVE250_ONION_TICK_SRC="$LAB_DIR/samples/bootstrap-v4-wave250-onion-tick.lisp"
+BOOTSTRAP_V4_WAVE250_MINDMAP_TICK_SRC="$LAB_DIR/samples/bootstrap-v4-wave250-mindmap-tick.lisp"
+BOOTSTRAP_V4_SLICE250_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v4-slice250-evidence.lisp"
+V4_SLICE250_ADD245_ELF="$BUILD_DIR/bootstrap-v4-slice250-add245.elf"
+V4_SLICE250_EVIDENCE="$BUILD_DIR/v4-slice250.evidence"
+BOOTSTRAP_V4_WAVE251_DIFFUSION_SRC="$LAB_DIR/samples/bootstrap-v4-wave251-diffusion.lisp"
+BOOTSTRAP_V4_WAVE251_EMIT_TICK_SRC="$LAB_DIR/samples/bootstrap-v4-wave251-emit-tick.lisp"
+BOOTSTRAP_V4_WAVE251_CODEGEN_TICK_SRC="$LAB_DIR/samples/bootstrap-v4-wave251-codegen-tick.lisp"
+BOOTSTRAP_V4_SLICE251_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v4-slice251-evidence.lisp"
+V4_SLICE251_ADD246_ELF="$BUILD_DIR/bootstrap-v4-slice251-add246.elf"
+V4_SLICE251_EVIDENCE="$BUILD_DIR/v4-slice251.evidence"
+BOOTSTRAP_V4_WAVE252_DIFFUSION_SRC="$LAB_DIR/samples/bootstrap-v4-wave252-diffusion.lisp"
+BOOTSTRAP_V4_WAVE252_RUNNER_TICK_SRC="$LAB_DIR/samples/bootstrap-v4-wave252-runner-tick.lisp"
+BOOTSTRAP_V4_WAVE252_EMIT_TICK_SRC="$LAB_DIR/samples/bootstrap-v4-wave252-emit-tick.lisp"
+BOOTSTRAP_V4_SLICE252_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v4-slice252-evidence.lisp"
+V4_SLICE252_ADD247_ELF="$BUILD_DIR/bootstrap-v4-slice252-add247.elf"
+V4_SLICE252_EVIDENCE="$BUILD_DIR/v4-slice252.evidence"
 BOOTSTRAP_V4_WAVE211_DIFFUSION_SRC="$LAB_DIR/samples/bootstrap-v4-wave211-diffusion.lisp"
 BOOTSTRAP_V4_WAVE211_IRTABLE_TICK_SRC="$LAB_DIR/samples/bootstrap-v4-wave211-irtable-tick.lisp"
 BOOTSTRAP_V4_WAVE211_EMIT_TICK_SRC="$LAB_DIR/samples/bootstrap-v4-wave211-emit-tick.lisp"
@@ -6986,6 +7154,582 @@ run_case "run-bootstrap-v4-slice224-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE224_EVIDENCE_SRC"'" 2>&1) || true
   test -f "'"$LAB_DIR"'/v4/SLICE224.md"
   { echo "v4.slice224=1"; } >> "'"$V4_SLICE224_EVIDENCE"'"
+'
+
+run_case "run-bootstrap-v4-wave225-diffusion-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && test -f "'"$BOOTSTRAP_REPORT"'"
+  out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE225_DIFFUSION_SRC"'" 2>&1) || true
+  printf "%s\n" "$out" | grep -q "aarch64.emit.ir.table.verified=plan-lisp-v1-full"
+  test -f "'"$V4_SLICE225_ADD220_ELF"'"
+  printf "%s\n" "$out" | grep -q "aarch64.emit.add.verified="
+'
+run_case "run-bootstrap-v4-wave225-irtable-tick-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE225_IRTABLE_TICK_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/MINDMAP.md"
+'
+run_case "run-bootstrap-v4-wave225-emit-tick-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE225_EMIT_TICK_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/PROGRESS.md"
+'
+run_case "run-bootstrap-v4-slice225-evidence-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE225_EVIDENCE_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/SLICE225.md"
+  { echo "v4.slice225=1"; } >> "'"$V4_SLICE225_EVIDENCE"'"
+'
+
+run_case "run-bootstrap-v4-wave226-diffusion-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && test -f "'"$BOOTSTRAP_REPORT"'"
+  out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE226_DIFFUSION_SRC"'" 2>&1) || true
+  printf "%s\n" "$out" | grep -q "aarch64.emit.ir.table.verified=plan-lisp-v1-full"
+  test -f "'"$V4_SLICE226_ADD221_ELF"'"
+  printf "%s\n" "$out" | grep -q "aarch64.emit.add.result="
+'
+run_case "run-bootstrap-v4-wave226-gates-tick-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE226_GATES_TICK_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/MINDMAP.md"
+'
+run_case "run-bootstrap-v4-wave226-codegen-tick-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE226_CODEGEN_TICK_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/PROGRESS.md"
+'
+run_case "run-bootstrap-v4-slice226-evidence-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE226_EVIDENCE_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/SLICE226.md"
+  { echo "v4.slice226=1"; } >> "'"$V4_SLICE226_EVIDENCE"'"
+'
+
+run_case "run-bootstrap-v4-wave227-diffusion-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && test -f "'"$BOOTSTRAP_REPORT"'"
+  out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE227_DIFFUSION_SRC"'" 2>&1) || true
+  printf "%s\n" "$out" | grep -q "aarch64.emit.ir.table.verified=plan-lisp-v1-full"
+  test -f "'"$V4_SLICE227_ADD222_ELF"'"
+'
+run_case "run-bootstrap-v4-wave227-lisponly-tick-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE227_LISPONLY_TICK_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/MINDMAP.md"
+'
+run_case "run-bootstrap-v4-wave227-runner-tick-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE227_RUNNER_TICK_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/PROGRESS.md"
+'
+run_case "run-bootstrap-v4-slice227-evidence-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE227_EVIDENCE_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/SLICE227.md"
+  { echo "v4.slice227=1"; } >> "'"$V4_SLICE227_EVIDENCE"'"
+'
+
+run_case "run-bootstrap-v4-wave228-diffusion-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && test -f "'"$BOOTSTRAP_REPORT"'"
+  out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE228_DIFFUSION_SRC"'" 2>&1) || true
+  printf "%s\n" "$out" | grep -q "aarch64.emit.ir.table.verified=plan-lisp-v1-full"
+  test -f "'"$V4_SLICE228_ADD223_ELF"'"
+'
+run_case "run-bootstrap-v4-wave228-onion-tick-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE228_ONION_TICK_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/MINDMAP.md"
+'
+run_case "run-bootstrap-v4-wave228-mindmap-tick-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE228_MINDMAP_TICK_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/PROGRESS.md"
+'
+run_case "run-bootstrap-v4-slice228-evidence-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE228_EVIDENCE_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/SLICE228.md"
+  { echo "v4.slice228=1"; } >> "'"$V4_SLICE228_EVIDENCE"'"
+'
+
+run_case "run-bootstrap-v4-wave229-diffusion-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && test -f "'"$BOOTSTRAP_REPORT"'"
+  out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE229_DIFFUSION_SRC"'" 2>&1) || true
+  printf "%s\n" "$out" | grep -q "aarch64.emit.ir.table.verified=plan-lisp-v1-full"
+  test -f "'"$V4_SLICE229_ADD224_ELF"'"
+  printf "%s\n" "$out" | grep -q "aarch64.emit.add.result="
+'
+run_case "run-bootstrap-v4-wave229-emit-tick-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE229_EMIT_TICK_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/MINDMAP.md"
+'
+run_case "run-bootstrap-v4-wave229-codegen-tick-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE229_CODEGEN_TICK_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/PROGRESS.md"
+'
+run_case "run-bootstrap-v4-slice229-evidence-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE229_EVIDENCE_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/SLICE229.md"
+  { echo "v4.slice229=1"; } >> "'"$V4_SLICE229_EVIDENCE"'"
+'
+
+run_case "run-bootstrap-v4-wave230-diffusion-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && test -f "'"$BOOTSTRAP_REPORT"'"
+  out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE230_DIFFUSION_SRC"'" 2>&1) || true
+  printf "%s\n" "$out" | grep -q "aarch64.emit.ir.table.verified=plan-lisp-v1-full"
+  test -f "'"$V4_SLICE230_ADD225_ELF"'"
+  printf "%s\n" "$out" | grep -q "aarch64.emit.add.verified="
+'
+run_case "run-bootstrap-v4-wave230-runner-tick-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE230_RUNNER_TICK_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/MINDMAP.md"
+'
+run_case "run-bootstrap-v4-wave230-emit-tick-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE230_EMIT_TICK_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/PROGRESS.md"
+'
+run_case "run-bootstrap-v4-slice230-evidence-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE230_EVIDENCE_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/SLICE230.md"
+  { echo "v4.slice230=1"; } >> "'"$V4_SLICE230_EVIDENCE"'"
+'
+
+run_case "run-bootstrap-v4-wave231-diffusion-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && test -f "'"$BOOTSTRAP_REPORT"'"
+  out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE231_DIFFUSION_SRC"'" 2>&1) || true
+  printf "%s\n" "$out" | grep -q "aarch64.emit.ir.table.verified=plan-lisp-v1-full"
+  test -f "'"$V4_SLICE231_ADD226_ELF"'"
+'
+run_case "run-bootstrap-v4-wave231-codegen-tick-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE231_CODEGEN_TICK_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/MINDMAP.md"
+'
+run_case "run-bootstrap-v4-wave231-runner-tick-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE231_RUNNER_TICK_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/PROGRESS.md"
+'
+run_case "run-bootstrap-v4-slice231-evidence-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE231_EVIDENCE_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/SLICE231.md"
+  { echo "v4.slice231=1"; } >> "'"$V4_SLICE231_EVIDENCE"'"
+'
+
+run_case "run-bootstrap-v4-wave232-diffusion-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && test -f "'"$BOOTSTRAP_REPORT"'"
+  out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE232_DIFFUSION_SRC"'" 2>&1) || true
+  printf "%s\n" "$out" | grep -q "aarch64.emit.ir.table.verified=plan-lisp-v1-full"
+  test -f "'"$V4_SLICE232_ADD227_ELF"'"
+'
+run_case "run-bootstrap-v4-wave232-plan-tick-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE232_PLAN_TICK_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/MINDMAP.md"
+'
+run_case "run-bootstrap-v4-wave232-onion-tick-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE232_ONION_TICK_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/PROGRESS.md"
+'
+run_case "run-bootstrap-v4-slice232-evidence-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE232_EVIDENCE_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/SLICE232.md"
+  { echo "v4.slice232=1"; } >> "'"$V4_SLICE232_EVIDENCE"'"
+'
+
+run_case "run-bootstrap-v4-wave233-diffusion-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && test -f "'"$BOOTSTRAP_REPORT"'"
+  out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE233_DIFFUSION_SRC"'" 2>&1) || true
+  printf "%s\n" "$out" | grep -q "aarch64.emit.ir.table.verified=plan-lisp-v1-full"
+  test -f "'"$V4_SLICE233_ADD228_ELF"'"
+  printf "%s\n" "$out" | grep -q "aarch64.emit.add.verified="
+'
+run_case "run-bootstrap-v4-wave233-irtable-tick-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE233_IRTABLE_TICK_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/MINDMAP.md"
+'
+run_case "run-bootstrap-v4-wave233-emit-tick-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE233_EMIT_TICK_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/PROGRESS.md"
+'
+run_case "run-bootstrap-v4-slice233-evidence-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE233_EVIDENCE_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/SLICE233.md"
+  { echo "v4.slice233=1"; } >> "'"$V4_SLICE233_EVIDENCE"'"
+'
+
+run_case "run-bootstrap-v4-wave234-diffusion-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && test -f "'"$BOOTSTRAP_REPORT"'"
+  out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE234_DIFFUSION_SRC"'" 2>&1) || true
+  printf "%s\n" "$out" | grep -q "aarch64.emit.ir.table.verified=plan-lisp-v1-full"
+  test -f "'"$V4_SLICE234_ADD229_ELF"'"
+  printf "%s\n" "$out" | grep -q "aarch64.emit.add.result="
+'
+run_case "run-bootstrap-v4-wave234-gates-tick-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE234_GATES_TICK_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/MINDMAP.md"
+'
+run_case "run-bootstrap-v4-wave234-codegen-tick-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE234_CODEGEN_TICK_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/PROGRESS.md"
+'
+run_case "run-bootstrap-v4-slice234-evidence-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE234_EVIDENCE_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/SLICE234.md"
+  { echo "v4.slice234=1"; } >> "'"$V4_SLICE234_EVIDENCE"'"
+'
+
+run_case "run-bootstrap-v4-wave235-diffusion-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && test -f "'"$BOOTSTRAP_REPORT"'"
+  out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE235_DIFFUSION_SRC"'" 2>&1) || true
+  printf "%s\n" "$out" | grep -q "aarch64.emit.ir.table.verified=plan-lisp-v1-full"
+  test -f "'"$V4_SLICE235_ADD230_ELF"'"
+'
+run_case "run-bootstrap-v4-wave235-lisponly-tick-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE235_LISPONLY_TICK_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/MINDMAP.md"
+'
+run_case "run-bootstrap-v4-wave235-runner-tick-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE235_RUNNER_TICK_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/PROGRESS.md"
+'
+run_case "run-bootstrap-v4-slice235-evidence-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE235_EVIDENCE_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/SLICE235.md"
+  { echo "v4.slice235=1"; } >> "'"$V4_SLICE235_EVIDENCE"'"
+'
+
+run_case "run-bootstrap-v4-wave236-diffusion-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && test -f "'"$BOOTSTRAP_REPORT"'"
+  out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE236_DIFFUSION_SRC"'" 2>&1) || true
+  printf "%s\n" "$out" | grep -q "aarch64.emit.ir.table.verified=plan-lisp-v1-full"
+  test -f "'"$V4_SLICE236_ADD231_ELF"'"
+'
+run_case "run-bootstrap-v4-wave236-onion-tick-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE236_ONION_TICK_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/MINDMAP.md"
+'
+run_case "run-bootstrap-v4-wave236-mindmap-tick-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE236_MINDMAP_TICK_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/PROGRESS.md"
+'
+run_case "run-bootstrap-v4-slice236-evidence-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE236_EVIDENCE_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/SLICE236.md"
+  { echo "v4.slice236=1"; } >> "'"$V4_SLICE236_EVIDENCE"'"
+'
+
+run_case "run-bootstrap-v4-wave237-diffusion-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && test -f "'"$BOOTSTRAP_REPORT"'"
+  out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE237_DIFFUSION_SRC"'" 2>&1) || true
+  printf "%s\n" "$out" | grep -q "aarch64.emit.ir.table.verified=plan-lisp-v1-full"
+  test -f "'"$V4_SLICE237_ADD232_ELF"'"
+  printf "%s\n" "$out" | grep -q "aarch64.emit.add.result="
+'
+run_case "run-bootstrap-v4-wave237-emit-tick-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE237_EMIT_TICK_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/MINDMAP.md"
+'
+run_case "run-bootstrap-v4-wave237-codegen-tick-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE237_CODEGEN_TICK_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/PROGRESS.md"
+'
+run_case "run-bootstrap-v4-slice237-evidence-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE237_EVIDENCE_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/SLICE237.md"
+  { echo "v4.slice237=1"; } >> "'"$V4_SLICE237_EVIDENCE"'"
+'
+
+run_case "run-bootstrap-v4-wave238-diffusion-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && test -f "'"$BOOTSTRAP_REPORT"'"
+  out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE238_DIFFUSION_SRC"'" 2>&1) || true
+  printf "%s\n" "$out" | grep -q "aarch64.emit.ir.table.verified=plan-lisp-v1-full"
+  test -f "'"$V4_SLICE238_ADD233_ELF"'"
+  printf "%s\n" "$out" | grep -q "aarch64.emit.add.verified="
+'
+run_case "run-bootstrap-v4-wave238-runner-tick-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE238_RUNNER_TICK_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/MINDMAP.md"
+'
+run_case "run-bootstrap-v4-wave238-emit-tick-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE238_EMIT_TICK_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/PROGRESS.md"
+'
+run_case "run-bootstrap-v4-slice238-evidence-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE238_EVIDENCE_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/SLICE238.md"
+  { echo "v4.slice238=1"; } >> "'"$V4_SLICE238_EVIDENCE"'"
+'
+
+run_case "run-bootstrap-v4-wave239-diffusion-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && test -f "'"$BOOTSTRAP_REPORT"'"
+  out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE239_DIFFUSION_SRC"'" 2>&1) || true
+  printf "%s\n" "$out" | grep -q "aarch64.emit.ir.table.verified=plan-lisp-v1-full"
+  test -f "'"$V4_SLICE239_ADD234_ELF"'"
+  printf "%s\n" "$out" | grep -q "aarch64.emit.add.verified="
+'
+run_case "run-bootstrap-v4-wave239-irtable-tick-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE239_IRTABLE_TICK_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/MINDMAP.md"
+'
+run_case "run-bootstrap-v4-wave239-emit-tick-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE239_EMIT_TICK_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/PROGRESS.md"
+'
+run_case "run-bootstrap-v4-slice239-evidence-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE239_EVIDENCE_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/SLICE239.md"
+  { echo "v4.slice239=1"; } >> "'"$V4_SLICE239_EVIDENCE"'"
+'
+
+run_case "run-bootstrap-v4-wave240-diffusion-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && test -f "'"$BOOTSTRAP_REPORT"'"
+  out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE240_DIFFUSION_SRC"'" 2>&1) || true
+  printf "%s\n" "$out" | grep -q "aarch64.emit.ir.table.verified=plan-lisp-v1-full"
+  test -f "'"$V4_SLICE240_ADD235_ELF"'"
+  printf "%s\n" "$out" | grep -q "aarch64.emit.add.result="
+'
+run_case "run-bootstrap-v4-wave240-gates-tick-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE240_GATES_TICK_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/MINDMAP.md"
+'
+run_case "run-bootstrap-v4-wave240-codegen-tick-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE240_CODEGEN_TICK_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/PROGRESS.md"
+'
+run_case "run-bootstrap-v4-slice240-evidence-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE240_EVIDENCE_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/SLICE240.md"
+  { echo "v4.slice240=1"; } >> "'"$V4_SLICE240_EVIDENCE"'"
+'
+
+run_case "run-bootstrap-v4-wave241-diffusion-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && test -f "'"$BOOTSTRAP_REPORT"'"
+  out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE241_DIFFUSION_SRC"'" 2>&1) || true
+  printf "%s\n" "$out" | grep -q "aarch64.emit.ir.table.verified=plan-lisp-v1-full"
+  test -f "'"$V4_SLICE241_ADD236_ELF"'"
+'
+run_case "run-bootstrap-v4-wave241-lisponly-tick-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE241_LISPONLY_TICK_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/MINDMAP.md"
+'
+run_case "run-bootstrap-v4-wave241-runner-tick-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE241_RUNNER_TICK_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/PROGRESS.md"
+'
+run_case "run-bootstrap-v4-slice241-evidence-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE241_EVIDENCE_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/SLICE241.md"
+  { echo "v4.slice241=1"; } >> "'"$V4_SLICE241_EVIDENCE"'"
+'
+
+run_case "run-bootstrap-v4-wave242-diffusion-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && test -f "'"$BOOTSTRAP_REPORT"'"
+  out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE242_DIFFUSION_SRC"'" 2>&1) || true
+  printf "%s\n" "$out" | grep -q "aarch64.emit.ir.table.verified=plan-lisp-v1-full"
+  test -f "'"$V4_SLICE242_ADD237_ELF"'"
+'
+run_case "run-bootstrap-v4-wave242-onion-tick-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE242_ONION_TICK_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/MINDMAP.md"
+'
+run_case "run-bootstrap-v4-wave242-mindmap-tick-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE242_MINDMAP_TICK_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/PROGRESS.md"
+'
+run_case "run-bootstrap-v4-slice242-evidence-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE242_EVIDENCE_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/SLICE242.md"
+  { echo "v4.slice242=1"; } >> "'"$V4_SLICE242_EVIDENCE"'"
+'
+
+run_case "run-bootstrap-v4-wave243-diffusion-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && test -f "'"$BOOTSTRAP_REPORT"'"
+  out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE243_DIFFUSION_SRC"'" 2>&1) || true
+  printf "%s\n" "$out" | grep -q "aarch64.emit.ir.table.verified=plan-lisp-v1-full"
+  test -f "'"$V4_SLICE243_ADD238_ELF"'"
+  printf "%s\n" "$out" | grep -q "aarch64.emit.add.result="
+'
+run_case "run-bootstrap-v4-wave243-emit-tick-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE243_EMIT_TICK_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/MINDMAP.md"
+'
+run_case "run-bootstrap-v4-wave243-codegen-tick-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE243_CODEGEN_TICK_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/PROGRESS.md"
+'
+run_case "run-bootstrap-v4-slice243-evidence-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE243_EVIDENCE_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/SLICE243.md"
+  { echo "v4.slice243=1"; } >> "'"$V4_SLICE243_EVIDENCE"'"
+'
+
+run_case "run-bootstrap-v4-wave244-diffusion-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && test -f "'"$BOOTSTRAP_REPORT"'"
+  out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE244_DIFFUSION_SRC"'" 2>&1) || true
+  printf "%s\n" "$out" | grep -q "aarch64.emit.ir.table.verified=plan-lisp-v1-full"
+  test -f "'"$V4_SLICE244_ADD239_ELF"'"
+  printf "%s\n" "$out" | grep -q "aarch64.emit.add.verified="
+'
+run_case "run-bootstrap-v4-wave244-runner-tick-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE244_RUNNER_TICK_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/MINDMAP.md"
+'
+run_case "run-bootstrap-v4-wave244-emit-tick-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE244_EMIT_TICK_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/PROGRESS.md"
+'
+run_case "run-bootstrap-v4-slice244-evidence-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE244_EVIDENCE_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/SLICE244.md"
+  { echo "v4.slice244=1"; } >> "'"$V4_SLICE244_EVIDENCE"'"
+'
+
+run_case "run-bootstrap-v4-wave245-diffusion-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && test -f "'"$BOOTSTRAP_REPORT"'"
+  out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE245_DIFFUSION_SRC"'" 2>&1) || true
+  printf "%s\n" "$out" | grep -q "aarch64.emit.ir.table.verified=plan-lisp-v1-full"
+  test -f "'"$V4_SLICE245_ADD240_ELF"'"
+'
+run_case "run-bootstrap-v4-wave245-codegen-tick-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE245_CODEGEN_TICK_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/MINDMAP.md"
+'
+run_case "run-bootstrap-v4-wave245-runner-tick-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE245_RUNNER_TICK_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/PROGRESS.md"
+'
+run_case "run-bootstrap-v4-slice245-evidence-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE245_EVIDENCE_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/SLICE245.md"
+  { echo "v4.slice245=1"; } >> "'"$V4_SLICE245_EVIDENCE"'"
+'
+
+run_case "run-bootstrap-v4-wave246-diffusion-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && test -f "'"$BOOTSTRAP_REPORT"'"
+  out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE246_DIFFUSION_SRC"'" 2>&1) || true
+  printf "%s\n" "$out" | grep -q "aarch64.emit.ir.table.verified=plan-lisp-v1-full"
+  test -f "'"$V4_SLICE246_ADD241_ELF"'"
+'
+run_case "run-bootstrap-v4-wave246-plan-tick-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE246_PLAN_TICK_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/MINDMAP.md"
+'
+run_case "run-bootstrap-v4-wave246-onion-tick-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE246_ONION_TICK_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/PROGRESS.md"
+'
+run_case "run-bootstrap-v4-slice246-evidence-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE246_EVIDENCE_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/SLICE246.md"
+  { echo "v4.slice246=1"; } >> "'"$V4_SLICE246_EVIDENCE"'"
+'
+
+run_case "run-bootstrap-v4-wave247-diffusion-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && test -f "'"$BOOTSTRAP_REPORT"'"
+  out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE247_DIFFUSION_SRC"'" 2>&1) || true
+  printf "%s\n" "$out" | grep -q "aarch64.emit.ir.table.verified=plan-lisp-v1-full"
+  test -f "'"$V4_SLICE247_ADD242_ELF"'"
+  printf "%s\n" "$out" | grep -q "aarch64.emit.add.verified="
+'
+run_case "run-bootstrap-v4-wave247-irtable-tick-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE247_IRTABLE_TICK_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/MINDMAP.md"
+'
+run_case "run-bootstrap-v4-wave247-emit-tick-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE247_EMIT_TICK_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/PROGRESS.md"
+'
+run_case "run-bootstrap-v4-slice247-evidence-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE247_EVIDENCE_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/SLICE247.md"
+  { echo "v4.slice247=1"; } >> "'"$V4_SLICE247_EVIDENCE"'"
+'
+
+run_case "run-bootstrap-v4-wave248-diffusion-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && test -f "'"$BOOTSTRAP_REPORT"'"
+  out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE248_DIFFUSION_SRC"'" 2>&1) || true
+  printf "%s\n" "$out" | grep -q "aarch64.emit.ir.table.verified=plan-lisp-v1-full"
+  test -f "'"$V4_SLICE248_ADD243_ELF"'"
+  printf "%s\n" "$out" | grep -q "aarch64.emit.add.result="
+'
+run_case "run-bootstrap-v4-wave248-gates-tick-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE248_GATES_TICK_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/MINDMAP.md"
+'
+run_case "run-bootstrap-v4-wave248-codegen-tick-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE248_CODEGEN_TICK_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/PROGRESS.md"
+'
+run_case "run-bootstrap-v4-slice248-evidence-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE248_EVIDENCE_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/SLICE248.md"
+  { echo "v4.slice248=1"; } >> "'"$V4_SLICE248_EVIDENCE"'"
+'
+
+run_case "run-bootstrap-v4-wave249-diffusion-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && test -f "'"$BOOTSTRAP_REPORT"'"
+  out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE249_DIFFUSION_SRC"'" 2>&1) || true
+  printf "%s\n" "$out" | grep -q "aarch64.emit.ir.table.verified=plan-lisp-v1-full"
+  test -f "'"$V4_SLICE249_ADD244_ELF"'"
+'
+run_case "run-bootstrap-v4-wave249-lisponly-tick-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE249_LISPONLY_TICK_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/MINDMAP.md"
+'
+run_case "run-bootstrap-v4-wave249-runner-tick-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE249_RUNNER_TICK_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/PROGRESS.md"
+'
+run_case "run-bootstrap-v4-slice249-evidence-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE249_EVIDENCE_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/SLICE249.md"
+  { echo "v4.slice249=1"; } >> "'"$V4_SLICE249_EVIDENCE"'"
+'
+
+run_case "run-bootstrap-v4-wave250-diffusion-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && test -f "'"$BOOTSTRAP_REPORT"'"
+  out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE250_DIFFUSION_SRC"'" 2>&1) || true
+  printf "%s\n" "$out" | grep -q "aarch64.emit.ir.table.verified=plan-lisp-v1-full"
+  test -f "'"$V4_SLICE250_ADD245_ELF"'"
+'
+run_case "run-bootstrap-v4-wave250-onion-tick-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE250_ONION_TICK_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/MINDMAP.md"
+'
+run_case "run-bootstrap-v4-wave250-mindmap-tick-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE250_MINDMAP_TICK_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/PROGRESS.md"
+'
+run_case "run-bootstrap-v4-slice250-evidence-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE250_EVIDENCE_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/SLICE250.md"
+  { echo "v4.slice250=1"; } >> "'"$V4_SLICE250_EVIDENCE"'"
+'
+
+run_case "run-bootstrap-v4-wave251-diffusion-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && test -f "'"$BOOTSTRAP_REPORT"'"
+  out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE251_DIFFUSION_SRC"'" 2>&1) || true
+  printf "%s\n" "$out" | grep -q "aarch64.emit.ir.table.verified=plan-lisp-v1-full"
+  test -f "'"$V4_SLICE251_ADD246_ELF"'"
+  printf "%s\n" "$out" | grep -q "aarch64.emit.add.result="
+'
+run_case "run-bootstrap-v4-wave251-emit-tick-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE251_EMIT_TICK_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/MINDMAP.md"
+'
+run_case "run-bootstrap-v4-wave251-codegen-tick-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE251_CODEGEN_TICK_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/PROGRESS.md"
+'
+run_case "run-bootstrap-v4-slice251-evidence-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE251_EVIDENCE_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/SLICE251.md"
+  { echo "v4.slice251=1"; } >> "'"$V4_SLICE251_EVIDENCE"'"
+'
+
+run_case "run-bootstrap-v4-wave252-diffusion-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && test -f "'"$BOOTSTRAP_REPORT"'"
+  out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE252_DIFFUSION_SRC"'" 2>&1) || true
+  printf "%s\n" "$out" | grep -q "aarch64.emit.ir.table.verified=plan-lisp-v1-full"
+  test -f "'"$V4_SLICE252_ADD247_ELF"'"
+  printf "%s\n" "$out" | grep -q "aarch64.emit.add.verified="
+'
+run_case "run-bootstrap-v4-wave252-runner-tick-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE252_RUNNER_TICK_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/MINDMAP.md"
+'
+run_case "run-bootstrap-v4-wave252-emit-tick-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE252_EMIT_TICK_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/PROGRESS.md"
+'
+run_case "run-bootstrap-v4-slice252-evidence-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE252_EVIDENCE_SRC"'" 2>&1) || true
+  test -f "'"$LAB_DIR"'/v4/SLICE252.md"
+  { echo "v4.slice252=1"; } >> "'"$V4_SLICE252_EVIDENCE"'"
 '
 run_case "run-bootstrap-v4-slice210-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE210_EVIDENCE_SRC"'" 2>&1) || true

@@ -1,9 +1,9 @@
 {
-  "next_wave": 225,
-  "next_add": 220,
+  "next_wave": 253,
+  "next_add": 248,
   "last_tests_pass": 1100,
-  "last_batch": { "lo": 211, "hi": 224 },
-  "status": "idle",
-  "updated_at": "2026-05-24T11:00:00.000Z",
-  "notes": "cli-agent batch 211-224 gate OK tests.pass=1100 (+56)"
+  "last_batch": { "lo": 225, "hi": 252 },
+  "status": "running",
+  "updated_at": "2026-05-24T12:00:00.000Z",
+  "notes": "gen 225-252 + 4x cc; gate pending"
 }

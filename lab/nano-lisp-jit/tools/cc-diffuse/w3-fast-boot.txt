@@ -1,1 +1,1 @@
-Worker 3 · nano_bootstrap.c add path: printf("aarch64.emit.fast.batch=1\n"); after onion.tdd line. build only. CC_DONE worker=3
+Worker 3 · lab/lispjit-ir/nano_bootstrap.c：onion.tdd 行后增加 `printf("aarch64.emit.onion.batch=225-252\n");`。仅改 C，build 验证。CC_DONE worker=3

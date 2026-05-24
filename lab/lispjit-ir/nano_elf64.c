@@ -401,7 +401,9 @@ int emit_aarch64_exit_file(const char *out_path, uint8_t exit_code) {
   wr32(code + 0, mov_x8);
   wr32(code + 4, mov_x0);
   wr32(code + 8, svc0);
-  return emit_elf64_exec_rx_file(out_path, code, sizeof(code), ELF64_MACHINE_AARCH64);
+  int ok = emit_elf64_exec_rx_file(out_path, code, sizeof(code), ELF64_MACHINE_AARCH64);
+  if (ok) fprintf(stderr, "aarch64.emit.onion.wave=225-252\n");
+  return ok;
 }
 
 
