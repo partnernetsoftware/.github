@@ -7,7 +7,15 @@
 | **北极星 scoped（本仓库验收）** | **✅ 完成** |
 | **lispjit-from-lisp track（gen23–44 门禁）** | **✅ 完成** |
 | **lispjit-from-lisp full runner（gen45–48，~146KB slice）** | **✅ 完成** |
-| **真·语义 100%（Lisp 源码逐行译 `lispjit.c`）** | **❌ 未做** |
+| **真·语义 100%（Lisp 源码逐行译 `lispjit.c`）** | **进行中 ~70%** |
+
+### semantic-codegen track（gen49–52 · tier-8）
+
+- [x] `semantic-codegen` / `compose-9link`：9 TU 纯 Lisp link，`build-slice.lispjit_codegen=1`
+- [x] 模块 `04-vm` / `05-aot` / `06-elf` 映射 `nano_blob_vm` / `nano_aot_x86` / `nano_elf64`
+- [x] host / `.com` / full `.com` 三门禁
+- [x] `zero.host.lispjit_from_lisp_semantic_track=1`
+- [ ] slice 字节 **≥ genesis**（当前 ~4KB codegen vs ~154KB pin）— 终局语义 100%
 
 ### scoped 完成清单
 
@@ -38,7 +46,7 @@
 |------|------|
 | 自举 / 终局（scoped） | **98%** |
 | **lispjit-from-lisp 工程闭环（含 full slice）** | **✅ 100%** |
-| 自举（C→Lisp 语义翻译） | **~65%** |
+| 自举（C→Lisp 语义翻译） | **~70%** |
 
 证据：`.build/v4-zero-host-bootstrap.evidence`
 

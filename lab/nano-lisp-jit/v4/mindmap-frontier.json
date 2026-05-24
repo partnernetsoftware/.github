@@ -579,6 +579,33 @@
       "status": "done",
       "deps": ["zero-host-gen47-lispjit-full-on-full-com"],
       "accept": ["zero.host.lispjit_from_lisp_full_complete=1"]
+    },
+    {
+      "id": "zero-host-gen49-lispjit-semantic-codegen",
+      "layer": 54,
+      "ring": "终局",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["lispjit-from-lisp-full-complete"],
+      "accept": ["zero.host.lispjit_from_lisp_semantic_codegen=1", "build-slice.lispjit_codegen=1"]
+    },
+    {
+      "id": "zero-host-gen50-lispjit-semantic-on-com",
+      "layer": 55,
+      "ring": "自举",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen49-lispjit-semantic-codegen"],
+      "accept": ["zero.host.lispjit_from_lisp_semantic_on_com=1"]
+    },
+    {
+      "id": "zero-host-gen52-lispjit-semantic-track",
+      "layer": 56,
+      "ring": "终局",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen50-lispjit-semantic-on-com"],
+      "accept": ["zero.host.lispjit_from_lisp_semantic_track=1"]
     }
   ]
 }
