@@ -703,6 +703,38 @@ static int cmd_build_slice_lisp(const char *src_path, const char *out_path, cons
   return rc != 0 ? rc : 2;
 }
 
+static const char *lispjit_from_lisp_profile_path(void) {
+  const char *p = getenv("NANO_LISPJIT_FROM_LISP_PROFILE");
+  if (p && p[0]) return p;
+  return "lab/nano-lisp-jit/samples/nano-jit-runner-core.lisp";
+}
+
+static int build_slice_use_lispjit_from_lisp(const char *src_path) {
+  const char *v;
+  if (!build_slice_is_lispjit_c(src_path)) return 0;
+  v = getenv("NANO_LISPJIT_FROM_LISP");
+  return v && v[0] == '1' && v[1] == '\0';
+}
+
+static int build_slice_via_lispjit_from_lisp(const char *src_path, const char *out_path,
+                                             const char *arch) {
+  const char *profile = lispjit_from_lisp_profile_path();
+  printf("build-slice.compiler=nano-jit-lisp\n");
+  printf("build-slice.arch=%s\n", arch);
+  printf("build-slice.role=lispjit-from-lisp\n");
+  printf("build-slice.lispjit_proxy=%s\n", profile);
+  printf("build-slice.source=%s\n", src_path);
+  printf("build-slice.output=%s\n", out_path);
+  return cmd_build_slice_lisp(profile, out_path, arch);
+}
+
+static int build_slice_try_lispjit_from_lisp(const char *src_path, const char *out_path,
+                                             const char *arch, int *out_rc) {
+  if (!build_slice_use_lispjit_from_lisp(src_path)) return 0;
+  *out_rc = build_slice_via_lispjit_from_lisp(src_path, out_path, arch);
+  return 1;
+}
+
 static int build_slice_is_lisp_source(const char *src_path) {
   const char *base = src_path;
   const char *slash;
@@ -726,6 +758,10 @@ static int cmd_build_slice(const char *src_path, const char *out_path, const cha
     return cmd_build_slice_lisp(src_path, out_path, arch);
   }
   if (build_slice_use_nano_cc(src_path)) return build_slice_via_nano_cc(src_path, out_path, arch);
+  {
+    int proxy_rc = 0;
+    if (build_slice_try_lispjit_from_lisp(src_path, out_path, arch, &proxy_rc)) return proxy_rc;
+  }
   {
     int reuse_rc = 0;
     if (build_slice_try_selfhost_reuse(src_path, out_path, arch, &reuse_rc)) return reuse_rc;

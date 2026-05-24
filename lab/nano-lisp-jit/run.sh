@@ -214,7 +214,12 @@ ZERO_HOST_GEN21_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-gen21-terminal-via-
 ZERO_HOST_GEN21_APP="$BUILD_DIR/nano-jit/selfhost/zero-host-gen21-app.com"
 ZERO_HOST_GEN22_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-gen22-lisp-only-com.lisp"
 ZERO_HOST_GEN22_COM="$BUILD_DIR/nano-jit/selfhost/zero-host-gen22-lisp-only.com"
+ZERO_HOST_GEN23_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-gen23-lispjit-from-lisp.lisp"
+ZERO_HOST_GEN23_SLICE_X86="$BUILD_DIR/nano-jit/selfhost/zero-host-gen23-slice-x86.elf"
+ZERO_HOST_GEN23_COM="$BUILD_DIR/nano-jit/selfhost/zero-host-gen23-lispjit-lisp.com"
+ZERO_HOST_LISPJIT_PROFILE="$LAB_DIR/samples/nano-jit-runner-core.lisp"
 ZERO_HOST_NORTHSTAR_FINAL_SRC="$LAB_DIR/samples/bootstrap-v4-zero-host-northstar-final.lisp"
+HOST_NANO_LISP_JIT="$LAB_DIR/.build/nano-lisp-jit"
 ZERO_HOST_EVIDENCE="$BUILD_DIR/v4-zero-host-bootstrap.evidence"
 NANO_JIT_COM="$BUILD_DIR/nano-jit/nano-jit.com"
 BOOTSTRAP_V4_SLICE16_PLAN_WORDS_SRC="$LAB_DIR/samples/bootstrap-v4-slice16-plan-words.lisp"
@@ -8315,6 +8320,20 @@ if [ -f "$ZERO_HOST_GEN20_COM" ] && host_is_linux_x86_64; then
 else
   skip_case "run-bootstrap-v4-zero-host-gen22-lisp-only-com-plan" "zero-host-gen20-nano-jit.com missing"
   skip_case "run-bootstrap-v4-zero-host-northstar-final-plan" "zero-host-gen20-nano-jit.com missing"
+fi
+if [ -f "$HOST_NANO_LISP_JIT" ] && host_is_linux_x86_64; then
+  run_case "run-bootstrap-v4-zero-host-gen23-lispjit-from-lisp-plan" bash -c '
+    cd "'"$ROOT_DIR"'" && test -f "'"$ZERO_HOST_LISPJIT_PROFILE"'"
+    out=$(NANO_LISPJIT_FROM_LISP=1 "'"$HOST_NANO_LISP_JIT"'" run-bootstrap-plan "'"$ZERO_HOST_GEN23_SRC"'" 2>&1) || true
+    test -f "'"$ZERO_HOST_GEN23_SLICE_X86"'"
+    test -f "'"$ZERO_HOST_GEN23_COM"'"
+    printf "%s\n" "$out" | grep -q "build-slice.role=lispjit-from-lisp"
+    printf "%s\n" "$out" | grep -q "build-slice.lispjit_proxy=.*nano-jit-runner-core.lisp"
+    printf "%s\n" "$out" | grep -q "run-expect-exit.ok=1"
+    echo "zero.host.lispjit_from_lisp=1" >> "'"$ZERO_HOST_EVIDENCE"'"
+  '
+else
+  skip_case "run-bootstrap-v4-zero-host-gen23-lispjit-from-lisp-plan" "host nano-lisp-jit missing"
 fi
 if [ -f "$ZERO_HOST_GEN10_APP" ] && [ -f "$ZERO_HOST_GEN13_COM" ]; then
   run_case "run-bootstrap-v4-zero-host-chain-complete-plan" bash -c '

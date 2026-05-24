@@ -1,6 +1,6 @@
 {
   "ssot": "v4/MINDMAP.md",
-  "updated_at": "2026-05-24T16:30:00Z",
+  "updated_at": "2026-05-24T18:00:00Z",
   "max_parallel": 4,
   "nodes": [
     {
@@ -336,6 +336,15 @@
       "status": "done",
       "deps": ["zero-host-gen22-lisp-only-com"],
       "accept": ["zero.host.northstar_scoped_done=1"]
+    },
+    {
+      "id": "zero-host-gen23-lispjit-from-lisp",
+      "layer": 27,
+      "ring": "Codegen",
+      "goal_dim": "Codegen",
+      "status": "done",
+      "deps": ["northstar-scoped-done"],
+      "accept": ["zero.host.lispjit_from_lisp=1", "build-slice.role=lispjit-from-lisp"]
     }
   ]
 }
