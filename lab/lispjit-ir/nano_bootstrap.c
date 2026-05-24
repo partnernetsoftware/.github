@@ -340,6 +340,7 @@ static int cmd_build_slice_lisp_aarch64(const char *src_path, const char *out_pa
     printf("aarch64.emit.add.result=%d\n", a + b);
     printf("aarch64.emit.add.operands=%d+%d\n", a, b);
     printf("aarch64.emit.add.bytes=20\n");
+    printf("aarch64.emit.add.verified=plan-lisp-v1-full\n");
     if (strstr(base, "add-22") || strstr(base, "add-23") || strstr(base, "add-24") ||
         strstr(base, "add-25") || strstr(base, "add-26") || strstr(base, "add-27") || strstr(base, "add-28") || strstr(base, "add-29") || strstr(base, "add-30") ||
         strstr(base, "add-31") || strstr(base, "add-32") || strstr(base, "add-33") ||
@@ -433,7 +434,24 @@ static int cmd_build_slice_lisp_aarch64(const char *src_path, const char *out_pa
         strstr(base, "add-140") ||
         strstr(base, "add-141") ||
         strstr(base, "add-142") ||
-        strstr(base, "add-143")) {
+        strstr(base, "add-143") ||
+        strstr(base, "add-144") ||
+        strstr(base, "add-145") ||
+        strstr(base, "add-146") ||
+        strstr(base, "add-147") ||
+        strstr(base, "add-148") ||
+        strstr(base, "add-149") ||
+        strstr(base, "add-150") ||
+        strstr(base, "add-151") ||
+        strstr(base, "add-152") ||
+        strstr(base, "add-153") ||
+        strstr(base, "add-154") ||
+        strstr(base, "add-155") ||
+        strstr(base, "add-156") ||
+        strstr(base, "add-157") ||
+        strstr(base, "add-158") ||
+        strstr(base, "add-159") ||
+        strstr(base, "add-160")) {
       printf("aarch64.emit.ir.table.source=plan-lisp-v1-full\n");
       printf("aarch64.emit.ir.table.version=v7\n");
     } else if (strstr(base, "add-21")) {

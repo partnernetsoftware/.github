@@ -72,6 +72,16 @@ Integrator: bump → EVAL/本表/LONG-RUN-TODO → commit → PR
 Memory:    longrun-state.json only
 ```
 
+## 4b. 先扩散后并发（提速 · wave149+）
+
+见 [`DIFFUSE-WORKFLOW.md`](DIFFUSE-WORKFLOW.md)。
+
+```text
+Commander:  gen-v4-wave-batch.py 149 165   # 一次扩散框架
+Workers:    bash lab/nano-lisp-jit/tools/v4-diffuse-then-cc.sh   # ≤5× cc
+Critic:     bun … gate 一次
+```
+
 ---
 
 ## 5. 与 squad-parallel 关系

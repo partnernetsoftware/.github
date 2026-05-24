@@ -1,0 +1,10 @@
+Worker 1/5 · bootstrap add144–160（可验证 · 勿 commit）
+
+Composer 已扩散 gen wave149–165 骨架。你只改：
+
+**lab/lispjit-ir/nano_bootstrap.c** — 在 add-143 链后追加 add-144 … add-160（与 gen expect 一致）。
+
+验证：`export NANO_SLICE_COMPILER=native && bash lab/nano-lisp-jit/build_nano_jit.sh`
+勿跑全量 run.sh（其他 worker 可能并行改文件）。
+
+最后一行：`CC_DONE worker=1`

@@ -1,0 +1,5 @@
+Worker 5/5 · 洋葱 SLICE 157–165（勿改 C · 勿 commit）
+
+为 **SLICE157.md … SLICE165.md** 各追加 §洋葱（5–8 行）；**SLICE165** 强调 diffuse-milestone + 五路 cc。
+
+最后一行：`CC_DONE worker=5`

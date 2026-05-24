@@ -3,7 +3,7 @@
 **停点**：终局六维 **100%**（零 `.c`/`.py`/`.sh`、Lisp VM emit）— 见 [`DECISION.md`](DECISION.md)、[`LISP-ONLY.md`](LISP-ONLY.md)。  
 **catalog `v4-complete` ready=True** 时 **不停止**。
 
-**编排框架**：见 [`DEV-AGENTS-TEAM.md`](DEV-AGENTS-TEAM.md)（Commander / Worker / Critic / Memory 映射 + 调度四问）。
+**编排框架**：见 [`DEV-AGENTS-TEAM.md`](DEV-AGENTS-TEAM.md) · **先扩散后并发**：[`DIFFUSE-WORKFLOW.md`](DIFFUSE-WORKFLOW.md)。
 
 ## 瓶颈对策（实践归纳）
 
@@ -100,15 +100,16 @@ bun run skills/nano-lisp-jit-v4-longrun/nano-lisp-jit-v4-longrun.ts loop --batch
 - [x] **wave122–130** · add117–125 · extra_grep + DEV-AGENTS-TEAM（tests.pass=724）
 - [x] **wave131–139** · add126–134 · post-main（tests.pass=760）
 - [x] **wave140–148** · add135–143 · cc bytes + onion-milestone（tests.pass=796）
-- [ ] wave149+ … 直至终局 100%
+- [x] **wave149–165** · **扩散+5×cc** · 框架一次 gen + 细节并发（tests.pass=864）
+- [ ] wave166+ … 直至终局 100%
 
 ## 当前指针
 
 | 项 | 值 |
 |----|-----|
-| 下一波 | **149** |
-| 下一 add | **144** (126+17) |
-| 末次门禁 | tests.pass=796 · [`longrun-state.json`](longrun-state.json) |
+| 下一波 | **166** |
+| 下一 add | **161** (143+17) |
+| 末次门禁 | tests.pass=864 · [`longrun-state.json`](longrun-state.json) |
 | 终局粗估 | **15–22%**（[`EVAL.md`](EVAL.md) 最新 §） |
 
 ## 自循环规则

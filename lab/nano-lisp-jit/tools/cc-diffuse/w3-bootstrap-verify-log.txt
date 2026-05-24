@@ -1,0 +1,11 @@
+Worker 3/5 · bootstrap 可观测（勿 commit）
+
+**lab/lispjit-ir/nano_bootstrap.c** — add emit 成功、在 `aarch64.emit.add.bytes=20` 后追加：
+`printf("aarch64.emit.add.verified=plan-lisp-v1-full\n");`
+（所有 nano-jit-slice-add 路径）
+
+**lab/nano-lisp-jit/v4/SLICE150.md** — 3 行 §verified 契约。
+
+验证：build_nano_jit.sh only。
+
+最后一行：`CC_DONE worker=3`

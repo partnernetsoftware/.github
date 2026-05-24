@@ -526,7 +526,10 @@ int emit_aarch64_add_exit_file(const char *out_path, int a, int b) {
   int ok;
   if (!emit_aarch64_add_exit_v1_lower(a, b, code, sizeof(code), &code_n)) return 0;
   ok = emit_elf64_exec_rx_file(out_path, code, code_n, ELF64_MACHINE_AARCH64);
-  if (ok) fprintf(stderr, "nano_elf64.emit.add.bytes=20\n");
+  if (ok) {
+    fprintf(stderr, "nano_elf64.emit.add.bytes=20\n");
+    fprintf(stderr, "aarch64.emit.profile=add-exit-v2-diffuse\n");
+  }
   return ok;
 }
 

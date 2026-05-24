@@ -624,3 +624,19 @@
 | 终局整体 | **15–22%** | — | catalog≠零宿主 |
 
 **方法**：`cc-huoshan1-ds4pro` + `loop --batches 3 --gate-every 3 --goal wave148`
+
+## wave149–165（洋葱先扩散后并发 · 17 波 1 gate）
+
+| 维度 | wave165 后 | Δ | 说明 |
+|------|-------------|---|------|
+| Plan | ~98% | — | 一次 gen 扩散框架 |
+| Codegen | **~57%** | +1% | 5×cc：elf64 v2-diffuse + `add.verified` |
+| 编排 | ~52% | +1% | DIFFUSE-WORKFLOW 入账 |
+| tests.pass | **864** | +68 | 17 波 × 4 轨 / 1× run.sh |
+| 终局整体 | **15–22%** | — | **提速模型**验证 |
+
+```bash
+python3 lab/nano-lisp-jit/tools/gen-v4-wave-batch.py 149 165
+bash lab/nano-lisp-jit/tools/v4-diffuse-then-cc.sh
+export NANO_SLICE_COMPILER=native && bash lab/nano-lisp-jit/run.sh
+```

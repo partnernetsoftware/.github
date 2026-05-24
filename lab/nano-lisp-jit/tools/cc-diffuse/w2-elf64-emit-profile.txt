@@ -1,0 +1,11 @@
+Worker 2/5 · nano_elf64 emit（勿 commit）
+
+**lab/lispjit-ir/nano_elf64.c** — `emit_aarch64_add_exit_file` 成功路径 stderr 追加：
+`fprintf(stderr, "aarch64.emit.profile=add-exit-v2-diffuse\n");`
+（保留现有 `nano_elf64.emit.add.bytes=20`）
+
+**lab/nano-lisp-jit/v4/SLICE149.md** — 末尾 4 行 §emit profile v2-diffuse。
+
+验证：build_nano_jit.sh only。
+
+最后一行：`CC_DONE worker=2`

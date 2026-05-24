@@ -1,0 +1,10 @@
+Worker 4/5 · 洋葱 SLICE 149–156（勿改 C · 勿 commit）
+
+为 **lab/nano-lisp-jit/v4/SLICE149.md … SLICE156.md** 各追加 §洋葱（每文件 5–8 行）：
+- 圈：Plan / Codegen / Runner 中本波推进哪一圈
+- TDD：扩散骨架 → cc 填肉 → 一次 gate
+- 链到 [`DIFFUSE-WORKFLOW.md`](../DIFFUSE-WORKFLOW.md)
+
+勿删 gen 已有标题行。
+
+最后一行：`CC_DONE worker=4`

@@ -174,3 +174,7 @@ runner/plan → assess/evidence-matrix → onion/mindmap-close（长程自主续
 ## wave140–148
 
 emit-bytes-obs → runner/codegen/emit 四轨扩散 → onion-milestone（`MINDMAP`+`LONG-RUN` tick · tests.pass 续涨）
+
+## wave149–165（先扩散后并发）
+
+一次 `gen 149 165` 框架 → **5× cc** 填肉（bootstrap/elf64/SLICE）→ **1× gate** · tests.pass **864**
