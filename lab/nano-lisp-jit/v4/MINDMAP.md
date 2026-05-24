@@ -152,3 +152,8 @@ slice12–14 → squad → autonomous-milestone
 ## wave59–61
 
 wave26/27 → evidence → codegen-manifest
+
+
+## wave65–67
+
+codegen-emit → squad-commander → onion-terminal（长程自主）

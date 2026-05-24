@@ -39,5 +39,8 @@
   (wave 62 "runner-plan-anchor")
   (wave 63 "reflection-deep")
   (wave 64 "lisp-only-chain")
+  (wave 65 "codegen-emit-chain")
+  (wave 66 "squad-commander-deep")
+  (wave 67 "onion-terminal-anchor")
 )
 

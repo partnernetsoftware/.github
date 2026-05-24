@@ -257,4 +257,17 @@
 
 **wave 索引**：至 **64**。
 
-**门禁**：`run.sh` exit 0；`tests.pass=459`；`build.pass=26`；`assess` ready=True。
+**门禁**：`run.sh` exit 0；`tests.pass=471`；`build.pass=26`；`assess` ready=True。
+
+## wave65–67（长程自主 · 续批）
+
+| 维度 | wave67 后 | Δ |
+|------|-----------|---|
+| Codegen | ~44% | add60–62 verified |
+| 编排 | ~41% | emit + squad commander + terminal 深链 |
+| 构建 | ~53% | 三波 diffusion |
+| 终局整体 | **15–22%** | catalog ready；**未到 100% 自主继续** |
+
+**wave 索引**：至 **67**。
+
+**方法**：≤4 轨扩散 → 一次 `run.sh` → `assess` → 洋葱文档 → 合 main（本表 + [`PROGRESS.md`](PROGRESS.md)）。
