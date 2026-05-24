@@ -1,6 +1,9 @@
 ; v4 wave index (plan registry, no .c).
 (wave-index v4
-  (wave 26 "host-reduce"  (wave 68 "ir-table-recap"  (wave 69 "build-graph-deep"  (wave 70 "host-reduce-chain"  (wave 71 "plan-contract-recap"  (wave 72 "evidence-matrix-deep"  (wave 73 "four-track-milestone")
+  (wave 26 "host-reduce"  (wave 68 "ir-table-recap"  (wave 69 "build-graph-deep"  (wave 70 "host-reduce-chain"  (wave 71 "plan-contract-recap"  (wave 72 "evidence-matrix-deep"  (wave 73 "four-track-milestone"  (wave 74 "lisp-runner-scout"  (wave 75 "codegen-emit-deep"  (wave 76 "mindmap-autonomous")
+)
+)
+)
 )
 )
 )

@@ -116,6 +116,60 @@ WAVES = {
         b_test="samples/bootstrap-v4-wave57-fourtrack-tick.lisp",
         c_test="v4/SLICE58.md",
     ),
+    74: dict(
+        title="lisp-runner-scout",
+        a=52,
+        b_track="runner",
+        c_track="lisponly",
+        b_files=[
+            "samples/bootstrap-v4-wave62-runner-tick.lisp",
+            "v4/LISP-ONLY.md",
+            "v4/DECISION.md",
+        ],
+        c_files=[
+            "samples/bootstrap-v4-wave64-lisponly-tick.lisp",
+            "samples/bootstrap-v4-lisp-only-tick.lisp",
+            "v4/LISP-ONLY.md",
+        ],
+        b_test="samples/bootstrap-v4-wave62-runner-tick.lisp",
+        c_test="v4/LISP-ONLY.md",
+    ),
+    75: dict(
+        title="codegen-emit-deep",
+        a=53,
+        b_track="emit",
+        c_track="codegen",
+        b_files=[
+            "samples/bootstrap-v4-wave65-emit-tick.lisp",
+            "samples/bootstrap-v4-codegen-kickoff.lisp",
+            "v4/SLICE41.md",
+        ],
+        c_files=[
+            "samples/bootstrap-v4-wave61-codegen-tick.lisp",
+            "samples/v4-ir-table-v1.lisp",
+            "v4/SLICE61.md",
+        ],
+        b_test="samples/bootstrap-v4-wave65-emit-tick.lisp",
+        c_test="v4/SLICE61.md",
+    ),
+    76: dict(
+        title="mindmap-autonomous",
+        a=54,
+        b_track="mindmap",
+        c_track="eval",
+        b_files=[
+            "samples/bootstrap-v4-wave52-mindmap-tick.lisp",
+            "v4/MINDMAP.md",
+            "v4/PARALLEL.md",
+        ],
+        c_files=[
+            "samples/bootstrap-v4-wave52-progress-tick.lisp",
+            "v4/EVAL.md",
+            "v4/PROGRESS.md",
+        ],
+        b_test="v4/MINDMAP.md",
+        c_test="v4/EVAL.md",
+    ),
 }
 
 
@@ -173,31 +227,13 @@ def patch_bootstrap(expects: list[int]) -> None:
     c = Path("/workspace/lab/lispjit-ir/nano_bootstrap.c")
     t = c.read_text()
     last = max(expects)
-    old = f'strstr(base, "add-{last - 2}") || strstr(base, "add-{last - 1}") || strstr(base, "add-{last}"))'
-    # find current closing
-    import re
-    m = re.search(r'strstr\(base, "add-\d+"\)(?: \|\| strstr\(base, "add-\d+"\))+\)', t)
-    if not m:
-        raise SystemExit("bootstrap pattern not found")
-    parts = [f'strstr(base, "add-{e}")' for e in range(22, last + 1)]
-    # simpler: replace add-62 line
-    needle = 'strstr(base, "add-62")) {'
-    if needle not in t:
-        needle = 'strstr(base, "add-59")) {'
-    new_parts = " ||\n        ".join(f'strstr(base, "add-{e}")' for e in expects)
-    # rebuild from add-57..last
-    start = t.find('strstr(base, "add-22")')
-    end = t.find(')) {', start) + 4
-    block = "    if (" + " ||\n        ".join(f'strstr(base, "add-{e}")' for e in range(22, last + 1)) + ") {"
-    # too invasive - just append after add-62
     if f'add-{last})' in t:
         return
-    t = t.replace(
-        'strstr(base, "add-62")) {',
-        'strstr(base, "add-62") ||\n        ' + " ||\n        ".join(
-            f'strstr(base, "add-{e}")' for e in expects if e > 62
-        ) + ") {",
-    )
+    anchor = '        strstr(base, "add-68")) {'
+    if anchor not in t:
+        raise SystemExit("bootstrap anchor add-68 not found")
+    extra = " ||\n        ".join(f'strstr(base, "add-{e}")' for e in sorted(expects))
+    t = t.replace(anchor, f'        strstr(base, "add-68") ||\n        {extra}) {{')
     c.write_text(t)
 
 
@@ -240,16 +276,22 @@ run_case "run-bootstrap-v4-slice{w}-evidence-plan" bash -c '
 ''')
     block = "\n".join(vars_lines) + "\n"
     if f"V4_SLICE{meta[0]['wave']}_ADD" not in run:
-        run = run.replace(
+        for anchor in (
+            'V4_SLICE73_EVIDENCE="$BUILD_DIR/v4-slice73.evidence"\n',
             'V4_SLICE67_EVIDENCE="$BUILD_DIR/v4-slice67.evidence"\n',
-            'V4_SLICE67_EVIDENCE="$BUILD_DIR/v4-slice67.evidence"\n' + block,
-        )
+        ):
+            if anchor in run:
+                run = run.replace(anchor, anchor + block)
+                break
     ins = "".join(cases)
     if f"run-bootstrap-v4-wave{meta[0]['wave']}-diffusion-plan" not in run:
-        run = run.replace(
+        for marker in (
             'run_case "run-bootstrap-v4-slice16-plan-words-plan"',
-            ins + 'run_case "run-bootstrap-v4-slice16-plan-words-plan"',
-        )
+            'run_case "run-bootstrap-v4-slice73-evidence-plan"',
+        ):
+            if marker in run:
+                run = run.replace(marker, ins + marker)
+                break
     RUN.write_text(run)
 
 
@@ -260,6 +302,9 @@ INDEX = SAMPLES / "v4-wave-index-v1.lisp"
 
 def patch_catalog(meta: list[dict], section: str) -> None:
     t = CAT.read_text()
+    if "v4-complete" not in t and "terminal_gates:" in t:
+        # slim catalog (post archive): wave batch gates live in run.sh only
+        return
     gates = []
     tasks = []
     for m in meta:

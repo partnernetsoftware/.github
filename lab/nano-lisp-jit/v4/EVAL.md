@@ -285,4 +285,21 @@
 
 **方法**：≤4 轨/波 → 一次 `run.sh` → `assess` → 合 main；队列见 [`LONG-RUN-TODO.md`](LONG-RUN-TODO.md)。
 
-**门禁**：：`run.sh` exit 0；`tests.pass=494`；`build.pass=26`；`assess` ready=True。
+**门禁**：`run.sh` exit 0；`tests.pass=494`；`build.pass=26`；`assess` ready=True。
+
+## wave74–76（长程自主 · 洋葱 TDD · ≤4 并发/波）
+
+| 维度 | wave76 后 | Δ |
+|------|-----------|---|
+| Plan | ~98% | runner / emit / mindmap 锚点族 |
+| Codegen | ~46% | add69–71 verified 整表 |
+| 编排 | ~43% | runner-scout + emit-deep 链 |
+| 构建 | ~55% | 三波 diffusion |
+| Runner | ~6% | wave74 lisp-runner-scout 样本 |
+| 终局整体 | **15–22%** | catalog≠零宿主；VM emit 未开卷 |
+
+**wave 索引**：至 **76**。
+
+**方法**：≤4 轨/波 → 一次 `run.sh` → 洋葱（MINDMAP/SLICE）→ 合 main；`gen-v4-wave-batch.py 74 76`。
+
+**门禁**：`tests.pass=507`；`build.pass=26`（main 归档后 catalog `build.pass≥119` 需 cosmocc，与波次样本 `26` 并存）。

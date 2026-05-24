@@ -99,3 +99,4 @@
 | wave47–49 | 批量 add42–44 | 合 main 必带 EVAL §wave47–49 |
 | wave50–52 | 批量 add45–47 | 合 main 带 EVAL §wave50–52 |
 | 长程自主 | catalog ready 后仍按波推进；终局 % 靠 emit 开卷 | wave53–55 add48–50 |
+| wave74–76 | runner-scout + emit-deep + mindmap-autonomous；`gen-v4-wave-batch.py` | add69–71；合 main 带 EVAL §wave74–76 |

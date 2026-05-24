@@ -20,16 +20,17 @@
 - [x] wave65–67 · add60–62 · 索引 **67**
 - [x] **wave68–70** · add63–65 · ir-table / build-graph / host-reduce
 - [x] **wave71–73** · add66–68 · plan-contract / evidence-matrix / four-track-milestone
-- [ ] wave74+ … 直至终局 100% 或 Lisp emit 实质线开卷
+- [x] **wave74–76** · add69–71 · runner-scout / emit-deep / mindmap-autonomous
+- [ ] wave77+ … 直至终局 100% 或 Lisp emit 实质线开卷
 
 ## 当前指针
 
 | 项 | 值 |
 |----|-----|
-| 下一波 | **74** |
-| 下一 add | **69** (46+17) |
-| 末次门禁 | tests.pass=494 · build.pass=26 |
-| 终局粗估 | **15–22%**（wave73 后见 EVAL §wave68–73）（[`EVAL.md`](EVAL.md) 最新 §） |
+| 下一波 | **77** |
+| 下一 add | **72** (55+17) |
+| 末次门禁 | tests.pass=507 · build.pass=26（catalog build≥119 待 cosmocc） |
+| 终局粗估 | **15–22%**（wave74–76 见 EVAL §wave74–76）（[`EVAL.md`](EVAL.md) 最新 §） |
 
 ## 自循环规则
 

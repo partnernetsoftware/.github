@@ -650,6 +650,129 @@ tasks:
       - "assess v4-slice9-scoped ready"
       - "skills/squad-parallel wave14"
       - "sync-md v4/SQUAD.md"
+  wave74-v4-track-a-codegen:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v4-wave74-diffusion.lisp"
+      - "samples/nano-jit-slice-add-69.lisp"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-wave74-diffusion-plan"
+  wave74-v4-track-b-runner:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v4-wave74-runner-tick.lisp"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-wave74-runner-tick-plan"
+  wave74-v4-track-c-lisponly:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v4-wave74-lisponly-tick.lisp"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-wave74-lisponly-tick-plan"
+  wave74-v4-track-d-evidence:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "v4/SLICE74.md"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-slice74-evidence-plan"
+  wave74-v4-R:
+    assign_role: reviewer
+    priority: meta
+    depends: [wave74-v4-track-a-codegen, wave74-v4-track-b-runner, wave74-v4-track-c-lisponly, wave74-v4-track-d-evidence]
+    accept:
+      - "v4/EVAL.md wave74–76"
+      - "assess v4-complete ready"
+
+  wave75-v4-track-a-codegen:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v4-wave75-diffusion.lisp"
+      - "samples/nano-jit-slice-add-70.lisp"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-wave75-diffusion-plan"
+  wave75-v4-track-b-emit:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v4-wave75-emit-tick.lisp"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-wave75-emit-tick-plan"
+  wave75-v4-track-c-codegen:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v4-wave75-codegen-tick.lisp"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-wave75-codegen-tick-plan"
+  wave75-v4-track-d-evidence:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "v4/SLICE75.md"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-slice75-evidence-plan"
+  wave75-v4-R:
+    assign_role: reviewer
+    priority: meta
+    depends: [wave75-v4-track-a-codegen, wave75-v4-track-b-emit, wave75-v4-track-c-codegen, wave75-v4-track-d-evidence]
+    accept:
+      - "v4/EVAL.md wave74–76"
+      - "assess v4-complete ready"
+
+  wave76-v4-track-a-codegen:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v4-wave76-diffusion.lisp"
+      - "samples/nano-jit-slice-add-71.lisp"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-wave76-diffusion-plan"
+  wave76-v4-track-b-mindmap:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v4-wave76-mindmap-tick.lisp"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-wave76-mindmap-tick-plan"
+  wave76-v4-track-c-eval:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v4-wave76-eval-tick.lisp"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-wave76-eval-tick-plan"
+  wave76-v4-track-d-evidence:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "v4/SLICE76.md"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v4-slice76-evidence-plan"
+  wave76-v4-R:
+    assign_role: reviewer
+    priority: meta
+    depends: [wave76-v4-track-a-codegen, wave76-v4-track-b-mindmap, wave76-v4-track-c-eval, wave76-v4-track-d-evidence]
+    accept:
+      - "v4/EVAL.md wave74–76"
+      - "assess v4-complete ready"
+
 
 verify:
   commands:
