@@ -65,9 +65,21 @@ grep v45.scoped.100=1 lab/nano-lisp-jit/.build/v45-entry.evidence
 
 `run.sh` 仅在 CI/维护时落盘 `.evidence`；**签收看 plan + .com**。
 
-## 七、下一刀
+## 七、wave1（扩散全局 · 精细并发）
 
-1. tier3：runner 源码移出主路径  
-2. `run.sh` 瘦身为单条 onion-com-only 委托  
-3. wave 样本分批迁入 `archive/samples/`（需改 run.sh 变量表 — 未做）  
-4. tier3：runner 源码出仓
+方法：[`PARALLEL.md`](PARALLEL.md) · catalog `wave1-v45-*` 四轨 ≤4 槽。
+
+| 轨 | 交付 |
+|----|------|
+| A ×4 | `bootstrap-v45-boundary-{i64,ptr,func,rodata}.lisp` |
+| B | `bootstrap-v45-diffuse-global.lisp` |
+| C | `onion-parallel-matrix` + `scripts/v45-com-verify.sh` |
+| D | `wave1-assess-tick` + `wave1-rollup` |
+
+证据：`v45.wave1.diffuse=1` · `v45.wave1.parallel=4` · `v45.wave1.rollup=1`
+
+## 八、下一刀
+
+1. tier3：runner 源码出仓  
+2. `run.sh` 瘦身为 `v45-com-verify.sh` 委托  
+3. wave 样本归档（高风险）

@@ -12,6 +12,7 @@
 | onion TDD | ✅ | `v45.onion.lisp_only=1` |
 | boundary 探测 | ✅ | `v45.boundary.probes=13` · `v45.boundary.negative=1` |
 | 产品反馈 | ✅ | `v45.product.feedback=1` · [`PRODUCT-FEEDBACK.md`](PRODUCT-FEEDBACK.md) |
+| wave1 扩散/并发 | ✅ | `v45.wave1.{diffuse,parallel,rollup}` · [`PARALLEL.md`](PARALLEL.md) |
 | 目录清理 | ✅ | `v45.cleanup.ok=1` |
 | **scoped DONE** | ✅ | **`v45.scoped.100=1`** |
 

@@ -169,6 +169,17 @@ BOOTSTRAP_V45_BUILD_SLICE_GENESIS_SRC="$LAB_DIR/samples/bootstrap-v45-build-slic
 BOOTSTRAP_V45_BOUNDARY_PROBE_SRC="$LAB_DIR/samples/bootstrap-v45-boundary-probe.lisp"
 BOOTSTRAP_V45_BOUNDARY_NEGATIVE_SRC="$LAB_DIR/samples/bootstrap-v45-boundary-negative.lisp"
 BOOTSTRAP_V45_BOUNDARY_FEEDBACK_SRC="$LAB_DIR/samples/bootstrap-v45-boundary-feedback.lisp"
+BOOTSTRAP_V45_BOUNDARY_I64_SRC="$LAB_DIR/samples/bootstrap-v45-boundary-i64.lisp"
+BOOTSTRAP_V45_BOUNDARY_PTR_SRC="$LAB_DIR/samples/bootstrap-v45-boundary-ptr.lisp"
+BOOTSTRAP_V45_BOUNDARY_FUNC_SRC="$LAB_DIR/samples/bootstrap-v45-boundary-func.lisp"
+BOOTSTRAP_V45_BOUNDARY_RODATA_SRC="$LAB_DIR/samples/bootstrap-v45-boundary-rodata.lisp"
+BOOTSTRAP_V45_DIFFUSE_GLOBAL_SRC="$LAB_DIR/samples/bootstrap-v45-diffuse-global.lisp"
+BOOTSTRAP_V45_ONION_PARALLEL_MATRIX_SRC="$LAB_DIR/samples/bootstrap-v45-onion-parallel-matrix.lisp"
+BOOTSTRAP_V45_WAVE1_DIFFUSE_TICK_SRC="$LAB_DIR/samples/bootstrap-v45-wave1-diffuse-tick.lisp"
+BOOTSTRAP_V45_WAVE1_PARALLEL_TICK_SRC="$LAB_DIR/samples/bootstrap-v45-wave1-parallel-tick.lisp"
+BOOTSTRAP_V45_WAVE1_PARALLEL_FINE_SRC="$LAB_DIR/samples/bootstrap-v45-wave1-parallel-fine.lisp"
+BOOTSTRAP_V45_WAVE1_ASSESS_TICK_SRC="$LAB_DIR/samples/bootstrap-v45-wave1-assess-tick.lisp"
+BOOTSTRAP_V45_WAVE1_ROLLUP_SRC="$LAB_DIR/samples/bootstrap-v45-wave1-rollup.lisp"
 BOOTSTRAP_V45_ONION_TDD_SRC="$LAB_DIR/samples/bootstrap-v45-onion-tdd.lisp"
 BOOTSTRAP_V45_TERMINAL_DONE_SRC="$LAB_DIR/samples/bootstrap-v45-terminal-done.lisp"
 BOOTSTRAP_V45_CLEANUP_ROLLUP_SRC="$LAB_DIR/samples/bootstrap-v45-cleanup-rollupy.lisp"
@@ -8223,6 +8234,68 @@ run_case "run-bootstrap-v45-boundary-feedback-plan" bash -c '
   printf "%s\n" "$out" | grep -q "run-expect-exit.ok=1"
   echo "v45.product.feedback=1" >> "'"$V45_ENTRY_EVIDENCE"'"
 '
+run_case "run-bootstrap-v45-boundary-i64-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V45_BOUNDARY_I64_SRC"'" 2>&1) || true
+  printf "%s\n" "$out"
+  test -f "'"$BUILD_DIR"'/v45-fine-i64-mul.lbin"
+'
+run_case "run-bootstrap-v45-boundary-ptr-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V45_BOUNDARY_PTR_SRC"'" 2>&1) || true
+  printf "%s\n" "$out"
+  test -f "'"$BUILD_DIR"'/v45-fine-ptr-null.lbin"
+'
+run_case "run-bootstrap-v45-boundary-func-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V45_BOUNDARY_FUNC_SRC"'" 2>&1) || true
+  printf "%s\n" "$out"
+  test -f "'"$BUILD_DIR"'/v45-fine-func-block.elf"
+  printf "%s\n" "$out" | grep -q "run-expect-exit.ok=1"
+'
+run_case "run-bootstrap-v45-boundary-rodata-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V45_BOUNDARY_RODATA_SRC"'" 2>&1) || true
+  printf "%s\n" "$out"
+  test -f "'"$BUILD_DIR"'/v45-fine-rodata-branch.lbin"
+'
+run_case "run-bootstrap-v45-diffuse-global-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V45_DIFFUSE_GLOBAL_SRC"'" 2>&1) || true
+  printf "%s\n" "$out"
+  test -f "'"$LAB_DIR"'/v4.5/PARALLEL.md"
+  echo "v45.wave1.diffuse=1" >> "'"$V45_ENTRY_EVIDENCE"'"
+'
+run_case "run-bootstrap-v45-onion-parallel-matrix-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V45_ONION_PARALLEL_MATRIX_SRC"'" 2>&1) || true
+  printf "%s\n" "$out"
+  test -f "'"$LAB_DIR"'/samples/bootstrap-v45-boundary-i64.lisp"
+'
+run_case "run-bootstrap-v45-wave1-diffuse-tick-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V45_WAVE1_DIFFUSE_TICK_SRC"'" 2>&1) || true
+  printf "%s\n" "$out"
+'
+run_case "run-bootstrap-v45-wave1-parallel-tick-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V45_WAVE1_PARALLEL_TICK_SRC"'" 2>&1) || true
+  printf "%s\n" "$out"
+'
+run_case "run-bootstrap-v45-wave1-parallel-fine-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V45_WAVE1_PARALLEL_FINE_SRC"'" 2>&1) || true
+  printf "%s\n" "$out"
+  echo "v45.wave1.parallel=4" >> "'"$V45_ENTRY_EVIDENCE"'"
+'
+run_case "run-bootstrap-v45-wave1-assess-tick-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V45_WAVE1_ASSESS_TICK_SRC"'" 2>&1) || true
+  printf "%s\n" "$out"
+'
+run_case "run-bootstrap-v45-wave1-rollup-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V45_WAVE1_ROLLUP_SRC"'" 2>&1) || true
+  printf "%s\n" "$out"
+  test -f "'"$LAB_DIR"'/squad/catalog-v45.yaml"
+  echo "v45.wave1.rollup=1" >> "'"$V45_ENTRY_EVIDENCE"'"
+'
+if [ -f "$NANO_JIT_COM" ] && host_is_linux_x86_64; then
+  run_case "run-bootstrap-v45-com-verify-script-plan" bash -c '
+    cd "'"$ROOT_DIR"'" && bash lab/nano-lisp-jit/scripts/v45-com-verify.sh
+  '
+else
+  skip_case "run-bootstrap-v45-com-verify-script-plan" "nano-jit.com missing"
+fi
 run_case "run-bootstrap-v45-onion-tdd-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$(env -u NANO_SELFHOST_REUSE_X86 -u NANO_SELFHOST_REUSE_AARCH64 -u NANO_BUILD_SLICE_SELFHOST_REUSE -u NANO_REGENESIS \
     "'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V45_ONION_TDD_SRC"'" 2>&1) || true
@@ -8260,6 +8333,12 @@ if [ -f "$NANO_JIT_COM" ] && host_is_linux_x86_64; then
     v45_com "'"$BOOTSTRAP_V45_BOUNDARY_PROBE_SRC"'" 0
     v45_com "'"$BOOTSTRAP_V45_BOUNDARY_NEGATIVE_SRC"'" 0
     v45_com "'"$BOOTSTRAP_V45_BOUNDARY_FEEDBACK_SRC"'" 0
+    v45_com "'"$BOOTSTRAP_V45_BOUNDARY_I64_SRC"'" 0
+    v45_com "'"$BOOTSTRAP_V45_BOUNDARY_PTR_SRC"'" 0
+    v45_com "'"$BOOTSTRAP_V45_BOUNDARY_FUNC_SRC"'" 0
+    v45_com "'"$BOOTSTRAP_V45_BOUNDARY_RODATA_SRC"'" 0
+    v45_com "'"$BOOTSTRAP_V45_DIFFUSE_GLOBAL_SRC"'" 0
+    v45_com "'"$BOOTSTRAP_V45_WAVE1_ROLLUP_SRC"'" 0
     v45_com "'"$BOOTSTRAP_V45_BUILD_SLICE_GENESIS_SRC"'" 1
     v45_com "'"$BOOTSTRAP_V45_ONION_TDD_SRC"'" 1
     v45_com "'"$BOOTSTRAP_V45_VERIFY_ALL_SRC"'" 0

@@ -9,7 +9,7 @@
 | Plan | bootstrap 无 `.c` | **100%** — verify + boundary + onion |
 | Runner | `.com` 执行 plan | **100%** — com-only gate 绿 |
 | 构建 | genesis-pin 日常 | **100%** — tier2 plan + compare.ok |
-| 验收载体 | `*.lisp` 替代 `.sh` 纵切片 | **~90%** — 发行矩阵全在 plan；`run.sh` 仍工厂落盘 |
+| 验收载体 | `*.lisp` 替代 `.sh` 纵切片 | **~92%** — wave1 四域并发 plan + com-verify |
 | v4 交接 | gen60 / genesis | **100%** — handoff plan |
 | 能力边界 | boundary 样例 | **~80%** — 13 正向 + 4 负向 + 产品反馈 doc |
 
