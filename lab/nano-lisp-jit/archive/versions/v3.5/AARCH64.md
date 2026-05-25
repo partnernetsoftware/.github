@@ -67,6 +67,6 @@ v3.5 **slice 4** evidence above stays frozen; v4 **slice-0** only adds a bootstr
 | `.build/bootstrap-v4-slice1-add7.elf` | emit 输出 |
 | `run.sh` | `run-bootstrap-v4-slice1-*`；可选 `qemu-aarch64-v4-slice1-add7-exit7` |
 
-见 [`../v4/SLICE1.md`](../v4/SLICE1.md)。仍 **非** VM/AOT。
+见 [`../archive/v4/slices/SLICE1.md`](../archive/v4/slices/SLICE1.md)。仍 **非** VM/AOT。
 
 See also [`../v3/CODEGEN.md`](../v3/CODEGEN.md) genesis-pin policy and [`ERROR-CODES.md`](ERROR-CODES.md).

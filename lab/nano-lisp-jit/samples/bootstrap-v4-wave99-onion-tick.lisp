@@ -2,5 +2,5 @@
 (bootstrap
   (file-size "lab/nano-lisp-jit/samples/bootstrap-v4-wave58-onion-tick.lisp")
   (file-size "lab/nano-lisp-jit/samples/bootstrap-v4-wave40-onion-tick.lisp")
-  (file-hash "lab/nano-lisp-jit/v4/SLICE40.md")
+  (file-hash "lab/nano-lisp-jit/archive/v4/slices/SLICE40.md")
 )

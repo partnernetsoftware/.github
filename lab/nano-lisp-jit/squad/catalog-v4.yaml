@@ -69,7 +69,7 @@ signoff:
       path_glob: "samples/bootstrap-v4-squad-signal.lisp"
     - id: v4-slice1-doc
       check: artifact
-      path_glob: "v4/SLICE1.md"
+      path_glob: "archive/v4/slices/SLICE1.md"
     - id: v4-slice1-evidence
       check: results
       file: ".build/v4-slice1.evidence"
@@ -98,7 +98,7 @@ signoff:
       path_glob: "samples/bootstrap-v4-gen5-via-gen2-anchor.lisp"
     - id: v4-slice2-doc
       check: artifact
-      path_glob: "v4/SLICE2.md"
+      path_glob: "archive/v4/slices/SLICE2.md"
     - id: v4-slice2-evidence
       check: results
       file: ".build/v4-slice2.evidence"
@@ -116,7 +116,7 @@ signoff:
       path_glob: "samples/bootstrap-v4-squad-s3-member-once.lisp"
     - id: v4-slice3-doc
       check: artifact
-      path_glob: "v4/SLICE3.md"
+      path_glob: "archive/v4/slices/SLICE3.md"
     - id: v4-slice3-evidence
       check: results
       file: ".build/v4-slice3.evidence"
@@ -129,7 +129,7 @@ signoff:
       min_pass: 1
     - id: v4-slice4-doc
       check: artifact
-      path_glob: "v4/SLICE4.md"
+      path_glob: "archive/v4/slices/SLICE4.md"
     - id: v4-squad-s4-agent-team-plan
       check: artifact
       path_glob: "samples/bootstrap-v4-squad-s4-agent-team.lisp"
@@ -145,7 +145,7 @@ signoff:
       min_pass: 1
     - id: v4-slice5-doc
       check: artifact
-      path_glob: "v4/SLICE5.md"
+      path_glob: "archive/v4/slices/SLICE5.md"
     - id: v4-squad-s5-verify-plan
       check: artifact
       path_glob: "samples/bootstrap-v4-squad-s5-verify-plan.lisp"
@@ -164,7 +164,7 @@ signoff:
       path_glob: "v4/REFLECTION.md"
     - id: v4-slice6-doc
       check: artifact
-      path_glob: "v4/SLICE6.md"
+      path_glob: "archive/v4/slices/SLICE6.md"
     - id: v4-codegen-kickoff-plan
       check: artifact
       path_glob: "samples/bootstrap-v4-codegen-kickoff.lisp"
@@ -185,7 +185,7 @@ signoff:
       min_pass: 1
     - id: v4-slice7-doc
       check: artifact
-      path_glob: "v4/SLICE7.md"
+      path_glob: "archive/v4/slices/SLICE7.md"
     - id: v4-slice7-add11-plan
       check: artifact
       path_glob: "samples/bootstrap-v4-slice7-add11.lisp"
@@ -209,7 +209,7 @@ signoff:
       min_pass: 1
     - id: v4-slice8-doc
       check: artifact
-      path_glob: "v4/SLICE8.md"
+      path_glob: "archive/v4/slices/SLICE8.md"
     - id: v4-slice8-add13-plan
       check: artifact
       path_glob: "samples/bootstrap-v4-slice8-add13.lisp"
@@ -228,7 +228,7 @@ signoff:
       min_pass: 1
     - id: v4-slice9-doc
       check: artifact
-      path_glob: "v4/SLICE9.md"
+      path_glob: "archive/v4/slices/SLICE9.md"
     - id: v4-slice9-add14-plan
       check: artifact
       path_glob: "samples/bootstrap-v4-slice9-add14.lisp"
@@ -446,7 +446,7 @@ tasks:
     accept:
       - "squad-v4-run-loop-reviewer-once"
       - "assess v4-slice3-scoped ready"
-      - "v4/SLICE3.md"
+      - "archive/v4/slices/SLICE3.md"
       - "REFLECTION slice-3 行"
   wave8-squad-stuck-fix:
     assign_role: engineer-b
@@ -481,7 +481,7 @@ tasks:
     priority: P0
     touch_paths:
       - "samples/bootstrap-v4-squad-s4-agent-team.lisp"
-      - "v4/SLICE4.md"
+      - "archive/v4/slices/SLICE4.md"
       - ".build/v4-slice4.evidence"
       - "run.sh"
     accept:
@@ -542,7 +542,7 @@ tasks:
     priority: P0
     touch_paths:
       - "samples/bootstrap-v4-codegen-kickoff.lisp"
-      - "v4/SLICE6.md"
+      - "archive/v4/slices/SLICE6.md"
       - "lab/lispjit-ir/nano_elf64.c"
       - ".build/v4-slice6.evidence"
       - "run.sh"
@@ -573,7 +573,7 @@ tasks:
     touch_paths:
       - "samples/nano-jit-slice-add-11.lisp"
       - "samples/bootstrap-v4-slice7-add11.lisp"
-      - "v4/SLICE7.md"
+      - "archive/v4/slices/SLICE7.md"
       - ".build/v4-slice7.evidence"
       - "run.sh"
     accept:
@@ -606,7 +606,7 @@ tasks:
     touch_paths:
       - "samples/nano-jit-slice-add-13.lisp"
       - "samples/bootstrap-v4-slice8-add13.lisp"
-      - "v4/SLICE8.md"
+      - "archive/v4/slices/SLICE8.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice8-add13-plan"
@@ -637,7 +637,7 @@ tasks:
     touch_paths:
       - "samples/nano-jit-slice-add-14.lisp"
       - "samples/bootstrap-v4-slice9-add14.lisp"
-      - "v4/SLICE9.md"
+      - "archive/v4/slices/SLICE9.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice9-add14-plan"
@@ -679,7 +679,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE74.md"
+      - "archive/v4/slices/SLICE74.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice74-evidence-plan"
@@ -720,7 +720,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE75.md"
+      - "archive/v4/slices/SLICE75.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice75-evidence-plan"
@@ -761,7 +761,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE76.md"
+      - "archive/v4/slices/SLICE76.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice76-evidence-plan"
@@ -802,7 +802,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE77.md"
+      - "archive/v4/slices/SLICE77.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice77-evidence-plan"
@@ -843,7 +843,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE78.md"
+      - "archive/v4/slices/SLICE78.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice78-evidence-plan"
@@ -884,7 +884,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE79.md"
+      - "archive/v4/slices/SLICE79.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice79-evidence-plan"
@@ -925,7 +925,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE80.md"
+      - "archive/v4/slices/SLICE80.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice80-evidence-plan"
@@ -966,7 +966,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE81.md"
+      - "archive/v4/slices/SLICE81.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice81-evidence-plan"
@@ -1007,7 +1007,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE82.md"
+      - "archive/v4/slices/SLICE82.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice82-evidence-plan"
@@ -1048,7 +1048,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE83.md"
+      - "archive/v4/slices/SLICE83.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice83-evidence-plan"
@@ -1089,7 +1089,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE84.md"
+      - "archive/v4/slices/SLICE84.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice84-evidence-plan"
@@ -1130,7 +1130,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE85.md"
+      - "archive/v4/slices/SLICE85.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice85-evidence-plan"
@@ -1171,7 +1171,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE86.md"
+      - "archive/v4/slices/SLICE86.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice86-evidence-plan"
@@ -1212,7 +1212,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE87.md"
+      - "archive/v4/slices/SLICE87.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice87-evidence-plan"
@@ -1253,7 +1253,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE88.md"
+      - "archive/v4/slices/SLICE88.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice88-evidence-plan"
@@ -1294,7 +1294,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE89.md"
+      - "archive/v4/slices/SLICE89.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice89-evidence-plan"
@@ -1335,7 +1335,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE90.md"
+      - "archive/v4/slices/SLICE90.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice90-evidence-plan"
@@ -1376,7 +1376,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE91.md"
+      - "archive/v4/slices/SLICE91.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice91-evidence-plan"
@@ -1417,7 +1417,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE92.md"
+      - "archive/v4/slices/SLICE92.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice92-evidence-plan"
@@ -1458,7 +1458,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE93.md"
+      - "archive/v4/slices/SLICE93.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice93-evidence-plan"
@@ -1499,7 +1499,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE94.md"
+      - "archive/v4/slices/SLICE94.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice94-evidence-plan"
@@ -1540,7 +1540,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE95.md"
+      - "archive/v4/slices/SLICE95.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice95-evidence-plan"
@@ -1581,7 +1581,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE96.md"
+      - "archive/v4/slices/SLICE96.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice96-evidence-plan"
@@ -1622,7 +1622,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE97.md"
+      - "archive/v4/slices/SLICE97.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice97-evidence-plan"
@@ -1663,7 +1663,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE98.md"
+      - "archive/v4/slices/SLICE98.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice98-evidence-plan"
@@ -1704,7 +1704,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE99.md"
+      - "archive/v4/slices/SLICE99.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice99-evidence-plan"
@@ -1745,7 +1745,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE100.md"
+      - "archive/v4/slices/SLICE100.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice100-evidence-plan"
@@ -1786,7 +1786,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE101.md"
+      - "archive/v4/slices/SLICE101.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice101-evidence-plan"
@@ -1827,7 +1827,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE102.md"
+      - "archive/v4/slices/SLICE102.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice102-evidence-plan"
@@ -1868,7 +1868,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE103.md"
+      - "archive/v4/slices/SLICE103.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice103-evidence-plan"
@@ -1909,7 +1909,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE104.md"
+      - "archive/v4/slices/SLICE104.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice104-evidence-plan"
@@ -1950,7 +1950,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE105.md"
+      - "archive/v4/slices/SLICE105.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice105-evidence-plan"
@@ -1991,7 +1991,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE106.md"
+      - "archive/v4/slices/SLICE106.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice106-evidence-plan"
@@ -2032,7 +2032,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE107.md"
+      - "archive/v4/slices/SLICE107.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice107-evidence-plan"
@@ -2073,7 +2073,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE108.md"
+      - "archive/v4/slices/SLICE108.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice108-evidence-plan"
@@ -2114,7 +2114,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE109.md"
+      - "archive/v4/slices/SLICE109.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice109-evidence-plan"
@@ -2155,7 +2155,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE110.md"
+      - "archive/v4/slices/SLICE110.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice110-evidence-plan"
@@ -2196,7 +2196,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE111.md"
+      - "archive/v4/slices/SLICE111.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice111-evidence-plan"
@@ -2237,7 +2237,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE112.md"
+      - "archive/v4/slices/SLICE112.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice112-evidence-plan"
@@ -2278,7 +2278,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE113.md"
+      - "archive/v4/slices/SLICE113.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice113-evidence-plan"
@@ -2319,7 +2319,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE114.md"
+      - "archive/v4/slices/SLICE114.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice114-evidence-plan"
@@ -2360,7 +2360,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE115.md"
+      - "archive/v4/slices/SLICE115.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice115-evidence-plan"
@@ -2401,7 +2401,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE116.md"
+      - "archive/v4/slices/SLICE116.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice116-evidence-plan"
@@ -2442,7 +2442,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE117.md"
+      - "archive/v4/slices/SLICE117.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice117-evidence-plan"
@@ -2483,7 +2483,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE118.md"
+      - "archive/v4/slices/SLICE118.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice118-evidence-plan"
@@ -2524,7 +2524,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE119.md"
+      - "archive/v4/slices/SLICE119.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice119-evidence-plan"
@@ -2565,7 +2565,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE120.md"
+      - "archive/v4/slices/SLICE120.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice120-evidence-plan"
@@ -2606,7 +2606,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE121.md"
+      - "archive/v4/slices/SLICE121.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice121-evidence-plan"
@@ -2647,7 +2647,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE122.md"
+      - "archive/v4/slices/SLICE122.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice122-evidence-plan"
@@ -2688,7 +2688,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE123.md"
+      - "archive/v4/slices/SLICE123.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice123-evidence-plan"
@@ -2729,7 +2729,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE124.md"
+      - "archive/v4/slices/SLICE124.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice124-evidence-plan"
@@ -2770,7 +2770,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE125.md"
+      - "archive/v4/slices/SLICE125.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice125-evidence-plan"
@@ -2811,7 +2811,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE126.md"
+      - "archive/v4/slices/SLICE126.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice126-evidence-plan"
@@ -2852,7 +2852,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE127.md"
+      - "archive/v4/slices/SLICE127.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice127-evidence-plan"
@@ -2893,7 +2893,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE128.md"
+      - "archive/v4/slices/SLICE128.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice128-evidence-plan"
@@ -2934,7 +2934,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE129.md"
+      - "archive/v4/slices/SLICE129.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice129-evidence-plan"
@@ -2975,7 +2975,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE130.md"
+      - "archive/v4/slices/SLICE130.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice130-evidence-plan"
@@ -3016,7 +3016,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE131.md"
+      - "archive/v4/slices/SLICE131.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice131-evidence-plan"
@@ -3057,7 +3057,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE132.md"
+      - "archive/v4/slices/SLICE132.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice132-evidence-plan"
@@ -3098,7 +3098,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE133.md"
+      - "archive/v4/slices/SLICE133.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice133-evidence-plan"
@@ -3139,7 +3139,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE134.md"
+      - "archive/v4/slices/SLICE134.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice134-evidence-plan"
@@ -3180,7 +3180,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE135.md"
+      - "archive/v4/slices/SLICE135.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice135-evidence-plan"
@@ -3221,7 +3221,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE136.md"
+      - "archive/v4/slices/SLICE136.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice136-evidence-plan"
@@ -3262,7 +3262,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE137.md"
+      - "archive/v4/slices/SLICE137.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice137-evidence-plan"
@@ -3303,7 +3303,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE138.md"
+      - "archive/v4/slices/SLICE138.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice138-evidence-plan"
@@ -3344,7 +3344,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE139.md"
+      - "archive/v4/slices/SLICE139.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice139-evidence-plan"
@@ -3385,7 +3385,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE140.md"
+      - "archive/v4/slices/SLICE140.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice140-evidence-plan"
@@ -3426,7 +3426,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE141.md"
+      - "archive/v4/slices/SLICE141.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice141-evidence-plan"
@@ -3467,7 +3467,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE142.md"
+      - "archive/v4/slices/SLICE142.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice142-evidence-plan"
@@ -3508,7 +3508,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE143.md"
+      - "archive/v4/slices/SLICE143.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice143-evidence-plan"
@@ -3549,7 +3549,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE144.md"
+      - "archive/v4/slices/SLICE144.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice144-evidence-plan"
@@ -3590,7 +3590,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE145.md"
+      - "archive/v4/slices/SLICE145.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice145-evidence-plan"
@@ -3631,7 +3631,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE146.md"
+      - "archive/v4/slices/SLICE146.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice146-evidence-plan"
@@ -3672,7 +3672,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE147.md"
+      - "archive/v4/slices/SLICE147.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice147-evidence-plan"
@@ -3713,7 +3713,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE148.md"
+      - "archive/v4/slices/SLICE148.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice148-evidence-plan"
@@ -3754,7 +3754,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE149.md"
+      - "archive/v4/slices/SLICE149.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice149-evidence-plan"
@@ -3795,7 +3795,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE150.md"
+      - "archive/v4/slices/SLICE150.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice150-evidence-plan"
@@ -3836,7 +3836,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE151.md"
+      - "archive/v4/slices/SLICE151.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice151-evidence-plan"
@@ -3877,7 +3877,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE152.md"
+      - "archive/v4/slices/SLICE152.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice152-evidence-plan"
@@ -3918,7 +3918,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE153.md"
+      - "archive/v4/slices/SLICE153.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice153-evidence-plan"
@@ -3959,7 +3959,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE154.md"
+      - "archive/v4/slices/SLICE154.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice154-evidence-plan"
@@ -4000,7 +4000,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE155.md"
+      - "archive/v4/slices/SLICE155.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice155-evidence-plan"
@@ -4041,7 +4041,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE156.md"
+      - "archive/v4/slices/SLICE156.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice156-evidence-plan"
@@ -4082,7 +4082,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE157.md"
+      - "archive/v4/slices/SLICE157.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice157-evidence-plan"
@@ -4123,7 +4123,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE158.md"
+      - "archive/v4/slices/SLICE158.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice158-evidence-plan"
@@ -4164,7 +4164,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE159.md"
+      - "archive/v4/slices/SLICE159.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice159-evidence-plan"
@@ -4205,7 +4205,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE160.md"
+      - "archive/v4/slices/SLICE160.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice160-evidence-plan"
@@ -4246,7 +4246,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE161.md"
+      - "archive/v4/slices/SLICE161.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice161-evidence-plan"
@@ -4287,7 +4287,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE162.md"
+      - "archive/v4/slices/SLICE162.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice162-evidence-plan"
@@ -4328,7 +4328,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE163.md"
+      - "archive/v4/slices/SLICE163.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice163-evidence-plan"
@@ -4369,7 +4369,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE164.md"
+      - "archive/v4/slices/SLICE164.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice164-evidence-plan"
@@ -4410,7 +4410,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE165.md"
+      - "archive/v4/slices/SLICE165.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice165-evidence-plan"
@@ -4451,7 +4451,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE166.md"
+      - "archive/v4/slices/SLICE166.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice166-evidence-plan"
@@ -4492,7 +4492,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE167.md"
+      - "archive/v4/slices/SLICE167.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice167-evidence-plan"
@@ -4533,7 +4533,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE168.md"
+      - "archive/v4/slices/SLICE168.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice168-evidence-plan"
@@ -4574,7 +4574,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE169.md"
+      - "archive/v4/slices/SLICE169.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice169-evidence-plan"
@@ -4615,7 +4615,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE170.md"
+      - "archive/v4/slices/SLICE170.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice170-evidence-plan"
@@ -4656,7 +4656,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE171.md"
+      - "archive/v4/slices/SLICE171.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice171-evidence-plan"
@@ -4697,7 +4697,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE172.md"
+      - "archive/v4/slices/SLICE172.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice172-evidence-plan"
@@ -4738,7 +4738,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE173.md"
+      - "archive/v4/slices/SLICE173.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice173-evidence-plan"
@@ -4779,7 +4779,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE174.md"
+      - "archive/v4/slices/SLICE174.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice174-evidence-plan"
@@ -4820,7 +4820,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE175.md"
+      - "archive/v4/slices/SLICE175.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice175-evidence-plan"
@@ -4861,7 +4861,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE176.md"
+      - "archive/v4/slices/SLICE176.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice176-evidence-plan"
@@ -4902,7 +4902,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE177.md"
+      - "archive/v4/slices/SLICE177.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice177-evidence-plan"
@@ -4943,7 +4943,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE178.md"
+      - "archive/v4/slices/SLICE178.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice178-evidence-plan"
@@ -4984,7 +4984,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE179.md"
+      - "archive/v4/slices/SLICE179.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice179-evidence-plan"
@@ -5025,7 +5025,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE180.md"
+      - "archive/v4/slices/SLICE180.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice180-evidence-plan"
@@ -5066,7 +5066,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE181.md"
+      - "archive/v4/slices/SLICE181.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice181-evidence-plan"
@@ -5107,7 +5107,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE182.md"
+      - "archive/v4/slices/SLICE182.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice182-evidence-plan"
@@ -5148,7 +5148,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE183.md"
+      - "archive/v4/slices/SLICE183.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice183-evidence-plan"
@@ -5189,7 +5189,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE184.md"
+      - "archive/v4/slices/SLICE184.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice184-evidence-plan"
@@ -5230,7 +5230,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE185.md"
+      - "archive/v4/slices/SLICE185.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice185-evidence-plan"
@@ -5271,7 +5271,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE186.md"
+      - "archive/v4/slices/SLICE186.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice186-evidence-plan"
@@ -5312,7 +5312,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE187.md"
+      - "archive/v4/slices/SLICE187.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice187-evidence-plan"
@@ -5353,7 +5353,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE188.md"
+      - "archive/v4/slices/SLICE188.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice188-evidence-plan"
@@ -5394,7 +5394,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE189.md"
+      - "archive/v4/slices/SLICE189.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice189-evidence-plan"
@@ -5435,7 +5435,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE190.md"
+      - "archive/v4/slices/SLICE190.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice190-evidence-plan"
@@ -5476,7 +5476,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE191.md"
+      - "archive/v4/slices/SLICE191.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice191-evidence-plan"
@@ -5517,7 +5517,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE192.md"
+      - "archive/v4/slices/SLICE192.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice192-evidence-plan"
@@ -5558,7 +5558,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE193.md"
+      - "archive/v4/slices/SLICE193.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice193-evidence-plan"
@@ -5599,7 +5599,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE194.md"
+      - "archive/v4/slices/SLICE194.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice194-evidence-plan"
@@ -5640,7 +5640,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE195.md"
+      - "archive/v4/slices/SLICE195.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice195-evidence-plan"
@@ -5681,7 +5681,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE196.md"
+      - "archive/v4/slices/SLICE196.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice196-evidence-plan"
@@ -5722,7 +5722,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE197.md"
+      - "archive/v4/slices/SLICE197.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice197-evidence-plan"
@@ -5763,7 +5763,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE198.md"
+      - "archive/v4/slices/SLICE198.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice198-evidence-plan"
@@ -5804,7 +5804,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE199.md"
+      - "archive/v4/slices/SLICE199.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice199-evidence-plan"
@@ -5845,7 +5845,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE200.md"
+      - "archive/v4/slices/SLICE200.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice200-evidence-plan"
@@ -5886,7 +5886,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE201.md"
+      - "archive/v4/slices/SLICE201.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice201-evidence-plan"
@@ -5927,7 +5927,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE202.md"
+      - "archive/v4/slices/SLICE202.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice202-evidence-plan"
@@ -5968,7 +5968,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE203.md"
+      - "archive/v4/slices/SLICE203.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice203-evidence-plan"
@@ -6009,7 +6009,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE204.md"
+      - "archive/v4/slices/SLICE204.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice204-evidence-plan"
@@ -6050,7 +6050,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE205.md"
+      - "archive/v4/slices/SLICE205.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice205-evidence-plan"
@@ -6091,7 +6091,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE206.md"
+      - "archive/v4/slices/SLICE206.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice206-evidence-plan"
@@ -6132,7 +6132,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE207.md"
+      - "archive/v4/slices/SLICE207.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice207-evidence-plan"
@@ -6173,7 +6173,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE208.md"
+      - "archive/v4/slices/SLICE208.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice208-evidence-plan"
@@ -6214,7 +6214,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE209.md"
+      - "archive/v4/slices/SLICE209.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice209-evidence-plan"
@@ -6255,7 +6255,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE210.md"
+      - "archive/v4/slices/SLICE210.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice210-evidence-plan"
@@ -6296,7 +6296,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE211.md"
+      - "archive/v4/slices/SLICE211.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice211-evidence-plan"
@@ -6337,7 +6337,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE212.md"
+      - "archive/v4/slices/SLICE212.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice212-evidence-plan"
@@ -6378,7 +6378,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE213.md"
+      - "archive/v4/slices/SLICE213.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice213-evidence-plan"
@@ -6419,7 +6419,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE214.md"
+      - "archive/v4/slices/SLICE214.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice214-evidence-plan"
@@ -6460,7 +6460,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE215.md"
+      - "archive/v4/slices/SLICE215.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice215-evidence-plan"
@@ -6501,7 +6501,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE216.md"
+      - "archive/v4/slices/SLICE216.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice216-evidence-plan"
@@ -6542,7 +6542,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE217.md"
+      - "archive/v4/slices/SLICE217.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice217-evidence-plan"
@@ -6583,7 +6583,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE218.md"
+      - "archive/v4/slices/SLICE218.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice218-evidence-plan"
@@ -6624,7 +6624,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE219.md"
+      - "archive/v4/slices/SLICE219.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice219-evidence-plan"
@@ -6665,7 +6665,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE220.md"
+      - "archive/v4/slices/SLICE220.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice220-evidence-plan"
@@ -6706,7 +6706,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE221.md"
+      - "archive/v4/slices/SLICE221.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice221-evidence-plan"
@@ -6747,7 +6747,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE222.md"
+      - "archive/v4/slices/SLICE222.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice222-evidence-plan"
@@ -6788,7 +6788,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE223.md"
+      - "archive/v4/slices/SLICE223.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice223-evidence-plan"
@@ -6829,7 +6829,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE224.md"
+      - "archive/v4/slices/SLICE224.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice224-evidence-plan"
@@ -6870,7 +6870,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE225.md"
+      - "archive/v4/slices/SLICE225.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice225-evidence-plan"
@@ -6911,7 +6911,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE226.md"
+      - "archive/v4/slices/SLICE226.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice226-evidence-plan"
@@ -6952,7 +6952,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE227.md"
+      - "archive/v4/slices/SLICE227.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice227-evidence-plan"
@@ -6993,7 +6993,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE228.md"
+      - "archive/v4/slices/SLICE228.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice228-evidence-plan"
@@ -7034,7 +7034,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE229.md"
+      - "archive/v4/slices/SLICE229.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice229-evidence-plan"
@@ -7075,7 +7075,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE230.md"
+      - "archive/v4/slices/SLICE230.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice230-evidence-plan"
@@ -7116,7 +7116,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE231.md"
+      - "archive/v4/slices/SLICE231.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice231-evidence-plan"
@@ -7157,7 +7157,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE232.md"
+      - "archive/v4/slices/SLICE232.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice232-evidence-plan"
@@ -7198,7 +7198,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE233.md"
+      - "archive/v4/slices/SLICE233.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice233-evidence-plan"
@@ -7239,7 +7239,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE234.md"
+      - "archive/v4/slices/SLICE234.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice234-evidence-plan"
@@ -7280,7 +7280,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE235.md"
+      - "archive/v4/slices/SLICE235.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice235-evidence-plan"
@@ -7321,7 +7321,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE236.md"
+      - "archive/v4/slices/SLICE236.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice236-evidence-plan"
@@ -7362,7 +7362,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE237.md"
+      - "archive/v4/slices/SLICE237.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice237-evidence-plan"
@@ -7403,7 +7403,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE238.md"
+      - "archive/v4/slices/SLICE238.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice238-evidence-plan"
@@ -7444,7 +7444,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE239.md"
+      - "archive/v4/slices/SLICE239.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice239-evidence-plan"
@@ -7485,7 +7485,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE240.md"
+      - "archive/v4/slices/SLICE240.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice240-evidence-plan"
@@ -7526,7 +7526,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE241.md"
+      - "archive/v4/slices/SLICE241.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice241-evidence-plan"
@@ -7567,7 +7567,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE242.md"
+      - "archive/v4/slices/SLICE242.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice242-evidence-plan"
@@ -7608,7 +7608,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE243.md"
+      - "archive/v4/slices/SLICE243.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice243-evidence-plan"
@@ -7649,7 +7649,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE244.md"
+      - "archive/v4/slices/SLICE244.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice244-evidence-plan"
@@ -7690,7 +7690,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE245.md"
+      - "archive/v4/slices/SLICE245.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice245-evidence-plan"
@@ -7731,7 +7731,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE246.md"
+      - "archive/v4/slices/SLICE246.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice246-evidence-plan"
@@ -7772,7 +7772,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE247.md"
+      - "archive/v4/slices/SLICE247.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice247-evidence-plan"
@@ -7813,7 +7813,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE248.md"
+      - "archive/v4/slices/SLICE248.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice248-evidence-plan"
@@ -7854,7 +7854,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE249.md"
+      - "archive/v4/slices/SLICE249.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice249-evidence-plan"
@@ -7895,7 +7895,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE250.md"
+      - "archive/v4/slices/SLICE250.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice250-evidence-plan"
@@ -7936,7 +7936,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE251.md"
+      - "archive/v4/slices/SLICE251.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice251-evidence-plan"
@@ -7977,7 +7977,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "v4/SLICE252.md"
+      - "archive/v4/slices/SLICE252.md"
       - "run.sh"
     accept:
       - "run-bootstrap-v4-slice252-evidence-plan"

@@ -3,7 +3,7 @@ Worker 2/5 · nano_elf64 onion emit（勿 commit）
 **lab/lispjit-ir/nano_elf64.c** — emit 成功 stderr 追加：
 `fprintf(stderr, "aarch64.emit.onion.layer=codegen\n");`
 
-**v4/SLICE166.md** — 3 行 §onion layer。
+**archive/v4/slices/SLICE166.md** — 3 行 §onion layer。
 
 验证：build only。
 

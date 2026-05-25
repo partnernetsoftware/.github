@@ -2,5 +2,5 @@
 (bootstrap
   (file-size "lab/nano-lisp-jit/samples/bootstrap-v4-wave33-diffusion.lisp")
   (file-size "lab/nano-lisp-jit/samples/bootstrap-v4-build-graph-wave27.lisp")
-  (file-hash "lab/nano-lisp-jit/v4/SLICE33.md")
+  (file-hash "lab/nano-lisp-jit/archive/v4/slices/SLICE33.md")
 )

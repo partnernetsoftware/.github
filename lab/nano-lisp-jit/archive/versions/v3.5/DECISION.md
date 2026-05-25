@@ -7,10 +7,10 @@
 | **v3.5-scoped** | **已完成 · CLOSED** | `catalog.signoff.gates` 全绿；无新工程任务 |
 | **v3.5-terminal** | **已完成 · CLOSED** | wave-5 + `terminal_gates`；维护仅回归，不扩 scope |
 | **v4 slice-0** | **scoped 签收 · 完成** | `v4-slice0-scoped` |
-| **v4 slice-1** | **scoped 签收 · 完成** | 见 [`../v4/SLICE1.md`](../v4/SLICE1.md) |
+| **v4 slice-1** | **scoped 签收 · 完成** | 见 [`../archive/v4/slices/SLICE1.md`](../archive/v4/slices/SLICE1.md) |
 | **v4 lisp-only（plan）** | **完成** | 见 [`../v4/LISP-ONLY.md`](../v4/LISP-ONLY.md) |
-| **v4 slice-2** | **完成** | 见 [`../v4/SLICE2.md`](../v4/SLICE2.md) |
-| **v4 slice-3** | **scoped 签收 · 完成** | `v4-slice3-scoped` — S3 once tick；见 [`../v4/SLICE3.md`](../v4/SLICE3.md) |
+| **v4 slice-2** | **完成** | 见 [`../archive/v4/slices/SLICE2.md`](../archive/v4/slices/SLICE2.md) |
+| **v4 slice-3** | **scoped 签收 · 完成** | `v4-slice3-scoped` — S3 once tick；见 [`../archive/v4/slices/SLICE3.md`](../archive/v4/slices/SLICE3.md) |
 
 ## 规则
 
