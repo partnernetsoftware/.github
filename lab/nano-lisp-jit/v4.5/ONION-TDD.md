@@ -30,6 +30,11 @@ done
 # scoped 100% 签收
 $COM run-bootstrap-plan lab/nano-lisp-jit/samples/bootstrap-v45-terminal-done.lisp
 grep v45.scoped.100=1 lab/nano-lisp-jit/.build/v45-entry.evidence
+
+# /goal 洋葱×mindmap-tree 100%
+bash lab/nano-lisp-jit/scripts/v45-wave17-goal-mindmap-100-converge.sh
+python3 lab/nano-lisp-jit/tools/mindmap-dp-v45.py ready
+grep v45.goal.mindmap_tree.100=1 lab/nano-lisp-jit/.build/v45-entry.evidence
 ```
 
 ## 与 `run.sh` 的关系
@@ -61,3 +66,5 @@ grep v45.scoped.100=1 lab/nano-lisp-jit/.build/v45-entry.evidence
 | `v45.build.no_host_cc=1` | tier2 genesis build-slice |
 | `v45.onion.lisp_only=1` | onion-tdd 经 .com 绿 |
 | `v45.scoped.100=1` | v4.5 scoped 终局 |
+| `v45.goal.mindmap_tree.100=1` | 洋葱×mindmap 树耦合终局（见 [`MINDMAP-TDD-TREE.md`](MINDMAP-TDD-TREE.md)） |
+| `v45.mindmap.tree.coupled=1` | frontier-v45 四轨+L2 树 |

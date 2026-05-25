@@ -159,6 +159,16 @@
 
 [`DIFFUSE-WAVE15.md`](DIFFUSE-WAVE15.md)
 
+## Wave16–17（/goal 洋葱×mindmap-tree）
+
+| 维度 | 评估 |
+|------|------|
+| frontier DP 耦合 | **100%** — `mindmap-frontier-v45.json` |
+| 四轨并发 | **100%** — W1–W4 绿 |
+| /goal 签收 | **100%** — `v45.goal.mindmap_tree.100=1` |
+
+[`MINDMAP-TDD-TREE.md`](MINDMAP-TDD-TREE.md) · [`DIFFUSE-WAVE17.md`](DIFFUSE-WAVE17.md)
+
 ## 验证
 
 ```bash
@@ -167,7 +177,7 @@ env -u NANO_SELFHOST_REUSE_X86 -u NANO_SELFHOST_REUSE_AARCH64 \
   -u NANO_BUILD_SLICE_SELFHOST_REUSE -u NANO_REGENESIS \
   $COM run-bootstrap-plan lab/nano-lisp-jit/samples/bootstrap-v45-onion-tdd.lisp
 
-bash lab/nano-lisp-jit/scripts/v45-wave15-tier5-100-converge.sh
+bash lab/nano-lisp-jit/scripts/v45-wave17-goal-mindmap-100-converge.sh
 
 grep -E 'v45\.(scoped|release|endgame|warehouse|physical\.zero_c|honest)\.' \
   lab/nano-lisp-jit/.build/v45-entry.evidence

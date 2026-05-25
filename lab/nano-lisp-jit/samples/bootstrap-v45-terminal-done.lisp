@@ -12,5 +12,7 @@
   (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.scoped.100" "1")
   (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.tier5.100" "1")
   (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.physical.zero_c" "1")
+  (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.goal.mindmap_tree.100" "1")
+  (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.mindmap.tree.coupled" "1")
   (file-hash "lab/nano-lisp-jit/.build/nano-jit/nano-jit.com")
   (file-hash "lab/nano-lisp-jit/.build/v45-onion-lo-ape.com"))

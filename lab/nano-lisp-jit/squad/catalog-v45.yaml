@@ -336,6 +336,27 @@ signoff:
     - id: v45-wave15-diffuse-doc
       check: artifact
       path_glob: "v4.5/DIFFUSE-WAVE15.md"
+    - id: v45-mindmap-tdd-tree-doc
+      check: artifact
+      path_glob: "v4.5/MINDMAP-TDD-TREE.md"
+    - id: v45-mindmap-frontier-v45
+      check: artifact
+      path_glob: "v4.5/mindmap-frontier-v45.json"
+    - id: v45-goal-mindmap-tree-100
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.goal.mindmap_tree.100
+      min_pass: 1
+    - id: v45-mindmap-tree-coupled
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.mindmap.tree.coupled
+      min_pass: 1
+    - id: v45-mindmap-parallel
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.mindmap.parallel
+      min_pass: 4
     - id: v45-wave7-diffuse
       check: results
       file: ".build/v45-entry.evidence"
@@ -806,7 +827,7 @@ tasks:
 
 verify:
   commands:
-    - script: scripts/v45-wave15-tier5-100-converge.sh
+    - script: scripts/v45-wave17-goal-mindmap-100-converge.sh
       cwd: .
       fail_on_nonzero: true
 

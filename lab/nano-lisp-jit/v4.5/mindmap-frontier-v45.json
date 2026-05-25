@@ -1,0 +1,111 @@
+{
+  "ssot": "v4.5/MINDMAP-TDD-TREE.md",
+  "onion_ssot": "v4.5/ONION-TDD.md",
+  "updated_at": "2026-05-25T09:30:00Z",
+  "max_parallel": 4,
+  "nodes": [
+    {
+      "id": "v45-onion-gate",
+      "layer": 0,
+      "ring": "\u8bc1\u636e",
+      "onion_ring": 0,
+      "status": "done",
+      "deps": [],
+      "accept": [
+        "v45.tier5.100=1",
+        "v45.scoped.100=1"
+      ]
+    },
+    {
+      "id": "v45-mindmap-verify-smoke",
+      "layer": 1,
+      "ring": "VM",
+      "onion_ring": 1,
+      "status": "done",
+      "deps": [
+        "v45-onion-gate"
+      ],
+      "accept": [
+        "run-bootstrap-v45-mindmap-verify-smoke-plan"
+      ],
+      "parallel_slot": "W1",
+      "plan": "samples/bootstrap-v45-mindmap-verify-smoke.lisp"
+    },
+    {
+      "id": "v45-mindmap-com-lbin",
+      "layer": 1,
+      "ring": "\u7ec4\u88c5",
+      "onion_ring": 2,
+      "status": "done",
+      "deps": [
+        "v45-onion-gate"
+      ],
+      "accept": [
+        "pack-app.payload.lbin=1"
+      ],
+      "parallel_slot": "W2",
+      "plan": "samples/bootstrap-v45-mindmap-com-lbin.lisp"
+    },
+    {
+      "id": "v45-mindmap-ir-exit",
+      "layer": 1,
+      "ring": "Codegen",
+      "onion_ring": 2,
+      "status": "done",
+      "deps": [
+        "v45-onion-gate"
+      ],
+      "accept": [
+        "ir-table-lisp + build-slice-lisp ir-exit"
+      ],
+      "parallel_slot": "W3",
+      "plan": "samples/bootstrap-v45-mindmap-ir-exit.lisp"
+    },
+    {
+      "id": "v45-mindmap-onion-ring",
+      "layer": 1,
+      "ring": "\u6d0b\u8471",
+      "onion_ring": 2,
+      "status": "done",
+      "deps": [
+        "v45-onion-gate"
+      ],
+      "accept": [
+        "v45.onion.lisp_only=1"
+      ],
+      "parallel_slot": "W4",
+      "plan": "samples/bootstrap-v45-mindmap-onion-ring.lisp"
+    },
+    {
+      "id": "v45-mindmap-onion-tree",
+      "layer": 2,
+      "ring": "\u6811",
+      "onion_ring": 3,
+      "status": "done",
+      "deps": [
+        "v45-mindmap-verify-smoke",
+        "v45-mindmap-com-lbin",
+        "v45-mindmap-ir-exit",
+        "v45-mindmap-onion-ring"
+      ],
+      "accept": [
+        "v45.mindmap.tree.coupled=1"
+      ],
+      "plan": "samples/bootstrap-v45-mindmap-onion-tree.lisp"
+    },
+    {
+      "id": "v45-goal-mindmap-tree",
+      "layer": 3,
+      "ring": "DONE",
+      "onion_ring": 5,
+      "status": "done",
+      "deps": [
+        "v45-mindmap-onion-tree"
+      ],
+      "accept": [
+        "v45.goal.mindmap_tree.100=1"
+      ],
+      "plan": "samples/bootstrap-v45-goal-mindmap-tree-100.lisp"
+    }
+  ]
+}

@@ -109,3 +109,9 @@ bash lab/nano-lisp-jit/scripts/v45-wave13-tier5-converge.sh
 ```bash
 bash lab/nano-lisp-jit/scripts/v45-wave15-tier5-100-converge.sh
 ```
+
+**Wave16–17 /goal** ✅：[`MINDMAP-TDD-TREE.md`](MINDMAP-TDD-TREE.md) — `v45.goal.mindmap_tree.100=1`
+
+```bash
+bash lab/nano-lisp-jit/scripts/v45-wave17-goal-mindmap-100-converge.sh
+```

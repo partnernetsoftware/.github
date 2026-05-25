@@ -156,6 +156,15 @@ grep v45.scoped.100=1 lab/nano-lisp-jit/.build/v45-entry.evidence
 
 **仍不声称**：全 monorepo 零 C · runner 全 Lisp codegen。
 
-## 十五、Wave3（整表扩散，勿逐条）
+## 十五、Wave16–17（洋葱×mindmap-tree → goal 100%）
+
+| 反思 | 调整 |
+|------|------|
+| v4 mindmap 与 v45 洋葱脱节 | `MINDMAP-TDD-TREE` + `frontier-v45.json` 显式 `onion_ring` |
+| 扩散无 DP 锚点 | `mindmap-dp-v45.py ready` 驱动四槽 |
+| 收敛后 frontier 漂移 | Python 回写 JSON `status=done` |
+| 不到 100% 不停 | `v45.goal.mindmap_tree.100=1` 闭合本 /goal 卷 |
+
+## 十六、Wave3（整表扩散，勿逐条）
 
 见 DIFFUSE-WAVE2 §Wave3：无 C plan · run.sh 单行化 · wave 归档。
