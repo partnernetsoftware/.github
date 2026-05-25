@@ -4,6 +4,23 @@ project:
   root: ..
   state_db: .squad/state-v45.db
   state_file: .squad/state-v45.json
+locking:
+  backend: sqlite
+roles:
+  reviewer: { kind: meta, workflow: reviewer }
+  commander: { kind: orchestrator, workflow: commander }
+  engineer-a: { kind: worker, workflow: worker }
+  engineer-b: { kind: worker, workflow: worker }
+dispatch:
+  assign_to: [engineer-a, engineer-b]
+  max_per_wave: 2
+supervisor:
+  team_mode: true
+  auto_exec: false
+  auto_done: false
+  timeout_sec: 3600
+  poll_interval_sec: 10
+  max_waves: 20
 signoff:
   id: v45-scoped-100
   require_terminal: false
@@ -77,8 +94,119 @@ signoff:
       file: ".build/v45-entry.evidence"
       results_key: v45.cleanup.ok
       min_pass: 1
+    - id: v45-parallel-doc
+      check: artifact
+      path_glob: "v4.5/PARALLEL.md"
+    - id: v45-wave1-diffuse
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.wave1.diffuse
+      min_pass: 1
+    - id: v45-wave1-parallel
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.wave1.parallel
+      min_pass: 4
+    - id: v45-wave1-rollup
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.wave1.rollup
+      min_pass: 1
     - id: v35-regression-run
       check: results
       file: ".build/results.txt"
       results_key: tests.pass
       min_pass: 1302
+
+tasks:
+  wave1-v45-track-a-fine-i64:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v45-boundary-i64.lisp"
+      - "samples/boundary/add-i64-chain.lisp"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v45-boundary-i64-plan"
+  wave1-v45-track-a-fine-ptr:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v45-boundary-ptr.lisp"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v45-boundary-ptr-plan"
+  wave1-v45-track-a-fine-func:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v45-boundary-func.lisp"
+      - "samples/boundary/func-block-vm-gap.lisp"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v45-boundary-func-plan"
+  wave1-v45-track-a-fine-rodata:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v45-boundary-rodata.lisp"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v45-boundary-rodata-plan"
+  wave1-v45-track-b-diffuse:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v45-diffuse-global.lisp"
+      - "v4.5/PARALLEL.md"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v45-diffuse-global-plan"
+      - "run-bootstrap-v45-wave1-diffuse-tick-plan"
+  wave1-v45-track-c-parallel:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v45-onion-parallel-matrix.lisp"
+      - "scripts/v45-com-verify.sh"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v45-onion-parallel-matrix-plan"
+      - "run-bootstrap-v45-wave1-parallel-tick-plan"
+      - "run-bootstrap-v45-wave1-parallel-fine-plan"
+  wave1-v45-track-d-assess:
+    assign_role: reviewer
+    priority: P0
+    touch_paths:
+      - "v4.5/EVAL.md"
+      - "v4.5/REFLECTION.md"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v45-wave1-assess-tick-plan"
+  wave1-v45-R:
+    assign_role: reviewer
+    priority: meta
+    depends:
+      - wave1-v45-track-a-fine-i64
+      - wave1-v45-track-a-fine-ptr
+      - wave1-v45-track-a-fine-func
+      - wave1-v45-track-a-fine-rodata
+      - wave1-v45-track-b-diffuse
+      - wave1-v45-track-c-parallel
+      - wave1-v45-track-d-assess
+    accept:
+      - "run-bootstrap-v45-wave1-rollup-plan"
+      - "v45-com-verify done"
+
+verify:
+  commands:
+    - script: scripts/v45-com-verify.sh
+      cwd: .
+      fail_on_nonzero: true
+
+sync:
+  board:
+    file: v4.5/SQUAD.md
+    template: board
+    begin: "<!-- SQUAD_STATE_BEGIN -->"
+    end: "<!-- SQUAD_STATE_END -->"
