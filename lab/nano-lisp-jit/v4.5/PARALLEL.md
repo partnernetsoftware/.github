@@ -97,3 +97,9 @@ bash lab/nano-lisp-jit/scripts/v45-wave11-tier5-converge.sh
 ```bash
 bash lab/nano-lisp-jit/scripts/v45-wave12-tier5-converge.sh
 ```
+
+**Wave13** ✅：[`DIFFUSE-WAVE13.md`](DIFFUSE-WAVE13.md) — `lispjit-ir` **零真 `.c`**；`physical.zero_c` 仍 0。
+
+```bash
+bash lab/nano-lisp-jit/scripts/v45-wave13-tier5-converge.sh
+```

@@ -24,7 +24,7 @@
 ## 收敛
 
 ```bash
-bash lab/nano-lisp-jit/scripts/v45-wave12-tier5-converge.sh
+bash lab/nano-lisp-jit/scripts/v45-wave13-tier5-converge.sh
 grep -E 'v45\.(endgame|scoped|physical\.zero_c|honest)' lab/nano-lisp-jit/.build/v45-entry.evidence
 ```
 
@@ -36,3 +36,4 @@ grep -E 'v45\.(endgame|scoped|physical\.zero_c|honest)' lab/nano-lisp-jit/.build
 | **10** | [`DIFFUSE-WAVE10.md`](DIFFUSE-WAVE10.md) — 诚实剩余 + `v45-release-run.sh` |
 | **11** | [`DIFFUSE-WAVE11.md`](DIFFUSE-WAVE11.md) — tier5 四轨并发；`physical.zero_c` 仍 0 |
 | **12** | [`DIFFUSE-WAVE12.md`](DIFFUSE-WAVE12.md) — 16 TU 并行出仓；`ir` 真 `.c`=2 |
+| **13** | [`DIFFUSE-WAVE13.md`](DIFFUSE-WAVE13.md) — `ir` 门面零真 `.c`；`zero_c` 仍 0 |

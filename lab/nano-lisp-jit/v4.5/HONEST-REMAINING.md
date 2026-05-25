@@ -18,14 +18,14 @@
 | ID | 完成定义 | 当前 |
 |----|----------|------|
 | T5a | 日常 `run.sh` 默认走发行面（无参 → `NANO_V45_SCOPED_ONLY=1`） | **Wave11** `v45.tier5.runsh_default=1` |
-| T5b | `lispjit-ir` 仅 symlink/桩，真源仅在 `archive/runner/` | Wave12：18 symlink · 2 真 `.c`（`ape_v2`+`irjit`） |
-| T5c | 仓内 `.c` 计数下降且文档化 | 未做 |
+| T5b | `lispjit-ir` 仅 symlink/桩，真源仅在 `archive/runner/` | **Wave13** `ir_facade_zero_real=1` · `lispjit_ir_c_files=0` |
+| T5c | 仓内 `.c` 计数下降且文档化 | **Wave13** `PHYSICAL-INVENTORY` + 分键计数 |
 | T5d | VM emit 全量替代 C 表 | tier4 仅 smoke |
 
 ## 日常命令（发行面真源）
 
 ```bash
-bash lab/nano-lisp-jit/scripts/v45-wave12-tier5-converge.sh
+bash lab/nano-lisp-jit/scripts/v45-wave13-tier5-converge.sh
 # 全量 v4 工厂（显式）：
 NANO_V45_FULL_FACTORY=1 bash lab/nano-lisp-jit/run.sh
 ```

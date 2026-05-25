@@ -305,6 +305,19 @@ signoff:
       file: ".build/v45-entry.evidence"
       results_key: v45.tier5.nano_tu_archived
       min_pass: 16
+    - id: v45-wave13-diffuse-doc
+      check: artifact
+      path_glob: "v4.5/DIFFUSE-WAVE13.md"
+    - id: v45-ir-facade-zero-real
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.tier5.ir_facade_zero_real
+      min_pass: 1
+    - id: v45-lispjit-ir-zero-c
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.physical.lispjit_ir_c_files
+      min_pass: 0
     - id: v45-wave7-diffuse
       check: results
       file: ".build/v45-entry.evidence"
@@ -733,10 +746,49 @@ tasks:
     accept:
       - "run-bootstrap-v45-wave12-tier5-converge-plan"
       - "v45-wave12-tier5-converge done"
+  wave13-v45-track-a-ape:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "archive/runner/ape_v2.c"
+    accept:
+      - "run-bootstrap-v45-wave13-ape-anchor-plan"
+  wave13-v45-track-b-irjit:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "archive/runner/irjit.c"
+    accept:
+      - "run-bootstrap-v45-wave13-irjit-anchor-plan"
+  wave13-v45-track-c-onion:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v45-wave13-onion-after-archive.lisp"
+    accept:
+      - "run-bootstrap-v45-wave13-onion-after-archive-plan"
+  wave13-v45-track-d-physical:
+    assign_role: reviewer
+    priority: P0
+    touch_paths:
+      - "v4.5/PHYSICAL-INVENTORY.md"
+    accept:
+      - "run-bootstrap-v45-wave13-physical-rollup-plan"
+  wave13-v45-R:
+    assign_role: reviewer
+    priority: meta
+    depends:
+      - wave13-v45-track-a-ape
+      - wave13-v45-track-b-irjit
+      - wave13-v45-track-c-onion
+      - wave13-v45-track-d-physical
+    accept:
+      - "run-bootstrap-v45-wave13-tier5-converge-plan"
+      - "v45-wave13-tier5-converge done"
 
 verify:
   commands:
-    - script: scripts/v45-wave12-tier5-converge.sh
+    - script: scripts/v45-wave13-tier5-converge.sh
       cwd: .
       fail_on_nonzero: true
 

@@ -13,6 +13,7 @@
 |------|-----------|
 | `archive/runner/*.c` 真源 | 18 |
 | `lispjit-ir` symlink | 18 |
-| `lispjit-ir` 真 `.c` | 2（`ape_v2` · `irjit`） |
+| `lispjit-ir` 真 `.c` | **0**（Wave13 门面） |
+| `lispjit-ir` symlink | 20 |
 
-证据：`v45.tier5.nano_tu_archived=16` · `v45.physical.zero_c=0`
+证据：`v45.tier5.ir_facade_zero_real=1` · `v45.physical.zero_c=0`（全仓仍未零 C）

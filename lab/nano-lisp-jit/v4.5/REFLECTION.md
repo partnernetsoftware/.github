@@ -135,6 +135,16 @@ grep v45.scoped.100=1 lab/nano-lisp-jit/.build/v45-entry.evidence
 
 **下一调整**：Wave13 收 `ape_v2`；`irjit` 单独评估；仍不写 `physical.zero_c=1`。
 
-## 十三、Wave3（整表扩散，勿逐条）
+## 十三、Wave13（门面收尾 · 分键诚实）
+
+| 反思 | 调整 |
+|------|------|
+| `lispjit_ir=0` 易被误读成全仓 DONE | 新增 `ir_facade_zero_real`；**保留** `physical.zero_c=0` |
+| ape/irjit 两种角色混迁 | E/F 双轨并行 batch，再四 plan 并发 |
+| 归档后怕断 `#include` | `onion-after-archive` 验 `scoped`+`endgame` |
+
+**并发**：2× batch `&` + 4× plan `&` → rollup；**禁止**把 `ir_facade` 写成 warehouse 100%。
+
+## 十四、Wave3（整表扩散，勿逐条）
 
 见 DIFFUSE-WAVE2 §Wave3：无 C plan · run.sh 单行化 · wave 归档。

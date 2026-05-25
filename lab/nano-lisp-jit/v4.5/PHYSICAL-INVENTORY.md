@@ -8,7 +8,8 @@
 |------|----------|
 | `lispjit-ir/*.c` | 非 symlink 的 `.c` 文件数 |
 | `archive/**/*.c` | 归档真源 `.c` 数 |
-| symlink | `lispjit.c` · `nano_bootstrap.c` → `archive/runner/` |
+| symlink | `lispjit-ir/*.c` 全部 → `archive/runner/`（Wave13：**零真 `.c`**） |
+| `archive/runner` 真源 | ~20 TU（工厂维护，≠ 发行面） |
 
 ## Tier5 目标对照
 

@@ -138,6 +138,16 @@
 
 [`DIFFUSE-WAVE12.md`](DIFFUSE-WAVE12.md)
 
+## Wave13（`lispjit-ir` 门面零真 `.c`）
+
+| 维度 | 评估 |
+|------|------|
+| T5b 门面 | **100%** — 20 symlink · 0 真 `.c` |
+| T5c 计数 | **100%** — 分键 `ir` / `archive_runner` |
+| 全仓 zero_c | **0% 签收** — `archive/runner` 仍有真源 |
+
+[`DIFFUSE-WAVE13.md`](DIFFUSE-WAVE13.md)
+
 ## 验证
 
 ```bash
@@ -146,7 +156,7 @@ env -u NANO_SELFHOST_REUSE_X86 -u NANO_SELFHOST_REUSE_AARCH64 \
   -u NANO_BUILD_SLICE_SELFHOST_REUSE -u NANO_REGENESIS \
   $COM run-bootstrap-plan lab/nano-lisp-jit/samples/bootstrap-v45-onion-tdd.lisp
 
-bash lab/nano-lisp-jit/scripts/v45-wave12-tier5-converge.sh
+bash lab/nano-lisp-jit/scripts/v45-wave13-tier5-converge.sh
 
 grep -E 'v45\.(scoped|release|endgame|warehouse|physical\.zero_c|honest)\.' \
   lab/nano-lisp-jit/.build/v45-entry.evidence
