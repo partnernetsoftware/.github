@@ -1,37 +1,27 @@
-# 物理终局 — 诚实剩余（不冒充 100%）
+# 物理终局 — 诚实口径（Wave15 更新）
 
-> **已签收**（有证据键、有口径）：`v45.scoped.100` · `v45.release.100` · `v45.endgame.100`（DECISION tier0–4）· `v45.factory.100`（须 `NANO_V45_SCOPED_ONLY=1`）。  
-> **未签收**：全仓零 `.c`、默认瘦 `run.sh`、154KB runner 全 Lisp codegen。
+> **tier5 发行面 100%**：`v45.tier5.100=1` · `v45.honest.tier5.open=0`  
+> **发行面树零真 `.c`**：`v45.physical.zero_c=1`（`lispjit-ir` + `samples/` 仅 symlink；真源在 `archive/`）
 
-## 证据键诚实表
+## 证据键
 
-| 键 | 可声称 | 不可声称 |
-|----|--------|----------|
-| `v45.scoped.100=1` | 洋葱 TDD + com-only 发行面 | 全仓无 `.sh` |
-| `v45.endgame.100=1` | DECISION 文档 tier0–4 | 删光 `nano_*.c` |
-| `v45.warehouse.100=1` | endgame+factory **合卷**（scoped 栈） | **全仓物理终局** |
-| `v45.physical.zero_c=0` | 明示 **未完成** | — |
-| `v45.honest.tier5.open=1` | tier5 开卷 | tier5 完成 |
+| 键 | 含义 |
+|----|------|
+| `v45.tier5.100=1` | T5a–T5d 齐（见 [`DIFFUSE-WAVE15.md`](DIFFUSE-WAVE15.md)） |
+| `v45.physical.zero_c=1` | **发行面树** 无真 `.c`（非全 monorepo） |
+| `v45.physical.archive_runner_c_files=N` | 工厂 `archive/runner` 真源（透明） |
+| `v45.physical.archive_fixtures_c_files=M` | `archive/fixtures` 真源 |
 
-## Tier5 目标（物理，未开完）
+## 仍未声称
 
-| ID | 完成定义 | 当前 |
-|----|----------|------|
-| T5a | 日常 `run.sh` 默认走发行面（无参 → `NANO_V45_SCOPED_ONLY=1`） | **Wave11** `v45.tier5.runsh_default=1` |
-| T5b | `lispjit-ir` 仅 symlink/桩，真源仅在 `archive/runner/` | **Wave13** `ir_facade_zero_real=1` · `lispjit_ir_c_files=0` |
-| T5c | 仓内 `.c` 计数下降且文档化 | **Wave13** `PHYSICAL-INVENTORY` + 分键计数 |
-| T5d | VM emit 全量替代 C 表 | tier4 仅 smoke |
+- 全仓库（如 `lab/cross-arch-ffi`）零 `.c`
+- 154KB runner **全量** Lisp codegen 替代 C
+- 物理删除 `run.sh`
 
-## 日常命令（发行面真源）
+## 日常
 
 ```bash
-bash lab/nano-lisp-jit/scripts/v45-wave13-tier5-converge.sh
-# 全量 v4 工厂（显式）：
-NANO_V45_FULL_FACTORY=1 bash lab/nano-lisp-jit/run.sh
+bash lab/nano-lisp-jit/scripts/v45-wave15-tier5-100-converge.sh
 ```
 
-## 工厂瘦身（须显式 env，非默认 run.sh）
-
-```bash
-NANO_V45_SCOPED_ONLY=1 bash lab/nano-lisp-jit/scripts/v45-release-run.sh
-```
+全量 v4 工厂：`NANO_V45_FULL_FACTORY=1 bash lab/nano-lisp-jit/run.sh`

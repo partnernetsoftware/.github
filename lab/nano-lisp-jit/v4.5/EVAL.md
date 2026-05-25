@@ -21,7 +21,7 @@
 
 **v4.5 合卷 warehouse**：**100%** — `v45.warehouse.100=1`（= endgame ∧ scoped 工厂；**≠ 物理零 C**）
 
-**物理全仓终局**：**0% 签收** — `v45.physical.zero_c=0` · `v45.honest.tier5.open=1`（见 [`HONEST-REMAINING.md`](HONEST-REMAINING.md)）
+**tier5 发行面**：**100%** — `v45.tier5.100=1` · `v45.physical.zero_c=1`（发行面树；见 [`HONEST-REMAINING.md`](HONEST-REMAINING.md)）
 
 **合并结论（→ `main`）**：发行面 / DECISION / warehouse **可合并**；tier5 另卷，禁止把 `warehouse.100` 写成「全仓 DONE」。
 
@@ -148,6 +148,17 @@
 
 [`DIFFUSE-WAVE13.md`](DIFFUSE-WAVE13.md)
 
+## Wave14–15（T5d + tier5 100%）
+
+| 维度 | 评估 |
+|------|------|
+| T5d VM emit 矩阵 | **100%** — 4 轨并行 |
+| tier5 签收 | **100%** — `v45.tier5.100=1` |
+| 发行面树 zero_c | **100%** — `ir`+`samples` 零真 `.c` |
+| 全 monorepo zero_c | **未声称** |
+
+[`DIFFUSE-WAVE15.md`](DIFFUSE-WAVE15.md)
+
 ## 验证
 
 ```bash
@@ -156,7 +167,7 @@ env -u NANO_SELFHOST_REUSE_X86 -u NANO_SELFHOST_REUSE_AARCH64 \
   -u NANO_BUILD_SLICE_SELFHOST_REUSE -u NANO_REGENESIS \
   $COM run-bootstrap-plan lab/nano-lisp-jit/samples/bootstrap-v45-onion-tdd.lisp
 
-bash lab/nano-lisp-jit/scripts/v45-wave13-tier5-converge.sh
+bash lab/nano-lisp-jit/scripts/v45-wave15-tier5-100-converge.sh
 
 grep -E 'v45\.(scoped|release|endgame|warehouse|physical\.zero_c|honest)\.' \
   lab/nano-lisp-jit/.build/v45-entry.evidence

@@ -103,3 +103,9 @@ bash lab/nano-lisp-jit/scripts/v45-wave12-tier5-converge.sh
 ```bash
 bash lab/nano-lisp-jit/scripts/v45-wave13-tier5-converge.sh
 ```
+
+**Wave14–15** ✅：tier5 **100%** — [`DIFFUSE-WAVE15.md`](DIFFUSE-WAVE15.md)
+
+```bash
+bash lab/nano-lisp-jit/scripts/v45-wave15-tier5-100-converge.sh
+```

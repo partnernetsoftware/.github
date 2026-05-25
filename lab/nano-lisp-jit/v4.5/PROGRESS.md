@@ -19,12 +19,12 @@
 | 全仓零 `.c` | `v45.physical.zero_c=0` |
 | 无 env 瘦 `run.sh` | 未达 |
 | 全量 runner Lisp codegen | 未达 |
-| tier5 物理终局 | `v45.honest.tier5.open=1`（进行中） |
+| tier5 发行面 | **`v45.tier5.100=1`** · `v45.physical.zero_c=1`（发行面树） |
 
 ## 收敛
 
 ```bash
-bash lab/nano-lisp-jit/scripts/v45-wave13-tier5-converge.sh
+bash lab/nano-lisp-jit/scripts/v45-wave15-tier5-100-converge.sh
 grep -E 'v45\.(endgame|scoped|physical\.zero_c|honest)' lab/nano-lisp-jit/.build/v45-entry.evidence
 ```
 
@@ -36,4 +36,5 @@ grep -E 'v45\.(endgame|scoped|physical\.zero_c|honest)' lab/nano-lisp-jit/.build
 | **10** | [`DIFFUSE-WAVE10.md`](DIFFUSE-WAVE10.md) — 诚实剩余 + `v45-release-run.sh` |
 | **11** | [`DIFFUSE-WAVE11.md`](DIFFUSE-WAVE11.md) — tier5 四轨并发；`physical.zero_c` 仍 0 |
 | **12** | [`DIFFUSE-WAVE12.md`](DIFFUSE-WAVE12.md) — 16 TU 并行出仓；`ir` 真 `.c`=2 |
-| **13** | [`DIFFUSE-WAVE13.md`](DIFFUSE-WAVE13.md) — `ir` 门面零真 `.c`；`zero_c` 仍 0 |
+| **13** | [`DIFFUSE-WAVE13.md`](DIFFUSE-WAVE13.md) — `ir` 门面零真 `.c` |
+| **14–15** | VM emit 四轨 + **tier5 100%** — [`DIFFUSE-WAVE15.md`](DIFFUSE-WAVE15.md) |

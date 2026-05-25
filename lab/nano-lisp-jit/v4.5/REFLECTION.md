@@ -145,6 +145,17 @@ grep v45.scoped.100=1 lab/nano-lisp-jit/.build/v45-entry.evidence
 
 **并发**：2× batch `&` + 4× plan `&` → rollup；**禁止**把 `ir_facade` 写成 warehouse 100%。
 
-## 十四、Wave3（整表扩散，勿逐条）
+## 十四、Wave14–15（到 tier5 100% 才停）
+
+| 反思 | 调整 |
+|------|------|
+| T5d 仅 smoke | 四样本并行 VM emit → `vm_emit_broad=1` |
+| `zero_c` 语义模糊 | 拆键：`release_samples_c` + `archive_*` 透明计数 |
+| onion 红 genesis | wave15 用 `env -u NANO_SELFHOST_*` |
+| 未到 100% 不停 | `tier5.100=1` + `honest.tier5.open=0` 闭合卷 |
+
+**仍不声称**：全 monorepo 零 C · runner 全 Lisp codegen。
+
+## 十五、Wave3（整表扩散，勿逐条）
 
 见 DIFFUSE-WAVE2 §Wave3：无 C plan · run.sh 单行化 · wave 归档。

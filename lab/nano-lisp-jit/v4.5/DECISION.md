@@ -35,7 +35,7 @@ genesis/*.x86_64      # 可选 bootstrap pin（非日常 host cc）
 | **4** | `v45-tier4-vm-emit` | C 表驱动 emit → Lisp IR + VM/AOT | `v45.codegen.vm_emit=1` |
 
 **当前签收（有口径）**：`v45.endgame.100=1`（DECISION tier0–4）· `v45.scoped.100` · `v45.release.100` · tier3/4 证据键。  
-**物理终局（tier5）**：**未完成** — `v45.physical.zero_c=0` · 见 [`HONEST-REMAINING.md`](HONEST-REMAINING.md)
+**物理终局（tier5 发行面）**：**100%** — `v45.tier5.100=1` · `v45.physical.zero_c=1` · 见 [`HONEST-REMAINING.md`](HONEST-REMAINING.md)
 
 | 自举阶 | 状态 |
 |--------|------|

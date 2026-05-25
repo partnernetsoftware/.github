@@ -8140,19 +8140,20 @@ else
   log "v45.runsh.factory_block=skipped NANO_V45_SCOPED_ONLY"
 fi
 
-# --- v4.5: Wave13 tier5 收尾 (lispjit-ir 零真 .c；physical.zero_c=0) ---
-V45_WAVE13_CONVERGE="$LAB_DIR/scripts/v45-wave13-tier5-converge.sh"
-if [ -f "$NANO_JIT_COM" ] && host_is_linux_x86_64 && [ -x "$V45_WAVE13_CONVERGE" ]; then
-  run_case "run-bootstrap-v45-wave13-tier5-converge-plan" bash -c '
-    cd "'"$ROOT_DIR"'" && bash "'"$V45_WAVE13_CONVERGE"'"
+# --- v4.5: Wave15 tier5 100% (发行面树 zero_c=1；工厂 C 仅在 archive/) ---
+V45_WAVE15_CONVERGE="$LAB_DIR/scripts/v45-wave15-tier5-100-converge.sh"
+if [ -f "$NANO_JIT_COM" ] && host_is_linux_x86_64 && [ -x "$V45_WAVE15_CONVERGE" ]; then
+  run_case "run-bootstrap-v45-wave15-tier5-100-converge-plan" bash -c '
+    cd "'"$ROOT_DIR"'" && bash "'"$V45_WAVE15_CONVERGE"'"
     grep -q v45.endgame.100=1 "'"$V45_ENTRY_EVIDENCE"'"
     grep -q v45.scoped.100=1 "'"$V45_ENTRY_EVIDENCE"'"
-    grep -q v45.physical.zero_c=0 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.tier5.100=1 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.physical.zero_c=1 "'"$V45_ENTRY_EVIDENCE"'"
     grep -q v45.physical.lispjit_ir_c_files=0 "'"$V45_ENTRY_EVIDENCE"'"
-    grep -q v45.tier5.ir_facade_zero_real=1 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.physical.release_samples_c=0 "'"$V45_ENTRY_EVIDENCE"'"
   '
 else
-  skip_case "run-bootstrap-v45-wave13-tier5-converge-plan" "nano-jit.com or v45-wave13-tier5-converge.sh missing"
+  skip_case "run-bootstrap-v45-wave15-tier5-100-converge-plan" "nano-jit.com or v45-wave15-tier5-100-converge.sh missing"
 fi
 
 # --- layer4 zero-host: nano-jit.com runs gen2 graph → next .com ---

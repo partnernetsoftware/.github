@@ -9,7 +9,9 @@
 | `lispjit-ir/*.c` | 非 symlink 的 `.c` 文件数 |
 | `archive/**/*.c` | 归档真源 `.c` 数 |
 | symlink | `lispjit-ir/*.c` 全部 → `archive/runner/`（Wave13：**零真 `.c`**） |
-| `archive/runner` 真源 | ~20 TU（工厂维护，≠ 发行面） |
+| `archive/runner` 真源 | 工厂 runner TU |
+| `archive/fixtures` 真源 | `nano-cc-*.c` |
+| `samples/*.c` | **0** 真文件（Wave15 symlink） |
 
 ## Tier5 目标对照
 

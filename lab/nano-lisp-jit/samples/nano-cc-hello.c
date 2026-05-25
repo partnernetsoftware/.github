@@ -1,2 +1,1 @@
-/* nano-cc smoke: entry returns immediate (C-subset). */
-int main(void) { return 42; }
+../archive/fixtures/nano-cc/nano-cc-hello.c
