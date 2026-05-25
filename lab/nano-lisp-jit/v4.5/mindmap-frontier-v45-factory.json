@@ -22,7 +22,7 @@
       "layer": 17,
       "ring": "Codegen",
       "onion_ring": 9,
-      "status": "ready",
+      "status": "done",
       "deps": [
         "v45-fp-gate"
       ],
@@ -34,7 +34,7 @@
       "layer": 17,
       "ring": "Codegen",
       "onion_ring": 9,
-      "status": "ready",
+      "status": "done",
       "deps": [
         "v45-fp-gate"
       ],
@@ -44,9 +44,9 @@
     {
       "id": "v45-fp-next-full",
       "layer": 17,
-      "ring": "代际",
+      "ring": "\u4ee3\u9645",
       "onion_ring": 9,
-      "status": "ready",
+      "status": "done",
       "deps": [
         "v45-fp-gate"
       ],
@@ -56,9 +56,9 @@
     {
       "id": "v45-fp-runsh",
       "layer": 17,
-      "ring": "发行",
+      "ring": "\u53d1\u884c",
       "onion_ring": 9,
-      "status": "ready",
+      "status": "done",
       "deps": [
         "v45-fp-gate"
       ],
@@ -68,9 +68,9 @@
     {
       "id": "v45-fp-terminal",
       "layer": 18,
-      "ring": "终局",
+      "ring": "\u7ec8\u5c40",
       "onion_ring": 9,
-      "status": "ready",
+      "status": "done",
       "deps": [
         "v45-fp-slice-dual",
         "v45-fp-ir-broad",
@@ -84,7 +84,7 @@
       "layer": 19,
       "ring": "DONE",
       "onion_ring": 9,
-      "status": "ready",
+      "status": "done",
       "deps": [
         "v45-fp-terminal"
       ],
