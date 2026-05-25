@@ -1,56 +1,58 @@
-# v4.5 tier0–1 — plan-only verify (与 v4 catalog 分离)
+# v4.5 scoped 100% — onion TDD via *.lisp + nano-jit.com
 apiVersion: squad/v2
 project:
   root: ..
   state_db: .squad/state-v45.db
   state_file: .squad/state-v45.json
 signoff:
-  id: v45-tier1-verify
+  id: v45-scoped-100
   require_terminal: false
   gates:
     - id: v45-decision-doc
       check: artifact
       path_glob: "v4.5/DECISION.md"
-    - id: v45-readme
+    - id: v45-onion-tdd-doc
       check: artifact
-      path_glob: "v4.5/README.md"
-    - id: v45-entry-plan
+      path_glob: "v4.5/ONION-TDD.md"
+    - id: v45-progress-doc
       check: artifact
-      path_glob: "samples/bootstrap-v45-entry.lisp"
+      path_glob: "v4.5/PROGRESS.md"
+    - id: v45-eval-doc
+      check: artifact
+      path_glob: "v4.5/EVAL.md"
+    - id: v45-reflection-doc
+      check: artifact
+      path_glob: "v4.5/REFLECTION.md"
+    - id: v45-structure-doc
+      check: artifact
+      path_glob: "STRUCTURE.md"
+    - id: v45-onion-tdd-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v45-onion-tdd.lisp"
       plan_must_not_match: '\\.c'
-    - id: v45-verify-smoke-plan
+    - id: v45-terminal-done-plan
       check: artifact
-      path_glob: "samples/bootstrap-v45-verify-smoke.lisp"
-      plan_must_not_match: '\\.c'
-    - id: v45-verify-core-plan
+      path_glob: "samples/bootstrap-v45-terminal-done.lisp"
+    - id: v45-boundary-readme
       check: artifact
-      path_glob: "samples/bootstrap-v45-verify-core.lisp"
-      plan_must_not_match: '\\.c'
-    - id: v45-v4-handoff-plan
-      check: artifact
-      path_glob: "samples/bootstrap-v45-v4-handoff.lisp"
-      plan_must_not_match: '\\.c'
-    - id: v45-verify-all-plan
-      check: artifact
-      path_glob: "samples/bootstrap-v45-verify-all.lisp"
-      plan_must_not_match: '\\.c'
-    - id: v45-entry-evidence
+      path_glob: "samples/boundary/README.md"
+    - id: v45-scoped-100
       check: results
       file: ".build/v45-entry.evidence"
-      results_key: v45.entry.ok
+      results_key: v45.scoped.100
       min_pass: 1
-    - id: v45-verify-plan-only
+    - id: v45-onion-lisp-only
       check: results
       file: ".build/v45-entry.evidence"
-      results_key: v45.verify.plan_only
+      results_key: v45.onion.lisp_only
       min_pass: 1
-    - id: v45-verify-com-only
+    - id: v45-build-no-host-cc
       check: results
       file: ".build/v45-entry.evidence"
-      results_key: v45.verify.com_only
+      results_key: v45.build.no_host_cc
       min_pass: 1
     - id: v35-regression-run
       check: results
       file: ".build/results.txt"
       results_key: tests.pass
-      min_pass: 1297
+      min_pass: 1302

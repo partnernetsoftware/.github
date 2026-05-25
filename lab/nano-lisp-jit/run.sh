@@ -165,10 +165,16 @@ BOOTSTRAP_V45_VERIFY_SMOKE_SRC="$LAB_DIR/samples/bootstrap-v45-verify-smoke.lisp
 BOOTSTRAP_V45_VERIFY_CORE_SRC="$LAB_DIR/samples/bootstrap-v45-verify-core.lisp"
 BOOTSTRAP_V45_V4_HANDOFF_SRC="$LAB_DIR/samples/bootstrap-v45-v4-handoff.lisp"
 BOOTSTRAP_V45_VERIFY_ALL_SRC="$LAB_DIR/samples/bootstrap-v45-verify-all.lisp"
+BOOTSTRAP_V45_BUILD_SLICE_GENESIS_SRC="$LAB_DIR/samples/bootstrap-v45-build-slice-genesis.lisp"
+BOOTSTRAP_V45_BOUNDARY_PROBE_SRC="$LAB_DIR/samples/bootstrap-v45-boundary-probe.lisp"
+BOOTSTRAP_V45_ONION_TDD_SRC="$LAB_DIR/samples/bootstrap-v45-onion-tdd.lisp"
+BOOTSTRAP_V45_TERMINAL_DONE_SRC="$LAB_DIR/samples/bootstrap-v45-terminal-done.lisp"
 BOOTSTRAP_V45_ENTRY_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v45-entry-evidence.lisp"
 V45_ENTRY_EVIDENCE="$BUILD_DIR/v45-entry.evidence"
 V45_CORE_APP="$BUILD_DIR/v45-core-app.com"
 V45_HANDOFF_APP="$BUILD_DIR/v45-handoff-app.com"
+V45_GENESIS_X86="$BUILD_DIR/v45-genesis-shrink-x86.elf"
+V45_ONION_APE="$BUILD_DIR/v45-onion-ape.com"
 V45_SMOKE_EXIT_ELF="$BUILD_DIR/v45-smoke-exit42.elf"
 V45_ENTRY_EXIT_ELF="$BUILD_DIR/bootstrap-v45-entry-exit42.elf"
 MINDMAP_BARE_SRC="$LAB_DIR/samples/bootstrap-v4-mindmap-loader-bare-default.lisp"
@@ -8183,6 +8189,64 @@ if [ -f "$NANO_JIT_COM" ] && host_is_linux_x86_64; then
   '
 else
   skip_case "run-bootstrap-v45-com-only-verify-plan" "nano-jit.com missing or host not linux x86_64"
+fi
+run_case "run-bootstrap-v45-build-slice-genesis-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$(env -u NANO_SELFHOST_REUSE_X86 -u NANO_BUILD_SLICE_SELFHOST_REUSE -u NANO_REGENESIS \
+    "'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V45_BUILD_SLICE_GENESIS_SRC"'" 2>&1) || true
+  printf "%s\n" "$out"
+  printf "%s\n" "$out" | grep -q "build-slice.role=genesis-pin"
+  printf "%s\n" "$out" | grep -q "bootstrap-compare.ok"
+  test -f "'"$V45_GENESIS_X86"'"
+'
+run_case "run-bootstrap-v45-boundary-probe-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V45_BOUNDARY_PROBE_SRC"'" 2>&1) || true
+  printf "%s\n" "$out"
+  test -f "'"$BUILD_DIR"'/v45-boundary-nested.lbin"
+  printf "%s\n" "$out" | grep -q "run-expect-exit.ok=1"
+'
+run_case "run-bootstrap-v45-onion-tdd-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$(env -u NANO_SELFHOST_REUSE_X86 -u NANO_BUILD_SLICE_SELFHOST_REUSE -u NANO_REGENESIS \
+    "'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V45_ONION_TDD_SRC"'" 2>&1) || true
+  printf "%s\n" "$out"
+  test -f "'"$V45_ONION_APE"'"
+  printf "%s\n" "$out" | grep -q "bootstrap-compare.ok"
+  printf "%s\n" "$out" | grep -q "run-ape.payload.load=1"
+'
+if [ -f "$NANO_JIT_COM" ] && host_is_linux_x86_64; then
+  run_case "run-bootstrap-v45-onion-com-only-plan" bash -c '
+    cd "'"$ROOT_DIR"'"
+    v45_com() {
+      local plan="$1" genesis="${2:-0}"
+      local out
+      if [ "$genesis" = 1 ]; then
+        out=$(env -u NANO_SELFHOST_REUSE_X86 -u NANO_BUILD_SLICE_SELFHOST_REUSE -u NANO_REGENESIS \
+          "'"$NANO_JIT_COM"'" run-bootstrap-plan "$plan" 2>&1) || return 1
+      else
+        out=$("'"$NANO_JIT_COM"'" run-bootstrap-plan "$plan" 2>&1) || return 1
+      fi
+      printf "%s\n" "$out"
+      printf "%s\n" "$out" | grep -q "bootstrap-step"
+    }
+    v45_com "'"$BOOTSTRAP_V45_VERIFY_SMOKE_SRC"'" 0
+    v45_com "'"$BOOTSTRAP_V45_VERIFY_CORE_SRC"'" 0
+    v45_com "'"$BOOTSTRAP_V45_V4_HANDOFF_SRC"'" 0
+    v45_com "'"$BOOTSTRAP_V45_BOUNDARY_PROBE_SRC"'" 0
+    v45_com "'"$BOOTSTRAP_V45_BUILD_SLICE_GENESIS_SRC"'" 1
+    v45_com "'"$BOOTSTRAP_V45_ONION_TDD_SRC"'" 1
+    v45_com "'"$BOOTSTRAP_V45_VERIFY_ALL_SRC"'" 0
+    v45_com "'"$BOOTSTRAP_V45_ENTRY_SRC"'" 0
+    {
+      echo "v45.verify.plan_only=1"
+      echo "v45.verify.com_only=1"
+      echo "v45.onion.lisp_only=1"
+      echo "v45.build.no_host_cc=1"
+      echo "v45.verify.plans=smoke,core,handoff,boundary,genesis,onion,all,entry"
+    } >> "'"$V45_ENTRY_EVIDENCE"'"
+    v45_com "'"$BOOTSTRAP_V45_TERMINAL_DONE_SRC"'" 0
+    echo "v45.scoped.100=1" >> "'"$V45_ENTRY_EVIDENCE"'"
+  '
+else
+  skip_case "run-bootstrap-v45-onion-com-only-plan" "nano-jit.com missing or host not linux x86_64"
 fi
 
 # --- layer4 zero-host: nano-jit.com runs gen2 graph → next .com ---

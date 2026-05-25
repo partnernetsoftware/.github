@@ -34,9 +34,17 @@ genesis/*.x86_64      # 可选 bootstrap pin（非日常 host cc）
 | **3** | `v45-tier3-no-c-src` | repo 无 `lispjit.c` 源码 | `v45.runner.no_c_src=1` |
 | **4** | `v45-tier4-vm-emit` | C 表驱动 emit → Lisp IR + VM/AOT | `v45.codegen.vm_emit=1` |
 
-**当前开卷**：**tier1**（tier0 ✅）。
+**当前开卷**：**scoped 100% ✅**（见 [`PROGRESS.md`](PROGRESS.md)）
 
-## tier1 交付（本波）
+## scoped 100% 签收（2026-05-24）
+
+洋葱 TDD 真源：[`ONION-TDD.md`](ONION-TDD.md) · 评估：[`EVAL.md`](EVAL.md) · 反思：[`REFLECTION.md`](REFLECTION.md)
+
+```bash
+grep v45.scoped.100=1 lab/nano-lisp-jit/.build/v45-entry.evidence
+```
+
+## tier1 交付（已签收）
 
 | 产物 | 路径 |
 |------|------|

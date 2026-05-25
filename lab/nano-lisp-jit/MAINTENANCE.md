@@ -6,11 +6,14 @@
 
 | 路径 | 用途 |
 |------|------|
-| [`v4/`](v4/) | 终局进度、SLICE、LONG-RUN 队列 |
-| [`samples/bootstrap-v4-*`](samples/) | plan / tick / evidence 样本 |
-| [`samples/nano-jit-slice-add-*`](samples/) | addNN 切片（与 `run.sh` 同步） |
-| [`squad/catalog-v4.yaml`](squad/catalog-v4.yaml) | v4 门禁 |
-| [`run.sh`](run.sh) · [`build_nano_jit.sh`](build_nano_jit.sh) | 收敛入口 |
+| [`v4.5/`](v4.5/) | **发行面 SSOT**：ONION-TDD、PROGRESS、EVAL、REFLECTION |
+| [`STRUCTURE.md`](STRUCTURE.md) | 目录地图（工厂 vs 发行面） |
+| [`samples/bootstrap-v45-*`](samples/) | 洋葱 TDD plan（**.com** 验收） |
+| [`samples/boundary/`](samples/boundary/) | 能力边界样例 |
+| [`v4/`](v4/) | v4 历史 SLICE 文档（`run.sh` 仍引用；见 STRUCTURE） |
+| [`samples/bootstrap-v4-*`](samples/) | v4 plan / zero-host 链 |
+| [`squad/catalog-v45.yaml`](squad/catalog-v45.yaml) | v4.5 门禁 |
+| [`run.sh`](run.sh) · [`build_nano_jit.sh`](build_nano_jit.sh) | **开发工厂**（落盘证据；非用户路径） |
 | [`tools/gen-v4-wave-batch.py`](tools/gen-v4-wave-batch.py) | 批量生波 |
 | [`skills/nano-lisp-jit-v4-longrun/`](../../skills/nano-lisp-jit-v4-longrun/) | **长程 skill（Bun TS）** |
 | [`tools/v4-longrun-loop.sh`](tools/v4-longrun-loop.sh) | 薄包装 → skill `loop` |

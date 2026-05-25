@@ -27,9 +27,10 @@ grep v45.verify.plan_only=1 lab/nano-lisp-jit/.build/v45-entry.evidence
 | Tier | 状态 |
 |------|------|
 | 0 entry | ✅ |
-| **1 com-only verify** | **✅ 开卷** |
-| 2 无 host cc | 未开 |
+| 1 com-only verify | ✅ |
+| 2 genesis build-slice | ✅ |
+| **scoped 100%** | **✅** |
 | 3 无 C 源码 | 未开 |
 | 4 VM emit | 未开 |
 
-口径：[`DECISION.md`](DECISION.md)
+口径：[`DECISION.md`](DECISION.md) · [`PROGRESS.md`](PROGRESS.md) · [`ONION-TDD.md`](ONION-TDD.md)
