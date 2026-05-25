@@ -901,7 +901,7 @@ tasks:
 
 verify:
   commands:
-    - script: scripts/v45-wave25-codegen-probe-converge.sh
+    - script: scripts/v45-wave26-codegen-expand-converge.sh
       cwd: .
       fail_on_nonzero: true
 

@@ -8181,6 +8181,19 @@ else
   skip_case "run-bootstrap-v45-wave20-lisp-selfhost-unified-converge-plan" "nano-jit.com or v45-wave20-lisp-selfhost-unified-converge.sh missing"
 fi
 
+# --- v4.5: Wave26 codegen 扩面（五轨 + wave25）---
+V45_WAVE26_CONVERGE="$LAB_DIR/scripts/v45-wave26-codegen-expand-converge.sh"
+if [ -f "$NANO_JIT_COM" ] && host_is_linux_x86_64 && [ -x "$V45_WAVE26_CONVERGE" ]; then
+  run_case "run-bootstrap-v45-wave26-codegen-expand-converge-plan" bash -c '
+    cd "'"$ROOT_DIR"'" && bash "'"$V45_WAVE26_CONVERGE"'"
+    grep -q v45.v45.codegen_expand.100=1 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.codegen.lisp_slices=5 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.v45.codegen_probe.100=1 "'"$V45_ENTRY_EVIDENCE"'"
+  '
+else
+  skip_case "run-bootstrap-v45-wave26-codegen-expand-converge-plan" "nano-jit.com or v45-wave26-codegen-expand-converge.sh missing"
+fi
+
 # --- v4.5: Wave25 codegen 探针（lisp runner 四轨 + wave24）---
 V45_WAVE25_CONVERGE="$LAB_DIR/scripts/v45-wave25-codegen-probe-converge.sh"
 if [ -f "$NANO_JIT_COM" ] && host_is_linux_x86_64 && [ -x "$V45_WAVE25_CONVERGE" ]; then

@@ -320,6 +320,14 @@ bash lab/nano-lisp-jit/scripts/v45-cleanup-reflect.sh
 
 日常入口：`v45-wave25-codegen-probe-converge.sh`（内嵌 wave24 链）。
 
+## 二十六、Wave26（codegen 五轨扩面）
+
+| 反思 | 调整 |
+|------|------|
+| Wave25 next_lo 仅 warn | 显式 `onion-next-lo-minimal` plan + 独立键 |
+| 探针仅 3 slice | 加 VM emit arith/strlen → `lisp_slices=5` |
+| 物理覆盖仍小 | 独立卷 `codegen_expand.100` · **~20%** 诚实未达全量 |
+
 ## 十八、Wave3（整表扩散，勿逐条）
 
 见 DIFFUSE-WAVE2 §Wave3：无 C plan · run.sh 单行化 · wave 归档。
