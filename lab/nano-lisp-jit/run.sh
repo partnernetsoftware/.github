@@ -4,6 +4,12 @@ set -euo pipefail
 LAB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$LAB_DIR/../.." && pwd)"
 cd "$ROOT_DIR"
+# v4.5 tier5: 无参默认发行面（须 NANO_V45_FULL_FACTORY=1 才跑全量 v4 工厂墙）
+if [ "$#" -eq 0 ] && [ "${NANO_V45_FULL_FACTORY:-0}" != 1 ] && [ "${NANO_V45_SCOPED_ONLY:-0}" != 1 ]; then
+  export NANO_V45_DEFAULT_RELEASE=1
+  export NANO_V45_SCOPED_ONLY=1
+  echo "v45.runsh.default_release=1 scoped_only=1"
+fi
 BUILD_DIR="$LAB_DIR/.build"
 SRC="$LAB_DIR/samples/strlen.lisp"
 ARITH_SRC="$LAB_DIR/samples/arithmetic.lisp"
@@ -8134,18 +8140,19 @@ else
   log "v45.runsh.factory_block=skipped NANO_V45_SCOPED_ONLY"
 fi
 
-# --- v4.5: Wave10 honest converge (signed keys; physical.zero_c=0 explicit) ---
-V45_WAVE10_CONVERGE="$LAB_DIR/scripts/v45-wave10-honest-converge.sh"
-if [ -f "$NANO_JIT_COM" ] && host_is_linux_x86_64 && [ -x "$V45_WAVE10_CONVERGE" ]; then
-  run_case "run-bootstrap-v45-wave10-honest-converge-plan" bash -c '
-    cd "'"$ROOT_DIR"'" && bash "'"$V45_WAVE10_CONVERGE"'"
+# --- v4.5: Wave11 tier5 converge (四轨并发；physical.zero_c=0 explicit) ---
+V45_WAVE11_CONVERGE="$LAB_DIR/scripts/v45-wave11-tier5-converge.sh"
+if [ -f "$NANO_JIT_COM" ] && host_is_linux_x86_64 && [ -x "$V45_WAVE11_CONVERGE" ]; then
+  run_case "run-bootstrap-v45-wave11-tier5-converge-plan" bash -c '
+    cd "'"$ROOT_DIR"'" && bash "'"$V45_WAVE11_CONVERGE"'"
     grep -q v45.endgame.100=1 "'"$V45_ENTRY_EVIDENCE"'"
     grep -q v45.scoped.100=1 "'"$V45_ENTRY_EVIDENCE"'"
     grep -q v45.physical.zero_c=0 "'"$V45_ENTRY_EVIDENCE"'"
-    grep -q v45.honest.tier5.open=1 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.wave11.parallel=4 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.tier5.runsh_default=1 "'"$V45_ENTRY_EVIDENCE"'"
   '
 else
-  skip_case "run-bootstrap-v45-wave10-honest-converge-plan" "nano-jit.com or v45-wave10-honest-converge.sh missing"
+  skip_case "run-bootstrap-v45-wave11-tier5-converge-plan" "nano-jit.com or v45-wave11-tier5-converge.sh missing"
 fi
 
 # --- layer4 zero-host: nano-jit.com runs gen2 graph → next .com ---

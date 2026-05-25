@@ -271,6 +271,27 @@ signoff:
     - id: v45-wave10-diffuse-doc
       check: artifact
       path_glob: "v4.5/DIFFUSE-WAVE10.md"
+    - id: v45-wave11-diffuse-doc
+      check: artifact
+      path_glob: "v4.5/DIFFUSE-WAVE11.md"
+    - id: v45-physical-inventory-doc
+      check: artifact
+      path_glob: "v4.5/PHYSICAL-INVENTORY.md"
+    - id: v45-wave11-parallel
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.wave11.parallel
+      min_pass: 4
+    - id: v45-tier5-runsh-default
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.tier5.runsh_default
+      min_pass: 1
+    - id: v45-tier5-archive-symlinks
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.tier5.archive_symlinks
+      min_pass: 2
     - id: v45-wave7-diffuse
       check: results
       file: ".build/v45-entry.evidence"
@@ -611,10 +632,53 @@ tasks:
     accept:
       - "run-bootstrap-v45-wave7-converge-plan"
       - "v45-wave7-converge done"
+  wave11-v45-track-a-runsh-default:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "run.sh"
+      - "samples/bootstrap-v45-wave11-runsh-default.lisp"
+    accept:
+      - "v45.tier5.runsh_default=1"
+  wave11-v45-track-b-bootstrap-archive:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "archive/runner/nano_bootstrap.c"
+      - "archive/runner/README.md"
+      - "samples/bootstrap-v45-wave11-tier5-bootstrap-anchor.lisp"
+    accept:
+      - "v45.tier5.archive_symlinks=2"
+  wave11-v45-track-c-physical-inventory:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "v4.5/PHYSICAL-INVENTORY.md"
+      - "samples/bootstrap-v45-wave11-physical-inventory.lisp"
+    accept:
+      - "run-bootstrap-v45-wave11-physical-inventory-plan"
+  wave11-v45-track-d-vm-emit-matrix:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v45-wave11-vm-emit-matrix.lisp"
+    accept:
+      - "run-bootstrap-v45-wave11-vm-emit-matrix-plan"
+  wave11-v45-R:
+    assign_role: reviewer
+    priority: meta
+    depends:
+      - wave11-v45-track-a-runsh-default
+      - wave11-v45-track-b-bootstrap-archive
+      - wave11-v45-track-c-physical-inventory
+      - wave11-v45-track-d-vm-emit-matrix
+    accept:
+      - "run-bootstrap-v45-wave11-tier5-converge-plan"
+      - "v45-wave11-tier5-converge done"
 
 verify:
   commands:
-    - script: scripts/v45-wave10-honest-converge.sh
+    - script: scripts/v45-wave11-tier5-converge.sh
       cwd: .
       fail_on_nonzero: true
 

@@ -17,17 +17,17 @@
 
 | ID | 完成定义 | 当前 |
 |----|----------|------|
-| T5a | 日常 `run.sh` 默认走发行面（`v45-release-run.sh` 或 env 默认） | Wave10 锚点 |
-| T5b | `lispjit-ir` 仅 symlink/桩，真源仅在 `archive/` | 仅 `lispjit.c` 迁出 |
+| T5a | 日常 `run.sh` 默认走发行面（无参 → `NANO_V45_SCOPED_ONLY=1`） | **Wave11** `v45.tier5.runsh_default=1` |
+| T5b | `lispjit-ir` 仅 symlink/桩，真源仅在 `archive/` | `lispjit.c` + `nano_bootstrap.c`（Wave11） |
 | T5c | 仓内 `.c` 计数下降且文档化 | 未做 |
 | T5d | VM emit 全量替代 C 表 | tier4 仅 smoke |
 
 ## 日常命令（发行面真源）
 
 ```bash
-bash lab/nano-lisp-jit/scripts/v45-wave9-converge.sh
-# 或 Wave10：
-bash lab/nano-lisp-jit/scripts/v45-wave10-honest-converge.sh
+bash lab/nano-lisp-jit/scripts/v45-wave11-tier5-converge.sh
+# 全量 v4 工厂（显式）：
+NANO_V45_FULL_FACTORY=1 bash lab/nano-lisp-jit/run.sh
 ```
 
 ## 工厂瘦身（须显式 env，非默认 run.sh）

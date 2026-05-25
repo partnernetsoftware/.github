@@ -78,3 +78,16 @@ bash lab/nano-lisp-jit/scripts/v45-wave2-converge.sh
 **Wave9** ✅：合卷键 `v45.warehouse.100`（非物理全仓）· run.sh guard。
 
 **Wave10** ✅：[`DIFFUSE-WAVE10.md`](DIFFUSE-WAVE10.md) · [`HONEST-REMAINING.md`](HONEST-REMAINING.md) — `v45.physical.zero_c=0` 明示未完成。
+
+**Wave11**（tier5 四轨并发）：[`DIFFUSE-WAVE11.md`](DIFFUSE-WAVE11.md)
+
+```bash
+bash lab/nano-lisp-jit/scripts/v45-wave11-tier5-converge.sh
+```
+
+| 键 | 含义 |
+|----|------|
+| `v45.wave11.parallel=4` | T5a/T5b/T5c/T5d 四轨 plan 并发跑 |
+| `v45.tier5.runsh_default=1` | 无参 `run.sh` 默认 scoped |
+| `v45.tier5.archive_symlinks=2` | lispjit + nano_bootstrap |
+| `v45.physical.zero_c=0` | 仍 **未完成** |

@@ -115,6 +115,18 @@
 
 [`DIFFUSE-WAVE10.md`](DIFFUSE-WAVE10.md)
 
+## Wave11（tier5 四轨并发）
+
+| 维度 | 评估 |
+|------|------|
+| T5a 默认瘦 | **100%** — `v45.tier5.runsh_default=1` |
+| T5b 归档 symlink | **~15%** — 2/20 TU（lispjit + bootstrap） |
+| T5c 物理清单 | **100%** — `PHYSICAL-INVENTORY.md` |
+| T5d VM emit 矩阵 | **~30%** — smoke 扩面，非全表 |
+| 物理 zero_c | **0% 签收** — 仍 `physical.zero_c=0` |
+
+[`DIFFUSE-WAVE11.md`](DIFFUSE-WAVE11.md)
+
 ## 验证
 
 ```bash
@@ -123,7 +135,7 @@ env -u NANO_SELFHOST_REUSE_X86 -u NANO_SELFHOST_REUSE_AARCH64 \
   -u NANO_BUILD_SLICE_SELFHOST_REUSE -u NANO_REGENESIS \
   $COM run-bootstrap-plan lab/nano-lisp-jit/samples/bootstrap-v45-onion-tdd.lisp
 
-bash lab/nano-lisp-jit/scripts/v45-wave10-honest-converge.sh
+bash lab/nano-lisp-jit/scripts/v45-wave11-tier5-converge.sh
 
 grep -E 'v45\.(scoped|release|endgame|warehouse|physical\.zero_c|honest)\.' \
   lab/nano-lisp-jit/.build/v45-entry.evidence

@@ -113,6 +113,18 @@ grep v45.scoped.100=1 lab/nano-lisp-jit/.build/v45-entry.evidence
 
 **教训**：证据键分层（`scoped` / `release` / `endgame` / `warehouse` / `physical.*`）避免 PR 标题误导；`warehouse.100` 只表示合卷门禁绿，不是删光 C。
 
-## 十一、Wave3（整表扩散，勿逐条）
+## 十一、Wave11（扩散 + 并发 · tier5 切片）
+
+| 调整 | 说明 |
+|------|------|
+| 默认入口 | 无参 `run.sh` 设 `NANO_V45_SCOPED_ONLY=1`；全量须 `NANO_V45_FULL_FACTORY=1` |
+| 并发收敛 | 四轨 plan **后台并行** `wait` → rollup（见 `v45-wave11-tier5-converge.sh`） |
+| 归档扩散 | `nano_bootstrap.c` 跟 tier3 同模式迁 `archive/runner/` |
+| 诚实 | `lispjit_ir` 计数下降 ≠ `physical.zero_c=1` |
+
+**扩散思维**：同一 wave 同时 touch T5a–T5d，禁止按单 `.c` 顺序碎迁。  
+**并发思维**：com-only 矩阵用 `&`/`wait`，勿串行跑 4 个重 plan。
+
+## 十二、Wave3（整表扩散，勿逐条）
 
 见 DIFFUSE-WAVE2 §Wave3：无 C plan · run.sh 单行化 · wave 归档。

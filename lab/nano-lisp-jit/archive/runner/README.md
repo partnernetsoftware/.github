@@ -5,6 +5,8 @@
 | 路径 | 角色 |
 |------|------|
 | `archive/runner/lispjit.c` | **唯一** `lispjit.c` 真源（tier3 出仓） |
+| `archive/runner/nano_bootstrap.c` | **唯一** `nano_bootstrap.c` 真源（wave11 tier5） |
 | `lab/lispjit-ir/lispjit.c` | 符号链接 → 本文件（工厂 `cc` / `build-slice` 兼容） |
+| `lab/lispjit-ir/nano_bootstrap.c` | 符号链接 → `archive/runner/nano_bootstrap.c` |
 
-证据：`v45.runner.no_c_src=1` · `v45.tier3.runner_archived=1`
+证据：`v45.runner.no_c_src=1` · `v45.tier3.runner_archived=1` · `v45.tier5.archive_symlinks≥2`
