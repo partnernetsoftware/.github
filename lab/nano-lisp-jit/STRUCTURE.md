@@ -15,7 +15,7 @@ v4.5/                                # ONION-TDD · PROGRESS · EVAL · REFLECTI
 
 入口：[`v4.5/ONION-TDD.md`](v4.5/ONION-TDD.md)
 
-## v4 活跃文档（16 个）
+## v4 活跃文档（14 个）
 
 [`v4/INDEX.md`](v4/INDEX.md) — PROGRESS · DECISION · MINDMAP · TERMINAL-BFS · …
 

@@ -7,7 +7,7 @@
 | SLICE 文档 | `archive/v4/slices/SLICE*.md`（244） | `archive/v4/slices/` |
 | 工厂长文 | `v4/LONG-RUN-TODO` 等 | `archive/v4/factory-docs/` |
 | 路径批量更新 | — | `run.sh`、samples、catalog、tools（439+ 文件） |
-| `v4/` 活跃文档 | ~260 md | **16** + [`INDEX.md`](../v4/INDEX.md) |
+| `v4/` 活跃文档 | ~260 md | **14** + [`INDEX.md`](../v4/INDEX.md) |
 
 ## 未动（刻意）
 
@@ -27,7 +27,7 @@
 ```bash
 test -f lab/nano-lisp-jit/archive/v4/slices/SLICE252.md
 test -f lab/nano-lisp-jit/v4/PROGRESS.md
-! test -f lab/nano-lisp-jit/archive/v4/slices/SLICE252.md
+test ! -f lab/nano-lisp-jit/v4/SLICE252.md
 ```
 
 证据键（可选）：`v45.cleanup.ok=1`

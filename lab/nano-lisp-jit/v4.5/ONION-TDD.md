@@ -6,6 +6,12 @@
 # 从 repo root — 唯一二进制入口
 COM=lab/nano-lisp-jit/.build/nano-jit/nano-jit.com
 
+# build-slice compare 须 genesis-pin（勿走 selfhost-reuse）
+export -n NANO_SELFHOST_REUSE_X86 NANO_SELFHOST_REUSE_AARCH64 \
+  NANO_BUILD_SLICE_SELFHOST_REUSE NANO_REGENESIS 2>/dev/null || true
+# 或：env -u NANO_SELFHOST_REUSE_X86 -u NANO_SELFHOST_REUSE_AARCH64 \
+#       -u NANO_BUILD_SLICE_SELFHOST_REUSE -u NANO_REGENESIS $COM run-bootstrap-plan …
+
 # 洋葱主门禁（tier2 genesis + VM + APE + compare）
 $COM run-bootstrap-plan lab/nano-lisp-jit/samples/bootstrap-v45-onion-tdd.lisp
 

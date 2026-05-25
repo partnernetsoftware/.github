@@ -22,14 +22,14 @@
 | v4 当引擎 | 不重写 runner；`.com` 跑 plan 即自举 |
 | 洋葱改载体 | 验收迁到 `bootstrap-v45-*.lisp` |
 | tier 分期 | 避免「DONE = 删光 C」误解 |
-| genesis 环境 | `env -u NANO_SELFHOST_REUSE_*` 再 compare |
-| **目录清理** | `v4/` 从 260+ md 收到 16；SLICE → `archive/v4/slices/` |
+| genesis 环境 | `env -u NANO_SELFHOST_REUSE_{X86,AARCH64}` 等再 compare |
+| **目录清理** | `v4/` 从 260+ md 收到 14；SLICE → `archive/v4/slices/` |
 
 ## 四、踩过的坑
 
 | 现象 | 根因 | 处理 |
 |------|------|------|
-| compare 失败 | selfhost-reuse 盖过 genesis-pin | unset reuse |
+| compare 失败 | `NANO_SELFHOST_REUSE_*` 盖过 genesis-pin | unset X86+AARCH64+reuse |
 | multi-func `(run)` 断 plan | exit≠0 | `compile-elf64-exe` + `run-expect-exit` |
 | boundary store-u32 红 | VM 未支持 | 改 store-load-u8 |
 | v4 能否开 v4.5 | 混淆子轨与发行面 | handoff 锚 gen60 |
@@ -40,7 +40,7 @@
 ```
 lab/nano-lisp-jit/
 ├── v4.5/          ← 发行面 SSOT（ONION-TDD · EVAL · REFLECTION · CLEANUP）
-├── v4/            ← v4 决策/进度/mindmap（16 个 md + INDEX）
+├── v4/            ← v4 决策/进度/mindmap（14 个 md + INDEX）
 ├── samples/
 │   ├── bootstrap-v45-*   ← 洋葱验收
 │   ├── boundary/         ← 边界样例

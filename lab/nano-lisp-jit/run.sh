@@ -8192,7 +8192,7 @@ else
   skip_case "run-bootstrap-v45-com-only-verify-plan" "nano-jit.com missing or host not linux x86_64"
 fi
 run_case "run-bootstrap-v45-build-slice-genesis-plan" bash -c '
-  cd "'"$ROOT_DIR"'" && out=$(env -u NANO_SELFHOST_REUSE_X86 -u NANO_BUILD_SLICE_SELFHOST_REUSE -u NANO_REGENESIS \
+  cd "'"$ROOT_DIR"'" && out=$(env -u NANO_SELFHOST_REUSE_X86 -u NANO_SELFHOST_REUSE_AARCH64 -u NANO_BUILD_SLICE_SELFHOST_REUSE -u NANO_REGENESIS \
     "'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V45_BUILD_SLICE_GENESIS_SRC"'" 2>&1) || true
   printf "%s\n" "$out"
   printf "%s\n" "$out" | grep -q "build-slice.role=genesis-pin"
@@ -8206,7 +8206,7 @@ run_case "run-bootstrap-v45-boundary-probe-plan" bash -c '
   printf "%s\n" "$out" | grep -q "run-expect-exit.ok=1"
 '
 run_case "run-bootstrap-v45-onion-tdd-plan" bash -c '
-  cd "'"$ROOT_DIR"'" && out=$(env -u NANO_SELFHOST_REUSE_X86 -u NANO_BUILD_SLICE_SELFHOST_REUSE -u NANO_REGENESIS \
+  cd "'"$ROOT_DIR"'" && out=$(env -u NANO_SELFHOST_REUSE_X86 -u NANO_SELFHOST_REUSE_AARCH64 -u NANO_BUILD_SLICE_SELFHOST_REUSE -u NANO_REGENESIS \
     "'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V45_ONION_TDD_SRC"'" 2>&1) || true
   printf "%s\n" "$out"
   test -f "'"$V45_ONION_APE"'"
@@ -8228,7 +8228,7 @@ if [ -f "$NANO_JIT_COM" ] && host_is_linux_x86_64; then
       local plan="$1" genesis="${2:-0}"
       local out
       if [ "$genesis" = 1 ]; then
-        out=$(env -u NANO_SELFHOST_REUSE_X86 -u NANO_BUILD_SLICE_SELFHOST_REUSE -u NANO_REGENESIS \
+        out=$(env -u NANO_SELFHOST_REUSE_X86 -u NANO_SELFHOST_REUSE_AARCH64 -u NANO_BUILD_SLICE_SELFHOST_REUSE -u NANO_REGENESIS \
           "'"$NANO_JIT_COM"'" run-bootstrap-plan "$plan" 2>&1) || return 1
       else
         out=$("'"$NANO_JIT_COM"'" run-bootstrap-plan "$plan" 2>&1) || return 1
