@@ -1,9 +1,9 @@
 ; v4.5 selfhost: seed .com builds next .com via build-slice + pack-ape (plan 无 .c/.sh).
 (bootstrap
-  (build-slice "lab/lispjit-ir/lispjit.c"
+  (build-slice "lab/nano-lisp-jit/archive/runner/lispjit.c"
                "lab/nano-lisp-jit/.build/v45-selfhost-regen-x86.elf"
                "x86_64")
-  (build-slice "lab/lispjit-ir/lispjit.c"
+  (build-slice "lab/nano-lisp-jit/archive/runner/lispjit.c"
                "lab/nano-lisp-jit/.build/v45-selfhost-regen-aarch64.elf"
                "aarch64")
   (pack-ape "lab/nano-lisp-jit/.build/v45-selfhost-next.com"

@@ -4,7 +4,7 @@
   (file-size "lab/nano-lisp-jit/samples/bootstrap-v4-zero-host-gen60-lispjit-from-lisp-done.lisp")
   (file-hash "lab/nano-lisp-jit/.build/nano-jit/nano-jit.com")
   (file-hash "lab/nano-lisp-jit/genesis/nano-jit.x86_64")
-  (build-slice "lab/lispjit-ir/lispjit.c"
+  (build-slice "lab/nano-lisp-jit/archive/runner/lispjit.c"
                "lab/nano-lisp-jit/.build/v45-selfhost-genesis-x86.elf"
                "x86_64")
   (compare "lab/nano-lisp-jit/.build/v45-selfhost-genesis-x86.elf"
@@ -16,10 +16,10 @@
   (compile "lab/nano-lisp-jit/samples/lispjit-modules/12-parse.lisp"
            "lab/nano-lisp-jit/.build/v45-selfhost-chain-parse.lbin")
   (run "lab/nano-lisp-jit/.build/v45-selfhost-chain-parse.lbin")
-  (build-slice "lab/lispjit-ir/lispjit.c"
+  (build-slice "lab/nano-lisp-jit/archive/runner/lispjit.c"
                "lab/nano-lisp-jit/.build/v45-selfhost-regen-x86.elf"
                "x86_64")
-  (build-slice "lab/lispjit-ir/lispjit.c"
+  (build-slice "lab/nano-lisp-jit/archive/runner/lispjit.c"
                "lab/nano-lisp-jit/.build/v45-selfhost-regen-aarch64.elf"
                "aarch64")
   (pack-ape "lab/nano-lisp-jit/.build/v45-selfhost-next.com"

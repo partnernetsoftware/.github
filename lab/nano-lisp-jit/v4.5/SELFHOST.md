@@ -12,8 +12,8 @@
 | S3 | **modules** | `lispjit-modules/*.lisp` VM 链 | `bootstrap-v45-selfhost-modules` | `v45.selfhost.modules=1` |
 | S4 | **regenesis** | seed `.com` → `pack-ape` 出 **next.com** | `bootstrap-v45-selfhost-regenesis` | `v45.selfhost.regenesis=1` |
 | S5 | **chain** | S1–S4 单 plan 串联 | `bootstrap-v45-selfhost-chain` | `v45.selfhost.chain=1` |
-| T3 | no-c-src | 仓内无 `lispjit.c`（工厂外迁） | **锚点** `archive/runner/` | `v45.tier3.runner_archived=1` · `v45.runner.no_c_src=0` |
-| T4 | vm-emit | C 表 → Lisp codegen | tier4 未开 | `v45.codegen.vm_emit=1` |
+| T3 | no-c-src | `lispjit.c` 真源在 `archive/runner/` | ✅ | `v45.runner.no_c_src=1` |
+| T4 | vm-emit | `ir-table-lisp` + VM/AOT smoke | ✅ | `v45.codegen.vm_emit=1` |
 
 **完全自举（用户口径）** ≈ **S5 + T3**；**S5 可在仍保留仓内 C 工厂时签收**。
 

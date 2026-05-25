@@ -15,9 +15,11 @@
 
 **v4.5 scoped 整体**：**100%**
 
-**v4.5 发行面 release**：**100%** — `v45.release.100=1`（见 [`DIFFUSE-WAVE7.md`](DIFFUSE-WAVE7.md)）
+**v4.5 发行面 release**：**100%** — `v45.release.100=1`
 
-**全仓终局**（删 `lispjit.c`、VM emit、物理删 `run.sh`）：**未声称** — tier3–4
+**v4.5 DECISION 终局**：**100%** — `v45.endgame.100=1`（tier0–4，见 [`DIFFUSE-WAVE8.md`](DIFFUSE-WAVE8.md)）
+
+**超口径**（仓内全部 `.c` 清零、删 `run.sh` 文件）：**未声称**
 
 ## 本波（/goal 边界扩展）
 

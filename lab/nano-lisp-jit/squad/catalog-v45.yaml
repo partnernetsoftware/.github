@@ -210,6 +210,31 @@ signoff:
       file: ".build/v45-entry.evidence"
       results_key: v45.release.100
       min_pass: 1
+    - id: v45-endgame-100
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.endgame.100
+      min_pass: 1
+    - id: v45-runner-no-c-src
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.runner.no_c_src
+      min_pass: 1
+    - id: v45-codegen-vm-emit
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.codegen.vm_emit
+      min_pass: 1
+    - id: v45-tier3-no-c-src-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v45-tier3-no-c-src.lisp"
+    - id: v45-tier4-vm-emit-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v45-tier4-vm-emit.lisp"
+      plan_must_not_match: '\\.c'
+    - id: v45-wave8-diffuse-doc
+      check: artifact
+      path_glob: "v4.5/DIFFUSE-WAVE8.md"
     - id: v45-endgame-100-plan
       check: artifact
       path_glob: "samples/bootstrap-v45-endgame-100.lisp"
@@ -565,7 +590,7 @@ tasks:
 
 verify:
   commands:
-    - script: scripts/v45-wave7-converge.sh
+    - script: scripts/v45-wave8-converge.sh
       cwd: .
       fail_on_nonzero: true
 

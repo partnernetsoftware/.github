@@ -97,6 +97,8 @@ grep v45.scoped.100=1 lab/nano-lisp-jit/.build/v45-entry.evidence
 
 **Wave7**：`v45.release.100=1` — endgame plan + `skip_registry` v4 skip + `terminal-done` 升级 → **发行面终局签收**。
 
+**Wave8**：`lispjit.c` 迁 `archive/runner` + `tier4-vm-emit` → **`v45.endgame.100=1`**（DECISION 全 tier 签收）。
+
 ## 十、Wave3（整表扩散，勿逐条）
 
 见 DIFFUSE-WAVE2 §Wave3：无 C plan · run.sh 单行化 · wave 归档。

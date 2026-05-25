@@ -27,10 +27,6 @@ bash lab/nano-lisp-jit/scripts/v45-wave7-converge.sh
 grep v45.release.100=1 lab/nano-lisp-jit/.build/v45-entry.evidence
 ```
 
-## 诚实未声称（全仓终局）
+## Wave8
 
-| 项 | 键 |
-|----|-----|
-| 删 `lispjit-ir/lispjit.c` | `v45.runner.no_c_src=0` |
-| VM emit tier4 | `v45.codegen.vm_emit=0` |
-| `run.sh` 物理删除 v4 段 | 仅 skip，非删文件 |
+tier3/4 与 **`v45.endgame.100=1`**：见 [`DIFFUSE-WAVE8.md`](DIFFUSE-WAVE8.md)

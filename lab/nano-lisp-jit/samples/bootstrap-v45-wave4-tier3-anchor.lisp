@@ -3,6 +3,7 @@
   (file-size "lab/nano-lisp-jit/archive/runner/README.md")
   (file-size "lab/nano-lisp-jit/archive/runner/lispjit.c")
   (file-size "lab/lispjit-ir/lispjit.c")
+  (file-hash "lab/nano-lisp-jit/archive/runner/lispjit.c")
   (file-size "lab/nano-lisp-jit/samples/bootstrap-v45-build-slice-lisp.lisp")
   (file-size "lab/nano-lisp-jit/samples/bootstrap-v45-wave3-lisp-only-regenesis.lisp")
   (file-size "lab/nano-lisp-jit/v4.5/DIFFUSE-WAVE4.md")

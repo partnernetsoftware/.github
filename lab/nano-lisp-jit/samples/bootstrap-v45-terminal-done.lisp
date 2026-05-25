@@ -7,6 +7,7 @@
   (file-size "lab/nano-lisp-jit/samples/bootstrap-v45-onion-lisp-only.lisp")
   (file-size "lab/nano-lisp-jit/samples/bootstrap-v45-onion-tdd.lisp")
   (file-size "lab/nano-lisp-jit/.build/v45-entry.evidence")
+  (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.endgame.100" "1")
   (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.release.100" "1")
   (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.scoped.100" "1")
   (file-hash "lab/nano-lisp-jit/.build/nano-jit/nano-jit.com")

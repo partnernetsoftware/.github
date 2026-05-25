@@ -12,7 +12,7 @@
   (file-size "lab/nano-lisp-jit/samples/bootstrap-v45-boundary-feedback.lisp")
   (file-size "lab/nano-lisp-jit/v4.5/SELFHOST.md")
   (file-size "lab/nano-lisp-jit/samples/bootstrap-v45-selfhost-chain.lisp")
-  (build-slice "lab/lispjit-ir/lispjit.c"
+  (build-slice "lab/nano-lisp-jit/archive/runner/lispjit.c"
                "lab/nano-lisp-jit/.build/v45-onion-slice-x86.elf"
                "x86_64")
   (compare "lab/nano-lisp-jit/.build/v45-onion-slice-x86.elf"

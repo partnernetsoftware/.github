@@ -72,3 +72,5 @@ bash lab/nano-lisp-jit/scripts/v45-wave2-converge.sh
 **Wave6** ✅：[`DIFFUSE-WAVE6.md`](DIFFUSE-WAVE6.md) — 洋葱主门禁 + w3 探针 + `v45-factory-slim.sh`。
 
 **Wave7** ✅：[`DIFFUSE-WAVE7.md`](DIFFUSE-WAVE7.md) — **发行面终局 100%** · `v45.release.100=1` · v4 factory skip。
+
+**Wave8** ✅：[`DIFFUSE-WAVE8.md`](DIFFUSE-WAVE8.md) — **DECISION 终局 100%** · `v45.endgame.100=1` · tier3/4。
