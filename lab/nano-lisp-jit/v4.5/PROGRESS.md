@@ -24,7 +24,7 @@
 ## 收敛
 
 ```bash
-bash lab/nano-lisp-jit/scripts/v45-wave17-goal-mindmap-100-converge.sh
+bash lab/nano-lisp-jit/scripts/v45-wave18-mindmap-unified-converge.sh
 grep -E 'v45\.(endgame|scoped|physical\.zero_c|honest)' lab/nano-lisp-jit/.build/v45-entry.evidence
 ```
 
@@ -38,4 +38,5 @@ grep -E 'v45\.(endgame|scoped|physical\.zero_c|honest)' lab/nano-lisp-jit/.build
 | **12** | [`DIFFUSE-WAVE12.md`](DIFFUSE-WAVE12.md) — 16 TU 并行出仓；`ir` 真 `.c`=2 |
 | **13** | [`DIFFUSE-WAVE13.md`](DIFFUSE-WAVE13.md) — `ir` 门面零真 `.c` |
 | **14–15** | VM emit 四轨 + **tier5 100%** — [`DIFFUSE-WAVE15.md`](DIFFUSE-WAVE15.md) |
-| **16–17** | **洋葱×mindmap-tree 100%** — [`MINDMAP-TDD-TREE.md`](MINDMAP-TDD-TREE.md) · [`DIFFUSE-WAVE17.md`](DIFFUSE-WAVE17.md) |
+| **16–17** | 洋葱×mindmap-tree — [`DIFFUSE-WAVE17.md`](DIFFUSE-WAVE17.md) |
+| **18** | **统一 100%** `onion_mindmap.unified` — frontier **14/14** [`DIFFUSE-WAVE18.md`](DIFFUSE-WAVE18.md) |

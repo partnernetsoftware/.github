@@ -115,3 +115,10 @@ bash lab/nano-lisp-jit/scripts/v45-wave15-tier5-100-converge.sh
 ```bash
 bash lab/nano-lisp-jit/scripts/v45-wave17-goal-mindmap-100-converge.sh
 ```
+
+**Wave18 统一 100%** ✅：frontier **14/14** — `v45.goal.onion_mindmap.unified.100=1`
+
+```bash
+bash lab/nano-lisp-jit/scripts/v45-wave18-mindmap-unified-converge.sh
+python3 lab/nano-lisp-jit/tools/mindmap-dp-v45.py stats
+```

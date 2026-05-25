@@ -30,13 +30,22 @@ def cmd_ready(data: dict) -> None:
         print(f"  {n.get('parallel_slot','?')}  {n['id']}  plan={n.get('plan','')}")
 
 
+def cmd_stats(data: dict) -> None:
+    total = len(data["nodes"])
+    done = sum(1 for n in data["nodes"] if n["status"] == "done")
+    pct = (100 * done // total) if total else 0
+    print(f"v45-mindmap-stats nodes={done}/{total} pct={pct}")
+
+
 def main() -> None:
     data = load()
     cmd = sys.argv[1] if len(sys.argv) > 1 else "ready"
     if cmd == "ready":
         cmd_ready(data)
+    elif cmd == "stats":
+        cmd_stats(data)
     else:
-        raise SystemExit("usage: mindmap-dp-v45.py ready")
+        raise SystemExit("usage: mindmap-dp-v45.py ready|stats")
 
 
 if __name__ == "__main__":

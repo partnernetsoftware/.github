@@ -8140,19 +8140,18 @@ else
   log "v45.runsh.factory_block=skipped NANO_V45_SCOPED_ONLY"
 fi
 
-# --- v4.5: Wave17 /goal mindmap-tree 100% (洋葱 TDD × frontier DP) ---
-V45_WAVE17_CONVERGE="$LAB_DIR/scripts/v45-wave17-goal-mindmap-100-converge.sh"
-if [ -f "$NANO_JIT_COM" ] && host_is_linux_x86_64 && [ -x "$V45_WAVE17_CONVERGE" ]; then
-  run_case "run-bootstrap-v45-wave17-goal-mindmap-100-converge-plan" bash -c '
-    cd "'"$ROOT_DIR"'" && bash "'"$V45_WAVE17_CONVERGE"'"
-    grep -q v45.tier5.100=1 "'"$V45_ENTRY_EVIDENCE"'"
+# --- v4.5: Wave18 洋葱×mindmap 统一 100% (frontier 14/14) ---
+V45_WAVE18_CONVERGE="$LAB_DIR/scripts/v45-wave18-mindmap-unified-converge.sh"
+if [ -f "$NANO_JIT_COM" ] && host_is_linux_x86_64 && [ -x "$V45_WAVE18_CONVERGE" ]; then
+  run_case "run-bootstrap-v45-wave18-mindmap-unified-converge-plan" bash -c '
+    cd "'"$ROOT_DIR"'" && bash "'"$V45_WAVE18_CONVERGE"'"
+    grep -q v45.goal.onion_mindmap.unified.100=1 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.mindmap.nodes_done=14 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.mindmap.nodes_total=14 "'"$V45_ENTRY_EVIDENCE"'"
     grep -q v45.goal.mindmap_tree.100=1 "'"$V45_ENTRY_EVIDENCE"'"
-    grep -q v45.mindmap.tree.coupled=1 "'"$V45_ENTRY_EVIDENCE"'"
-    grep -q v45.mindmap.parallel=4 "'"$V45_ENTRY_EVIDENCE"'"
-    test -f "'"$LAB_DIR"'/v4.5/mindmap-frontier-v45.json"
   '
 else
-  skip_case "run-bootstrap-v45-wave17-goal-mindmap-100-converge-plan" "nano-jit.com or v45-wave17-goal-mindmap-100-converge.sh missing"
+  skip_case "run-bootstrap-v45-wave18-mindmap-unified-converge-plan" "nano-jit.com or v45-wave18-mindmap-unified-converge.sh missing"
 fi
 
 # --- layer4 zero-host: nano-jit.com runs gen2 graph → next .com ---

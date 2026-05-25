@@ -357,6 +357,19 @@ signoff:
       file: ".build/v45-entry.evidence"
       results_key: v45.mindmap.parallel
       min_pass: 4
+    - id: v45-goal-onion-mindmap-unified
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.goal.onion_mindmap.unified.100
+      min_pass: 1
+    - id: v45-mindmap-nodes-done
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.mindmap.nodes_done
+      min_pass: 14
+    - id: v45-wave18-diffuse-doc
+      check: artifact
+      path_glob: "v4.5/DIFFUSE-WAVE18.md"
     - id: v45-wave7-diffuse
       check: results
       file: ".build/v45-entry.evidence"
@@ -827,7 +840,7 @@ tasks:
 
 verify:
   commands:
-    - script: scripts/v45-wave17-goal-mindmap-100-converge.sh
+    - script: scripts/v45-wave18-mindmap-unified-converge.sh
       cwd: .
       fail_on_nonzero: true
 

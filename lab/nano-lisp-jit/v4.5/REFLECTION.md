@@ -165,6 +165,10 @@ grep v45.scoped.100=1 lab/nano-lisp-jit/.build/v45-entry.evidence
 | 收敛后 frontier 漂移 | Python 回写 JSON `status=done` |
 | 不到 100% 不停 | `v45.goal.mindmap_tree.100=1` 闭合本 /goal 卷 |
 
-## 十六、Wave3（整表扩散，勿逐条）
+## 十六、Wave18（统一 frontier 14/14）
+
+Wave17 只签收 7 节点 → 用户「不到 100% 不停」合理。扩展 L4–L7 把 v4 DP（boot/bare/core/selfhost/terminal）耦合进同一棵 `frontier-v45` 树，`nodes_done=nodes_total=14` 才写 `onion_mindmap.unified.100`。
+
+## 十七、Wave3（整表扩散，勿逐条）
 
 见 DIFFUSE-WAVE2 §Wave3：无 C plan · run.sh 单行化 · wave 归档。

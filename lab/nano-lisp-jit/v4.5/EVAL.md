@@ -169,6 +169,16 @@
 
 [`MINDMAP-TDD-TREE.md`](MINDMAP-TDD-TREE.md) · [`DIFFUSE-WAVE17.md`](DIFFUSE-WAVE17.md)
 
+## Wave18（统一 frontier 100%）
+
+| 维度 | 评估 |
+|------|------|
+| frontier 覆盖 | **100%** — 14/14 nodes `done` |
+| L4 四轨 | **100%** — boot/bare/core/selfhost |
+| 统一签收 | **100%** — `v45.goal.onion_mindmap.unified.100=1` |
+
+[`DIFFUSE-WAVE18.md`](DIFFUSE-WAVE18.md)
+
 ## 验证
 
 ```bash
@@ -177,7 +187,7 @@ env -u NANO_SELFHOST_REUSE_X86 -u NANO_SELFHOST_REUSE_AARCH64 \
   -u NANO_BUILD_SLICE_SELFHOST_REUSE -u NANO_REGENESIS \
   $COM run-bootstrap-plan lab/nano-lisp-jit/samples/bootstrap-v45-onion-tdd.lisp
 
-bash lab/nano-lisp-jit/scripts/v45-wave17-goal-mindmap-100-converge.sh
+bash lab/nano-lisp-jit/scripts/v45-wave18-mindmap-unified-converge.sh
 
 grep -E 'v45\.(scoped|release|endgame|warehouse|physical\.zero_c|honest)\.' \
   lab/nano-lisp-jit/.build/v45-entry.evidence

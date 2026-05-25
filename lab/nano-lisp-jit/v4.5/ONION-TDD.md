@@ -66,5 +66,6 @@ grep v45.goal.mindmap_tree.100=1 lab/nano-lisp-jit/.build/v45-entry.evidence
 | `v45.build.no_host_cc=1` | tier2 genesis build-slice |
 | `v45.onion.lisp_only=1` | onion-tdd 经 .com 绿 |
 | `v45.scoped.100=1` | v4.5 scoped 终局 |
-| `v45.goal.mindmap_tree.100=1` | 洋葱×mindmap 树耦合终局（见 [`MINDMAP-TDD-TREE.md`](MINDMAP-TDD-TREE.md)） |
+| `v45.goal.mindmap_tree.100=1` | Wave17 基础树 |
+| `v45.goal.onion_mindmap.unified.100=1` | Wave18 全 frontier（见 [`MINDMAP-TDD-TREE.md`](MINDMAP-TDD-TREE.md)） |
 | `v45.mindmap.tree.coupled=1` | frontier-v45 四轨+L2 树 |

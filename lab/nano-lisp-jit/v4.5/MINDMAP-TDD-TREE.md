@@ -30,6 +30,15 @@ bash lab/nano-lisp-jit/scripts/v45-wave17-goal-mindmap-100-converge.sh
 |----|------|
 | `v45.mindmap.tree.coupled=1` | 洋葱 + frontier 耦合落地 |
 | `v45.mindmap.parallel=4` | 四轨并发绿 |
-| `v45.goal.mindmap_tree.100=1` | **本 /goal 卷 100%** |
+| `v45.goal.mindmap_tree.100=1` | Wave17 基础树 100% |
+| `v45.goal.onion_mindmap.unified.100=1` | **Wave18 全 frontier 14/14** |
+| `v45.mindmap.nodes_done` / `nodes_total` | 活图覆盖率 |
 
 前置：`v45.tier5.100=1` · `v45.scoped.100=1`
+
+## 日常（统一终局）
+
+```bash
+bash lab/nano-lisp-jit/scripts/v45-wave18-mindmap-unified-converge.sh
+python3 lab/nano-lisp-jit/tools/mindmap-dp-v45.py stats
+```
