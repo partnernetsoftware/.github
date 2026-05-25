@@ -8181,6 +8181,20 @@ else
   skip_case "run-bootstrap-v45-wave20-lisp-selfhost-unified-converge-plan" "nano-jit.com or v45-wave20-lisp-selfhost-unified-converge.sh missing"
 fi
 
+# --- v4.5: Wave21 /goal 洋葱 TDD-tree-mind-map 总签收 100% (frontier 26/26) ---
+V45_WAVE21_CONVERGE="$LAB_DIR/scripts/v45-wave21-onion-tdd-tree-mindmap-100-converge.sh"
+if [ -f "$NANO_JIT_COM" ] && host_is_linux_x86_64 && [ -x "$V45_WAVE21_CONVERGE" ]; then
+  run_case "run-bootstrap-v45-wave21-onion-tdd-tree-mindmap-100-converge-plan" bash -c '
+    cd "'"$ROOT_DIR"'" && bash "'"$V45_WAVE21_CONVERGE"'"
+    grep -q v45.goal.onion_tdd_tree_mindmap.100=1 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.goal.lisp_selfhost.unified.100=1 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.mindmap.nodes_done=26 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.boundary.probes=13 "'"$V45_ENTRY_EVIDENCE"'"
+  '
+else
+  skip_case "run-bootstrap-v45-wave21-onion-tdd-tree-mindmap-100-converge-plan" "nano-jit.com or v45-wave21 converge missing"
+fi
+
 # --- layer4 zero-host: nano-jit.com runs gen2 graph → next .com ---
 if [ -f "$NANO_JIT_COM" ] && host_is_linux_x86_64; then
   run_case "run-bootstrap-v4-zero-host-gen2-via-com-plan" bash -c '

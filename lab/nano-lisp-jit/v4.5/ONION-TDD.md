@@ -31,10 +31,10 @@ done
 $COM run-bootstrap-plan lab/nano-lisp-jit/samples/bootstrap-v45-terminal-done.lisp
 grep v45.scoped.100=1 lab/nano-lisp-jit/.build/v45-entry.evidence
 
-# /goal 洋葱×mindmap-tree 100%
-bash lab/nano-lisp-jit/scripts/v45-wave17-goal-mindmap-100-converge.sh
-python3 lab/nano-lisp-jit/tools/mindmap-dp-v45.py ready
-grep v45.goal.mindmap_tree.100=1 lab/nano-lisp-jit/.build/v45-entry.evidence
+# /goal 洋葱 TDD × tree-mind-map 总签收 100%
+bash lab/nano-lisp-jit/scripts/v45-wave21-onion-tdd-tree-mindmap-100-converge.sh
+python3 lab/nano-lisp-jit/tools/mindmap-dp-v45.py stats
+grep v45.goal.onion_tdd_tree_mindmap.100=1 lab/nano-lisp-jit/.build/v45-entry.evidence
 ```
 
 ## 与 `run.sh` 的关系

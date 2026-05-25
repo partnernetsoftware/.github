@@ -33,17 +33,18 @@ bash lab/nano-lisp-jit/scripts/v45-wave17-goal-mindmap-100-converge.sh
 | `v45.goal.mindmap_tree.100=1` | Wave17 基础树 100% |
 | `v45.goal.onion_mindmap.unified.100=1` | **Wave18 全 frontier 14/14** |
 | `v45.selfhost.100=1` | Wave19 完全自举 |
-| `v45.goal.lisp_selfhost.unified.100=1` | **Wave20 洋葱×mindmap×自举 20/20** |
-| `v45.mindmap.nodes_done` / `nodes_total` | 活图覆盖率（终局 **20**） |
+| `v45.goal.lisp_selfhost.unified.100=1` | Wave20 洋葱×mindmap×自举 20/20 |
+| `v45.goal.onion_tdd_tree_mindmap.100=1` | **Wave21 /goal 总签收 26/26** |
+| `v45.mindmap.nodes_done` / `nodes_total` | 活图覆盖率（终局 **26**） |
 
 前置：`v45.tier5.100=1` · `v45.scoped.100=1`
 
 ## 日常（/goal 终局）
 
 ```bash
-bash lab/nano-lisp-jit/scripts/v45-wave20-lisp-selfhost-unified-converge.sh
+bash lab/nano-lisp-jit/scripts/v45-wave21-onion-tdd-tree-mindmap-100-converge.sh
 python3 lab/nano-lisp-jit/tools/mindmap-dp-v45.py stats
-grep v45.goal.lisp_selfhost.unified.100=1 lab/nano-lisp-jit/.build/v45-entry.evidence
+grep v45.goal.onion_tdd_tree_mindmap.100=1 lab/nano-lisp-jit/.build/v45-entry.evidence
 ```
 
 ## 合并 main（2026-05-25）

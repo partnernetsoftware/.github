@@ -263,6 +263,79 @@
         "v45-sh-selfhost-terminal"
       ],
       "plan": "samples/bootstrap-v45-goal-lisp-selfhost-unified-100.lisp"
+    },
+    {
+      "id": "v45-bd-i64",
+      "layer": 11,
+      "ring": "boundary",
+      "onion_ring": 7,
+      "status": "done",
+      "deps": [
+        "v45-goal-lisp-selfhost-unified"
+      ],
+      "parallel_slot": "W1",
+      "plan": "samples/bootstrap-v45-mindmap-boundary-i64.lisp"
+    },
+    {
+      "id": "v45-bd-ptr",
+      "layer": 11,
+      "ring": "boundary",
+      "onion_ring": 7,
+      "status": "done",
+      "deps": [
+        "v45-goal-lisp-selfhost-unified"
+      ],
+      "parallel_slot": "W2",
+      "plan": "samples/bootstrap-v45-mindmap-boundary-ptr.lisp"
+    },
+    {
+      "id": "v45-bd-func",
+      "layer": 11,
+      "ring": "boundary",
+      "onion_ring": 7,
+      "status": "done",
+      "deps": [
+        "v45-goal-lisp-selfhost-unified"
+      ],
+      "parallel_slot": "W3",
+      "plan": "samples/bootstrap-v45-mindmap-boundary-func.lisp"
+    },
+    {
+      "id": "v45-bd-probe",
+      "layer": 11,
+      "ring": "boundary",
+      "onion_ring": 7,
+      "status": "done",
+      "deps": [
+        "v45-goal-lisp-selfhost-unified"
+      ],
+      "parallel_slot": "W4",
+      "plan": "samples/bootstrap-v45-mindmap-boundary-probe.lisp"
+    },
+    {
+      "id": "v45-bd-terminal",
+      "layer": 12,
+      "ring": "\u7ec8\u5c40",
+      "onion_ring": 7,
+      "status": "done",
+      "deps": [
+        "v45-bd-i64",
+        "v45-bd-ptr",
+        "v45-bd-func",
+        "v45-bd-probe"
+      ],
+      "plan": "samples/bootstrap-v45-mindmap-boundary-terminal.lisp"
+    },
+    {
+      "id": "v45-goal-onion-tdd-tree-mindmap",
+      "layer": 13,
+      "ring": "DONE",
+      "onion_ring": 7,
+      "status": "done",
+      "deps": [
+        "v45-bd-terminal"
+      ],
+      "plan": "samples/bootstrap-v45-goal-onion-tdd-tree-mindmap-100.lisp"
     }
   ]
 }

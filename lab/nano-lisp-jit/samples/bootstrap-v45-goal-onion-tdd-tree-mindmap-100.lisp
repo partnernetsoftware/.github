@@ -1,0 +1,16 @@
+; /goal 总签收：洋葱 TDD × tree-mind-map × lisp 自举 统一 100%.
+(bootstrap
+  (file-size "lab/nano-lisp-jit/v4.5/ONION-TDD.md")
+  (file-size "lab/nano-lisp-jit/v4.5/MINDMAP-TDD-TREE.md")
+  (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.tier5.100" "1")
+  (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.scoped.100" "1")
+  (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.goal.mindmap_tree.100" "1")
+  (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.goal.onion_mindmap.unified.100" "1")
+  (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.selfhost.100" "1")
+  (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.goal.lisp_selfhost.unified.100" "1")
+  (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.boundary.probes" "13")
+  (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.boundary.negative" "1")
+  (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.mindmap.nodes_done" "26")
+  (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.mindmap.nodes_total" "26")
+  (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.goal.onion_tdd_tree_mindmap.100" "1")
+  (file-hash "lab/nano-lisp-jit/.build/v45-entry.evidence"))

@@ -893,10 +893,15 @@ tasks:
       file: ".build/v45-entry.evidence"
       results_key: v45.goal.lisp_selfhost.unified.100
       min_pass: 1
+    - id: v45-goal-onion-tdd-tree-mindmap
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.goal.onion_tdd_tree_mindmap.100
+      min_pass: 1
 
 verify:
   commands:
-    - script: scripts/v45-wave20-lisp-selfhost-unified-converge.sh
+    - script: scripts/v45-wave21-onion-tdd-tree-mindmap-100-converge.sh
       cwd: .
       fail_on_nonzero: true
 

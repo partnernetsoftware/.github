@@ -25,9 +25,11 @@
 
 **完全自举（`.lisp` 用户口径）**：**100%** — `v45.selfhost.100=1`（Wave19）
 
-**/goal 终局（洋葱×mindmap×lisp）**：**100%** — `v45.goal.lisp_selfhost.unified.100=1`（Wave20 · [`DIFFUSE-WAVE20.md`](DIFFUSE-WAVE20.md)）
+**/goal 终局（洋葱×mindmap×lisp）**：**100%** — `v45.goal.lisp_selfhost.unified.100=1`（Wave20）
 
-**合并结论（→ `main`）**：日常收敛 **`v45-wave20-lisp-selfhost-unified-converge.sh`**（内嵌 wave19→18）。
+**/goal 总签收（洋葱 TDD × tree-mind-map）**：**100%** — `v45.goal.onion_tdd_tree_mindmap.100=1`（Wave21 · [`DIFFUSE-WAVE21.md`](DIFFUSE-WAVE21.md)）
+
+**合并结论（→ `main`）**：日常收敛 **`v45-wave21-onion-tdd-tree-mindmap-100-converge.sh`**（内嵌 wave20→19→18）。
 
 ## 合并进度分析（/goal 洋葱 TDD-tree-mind-map · 2026-05-25）
 
@@ -38,17 +40,17 @@
 | Wave16–17 mindmap 树 | `cursor/v45-mindmap-tree-100-fc19` | `goal.mindmap_tree.100` | ✅ main |
 | **Wave18 统一** | `cursor/v45-mindmap-unified-100-fc19` | **`goal.onion_mindmap.unified.100`** | ✅ main |
 | Wave19 自举 | `cursor/v45-selfhost-100-fc19` | `v45.selfhost.100` | ✅ 并入本合并 |
-| **Wave20 统一** | `cursor/v45-selfhost-100-fc19` | **`goal.lisp_selfhost.unified.100`** | ✅ 本合并 |
+| Wave20 统一 | `cursor/v45-selfhost-100-fc19` | `goal.lisp_selfhost.unified.100` | ✅ main |
+| **Wave21 总签收** | `cursor/v45-goal-onion-tdd-100-fc19` | **`goal.onion_tdd_tree_mindmap.100`** | 🔄 本合并 |
 
 | 指标 | 数值 |
 |------|------|
-| `mindmap-frontier-v45` 节点 | **14/14 done（100%）** |
-| 日常收敛 | **`v45-wave20-lisp-selfhost-unified-converge.sh`** |
-| frontier 节点 | **20/20 done（100%）** |
-| lisp 自举 | `v45.selfhost.100=1` · gen2/next 代际矩阵 |
-| 洋葱耦合 | 圈 0–5 ↔ layer 0–7（见 `MINDMAP-TDD-TREE.md`） |
+| `mindmap-frontier-v45` 节点 | **26/26 done（100%）** |
+| 日常收敛 | **`v45-wave21-onion-tdd-tree-mindmap-100-converge.sh`** |
+| lisp 自举 | `v45.selfhost.100=1` |
+| boundary | `v45.boundary.probes=13` · `negative=1` |
 
-**本 /goal 口径 100%**：`v45.goal.lisp_selfhost.unified.100=1` + `nodes_done=nodes_total=20` + `selfhost.100=1`。  
+**本 /goal 口径 100%**：`v45.goal.onion_tdd_tree_mindmap.100=1` + `nodes_done=nodes_total=26`。  
 **未声称 100%**：v4 全图 69 节点 · S4/S5 plan 内归档 `lispjit.c` 工厂路径。
 
 ## 本波（/goal 边界扩展）

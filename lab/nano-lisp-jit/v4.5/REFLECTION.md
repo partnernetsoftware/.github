@@ -235,12 +235,35 @@ Wave17 只签收 7 节点 → 用户「不到 100% 不停」合理。扩展 L4�
 | wave3 先跑 `goal-selfhost-100` 时 gen2 未建 | goal plan 用 `gen2_distinct` 键，非裸 file-size |
 | S4/S5 plan 仍含归档 `lispjit.c` | 文档保留工厂层诚实未达，与 /goal 分离 |
 
-### 可停条件（本 /goal）
+### 可停条件（本 /goal · Wave20）
 
 ```bash
 bash lab/nano-lisp-jit/scripts/v45-wave20-lisp-selfhost-unified-converge.sh
 grep v45.goal.lisp_selfhost.unified.100=1 lab/nano-lisp-jit/.build/v45-entry.evidence
 python3 lab/nano-lisp-jit/tools/mindmap-dp-v45.py stats  # 期望 20/20
+```
+
+## 二十一、Wave21（/goal 洋葱 TDD-tree-mind-map 总签收）
+
+| 反思 | 调整 |
+|------|------|
+| Wave20 仍非用户字面 /goal 名 | 总键 **`onion_tdd_tree_mindmap.100`** 聚合 tier5·scoped·三棵 goal·boundary |
+| boundary 与 mindmap 脱节 | L11 四轨并发跑 `boundary-*` plan + mindmap 锚点 |
+| 文档仍写 wave17/18 日常 | ONION-TDD / MINDMAP 改指向 wave21 收敛脚本 |
+| 不到 100% 不停 | `nodes_done=26` 才写总签收 |
+
+### 合并到 `origin/main`（本波）
+
+- 分支：`cursor/v45-goal-onion-tdd-100-fc19`
+- 机器键：`v45.goal.onion_tdd_tree_mindmap.100=1`
+- 进度：[`EVAL.md`](EVAL.md) §合并进度分析 · 反思：本节 + §十九–二十
+
+### 可停条件（/goal 终局）
+
+```bash
+bash lab/nano-lisp-jit/scripts/v45-wave21-onion-tdd-tree-mindmap-100-converge.sh
+grep v45.goal.onion_tdd_tree_mindmap.100=1 lab/nano-lisp-jit/.build/v45-entry.evidence
+python3 lab/nano-lisp-jit/tools/mindmap-dp-v45.py stats  # 期望 26/26
 ```
 
 ## 十八、Wave3（整表扩散，勿逐条）
