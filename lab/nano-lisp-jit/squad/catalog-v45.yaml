@@ -247,6 +247,19 @@ signoff:
     - id: v45-wave7-diffuse-doc
       check: artifact
       path_glob: "v4.5/DIFFUSE-WAVE7.md"
+    - id: v45-warehouse-100
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.warehouse.100
+      min_pass: 1
+    - id: v45-factory-100-ev
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.factory.100
+      min_pass: 1
+    - id: v45-wave9-diffuse-doc
+      check: artifact
+      path_glob: "v4.5/DIFFUSE-WAVE9.md"
     - id: v45-wave7-diffuse
       check: results
       file: ".build/v45-entry.evidence"
@@ -590,7 +603,7 @@ tasks:
 
 verify:
   commands:
-    - script: scripts/v45-wave8-converge.sh
+    - script: scripts/v45-wave9-converge.sh
       cwd: .
       fail_on_nonzero: true
 

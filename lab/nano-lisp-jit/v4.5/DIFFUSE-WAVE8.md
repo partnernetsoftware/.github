@@ -32,3 +32,7 @@ grep v45.endgame.100=1 lab/nano-lisp-jit/.build/v45-entry.evidence
 - 仓内仍有 **其他** `.c`（`lispjit-ir` 其余 TU、`nano_*.c`）
 - `run.sh` 未物理删除；v4 段仍 **skip**
 - 154KB runner **全量** Lisp codegen 未达
+
+## Wave9
+
+[`DIFFUSE-WAVE9.md`](DIFFUSE-WAVE9.md) — **`v45.warehouse.100=1`**

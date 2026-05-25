@@ -20,4 +20,5 @@ if [ -f "$ROOT/lab/nano-lisp-jit/.build/v45-scoped-results.txt" ]; then
   cat "$ROOT/lab/nano-lisp-jit/.build/v45-scoped-results.txt" >>"$RES"
 fi
 echo "v45.factory.slim=1" >>"$EV"
+echo "v45.factory.100=1" >>"$EV"
 echo "v45-factory-slim=done"

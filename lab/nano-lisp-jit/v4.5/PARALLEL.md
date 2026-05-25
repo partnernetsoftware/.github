@@ -74,3 +74,5 @@ bash lab/nano-lisp-jit/scripts/v45-wave2-converge.sh
 **Wave7** ✅：[`DIFFUSE-WAVE7.md`](DIFFUSE-WAVE7.md) — **发行面终局 100%** · `v45.release.100=1` · v4 factory skip。
 
 **Wave8** ✅：[`DIFFUSE-WAVE8.md`](DIFFUSE-WAVE8.md) — **DECISION 终局 100%** · `v45.endgame.100=1` · tier3/4。
+
+**Wave9** ✅：[`DIFFUSE-WAVE9.md`](DIFFUSE-WAVE9.md) — **仓库口径 100%** · `v45.warehouse.100=1` · run.sh 工厂块 guard。

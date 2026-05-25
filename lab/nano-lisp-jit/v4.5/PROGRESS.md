@@ -1,35 +1,35 @@
 # v4.5 终局进度
 
-## 终局 100% ✅
+## 仓库口径 100% ✅
 
-**主签收键**：`v45.endgame.100=1`
+**主签收键**：`v45.warehouse.100=1`
 
-| 键 | Tier | 状态 |
+| 键 | 含义 | 状态 |
 |----|------|------|
-| `v45.scoped.100=1` | 0–2 + 洋葱 | ✅ |
+| `v45.endgame.100=1` | DECISION tier0–4 | ✅ |
+| `v45.factory.100=1` | scoped 工厂路径 | ✅ |
+| `v45.warehouse.100=1` | **合卷终局** | ✅ |
+| `v45.scoped.100=1` | 洋葱 scoped | ✅ |
 | `v45.release.100=1` | 发行面 | ✅ |
-| `v45.runner.no_c_src=1` | **3** no-c-src | ✅ |
-| `v45.codegen.vm_emit=1` | **4** vm-emit | ✅ |
-| `v45.endgame.100=1` | **终局** | ✅ |
 
 ## 收敛（唯一日常）
 
 ```bash
-bash lab/nano-lisp-jit/scripts/v45-wave8-converge.sh
-grep -E 'v45\.(endgame|release|scoped)\.100=1' lab/nano-lisp-jit/.build/v45-entry.evidence
+bash lab/nano-lisp-jit/scripts/v45-wave9-converge.sh
+grep v45.warehouse.100=1 lab/nano-lisp-jit/.build/v45-entry.evidence
 ```
 
 ## Wave 扩散
 
 | Wave | 状态 |
 |------|------|
-| Wave3–7 | ✅ |
-| **Wave8** | ✅ [`DIFFUSE-WAVE8.md`](DIFFUSE-WAVE8.md) — tier3 迁仓 + tier4 IR emit |
+| Wave3–8 | ✅ |
+| **Wave9** | ✅ [`DIFFUSE-WAVE9.md`](DIFFUSE-WAVE9.md) — factory/warehouse 100% |
 
-## 诚实未声称（超 DECISION 口径）
+## 超 DECISION 口径（仍不声称）
 
 | 项 | 状态 |
 |----|------|
-| 仓内零 **所有** `.c` | ❌ `lispjit-ir` 仍有 `nano_*.c` 等 |
-| 物理删 `run.sh` | ❌ `NANO_V45_SCOPED_ONLY` skip |
-| 全量 runner Lisp codegen | ❌ genesis pin |
+| 仓内零 **全部** `.c` | ❌ |
+| 无参 `run.sh` 即瘦工厂 | ❌ 须 `NANO_V45_SCOPED_ONLY=1` |
+| 154KB runner 全 Lisp codegen | ❌ |

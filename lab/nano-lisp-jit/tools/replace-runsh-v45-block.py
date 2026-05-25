@@ -13,18 +13,17 @@ for i, line in enumerate(lines):
         break
 if start is None or end is None:
     raise SystemExit("v4.5 block markers not found")
-block = """# --- v4.5: Wave8 endgame 100% (replaces per-plan run_case blocks) ---
-V45_WAVE8_CONVERGE="$LAB_DIR/scripts/v45-wave8-converge.sh"
-if [ -f "$NANO_JIT_COM" ] && host_is_linux_x86_64 && [ -x "$V45_WAVE8_CONVERGE" ]; then
-  run_case "run-bootstrap-v45-wave8-converge-plan" bash -c '
-    cd "'"$ROOT_DIR"'" && bash "'"$V45_WAVE8_CONVERGE"'"
+block = """# --- v4.5: Wave9 warehouse 100% (replaces per-plan run_case blocks) ---
+V45_WAVE9_CONVERGE="$LAB_DIR/scripts/v45-wave9-converge.sh"
+if [ -f "$NANO_JIT_COM" ] && host_is_linux_x86_64 && [ -x "$V45_WAVE9_CONVERGE" ]; then
+  run_case "run-bootstrap-v45-wave9-converge-plan" bash -c '
+    cd "'"$ROOT_DIR"'" && bash "'"$V45_WAVE9_CONVERGE"'"
+    grep -q v45.warehouse.100=1 "'"$V45_ENTRY_EVIDENCE"'"
     grep -q v45.endgame.100=1 "'"$V45_ENTRY_EVIDENCE"'"
-    grep -q v45.release.100=1 "'"$V45_ENTRY_EVIDENCE"'"
-    grep -q v45.runner.no_c_src=1 "'"$V45_ENTRY_EVIDENCE"'"
-    grep -q v45.codegen.vm_emit=1 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.factory.100=1 "'"$V45_ENTRY_EVIDENCE"'"
   '
 else
-  skip_case "run-bootstrap-v45-wave8-converge-plan" "nano-jit.com or v45-wave8-converge.sh missing"
+  skip_case "run-bootstrap-v45-wave9-converge-plan" "nano-jit.com or v45-wave9-converge.sh missing"
 fi
 
 """

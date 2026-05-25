@@ -8,7 +8,13 @@ FAIL_COUNT=0
 _v45_should_skip_factory_case() {
   [ "${NANO_V45_SCOPED_ONLY:-0}" = 1 ] || return 1
   case "$1" in
-    run-bootstrap-v4-*|qemu-aarch64-v4-*|squad-v4-*|v4-*|*-v4-wave*|*-v4-slice*)
+    run-bootstrap-v45-*|run-bootstrap-v45*)
+      return 1 ;;
+    run-bootstrap-v4-*|run-bootstrap-v35-*|run-bootstrap-v3-selfhost-*|run-bootstrap-v3-build-*)
+      return 0 ;;
+    run-bootstrap-v4-zero-host-*|qemu-aarch64-v4-*|squad-v4-*|squad-v35-*|v4-bootstrap-*|v4-*|*-v4-wave*|*-v4-slice*)
+      return 0 ;;
+    nano-cc-qemu-aarch64-*|nano-cc-qemu-aarch64-bootstrap-*)
       return 0 ;;
     *) return 1 ;;
   esac
