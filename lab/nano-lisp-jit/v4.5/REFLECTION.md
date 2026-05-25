@@ -169,6 +169,38 @@ grep v45.scoped.100=1 lab/nano-lisp-jit/.build/v45-entry.evidence
 
 Wave17 只签收 7 节点 → 用户「不到 100% 不停」合理。扩展 L4–L7 把 v4 DP（boot/bare/core/selfhost/terminal）耦合进同一棵 `frontier-v45` 树，`nodes_done=nodes_total=14` 才写 `onion_mindmap.unified.100`。
 
-## 十七、Wave3（整表扩散，勿逐条）
+## 十七、反思分析（/goal 合并 main · 洋葱×mindmap）
+
+### 做对了什么
+
+| 点 | 说明 |
+|----|------|
+| **耦合 SSOT** | `ONION-TDD.md` + `MINDMAP-TDD-TREE.md` + `mindmap-frontier-v45.json` 三件套互引 |
+| **广度扩散** | 每波 ≤4 槽：L1 四轨 → L4 四轨 → 不碎补单 plan |
+| **并发收敛** | `&`/`wait` 跑 plan；单脚本 `wave18` 链式收敛 wave15→17→18 |
+| **诚实分层** | `goal.mindmap_tree`（7 节点）与 `goal.onion_mindmap.unified`（14 节点）分键，避免过早喊停 |
+| **机器回写** | 收敛后 Python 更新 frontier `status=done`，`mindmap-dp-v45.py stats` 可审计 |
+
+### 踩坑与调整
+
+| 现象 | 调整 |
+|------|------|
+| Wave17 后用户仍要 100% | 扩展 frontier 至 14 节点，新增 `unified.100` |
+| `onion-tdd` genesis 红 | 收敛内统一 `env -u NANO_SELFHOST_*` |
+| `goal.mindmap_tree` 易被当成终局 | 文档写明 unified 才闭合 /goal |
+| v4 MINDMAP 69 节点 ≠ v45 | v45 活图独立 SSOT，不混称 v4 终局 % |
+
+### 合并到 `origin/main`
+
+- 已 fast-forward：`dd02902`（Wave17）→ `cd50109`（Wave18）
+- `run.sh` / `catalog-v45.yaml` 日常门禁 → `v45-wave18-mindmap-unified-converge.sh`
+- **可停条件（本 goal）**：`python3 tools/mindmap-dp-v45.py stats` → `14/14 pct=100`
+
+### 仍开卷（另一口径，非本 goal）
+
+- v4 `mindmap-frontier.json` 深层 zero-host 链映射到 v45（可选 Wave19+）
+- 154KB runner 全量 Lisp codegen
+
+## 十八、Wave3（整表扩散，勿逐条）
 
 见 DIFFUSE-WAVE2 §Wave3：无 C plan · run.sh 单行化 · wave 归档。

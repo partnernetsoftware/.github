@@ -41,4 +41,9 @@ bash lab/nano-lisp-jit/scripts/v45-wave17-goal-mindmap-100-converge.sh
 ```bash
 bash lab/nano-lisp-jit/scripts/v45-wave18-mindmap-unified-converge.sh
 python3 lab/nano-lisp-jit/tools/mindmap-dp-v45.py stats
+grep v45.goal.onion_mindmap.unified.100=1 lab/nano-lisp-jit/.build/v45-entry.evidence
 ```
+
+## 合并 main（2026-05-25）
+
+进度：[`EVAL.md`](EVAL.md) §合并进度分析 · 反思：[`REFLECTION.md`](REFLECTION.md) §十七

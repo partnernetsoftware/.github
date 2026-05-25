@@ -23,7 +23,25 @@
 
 **tier5 发行面**：**100%** — `v45.tier5.100=1` · `v45.physical.zero_c=1`（发行面树；见 [`HONEST-REMAINING.md`](HONEST-REMAINING.md)）
 
-**合并结论（→ `main`）**：发行面 / DECISION / warehouse **可合并**；tier5 另卷，禁止把 `warehouse.100` 写成「全仓 DONE」。
+**合并结论（→ `main`）**：发行面 / DECISION / warehouse / tier5 / **洋葱×mindmap 统一 goal** 均已 fast-forward 合并（最新 `cd50109`）。
+
+## 合并进度分析（/goal 洋葱 TDD-tree-mind-map · 2026-05-25）
+
+| 卷 | 分支/提交 | 签收键 | 状态 |
+|----|-----------|--------|------|
+| Wave11–13 tier5 | `cursor/v45-*-tier5-fc19` | `tier5.100` · `ir_facade_zero_real` | ✅ main |
+| Wave14–15 | `cursor/v45-tier5-100-fc19` | `physical.zero_c=1`（发行面树） | ✅ main |
+| Wave16–17 mindmap 树 | `cursor/v45-mindmap-tree-100-fc19` | `goal.mindmap_tree.100` | ✅ main |
+| **Wave18 统一** | `cursor/v45-mindmap-unified-100-fc19` | **`goal.onion_mindmap.unified.100`** | ✅ main |
+
+| 指标 | 数值 |
+|------|------|
+| `mindmap-frontier-v45` 节点 | **14/14 done（100%）** |
+| 日常收敛 | `v45-wave18-mindmap-unified-converge.sh` |
+| 洋葱耦合 | 圈 0–5 ↔ layer 0–7（见 `MINDMAP-TDD-TREE.md`） |
+
+**本 /goal 口径 100%**：`v45.goal.onion_mindmap.unified.100=1` + `nodes_done=nodes_total=14`。  
+**未声称 100%**：v4 全图 69 节点 monorepo 终局 · runner 全 Lisp codegen。
 
 ## 本波（/goal 边界扩展）
 
@@ -189,6 +207,6 @@ env -u NANO_SELFHOST_REUSE_X86 -u NANO_SELFHOST_REUSE_AARCH64 \
 
 bash lab/nano-lisp-jit/scripts/v45-wave18-mindmap-unified-converge.sh
 
-grep -E 'v45\.(scoped|release|endgame|warehouse|physical\.zero_c|honest)\.' \
+grep -E 'v45\.(goal\.onion_mindmap|goal\.mindmap|mindmap\.nodes|tier5\.100|scoped)' \
   lab/nano-lisp-jit/.build/v45-entry.evidence
 ```

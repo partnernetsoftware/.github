@@ -20,6 +20,7 @@
 | 无 env 瘦 `run.sh` | 未达 |
 | 全量 runner Lisp codegen | 未达 |
 | tier5 发行面 | **`v45.tier5.100=1`** · `v45.physical.zero_c=1`（发行面树） |
+| **/goal mindmap** | **`v45.goal.onion_mindmap.unified.100=1`** · frontier **14/14** |
 
 ## 收敛
 
