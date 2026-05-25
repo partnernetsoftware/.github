@@ -113,13 +113,13 @@ bash lab/nano-lisp-jit/scripts/v45-wave15-tier5-100-converge.sh
 **Wave16–17 /goal** ✅：[`MINDMAP-TDD-TREE.md`](MINDMAP-TDD-TREE.md) — `v45.goal.mindmap_tree.100=1`
 
 ```bash
-bash lab/nano-lisp-jit/scripts/v45-wave17-goal-mindmap-100-converge.sh
+bash lab/nano-lisp-jit/scripts/v45-wave21-onion-tdd-tree-mindmap-100-converge.sh
 ```
 
 **Wave21 /goal 总签收** ✅：frontier **26/26** — `v45.goal.onion_tdd_tree_mindmap.100=1`  
 日常：`v45-wave21-onion-tdd-tree-mindmap-100-converge.sh`
 
 ```bash
-bash lab/nano-lisp-jit/scripts/v45-wave18-mindmap-unified-converge.sh
+bash lab/nano-lisp-jit/scripts/v45-cleanup-reflect.sh
 python3 lab/nano-lisp-jit/tools/mindmap-dp-v45.py stats
 ```

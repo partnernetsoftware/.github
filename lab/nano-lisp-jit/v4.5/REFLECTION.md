@@ -190,11 +190,10 @@ Wave17 只签收 7 节点 → 用户「不到 100% 不停」合理。扩展 L4�
 | `goal.mindmap_tree` 易被当成终局 | 文档写明 unified 才闭合 /goal |
 | v4 MINDMAP 69 节点 ≠ v45 | v45 活图独立 SSOT，不混称 v4 终局 % |
 
-### 合并到 `origin/main`
+### 合并到 `origin/main`（历史）
 
-- 已 fast-forward：`dd02902`（Wave17）→ `cd50109`（Wave18）
-- `run.sh` / `catalog-v45.yaml` 日常门禁 → `v45-wave18-mindmap-unified-converge.sh`
-- **可停条件（本 goal）**：`python3 tools/mindmap-dp-v45.py stats` → `14/14 pct=100`
+- Wave17–18：`dd02902` → `cd50109`（14 节点）
+- **当前 main**：`76100a2`（Wave21 · 26 节点）— 日常见 [`CLEANUP.md`](CLEANUP.md)
 
 ### 仍开卷（另一口径，非本 goal）
 
@@ -264,6 +263,39 @@ python3 lab/nano-lisp-jit/tools/mindmap-dp-v45.py stats  # 期望 20/20
 bash lab/nano-lisp-jit/scripts/v45-wave21-onion-tdd-tree-mindmap-100-converge.sh
 grep v45.goal.onion_tdd_tree_mindmap.100=1 lab/nano-lisp-jit/.build/v45-entry.evidence
 python3 lab/nano-lisp-jit/tools/mindmap-dp-v45.py stats  # 期望 26/26
+```
+
+## 二十二、清洗反思（整理后再继续）
+
+### 为什么要洗
+
+| 问题 | 危害 | 清洗 |
+|------|------|------|
+| evidence **append-only** | 同键多行（如 `nodes_done` 14→20→26）| `v45-evidence-canonical.sh` 取末值 |
+| 多代收敛脚本并存 | 新人跑 wave17/18 以为终局 | [`CLEANUP.md`](CLEANUP.md) 标明 **仅 wave21** |
+| goal 键层级多 | 过早以 `mindmap_tree` 喊停 | L2–L6 表 + 总键 `onion_tdd_tree_mindmap` |
+| §十七–二十一 叠代 | 反思分散 | 本节 + `cleanup-reflect.sh` 一轮复核 |
+
+### 做对了什么（可保留的工作方式）
+
+1. **洋葱 × mindmap 三件套** 不动：`ONION-TDD` · `MINDMAP-TDD-TREE` · `frontier-v45.json`
+2. **每波 ≤4 轨并发**，单脚本链式收敛 — 继续用，只换入口为 wave21
+3. **分键签收** — 子 goal 保留，总键聚合；避免删历史键
+4. **诚实未达** 与 /goal 分卷 — 不为了 100% 混称 v4 69 节点或全仓 zero_c
+
+### 调整（下一卷前）
+
+| 方向 | 建议 |
+|------|------|
+| 继续 nano-jit | 先 `v45-cleanup-reflect.sh`，再开新 wave |
+| 新 frontier 节点 | 必须改 JSON + goal plan + 收敛脚本 **同一 PR** |
+| evidence 审计 | 优先读 `.canonical`，不用裸 grep evidence 首行 |
+| 工厂 C | 单独立项：`lispjit.c` plan 化或 gen60 级 codegen，勿并入 /goal |
+
+### 一轮清洗命令
+
+```bash
+bash lab/nano-lisp-jit/scripts/v45-cleanup-reflect.sh
 ```
 
 ## 十八、Wave3（整表扩散，勿逐条）

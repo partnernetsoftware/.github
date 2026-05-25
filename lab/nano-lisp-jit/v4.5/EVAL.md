@@ -41,7 +41,8 @@
 | **Wave18 统一** | `cursor/v45-mindmap-unified-100-fc19` | **`goal.onion_mindmap.unified.100`** | ✅ main |
 | Wave19 自举 | `cursor/v45-selfhost-100-fc19` | `v45.selfhost.100` | ✅ 并入本合并 |
 | Wave20 统一 | `cursor/v45-selfhost-100-fc19` | `goal.lisp_selfhost.unified.100` | ✅ main |
-| **Wave21 总签收** | `cursor/v45-goal-onion-tdd-100-fc19` | **`goal.onion_tdd_tree_mindmap.100`** | 🔄 本合并 |
+| **Wave21 总签收** | `cursor/v45-goal-onion-tdd-100-fc19` | **`goal.onion_tdd_tree_mindmap.100`** | ✅ main |
+| **清洗反思** | `cursor/v45-reflect-cleanup-fc19` | `cleanup.reflect` · canonical | 🔄 本合并 |
 
 | 指标 | 数值 |
 |------|------|
@@ -207,16 +208,12 @@
 
 [`DIFFUSE-WAVE18.md`](DIFFUSE-WAVE18.md)
 
-## 验证
+## 验证（清洗后）
 
 ```bash
-COM=lab/nano-lisp-jit/.build/nano-jit/nano-jit.com
-env -u NANO_SELFHOST_REUSE_X86 -u NANO_SELFHOST_REUSE_AARCH64 \
-  -u NANO_BUILD_SLICE_SELFHOST_REUSE -u NANO_REGENESIS \
-  $COM run-bootstrap-plan lab/nano-lisp-jit/samples/bootstrap-v45-onion-tdd.lisp
-
-bash lab/nano-lisp-jit/scripts/v45-wave18-mindmap-unified-converge.sh
-
-grep -E 'v45\.(goal\.onion_mindmap|goal\.mindmap|mindmap\.nodes|tier5\.100|scoped)' \
-  lab/nano-lisp-jit/.build/v45-entry.evidence
+bash lab/nano-lisp-jit/scripts/v45-cleanup-reflect.sh
+grep v45.goal.onion_tdd_tree_mindmap.100=1 \
+  lab/nano-lisp-jit/.build/v45-entry.evidence.canonical
 ```
+
+详见 [`CLEANUP.md`](CLEANUP.md) · 反思 [`REFLECTION.md`](REFLECTION.md) §二十二。

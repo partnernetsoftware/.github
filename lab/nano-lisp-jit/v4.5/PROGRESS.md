@@ -16,17 +16,25 @@
 
 | 项 | 诚实键 |
 |----|--------|
-| 全仓零 `.c` | `v45.physical.zero_c=0` |
+| 全仓零 `.c` | 发行面已 `physical.zero_c=1`；全 monorepo 见 `HONEST-REMAINING` |
 | 无 env 瘦 `run.sh` | 未达 |
 | 全量 runner Lisp codegen | 未达 |
-| tier5 发行面 | **`v45.tier5.100=1`** · `v45.physical.zero_c=1`（发行面树） |
-| **/goal 总签收** | **`v45.goal.onion_tdd_tree_mindmap.100=1`** · frontier **26/26** |
 
-## 收敛
+## /goal 已签收 ✅
+
+| 项 | 键 |
+|----|-----|
+| tier5 发行面 | `v45.tier5.100=1` |
+| lisp 自举 | `v45.selfhost.100=1` |
+| **总签收** | **`v45.goal.onion_tdd_tree_mindmap.100=1`** · frontier **26/26** |
+
+## 收敛（清洗后日常）
 
 ```bash
-bash lab/nano-lisp-jit/scripts/v45-wave18-mindmap-unified-converge.sh
-grep -E 'v45\.(endgame|scoped|physical\.zero_c|honest)' lab/nano-lisp-jit/.build/v45-entry.evidence
+bash lab/nano-lisp-jit/scripts/v45-cleanup-reflect.sh
+# 或完整收敛：v45-wave21-onion-tdd-tree-mindmap-100-converge.sh
+grep v45.goal.onion_tdd_tree_mindmap.100=1 \
+  lab/nano-lisp-jit/.build/v45-entry.evidence.canonical
 ```
 
 ## Wave
@@ -40,4 +48,6 @@ grep -E 'v45\.(endgame|scoped|physical\.zero_c|honest)' lab/nano-lisp-jit/.build
 | **13** | [`DIFFUSE-WAVE13.md`](DIFFUSE-WAVE13.md) — `ir` 门面零真 `.c` |
 | **14–15** | VM emit 四轨 + **tier5 100%** — [`DIFFUSE-WAVE15.md`](DIFFUSE-WAVE15.md) |
 | **16–17** | 洋葱×mindmap-tree — [`DIFFUSE-WAVE17.md`](DIFFUSE-WAVE17.md) |
-| **18** | **统一 100%** `onion_mindmap.unified` — frontier **14/14** [`DIFFUSE-WAVE18.md`](DIFFUSE-WAVE18.md) |
+| 18 | `onion_mindmap.unified` — 14/14 [`DIFFUSE-WAVE18.md`](DIFFUSE-WAVE18.md) |
+| 19–20 | lisp 自举 + 20 节点 [`DIFFUSE-WAVE19.md`](DIFFUSE-WAVE19.md) [`DIFFUSE-WAVE20.md`](DIFFUSE-WAVE20.md) |
+| **21** | **/goal 总签收** 26/26 [`DIFFUSE-WAVE21.md`](DIFFUSE-WAVE21.md) |

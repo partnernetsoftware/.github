@@ -1,0 +1,8 @@
+; 清洗反思锚点：canonical evidence + /goal 总键.
+(bootstrap
+  (file-size "lab/nano-lisp-jit/v4.5/CLEANUP.md")
+  (file-size "lab/nano-lisp-jit/.build/v45-entry.evidence.canonical")
+  (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.goal.onion_tdd_tree_mindmap.100" "1")
+  (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.mindmap.nodes_done" "26")
+  (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.selfhost.100" "1")
+  (file-hash "lab/nano-lisp-jit/v4.5/REFLECTION.md"))

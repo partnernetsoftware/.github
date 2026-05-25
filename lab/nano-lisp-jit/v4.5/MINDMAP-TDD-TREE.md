@@ -11,7 +11,7 @@
 
 ```bash
 python3 lab/nano-lisp-jit/tools/mindmap-dp-v45.py ready
-bash lab/nano-lisp-jit/scripts/v45-wave17-goal-mindmap-100-converge.sh
+bash lab/nano-lisp-jit/scripts/v45-wave21-onion-tdd-tree-mindmap-100-converge.sh
 ```
 
 ## 洋葱圈 ↔ mindmap 层
@@ -49,4 +49,4 @@ grep v45.goal.onion_tdd_tree_mindmap.100=1 lab/nano-lisp-jit/.build/v45-entry.ev
 
 ## 合并 main（2026-05-25）
 
-进度：[`EVAL.md`](EVAL.md) §合并进度分析 · 反思：[`REFLECTION.md`](REFLECTION.md) §十七
+进度：[`EVAL.md`](EVAL.md) · 反思：[`REFLECTION.md`](REFLECTION.md) §二十二 · 清洗：[`CLEANUP.md`](CLEANUP.md)
