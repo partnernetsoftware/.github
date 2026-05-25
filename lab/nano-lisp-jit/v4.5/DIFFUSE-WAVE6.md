@@ -35,5 +35,8 @@ NANO_V45_SCOPED_ONLY=1 bash lab/nano-lisp-jit/scripts/v45-factory-slim.sh
 
 ## 诚实未声称
 
-- `run.sh` 内 v4 case 未自动 skip（须用 `v45-factory-slim.sh` 或 env 约定）
-- tier3 删 `lispjit.c` · tier4 VM emit 未开
+- ~~`run.sh` 内 v4 case 未自动 skip~~ → Wave7：`NANO_V45_SCOPED_ONLY=1` 已 hook `skip_registry.sh`
+
+## Wave7
+
+已实施：[`DIFFUSE-WAVE7.md`](DIFFUSE-WAVE7.md) — **`v45.release.100=1`**

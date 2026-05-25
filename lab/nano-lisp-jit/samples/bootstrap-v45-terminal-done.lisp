@@ -1,11 +1,13 @@
-; v4.5 scoped 100% DONE — onion TDD + verify matrix + boundary (plan 无 .c).
+; v4.5 release 100% DONE — onion-lisp-only 主门禁 + endgame evidence (plan 无 .c).
 (bootstrap
   (file-size "lab/nano-lisp-jit/v4.5/PROGRESS.md")
   (file-size "lab/nano-lisp-jit/v4.5/EVAL.md")
   (file-size "lab/nano-lisp-jit/v4.5/REFLECTION.md")
-  (file-size "lab/nano-lisp-jit/.build/v45-entry.evidence")
+  (file-size "lab/nano-lisp-jit/samples/bootstrap-v45-endgame-100.lisp")
+  (file-size "lab/nano-lisp-jit/samples/bootstrap-v45-onion-lisp-only.lisp")
   (file-size "lab/nano-lisp-jit/samples/bootstrap-v45-onion-tdd.lisp")
-  (file-size "lab/nano-lisp-jit/samples/bootstrap-v45-terminal-done.lisp")
-  (file-size "lab/nano-lisp-jit/samples/bootstrap-v45-boundary-negative.lisp")
+  (file-size "lab/nano-lisp-jit/.build/v45-entry.evidence")
+  (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.release.100" "1")
+  (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.scoped.100" "1")
   (file-hash "lab/nano-lisp-jit/.build/nano-jit/nano-jit.com")
-  (file-hash "lab/nano-lisp-jit/.build/v45-onion-ape.com"))
+  (file-hash "lab/nano-lisp-jit/.build/v45-onion-lo-ape.com"))

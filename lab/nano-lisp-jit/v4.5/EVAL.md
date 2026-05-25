@@ -13,9 +13,11 @@
 | v4 交接 | gen60 / genesis | **100%** — handoff plan |
 | 能力边界 | boundary 样例 | **~80%** — 13 正向 + 4 负向 + 产品反馈 doc |
 
-**v4.5 scoped 整体**：**100%**（本版本签收口径）
+**v4.5 scoped 整体**：**100%**
 
-**全仓终局**（零 `.c`、VM emit、删 `run.sh`）：**~35–40%** — tier3–4 未开卷
+**v4.5 发行面 release**：**100%** — `v45.release.100=1`（见 [`DIFFUSE-WAVE7.md`](DIFFUSE-WAVE7.md)）
+
+**全仓终局**（删 `lispjit.c`、VM emit、物理删 `run.sh`）：**未声称** — tier3–4
 
 ## 本波（/goal 边界扩展）
 

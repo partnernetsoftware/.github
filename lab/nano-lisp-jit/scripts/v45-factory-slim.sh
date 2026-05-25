@@ -5,7 +5,7 @@ set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
 EV="$ROOT/lab/nano-lisp-jit/.build/v45-entry.evidence"
 RES="$ROOT/lab/nano-lisp-jit/.build/results.txt"
-CONVERGE="$ROOT/lab/nano-lisp-jit/scripts/v45-wave6-converge.sh"
+CONVERGE="$ROOT/lab/nano-lisp-jit/scripts/v45-wave7-converge.sh"
 cd "$ROOT"
 export NANO_V45_SCOPED_ONLY=1
 : >"$RES"

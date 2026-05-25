@@ -70,3 +70,5 @@ bash lab/nano-lisp-jit/scripts/v45-wave2-converge.sh
 **Wave5** ✅：[`DIFFUSE-WAVE5.md`](DIFFUSE-WAVE5.md) — lisp-only 洋葱 + scoped CI（`tests.pass=2`）+ `v45-wave5-converge.sh`。
 
 **Wave6** ✅：[`DIFFUSE-WAVE6.md`](DIFFUSE-WAVE6.md) — 洋葱主门禁 + w3 探针 + `v45-factory-slim.sh`。
+
+**Wave7** ✅：[`DIFFUSE-WAVE7.md`](DIFFUSE-WAVE7.md) — **发行面终局 100%** · `v45.release.100=1` · v4 factory skip。

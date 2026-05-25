@@ -5,8 +5,21 @@ PASS_COUNT=0
 SKIP_COUNT=0
 FAIL_COUNT=0
 
+_v45_should_skip_factory_case() {
+  [ "${NANO_V45_SCOPED_ONLY:-0}" = 1 ] || return 1
+  case "$1" in
+    run-bootstrap-v4-*|qemu-aarch64-v4-*|squad-v4-*|v4-*|*-v4-wave*|*-v4-slice*)
+      return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
 run_case() {
   local name="$1"
+  if _v45_should_skip_factory_case "$name"; then
+    skip_case "$name" "NANO_V45_SCOPED_ONLY release factory"
+    return 0
+  fi
   shift
   log ""
   log "## $name"

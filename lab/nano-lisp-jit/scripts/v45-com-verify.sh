@@ -14,7 +14,7 @@ plans=(
   verify-smoke verify-core v4-handoff
   boundary-i64 boundary-ptr boundary-func boundary-rodata
   boundary-probe boundary-negative boundary-feedback
-  build-slice-genesis onion-tdd verify-all entry
+  build-slice-genesis onion-lisp-only onion-tdd verify-all entry endgame-100
   diffuse-global wave1-parallel-fine wave1-assess-tick wave1-rollup
   build-slice-lisp selfhost-modules selfhost-regenesis selfhost-chain selfhost-terminal
   selfhost-modules-full factory-matrix wave2-diffuse-global selfhost-next-com-verify
@@ -26,7 +26,7 @@ for p in "${plans[@]}"; do
     exit 1
   fi
   case "$p" in
-    build-slice-genesis|onion-tdd|selfhost-regenesis|selfhost-chain) "${GEN[@]}" "$COM" run-bootstrap-plan "$src" >/dev/null ;;
+    build-slice-genesis|onion-tdd|onion-lisp-only|selfhost-regenesis|selfhost-chain) "${GEN[@]}" "$COM" run-bootstrap-plan "$src" >/dev/null ;;
     *) "$COM" run-bootstrap-plan "$src" >/dev/null ;;
   esac
   echo "v45-com-verify=ok plan=$p"

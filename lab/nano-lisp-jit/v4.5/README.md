@@ -30,7 +30,13 @@ grep v45.verify.plan_only=1 lab/nano-lisp-jit/.build/v45-entry.evidence
 | 1 com-only verify | ✅ |
 | 2 genesis build-slice | ✅ |
 | **scoped 100%** | **✅** |
-| 3 无 C 源码 | 未开 |
+| **release 100%** | **✅** `v45.release.100=1` |
+| 3 无 C 源码（全仓） | 未开 |
 | 4 VM emit | 未开 |
+
+```bash
+bash lab/nano-lisp-jit/scripts/v45-wave7-converge.sh
+grep v45.release.100=1 lab/nano-lisp-jit/.build/v45-entry.evidence
+```
 
 口径：[`DECISION.md`](DECISION.md) · [`PROGRESS.md`](PROGRESS.md) · [`ONION-TDD.md`](ONION-TDD.md)
