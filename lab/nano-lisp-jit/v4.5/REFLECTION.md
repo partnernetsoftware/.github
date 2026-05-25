@@ -198,8 +198,50 @@ Wave17 只签收 7 节点 → 用户「不到 100% 不停」合理。扩展 L4�
 
 ### 仍开卷（另一口径，非本 goal）
 
-- v4 `mindmap-frontier.json` 深层 zero-host 链映射到 v45（可选 Wave19+）
+- v4 `mindmap-frontier.json` 深层 zero-host 链映射到 v45
 - 154KB runner 全量 Lisp codegen
+
+## 十九、Wave19–20（lisp 完全自举 × 洋葱 mindmap 统一）
+
+| 反思 | 调整 |
+|------|------|
+| `selfhost.100` 与 mindmap 14 节点分离 | Wave20 扩 frontier L8–L10 → **20/20** |
+| gen2 `.com` 跑 onion 退出码 42 | converge 以 `run-expect-exit.ok=1` 签收，非裸 `$?` |
+| Wave18 unified 非 lisp 终局 | 新键 **`goal.lisp_selfhost.unified.100`** 闭合 /goal |
+| 不到 100% 不停 | `selfhost.100` ∧ `onion_mindmap.unified` ∧ `nodes_done=20` |
+
+**日常收敛**：`v45-wave20-lisp-selfhost-unified-converge.sh`（内嵌 wave19→18 链）
+
+## 二十、反思分析（/goal 合并 main · lisp 完全自举）
+
+### 进度（机器签收）
+
+| 卷 | 键 | 含义 |
+|----|-----|------|
+| Wave19 | `v45.selfhost.100=1` | S5+T3+next 矩阵+lisp-only 链 |
+| Wave20 | `v45.goal.lisp_selfhost.unified.100=1` | 洋葱×mindmap×自举 **20/20** |
+
+### 做对了什么
+
+- **三件套仍 SSOT**：`ONION-TDD` · `MINDMAP-TDD-TREE` · `mindmap-frontier-v45.json`
+- **单轮收敛**：wave20 脚本链式调用 wave19→18，避免人工多步
+- **诚实分层**：`selfhost.100`（自举卷）与 `lisp_selfhost.unified.100`（/goal 终局）分键
+
+### 踩坑
+
+| 现象 | 调整 |
+|------|------|
+| gen2 仅 9KB，onion 后 exit 42 | 与 verify-smoke 同判据，grep `run-expect-exit.ok` |
+| wave3 先跑 `goal-selfhost-100` 时 gen2 未建 | goal plan 用 `gen2_distinct` 键，非裸 file-size |
+| S4/S5 plan 仍含归档 `lispjit.c` | 文档保留工厂层诚实未达，与 /goal 分离 |
+
+### 可停条件（本 /goal）
+
+```bash
+bash lab/nano-lisp-jit/scripts/v45-wave20-lisp-selfhost-unified-converge.sh
+grep v45.goal.lisp_selfhost.unified.100=1 lab/nano-lisp-jit/.build/v45-entry.evidence
+python3 lab/nano-lisp-jit/tools/mindmap-dp-v45.py stats  # 期望 20/20
+```
 
 ## 十八、Wave3（整表扩散，勿逐条）
 

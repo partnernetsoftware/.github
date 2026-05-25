@@ -23,9 +23,11 @@
 
 **tier5 发行面**：**100%** — `v45.tier5.100=1` · `v45.physical.zero_c=1`（发行面树；见 [`HONEST-REMAINING.md`](HONEST-REMAINING.md)）
 
-**完全自举（`.lisp` 用户口径）**：**100%** — `v45.selfhost.100=1`（Wave19 · [`DIFFUSE-WAVE19.md`](DIFFUSE-WAVE19.md)）
+**完全自举（`.lisp` 用户口径）**：**100%** — `v45.selfhost.100=1`（Wave19）
 
-**合并结论（→ `main`）**：发行面 / DECISION / warehouse / tier5 / **洋葱×mindmap 统一 goal** / **自举 100%** 收敛链见 `v45-wave19-selfhost-converge.sh`。
+**/goal 终局（洋葱×mindmap×lisp）**：**100%** — `v45.goal.lisp_selfhost.unified.100=1`（Wave20 · [`DIFFUSE-WAVE20.md`](DIFFUSE-WAVE20.md)）
+
+**合并结论（→ `main`）**：日常收敛 **`v45-wave20-lisp-selfhost-unified-converge.sh`**（内嵌 wave19→18）。
 
 ## 合并进度分析（/goal 洋葱 TDD-tree-mind-map · 2026-05-25）
 
@@ -35,16 +37,19 @@
 | Wave14–15 | `cursor/v45-tier5-100-fc19` | `physical.zero_c=1`（发行面树） | ✅ main |
 | Wave16–17 mindmap 树 | `cursor/v45-mindmap-tree-100-fc19` | `goal.mindmap_tree.100` | ✅ main |
 | **Wave18 统一** | `cursor/v45-mindmap-unified-100-fc19` | **`goal.onion_mindmap.unified.100`** | ✅ main |
-| **Wave19 自举** | `cursor/v45-selfhost-100-fc19` | **`v45.selfhost.100`** | 🔄 PR |
+| Wave19 自举 | `cursor/v45-selfhost-100-fc19` | `v45.selfhost.100` | ✅ 并入本合并 |
+| **Wave20 统一** | `cursor/v45-selfhost-100-fc19` | **`goal.lisp_selfhost.unified.100`** | ✅ 本合并 |
 
 | 指标 | 数值 |
 |------|------|
 | `mindmap-frontier-v45` 节点 | **14/14 done（100%）** |
-| 日常收敛 | `v45-wave18-mindmap-unified-converge.sh` |
+| 日常收敛 | **`v45-wave20-lisp-selfhost-unified-converge.sh`** |
+| frontier 节点 | **20/20 done（100%）** |
+| lisp 自举 | `v45.selfhost.100=1` · gen2/next 代际矩阵 |
 | 洋葱耦合 | 圈 0–5 ↔ layer 0–7（见 `MINDMAP-TDD-TREE.md`） |
 
-**本 /goal 口径 100%**：`v45.goal.onion_mindmap.unified.100=1` + `nodes_done=nodes_total=14`。  
-**未声称 100%**：v4 全图 69 节点 monorepo 终局 · runner 全 Lisp codegen。
+**本 /goal 口径 100%**：`v45.goal.lisp_selfhost.unified.100=1` + `nodes_done=nodes_total=20` + `selfhost.100=1`。  
+**未声称 100%**：v4 全图 69 节点 · S4/S5 plan 内归档 `lispjit.c` 工厂路径。
 
 ## 本波（/goal 边界扩展）
 

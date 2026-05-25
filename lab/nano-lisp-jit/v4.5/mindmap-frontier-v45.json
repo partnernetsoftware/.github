@@ -190,6 +190,79 @@
         "v45-mm-unified-tree"
       ],
       "plan": "samples/bootstrap-v45-goal-onion-mindmap-unified-100.lisp"
+    },
+    {
+      "id": "v45-sh-lisp-only-chain",
+      "layer": 8,
+      "ring": "\u81ea\u4e3e",
+      "onion_ring": 6,
+      "status": "done",
+      "deps": [
+        "v45-goal-onion-mindmap-unified"
+      ],
+      "parallel_slot": "W1",
+      "plan": "samples/bootstrap-v45-mindmap-lisp-only-chain.lisp"
+    },
+    {
+      "id": "v45-sh-next-matrix",
+      "layer": 8,
+      "ring": "\u4ee3\u9645",
+      "onion_ring": 6,
+      "status": "done",
+      "deps": [
+        "v45-goal-onion-mindmap-unified"
+      ],
+      "parallel_slot": "W2",
+      "plan": "samples/bootstrap-v45-mindmap-next-verify-matrix.lisp"
+    },
+    {
+      "id": "v45-sh-gen2-onion",
+      "layer": 8,
+      "ring": "\u6d0b\u8471",
+      "onion_ring": 6,
+      "status": "done",
+      "deps": [
+        "v45-goal-onion-mindmap-unified"
+      ],
+      "parallel_slot": "W3",
+      "plan": "samples/bootstrap-v45-mindmap-gen2-onion.lisp"
+    },
+    {
+      "id": "v45-sh-w3-regenesis",
+      "layer": 8,
+      "ring": "lisp-only",
+      "onion_ring": 6,
+      "status": "done",
+      "deps": [
+        "v45-goal-onion-mindmap-unified"
+      ],
+      "parallel_slot": "W4",
+      "plan": "samples/bootstrap-v45-mindmap-w3-lisp-only.lisp"
+    },
+    {
+      "id": "v45-sh-selfhost-terminal",
+      "layer": 9,
+      "ring": "\u7ec8\u5c40",
+      "onion_ring": 6,
+      "status": "done",
+      "deps": [
+        "v45-sh-lisp-only-chain",
+        "v45-sh-next-matrix",
+        "v45-sh-gen2-onion",
+        "v45-sh-w3-regenesis"
+      ],
+      "plan": "samples/bootstrap-v45-mindmap-selfhost-unified-tree.lisp"
+    },
+    {
+      "id": "v45-goal-lisp-selfhost-unified",
+      "layer": 10,
+      "ring": "DONE",
+      "onion_ring": 6,
+      "status": "done",
+      "deps": [
+        "v45-sh-selfhost-terminal"
+      ],
+      "plan": "samples/bootstrap-v45-goal-lisp-selfhost-unified-100.lisp"
     }
   ]
 }
