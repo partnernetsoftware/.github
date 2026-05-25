@@ -72,7 +72,11 @@
 
 **综合（/goal 卷）**：**100%** — 可停；**综合（工厂物理终局）**：约 **85%** — 仍差全量 codegen / 瘦 run.sh。
 
-**日常**：`v45-cleanup-reflect.sh`（复核）· 工厂进阶：`v45-wave22-factory-lisp-only-converge.sh`
+**日常**：`v45-wave23-continue-converge.sh`（继续卷）· 快复核：`v45-cleanup-reflect.sh`
+
+| Wave23 继续卷 | **100%** | `v45.v45.continue.100=1` |
+| v4 握手 | **100%** | `v45.v4.handoff.verified=1`（69/69，≠ v45 frontier） |
+| 代际 plan-no-C matrix | **100%** | `factory.next_lisp_only_matrix=1` |
 
 ## 本波（/goal 边界扩展）
 

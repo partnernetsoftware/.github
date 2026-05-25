@@ -901,7 +901,7 @@ tasks:
 
 verify:
   commands:
-    - script: scripts/v45-wave21-onion-tdd-tree-mindmap-100-converge.sh
+    - script: scripts/v45-wave23-continue-converge.sh
       cwd: .
       fail_on_nonzero: true
 

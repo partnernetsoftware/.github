@@ -21,18 +21,22 @@ bash lab/nano-lisp-jit/scripts/v45-evidence-canonical.sh
 # → lab/nano-lisp-jit/.build/v45-entry.evidence.canonical
 ```
 
-## 日常唯一收敛链（不要混用旧 wave）
+## 日常收敛链（推荐顺序）
 
 ```bash
-bash lab/nano-lisp-jit/scripts/v45-wave21-onion-tdd-tree-mindmap-100-converge.sh
-# 内嵌：wave20 → wave19 → wave18 → … → wave3
+# 完整继续卷（/goal 复核 + 工厂 + v4 握手）
+bash lab/nano-lisp-jit/scripts/v45-wave23-continue-converge.sh
+
+# 仅 /goal 复核（较快）
+bash lab/nano-lisp-jit/scripts/v45-cleanup-reflect.sh
 ```
 
-| 脚本 | 状态 |
+| 脚本 | 用途 |
 |------|------|
-| `v45-wave17-*` · `v45-wave18-*` | 子集；已被 wave21 链覆盖 |
-| `v45-wave20-*` | 自举专卷；wave21 已内嵌 |
-| **`v45-wave21-*`** | **/goal 日常真源** |
+| **`v45-wave23-continue-converge.sh`** | **继续 v4.5 默认**（wave22→21 链 + 代际矩阵 + v4） |
+| `v45-wave21-*` | /goal 总签收子集 |
+| `v45-wave22-*` | 工厂 plan 零 C |
+| `v45-wave17~20` | 历史子集，勿单独当终局 |
 
 ## 一轮清洗（推荐命令）
 
