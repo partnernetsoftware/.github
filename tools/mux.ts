@@ -1885,6 +1885,8 @@ function syncTree(): TreeNode[] {
   const nodes: TreeNode[] = [];
   for (const row of tmuxApi.listSessions(TREE_SESS_FMT)) {
     const [sess, sessRemark = ""] = row.split("|");
+    // 内部沉浸式 viewer session：上次进程被强杀时可能残留，永不在索引区显示
+    if (sess === TUI_CONFIG.VIEWER_SESSION) continue;
     nodes.push({
       label: `# ${sess}`,
       target: sess,
