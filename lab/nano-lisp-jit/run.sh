@@ -8181,6 +8181,20 @@ else
   skip_case "run-bootstrap-v45-wave20-lisp-selfhost-unified-converge-plan" "nano-jit.com or v45-wave20-lisp-selfhost-unified-converge.sh missing"
 fi
 
+# --- v4.5: Wave28 工厂物理续推（selfhost-next 全量矩阵 + wave27）---
+V45_WAVE28_CONVERGE="$LAB_DIR/scripts/v45-wave28-factory-physical-continue-converge.sh"
+if [ -f "$NANO_JIT_COM" ] && host_is_linux_x86_64 && [ -x "$V45_WAVE28_CONVERGE" ]; then
+  run_case "run-bootstrap-v45-wave28-factory-physical-continue-converge-plan" bash -c '
+    cd "'"$ROOT_DIR"'" && bash "'"$V45_WAVE28_CONVERGE"'"
+    grep -q v45.v45.factory_physical_continue.100=1 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.factory.selfhost_next_full=1 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.codegen.lisp_slices=9 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.goal.onion_tdd_tree_mindmap.100=1 "'"$V45_ENTRY_EVIDENCE"'"
+  '
+else
+  skip_case "run-bootstrap-v45-wave28-factory-physical-continue-converge-plan" "nano-jit.com or v45-wave28-factory-physical-continue-converge.sh missing"
+fi
+
 # --- v4.5: Wave27 codegen 耦合（扩展活图 7/7 + wave26）---
 V45_WAVE27_CONVERGE="$LAB_DIR/scripts/v45-wave27-codegen-coupled-converge.sh"
 if [ -f "$NANO_JIT_COM" ] && host_is_linux_x86_64 && [ -x "$V45_WAVE27_CONVERGE" ]; then

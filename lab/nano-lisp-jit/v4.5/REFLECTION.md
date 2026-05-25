@@ -338,6 +338,16 @@ bash lab/nano-lisp-jit/scripts/v45-cleanup-reflect.sh
 | 与 v4 gen60 脱节？ | W4 gen60-handshake 显式耦合 /goal 前置键 |
 | 仍不能喊物理 100% | `codegen_coupled.100` 签收 · 154KB 全量 codegen **~28%** |
 
+## 二十八、Wave28（工厂物理续推）
+
+| 反思 | 调整 |
+|------|------|
+| slice com（9KB）跑不了完整 onion/smoke | **selfhost-next.com（819KB）** 跑 smoke+core+onion 矩阵 |
+| codegen 仅 VM emit 四轨 | 加 slice 双架构 + ir-table-broad → `lisp_slices=9` |
+| run.sh 瘦化无进展 | W4 `runsh-factory-continue-anchor` 绑 release-run + scoped-ci |
+| 扩展活图如何叠层？ | 第三张活图 `mindmap-frontier-v45-factory.json`（7 节点） |
+| 仍不能喊物理 100% | `factory_physical_continue.100` · 工厂终局 **~93%** 诚实 |
+
 ## 十八、Wave3（整表扩散，勿逐条）
 
 见 DIFFUSE-WAVE2 §Wave3：无 C plan · run.sh 单行化 · wave 归档。

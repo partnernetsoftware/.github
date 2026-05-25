@@ -57,3 +57,4 @@ grep v45.goal.onion_tdd_tree_mindmap.100=1 \
 | **25** | **codegen 探针** lisp slice 四轨 [`DIFFUSE-WAVE25.md`](DIFFUSE-WAVE25.md) |
 | **26** | **codegen 扩面** VM emit + next-lo 最小 onion [`DIFFUSE-WAVE26.md`](DIFFUSE-WAVE26.md) |
 | **27** | **codegen 耦合** 扩展活图 7/7 + gen60 握手 [`DIFFUSE-WAVE27.md`](DIFFUSE-WAVE27.md) |
+| **28** | **工厂物理续推** selfhost-next 全量矩阵 [`DIFFUSE-WAVE28.md`](DIFFUSE-WAVE28.md) |
