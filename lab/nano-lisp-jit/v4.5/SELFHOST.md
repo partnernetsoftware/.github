@@ -61,8 +61,10 @@ grep -E 'v45\.selfhost\.(lisp_slice|modules|regenesis|chain)=' \
 
 见 [`DIFFUSE-WAVE2.md`](DIFFUSE-WAVE2.md) · [`CONCURRENT-IMPL.md`](CONCURRENT-IMPL.md)。
 
-## Wave3 草图（一次扩散，勿碎砍）
+## Wave3（✅ 工厂收敛）
 
-1. 全 plan `build-slice-lisp` / 模块链接 TU（替代 plan 内 `lispjit.c`）
-2. `run.sh` → 仅 `v45-wave2-converge.sh`
-3. tier3 runner 出仓
+- `v45-wave3-converge.sh` 跑全部 `bootstrap-v45-*.lisp`（36 plans）
+- `wave3-lisp-only-regenesis` — plan 内 **零 lispjit.c** → `v45-w3-lisp-only.com`
+- `run.sh` v4.5 段 **1 case**；662× wave → `archive/samples/v4-waves/`
+
+见 [`DIFFUSE-WAVE3.md`](DIFFUSE-WAVE3.md)。Wave4：tier3 runner 出仓。

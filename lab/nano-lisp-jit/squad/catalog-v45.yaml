@@ -296,9 +296,28 @@ tasks:
       - "run-bootstrap-v45-wave2-rollup-plan"
       - "v45-wave2-converge done"
 
+    - id: v45-wave3-diffuse-doc
+      check: artifact
+      path_glob: "v4.5/DIFFUSE-WAVE3.md"
+    - id: v45-lisp-only-regenesis
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.lisp_only.regenesis
+      min_pass: 1
+    - id: v45-factory-converge
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.factory.converge
+      min_pass: 1
+    - id: v45-wave3-plans
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.wave3.plans
+      min_pass: 25
+
 verify:
   commands:
-    - script: scripts/v45-wave2-converge.sh
+    - script: scripts/v45-wave3-converge.sh
       cwd: .
       fail_on_nonzero: true
 

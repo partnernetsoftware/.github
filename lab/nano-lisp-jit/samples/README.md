@@ -16,7 +16,7 @@
 | 前缀 | 数量级 | 用途 |
 |------|--------|------|
 | `bootstrap-v4-zero-host-*` | ~60 | 零宿主 gen2–gen60 |
-| `bootstrap-v4-wave*` | ~660 | 波次 tick / diffusion |
+| `archive/samples/v4-waves/bootstrap-v4-wave*` | ~660 | 波次 tick（已归档） |
 | `bootstrap-v4-slice*-evidence` | ~90 | slice 证据 rollup |
 | `nano-jit-slice-add-*` | ~80 | addNN aarch64 切片 |
 

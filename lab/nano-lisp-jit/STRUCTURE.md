@@ -35,7 +35,7 @@ v4.5/                                # ONION-TDD · PROGRESS · EVAL · PRODUCT-
 run.sh                               # 全量回归（路径已指向 archive/v4/slices）
 build_nano_jit.sh
 lab/lispjit-ir/*.c
-samples/bootstrap-v4-wave*           # ~660（仍 wired）
+archive/samples/v4-waves/          # ~660 wave 工厂（已迁出 samples/）
 samples/bootstrap-v4-zero-host-*     # 自举链
 tools/gen-v4-wave-batch.py
 squad/catalog-v4.yaml · catalog-v45.yaml

@@ -63,4 +63,4 @@ bash lab/nano-lisp-jit/scripts/v45-wave2-converge.sh
 | `v45.wave2.factory_matrix=1` | 发行面 plan 索引 |
 | `v45.wave2.rollup=1` | reviewer rollup |
 
-**Wave3** 才动：删仓内 C、归档 v4 wave、`run.sh` 单行化 — 见 DIFFUSE-WAVE2 §Wave3 草图。
+**Wave3** ✅：[`DIFFUSE-WAVE3.md`](DIFFUSE-WAVE3.md) — `v45-wave3-converge.sh` 替代 ~35 run_case；662 wave 样本已归档。
