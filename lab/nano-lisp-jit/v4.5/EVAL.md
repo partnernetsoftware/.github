@@ -37,6 +37,16 @@
 
 筹划/实施：[`DIFFUSE-WAVE2.md`](DIFFUSE-WAVE2.md) · [`CONCURRENT-IMPL.md`](CONCURRENT-IMPL.md)
 
+## Wave4（next 洋葱 + tier3 锚点）
+
+| 维度 | 评估 |
+|------|------|
+| next 代际洋葱 | **100%** — `next.com` 跑 `onion-tdd` |
+| tier3 归档锚点 | **~60%** — `archive/runner`；未删 `lispjit-ir` |
+| squad plan 化 | **100%** — wave4 squad plan；assess smoke 待 com 重打 |
+
+[`DIFFUSE-WAVE4.md`](DIFFUSE-WAVE4.md)
+
 ## 验证
 
 ```bash

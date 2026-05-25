@@ -64,3 +64,5 @@ bash lab/nano-lisp-jit/scripts/v45-wave2-converge.sh
 | `v45.wave2.rollup=1` | reviewer rollup |
 
 **Wave3** ✅：[`DIFFUSE-WAVE3.md`](DIFFUSE-WAVE3.md) — `v45-wave3-converge.sh` 替代 ~35 run_case；662 wave 样本已归档。
+
+**Wave4** ✅：[`DIFFUSE-WAVE4.md`](DIFFUSE-WAVE4.md) — `v45-wave4-converge.sh`（wave3 + next 洋葱 + tier3/squad 锚点）。

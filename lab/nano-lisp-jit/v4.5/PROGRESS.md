@@ -33,8 +33,12 @@
 | Lisp 全量 codegen 154KB runner | 未达（genesis pin） |
 | VM emit 替代 C 表 | 未达（tier4） |
 
+| **Wave4** | ✅ | `v45.wave4.*` · `v45.selfhost.next_onion=1` · [`DIFFUSE-WAVE4.md`](DIFFUSE-WAVE4.md) |
+
 证据：
 
 ```bash
-grep v45.scoped.100=1 lab/nano-lisp-jit/.build/v45-entry.evidence
+bash lab/nano-lisp-jit/scripts/v45-wave4-converge.sh
+grep -E 'v45\.(scoped\.100|wave4\.diffuse|selfhost\.next_onion)=' \
+  lab/nano-lisp-jit/.build/v45-entry.evidence
 ```

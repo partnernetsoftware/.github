@@ -165,6 +165,47 @@ signoff:
       file: ".build/results.txt"
       results_key: tests.pass
       min_pass: 1302
+    - id: v45-wave3-diffuse-doc
+      check: artifact
+      path_glob: "v4.5/DIFFUSE-WAVE3.md"
+    - id: v45-lisp-only-regenesis
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.lisp_only.regenesis
+      min_pass: 1
+    - id: v45-factory-converge
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.factory.converge
+      min_pass: 1
+    - id: v45-wave3-plans
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.wave3.plans
+      min_pass: 25
+    - id: v45-wave4-diffuse-doc
+      check: artifact
+      path_glob: "v4.5/DIFFUSE-WAVE4.md"
+    - id: v45-wave4-diffuse
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.wave4.diffuse
+      min_pass: 1
+    - id: v45-tier3-runner-archived
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.tier3.runner_archived
+      min_pass: 1
+    - id: v45-selfhost-next-onion
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.selfhost.next_onion
+      min_pass: 1
+    - id: v45-squad-plan-no-sh
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.squad.plan_no_sh
+      min_pass: 1
 
 tasks:
   wave1-v45-track-a-fine-i64:
@@ -295,29 +336,52 @@ tasks:
     accept:
       - "run-bootstrap-v45-wave2-rollup-plan"
       - "v45-wave2-converge done"
-
-    - id: v45-wave3-diffuse-doc
-      check: artifact
-      path_glob: "v4.5/DIFFUSE-WAVE3.md"
-    - id: v45-lisp-only-regenesis
-      check: results
-      file: ".build/v45-entry.evidence"
-      results_key: v45.lisp_only.regenesis
-      min_pass: 1
-    - id: v45-factory-converge
-      check: results
-      file: ".build/v45-entry.evidence"
-      results_key: v45.factory.converge
-      min_pass: 1
-    - id: v45-wave3-plans
-      check: results
-      file: ".build/v45-entry.evidence"
-      results_key: v45.wave3.plans
-      min_pass: 25
+  wave4-v45-track-a-tier3:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "archive/runner/README.md"
+      - "samples/bootstrap-v45-wave4-tier3-anchor.lisp"
+    accept:
+      - "run-bootstrap-v45-wave4-tier3-anchor-plan"
+  wave4-v45-track-b-next-onion:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "scripts/v45-wave4-converge.sh"
+    accept:
+      - "v45-wave4-converge next_com onion"
+  wave4-v45-track-c-squad:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v45-wave4-squad-plan.lisp"
+    accept:
+      - "run-bootstrap-v45-wave4-squad-plan-plan"
+  wave4-v45-track-d-assess:
+    assign_role: reviewer
+    priority: P0
+    touch_paths:
+      - "v4.5/DIFFUSE-WAVE4.md"
+      - "v4.5/EVAL.md"
+      - "v4.5/REFLECTION.md"
+    accept:
+      - "run-bootstrap-v45-wave4-rollup-plan"
+  wave4-v45-R:
+    assign_role: reviewer
+    priority: meta
+    depends:
+      - wave4-v45-track-a-tier3
+      - wave4-v45-track-b-next-onion
+      - wave4-v45-track-c-squad
+      - wave4-v45-track-d-assess
+    accept:
+      - "run-bootstrap-v45-wave4-converge-plan"
+      - "v45-wave4-converge done"
 
 verify:
   commands:
-    - script: scripts/v45-wave3-converge.sh
+    - script: scripts/v45-wave4-converge.sh
       cwd: .
       fail_on_nonzero: true
 

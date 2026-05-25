@@ -89,6 +89,8 @@ grep v45.scoped.100=1 lab/nano-lisp-jit/.build/v45-entry.evidence
 真源：[`DIFFUSE-WAVE2.md`](DIFFUSE-WAVE2.md) · 并发清单：[`CONCURRENT-IMPL.md`](CONCURRENT-IMPL.md)。  
 **一轮**：S6 next.com + S7 全模块 + S8 factory-matrix → `v45-wave2-converge.sh`。
 
+**Wave4**：`next.com` 全洋葱 + tier3 `archive/runner` 锚点 + squad plan 无 `.sh` → `v45-wave4-converge.sh`。
+
 ## 十、Wave3（整表扩散，勿逐条）
 
 见 DIFFUSE-WAVE2 §Wave3：无 C plan · run.sh 单行化 · wave 归档。

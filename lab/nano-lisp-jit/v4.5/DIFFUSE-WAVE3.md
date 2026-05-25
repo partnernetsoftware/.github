@@ -28,11 +28,6 @@
 bash lab/nano-lisp-jit/scripts/v45-wave3-converge.sh
 ```
 
-## Wave4 草图（仍是一波，勿碎砍）
+## Wave4
 
-| 面 | 一次扩散 |
-|----|----------|
-| tier3 | `lispjit.c` 移 `archive/runner/`；genesis 仍 pin |
-| next 全矩阵 | `next.com` 跑 onion-tdd |
-| squad | bootstrap `squad-dispatch` 去 `system(sh)` |
-| CI | `tests.pass` 仅 terminal + v45-wave3-converge |
+已实施：[`DIFFUSE-WAVE4.md`](DIFFUSE-WAVE4.md) · `v45-wave4-converge.sh`
