@@ -36,6 +36,15 @@ signoff:
     - id: v45-boundary-readme
       check: artifact
       path_glob: "samples/boundary/README.md"
+    - id: v45-boundary-negative-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v45-boundary-negative.lisp"
+      plan_must_not_match: '\\.c'
+    - id: v45-boundary-probes
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.boundary.probes
+      min_pass: 10
     - id: v45-scoped-100
       check: results
       file: ".build/v45-entry.evidence"

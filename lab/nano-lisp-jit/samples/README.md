@@ -4,8 +4,8 @@
 
 | 前缀 / 目录 | 数量级 | 用途 |
 |-------------|--------|------|
-| `bootstrap-v45-*.lisp` | ~12 | 洋葱 TDD、verify、boundary、DONE |
-| `boundary/*.lisp` | 5+ | 能力边界探测 |
+| `bootstrap-v45-*.lisp` | ~13 | 洋葱 TDD、verify、boundary、DONE |
+| `boundary/*.lisp` | 10 | 能力边界探测（+ 负向 plan） |
 | `*.lisp`（根） | ~30 | VM/AOT 核心样例（arithmetic、strlen、…） |
 | `lispjit-modules/` | 13 | lispjit-from-lisp 模块 TU |
 

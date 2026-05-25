@@ -7,7 +7,8 @@
 ```text
 nano-jit.com                         # .build/nano-jit/nano-jit.com
 samples/bootstrap-v45-*.lisp         # 洋葱 TDD / verify / DONE
-samples/boundary/*.lisp              # 能力边界
+samples/boundary/*.lisp              # 能力边界（10 正向）
+samples/bootstrap-v45-boundary-*.lisp # 正/负向 boundary plan
 samples/{arithmetic,strlen,...}.lisp # 核心 VM 样例
 genesis/nano-jit.x86_64
 v4.5/                                # ONION-TDD · PROGRESS · EVAL · REFLECTION

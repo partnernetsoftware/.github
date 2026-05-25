@@ -10,16 +10,18 @@
 | 1 com-only verify | ✅ | `v45.verify.plan_only=1` |
 | 2 genesis build-slice | ✅ | `v45.build.no_host_cc=1` |
 | onion TDD | ✅ | `v45.onion.lisp_only=1` |
+| boundary 探测 | ✅ | `v45.boundary.probes=10` · `v45.boundary.negative=1` |
+| 目录清理 | ✅ | `v45.cleanup.ok=1` |
 | **scoped DONE** | ✅ | **`v45.scoped.100=1`** |
 
 ### scoped 100% 定义
 
-1. `nano-jit.com` 可跑完整 verify 矩阵 + `onion-tdd` + `boundary-probe`
+1. `nano-jit.com` 可跑完整 verify 矩阵 + `onion-tdd` + boundary 正/负向
 2. `build-slice` 日常路径为 **genesis-pin**（`env -u` selfhost reuse）
 3. 洋葱验收 **不依赖** plan 内调用 `.sh`；`run.sh` 仅工厂落盘
 4. v4 子轨 lispjit-from-lisp **保持 DONE**（handoff plan 锚定）
 
-### 诚实未声称（全仓终局）
+### 「完全 100%」诚实未声称
 
 | 项 | 状态 |
 |----|------|

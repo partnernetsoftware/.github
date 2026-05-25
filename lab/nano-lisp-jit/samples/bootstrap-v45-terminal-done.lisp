@@ -6,5 +6,6 @@
   (file-size "lab/nano-lisp-jit/.build/v45-entry.evidence")
   (file-size "lab/nano-lisp-jit/samples/bootstrap-v45-onion-tdd.lisp")
   (file-size "lab/nano-lisp-jit/samples/bootstrap-v45-terminal-done.lisp")
+  (file-size "lab/nano-lisp-jit/samples/bootstrap-v45-boundary-negative.lisp")
   (file-hash "lab/nano-lisp-jit/.build/nano-jit/nano-jit.com")
   (file-hash "lab/nano-lisp-jit/.build/v45-onion-ape.com"))

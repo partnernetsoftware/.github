@@ -167,6 +167,7 @@ BOOTSTRAP_V45_V4_HANDOFF_SRC="$LAB_DIR/samples/bootstrap-v45-v4-handoff.lisp"
 BOOTSTRAP_V45_VERIFY_ALL_SRC="$LAB_DIR/samples/bootstrap-v45-verify-all.lisp"
 BOOTSTRAP_V45_BUILD_SLICE_GENESIS_SRC="$LAB_DIR/samples/bootstrap-v45-build-slice-genesis.lisp"
 BOOTSTRAP_V45_BOUNDARY_PROBE_SRC="$LAB_DIR/samples/bootstrap-v45-boundary-probe.lisp"
+BOOTSTRAP_V45_BOUNDARY_NEGATIVE_SRC="$LAB_DIR/samples/bootstrap-v45-boundary-negative.lisp"
 BOOTSTRAP_V45_ONION_TDD_SRC="$LAB_DIR/samples/bootstrap-v45-onion-tdd.lisp"
 BOOTSTRAP_V45_TERMINAL_DONE_SRC="$LAB_DIR/samples/bootstrap-v45-terminal-done.lisp"
 BOOTSTRAP_V45_CLEANUP_ROLLUP_SRC="$LAB_DIR/samples/bootstrap-v45-cleanup-rollupy.lisp"
@@ -8203,7 +8204,15 @@ run_case "run-bootstrap-v45-boundary-probe-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V45_BOUNDARY_PROBE_SRC"'" 2>&1) || true
   printf "%s\n" "$out"
   test -f "'"$BUILD_DIR"'/v45-boundary-nested.lbin"
+  test -f "'"$BUILD_DIR"'/v45-boundary-mfcall.lbin"
+  test -f "'"$BUILD_DIR"'/v45-boundary-ptr.lbin"
   printf "%s\n" "$out" | grep -q "run-expect-exit.ok=1"
+'
+run_case "run-bootstrap-v45-boundary-negative-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V45_BOUNDARY_NEGATIVE_SRC"'" 2>&1) || true
+  printf "%s\n" "$out"
+  printf "%s\n" "$out" | grep -c "bootstrap-compile-expect-exit.ok=2" | grep -q "^4$"
+  echo "v45.boundary.negative=1" >> "'"$V45_ENTRY_EVIDENCE"'"
 '
 run_case "run-bootstrap-v45-onion-tdd-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$(env -u NANO_SELFHOST_REUSE_X86 -u NANO_SELFHOST_REUSE_AARCH64 -u NANO_BUILD_SLICE_SELFHOST_REUSE -u NANO_REGENESIS \
@@ -8240,6 +8249,7 @@ if [ -f "$NANO_JIT_COM" ] && host_is_linux_x86_64; then
     v45_com "'"$BOOTSTRAP_V45_VERIFY_CORE_SRC"'" 0
     v45_com "'"$BOOTSTRAP_V45_V4_HANDOFF_SRC"'" 0
     v45_com "'"$BOOTSTRAP_V45_BOUNDARY_PROBE_SRC"'" 0
+    v45_com "'"$BOOTSTRAP_V45_BOUNDARY_NEGATIVE_SRC"'" 0
     v45_com "'"$BOOTSTRAP_V45_BUILD_SLICE_GENESIS_SRC"'" 1
     v45_com "'"$BOOTSTRAP_V45_ONION_TDD_SRC"'" 1
     v45_com "'"$BOOTSTRAP_V45_VERIFY_ALL_SRC"'" 0
@@ -8250,7 +8260,8 @@ if [ -f "$NANO_JIT_COM" ] && host_is_linux_x86_64; then
       echo "v45.verify.com_only=1"
       echo "v45.onion.lisp_only=1"
       echo "v45.build.no_host_cc=1"
-      echo "v45.verify.plans=smoke,core,handoff,boundary,genesis,onion,all,entry"
+      echo "v45.verify.plans=smoke,core,handoff,boundary,boundary-negative,genesis,onion,all,entry"
+      echo "v45.boundary.probes=10"
     } >> "'"$V45_ENTRY_EVIDENCE"'"
     v45_com "'"$BOOTSTRAP_V45_TERMINAL_DONE_SRC"'" 0
     echo "v45.scoped.100=1" >> "'"$V45_ENTRY_EVIDENCE"'"

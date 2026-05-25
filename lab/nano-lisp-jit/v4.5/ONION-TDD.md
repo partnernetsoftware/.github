@@ -16,7 +16,8 @@ export -n NANO_SELFHOST_REUSE_X86 NANO_SELFHOST_REUSE_AARCH64 \
 $COM run-bootstrap-plan lab/nano-lisp-jit/samples/bootstrap-v45-onion-tdd.lisp
 
 # 完整 verify 矩阵
-for p in verify-smoke verify-core v4-handoff build-slice-genesis boundary-probe verify-all entry; do
+for p in verify-smoke verify-core v4-handoff build-slice-genesis \
+  boundary-probe boundary-negative verify-all entry; do
   $COM run-bootstrap-plan lab/nano-lisp-jit/samples/bootstrap-v45-$p.lisp
 done
 

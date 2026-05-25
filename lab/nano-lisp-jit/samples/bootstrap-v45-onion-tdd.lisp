@@ -7,6 +7,7 @@
   (file-size "lab/nano-lisp-jit/samples/bootstrap-v45-v4-handoff.lisp")
   (file-size "lab/nano-lisp-jit/samples/bootstrap-v45-build-slice-genesis.lisp")
   (file-size "lab/nano-lisp-jit/samples/bootstrap-v45-boundary-probe.lisp")
+  (file-size "lab/nano-lisp-jit/samples/bootstrap-v45-boundary-negative.lisp")
   (build-slice "lab/lispjit-ir/lispjit.c"
                "lab/nano-lisp-jit/.build/v45-onion-slice-x86.elf"
                "x86_64")
