@@ -32,7 +32,7 @@
 | compare 失败 | `NANO_SELFHOST_REUSE_*` 盖过 genesis-pin | unset X86+AARCH64+reuse |
 | multi-func `(run)` 断 plan | exit≠0 | `compile-elf64-exe` + `run-expect-exit` |
 | boundary store-u32 红 | VM 未支持 | 改 store-load-u8 |
-| func 内 block VM 红 | `func.unsupported.op` | 正向改 multi-func-call |
+| func 内 block VM 红 | `func.unsupported.op=11` | 收录 `func-block-vm-gap` → **PRODUCT-FEEDBACK B01** |
 | 负向 VM compile 不拒 ptr | VM 路径宽松 | 负向改 AOT `compile-elf64-exe` |
 | v4 能否开 v4.5 | 混淆子轨与发行面 | handoff 锚 gen60 |
 | SLICE 塞满 v4/ | wave 记账当活跃区 | 归档 + 路径批量改 |
@@ -41,7 +41,7 @@
 
 ```
 lab/nano-lisp-jit/
-├── v4.5/          ← 发行面 SSOT（ONION-TDD · EVAL · REFLECTION · CLEANUP）
+├── v4.5/          ← SSOT（ONION-TDD · EVAL · REFLECTION · PRODUCT-FEEDBACK）
 ├── v4/            ← v4 决策/进度/mindmap（14 个 md + INDEX）
 ├── samples/
 │   ├── bootstrap-v45-*   ← 洋葱验收

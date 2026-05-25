@@ -40,11 +40,23 @@ signoff:
       check: artifact
       path_glob: "samples/bootstrap-v45-boundary-negative.lisp"
       plan_must_not_match: '\\.c'
+    - id: v45-product-feedback-doc
+      check: artifact
+      path_glob: "v4.5/PRODUCT-FEEDBACK.md"
+    - id: v45-boundary-feedback-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v45-boundary-feedback.lisp"
+      plan_must_not_match: '\\.c'
     - id: v45-boundary-probes
       check: results
       file: ".build/v45-entry.evidence"
       results_key: v45.boundary.probes
-      min_pass: 10
+      min_pass: 13
+    - id: v45-product-feedback
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.product.feedback
+      min_pass: 1
     - id: v45-scoped-100
       check: results
       file: ".build/v45-entry.evidence"

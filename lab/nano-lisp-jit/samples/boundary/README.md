@@ -4,8 +4,10 @@
 
 | plan | 用途 |
 |------|------|
-| `bootstrap-v45-boundary-probe.lisp` | 正向：compile + run + 部分 AOT exit |
+| `bootstrap-v45-boundary-probe.lisp` | 正向：13 样例 compile + run + AOT |
 | `bootstrap-v45-boundary-negative.lisp` | 负向：`compile-expect-exit 2` |
+| `bootstrap-v45-boundary-feedback.lisp` | 产品反馈：B01 gap + 扩展正向 |
+| [`../v4.5/PRODUCT-FEEDBACK.md`](../v4.5/PRODUCT-FEEDBACK.md) | 改进 backlog（给引擎排期） |
 
 验收：`.com run-bootstrap-plan`（repo root）；工厂落盘见 `run.sh` `run-bootstrap-v45-boundary-*`。
 
@@ -23,6 +25,10 @@
 | `store-load-u8.lisp` | const-ptr + load-u8 |
 | `load-u16-rodata.lisp` | const-ptr + load-u16 |
 | `ptr-null-arith.lisp` | null/add/sub/ptr-to-u64 |
+| `bool-not.lisp` | not-bool |
+| `cmp-le-ge.lisp` | le-i64 / ge-i64 |
+| `store-u16-mutate.lisp` | store-u16 + load-u16 |
+| `func-block-vm-gap.lisp` | **B01** VM 红 / AOT 绿（见 PRODUCT-FEEDBACK） |
 
 ## 负向（plan 引用 `samples/*-bad.lisp`）
 

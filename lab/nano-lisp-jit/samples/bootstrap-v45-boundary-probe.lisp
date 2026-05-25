@@ -30,6 +30,15 @@
   (compile "lab/nano-lisp-jit/samples/boundary/ptr-null-arith.lisp"
            "lab/nano-lisp-jit/.build/v45-boundary-ptr.lbin")
   (run "lab/nano-lisp-jit/.build/v45-boundary-ptr.lbin")
+  (compile "lab/nano-lisp-jit/samples/boundary/bool-not.lisp"
+           "lab/nano-lisp-jit/.build/v45-boundary-bool-not.lbin")
+  (run "lab/nano-lisp-jit/.build/v45-boundary-bool-not.lbin")
+  (compile "lab/nano-lisp-jit/samples/boundary/cmp-le-ge.lisp"
+           "lab/nano-lisp-jit/.build/v45-boundary-cmp-le-ge.lbin")
+  (run "lab/nano-lisp-jit/.build/v45-boundary-cmp-le-ge.lbin")
+  (compile "lab/nano-lisp-jit/samples/boundary/store-u16-mutate.lisp"
+           "lab/nano-lisp-jit/.build/v45-boundary-store-u16.lbin")
+  (run "lab/nano-lisp-jit/.build/v45-boundary-store-u16.lbin")
   (compile-elf64-exe "lab/nano-lisp-jit/samples/boundary/nested-func-call.lisp"
                      "lab/nano-lisp-jit/.build/v45-boundary-nested.elf"
                      "nano_v45_nested")

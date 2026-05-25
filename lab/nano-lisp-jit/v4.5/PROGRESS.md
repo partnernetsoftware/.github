@@ -10,7 +10,8 @@
 | 1 com-only verify | ✅ | `v45.verify.plan_only=1` |
 | 2 genesis build-slice | ✅ | `v45.build.no_host_cc=1` |
 | onion TDD | ✅ | `v45.onion.lisp_only=1` |
-| boundary 探测 | ✅ | `v45.boundary.probes=10` · `v45.boundary.negative=1` |
+| boundary 探测 | ✅ | `v45.boundary.probes=13` · `v45.boundary.negative=1` |
+| 产品反馈 | ✅ | `v45.product.feedback=1` · [`PRODUCT-FEEDBACK.md`](PRODUCT-FEEDBACK.md) |
 | 目录清理 | ✅ | `v45.cleanup.ok=1` |
 | **scoped DONE** | ✅ | **`v45.scoped.100=1`** |
 

@@ -11,7 +11,7 @@
 | 构建 | genesis-pin 日常 | **100%** — tier2 plan + compare.ok |
 | 验收载体 | `*.lisp` 替代 `.sh` 纵切片 | **~90%** — 发行矩阵全在 plan；`run.sh` 仍工厂落盘 |
 | v4 交接 | gen60 / genesis | **100%** — handoff plan |
-| 能力边界 | boundary 样例 | **~75%** — 10 正向 + 4 负向探测 |
+| 能力边界 | boundary 样例 | **~80%** — 13 正向 + 4 负向 + 产品反馈 doc |
 
 **v4.5 scoped 整体**：**100%**（本版本签收口径）
 
@@ -21,10 +21,10 @@
 
 | 类 | 路径 |
 |----|------|
-| 正向 boundary | `samples/boundary/*.lisp` ×10 |
+| 正向 boundary | `samples/boundary/*.lisp` ×13 |
 | 负向 boundary | `bootstrap-v45-boundary-negative.lisp` |
-| 扩展 probe | `bootstrap-v45-boundary-probe.lisp` |
-| 证据键 | `v45.boundary.probes=10` · `v45.boundary.negative=1` |
+| 产品反馈 | `PRODUCT-FEEDBACK.md` + `bootstrap-v45-boundary-feedback.lisp` |
+| 证据键 | `v45.boundary.probes=13` · `v45.product.feedback=1` |
 
 ## 验证
 
