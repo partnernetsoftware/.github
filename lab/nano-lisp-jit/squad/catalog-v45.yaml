@@ -411,6 +411,21 @@ signoff:
       file: ".build/v45-entry.evidence"
       results_key: v45.selfhost.next_onion
       min_pass: 1
+    - id: v45-selfhost-100
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.selfhost.100
+      min_pass: 1
+    - id: v45-selfhost-next-verify-matrix
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.selfhost.next_verify_matrix
+      min_pass: 1
+    - id: v45-selfhost-lisp-only-chain
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.selfhost.lisp_only_chain
+      min_pass: 1
     - id: v45-squad-plan-no-sh
       check: results
       file: ".build/v45-entry.evidence"

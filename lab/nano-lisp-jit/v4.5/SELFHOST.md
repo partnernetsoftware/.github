@@ -15,7 +15,7 @@
 | T3 | no-c-src | `lispjit.c` 真源在 `archive/runner/` | ✅ | `v45.runner.no_c_src=1` |
 | T4 | vm-emit | `ir-table-lisp` + VM/AOT smoke | ✅ | `v45.codegen.vm_emit=1` |
 
-**完全自举（用户口径）** ≈ **S5 + T3**；**S5 可在仍保留仓内 C 工厂时签收**。
+**完全自举（用户口径）** ≈ **S5 + T3 + 代际矩阵**；Wave19 签收 **`v45.selfhost.100=1`**（`v45-wave19-selfhost-converge.sh`）。
 
 ## 与 v4 子轨关系
 
@@ -42,12 +42,22 @@ grep -E 'v45\.selfhost\.(lisp_slice|modules|regenesis|chain)=' \
   lab/nano-lisp-jit/.build/v45-entry.evidence
 ```
 
-## 诚实未达
+## Wave19（✅ 完全自举签收）
+
+| 键 | 含义 |
+|----|------|
+| `v45.selfhost.100=1` | S5+T3 + `next_verify_matrix` + `lisp_only_chain` |
+| `v45.selfhost.next_verify_matrix=1` | `next.com` 跑 `verify-smoke` / `verify-core` / `onion-tdd` |
+| `v45.selfhost.lisp_only_chain=1` | plan 零 `lispjit.c` → `v45-w19-lisp-gen2.com` |
+| `v45.selfhost.gen2_distinct=1` | gen2 `.com` hash ≠ seed |
+
+见 [`DIFFUSE-WAVE19.md`](DIFFUSE-WAVE19.md)。
+
+## 诚实未达（工厂/物理层，与自举卷分离）
 
 | 项 | 说明 |
 |----|------|
-| plan 内 `build-slice lispjit.c` | S4/S5 仍用 C 路径产 slice（**非** plan 无 C，是 **日常 host 不 cc**） |
-| 下一颗 `.com` 跑全矩阵 | 未要求 `next.com` 替代 seed 跑 onion（可开 S6） |
+| plan 内 `build-slice lispjit.c` | S4/S5 仍可用 C 路径产 slice（**日常 host 不 cc**） |
 | `run.sh` / squad.sh | 工厂层；tier3 退役 |
 | 15 TU 全链接 codegen | v4 gen60 级；v4.5 先 modules smoke |
 
@@ -58,6 +68,8 @@ grep -E 'v45\.selfhost\.(lisp_slice|modules|regenesis|chain)=' \
 | S6 next.com smoke | ✅ | `v45-wave2-converge.sh` |
 | S7 modules 13/13 | ✅ | `selfhost-modules-full.lisp` |
 | S8 factory matrix | ✅ | `factory-matrix.lisp` |
+| S9 next 全矩阵 | ✅ | Wave19 `next_verify_matrix` |
+| S10 lisp-only gen2 | ✅ | `selfhost-lisp-only-chain.lisp` |
 
 见 [`DIFFUSE-WAVE2.md`](DIFFUSE-WAVE2.md) · [`CONCURRENT-IMPL.md`](CONCURRENT-IMPL.md)。
 

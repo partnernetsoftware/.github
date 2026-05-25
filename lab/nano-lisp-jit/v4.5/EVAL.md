@@ -23,7 +23,9 @@
 
 **tier5 发行面**：**100%** — `v45.tier5.100=1` · `v45.physical.zero_c=1`（发行面树；见 [`HONEST-REMAINING.md`](HONEST-REMAINING.md)）
 
-**合并结论（→ `main`）**：发行面 / DECISION / warehouse / tier5 / **洋葱×mindmap 统一 goal** 均已 fast-forward 合并（最新 `cd50109`）。
+**完全自举（`.lisp` 用户口径）**：**100%** — `v45.selfhost.100=1`（Wave19 · [`DIFFUSE-WAVE19.md`](DIFFUSE-WAVE19.md)）
+
+**合并结论（→ `main`）**：发行面 / DECISION / warehouse / tier5 / **洋葱×mindmap 统一 goal** / **自举 100%** 收敛链见 `v45-wave19-selfhost-converge.sh`。
 
 ## 合并进度分析（/goal 洋葱 TDD-tree-mind-map · 2026-05-25）
 
@@ -33,6 +35,7 @@
 | Wave14–15 | `cursor/v45-tier5-100-fc19` | `physical.zero_c=1`（发行面树） | ✅ main |
 | Wave16–17 mindmap 树 | `cursor/v45-mindmap-tree-100-fc19` | `goal.mindmap_tree.100` | ✅ main |
 | **Wave18 统一** | `cursor/v45-mindmap-unified-100-fc19` | **`goal.onion_mindmap.unified.100`** | ✅ main |
+| **Wave19 自举** | `cursor/v45-selfhost-100-fc19` | **`v45.selfhost.100`** | 🔄 PR |
 
 | 指标 | 数值 |
 |------|------|
