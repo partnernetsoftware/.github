@@ -78,7 +78,7 @@
 |------|------|--------|------|------|
 | 25 | `cursor/v45-wave25-codegen-fc19` | `codegen_probe.100` · `lisp_slices=3` | — | ✅ main |
 | 26 | `cursor/v45-wave26-codegen-expand-fc19` | `codegen_expand.100` · `lisp_slices=5` | — | ✅ main |
-| **27** | `cursor/v45-wave27-codegen-coupled-fc19` | **`codegen_coupled.100`** · **`codegen 7/7`** | 扩展活图 | 🔄 本合并 |
+| **27** | `cursor/v45-wave27-codegen-coupled-fc19` | **`codegen_coupled.100`** · **`codegen 7/7`** | 扩展活图 | ✅ main |
 
 | 指标 | 数值 |
 |------|------|
