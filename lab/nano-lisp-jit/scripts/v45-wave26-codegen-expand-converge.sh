@@ -32,8 +32,7 @@ done
 for pid in "${pids[@]}"; do wait "$pid" || probe_ok=0; done
 
 if [ -x "$NEXT_LO" ]; then
-  if "${GEN[@]}" "$NEXT_LO" run-bootstrap-plan \
-      lab/nano-lisp-jit/samples/bootstrap-v45-onion-next-lo-minimal.lisp >/dev/null 2>&1; then
+  if run_plan onion-next-lo-minimal; then
     echo "v45-wave26=ok next_lo_minimal"
     echo "v45.factory.next_lisp_only_onion_minimal=1" >>"$EV"
   else
