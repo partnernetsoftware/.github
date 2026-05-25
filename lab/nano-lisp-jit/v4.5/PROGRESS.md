@@ -1,35 +1,36 @@
-# v4.5 终局进度
+# v4.5 进度（诚实口径）
 
-## 仓库口径 100% ✅
+## 已签收 ✅（有定义、有证据，可引用）
 
-**主签收键**：`v45.warehouse.100=1`
+| 口径 | 键 | 说明 |
+|------|-----|------|
+| scoped 洋葱 | `v45.scoped.100=1` | `.com` + `bootstrap-v45-*.lisp` |
+| 发行面 | `v45.release.100=1` | 上列 + boundary |
+| DECISION tier0–4 | `v45.endgame.100=1` | 含 tier3 `lispjit.c` 迁 `archive/runner`、tier4 IR smoke |
+| scoped 工厂栈 | `v45.factory.100=1` | **`NANO_V45_SCOPED_ONLY=1` 时** skip v4 墙 |
+| 合卷（非物理全仓） | `v45.warehouse.100=1` | = endgame ∧ factory；**≠ 零 `.c`** |
 
-| 键 | 含义 | 状态 |
-|----|------|------|
-| `v45.endgame.100=1` | DECISION tier0–4 | ✅ |
-| `v45.factory.100=1` | scoped 工厂路径 | ✅ |
-| `v45.warehouse.100=1` | **合卷终局** | ✅ |
-| `v45.scoped.100=1` | 洋葱 scoped | ✅ |
-| `v45.release.100=1` | 发行面 | ✅ |
+详见 [`HONEST-REMAINING.md`](HONEST-REMAINING.md)。
 
-## 收敛（唯一日常）
+## 未完成 ❌（禁止写成 100%）
+
+| 项 | 诚实键 |
+|----|--------|
+| 全仓零 `.c` | `v45.physical.zero_c=0` |
+| 无 env 瘦 `run.sh` | 未达 |
+| 全量 runner Lisp codegen | 未达 |
+| tier5 物理终局 | `v45.honest.tier5.open=1`（进行中） |
+
+## 收敛
 
 ```bash
-bash lab/nano-lisp-jit/scripts/v45-wave9-converge.sh
-grep v45.warehouse.100=1 lab/nano-lisp-jit/.build/v45-entry.evidence
+bash lab/nano-lisp-jit/scripts/v45-wave10-honest-converge.sh
+grep -E 'v45\.(endgame|scoped|physical\.zero_c|honest)' lab/nano-lisp-jit/.build/v45-entry.evidence
 ```
 
-## Wave 扩散
+## Wave
 
-| Wave | 状态 |
+| Wave | 内容 |
 |------|------|
-| Wave3–8 | ✅ |
-| **Wave9** | ✅ [`DIFFUSE-WAVE9.md`](DIFFUSE-WAVE9.md) — factory/warehouse 100% |
-
-## 超 DECISION 口径（仍不声称）
-
-| 项 | 状态 |
-|----|------|
-| 仓内零 **全部** `.c` | ❌ |
-| 无参 `run.sh` 即瘦工厂 | ❌ 须 `NANO_V45_SCOPED_ONLY=1` |
-| 154KB runner 全 Lisp codegen | ❌ |
+| 3–9 | DECISION + 工厂 scoped（见 `DIFFUSE-WAVE*.md`） |
+| **10** | [`DIFFUSE-WAVE10.md`](DIFFUSE-WAVE10.md) — 诚实剩余 + `v45-release-run.sh` |

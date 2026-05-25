@@ -34,7 +34,8 @@ genesis/*.x86_64      # 可选 bootstrap pin（非日常 host cc）
 | **3** | `v45-tier3-no-c-src` | repo 无 `lispjit.c` 源码 | `v45.runner.no_c_src=1` |
 | **4** | `v45-tier4-vm-emit` | C 表驱动 emit → Lisp IR + VM/AOT | `v45.codegen.vm_emit=1` |
 
-**当前签收**：**终局 100% ✅**（`v45.endgame.100=1`）· scoped · release · **tier3** `no_c_src` · **tier4** `vm_emit` · 自举 S2–S5（见 [`SELFHOST.md`](SELFHOST.md)）
+**当前签收（有口径）**：`v45.endgame.100=1`（DECISION tier0–4）· `v45.scoped.100` · `v45.release.100` · tier3/4 证据键。  
+**物理终局（tier5）**：**未完成** — `v45.physical.zero_c=0` · 见 [`HONEST-REMAINING.md`](HONEST-REMAINING.md)
 
 | 自举阶 | 状态 |
 |--------|------|

@@ -1,4 +1,4 @@
-; v4.5 仓库口径 100% — endgame + factory + 发行面洋葱（plan 无 .sh）.
+; v4.5 合卷签收 — endgame+factory（≠ 全仓零 .c；见 HONEST-REMAINING.md）.
 (bootstrap
   (file-size "lab/nano-lisp-jit/v4.5/PROGRESS.md")
   (file-size "lab/nano-lisp-jit/v4.5/DIFFUSE-WAVE9.md")

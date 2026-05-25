@@ -30,14 +30,15 @@ grep v45.verify.plan_only=1 lab/nano-lisp-jit/.build/v45-entry.evidence
 | 1 com-only verify | ✅ |
 | 2 genesis build-slice | ✅ |
 | **scoped 100%** | **✅** |
-| **warehouse 100%** | **✅** `v45.warehouse.100=1` |
-| **endgame 100%** | **✅** `v45.endgame.100=1` |
+| **DECISION tier0–4** | **✅** `v45.endgame.100=1` |
+| **合卷（非零 C）** | **✅** `v45.warehouse.100=1` |
+| **物理零 C** | **❌** `v45.physical.zero_c=0` |
 | 3 `lispjit.c` 出仓 | **✅** `v45.runner.no_c_src=1` |
 | 4 VM emit（IR Lisp） | **✅** `v45.codegen.vm_emit=1` |
 
 ```bash
-bash lab/nano-lisp-jit/scripts/v45-wave9-converge.sh
-grep v45.warehouse.100=1 lab/nano-lisp-jit/.build/v45-entry.evidence
+bash lab/nano-lisp-jit/scripts/v45-wave10-honest-converge.sh
+grep v45.physical.zero_c=0 lab/nano-lisp-jit/.build/v45-entry.evidence
 ```
 
-口径：[`DECISION.md`](DECISION.md) · [`PROGRESS.md`](PROGRESS.md) · [`ONION-TDD.md`](ONION-TDD.md)
+口径：[`DECISION.md`](DECISION.md) · [`PROGRESS.md`](PROGRESS.md) · [`HONEST-REMAINING.md`](HONEST-REMAINING.md)

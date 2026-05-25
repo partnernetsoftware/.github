@@ -8134,17 +8134,18 @@ else
   log "v45.runsh.factory_block=skipped NANO_V45_SCOPED_ONLY"
 fi
 
-# --- v4.5: Wave9 warehouse 100% (replaces per-plan run_case blocks) ---
-V45_WAVE9_CONVERGE="$LAB_DIR/scripts/v45-wave9-converge.sh"
-if [ -f "$NANO_JIT_COM" ] && host_is_linux_x86_64 && [ -x "$V45_WAVE9_CONVERGE" ]; then
-  run_case "run-bootstrap-v45-wave9-converge-plan" bash -c '
-    cd "'"$ROOT_DIR"'" && bash "'"$V45_WAVE9_CONVERGE"'"
-    grep -q v45.warehouse.100=1 "'"$V45_ENTRY_EVIDENCE"'"
+# --- v4.5: Wave10 honest converge (signed keys; physical.zero_c=0 explicit) ---
+V45_WAVE10_CONVERGE="$LAB_DIR/scripts/v45-wave10-honest-converge.sh"
+if [ -f "$NANO_JIT_COM" ] && host_is_linux_x86_64 && [ -x "$V45_WAVE10_CONVERGE" ]; then
+  run_case "run-bootstrap-v45-wave10-honest-converge-plan" bash -c '
+    cd "'"$ROOT_DIR"'" && bash "'"$V45_WAVE10_CONVERGE"'"
     grep -q v45.endgame.100=1 "'"$V45_ENTRY_EVIDENCE"'"
-    grep -q v45.factory.100=1 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.scoped.100=1 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.physical.zero_c=0 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.honest.tier5.open=1 "'"$V45_ENTRY_EVIDENCE"'"
   '
 else
-  skip_case "run-bootstrap-v45-wave9-converge-plan" "nano-jit.com or v45-wave9-converge.sh missing"
+  skip_case "run-bootstrap-v45-wave10-honest-converge-plan" "nano-jit.com or v45-wave10-honest-converge.sh missing"
 fi
 
 # --- layer4 zero-host: nano-jit.com runs gen2 graph → next .com ---

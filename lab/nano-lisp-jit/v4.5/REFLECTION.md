@@ -97,7 +97,9 @@ grep v45.scoped.100=1 lab/nano-lisp-jit/.build/v45-entry.evidence
 
 **Wave7**：`v45.release.100=1` — endgame plan + `skip_registry` v4 skip + `terminal-done` 升级 → **发行面终局签收**。
 
-**Wave8**：`lispjit.c` 迁 `archive/runner` + `tier4-vm-emit` → **`v45.endgame.100=1`**（DECISION 全 tier 签收）。
+**Wave8**：`lispjit.c` 迁 `archive/runner` + `tier4-vm-emit` → `v45.endgame.100=1`（DECISION tier0–4，非零 C）。
+
+**Wave10**：[`HONEST-REMAINING.md`](HONEST-REMAINING.md) — **禁止**把 warehouse/endgame 写成物理全仓 100%；`v45.physical.zero_c=0` 明示 tier5 开卷。
 
 ## 十、Wave3（整表扩散，勿逐条）
 

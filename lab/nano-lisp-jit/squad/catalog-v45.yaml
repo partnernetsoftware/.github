@@ -601,9 +601,23 @@ tasks:
       - "run-bootstrap-v45-wave7-converge-plan"
       - "v45-wave7-converge done"
 
+    - id: v45-honest-remaining-doc
+      check: artifact
+      path_glob: "v4.5/HONEST-REMAINING.md"
+    - id: v45-physical-zero-c-explicit
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.physical.zero_c
+      min_pass: 0
+    - id: v45-honest-tier5-open
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.honest.tier5.open
+      min_pass: 1
+
 verify:
   commands:
-    - script: scripts/v45-wave9-converge.sh
+    - script: scripts/v45-wave10-honest-converge.sh
       cwd: .
       fail_on_nonzero: true
 

@@ -1,6 +1,6 @@
 # Wave9 扩散 — 工厂路径 100% · `v45.warehouse.100`
 
-> **签收**：`v45.warehouse.100=1` = `v45.endgame.100` + `v45.factory.100`
+> **合卷键**：`v45.warehouse.100=1` = endgame + factory（**非**全仓物理终局 — 见 [`HONEST-REMAINING.md`](HONEST-REMAINING.md)）
 
 ## 本波交付
 
