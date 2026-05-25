@@ -127,6 +127,17 @@
 
 [`DIFFUSE-WAVE11.md`](DIFFUSE-WAVE11.md)
 
+## Wave12（16 TU 广度归档）
+
+| 维度 | 评估 |
+|------|------|
+| T5b 批量 symlink | **~90%** — 16/18 nano TU + lispjit/bootstrap |
+| `lispjit-ir` 真 `.c` | **2** — `ape_v2` · `irjit` |
+| 并发收敛 | **100%** — 四轨 batch `&` + 四 anchor 并行 |
+| physical zero_c | **0% 签收** |
+
+[`DIFFUSE-WAVE12.md`](DIFFUSE-WAVE12.md)
+
 ## 验证
 
 ```bash
@@ -135,7 +146,7 @@ env -u NANO_SELFHOST_REUSE_X86 -u NANO_SELFHOST_REUSE_AARCH64 \
   -u NANO_BUILD_SLICE_SELFHOST_REUSE -u NANO_REGENESIS \
   $COM run-bootstrap-plan lab/nano-lisp-jit/samples/bootstrap-v45-onion-tdd.lisp
 
-bash lab/nano-lisp-jit/scripts/v45-wave11-tier5-converge.sh
+bash lab/nano-lisp-jit/scripts/v45-wave12-tier5-converge.sh
 
 grep -E 'v45\.(scoped|release|endgame|warehouse|physical\.zero_c|honest)\.' \
   lab/nano-lisp-jit/.build/v45-entry.evidence

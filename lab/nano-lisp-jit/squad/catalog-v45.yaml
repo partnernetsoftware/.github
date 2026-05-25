@@ -292,6 +292,19 @@ signoff:
       file: ".build/v45-entry.evidence"
       results_key: v45.tier5.archive_symlinks
       min_pass: 2
+    - id: v45-wave12-diffuse-doc
+      check: artifact
+      path_glob: "v4.5/DIFFUSE-WAVE12.md"
+    - id: v45-wave12-parallel
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.wave12.parallel
+      min_pass: 4
+    - id: v45-tier5-nano-tu-archived
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.tier5.nano_tu_archived
+      min_pass: 16
     - id: v45-wave7-diffuse
       check: results
       file: ".build/v45-entry.evidence"
@@ -675,10 +688,55 @@ tasks:
     accept:
       - "run-bootstrap-v45-wave11-tier5-converge-plan"
       - "v45-wave11-tier5-converge done"
+  wave12-v45-track-a-util:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "archive/runner/nano_abi.c"
+      - "archive/runner/nano_util.c"
+      - "archive/runner/nano_manifest.c"
+      - "archive/runner/nano_main.c"
+    accept:
+      - "run-bootstrap-v45-wave12-track-a-anchor-plan"
+  wave12-v45-track-b-parse:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "archive/runner/nano_lisp_parse.c"
+      - "archive/runner/nano_blob_vm.c"
+    accept:
+      - "run-bootstrap-v45-wave12-track-b-anchor-plan"
+  wave12-v45-track-c-elf:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "archive/runner/nano_elf64.c"
+      - "archive/runner/nano_cc.c"
+    accept:
+      - "run-bootstrap-v45-wave12-track-c-anchor-plan"
+  wave12-v45-track-d-cli:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "archive/runner/nano_ape.c"
+      - "archive/runner/nano_run_cli.c"
+    accept:
+      - "run-bootstrap-v45-wave12-track-d-anchor-plan"
+  wave12-v45-R:
+    assign_role: reviewer
+    priority: meta
+    depends:
+      - wave12-v45-track-a-util
+      - wave12-v45-track-b-parse
+      - wave12-v45-track-c-elf
+      - wave12-v45-track-d-cli
+    accept:
+      - "run-bootstrap-v45-wave12-tier5-converge-plan"
+      - "v45-wave12-tier5-converge done"
 
 verify:
   commands:
-    - script: scripts/v45-wave11-tier5-converge.sh
+    - script: scripts/v45-wave12-tier5-converge.sh
       cwd: .
       fail_on_nonzero: true
 

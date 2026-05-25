@@ -8140,19 +8140,19 @@ else
   log "v45.runsh.factory_block=skipped NANO_V45_SCOPED_ONLY"
 fi
 
-# --- v4.5: Wave11 tier5 converge (四轨并发；physical.zero_c=0 explicit) ---
-V45_WAVE11_CONVERGE="$LAB_DIR/scripts/v45-wave11-tier5-converge.sh"
-if [ -f "$NANO_JIT_COM" ] && host_is_linux_x86_64 && [ -x "$V45_WAVE11_CONVERGE" ]; then
-  run_case "run-bootstrap-v45-wave11-tier5-converge-plan" bash -c '
-    cd "'"$ROOT_DIR"'" && bash "'"$V45_WAVE11_CONVERGE"'"
+# --- v4.5: Wave12 tier5 广度扩散收敛 (16 TU 并行归档；physical.zero_c=0) ---
+V45_WAVE12_CONVERGE="$LAB_DIR/scripts/v45-wave12-tier5-converge.sh"
+if [ -f "$NANO_JIT_COM" ] && host_is_linux_x86_64 && [ -x "$V45_WAVE12_CONVERGE" ]; then
+  run_case "run-bootstrap-v45-wave12-tier5-converge-plan" bash -c '
+    cd "'"$ROOT_DIR"'" && bash "'"$V45_WAVE12_CONVERGE"'"
     grep -q v45.endgame.100=1 "'"$V45_ENTRY_EVIDENCE"'"
     grep -q v45.scoped.100=1 "'"$V45_ENTRY_EVIDENCE"'"
     grep -q v45.physical.zero_c=0 "'"$V45_ENTRY_EVIDENCE"'"
-    grep -q v45.wave11.parallel=4 "'"$V45_ENTRY_EVIDENCE"'"
-    grep -q v45.tier5.runsh_default=1 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.wave12.parallel=4 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.tier5.nano_tu_archived=16 "'"$V45_ENTRY_EVIDENCE"'"
   '
 else
-  skip_case "run-bootstrap-v45-wave11-tier5-converge-plan" "nano-jit.com or v45-wave11-tier5-converge.sh missing"
+  skip_case "run-bootstrap-v45-wave12-tier5-converge-plan" "nano-jit.com or v45-wave12-tier5-converge.sh missing"
 fi
 
 # --- layer4 zero-host: nano-jit.com runs gen2 graph → next .com ---

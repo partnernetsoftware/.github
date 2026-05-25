@@ -125,6 +125,16 @@ grep v45.scoped.100=1 lab/nano-lisp-jit/.build/v45-entry.evidence
 **扩散思维**：同一 wave 同时 touch T5a–T5d，禁止按单 `.c` 顺序碎迁。  
 **并发思维**：com-only 矩阵用 `&`/`wait`，勿串行跑 4 个重 plan。
 
-## 十二、Wave3（整表扩散，勿逐条）
+## 十二、Wave12（广度扩散 · 批量归档）
+
+| 反思 | 调整 |
+|------|------|
+| 单文件迁太慢 | `v45-archive-runner-batch.sh` 四轨各 4 TU 并行 |
+| 迁完怕断构建 | 收敛尾跑 `wave12-verify-smoke`（仍看 `scoped.100`） |
+| 计数误导 | `nano_tu_archived=16` 与 `lispjit_ir_c_files=2` 分键 |
+
+**下一调整**：Wave13 收 `ape_v2`；`irjit` 单独评估；仍不写 `physical.zero_c=1`。
+
+## 十三、Wave3（整表扩散，勿逐条）
 
 见 DIFFUSE-WAVE2 §Wave3：无 C plan · run.sh 单行化 · wave 归档。

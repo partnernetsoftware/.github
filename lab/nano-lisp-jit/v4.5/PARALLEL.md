@@ -91,3 +91,9 @@ bash lab/nano-lisp-jit/scripts/v45-wave11-tier5-converge.sh
 | `v45.tier5.runsh_default=1` | 无参 `run.sh` 默认 scoped |
 | `v45.tier5.archive_symlinks=2` | lispjit + nano_bootstrap |
 | `v45.physical.zero_c=0` | 仍 **未完成** |
+
+**Wave12** ✅：[`DIFFUSE-WAVE12.md`](DIFFUSE-WAVE12.md) — 四轨并行归档 16× `nano_*.c`；`lispjit_ir` 真源 **2**。
+
+```bash
+bash lab/nano-lisp-jit/scripts/v45-wave12-tier5-converge.sh
+```

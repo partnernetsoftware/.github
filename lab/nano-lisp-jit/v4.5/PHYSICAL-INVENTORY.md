@@ -15,7 +15,7 @@
 | ID | Wave11 进展 |
 |----|-------------|
 | T5a | 无参默认 `NANO_V45_SCOPED_ONLY=1` |
-| T5b | +1 symlink（bootstrap） |
+| T5b | Wave11 +2 symlink；**Wave12** 16× `nano_*.c` 出仓（`ir` 真源剩 2） |
 | T5c | 本文档 + evidence 键 |
 | T5d | vm-emit-matrix smoke（非全量替代 C 表） |
 

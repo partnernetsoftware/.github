@@ -9,4 +9,10 @@
 | `lab/lispjit-ir/lispjit.c` | 符号链接 → 本文件（工厂 `cc` / `build-slice` 兼容） |
 | `lab/lispjit-ir/nano_bootstrap.c` | 符号链接 → `archive/runner/nano_bootstrap.c` |
 
-证据：`v45.runner.no_c_src=1` · `v45.tier3.runner_archived=1` · `v45.tier5.archive_symlinks≥2`
+| 计数 | Wave12 后 |
+|------|-----------|
+| `archive/runner/*.c` 真源 | 18 |
+| `lispjit-ir` symlink | 18 |
+| `lispjit-ir` 真 `.c` | 2（`ape_v2` · `irjit`） |
+
+证据：`v45.tier5.nano_tu_archived=16` · `v45.physical.zero_c=0`
