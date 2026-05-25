@@ -2,11 +2,13 @@
 """DP frontier for v4.5 onion×mindmap tree — ready nodes for parallel work."""
 from __future__ import annotations
 import json
+import os
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-FRONTIER = ROOT / "v4.5" / "mindmap-frontier-v45.json"
+_DEFAULT = "mindmap-frontier-v45.json"
+FRONTIER = ROOT / "v4.5" / os.environ.get("NANO_V45_FRONTIER", _DEFAULT)
 
 
 def load() -> dict:

@@ -70,14 +70,33 @@
 | 全 monorepo 零 C | **0%** | 诚实未达 |
 | v4 全 frontier | **未并入** | 69 节点独立 SSOT |
 
-**综合（/goal 卷）**：**100%** — 可停；**综合（工厂物理终局）**：约 **85%** — 仍差全量 codegen / 瘦 run.sh。
+**综合（/goal 卷）**：**100%** — 可停；**综合（工厂物理终局）**：约 **90%** — 仍差全量 codegen / 瘦 run.sh。
 
-**日常**：`v45-wave26-codegen-expand-converge.sh`
+## 合并进度分析（Wave25–27 → `origin/main` · 2026-05-25）
+
+| Wave | 分支 | 签收键 | 活图 | 状态 |
+|------|------|--------|------|------|
+| 25 | `cursor/v45-wave25-codegen-fc19` | `codegen_probe.100` · `lisp_slices=3` | — | ✅ main |
+| 26 | `cursor/v45-wave26-codegen-expand-fc19` | `codegen_expand.100` · `lisp_slices=5` | — | ✅ main |
+| **27** | `cursor/v45-wave27-codegen-coupled-fc19` | **`codegen_coupled.100`** · **`codegen 7/7`** | 扩展活图 | 🔄 本合并 |
+
+| 指标 | 数值 |
+|------|------|
+| `/goal` 总签收 | **100%** — `goal.onion_tdd_tree_mindmap.100=1` · **26/26** |
+| 工厂 codegen 扩展活图 | **7/7** — `mindmap-frontier-v45-codegen.json` |
+| VM emit 探针矩阵 | **4/4** — arith · strlen · ctrl · multi |
+| 代际 slice 探针 | next-lo + chain-lo minimal 绿 |
+| 工厂物理终局（诚实） | **~90%** — 154KB runner 全 Lisp codegen 未达 |
+
+**反思要点**：/goal 与工厂 codegen **分卷** — 不扩 `nodes_total=26`；扩展活图单独 JSON + 独立键 `codegen_coupled.100`。
+
+**日常**：`v45-wave27-codegen-coupled-converge.sh`
 
 | Wave24 发行继续 | **100%** | `v45.v45.release.100=1` |
 | Wave25 codegen 探针 | **100%** | `v45.codegen_probe.100` · `lisp_slices=3` |
 | Wave26 codegen 扩面 | **100%** | `v45.codegen_expand.100` · `lisp_slices=5` |
-| 全量 runner Lisp codegen | **~20%** | 五轨探针绿；154KB C 替代未达 |
+| Wave27 codegen 耦合 | **100%** | `v45.codegen_coupled.100` · 扩展活图 **7/7** |
+| 全量 runner Lisp codegen | **~28%** | 七轨探针绿；154KB C 替代未达 |
 | Wave23 继续卷 | **100%** | `v45.v45.continue.100=1` |
 | v4 握手 | **100%** | `v45.v4.handoff.verified=1`（69/69，≠ v45 frontier） |
 | 代际 plan-no-C matrix | **100%** | `factory.next_lisp_only_matrix=1` |

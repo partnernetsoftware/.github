@@ -36,8 +36,17 @@ bash lab/nano-lisp-jit/scripts/v45-wave21-onion-tdd-tree-mindmap-100-converge.sh
 | `v45.goal.lisp_selfhost.unified.100=1` | Wave20 洋葱×mindmap×自举 20/20 |
 | `v45.goal.onion_tdd_tree_mindmap.100=1` | **Wave21 /goal 总签收 26/26** |
 | `v45.mindmap.nodes_done` / `nodes_total` | 活图覆盖率（终局 **26**） |
+| `v45.mindmap.codegen.nodes_done` / `nodes_total` | **扩展活图**（Wave27 · 终局 **7**） |
 
-前置：`v45.tier5.100=1` · `v45.scoped.100=1`
+前置：`v45.tier5.100=1` · `v45.scoped.100=1` · `/goal` 26/26
+
+## 扩展活图（工厂 codegen · Wave27+）
+
+```bash
+NANO_V45_FRONTIER=mindmap-frontier-v45-codegen.json \
+  python3 lab/nano-lisp-jit/tools/mindmap-dp-v45.py stats
+bash lab/nano-lisp-jit/scripts/v45-wave27-codegen-coupled-converge.sh
+```
 
 ## 日常（/goal 终局）
 

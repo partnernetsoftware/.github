@@ -328,6 +328,16 @@ bash lab/nano-lisp-jit/scripts/v45-cleanup-reflect.sh
 | 探针仅 3 slice | 加 VM emit arith/strlen → `lisp_slices=5` |
 | 物理覆盖仍小 | 独立卷 `codegen_expand.100` · **~20%** 诚实未达全量 |
 
+## 二十七、Wave27（工厂 codegen 洋葱×mindmap 耦合）
+
+| 反思 | 调整 |
+|------|------|
+| /goal 26/26 已满，工厂 codegen 如何续推？ | 扩展活图 `mindmap-frontier-v45-codegen.json`（7 节点） |
+| wave14 VM emit 四轨未全进 codegen 卷 | W1/W2 补 ctrl + multi → `vm_emit_profiles=4` |
+| 代际仅 next-lo 探针 | 加 `chain-lo-minimal` 对称矩阵 |
+| 与 v4 gen60 脱节？ | W4 gen60-handshake 显式耦合 /goal 前置键 |
+| 仍不能喊物理 100% | `codegen_coupled.100` 签收 · 154KB 全量 codegen **~28%** |
+
 ## 十八、Wave3（整表扩散，勿逐条）
 
 见 DIFFUSE-WAVE2 §Wave3：无 C plan · run.sh 单行化 · wave 归档。

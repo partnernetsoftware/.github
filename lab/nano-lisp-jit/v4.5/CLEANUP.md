@@ -24,7 +24,10 @@ bash lab/nano-lisp-jit/scripts/v45-evidence-canonical.sh
 ## 日常收敛链（推荐顺序）
 
 ```bash
-# 发行面 + codegen 探针扩面（推荐）
+# 工厂 codegen 洋葱×mindmap 耦合（推荐）
+bash lab/nano-lisp-jit/scripts/v45-wave27-codegen-coupled-converge.sh
+
+# codegen 五轨（wave26 子集）
 bash lab/nano-lisp-jit/scripts/v45-wave26-codegen-expand-converge.sh
 
 # codegen 四轨（wave25 子集）
@@ -39,8 +42,8 @@ bash lab/nano-lisp-jit/scripts/v45-cleanup-reflect.sh
 
 | 脚本 | 用途 |
 |------|------|
-| **`v45-wave26-codegen-expand-converge.sh`** | **默认**（wave25 + VM emit 双轨 + next-lo 最小 onion） |
-| `v45-wave25-codegen-probe-converge.sh` | codegen 四轨探针 |
+| **`v45-wave27-codegen-coupled-converge.sh`** | **默认**（wave26 + codegen 扩展活图 7/7） |
+| `v45-wave26-codegen-expand-converge.sh` | VM emit 双轨 + next-lo 最小 onion |
 | `v45-wave24-release-converge.sh` | 发行面继续 |
 | `v45-wave23-continue-converge.sh` | continue + v4 握手 |
 | `v45-wave21-*` | /goal 总签收子集 |
