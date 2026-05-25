@@ -298,6 +298,14 @@ python3 lab/nano-lisp-jit/tools/mindmap-dp-v45.py stats  # 期望 26/26
 bash lab/nano-lisp-jit/scripts/v45-cleanup-reflect.sh
 ```
 
+## 二十三、Wave22（工厂 S4/S5 plan 零 lispjit.c）
+
+| 反思 | 调整 |
+|------|------|
+| /goal 已 100% 但 SELFHOST 仍写「plan 含 C」 | 新增 `regenesis-lisp-only` / `chain-lisp-only` |
+| 与 w3/w19 链重复？ | 工厂卷单独键 `plan_no_c`，不扩 frontier |
+| 进度评估 | 见 [`EVAL.md`](EVAL.md) §进度评估 — /goal 100% · 物理终局 ~85% |
+
 ## 十八、Wave3（整表扩散，勿逐条）
 
 见 DIFFUSE-WAVE2 §Wave3：无 C plan · run.sh 单行化 · wave 归档。

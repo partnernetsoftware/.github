@@ -53,11 +53,20 @@ grep -E 'v45\.selfhost\.(lisp_slice|modules|regenesis|chain)=' \
 
 见 [`DIFFUSE-WAVE19.md`](DIFFUSE-WAVE19.md)。
 
-## 诚实未达（工厂/物理层，与自举卷分离）
+## Wave22（✅ 工厂 plan 零 C）
+
+| 键 | 含义 |
+|----|------|
+| `v45.selfhost.plan_no_c=1` | `selfhost-regenesis-lisp-only` + `selfhost-chain-lisp-only` 绿 |
+| `v45.factory.selfhost_lisp_only=1` | 同上（工厂卷） |
+
+见 `v45-wave22-factory-lisp-only-converge.sh`。经典 S4/S5（含 `lispjit.c`）仍保留作对照。
+
+## 诚实未达（物理/全量，与 /goal 分离）
 
 | 项 | 说明 |
 |----|------|
-| plan 内 `build-slice lispjit.c` | S4/S5 仍可用 C 路径产 slice（**日常 host 不 cc**） |
+| 经典 S4/S5 `lispjit.c` 路径 | 可选对照 plan；**非**日常签收必需 |
 | `run.sh` / squad.sh | 工厂层；tier3 退役 |
 | 15 TU 全链接 codegen | v4 gen60 级；v4.5 先 modules smoke |
 

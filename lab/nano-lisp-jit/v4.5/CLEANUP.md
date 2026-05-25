@@ -56,7 +56,7 @@ grep v45.goal.onion_tdd_tree_mindmap.100=1 \
 | 项 | 说明 |
 |----|------|
 | v4 全图 69 节点 | 独立 SSOT，≠ v45 % |
-| S4/S5 plan 内 `archive/runner/lispjit.c` | 工厂路径；日常 host 不 cc |
+| S4/S5 零 C plan | Wave22 · `selfhost.plan_no_c=1`（另有经典 C 对照 plan） |
 | 全 monorepo `physical.zero_c` | 见 `HONEST-REMAINING.md` |
 
 ## 历史（2026-05-24 目录清理）

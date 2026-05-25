@@ -52,7 +52,27 @@
 | boundary | `v45.boundary.probes=13` · `negative=1` |
 
 **本 /goal 口径 100%**：`v45.goal.onion_tdd_tree_mindmap.100=1` + `nodes_done=nodes_total=26`。  
-**未声称 100%**：v4 全图 69 节点 · S4/S5 plan 内归档 `lispjit.c` 工厂路径。
+**工厂进阶（Wave22）**：`v45.selfhost.plan_no_c=1` — S4/S5 **另有** 零 `lispjit.c` plan 绿。  
+**未声称 100%**：v4 全图 69 节点 · 全量 runner Lisp codegen · 全 monorepo 零 C。
+
+## 进度评估（2026-05-25 · 继续推进前）
+
+| 卷 | 完成度 | 签收键 / 说明 |
+|----|--------|----------------|
+| 发行面 scoped | **100%** | `scoped.100` · `release.100` |
+| DECISION / warehouse | **100%** | `endgame.100` · `warehouse.100` |
+| tier5 发行面树 | **100%** | `tier5.100` · `physical.zero_c=1`（发行面） |
+| 洋葱 TDD | **100%** | `onion.lisp_only` · VM emit 矩阵 |
+| mindmap 活图 | **100%** | **26/26** · DP `pct=100` |
+| lisp 自举（用户） | **100%** | `selfhost.100` · next/gen2 矩阵 |
+| **/goal 总签收** | **100%** | `goal.onion_tdd_tree_mindmap.100` |
+| 工厂 S4/S5 零 C plan | **100%** | `selfhost.plan_no_c=1`（Wave22） |
+| 全 monorepo 零 C | **0%** | 诚实未达 |
+| v4 全 frontier | **未并入** | 69 节点独立 SSOT |
+
+**综合（/goal 卷）**：**100%** — 可停；**综合（工厂物理终局）**：约 **85%** — 仍差全量 codegen / 瘦 run.sh。
+
+**日常**：`v45-cleanup-reflect.sh`（复核）· 工厂进阶：`v45-wave22-factory-lisp-only-converge.sh`
 
 ## 本波（/goal 边界扩展）
 
