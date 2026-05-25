@@ -99,8 +99,20 @@ grep v45.scoped.100=1 lab/nano-lisp-jit/.build/v45-entry.evidence
 
 **Wave8**：`lispjit.c` 迁 `archive/runner` + `tier4-vm-emit` → `v45.endgame.100=1`（DECISION tier0–4，非零 C）。
 
-**Wave10**：[`HONEST-REMAINING.md`](HONEST-REMAINING.md) — **禁止**把 warehouse/endgame 写成物理全仓 100%；`v45.physical.zero_c=0` 明示 tier5 开卷。
+**Wave9**：`v45.warehouse.100=1` — endgame ∧ factory 合卷；`run.sh` v4 块 `NANO_V45_SCOPED_ONLY` guard。
 
-## 十、Wave3（整表扩散，勿逐条）
+**Wave10**：[`HONEST-REMAINING.md`](HONEST-REMAINING.md) — **禁止**把 warehouse/endgame 写成物理全仓 100%；`v45.physical.zero_c=0` 明示 tier5 开卷。日常：`v45-wave10-honest-converge.sh`。
+
+## 十、合并到 main（2026-05-24）
+
+| 判断 | 结论 |
+|------|------|
+| 是否继续 Wave？ | **否** — 发行面/DECISION/warehouse 已签收 |
+| 是否合并？ | **是** — `cursor/v45-full-100-fc19` → `main` |
+| 合并后仍开卷？ | tier5：全仓零 C、默认瘦 `run.sh`、runner 全 Lisp codegen |
+
+**教训**：证据键分层（`scoped` / `release` / `endgame` / `warehouse` / `physical.*`）避免 PR 标题误导；`warehouse.100` 只表示合卷门禁绿，不是删光 C。
+
+## 十一、Wave3（整表扩散，勿逐条）
 
 见 DIFFUSE-WAVE2 §Wave3：无 C plan · run.sh 单行化 · wave 归档。

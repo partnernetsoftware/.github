@@ -260,6 +260,17 @@ signoff:
     - id: v45-wave9-diffuse-doc
       check: artifact
       path_glob: "v4.5/DIFFUSE-WAVE9.md"
+    - id: v45-honest-remaining-doc
+      check: artifact
+      path_glob: "v4.5/HONEST-REMAINING.md"
+    - id: v45-honest-tier5-open
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.honest.tier5.open
+      min_pass: 1
+    - id: v45-wave10-diffuse-doc
+      check: artifact
+      path_glob: "v4.5/DIFFUSE-WAVE10.md"
     - id: v45-wave7-diffuse
       check: results
       file: ".build/v45-entry.evidence"
