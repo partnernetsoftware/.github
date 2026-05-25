@@ -24,16 +24,20 @@ bash lab/nano-lisp-jit/scripts/v45-evidence-canonical.sh
 ## 日常收敛链（推荐顺序）
 
 ```bash
-# 完整继续卷（/goal 复核 + 工厂 + v4 握手）
+# 发行面继续（推荐）
+bash lab/nano-lisp-jit/scripts/v45-wave24-release-converge.sh
+
+# 较快：仅 continue + /goal 复核
 bash lab/nano-lisp-jit/scripts/v45-wave23-continue-converge.sh
 
-# 仅 /goal 复核（较快）
+# 最快：canonical + 证据核对
 bash lab/nano-lisp-jit/scripts/v45-cleanup-reflect.sh
 ```
 
 | 脚本 | 用途 |
 |------|------|
-| **`v45-wave23-continue-converge.sh`** | **继续 v4.5 默认**（wave22→21 链 + 代际矩阵 + v4） |
+| **`v45-wave24-release-converge.sh`** | **发行面继续默认**（wave23 + core/modules 代际 + scoped CI） |
+| `v45-wave23-continue-converge.sh` | continue + v4 握手 |
 | `v45-wave21-*` | /goal 总签收子集 |
 | `v45-wave22-*` | 工厂 plan 零 C |
 | `v45-wave17~20` | 历史子集，勿单独当终局 |

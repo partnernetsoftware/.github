@@ -901,7 +901,7 @@ tasks:
 
 verify:
   commands:
-    - script: scripts/v45-wave23-continue-converge.sh
+    - script: scripts/v45-wave24-release-converge.sh
       cwd: .
       fail_on_nonzero: true
 

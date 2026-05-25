@@ -306,6 +306,10 @@ bash lab/nano-lisp-jit/scripts/v45-cleanup-reflect.sh
 | 与 w3/w19 链重复？ | 工厂卷单独键 `plan_no_c`，不扩 frontier |
 | 进度评估 | 见 [`EVAL.md`](EVAL.md) §进度评估 — /goal 100% · 物理终局 ~85% |
 
+## 二十四、Wave24（发行面继续）
+
+代际 plan 零 C 的 `.com` 不仅能跑 smoke，还能跑 **verify-core** 与 **13/13 modules**；`scoped-ci` 改为认 `continue.100` / 总 goal。日常入口上移到 `wave24-release-converge.sh`。
+
 ## 十八、Wave3（整表扩散，勿逐条）
 
 见 DIFFUSE-WAVE2 §Wave3：无 C plan · run.sh 单行化 · wave 归档。

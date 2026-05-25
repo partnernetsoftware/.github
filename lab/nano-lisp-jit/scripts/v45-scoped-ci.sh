@@ -22,7 +22,8 @@ else
   fail=$((fail + 1))
   echo "v45-scoped-ci=fail terminal-done"
 fi
-if [ -f "$EV" ] && grep -q 'v45.scoped.100=1' "$EV" && grep -q 'v45.wave5.diffuse=1' "$EV"; then
+if [ -f "$EV" ] && grep -q 'v45.scoped.100=1' "$EV" \
+  && { grep -q 'v45.v45.continue.100=1' "$EV" || grep -q 'v45.goal.onion_tdd_tree_mindmap.100=1' "$EV"; }; then
   pass=$((pass + 1))
   echo "v45-scoped-ci=ok evidence"
 else
