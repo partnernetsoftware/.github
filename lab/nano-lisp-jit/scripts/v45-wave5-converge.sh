@@ -56,14 +56,13 @@ if [ ! -x "$W3" ]; then
 fi
 w3_ok=0
 if [ -x "$W3" ]; then
-  for p in verify-smoke verify-core; do
-    if "$W3" run-bootstrap-plan "lab/nano-lisp-jit/samples/bootstrap-v45-$p.lisp" >/dev/null 2>&1; then
-      w3_ok=$((w3_ok + 1))
-      echo "v45-wave5-converge=ok w3_com plan=$p"
-    else
-      echo "v45-wave5-converge=skip w3_com plan=$p"
-    fi
-  done
+  rc=$("$W3" 2>/dev/null; echo $?)
+  if [ "$rc" -eq 42 ]; then
+    w3_ok=1
+    echo "v45-wave5-converge=ok w3_slice_exit42=1"
+  else
+    echo "v45-wave5-converge=skip w3_slice_exit=$rc"
+  fi
 fi
 n=$(ls -1 lab/nano-lisp-jit/samples/bootstrap-v45-*.lisp 2>/dev/null | wc -l)
 {

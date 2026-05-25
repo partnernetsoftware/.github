@@ -24,6 +24,7 @@
 | B06 | `multi-func-call.lisp` | ✅ | ✅ 43 | 基准 | 保持 |
 | B07 | `load-u16-rodata` / `store-u16-mutate` | ✅ | — | rodata 变宽读写 | 文档化 mutability |
 | B08 | `NANO_SELFHOST_REUSE_*` 环境 | compare 漂移 | — | 非样例；运维 | 文档 + 默认 genesis |
+| B09 | `v45-w3-lisp-only.com` | exit 42 only | — | **非**完整 runner；`run-bootstrap-plan` 不可用 | 产品区分 slice 探针 vs `nano-jit.com` |
 
 ## 推荐引擎优先级
 

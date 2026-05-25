@@ -93,6 +93,8 @@ grep v45.scoped.100=1 lab/nano-lisp-jit/.build/v45-entry.evidence
 
 **Wave5**：`onion-lisp-only` plan + scoped CI（terminal+converge）→ `v45-wave5-converge.sh`；catalog 不再要求 `tests.pass≥1302`。
 
+**Wave6**：w3.com 语义修正（B09）+ 洋葱主门禁 + `v45-factory-slim.sh` → `v45-wave6-converge.sh`。
+
 ## 十、Wave3（整表扩散，勿逐条）
 
 见 DIFFUSE-WAVE2 §Wave3：无 C plan · run.sh 单行化 · wave 归档。

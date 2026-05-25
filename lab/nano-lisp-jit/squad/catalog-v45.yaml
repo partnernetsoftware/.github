@@ -182,6 +182,29 @@ signoff:
       file: ".build/v45-entry.evidence"
       results_key: v45.wave5.diffuse
       min_pass: 1
+    - id: v45-wave6-diffuse-doc
+      check: artifact
+      path_glob: "v4.5/DIFFUSE-WAVE6.md"
+    - id: v45-wave6-diffuse
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.wave6.diffuse
+      min_pass: 1
+    - id: v45-onion-primary-lisp-only
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.onion.primary_lisp_only
+      min_pass: 1
+    - id: v45-w3-minimal-probe
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.w3_com.minimal_probe
+      min_pass: 1
+    - id: v45-factory-slim
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.factory.slim
+      min_pass: 1
     - id: v45-wave3-diffuse-doc
       check: artifact
       path_glob: "v4.5/DIFFUSE-WAVE3.md"
@@ -435,10 +458,50 @@ tasks:
     accept:
       - "run-bootstrap-v45-wave5-converge-plan"
       - "v45-wave5-converge done"
+  wave6-v45-track-a-onion-primary:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v45-wave6-onion-primary.lisp"
+      - "v4.5/ONION-TDD.md"
+    accept:
+      - "run-bootstrap-v45-wave6-onion-primary-plan"
+  wave6-v45-track-b-factory-slim:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "scripts/v45-factory-slim.sh"
+    accept:
+      - "NANO_V45_SCOPED_ONLY factory slim"
+  wave6-v45-track-c-w3-probe:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v45-wave6-w3-minimal-probe.lisp"
+    accept:
+      - "run-bootstrap-v45-wave6-w3-minimal-probe-plan"
+  wave6-v45-track-d-assess:
+    assign_role: reviewer
+    priority: P0
+    touch_paths:
+      - "v4.5/DIFFUSE-WAVE6.md"
+    accept:
+      - "run-bootstrap-v45-wave6-rollup-plan"
+  wave6-v45-R:
+    assign_role: reviewer
+    priority: meta
+    depends:
+      - wave6-v45-track-a-onion-primary
+      - wave6-v45-track-b-factory-slim
+      - wave6-v45-track-c-w3-probe
+      - wave6-v45-track-d-assess
+    accept:
+      - "run-bootstrap-v45-wave6-converge-plan"
+      - "v45-wave6-converge done"
 
 verify:
   commands:
-    - script: scripts/v45-wave5-converge.sh
+    - script: scripts/v45-wave6-converge.sh
       cwd: .
       fail_on_nonzero: true
 

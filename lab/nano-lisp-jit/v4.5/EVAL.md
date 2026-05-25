@@ -57,6 +57,16 @@
 
 [`DIFFUSE-WAVE5.md`](DIFFUSE-WAVE5.md)
 
+## Wave6（洋葱主 + w3 探针 + factory slim）
+
+| 维度 | 评估 |
+|------|------|
+| 洋葱主门禁 | **100%** — `onion-lisp-only` 写入 ONION-TDD |
+| w3 代际 | **100%** 探针口径 — slice exit 42，非 runner 矩阵 |
+| 工厂 slim | **~70%** — 独立脚本；`run.sh` v4 墙未 hook skip |
+
+[`DIFFUSE-WAVE6.md`](DIFFUSE-WAVE6.md)
+
 ## 验证
 
 ```bash

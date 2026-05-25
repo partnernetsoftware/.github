@@ -12,7 +12,10 @@ export -n NANO_SELFHOST_REUSE_X86 NANO_SELFHOST_REUSE_AARCH64 \
 # 或：env -u NANO_SELFHOST_REUSE_X86 -u NANO_SELFHOST_REUSE_AARCH64 \
 #       -u NANO_BUILD_SLICE_SELFHOST_REUSE -u NANO_REGENESIS $COM run-bootstrap-plan …
 
-# 洋葱主门禁（tier2 genesis + VM + APE + compare）
+# 洋葱主门禁（发行面优先 lisp-only，无 plan 内 lispjit.c）
+$COM run-bootstrap-plan lab/nano-lisp-jit/samples/bootstrap-v45-onion-lisp-only.lisp
+
+# tier2 genesis compare 锚点（仍含 build-slice C）
 $COM run-bootstrap-plan lab/nano-lisp-jit/samples/bootstrap-v45-onion-tdd.lisp
 
 # 完整 verify 矩阵
@@ -43,7 +46,7 @@ grep v45.scoped.100=1 lab/nano-lisp-jit/.build/v45-entry.evidence
 ```text
 圈 0  seed     genesis/nano-jit.x86_64 + nano-jit.com
 圈 1  VM       verify-smoke + boundary/*
-圈 2  AOT/APE  verify-core + onion-tdd
+圈 2  AOT/APE  verify-core + **onion-lisp-only**（主）+ onion-tdd（genesis 锚）
 圈 3  build    build-slice-genesis（role=genesis-pin）
 圈 4  v4 交接  v4-handoff + gen60 锚点
 圈 5  DONE     terminal-done

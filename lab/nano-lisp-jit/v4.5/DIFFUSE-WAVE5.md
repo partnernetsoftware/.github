@@ -32,3 +32,7 @@ bash lab/nano-lisp-jit/scripts/v45-wave5-converge.sh
 
 - `v45-w3-lisp-only.com` 跑 verify 仍可能 exit 42（代际能力未对齐 genesis com）
 - 全量 `run.sh` v4 工厂墙未删
+
+## Wave6
+
+已实施：[`DIFFUSE-WAVE6.md`](DIFFUSE-WAVE6.md) — w3 探针语义修正 · 洋葱主门禁 · factory slim
