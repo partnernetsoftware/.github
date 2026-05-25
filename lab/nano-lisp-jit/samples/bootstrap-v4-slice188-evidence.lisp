@@ -1,4 +1,4 @@
 ; wave188 evidence.
 (bootstrap
-  (file-size "lab/nano-lisp-jit/v4/SLICE188.md")
+  (file-size "lab/nano-lisp-jit/archive/v4/slices/SLICE188.md")
   (file-hash "lab/nano-lisp-jit/.build/bootstrap-v4-slice188-add183.elf"))

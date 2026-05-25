@@ -17,7 +17,7 @@ v4 wave113-121 · cc 下手 · Codegen 实质（emit 可观测性）
    fprintf(stderr, "nano_elf64.emit.add.bytes=20\n");
    ```
 
-3. **lab/nano-lisp-jit/v4/SLICE113.md** — 在文件末尾追加 §emit observability（add.result / add.operands / emit.bytes 契约，3–5 行）。
+3. **lab/nano-lisp-jit/archive/v4/slices/SLICE113.md** — 在文件末尾追加 §emit observability（add.result / add.operands / emit.bytes 契约，3–5 行）。
 
 4. **不要**改 `gen-v4-wave-batch.py`、不要 `git commit`。
 

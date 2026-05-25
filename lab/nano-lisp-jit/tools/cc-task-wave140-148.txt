@@ -12,7 +12,7 @@ v4 wave140-142 · cc 下手 · Codegen emit.bytes 可验收（Worker · 可验�
    ```
    （与 `nano_elf64.c` stderr 行呼应，便于 plan 输出 grep）
 
-2. **lab/nano-lisp-jit/v4/SLICE140.md** — 文件末尾 3 行 §bytes 契约。
+2. **lab/nano-lisp-jit/archive/v4/slices/SLICE140.md** — 文件末尾 3 行 §bytes 契约。
 
 3. 验证：
    ```bash

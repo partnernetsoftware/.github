@@ -1,5 +1,5 @@
 Worker 4/5 · SLICE166–174 洋葱段（勿 commit）
 
-为 **v4/SLICE166.md … SLICE174.md** 各追加 §洋葱 TDD（5–8 行）：扩散→并发→gate；链 MINDMAP/DIFFUSE-WORKFLOW。
+为 **archive/v4/slices/SLICE166.md … SLICE174.md** 各追加 §洋葱 TDD（5–8 行）：扩散→并发→gate；链 MINDMAP/DIFFUSE-WORKFLOW。
 
 最后一行：`CC_DONE worker=4`

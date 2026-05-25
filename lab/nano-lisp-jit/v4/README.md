@@ -15,7 +15,7 @@ lab/nano-lisp-jit/
 ├─ samples/
 │   ├─ bootstrap-v4-*.lisp   # Plan 层（无 .c 引用）
 │   └─ nano-jit-slice-add-*.lisp  # 被 build-slice-lisp 编译的 IR 样本
-├─ v4/SLICE*.md        # 每圈交付说明
+├─ archive/v4/slices/SLICE*.md        # 每圈交付说明
 └─ .build/*.elf, v4-slice*.evidence
 
 lab/lispjit-ir/

@@ -169,6 +169,7 @@ BOOTSTRAP_V45_BUILD_SLICE_GENESIS_SRC="$LAB_DIR/samples/bootstrap-v45-build-slic
 BOOTSTRAP_V45_BOUNDARY_PROBE_SRC="$LAB_DIR/samples/bootstrap-v45-boundary-probe.lisp"
 BOOTSTRAP_V45_ONION_TDD_SRC="$LAB_DIR/samples/bootstrap-v45-onion-tdd.lisp"
 BOOTSTRAP_V45_TERMINAL_DONE_SRC="$LAB_DIR/samples/bootstrap-v45-terminal-done.lisp"
+BOOTSTRAP_V45_CLEANUP_ROLLUP_SRC="$LAB_DIR/samples/bootstrap-v45-cleanup-rollupy.lisp"
 BOOTSTRAP_V45_ENTRY_EVIDENCE_SRC="$LAB_DIR/samples/bootstrap-v45-entry-evidence.lisp"
 V45_ENTRY_EVIDENCE="$BUILD_DIR/v45-entry.evidence"
 V45_CORE_APP="$BUILD_DIR/v45-core-app.com"
@@ -3229,7 +3230,7 @@ run_case "run-bootstrap-v4-squad-s7-signal-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice13-emit-manifest-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE13_EMIT_MANIFEST_SRC"'" 2>&1) || true
-  printf "%s\n" "$out" | grep -q "aarch64.emit.manifest=add-exit-v1" || test -f "'"$LAB_DIR"'/v4/SLICE13.md"
+  printf "%s\n" "$out" | grep -q "aarch64.emit.manifest=add-exit-v1" || test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE13.md"
 '
 run_case "run-bootstrap-v4-squad-s8-resume-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SQUAD_S8_RESUME_SRC"'" 2>&1) || true
@@ -3255,7 +3256,7 @@ run_case "run-bootstrap-v4-squad-s9-done-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice15-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE15_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE15.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE15.md"
   { echo "v4.slice15=1"; } >> "'"$V4_SLICE15_EVIDENCE"'"
 '
 run_case "run-bootstrap-v4-squad-assess-scoped-ready-plan" bash -c '
@@ -3277,7 +3278,7 @@ run_case "run-bootstrap-v4-squad-assess-once-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice17-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE17_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE17.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE17.md"
   { echo "v4.slice17=1"; } >> "'"$V4_SLICE17_EVIDENCE"'"
 '
 run_case "run-bootstrap-v4-slice18-ir-table-op-plan" bash -c '''
@@ -3291,7 +3292,7 @@ run_case "run-bootstrap-v4-slice18-ir-table-op-plan" bash -c '''
 
 run_case "run-bootstrap-v4-slice18-evidence-plan" bash -c '''
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE18_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE18.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE18.md"
   test -f "'"$V4_SLICE18_ADD21_ELF"'"
   { echo "v4.slice18=1"; } >> "'"$V4_SLICE18_EVIDENCE"'"
 '''
@@ -3357,7 +3358,7 @@ run_case "run-bootstrap-v4-assess-evidence-chain-plan" bash -c '
 
 run_case "run-bootstrap-v4-slice28-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE28_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE28.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE28.md"
   { echo "v4.slice28=1"; } >> "'"$V4_SLICE28_EVIDENCE"'"
 '
 
@@ -3394,7 +3395,7 @@ run_case "run-bootstrap-v4-plan-manifest-anchor-plan" bash -c '
 
 run_case "run-bootstrap-v4-slice29-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE29_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE29.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE29.md"
   { echo "v4.slice29=1"; } >> "'"$V4_SLICE29_EVIDENCE"'"
 '
 
@@ -3423,7 +3424,7 @@ run_case "run-bootstrap-v4-onion-tick-plan" bash -c '
 
 run_case "run-bootstrap-v4-slice30-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE30_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE30.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE30.md"
   { echo "v4.slice30=1"; } >> "'"$V4_SLICE30_EVIDENCE"'"
 '
 
@@ -3458,7 +3459,7 @@ run_case "run-bootstrap-v4-post-v4-tick-plan" bash -c '
 
 run_case "run-bootstrap-v4-slice31-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE31_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE31.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE31.md"
   { echo "v4.slice31=1"; } >> "'"$V4_SLICE31_EVIDENCE"'"
 '
 
@@ -3484,7 +3485,7 @@ run_case "run-bootstrap-v4-lisp-only-tick-plan" bash -c '
 
 run_case "run-bootstrap-v4-slice32-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE32_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE32.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE32.md"
   { echo "v4.slice32=1"; } >> "'"$V4_SLICE32_EVIDENCE"'"
 '
 
@@ -3509,7 +3510,7 @@ run_case "run-bootstrap-v4-assess-chain-tick-plan" bash -c '
 
 run_case "run-bootstrap-v4-slice33-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE33_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE33.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE33.md"
   { echo "v4.slice33=1"; } >> "'"$V4_SLICE33_EVIDENCE"'"
 '
 
@@ -3535,7 +3536,7 @@ run_case "run-bootstrap-v4-terminal-tick-plan" bash -c '
 
 run_case "run-bootstrap-v4-slice34-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE34_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE34.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE34.md"
   { echo "v4.slice34=1"; } >> "'"$V4_SLICE34_EVIDENCE"'"
 '
 
@@ -3559,7 +3560,7 @@ run_case "run-bootstrap-v4-wave35-reflection-tick-plan" bash -c '
 
 run_case "run-bootstrap-v4-slice35-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE35_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE35.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE35.md"
   { echo "v4.slice35=1"; } >> "'"$V4_SLICE35_EVIDENCE"'"
 '
 
@@ -3582,7 +3583,7 @@ run_case "run-bootstrap-v4-wave36-dispatch-tick-plan" bash -c '
 
 run_case "run-bootstrap-v4-slice36-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE36_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE36.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE36.md"
   { echo "v4.slice36=1"; } >> "'"$V4_SLICE36_EVIDENCE"'"
 '
 
@@ -3605,7 +3606,7 @@ run_case "run-bootstrap-v4-wave37-readme-tick-plan" bash -c '
 
 run_case "run-bootstrap-v4-slice37-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE37_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE37.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE37.md"
   { echo "v4.slice37=1"; } >> "'"$V4_SLICE37_EVIDENCE"'"
 '
 
@@ -3626,7 +3627,7 @@ run_case "run-bootstrap-v4-wave38-slice10-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice38-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE38_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE38.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE38.md"
   { echo "v4.slice38=1"; } >> "'"$V4_SLICE38_EVIDENCE"'"
 '
 
@@ -3647,7 +3648,7 @@ run_case "run-bootstrap-v4-wave39-words-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice39-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE39_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE39.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE39.md"
   { echo "v4.slice39=1"; } >> "'"$V4_SLICE39_EVIDENCE"'"
 '
 
@@ -3668,7 +3669,7 @@ run_case "run-bootstrap-v4-wave40-terminal-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice40-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE40_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE40.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE40.md"
   { echo "v4.slice40=1"; } >> "'"$V4_SLICE40_EVIDENCE"'"
 '
 
@@ -3689,7 +3690,7 @@ run_case "run-bootstrap-v4-wave41-slice18-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice41-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE41_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE41.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE41.md"
   { echo "v4.slice41=1"; } >> "'"$V4_SLICE41_EVIDENCE"'"
 '
 
@@ -3710,7 +3711,7 @@ run_case "run-bootstrap-v4-wave42-assess-bundle-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice42-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE42_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE42.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE42.md"
   { echo "v4.slice42=1"; } >> "'"$V4_SLICE42_EVIDENCE"'"
 '
 
@@ -3731,7 +3732,7 @@ run_case "run-bootstrap-v4-wave43-progress-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice43-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE43_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE43.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE43.md"
   { echo "v4.slice43=1"; } >> "'"$V4_SLICE43_EVIDENCE"'"
 '
 
@@ -3752,7 +3753,7 @@ run_case "run-bootstrap-v4-wave44-build-graph-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice44-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE44_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE44.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE44.md"
   { echo "v4.slice44=1"; } >> "'"$V4_SLICE44_EVIDENCE"'"
 '
 
@@ -3773,7 +3774,7 @@ run_case "run-bootstrap-v4-wave45-terminal-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice45-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE45_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE45.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE45.md"
   { echo "v4.slice45=1"; } >> "'"$V4_SLICE45_EVIDENCE"'"
 '
 
@@ -3794,7 +3795,7 @@ run_case "run-bootstrap-v4-wave46-evidence-matrix-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice46-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE46_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE46.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE46.md"
   { echo "v4.slice46=1"; } >> "'"$V4_SLICE46_EVIDENCE"'"
 '
 
@@ -3815,7 +3816,7 @@ run_case "run-bootstrap-v4-wave47-commander-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice47-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE47_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE47.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE47.md"
   { echo "v4.slice47=1"; } >> "'"$V4_SLICE47_EVIDENCE"'"
 '
 
@@ -3836,7 +3837,7 @@ run_case "run-bootstrap-v4-wave48-contract-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice48-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE48_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE48.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE48.md"
   { echo "v4.slice48=1"; } >> "'"$V4_SLICE48_EVIDENCE"'"
 '
 
@@ -3857,7 +3858,7 @@ run_case "run-bootstrap-v4-wave49-lisp-only-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice49-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE49_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE49.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE49.md"
   { echo "v4.slice49=1"; } >> "'"$V4_SLICE49_EVIDENCE"'"
 '
 
@@ -3878,7 +3879,7 @@ run_case "run-bootstrap-v4-wave50-build-smoke-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice50-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE50_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE50.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE50.md"
   { echo "v4.slice50=1"; } >> "'"$V4_SLICE50_EVIDENCE"'"
 '
 
@@ -3899,7 +3900,7 @@ run_case "run-bootstrap-v4-wave51-evidence-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice51-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE51_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE51.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE51.md"
   { echo "v4.slice51=1"; } >> "'"$V4_SLICE51_EVIDENCE"'"
 '
 
@@ -3920,7 +3921,7 @@ run_case "run-bootstrap-v4-wave52-progress-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice52-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE52_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE52.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE52.md"
   { echo "v4.slice52=1"; } >> "'"$V4_SLICE52_EVIDENCE"'"
 '
 
@@ -3941,7 +3942,7 @@ run_case "run-bootstrap-v4-wave53-slice14-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice53-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE53_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE53.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE53.md"
   { echo "v4.slice53=1"; } >> "'"$V4_SLICE53_EVIDENCE"'"
 '
 
@@ -3962,7 +3963,7 @@ run_case "run-bootstrap-v4-wave54-squad-s6-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice54-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE54_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE54.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE54.md"
   { echo "v4.slice54=1"; } >> "'"$V4_SLICE54_EVIDENCE"'"
 '
 
@@ -3979,11 +3980,11 @@ run_case "run-bootstrap-v4-wave55-autonomous-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-wave55-wave52-recap-tick-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE55_RECAP_TICK_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE52.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE52.md"
 '
 run_case "run-bootstrap-v4-slice55-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE55_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE55.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE55.md"
   { echo "v4.slice55=1"; } >> "'"$V4_SLICE55_EVIDENCE"'"
 '
 
@@ -4004,7 +4005,7 @@ run_case "run-bootstrap-v4-wave56-host-reduce-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice56-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE56_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE56.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE56.md"
   { echo "v4.slice56=1"; } >> "'"$V4_SLICE56_EVIDENCE"'"
 '
 
@@ -4025,7 +4026,7 @@ run_case "run-bootstrap-v4-wave57-contract-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice57-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE57_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE57.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE57.md"
   { echo "v4.slice57=1"; } >> "'"$V4_SLICE57_EVIDENCE"'"
 '
 
@@ -4046,7 +4047,7 @@ run_case "run-bootstrap-v4-wave58-postv4-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice58-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE58_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE58.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE58.md"
   { echo "v4.slice58=1"; } >> "'"$V4_SLICE58_EVIDENCE"'"
 '
 
@@ -4067,7 +4068,7 @@ run_case "run-bootstrap-v4-wave59-slice28-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice59-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE59_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE59.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE59.md"
   { echo "v4.slice59=1"; } >> "'"$V4_SLICE59_EVIDENCE"'"
 '
 
@@ -4088,7 +4089,7 @@ run_case "run-bootstrap-v4-wave60-resume-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice60-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE60_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE60.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE60.md"
   { echo "v4.slice60=1"; } >> "'"$V4_SLICE60_EVIDENCE"'"
 '
 
@@ -4109,7 +4110,7 @@ run_case "run-bootstrap-v4-wave61-buildgates-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice61-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE61_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE61.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE61.md"
   { echo "v4.slice61=1"; } >> "'"$V4_SLICE61_EVIDENCE"'"
 '
 
@@ -4129,7 +4130,7 @@ run_case "run-bootstrap-v4-wave62-plan-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice62-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE62_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE62.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE62.md"
   { echo "v4.slice62=1"; } >> "'"$V4_SLICE62_EVIDENCE"'"
 '
 run_case "run-bootstrap-v4-wave63-diffusion-plan" bash -c '
@@ -4148,7 +4149,7 @@ run_case "run-bootstrap-v4-wave63-parallel-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice63-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE63_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE63.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE63.md"
   { echo "v4.slice63=1"; } >> "'"$V4_SLICE63_EVIDENCE"'"
 '
 run_case "run-bootstrap-v4-wave64-diffusion-plan" bash -c '
@@ -4167,7 +4168,7 @@ run_case "run-bootstrap-v4-wave64-scoped-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice64-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE64_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE64.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE64.md"
   { echo "v4.slice64=1"; } >> "'"$V4_SLICE64_EVIDENCE"'"
 '
 
@@ -4187,7 +4188,7 @@ run_case "run-bootstrap-v4-wave65-onion-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice65-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE65_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE65.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE65.md"
   { echo "v4.slice65=1"; } >> "'"$V4_SLICE65_EVIDENCE"'"
 '
 run_case "run-bootstrap-v4-wave66-diffusion-plan" bash -c '
@@ -4206,7 +4207,7 @@ run_case "run-bootstrap-v4-wave66-assess-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice66-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE66_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE66.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE66.md"
   { echo "v4.slice66=1"; } >> "'"$V4_SLICE66_EVIDENCE"'"
 '
 run_case "run-bootstrap-v4-wave67-diffusion-plan" bash -c '
@@ -4225,7 +4226,7 @@ run_case "run-bootstrap-v4-wave67-postv4-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice67-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE67_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE67.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE67.md"
   { echo "v4.slice67=1"; } >> "'"$V4_SLICE67_EVIDENCE"'"
 '
 
@@ -4241,11 +4242,11 @@ run_case "run-bootstrap-v4-wave68-irtable-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-wave68-chain-tick-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE68_CHAIN_TICK_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE56.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE56.md"
 '
 run_case "run-bootstrap-v4-slice68-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE68_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE68.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE68.md"
   { echo "v4.slice68=1"; } >> "'"$V4_SLICE68_EVIDENCE"'"
 '
 
@@ -4261,11 +4262,11 @@ run_case "run-bootstrap-v4-wave69-buildgraph-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-wave69-gates-tick-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE69_GATES_TICK_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE31.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE31.md"
 '
 run_case "run-bootstrap-v4-slice69-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE69_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE69.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE69.md"
   { echo "v4.slice69=1"; } >> "'"$V4_SLICE69_EVIDENCE"'"
 '
 
@@ -4281,11 +4282,11 @@ run_case "run-bootstrap-v4-wave70-hostreduce-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-wave70-wave33-tick-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE70_WAVE33_TICK_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE33.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE33.md"
 '
 run_case "run-bootstrap-v4-slice70-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE70_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE70.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE70.md"
   { echo "v4.slice70=1"; } >> "'"$V4_SLICE70_EVIDENCE"'"
 '
 
@@ -4301,11 +4302,11 @@ run_case "run-bootstrap-v4-wave71-contract-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-wave71-manifest-tick-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE71_MANIFEST_TICK_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE34.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE34.md"
 '
 run_case "run-bootstrap-v4-slice71-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE71_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE71.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE71.md"
   { echo "v4.slice71=1"; } >> "'"$V4_SLICE71_EVIDENCE"'"
 '
 
@@ -4321,11 +4322,11 @@ run_case "run-bootstrap-v4-wave72-evmatrix-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-wave72-resume-tick-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE72_RESUME_TICK_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE48.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE48.md"
 '
 run_case "run-bootstrap-v4-slice72-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE72_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE72.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE72.md"
   { echo "v4.slice72=1"; } >> "'"$V4_SLICE72_EVIDENCE"'"
 '
 
@@ -4341,11 +4342,11 @@ run_case "run-bootstrap-v4-wave73-fourtrack-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-wave73-onion-tick-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE73_ONION_TICK_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE58.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE58.md"
 '
 run_case "run-bootstrap-v4-slice73-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE73_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE73.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE73.md"
   { echo "v4.slice73=1"; } >> "'"$V4_SLICE73_EVIDENCE"'"
 '
 
@@ -4365,7 +4366,7 @@ run_case "run-bootstrap-v4-wave74-lisponly-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice74-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE74_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE74.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE74.md"
   { echo "v4.slice74=1"; } >> "'"$V4_SLICE74_EVIDENCE"'"
 '
 
@@ -4381,11 +4382,11 @@ run_case "run-bootstrap-v4-wave75-emit-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-wave75-codegen-tick-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE75_CODEGEN_TICK_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE61.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE61.md"
 '
 run_case "run-bootstrap-v4-slice75-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE75_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE75.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE75.md"
   { echo "v4.slice75=1"; } >> "'"$V4_SLICE75_EVIDENCE"'"
 '
 
@@ -4416,11 +4417,11 @@ run_case "run-bootstrap-v4-wave77-commander-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-wave77-resume-tick-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE77_RESUME_TICK_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE72.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE72.md"
 '
 run_case "run-bootstrap-v4-slice77-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE77_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE77.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE77.md"
   { echo "v4.slice77=1"; } >> "'"$V4_SLICE77_EVIDENCE"'"
 '
 
@@ -4436,11 +4437,11 @@ run_case "run-bootstrap-v4-wave78-buildgraph-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-wave78-gates-tick-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE78_GATES_TICK_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE31.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE31.md"
 '
 run_case "run-bootstrap-v4-slice78-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE78_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE78.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE78.md"
   { echo "v4.slice78=1"; } >> "'"$V4_SLICE78_EVIDENCE"'"
 '
 
@@ -4452,7 +4453,7 @@ run_case "run-bootstrap-v4-wave79-diffusion-plan" bash -c '
 '
 run_case "run-bootstrap-v4-wave79-longrun-tick-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE79_LONGRUN_TICK_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/LONG-RUN-TODO.md"
+  test -f "'"$LAB_DIR"'/archive/v4/factory-docs/LONG-RUN-TODO.md"
 '
 run_case "run-bootstrap-v4-wave79-parallel-tick-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE79_PARALLEL_TICK_SRC"'" 2>&1) || true
@@ -4460,7 +4461,7 @@ run_case "run-bootstrap-v4-wave79-parallel-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice79-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE79_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE79.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE79.md"
   { echo "v4.slice79=1"; } >> "'"$V4_SLICE79_EVIDENCE"'"
 '
 
@@ -4480,7 +4481,7 @@ run_case "run-bootstrap-v4-wave80-hostreduce-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice80-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE80_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE80.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE80.md"
   { echo "v4.slice80=1"; } >> "'"$V4_SLICE80_EVIDENCE"'"
 '
 
@@ -4500,7 +4501,7 @@ run_case "run-bootstrap-v4-wave81-manifest-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice81-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE81_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE81.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE81.md"
   { echo "v4.slice81=1"; } >> "'"$V4_SLICE81_EVIDENCE"'"
 '
 
@@ -4520,7 +4521,7 @@ run_case "run-bootstrap-v4-wave82-contract-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice82-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE82_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE82.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE82.md"
   { echo "v4.slice82=1"; } >> "'"$V4_SLICE82_EVIDENCE"'"
 '
 
@@ -4540,7 +4541,7 @@ run_case "run-bootstrap-v4-wave83-resume-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice83-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE83_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE83.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE83.md"
   { echo "v4.slice83=1"; } >> "'"$V4_SLICE83_EVIDENCE"'"
 '
 
@@ -4560,7 +4561,7 @@ run_case "run-bootstrap-v4-wave84-terminal-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice84-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE84_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE84.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE84.md"
   { echo "v4.slice84=1"; } >> "'"$V4_SLICE84_EVIDENCE"'"
 '
 
@@ -4591,11 +4592,11 @@ run_case "run-bootstrap-v4-wave86-runner-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-wave86-plan-tick-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE86_PLAN_TICK_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE34.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE34.md"
 '
 run_case "run-bootstrap-v4-slice86-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE86_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE86.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE86.md"
   { echo "v4.slice86=1"; } >> "'"$V4_SLICE86_EVIDENCE"'"
 '
 
@@ -4611,11 +4612,11 @@ run_case "run-bootstrap-v4-wave87-assess-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-wave87-evmatrix-tick-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE87_EVMATRIX_TICK_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE48.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE48.md"
 '
 run_case "run-bootstrap-v4-slice87-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE87_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE87.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE87.md"
   { echo "v4.slice87=1"; } >> "'"$V4_SLICE87_EVIDENCE"'"
 '
 
@@ -4646,11 +4647,11 @@ run_case "run-bootstrap-v4-wave89-hostreduce-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-wave89-buildgraph-tick-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE89_BUILDGRAPH_TICK_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE33.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE33.md"
 '
 run_case "run-bootstrap-v4-slice89-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE89_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE89.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE89.md"
   { echo "v4.slice89=1"; } >> "'"$V4_SLICE89_EVIDENCE"'"
 '
 
@@ -4666,11 +4667,11 @@ run_case "run-bootstrap-v4-wave90-irtable-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-wave90-chain-tick-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE90_CHAIN_TICK_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE56.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE56.md"
 '
 run_case "run-bootstrap-v4-slice90-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE90_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE90.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE90.md"
   { echo "v4.slice90=1"; } >> "'"$V4_SLICE90_EVIDENCE"'"
 '
 
@@ -4686,7 +4687,7 @@ run_case "run-bootstrap-v4-wave91-fourtrack-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-wave91-contract-tick-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE91_CONTRACT_TICK_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE71.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE71.md"
 '
 
 run_case "run-bootstrap-v4-wave92-diffusion-plan" bash -c '
@@ -4697,7 +4698,7 @@ run_case "run-bootstrap-v4-wave92-diffusion-plan" bash -c '
 '
 run_case "run-bootstrap-v4-wave92-longrun-tick-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE92_LONGRUN_TICK_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/LONG-RUN-TODO.md"
+  test -f "'"$LAB_DIR"'/archive/v4/factory-docs/LONG-RUN-TODO.md"
 '
 run_case "run-bootstrap-v4-wave92-parallel-tick-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE92_PARALLEL_TICK_SRC"'" 2>&1) || true
@@ -4705,7 +4706,7 @@ run_case "run-bootstrap-v4-wave92-parallel-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice92-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE92_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE92.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE92.md"
   { echo "v4.slice92=1"; } >> "'"$V4_SLICE92_EVIDENCE"'"
 '
 
@@ -4725,7 +4726,7 @@ run_case "run-bootstrap-v4-wave93-assess-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice93-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE93_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE93.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE93.md"
   { echo "v4.slice93=1"; } >> "'"$V4_SLICE93_EVIDENCE"'"
 '
 
@@ -4745,7 +4746,7 @@ run_case "run-bootstrap-v4-wave94-emit-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice94-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE94_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE94.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE94.md"
   { echo "v4.slice94=1"; } >> "'"$V4_SLICE94_EVIDENCE"'"
 '
 
@@ -4765,7 +4766,7 @@ run_case "run-bootstrap-v4-wave95-lisponly-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice95-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE95_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE95.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE95.md"
   { echo "v4.slice95=1"; } >> "'"$V4_SLICE95_EVIDENCE"'"
 '
 
@@ -4781,11 +4782,11 @@ run_case "run-bootstrap-v4-wave96-buildgraph-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-wave96-gates-tick-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE96_GATES_TICK_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE31.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE31.md"
 '
 run_case "run-bootstrap-v4-slice96-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE96_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE96.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE96.md"
   { echo "v4.slice96=1"; } >> "'"$V4_SLICE96_EVIDENCE"'"
 '
 
@@ -4816,11 +4817,11 @@ run_case "run-bootstrap-v4-wave98-evmatrix-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-wave98-resume-tick-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE98_RESUME_TICK_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE72.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE72.md"
 '
 run_case "run-bootstrap-v4-slice98-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE98_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE98.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE98.md"
   { echo "v4.slice98=1"; } >> "'"$V4_SLICE98_EVIDENCE"'"
 '
 
@@ -4836,11 +4837,11 @@ run_case "run-bootstrap-v4-wave99-terminal-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-wave99-onion-tick-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE99_ONION_TICK_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE58.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE58.md"
 '
 run_case "run-bootstrap-v4-slice99-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE99_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE99.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE99.md"
   { echo "v4.slice99=1"; } >> "'"$V4_SLICE99_EVIDENCE"'"
 '
 
@@ -4860,7 +4861,7 @@ run_case "run-bootstrap-v4-wave100-irtable-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice100-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE100_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE100.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE100.md"
   { echo "v4.slice100=1"; } >> "'"$V4_SLICE100_EVIDENCE"'"
 '
 
@@ -4880,7 +4881,7 @@ run_case "run-bootstrap-v4-wave101-scoped-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice101-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE101_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE101.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE101.md"
   { echo "v4.slice101=1"; } >> "'"$V4_SLICE101_EVIDENCE"'"
 '
 
@@ -4896,11 +4897,11 @@ run_case "run-bootstrap-v4-wave102-autonomous-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-wave102-longrun-tick-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE102_LONGRUN_TICK_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/LONG-RUN-TODO.md"
+  test -f "'"$LAB_DIR"'/archive/v4/factory-docs/LONG-RUN-TODO.md"
 '
 run_case "run-bootstrap-v4-slice102-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE102_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE102.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE102.md"
   { echo "v4.slice102=1"; } >> "'"$V4_SLICE102_EVIDENCE"'"
 '
 
@@ -4935,7 +4936,7 @@ run_case "run-bootstrap-v4-wave104-codegen-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice104-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE104_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE104.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE104.md"
   { echo "v4.slice104=1"; } >> "'"$V4_SLICE104_EVIDENCE"'"
 '
 
@@ -4955,7 +4956,7 @@ run_case "run-bootstrap-v4-wave105-runner-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice105-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE105_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE105.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE105.md"
   { echo "v4.slice105=1"; } >> "'"$V4_SLICE105_EVIDENCE"'"
 '
 
@@ -4975,7 +4976,7 @@ run_case "run-bootstrap-v4-wave106-emit-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice106-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE106_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE106.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE106.md"
   { echo "v4.slice106=1"; } >> "'"$V4_SLICE106_EVIDENCE"'"
 '
 
@@ -4995,7 +4996,7 @@ run_case "run-bootstrap-v4-wave107-lisponly-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice107-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE107_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE107.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE107.md"
   { echo "v4.slice107=1"; } >> "'"$V4_SLICE107_EVIDENCE"'"
 '
 
@@ -5015,7 +5016,7 @@ run_case "run-bootstrap-v4-wave108-codegen-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice108-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE108_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE108.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE108.md"
   { echo "v4.slice108=1"; } >> "'"$V4_SLICE108_EVIDENCE"'"
 '
 
@@ -5035,7 +5036,7 @@ run_case "run-bootstrap-v4-wave109-emit-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice109-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE109_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE109.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE109.md"
   { echo "v4.slice109=1"; } >> "'"$V4_SLICE109_EVIDENCE"'"
 '
 
@@ -5055,7 +5056,7 @@ run_case "run-bootstrap-v4-wave110-irtable-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice110-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE110_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE110.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE110.md"
   { echo "v4.slice110=1"; } >> "'"$V4_SLICE110_EVIDENCE"'"
 '
 
@@ -5067,7 +5068,7 @@ run_case "run-bootstrap-v4-wave111-diffusion-plan" bash -c '
 '
 run_case "run-bootstrap-v4-wave111-longrun-tick-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE111_LONGRUN_TICK_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/LONG-RUN-TODO.md"
+  test -f "'"$LAB_DIR"'/archive/v4/factory-docs/LONG-RUN-TODO.md"
 '
 run_case "run-bootstrap-v4-wave111-reflection-tick-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE111_REFLECTION_TICK_SRC"'" 2>&1) || true
@@ -5075,7 +5076,7 @@ run_case "run-bootstrap-v4-wave111-reflection-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice111-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE111_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE111.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE111.md"
   { echo "v4.slice111=1"; } >> "'"$V4_SLICE111_EVIDENCE"'"
 '
 
@@ -5106,11 +5107,11 @@ run_case "run-bootstrap-v4-wave113-emit-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-wave113-codegen-tick-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE113_CODEGEN_TICK_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE113.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE113.md"
 '
 run_case "run-bootstrap-v4-slice113-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE113_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE113.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE113.md"
   { echo "v4.slice113=1"; } >> "'"$V4_SLICE113_EVIDENCE"'"
 '
 
@@ -5130,7 +5131,7 @@ run_case "run-bootstrap-v4-wave114-emit-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice114-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE114_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE114.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE114.md"
   { echo "v4.slice114=1"; } >> "'"$V4_SLICE114_EVIDENCE"'"
 '
 
@@ -5146,11 +5147,11 @@ run_case "run-bootstrap-v4-wave115-codegen-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-wave115-emit-tick-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE115_EMIT_TICK_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE8.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE8.md"
 '
 run_case "run-bootstrap-v4-slice115-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE115_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE115.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE115.md"
   { echo "v4.slice115=1"; } >> "'"$V4_SLICE115_EVIDENCE"'"
 '
 
@@ -5166,11 +5167,11 @@ run_case "run-bootstrap-v4-wave116-runner-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-wave116-plan-tick-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE116_PLAN_TICK_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE34.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE34.md"
 '
 run_case "run-bootstrap-v4-slice116-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE116_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE116.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE116.md"
   { echo "v4.slice116=1"; } >> "'"$V4_SLICE116_EVIDENCE"'"
 '
 
@@ -5190,7 +5191,7 @@ run_case "run-bootstrap-v4-wave117-irtable-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice117-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE117_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE117.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE117.md"
   { echo "v4.slice117=1"; } >> "'"$V4_SLICE117_EVIDENCE"'"
 '
 
@@ -5206,11 +5207,11 @@ run_case "run-bootstrap-v4-wave118-codegen-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-wave118-gates-tick-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE118_GATES_TICK_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE31.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE31.md"
 '
 run_case "run-bootstrap-v4-slice118-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE118_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE118.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE118.md"
   { echo "v4.slice118=1"; } >> "'"$V4_SLICE118_EVIDENCE"'"
 '
 
@@ -5230,7 +5231,7 @@ run_case "run-bootstrap-v4-wave119-lisponly-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice119-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE119_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE119.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE119.md"
   { echo "v4.slice119=1"; } >> "'"$V4_SLICE119_EVIDENCE"'"
 '
 
@@ -5250,7 +5251,7 @@ run_case "run-bootstrap-v4-wave120-codegen-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice120-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE120_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE120.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE120.md"
   { echo "v4.slice120=1"; } >> "'"$V4_SLICE120_EVIDENCE"'"
 '
 
@@ -5279,7 +5280,7 @@ run_case "run-bootstrap-v4-wave122-diffusion-plan" bash -c '
 '
 run_case "run-bootstrap-v4-wave122-emit-tick-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE122_EMIT_TICK_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE113.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE113.md"
 '
 run_case "run-bootstrap-v4-wave122-codegen-tick-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE122_CODEGEN_TICK_SRC"'" 2>&1) || true
@@ -5287,7 +5288,7 @@ run_case "run-bootstrap-v4-wave122-codegen-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice122-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE122_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE122.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE122.md"
   { echo "v4.slice122=1"; } >> "'"$V4_SLICE122_EVIDENCE"'"
 '
 
@@ -5304,11 +5305,11 @@ run_case "run-bootstrap-v4-wave123-runner-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-wave123-emit-tick-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE123_EMIT_TICK_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE113.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE113.md"
 '
 run_case "run-bootstrap-v4-slice123-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE123_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE123.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE123.md"
   { echo "v4.slice123=1"; } >> "'"$V4_SLICE123_EVIDENCE"'"
 '
 
@@ -5325,11 +5326,11 @@ run_case "run-bootstrap-v4-wave124-codegen-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-wave124-emit-tick-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE124_EMIT_TICK_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE8.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE8.md"
 '
 run_case "run-bootstrap-v4-slice124-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE124_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE124.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE124.md"
   { echo "v4.slice124=1"; } >> "'"$V4_SLICE124_EVIDENCE"'"
 '
 
@@ -5349,7 +5350,7 @@ run_case "run-bootstrap-v4-wave125-irtable-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice125-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE125_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE125.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE125.md"
   { echo "v4.slice125=1"; } >> "'"$V4_SLICE125_EVIDENCE"'"
 '
 
@@ -5365,11 +5366,11 @@ run_case "run-bootstrap-v4-wave126-runner-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-wave126-plan-tick-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE126_PLAN_TICK_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE34.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE34.md"
 '
 run_case "run-bootstrap-v4-slice126-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE126_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE126.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE126.md"
   { echo "v4.slice126=1"; } >> "'"$V4_SLICE126_EVIDENCE"'"
 '
 
@@ -5385,11 +5386,11 @@ run_case "run-bootstrap-v4-wave127-codegen-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-wave127-gates-tick-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE127_GATES_TICK_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE31.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE31.md"
 '
 run_case "run-bootstrap-v4-slice127-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE127_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE127.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE127.md"
   { echo "v4.slice127=1"; } >> "'"$V4_SLICE127_EVIDENCE"'"
 '
 
@@ -5410,7 +5411,7 @@ run_case "run-bootstrap-v4-wave128-codegen-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice128-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE128_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE128.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE128.md"
   { echo "v4.slice128=1"; } >> "'"$V4_SLICE128_EVIDENCE"'"
 '
 
@@ -5430,7 +5431,7 @@ run_case "run-bootstrap-v4-wave129-lisponly-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice129-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE129_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE129.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE129.md"
   { echo "v4.slice129=1"; } >> "'"$V4_SLICE129_EVIDENCE"'"
 '
 
@@ -5442,7 +5443,7 @@ run_case "run-bootstrap-v4-wave130-diffusion-plan" bash -c '
 '
 run_case "run-bootstrap-v4-wave130-longrun-tick-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE130_LONGRUN_TICK_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/DEV-AGENTS-TEAM.md"
+  test -f "'"$LAB_DIR"'/archive/v4/factory-docs/DEV-AGENTS-TEAM.md"
 '
 run_case "run-bootstrap-v4-wave130-team-tick-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE130_TEAM_TICK_SRC"'" 2>&1) || true
@@ -5459,7 +5460,7 @@ run_case "run-bootstrap-v4-wave131-diffusion-plan" bash -c '
 '
 run_case "run-bootstrap-v4-wave131-emit-tick-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE131_EMIT_TICK_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE113.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE113.md"
 '
 run_case "run-bootstrap-v4-wave131-codegen-tick-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE131_CODEGEN_TICK_SRC"'" 2>&1) || true
@@ -5467,7 +5468,7 @@ run_case "run-bootstrap-v4-wave131-codegen-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice131-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE131_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE131.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE131.md"
   { echo "v4.slice131=1"; } >> "'"$V4_SLICE131_EVIDENCE"'"
 '
 
@@ -5487,7 +5488,7 @@ run_case "run-bootstrap-v4-wave132-codegen-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice132-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE132_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE132.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE132.md"
   { echo "v4.slice132=1"; } >> "'"$V4_SLICE132_EVIDENCE"'"
 '
 
@@ -5500,15 +5501,15 @@ run_case "run-bootstrap-v4-wave133-diffusion-plan" bash -c '
 '
 run_case "run-bootstrap-v4-wave133-codegen-tick-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE133_CODEGEN_TICK_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE8.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE8.md"
 '
 run_case "run-bootstrap-v4-wave133-emit-tick-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE133_EMIT_TICK_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE113.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE113.md"
 '
 run_case "run-bootstrap-v4-slice133-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE133_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE133.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE133.md"
   { echo "v4.slice133=1"; } >> "'"$V4_SLICE133_EVIDENCE"'"
 '
 
@@ -5524,11 +5525,11 @@ run_case "run-bootstrap-v4-wave134-runner-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-wave134-plan-tick-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE134_PLAN_TICK_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE34.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE34.md"
 '
 run_case "run-bootstrap-v4-slice134-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE134_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE134.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE134.md"
   { echo "v4.slice134=1"; } >> "'"$V4_SLICE134_EVIDENCE"'"
 '
 
@@ -5548,7 +5549,7 @@ run_case "run-bootstrap-v4-wave135-irtable-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice135-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE135_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE135.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE135.md"
   { echo "v4.slice135=1"; } >> "'"$V4_SLICE135_EVIDENCE"'"
 '
 
@@ -5568,7 +5569,7 @@ run_case "run-bootstrap-v4-wave136-gates-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice136-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE136_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE136.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE136.md"
   { echo "v4.slice136=1"; } >> "'"$V4_SLICE136_EVIDENCE"'"
 '
 
@@ -5589,7 +5590,7 @@ run_case "run-bootstrap-v4-wave137-codegen-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice137-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE137_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE137.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE137.md"
   { echo "v4.slice137=1"; } >> "'"$V4_SLICE137_EVIDENCE"'"
 '
 
@@ -5609,7 +5610,7 @@ run_case "run-bootstrap-v4-wave138-lisponly-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice138-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE138_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE138.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE138.md"
   { echo "v4.slice138=1"; } >> "'"$V4_SLICE138_EVIDENCE"'"
 '
 
@@ -5638,15 +5639,15 @@ run_case "run-bootstrap-v4-wave140-diffusion-plan" bash -c '
 '
 run_case "run-bootstrap-v4-wave140-emit-tick-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE140_EMIT_TICK_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE113.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE113.md"
 '
 run_case "run-bootstrap-v4-wave140-codegen-tick-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE140_CODEGEN_TICK_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE140.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE140.md"
 '
 run_case "run-bootstrap-v4-slice140-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE140_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE140.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE140.md"
   { echo "v4.slice140=1"; } >> "'"$V4_SLICE140_EVIDENCE"'"
 '
 
@@ -5666,7 +5667,7 @@ run_case "run-bootstrap-v4-wave141-codegen-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice141-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE141_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE141.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE141.md"
   { echo "v4.slice141=1"; } >> "'"$V4_SLICE141_EVIDENCE"'"
 '
 
@@ -5679,15 +5680,15 @@ run_case "run-bootstrap-v4-wave142-diffusion-plan" bash -c '
 '
 run_case "run-bootstrap-v4-wave142-codegen-tick-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE142_CODEGEN_TICK_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE8.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE8.md"
 '
 run_case "run-bootstrap-v4-wave142-emit-tick-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE142_EMIT_TICK_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE140.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE140.md"
 '
 run_case "run-bootstrap-v4-slice142-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE142_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE142.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE142.md"
   { echo "v4.slice142=1"; } >> "'"$V4_SLICE142_EVIDENCE"'"
 '
 
@@ -5703,11 +5704,11 @@ run_case "run-bootstrap-v4-wave143-runner-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-wave143-plan-tick-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE143_PLAN_TICK_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE34.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE34.md"
 '
 run_case "run-bootstrap-v4-slice143-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE143_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE143.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE143.md"
   { echo "v4.slice143=1"; } >> "'"$V4_SLICE143_EVIDENCE"'"
 '
 
@@ -5727,7 +5728,7 @@ run_case "run-bootstrap-v4-wave144-irtable-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice144-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE144_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE144.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE144.md"
   { echo "v4.slice144=1"; } >> "'"$V4_SLICE144_EVIDENCE"'"
 '
 
@@ -5747,7 +5748,7 @@ run_case "run-bootstrap-v4-wave145-gates-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice145-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE145_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE145.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE145.md"
   { echo "v4.slice145=1"; } >> "'"$V4_SLICE145_EVIDENCE"'"
 '
 
@@ -5764,11 +5765,11 @@ run_case "run-bootstrap-v4-wave146-emit-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-wave146-codegen-tick-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE146_CODEGEN_TICK_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE8.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE8.md"
 '
 run_case "run-bootstrap-v4-slice146-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE146_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE146.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE146.md"
   { echo "v4.slice146=1"; } >> "'"$V4_SLICE146_EVIDENCE"'"
 '
 
@@ -5788,7 +5789,7 @@ run_case "run-bootstrap-v4-wave147-lisponly-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice147-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE147_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE147.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE147.md"
   { echo "v4.slice147=1"; } >> "'"$V4_SLICE147_EVIDENCE"'"
 '
 
@@ -5816,7 +5817,7 @@ run_case "run-bootstrap-v4-wave149-diffusion-plan" bash -c '
 '
 run_case "run-bootstrap-v4-wave149-emit-tick-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE149_EMIT_TICK_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE140.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE140.md"
 '
 run_case "run-bootstrap-v4-wave149-codegen-tick-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE149_CODEGEN_TICK_SRC"'" 2>&1) || true
@@ -5824,7 +5825,7 @@ run_case "run-bootstrap-v4-wave149-codegen-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice149-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE149_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE149.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE149.md"
   { echo "v4.slice149=1"; } >> "'"$V4_SLICE149_EVIDENCE"'"
 '
 
@@ -5844,7 +5845,7 @@ run_case "run-bootstrap-v4-wave150-codegen-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice150-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE150_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE150.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE150.md"
   { echo "v4.slice150=1"; } >> "'"$V4_SLICE150_EVIDENCE"'"
 '
 
@@ -5865,7 +5866,7 @@ run_case "run-bootstrap-v4-wave151-emit-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice151-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE151_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE151.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE151.md"
   { echo "v4.slice151=1"; } >> "'"$V4_SLICE151_EVIDENCE"'"
 '
 
@@ -5885,7 +5886,7 @@ run_case "run-bootstrap-v4-wave152-emit-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice152-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE152_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE152.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE152.md"
   { echo "v4.slice152=1"; } >> "'"$V4_SLICE152_EVIDENCE"'"
 '
 
@@ -5905,7 +5906,7 @@ run_case "run-bootstrap-v4-wave153-irtable-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice153-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE153_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE153.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE153.md"
   { echo "v4.slice153=1"; } >> "'"$V4_SLICE153_EVIDENCE"'"
 '
 
@@ -5925,7 +5926,7 @@ run_case "run-bootstrap-v4-wave154-plan-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice154-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE154_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE154.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE154.md"
   { echo "v4.slice154=1"; } >> "'"$V4_SLICE154_EVIDENCE"'"
 '
 
@@ -5945,7 +5946,7 @@ run_case "run-bootstrap-v4-wave155-codegen-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice155-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE155_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE155.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE155.md"
   { echo "v4.slice155=1"; } >> "'"$V4_SLICE155_EVIDENCE"'"
 '
 
@@ -5966,7 +5967,7 @@ run_case "run-bootstrap-v4-wave156-gates-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice156-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE156_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE156.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE156.md"
   { echo "v4.slice156=1"; } >> "'"$V4_SLICE156_EVIDENCE"'"
 '
 
@@ -5986,7 +5987,7 @@ run_case "run-bootstrap-v4-wave157-lisponly-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice157-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE157_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE157.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE157.md"
   { echo "v4.slice157=1"; } >> "'"$V4_SLICE157_EVIDENCE"'"
 '
 
@@ -6006,7 +6007,7 @@ run_case "run-bootstrap-v4-wave158-emit-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice158-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE158_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE158.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE158.md"
   { echo "v4.slice158=1"; } >> "'"$V4_SLICE158_EVIDENCE"'"
 '
 
@@ -6027,7 +6028,7 @@ run_case "run-bootstrap-v4-wave159-codegen-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice159-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE159_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE159.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE159.md"
   { echo "v4.slice159=1"; } >> "'"$V4_SLICE159_EVIDENCE"'"
 '
 
@@ -6047,7 +6048,7 @@ run_case "run-bootstrap-v4-wave160-runner-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice160-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE160_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE160.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE160.md"
   { echo "v4.slice160=1"; } >> "'"$V4_SLICE160_EVIDENCE"'"
 '
 
@@ -6067,7 +6068,7 @@ run_case "run-bootstrap-v4-wave161-irtable-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice161-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE161_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE161.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE161.md"
   { echo "v4.slice161=1"; } >> "'"$V4_SLICE161_EVIDENCE"'"
 '
 
@@ -6087,7 +6088,7 @@ run_case "run-bootstrap-v4-wave162-plan-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice162-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE162_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE162.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE162.md"
   { echo "v4.slice162=1"; } >> "'"$V4_SLICE162_EVIDENCE"'"
 '
 
@@ -6108,7 +6109,7 @@ run_case "run-bootstrap-v4-wave163-emit-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice163-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE163_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE163.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE163.md"
   { echo "v4.slice163=1"; } >> "'"$V4_SLICE163_EVIDENCE"'"
 '
 
@@ -6128,7 +6129,7 @@ run_case "run-bootstrap-v4-wave164-codegen-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice164-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE164_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE164.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE164.md"
   { echo "v4.slice164=1"; } >> "'"$V4_SLICE164_EVIDENCE"'"
 '
 
@@ -6140,7 +6141,7 @@ run_case "run-bootstrap-v4-wave165-diffusion-plan" bash -c '
 '
 run_case "run-bootstrap-v4-wave165-longrun-tick-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE165_LONGRUN_TICK_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/DIFFUSE-WORKFLOW.md"
+  test -f "'"$LAB_DIR"'/archive/v4/factory-docs/DIFFUSE-WORKFLOW.md"
 '
 run_case "run-bootstrap-v4-wave165-diffuse-tick-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE165_DIFFUSE_TICK_SRC"'" 2>&1) || true
@@ -6156,15 +6157,15 @@ run_case "run-bootstrap-v4-wave166-diffusion-plan" bash -c '
 '
 run_case "run-bootstrap-v4-wave166-emit-tick-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE166_EMIT_TICK_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE165.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE165.md"
 '
 run_case "run-bootstrap-v4-wave166-codegen-tick-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_WAVE166_CODEGEN_TICK_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE149.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE149.md"
 '
 run_case "run-bootstrap-v4-slice166-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE166_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE166.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE166.md"
   { echo "v4.slice166=1"; } >> "'"$V4_SLICE166_EVIDENCE"'"
 '
 
@@ -6184,7 +6185,7 @@ run_case "run-bootstrap-v4-wave167-emit-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice167-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE167_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE167.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE167.md"
   { echo "v4.slice167=1"; } >> "'"$V4_SLICE167_EVIDENCE"'"
 '
 
@@ -6205,7 +6206,7 @@ run_case "run-bootstrap-v4-wave168-runner-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice168-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE168_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE168.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE168.md"
   { echo "v4.slice168=1"; } >> "'"$V4_SLICE168_EVIDENCE"'"
 '
 
@@ -6225,7 +6226,7 @@ run_case "run-bootstrap-v4-wave169-runner-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice169-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE169_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE169.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE169.md"
   { echo "v4.slice169=1"; } >> "'"$V4_SLICE169_EVIDENCE"'"
 '
 
@@ -6245,7 +6246,7 @@ run_case "run-bootstrap-v4-wave170-emit-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice170-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE170_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE170.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE170.md"
   { echo "v4.slice170=1"; } >> "'"$V4_SLICE170_EVIDENCE"'"
 '
 
@@ -6266,7 +6267,7 @@ run_case "run-bootstrap-v4-wave171-codegen-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice171-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE171_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE171.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE171.md"
   { echo "v4.slice171=1"; } >> "'"$V4_SLICE171_EVIDENCE"'"
 '
 
@@ -6286,7 +6287,7 @@ run_case "run-bootstrap-v4-wave172-runner-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice172-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE172_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE172.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE172.md"
   { echo "v4.slice172=1"; } >> "'"$V4_SLICE172_EVIDENCE"'"
 '
 
@@ -6307,7 +6308,7 @@ run_case "run-bootstrap-v4-wave173-codegen-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice173-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE173_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE173.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE173.md"
   { echo "v4.slice173=1"; } >> "'"$V4_SLICE173_EVIDENCE"'"
 '
 
@@ -6327,7 +6328,7 @@ run_case "run-bootstrap-v4-wave174-codegen-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice174-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE174_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE174.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE174.md"
   { echo "v4.slice174=1"; } >> "'"$V4_SLICE174_EVIDENCE"'"
 '
 
@@ -6348,7 +6349,7 @@ run_case "run-bootstrap-v4-wave175-emit-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice175-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE175_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE175.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE175.md"
   { echo "v4.slice175=1"; } >> "'"$V4_SLICE175_EVIDENCE"'"
 '
 
@@ -6368,7 +6369,7 @@ run_case "run-bootstrap-v4-wave176-onion-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice176-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE176_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE176.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE176.md"
   { echo "v4.slice176=1"; } >> "'"$V4_SLICE176_EVIDENCE"'"
 '
 
@@ -6388,7 +6389,7 @@ run_case "run-bootstrap-v4-wave177-irtable-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice177-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE177_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE177.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE177.md"
   { echo "v4.slice177=1"; } >> "'"$V4_SLICE177_EVIDENCE"'"
 '
 
@@ -6408,7 +6409,7 @@ run_case "run-bootstrap-v4-wave178-gates-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice178-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE178_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE178.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE178.md"
   { echo "v4.slice178=1"; } >> "'"$V4_SLICE178_EVIDENCE"'"
 '
 
@@ -6428,7 +6429,7 @@ run_case "run-bootstrap-v4-wave179-lisponly-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice179-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE179_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE179.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE179.md"
   { echo "v4.slice179=1"; } >> "'"$V4_SLICE179_EVIDENCE"'"
 '
 
@@ -6448,7 +6449,7 @@ run_case "run-bootstrap-v4-wave180-codegen-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice180-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE180_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE180.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE180.md"
   { echo "v4.slice180=1"; } >> "'"$V4_SLICE180_EVIDENCE"'"
 '
 
@@ -6469,7 +6470,7 @@ run_case "run-bootstrap-v4-wave181-emit-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice181-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE181_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE181.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE181.md"
   { echo "v4.slice181=1"; } >> "'"$V4_SLICE181_EVIDENCE"'"
 '
 
@@ -6506,7 +6507,7 @@ run_case "run-bootstrap-v4-wave183-codegen-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice183-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE183_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE183.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE183.md"
   { echo "v4.slice183=1"; } >> "'"$V4_SLICE183_EVIDENCE"'"
 '
 
@@ -6526,7 +6527,7 @@ run_case "run-bootstrap-v4-wave184-emit-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice184-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE184_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE184.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE184.md"
   { echo "v4.slice184=1"; } >> "'"$V4_SLICE184_EVIDENCE"'"
 '
 
@@ -6546,7 +6547,7 @@ run_case "run-bootstrap-v4-wave185-runner-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice185-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE185_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE185.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE185.md"
   { echo "v4.slice185=1"; } >> "'"$V4_SLICE185_EVIDENCE"'"
 '
 
@@ -6567,7 +6568,7 @@ run_case "run-bootstrap-v4-wave186-onion-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice186-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE186_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE186.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE186.md"
   { echo "v4.slice186=1"; } >> "'"$V4_SLICE186_EVIDENCE"'"
 '
 
@@ -6587,7 +6588,7 @@ run_case "run-bootstrap-v4-wave187-emit-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice187-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE187_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE187.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE187.md"
   { echo "v4.slice187=1"; } >> "'"$V4_SLICE187_EVIDENCE"'"
 '
 
@@ -6608,7 +6609,7 @@ run_case "run-bootstrap-v4-wave188-codegen-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice188-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE188_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE188.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE188.md"
   { echo "v4.slice188=1"; } >> "'"$V4_SLICE188_EVIDENCE"'"
 '
 
@@ -6629,7 +6630,7 @@ run_case "run-bootstrap-v4-wave189-runner-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice189-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE189_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE189.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE189.md"
   { echo "v4.slice189=1"; } >> "'"$V4_SLICE189_EVIDENCE"'"
 '
 
@@ -6649,7 +6650,7 @@ run_case "run-bootstrap-v4-wave190-mindmap-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice190-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE190_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE190.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE190.md"
   { echo "v4.slice190=1"; } >> "'"$V4_SLICE190_EVIDENCE"'"
 '
 
@@ -6669,7 +6670,7 @@ run_case "run-bootstrap-v4-wave191-codegen-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice191-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE191_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE191.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE191.md"
   { echo "v4.slice191=1"; } >> "'"$V4_SLICE191_EVIDENCE"'"
 '
 
@@ -6690,7 +6691,7 @@ run_case "run-bootstrap-v4-wave192-emit-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice192-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE192_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE192.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE192.md"
   { echo "v4.slice192=1"; } >> "'"$V4_SLICE192_EVIDENCE"'"
 '
 
@@ -6711,7 +6712,7 @@ run_case "run-bootstrap-v4-wave193-runner-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice193-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE193_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE193.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE193.md"
   { echo "v4.slice193=1"; } >> "'"$V4_SLICE193_EVIDENCE"'"
 '
 
@@ -6731,7 +6732,7 @@ run_case "run-bootstrap-v4-wave194-onion-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice194-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE194_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE194.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE194.md"
   { echo "v4.slice194=1"; } >> "'"$V4_SLICE194_EVIDENCE"'"
 '
 
@@ -6752,7 +6753,7 @@ run_case "run-bootstrap-v4-wave195-emit-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice195-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE195_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE195.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE195.md"
   { echo "v4.slice195=1"; } >> "'"$V4_SLICE195_EVIDENCE"'"
 '
 
@@ -6772,7 +6773,7 @@ run_case "run-bootstrap-v4-wave196-codegen-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice196-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE196_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE196.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE196.md"
   { echo "v4.slice196=1"; } >> "'"$V4_SLICE196_EVIDENCE"'"
 '
 
@@ -6792,7 +6793,7 @@ run_case "run-bootstrap-v4-wave197-runner-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice197-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE197_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE197.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE197.md"
   { echo "v4.slice197=1"; } >> "'"$V4_SLICE197_EVIDENCE"'"
 '
 
@@ -6814,7 +6815,7 @@ run_case "run-bootstrap-v4-wave198-mindmap-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice198-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE198_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE198.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE198.md"
   { echo "v4.slice198=1"; } >> "'"$V4_SLICE198_EVIDENCE"'"
 '
 
@@ -6834,7 +6835,7 @@ run_case "run-bootstrap-v4-wave199-codegen-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice199-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE199_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE199.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE199.md"
   { echo "v4.slice199=1"; } >> "'"$V4_SLICE199_EVIDENCE"'"
 '
 
@@ -6854,7 +6855,7 @@ run_case "run-bootstrap-v4-wave200-emit-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice200-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE200_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE200.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE200.md"
   { echo "v4.slice200=1"; } >> "'"$V4_SLICE200_EVIDENCE"'"
 '
 
@@ -6875,7 +6876,7 @@ run_case "run-bootstrap-v4-wave201-runner-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice201-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE201_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE201.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE201.md"
   { echo "v4.slice201=1"; } >> "'"$V4_SLICE201_EVIDENCE"'"
 '
 
@@ -6895,7 +6896,7 @@ run_case "run-bootstrap-v4-wave202-onion-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice202-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE202_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE202.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE202.md"
   { echo "v4.slice202=1"; } >> "'"$V4_SLICE202_EVIDENCE"'"
 '
 
@@ -6916,7 +6917,7 @@ run_case "run-bootstrap-v4-wave203-emit-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice203-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE203_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE203.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE203.md"
   { echo "v4.slice203=1"; } >> "'"$V4_SLICE203_EVIDENCE"'"
 '
 
@@ -6937,7 +6938,7 @@ run_case "run-bootstrap-v4-wave204-codegen-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice204-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE204_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE204.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE204.md"
   { echo "v4.slice204=1"; } >> "'"$V4_SLICE204_EVIDENCE"'"
 '
 
@@ -6957,7 +6958,7 @@ run_case "run-bootstrap-v4-wave205-runner-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice205-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE205_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE205.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE205.md"
   { echo "v4.slice205=1"; } >> "'"$V4_SLICE205_EVIDENCE"'"
 '
 
@@ -6977,7 +6978,7 @@ run_case "run-bootstrap-v4-wave206-mindmap-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice206-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE206_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE206.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE206.md"
   { echo "v4.slice206=1"; } >> "'"$V4_SLICE206_EVIDENCE"'"
 '
 
@@ -6998,7 +6999,7 @@ run_case "run-bootstrap-v4-wave207-codegen-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice207-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE207_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE207.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE207.md"
   { echo "v4.slice207=1"; } >> "'"$V4_SLICE207_EVIDENCE"'"
 '
 
@@ -7019,7 +7020,7 @@ run_case "run-bootstrap-v4-wave208-emit-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice208-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE208_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE208.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE208.md"
   { echo "v4.slice208=1"; } >> "'"$V4_SLICE208_EVIDENCE"'"
 '
 
@@ -7039,7 +7040,7 @@ run_case "run-bootstrap-v4-wave209-runner-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice209-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE209_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE209.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE209.md"
   { echo "v4.slice209=1"; } >> "'"$V4_SLICE209_EVIDENCE"'"
 '
 
@@ -7076,7 +7077,7 @@ run_case "run-bootstrap-v4-wave211-emit-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice211-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE211_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE211.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE211.md"
   { echo "v4.slice211=1"; } >> "'"$V4_SLICE211_EVIDENCE"'"
 '
 
@@ -7097,7 +7098,7 @@ run_case "run-bootstrap-v4-wave212-codegen-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice212-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE212_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE212.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE212.md"
   { echo "v4.slice212=1"; } >> "'"$V4_SLICE212_EVIDENCE"'"
 '
 
@@ -7117,7 +7118,7 @@ run_case "run-bootstrap-v4-wave213-runner-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice213-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE213_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE213.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE213.md"
   { echo "v4.slice213=1"; } >> "'"$V4_SLICE213_EVIDENCE"'"
 '
 
@@ -7137,7 +7138,7 @@ run_case "run-bootstrap-v4-wave214-mindmap-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice214-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE214_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE214.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE214.md"
   { echo "v4.slice214=1"; } >> "'"$V4_SLICE214_EVIDENCE"'"
 '
 
@@ -7158,7 +7159,7 @@ run_case "run-bootstrap-v4-wave215-codegen-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice215-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE215_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE215.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE215.md"
   { echo "v4.slice215=1"; } >> "'"$V4_SLICE215_EVIDENCE"'"
 '
 
@@ -7179,7 +7180,7 @@ run_case "run-bootstrap-v4-wave216-emit-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice216-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE216_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE216.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE216.md"
   { echo "v4.slice216=1"; } >> "'"$V4_SLICE216_EVIDENCE"'"
 '
 
@@ -7199,7 +7200,7 @@ run_case "run-bootstrap-v4-wave217-runner-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice217-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE217_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE217.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE217.md"
   { echo "v4.slice217=1"; } >> "'"$V4_SLICE217_EVIDENCE"'"
 '
 
@@ -7219,7 +7220,7 @@ run_case "run-bootstrap-v4-wave218-onion-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice218-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE218_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE218.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE218.md"
   { echo "v4.slice218=1"; } >> "'"$V4_SLICE218_EVIDENCE"'"
 '
 
@@ -7240,7 +7241,7 @@ run_case "run-bootstrap-v4-wave219-emit-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice219-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE219_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE219.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE219.md"
   { echo "v4.slice219=1"; } >> "'"$V4_SLICE219_EVIDENCE"'"
 '
 
@@ -7261,7 +7262,7 @@ run_case "run-bootstrap-v4-wave220-codegen-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice220-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE220_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE220.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE220.md"
   { echo "v4.slice220=1"; } >> "'"$V4_SLICE220_EVIDENCE"'"
 '
 
@@ -7281,7 +7282,7 @@ run_case "run-bootstrap-v4-wave221-runner-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice221-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE221_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE221.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE221.md"
   { echo "v4.slice221=1"; } >> "'"$V4_SLICE221_EVIDENCE"'"
 '
 
@@ -7301,7 +7302,7 @@ run_case "run-bootstrap-v4-wave222-mindmap-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice222-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE222_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE222.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE222.md"
   { echo "v4.slice222=1"; } >> "'"$V4_SLICE222_EVIDENCE"'"
 '
 
@@ -7322,7 +7323,7 @@ run_case "run-bootstrap-v4-wave223-codegen-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice223-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE223_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE223.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE223.md"
   { echo "v4.slice223=1"; } >> "'"$V4_SLICE223_EVIDENCE"'"
 '
 
@@ -7343,7 +7344,7 @@ run_case "run-bootstrap-v4-wave224-emit-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice224-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE224_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE224.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE224.md"
   { echo "v4.slice224=1"; } >> "'"$V4_SLICE224_EVIDENCE"'"
 '
 
@@ -7364,7 +7365,7 @@ run_case "run-bootstrap-v4-wave225-emit-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice225-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE225_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE225.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE225.md"
   { echo "v4.slice225=1"; } >> "'"$V4_SLICE225_EVIDENCE"'"
 '
 
@@ -7385,7 +7386,7 @@ run_case "run-bootstrap-v4-wave226-codegen-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice226-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE226_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE226.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE226.md"
   { echo "v4.slice226=1"; } >> "'"$V4_SLICE226_EVIDENCE"'"
 '
 
@@ -7405,7 +7406,7 @@ run_case "run-bootstrap-v4-wave227-runner-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice227-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE227_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE227.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE227.md"
   { echo "v4.slice227=1"; } >> "'"$V4_SLICE227_EVIDENCE"'"
 '
 
@@ -7425,7 +7426,7 @@ run_case "run-bootstrap-v4-wave228-mindmap-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice228-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE228_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE228.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE228.md"
   { echo "v4.slice228=1"; } >> "'"$V4_SLICE228_EVIDENCE"'"
 '
 
@@ -7446,7 +7447,7 @@ run_case "run-bootstrap-v4-wave229-codegen-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice229-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE229_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE229.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE229.md"
   { echo "v4.slice229=1"; } >> "'"$V4_SLICE229_EVIDENCE"'"
 '
 
@@ -7467,7 +7468,7 @@ run_case "run-bootstrap-v4-wave230-emit-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice230-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE230_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE230.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE230.md"
   { echo "v4.slice230=1"; } >> "'"$V4_SLICE230_EVIDENCE"'"
 '
 
@@ -7487,7 +7488,7 @@ run_case "run-bootstrap-v4-wave231-runner-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice231-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE231_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE231.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE231.md"
   { echo "v4.slice231=1"; } >> "'"$V4_SLICE231_EVIDENCE"'"
 '
 
@@ -7507,7 +7508,7 @@ run_case "run-bootstrap-v4-wave232-onion-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice232-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE232_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE232.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE232.md"
   { echo "v4.slice232=1"; } >> "'"$V4_SLICE232_EVIDENCE"'"
 '
 
@@ -7528,7 +7529,7 @@ run_case "run-bootstrap-v4-wave233-emit-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice233-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE233_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE233.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE233.md"
   { echo "v4.slice233=1"; } >> "'"$V4_SLICE233_EVIDENCE"'"
 '
 
@@ -7549,7 +7550,7 @@ run_case "run-bootstrap-v4-wave234-codegen-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice234-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE234_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE234.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE234.md"
   { echo "v4.slice234=1"; } >> "'"$V4_SLICE234_EVIDENCE"'"
 '
 
@@ -7569,7 +7570,7 @@ run_case "run-bootstrap-v4-wave235-runner-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice235-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE235_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE235.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE235.md"
   { echo "v4.slice235=1"; } >> "'"$V4_SLICE235_EVIDENCE"'"
 '
 
@@ -7589,7 +7590,7 @@ run_case "run-bootstrap-v4-wave236-mindmap-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice236-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE236_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE236.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE236.md"
   { echo "v4.slice236=1"; } >> "'"$V4_SLICE236_EVIDENCE"'"
 '
 
@@ -7610,7 +7611,7 @@ run_case "run-bootstrap-v4-wave237-codegen-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice237-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE237_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE237.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE237.md"
   { echo "v4.slice237=1"; } >> "'"$V4_SLICE237_EVIDENCE"'"
 '
 
@@ -7631,7 +7632,7 @@ run_case "run-bootstrap-v4-wave238-emit-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice238-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE238_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE238.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE238.md"
   { echo "v4.slice238=1"; } >> "'"$V4_SLICE238_EVIDENCE"'"
 '
 
@@ -7652,7 +7653,7 @@ run_case "run-bootstrap-v4-wave239-emit-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice239-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE239_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE239.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE239.md"
   { echo "v4.slice239=1"; } >> "'"$V4_SLICE239_EVIDENCE"'"
 '
 
@@ -7673,7 +7674,7 @@ run_case "run-bootstrap-v4-wave240-codegen-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice240-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE240_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE240.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE240.md"
   { echo "v4.slice240=1"; } >> "'"$V4_SLICE240_EVIDENCE"'"
 '
 
@@ -7693,7 +7694,7 @@ run_case "run-bootstrap-v4-wave241-runner-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice241-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE241_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE241.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE241.md"
   { echo "v4.slice241=1"; } >> "'"$V4_SLICE241_EVIDENCE"'"
 '
 
@@ -7713,7 +7714,7 @@ run_case "run-bootstrap-v4-wave242-mindmap-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice242-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE242_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE242.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE242.md"
   { echo "v4.slice242=1"; } >> "'"$V4_SLICE242_EVIDENCE"'"
 '
 
@@ -7734,7 +7735,7 @@ run_case "run-bootstrap-v4-wave243-codegen-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice243-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE243_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE243.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE243.md"
   { echo "v4.slice243=1"; } >> "'"$V4_SLICE243_EVIDENCE"'"
 '
 
@@ -7755,7 +7756,7 @@ run_case "run-bootstrap-v4-wave244-emit-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice244-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE244_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE244.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE244.md"
   { echo "v4.slice244=1"; } >> "'"$V4_SLICE244_EVIDENCE"'"
 '
 
@@ -7775,7 +7776,7 @@ run_case "run-bootstrap-v4-wave245-runner-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice245-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE245_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE245.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE245.md"
   { echo "v4.slice245=1"; } >> "'"$V4_SLICE245_EVIDENCE"'"
 '
 
@@ -7795,7 +7796,7 @@ run_case "run-bootstrap-v4-wave246-onion-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice246-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE246_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE246.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE246.md"
   { echo "v4.slice246=1"; } >> "'"$V4_SLICE246_EVIDENCE"'"
 '
 
@@ -7816,7 +7817,7 @@ run_case "run-bootstrap-v4-wave247-emit-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice247-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE247_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE247.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE247.md"
   { echo "v4.slice247=1"; } >> "'"$V4_SLICE247_EVIDENCE"'"
 '
 
@@ -7837,7 +7838,7 @@ run_case "run-bootstrap-v4-wave248-codegen-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice248-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE248_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE248.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE248.md"
   { echo "v4.slice248=1"; } >> "'"$V4_SLICE248_EVIDENCE"'"
 '
 
@@ -7857,7 +7858,7 @@ run_case "run-bootstrap-v4-wave249-runner-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice249-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE249_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE249.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE249.md"
   { echo "v4.slice249=1"; } >> "'"$V4_SLICE249_EVIDENCE"'"
 '
 
@@ -7877,7 +7878,7 @@ run_case "run-bootstrap-v4-wave250-mindmap-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice250-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE250_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE250.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE250.md"
   { echo "v4.slice250=1"; } >> "'"$V4_SLICE250_EVIDENCE"'"
 '
 
@@ -7898,7 +7899,7 @@ run_case "run-bootstrap-v4-wave251-codegen-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice251-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE251_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE251.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE251.md"
   { echo "v4.slice251=1"; } >> "'"$V4_SLICE251_EVIDENCE"'"
 '
 
@@ -7919,77 +7920,77 @@ run_case "run-bootstrap-v4-wave252-emit-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice252-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE252_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE252.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE252.md"
   { echo "v4.slice252=1"; } >> "'"$V4_SLICE252_EVIDENCE"'"
 '
 run_case "run-bootstrap-v4-slice210-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE210_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE210.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE210.md"
   { echo "v4.slice210=1"; } >> "'"$V4_SLICE210_EVIDENCE"'"
 '
 run_case "run-bootstrap-v4-slice182-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE182_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE182.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE182.md"
   { echo "v4.slice182=1"; } >> "'"$V4_SLICE182_EVIDENCE"'"
 '
 run_case "run-bootstrap-v4-slice165-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE165_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE165.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE165.md"
   { echo "v4.slice165=1"; } >> "'"$V4_SLICE165_EVIDENCE"'"
 '
 run_case "run-bootstrap-v4-slice148-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE148_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE148.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE148.md"
   { echo "v4.slice148=1"; } >> "'"$V4_SLICE148_EVIDENCE"'"
 '
 run_case "run-bootstrap-v4-slice139-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE139_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE139.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE139.md"
   { echo "v4.slice139=1"; } >> "'"$V4_SLICE139_EVIDENCE"'"
 '
 run_case "run-bootstrap-v4-slice130-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE130_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE130.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE130.md"
   { echo "v4.slice130=1"; } >> "'"$V4_SLICE130_EVIDENCE"'"
 '
 run_case "run-bootstrap-v4-slice121-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE121_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE121.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE121.md"
   { echo "v4.slice121=1"; } >> "'"$V4_SLICE121_EVIDENCE"'"
 '
 run_case "run-bootstrap-v4-slice112-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE112_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE112.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE112.md"
   { echo "v4.slice112=1"; } >> "'"$V4_SLICE112_EVIDENCE"'"
 '
 run_case "run-bootstrap-v4-slice103-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE103_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE103.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE103.md"
   { echo "v4.slice103=1"; } >> "'"$V4_SLICE103_EVIDENCE"'"
 '
 run_case "run-bootstrap-v4-slice97-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE97_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE97.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE97.md"
   { echo "v4.slice97=1"; } >> "'"$V4_SLICE97_EVIDENCE"'"
 '
 run_case "run-bootstrap-v4-slice91-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE91_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE91.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE91.md"
   { echo "v4.slice91=1"; } >> "'"$V4_SLICE91_EVIDENCE"'"
 '
 run_case "run-bootstrap-v4-slice88-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE88_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE88.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE88.md"
   { echo "v4.slice88=1"; } >> "'"$V4_SLICE88_EVIDENCE"'"
 '
 run_case "run-bootstrap-v4-slice85-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE85_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE85.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE85.md"
   { echo "v4.slice85=1"; } >> "'"$V4_SLICE85_EVIDENCE"'"
 '
 run_case "run-bootstrap-v4-slice76-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE76_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE76.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE76.md"
   { echo "v4.slice76=1"; } >> "'"$V4_SLICE76_EVIDENCE"'"
 '
 run_case "run-bootstrap-v4-slice16-plan-words-plan" bash -c '
@@ -8006,7 +8007,7 @@ run_case "run-bootstrap-v4-squad-mindmap-tick-plan" bash -c '
 '
 run_case "run-bootstrap-v4-slice16-evidence-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V4_SLICE16_EVIDENCE_SRC"'" 2>&1) || true
-  test -f "'"$LAB_DIR"'/v4/SLICE16.md"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE16.md"
   { echo "v4.slice16=1"; } >> "'"$V4_SLICE16_EVIDENCE"'"
 '
 
@@ -8212,6 +8213,14 @@ run_case "run-bootstrap-v45-onion-tdd-plan" bash -c '
   printf "%s\n" "$out" | grep -q "bootstrap-compare.ok"
   printf "%s\n" "$out" | grep -q "run-ape.payload.load=1"
 '
+run_case "run-bootstrap-v45-cleanup-rollupy-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V45_CLEANUP_ROLLUP_SRC"'" 2>&1) || true
+  printf "%s\n" "$out"
+  test -f "'"$LAB_DIR"'/archive/v4/slices/SLICE252.md"
+  test ! -f "'"$LAB_DIR"'/v4/SLICE252.md"
+  test -f "'"$LAB_DIR"'/v4/INDEX.md"
+  echo "v45.cleanup.ok=1" >> "'"$V45_ENTRY_EVIDENCE"'"
+'
 if [ -f "$NANO_JIT_COM" ] && host_is_linux_x86_64; then
   run_case "run-bootstrap-v45-onion-com-only-plan" bash -c '
     cd "'"$ROOT_DIR"'"
@@ -8235,6 +8244,7 @@ if [ -f "$NANO_JIT_COM" ] && host_is_linux_x86_64; then
     v45_com "'"$BOOTSTRAP_V45_ONION_TDD_SRC"'" 1
     v45_com "'"$BOOTSTRAP_V45_VERIFY_ALL_SRC"'" 0
     v45_com "'"$BOOTSTRAP_V45_ENTRY_SRC"'" 0
+    v45_com "'"$BOOTSTRAP_V45_CLEANUP_ROLLUP_SRC"'" 0
     {
       echo "v45.verify.plan_only=1"
       echo "v45.verify.com_only=1"

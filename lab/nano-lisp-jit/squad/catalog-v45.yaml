@@ -51,6 +51,11 @@ signoff:
       file: ".build/v45-entry.evidence"
       results_key: v45.build.no_host_cc
       min_pass: 1
+    - id: v45-cleanup-ok
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.cleanup.ok
+      min_pass: 1
     - id: v35-regression-run
       check: results
       file: ".build/results.txt"

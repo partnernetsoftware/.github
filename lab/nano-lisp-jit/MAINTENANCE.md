@@ -10,7 +10,8 @@
 | [`STRUCTURE.md`](STRUCTURE.md) | 目录地图（工厂 vs 发行面） |
 | [`samples/bootstrap-v45-*`](samples/) | 洋葱 TDD plan（**.com** 验收） |
 | [`samples/boundary/`](samples/boundary/) | 能力边界样例 |
-| [`v4/`](v4/) | v4 历史 SLICE 文档（`run.sh` 仍引用；见 STRUCTURE） |
+| [`v4/`](v4/) | v4 SSOT（16 md + [`INDEX.md`](v4/INDEX.md)） |
+| [`archive/v4/`](archive/v4/) | SLICE 244 + factory-docs |
 | [`samples/bootstrap-v4-*`](samples/) | v4 plan / zero-host 链 |
 | [`squad/catalog-v45.yaml`](squad/catalog-v45.yaml) | v4.5 门禁 |
 | [`run.sh`](run.sh) · [`build_nano_jit.sh`](build_nano_jit.sh) | **开发工厂**（落盘证据；非用户路径） |
@@ -45,4 +46,4 @@ bash lab/nano-lisp-jit/tools/clean-lab.sh
 
 ## 长程队列
 
-[`v4/LONG-RUN-TODO.md`](v4/LONG-RUN-TODO.md) — 每批合 main 后更新指针与打勾。
+[`archive/v4/factory-docs/LONG-RUN-TODO.md`](archive/v4/factory-docs/LONG-RUN-TODO.md) — 每批合 main 后更新指针与打勾。
