@@ -53,4 +53,5 @@ grep v45.goal.onion_tdd_tree_mindmap.100=1 \
 | 21 | /goal 总签收 26/26 [`DIFFUSE-WAVE21.md`](DIFFUSE-WAVE21.md) |
 | 22 | 工厂 S4/S5 plan 零 C [`DIFFUSE-WAVE22.md`](DIFFUSE-WAVE22.md) |
 | 23 | 继续卷 代际矩阵 + v4 握手 [`DIFFUSE-WAVE23.md`](DIFFUSE-WAVE23.md) |
-| **24** | **发行面继续** core/modules 代际 [`DIFFUSE-WAVE24.md`](DIFFUSE-WAVE24.md) |
+| **24** | 发行面继续 core/modules 代际 [`DIFFUSE-WAVE24.md`](DIFFUSE-WAVE24.md) |
+| **25** | **codegen 探针** lisp slice 四轨 [`DIFFUSE-WAVE25.md`](DIFFUSE-WAVE25.md) |

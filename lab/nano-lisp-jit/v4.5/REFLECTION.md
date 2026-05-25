@@ -310,6 +310,16 @@ bash lab/nano-lisp-jit/scripts/v45-cleanup-reflect.sh
 
 代际 plan 零 C 的 `.com` 不仅能跑 smoke，还能跑 **verify-core** 与 **13/13 modules**；`scoped-ci` 改为认 `continue.100` / 总 goal。日常入口上移到 `wave24-release-converge.sh`。
 
+## 二十五、Wave25（codegen 探针四轨）
+
+| 反思 | 调整 |
+|------|------|
+| 154KB runner 全 Lisp codegen 太大，不能并进 /goal | 独立卷 `codegen_probe.100` · 3 slice 探针 + ir-table |
+| `next-lisp-only.com` 跑完整 onion 无输出 exit 42 | 判据对齐 wave23 `smoke_ok`（exit 42 或 grep ok） |
+| 与 gen60 关系？ | W4 mindmap 锚 `gen60-lispjit-from-lisp-done` · 仍 **~15%** 物理覆盖 |
+
+日常入口：`v45-wave25-codegen-probe-converge.sh`（内嵌 wave24 链）。
+
 ## 十八、Wave3（整表扩散，勿逐条）
 
 见 DIFFUSE-WAVE2 §Wave3：无 C plan · run.sh 单行化 · wave 归档。
