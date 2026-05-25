@@ -43,3 +43,24 @@ tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v45.yaml assess
 | `v45.wave1.diffuse=1` | 全局扩散 plan 绿 |
 | `v45.wave1.parallel=4` | 四域 boundary 精细 plan 齐 |
 | `v45.wave1.rollup=1` | wave1 四轨 + assess rollup |
+
+## Wave2（完全自举 · 工厂矩阵 · 一轮扩散）
+
+筹划：[`DIFFUSE-WAVE2.md`](DIFFUSE-WAVE2.md) · 实施：[`CONCURRENT-IMPL.md`](CONCURRENT-IMPL.md)
+
+```bash
+skills/squad-parallel/scripts/fast-wave.sh \
+  lab/nano-lisp-jit/squad/catalog-v45.yaml wave2-v45-lisp-selfhost
+# 四轨并行实现 → 一次收敛：
+bash lab/nano-lisp-jit/scripts/v45-wave2-converge.sh
+```
+
+| 键 | 含义 |
+|----|------|
+| `v45.wave2.diffuse=1` | Wave2 全局扩散 |
+| `v45.selfhost.modules_full=1` | 13/13 modules |
+| `v45.selfhost.next_com=1` | next.com 跑 smoke |
+| `v45.wave2.factory_matrix=1` | 发行面 plan 索引 |
+| `v45.wave2.rollup=1` | reviewer rollup |
+
+**Wave3** 才动：删仓内 C、归档 v4 wave、`run.sh` 单行化 — 见 DIFFUSE-WAVE2 §Wave3 草图。

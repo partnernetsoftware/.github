@@ -51,8 +51,18 @@ grep -E 'v45\.selfhost\.(lisp_slice|modules|regenesis|chain)=' \
 | `run.sh` / squad.sh | 工厂层；tier3 退役 |
 | 15 TU 全链接 codegen | v4 gen60 级；v4.5 先 modules smoke |
 
-## 下一刀
+## Wave2 并入（扩散，非逐阶几十年）
 
-1. S6：`next.com run-bootstrap-plan` 跑 `verify-smoke`（真·代际自举）
-2. `build-slice-lisp` 换 `lispjit-modules` 聚合 TU
-3. tier3：runner 字节-only，源码出仓
+| 阶 | 状态 | 说明 |
+|----|------|------|
+| S6 next.com smoke | ✅ | `v45-wave2-converge.sh` |
+| S7 modules 13/13 | ✅ | `selfhost-modules-full.lisp` |
+| S8 factory matrix | ✅ | `factory-matrix.lisp` |
+
+见 [`DIFFUSE-WAVE2.md`](DIFFUSE-WAVE2.md) · [`CONCURRENT-IMPL.md`](CONCURRENT-IMPL.md)。
+
+## Wave3 草图（一次扩散，勿碎砍）
+
+1. 全 plan `build-slice-lisp` / 模块链接 TU（替代 plan 内 `lispjit.c`）
+2. `run.sh` → 仅 `v45-wave2-converge.sh`
+3. tier3 runner 出仓

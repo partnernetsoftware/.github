@@ -134,6 +134,32 @@ signoff:
       file: ".build/v45-entry.evidence"
       results_key: v45.selfhost.chain
       min_pass: 1
+    - id: v45-diffuse-wave2-doc
+      check: artifact
+      path_glob: "v4.5/DIFFUSE-WAVE2.md"
+    - id: v45-concurrent-impl-doc
+      check: artifact
+      path_glob: "v4.5/CONCURRENT-IMPL.md"
+    - id: v45-wave2-diffuse
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.wave2.diffuse
+      min_pass: 1
+    - id: v45-selfhost-modules-full
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.selfhost.modules_full
+      min_pass: 1
+    - id: v45-selfhost-next-com
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.selfhost.next_com
+      min_pass: 1
+    - id: v45-wave2-rollup
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.wave2.rollup
+      min_pass: 1
     - id: v35-regression-run
       check: results
       file: ".build/results.txt"
@@ -220,9 +246,59 @@ tasks:
       - "run-bootstrap-v45-wave1-rollup-plan"
       - "v45-com-verify done"
 
+  wave2-v45-track-a-selfhost-full:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v45-selfhost-modules-full.lisp"
+      - "samples/bootstrap-v45-selfhost-next-com-verify.lisp"
+      - "v4.5/SELFHOST.md"
+    accept:
+      - "run-bootstrap-v45-selfhost-modules-full-plan"
+  wave2-v45-track-b-factory-matrix:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v45-factory-matrix.lisp"
+      - "samples/bootstrap-v45-wave2-diffuse-global.lisp"
+      - "v4.5/DIFFUSE-WAVE2.md"
+      - "v4.5/CONCURRENT-IMPL.md"
+    accept:
+      - "run-bootstrap-v45-factory-matrix-plan"
+      - "run-bootstrap-v45-wave2-diffuse-global-plan"
+  wave2-v45-track-c-converge:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "scripts/v45-wave2-converge.sh"
+      - "scripts/v45-com-verify.sh"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v45-wave2-converge-script-plan"
+  wave2-v45-track-d-assess:
+    assign_role: reviewer
+    priority: P0
+    touch_paths:
+      - "v4.5/EVAL.md"
+      - "v4.5/REFLECTION.md"
+      - "v4.5/PARALLEL.md"
+    accept:
+      - "run-bootstrap-v45-wave2-assess-tick-plan"
+  wave2-v45-R:
+    assign_role: reviewer
+    priority: meta
+    depends:
+      - wave2-v45-track-a-selfhost-full
+      - wave2-v45-track-b-factory-matrix
+      - wave2-v45-track-c-converge
+      - wave2-v45-track-d-assess
+    accept:
+      - "run-bootstrap-v45-wave2-rollup-plan"
+      - "v45-wave2-converge done"
+
 verify:
   commands:
-    - script: scripts/v45-com-verify.sh
+    - script: scripts/v45-wave2-converge.sh
       cwd: .
       fail_on_nonzero: true
 

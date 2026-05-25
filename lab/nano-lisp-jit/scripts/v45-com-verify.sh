@@ -17,6 +17,7 @@ plans=(
   build-slice-genesis onion-tdd verify-all entry
   diffuse-global wave1-parallel-fine wave1-assess-tick wave1-rollup
   build-slice-lisp selfhost-modules selfhost-regenesis selfhost-chain selfhost-terminal
+  selfhost-modules-full factory-matrix wave2-diffuse-global selfhost-next-com-verify
 )
 for p in "${plans[@]}"; do
   src="lab/nano-lisp-jit/samples/bootstrap-v45-${p}.lisp"

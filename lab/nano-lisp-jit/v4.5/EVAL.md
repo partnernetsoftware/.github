@@ -26,6 +26,17 @@
 | 产品反馈 | `PRODUCT-FEEDBACK.md` + `bootstrap-v45-boundary-feedback.lisp` |
 | 证据键 | `v45.boundary.probes=13` · `v45.product.feedback=1` |
 
+## Wave2 扩散（自举 + 工厂矩阵）
+
+| 维度 | 评估 |
+|------|------|
+| 代际自举 S6 | **100%** — `next.com` 跑 smoke |
+| 模块 S7 | **100%** — 13/13 `lispjit-modules` |
+| 工厂 Lisp 化 S8 | **~85%** — `factory-matrix` 索引；`run.sh` 仍 terminal |
+| 收敛 | **100%** — `v45-wave2-converge.sh` 单轮 |
+
+筹划/实施：[`DIFFUSE-WAVE2.md`](DIFFUSE-WAVE2.md) · [`CONCURRENT-IMPL.md`](CONCURRENT-IMPL.md)
+
 ## 验证
 
 ```bash

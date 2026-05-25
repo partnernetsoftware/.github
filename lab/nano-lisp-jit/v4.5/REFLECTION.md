@@ -84,8 +84,11 @@ grep v45.scoped.100=1 lab/nano-lisp-jit/.build/v45-entry.evidence
 
 **未达「完全」**：plan 内仍可有 `build-slice lispjit.c`；tier3 删仓内 C · S6 用 `next.com` 跑 verify。
 
-## 九、下一刀
+## 九、Wave2 扩散（避免几十年碎砍）
 
-1. S6：`next.com` 跑 `verify-smoke`  
-2. tier3：runner 源码出仓  
-3. `build-slice-lisp` 聚合 `lispjit-modules`
+真源：[`DIFFUSE-WAVE2.md`](DIFFUSE-WAVE2.md) · 并发清单：[`CONCURRENT-IMPL.md`](CONCURRENT-IMPL.md)。  
+**一轮**：S6 next.com + S7 全模块 + S8 factory-matrix → `v45-wave2-converge.sh`。
+
+## 十、Wave3（整表扩散，勿逐条）
+
+见 DIFFUSE-WAVE2 §Wave3：无 C plan · run.sh 单行化 · wave 归档。
