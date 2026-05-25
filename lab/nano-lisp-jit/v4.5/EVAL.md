@@ -79,7 +79,7 @@
 | 25 | `cursor/v45-wave25-codegen-fc19` | `codegen_probe.100` · `lisp_slices=3` | — | ✅ main |
 | 26 | `cursor/v45-wave26-codegen-expand-fc19` | `codegen_expand.100` · `lisp_slices=5` | — | ✅ main |
 | 27 | `cursor/v45-wave27-codegen-coupled-fc19` | `codegen_coupled.100` · `codegen 7/7` | codegen | ✅ main |
-| **28** | `cursor/v45-wave28-factory-physical-fc19` | **`factory_physical_continue.100`** · **`factory 7/7`** | factory | 🔄 本合并 |
+| **28** | `cursor/v45-wave28-factory-physical-fc19` | **`factory_physical_continue.100`** · **`factory 7/7`** | factory | ✅ main |
 
 | 指标 | 数值 |
 |------|------|
