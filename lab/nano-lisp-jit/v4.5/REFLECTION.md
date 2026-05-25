@@ -91,6 +91,8 @@ grep v45.scoped.100=1 lab/nano-lisp-jit/.build/v45-entry.evidence
 
 **Wave4**：`next.com` 全洋葱 + tier3 `archive/runner` 锚点 + squad plan 无 `.sh` → `v45-wave4-converge.sh`。
 
+**Wave5**：`onion-lisp-only` plan + scoped CI（terminal+converge）→ `v45-wave5-converge.sh`；catalog 不再要求 `tests.pass≥1302`。
+
 ## 十、Wave3（整表扩散，勿逐条）
 
 见 DIFFUSE-WAVE2 §Wave3：无 C plan · run.sh 单行化 · wave 归档。

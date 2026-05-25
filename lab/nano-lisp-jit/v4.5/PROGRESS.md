@@ -34,11 +34,13 @@
 | VM emit 替代 C 表 | 未达（tier4） |
 
 | **Wave4** | ✅ | `v45.wave4.*` · `v45.selfhost.next_onion=1` · [`DIFFUSE-WAVE4.md`](DIFFUSE-WAVE4.md) |
+| **Wave5** | ✅ | `v45.wave5.*` · `v45.onion.lisp_only_plan=1` · scoped CI · [`DIFFUSE-WAVE5.md`](DIFFUSE-WAVE5.md) |
 
 证据：
 
 ```bash
-bash lab/nano-lisp-jit/scripts/v45-wave4-converge.sh
-grep -E 'v45\.(scoped\.100|wave4\.diffuse|selfhost\.next_onion)=' \
+bash lab/nano-lisp-jit/scripts/v45-wave5-converge.sh
+grep -E 'v45\.(scoped\.100|wave5\.diffuse|onion\.lisp_only_plan)=' \
   lab/nano-lisp-jit/.build/v45-entry.evidence
+grep tests.pass=2 lab/nano-lisp-jit/.build/v45-scoped-results.txt
 ```

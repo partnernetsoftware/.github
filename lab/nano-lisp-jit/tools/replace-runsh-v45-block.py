@@ -13,17 +13,18 @@ for i, line in enumerate(lines):
         break
 if start is None or end is None:
     raise SystemExit("v4.5 block markers not found")
-block = """# --- v4.5: Wave4 single converge (replaces per-plan run_case blocks) ---
-V45_WAVE4_CONVERGE="$LAB_DIR/scripts/v45-wave4-converge.sh"
-if [ -f "$NANO_JIT_COM" ] && host_is_linux_x86_64 && [ -x "$V45_WAVE4_CONVERGE" ]; then
-  run_case "run-bootstrap-v45-wave4-converge-plan" bash -c '
-    cd "'"$ROOT_DIR"'" && bash "'"$V45_WAVE4_CONVERGE"'"
+block = """# --- v4.5: Wave5 single converge (replaces per-plan run_case blocks) ---
+V45_WAVE5_CONVERGE="$LAB_DIR/scripts/v45-wave5-converge.sh"
+if [ -f "$NANO_JIT_COM" ] && host_is_linux_x86_64 && [ -x "$V45_WAVE5_CONVERGE" ]; then
+  run_case "run-bootstrap-v45-wave5-converge-plan" bash -c '
+    cd "'"$ROOT_DIR"'" && bash "'"$V45_WAVE5_CONVERGE"'"
     grep -q v45.scoped.100=1 "'"$V45_ENTRY_EVIDENCE"'"
-    grep -q v45.wave4.diffuse=1 "'"$V45_ENTRY_EVIDENCE"'"
-    grep -q v45.selfhost.next_onion=1 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.wave5.diffuse=1 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.onion.lisp_only_plan=1 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q tests.pass=2 "'"$LAB_DIR"'/.build/v45-scoped-results.txt"
   '
 else
-  skip_case "run-bootstrap-v45-wave4-converge-plan" "nano-jit.com or v45-wave4-converge.sh missing"
+  skip_case "run-bootstrap-v45-wave5-converge-plan" "nano-jit.com or v45-wave5-converge.sh missing"
 fi
 
 """

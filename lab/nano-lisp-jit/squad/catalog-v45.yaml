@@ -160,11 +160,28 @@ signoff:
       file: ".build/v45-entry.evidence"
       results_key: v45.wave2.rollup
       min_pass: 1
-    - id: v35-regression-run
+    - id: v45-scoped-ci-run
       check: results
-      file: ".build/results.txt"
+      file: ".build/v45-scoped-results.txt"
       results_key: tests.pass
-      min_pass: 1302
+      min_pass: 2
+    - id: v45-onion-lisp-only-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v45-onion-lisp-only.lisp"
+      plan_must_not_match: 'lispjit\\.c'
+    - id: v45-onion-lisp-only-plan-ev
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.onion.lisp_only_plan
+      min_pass: 1
+    - id: v45-wave5-diffuse-doc
+      check: artifact
+      path_glob: "v4.5/DIFFUSE-WAVE5.md"
+    - id: v45-wave5-diffuse
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.wave5.diffuse
+      min_pass: 1
     - id: v45-wave3-diffuse-doc
       check: artifact
       path_glob: "v4.5/DIFFUSE-WAVE3.md"
@@ -378,10 +395,50 @@ tasks:
     accept:
       - "run-bootstrap-v45-wave4-converge-plan"
       - "v45-wave4-converge done"
+  wave5-v45-track-a-onion-lisp:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v45-onion-lisp-only.lisp"
+    accept:
+      - "run-bootstrap-v45-onion-lisp-only-plan"
+  wave5-v45-track-b-scoped-ci:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "scripts/v45-scoped-ci.sh"
+      - ".build/v45-scoped-results.txt"
+    accept:
+      - "v45-scoped-ci tests.pass=2"
+  wave5-v45-track-c-w3-matrix:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "samples/bootstrap-v45-wave5-w3-com-matrix.lisp"
+    accept:
+      - "run-bootstrap-v45-wave5-w3-com-matrix-plan"
+  wave5-v45-track-d-assess:
+    assign_role: reviewer
+    priority: P0
+    touch_paths:
+      - "v4.5/DIFFUSE-WAVE5.md"
+    accept:
+      - "run-bootstrap-v45-wave5-rollup-plan"
+  wave5-v45-R:
+    assign_role: reviewer
+    priority: meta
+    depends:
+      - wave5-v45-track-a-onion-lisp
+      - wave5-v45-track-b-scoped-ci
+      - wave5-v45-track-c-w3-matrix
+      - wave5-v45-track-d-assess
+    accept:
+      - "run-bootstrap-v45-wave5-converge-plan"
+      - "v45-wave5-converge done"
 
 verify:
   commands:
-    - script: scripts/v45-wave4-converge.sh
+    - script: scripts/v45-wave5-converge.sh
       cwd: .
       fail_on_nonzero: true
 

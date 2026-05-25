@@ -47,6 +47,16 @@
 
 [`DIFFUSE-WAVE4.md`](DIFFUSE-WAVE4.md)
 
+## Wave5（lisp-only 洋葱 + scoped CI）
+
+| 维度 | 评估 |
+|------|------|
+| lisp-only 洋葱 plan | **100%** — 无 `lispjit.c` build-slice |
+| scoped CI | **100%** — `v45-scoped-results.txt` · `tests.pass=2` |
+| w3.com 矩阵 | **~0%** 阻塞 — 代际 smoke 仍 gap，仅记录 `v45.w3_com.matrix` |
+
+[`DIFFUSE-WAVE5.md`](DIFFUSE-WAVE5.md)
+
 ## 验证
 
 ```bash

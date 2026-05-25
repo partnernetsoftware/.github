@@ -34,7 +34,7 @@ lab/nano-lisp-jit/scripts/v45-com-verify.sh
 tools/squad/squad.sh --catalog lab/nano-lisp-jit/squad/catalog-v45.yaml assess
 ```
 
-全量 `run.sh` 合 `main` 前再拉；`catalog-v45` 的 `v35-regression-run` 仍属 terminal gate。
+发行面 signoff 用 `v45-scoped-ci-run`（`tests.pass≥2`）；全量 `run.sh` 仍属 v4 工厂，合 `main` 前再拉。
 
 ## 证据键
 
@@ -66,3 +66,5 @@ bash lab/nano-lisp-jit/scripts/v45-wave2-converge.sh
 **Wave3** ✅：[`DIFFUSE-WAVE3.md`](DIFFUSE-WAVE3.md) — `v45-wave3-converge.sh` 替代 ~35 run_case；662 wave 样本已归档。
 
 **Wave4** ✅：[`DIFFUSE-WAVE4.md`](DIFFUSE-WAVE4.md) — `v45-wave4-converge.sh`（wave3 + next 洋葱 + tier3/squad 锚点）。
+
+**Wave5** ✅：[`DIFFUSE-WAVE5.md`](DIFFUSE-WAVE5.md) — lisp-only 洋葱 + scoped CI（`tests.pass=2`）+ `v45-wave5-converge.sh`。

@@ -36,10 +36,6 @@ bash lab/nano-lisp-jit/scripts/v45-wave4-converge.sh
 - `nano-jit.com` 需重打 ape 才带上新 `squad-assess` smoke（genesis 代际后续波）
 - `run.sh` v4 工厂 case 墙未退役
 
-## Wave5 草图
+## Wave5
 
-| 面 | 一次扩散 |
-|----|----------|
-| CI | `tests.pass` 仅 terminal + v45-wave4-converge |
-| onion | plan 级全 lisp-only 洋葱（去 tier2 `build-slice` C） |
-| com | 用 `v45-w3-lisp-only.com` 跑 smoke 矩阵 |
+已实施：[`DIFFUSE-WAVE5.md`](DIFFUSE-WAVE5.md) · `v45-wave5-converge.sh`
