@@ -78,8 +78,14 @@ grep v45.scoped.100=1 lab/nano-lisp-jit/.build/v45-entry.evidence
 
 证据：`v45.wave1.diffuse=1` · `v45.wave1.parallel=4` · `v45.wave1.rollup=1`
 
-## 八、下一刀
+## 八、自举（`*.lisp`）
 
-1. tier3：runner 源码出仓  
-2. `run.sh` 瘦身为 `v45-com-verify.sh` 委托  
-3. wave 样本归档（高风险）
+真源：[`SELFHOST.md`](SELFHOST.md)。**S5** = seed `.com` 用 plan 完成 genesis compare、**lisp** `build-slice`、`pack-ape` → `v45-selfhost-next.com`（无 `run.sh` 步骤）。
+
+**未达「完全」**：plan 内仍可有 `build-slice lispjit.c`；tier3 删仓内 C · S6 用 `next.com` 跑 verify。
+
+## 九、下一刀
+
+1. S6：`next.com` 跑 `verify-smoke`  
+2. tier3：runner 源码出仓  
+3. `build-slice-lisp` 聚合 `lispjit-modules`

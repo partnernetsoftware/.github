@@ -180,6 +180,12 @@ BOOTSTRAP_V45_WAVE1_PARALLEL_TICK_SRC="$LAB_DIR/samples/bootstrap-v45-wave1-para
 BOOTSTRAP_V45_WAVE1_PARALLEL_FINE_SRC="$LAB_DIR/samples/bootstrap-v45-wave1-parallel-fine.lisp"
 BOOTSTRAP_V45_WAVE1_ASSESS_TICK_SRC="$LAB_DIR/samples/bootstrap-v45-wave1-assess-tick.lisp"
 BOOTSTRAP_V45_WAVE1_ROLLUP_SRC="$LAB_DIR/samples/bootstrap-v45-wave1-rollup.lisp"
+BOOTSTRAP_V45_BUILD_SLICE_LISP_SRC="$LAB_DIR/samples/bootstrap-v45-build-slice-lisp.lisp"
+BOOTSTRAP_V45_SELFHOST_MODULES_SRC="$LAB_DIR/samples/bootstrap-v45-selfhost-modules.lisp"
+BOOTSTRAP_V45_SELFHOST_REGENESIS_SRC="$LAB_DIR/samples/bootstrap-v45-selfhost-regenesis.lisp"
+BOOTSTRAP_V45_SELFHOST_CHAIN_SRC="$LAB_DIR/samples/bootstrap-v45-selfhost-chain.lisp"
+BOOTSTRAP_V45_SELFHOST_TERMINAL_SRC="$LAB_DIR/samples/bootstrap-v45-selfhost-terminal.lisp"
+V45_SELFHOST_NEXT_COM="$BUILD_DIR/v45-selfhost-next.com"
 BOOTSTRAP_V45_ONION_TDD_SRC="$LAB_DIR/samples/bootstrap-v45-onion-tdd.lisp"
 BOOTSTRAP_V45_TERMINAL_DONE_SRC="$LAB_DIR/samples/bootstrap-v45-terminal-done.lisp"
 BOOTSTRAP_V45_CLEANUP_ROLLUP_SRC="$LAB_DIR/samples/bootstrap-v45-cleanup-rollupy.lisp"
@@ -8296,6 +8302,45 @@ if [ -f "$NANO_JIT_COM" ] && host_is_linux_x86_64; then
 else
   skip_case "run-bootstrap-v45-com-verify-script-plan" "nano-jit.com missing"
 fi
+run_case "run-bootstrap-v45-build-slice-lisp-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V45_BUILD_SLICE_LISP_SRC"'" 2>&1) || true
+  printf "%s\n" "$out"
+  test -f "'"$BUILD_DIR"'/v45-selfhost-lisp-slice-x86.elf"
+  printf "%s\n" "$out" | grep -q "build-slice-lisp.mode=compile-elf64-exe"
+  printf "%s\n" "$out" | grep -q "run-expect-exit.ok=1"
+  echo "v45.selfhost.lisp_slice=1" >> "'"$V45_ENTRY_EVIDENCE"'"
+'
+run_case "run-bootstrap-v45-selfhost-modules-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V45_SELFHOST_MODULES_SRC"'" 2>&1) || true
+  printf "%s\n" "$out"
+  test -f "'"$BUILD_DIR"'/v45-sh-mod12.lbin"
+  echo "v45.selfhost.modules=1" >> "'"$V45_ENTRY_EVIDENCE"'"
+'
+run_case "run-bootstrap-v45-selfhost-regenesis-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$(env -u NANO_SELFHOST_REUSE_X86 -u NANO_SELFHOST_REUSE_AARCH64 -u NANO_BUILD_SLICE_SELFHOST_REUSE -u NANO_REGENESIS \
+    "'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V45_SELFHOST_REGENESIS_SRC"'" 2>&1) || true
+  printf "%s\n" "$out"
+  test -f "'"$V45_SELFHOST_NEXT_COM"'"
+  printf "%s\n" "$out" | grep -q "run-ape.payload.load=1"
+  seed=$("'"$RUNNER"'" file-hash "'"$NANO_JIT_COM"'" 2>/dev/null | tail -1)
+  next=$("'"$RUNNER"'" file-hash "'"$V45_SELFHOST_NEXT_COM"'" 2>/dev/null | tail -1)
+  test -n "$seed" && test -n "$next" && test "$seed" != "$next"
+  echo "v45.selfhost.regenesis=1" >> "'"$V45_ENTRY_EVIDENCE"'"
+'
+run_case "run-bootstrap-v45-selfhost-chain-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$(env -u NANO_SELFHOST_REUSE_X86 -u NANO_SELFHOST_REUSE_AARCH64 -u NANO_BUILD_SLICE_SELFHOST_REUSE -u NANO_REGENESIS \
+    "'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V45_SELFHOST_CHAIN_SRC"'" 2>&1) || true
+  printf "%s\n" "$out"
+  printf "%s\n" "$out" | grep -q "bootstrap-compare.ok"
+  printf "%s\n" "$out" | grep -q "build-slice-lisp.mode=compile-elf64-exe"
+  test -f "'"$V45_SELFHOST_NEXT_COM"'"
+  echo "v45.selfhost.chain=1" >> "'"$V45_ENTRY_EVIDENCE"'"
+'
+run_case "run-bootstrap-v45-selfhost-terminal-plan" bash -c '
+  cd "'"$ROOT_DIR"'" && out=$("'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V45_SELFHOST_TERMINAL_SRC"'" 2>&1) || true
+  printf "%s\n" "$out"
+  test -f "'"$LAB_DIR"'/v4.5/SELFHOST.md"
+'
 run_case "run-bootstrap-v45-onion-tdd-plan" bash -c '
   cd "'"$ROOT_DIR"'" && out=$(env -u NANO_SELFHOST_REUSE_X86 -u NANO_SELFHOST_REUSE_AARCH64 -u NANO_BUILD_SLICE_SELFHOST_REUSE -u NANO_REGENESIS \
     "'"$RUNNER"'" run-bootstrap-plan "'"$BOOTSTRAP_V45_ONION_TDD_SRC"'" 2>&1) || true
@@ -8339,6 +8384,10 @@ if [ -f "$NANO_JIT_COM" ] && host_is_linux_x86_64; then
     v45_com "'"$BOOTSTRAP_V45_BOUNDARY_RODATA_SRC"'" 0
     v45_com "'"$BOOTSTRAP_V45_DIFFUSE_GLOBAL_SRC"'" 0
     v45_com "'"$BOOTSTRAP_V45_WAVE1_ROLLUP_SRC"'" 0
+    v45_com "'"$BOOTSTRAP_V45_BUILD_SLICE_LISP_SRC"'" 0
+    v45_com "'"$BOOTSTRAP_V45_SELFHOST_MODULES_SRC"'" 0
+    v45_com "'"$BOOTSTRAP_V45_SELFHOST_REGENESIS_SRC"'" 1
+    v45_com "'"$BOOTSTRAP_V45_SELFHOST_CHAIN_SRC"'" 1
     v45_com "'"$BOOTSTRAP_V45_BUILD_SLICE_GENESIS_SRC"'" 1
     v45_com "'"$BOOTSTRAP_V45_ONION_TDD_SRC"'" 1
     v45_com "'"$BOOTSTRAP_V45_VERIFY_ALL_SRC"'" 0

@@ -19,6 +19,7 @@ $COM run-bootstrap-plan lab/nano-lisp-jit/samples/bootstrap-v45-onion-tdd.lisp
 for p in verify-smoke verify-core v4-handoff build-slice-genesis \
   boundary-i64 boundary-ptr boundary-func boundary-rodata \
   boundary-probe boundary-negative boundary-feedback \
+  build-slice-lisp selfhost-chain selfhost-regenesis \
   diffuse-global wave1-rollup verify-all entry; do
   $COM run-bootstrap-plan lab/nano-lisp-jit/samples/bootstrap-v45-$p.lisp
 done

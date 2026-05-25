@@ -112,6 +112,28 @@ signoff:
       file: ".build/v45-entry.evidence"
       results_key: v45.wave1.rollup
       min_pass: 1
+    - id: v45-selfhost-doc
+      check: artifact
+      path_glob: "v4.5/SELFHOST.md"
+    - id: v45-selfhost-chain-plan
+      check: artifact
+      path_glob: "samples/bootstrap-v45-selfhost-chain.lisp"
+      plan_must_not_match: '\\.c'
+    - id: v45-selfhost-lisp-slice
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.selfhost.lisp_slice
+      min_pass: 1
+    - id: v45-selfhost-regenesis
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.selfhost.regenesis
+      min_pass: 1
+    - id: v45-selfhost-chain
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.selfhost.chain
+      min_pass: 1
     - id: v35-regression-run
       check: results
       file: ".build/results.txt"

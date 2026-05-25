@@ -34,7 +34,15 @@ genesis/*.x86_64      # 可选 bootstrap pin（非日常 host cc）
 | **3** | `v45-tier3-no-c-src` | repo 无 `lispjit.c` 源码 | `v45.runner.no_c_src=1` |
 | **4** | `v45-tier4-vm-emit` | C 表驱动 emit → Lisp IR + VM/AOT | `v45.codegen.vm_emit=1` |
 
-**当前开卷**：**scoped 100% ✅**（见 [`PROGRESS.md`](PROGRESS.md)）
+**当前开卷**：**scoped 100% ✅** · **自举 S2–S5 ✅**（见 [`SELFHOST.md`](SELFHOST.md)）
+
+| 自举阶 | 状态 |
+|--------|------|
+| S2 lisp-slice | ✅ `v45.selfhost.lisp_slice=1` |
+| S3 modules | ✅ `v45.selfhost.modules=1` |
+| S4 regenesis | ✅ `v45.selfhost.regenesis=1` |
+| S5 chain | ✅ `v45.selfhost.chain=1` |
+| T3/T4 完全无 C codegen | 未开 |
 
 ## scoped 100% 签收（2026-05-24）
 

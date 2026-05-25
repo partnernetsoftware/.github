@@ -16,6 +16,7 @@ plans=(
   boundary-probe boundary-negative boundary-feedback
   build-slice-genesis onion-tdd verify-all entry
   diffuse-global wave1-parallel-fine wave1-assess-tick wave1-rollup
+  build-slice-lisp selfhost-modules selfhost-regenesis selfhost-chain selfhost-terminal
 )
 for p in "${plans[@]}"; do
   src="lab/nano-lisp-jit/samples/bootstrap-v45-${p}.lisp"
@@ -24,7 +25,7 @@ for p in "${plans[@]}"; do
     exit 1
   fi
   case "$p" in
-    build-slice-genesis|onion-tdd) "${GEN[@]}" "$COM" run-bootstrap-plan "$src" >/dev/null ;;
+    build-slice-genesis|onion-tdd|selfhost-regenesis|selfhost-chain) "${GEN[@]}" "$COM" run-bootstrap-plan "$src" >/dev/null ;;
     *) "$COM" run-bootstrap-plan "$src" >/dev/null ;;
   esac
   echo "v45-com-verify=ok plan=$p"
