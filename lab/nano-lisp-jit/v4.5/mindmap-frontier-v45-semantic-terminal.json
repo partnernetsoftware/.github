@@ -4,14 +4,14 @@
   "onion_ssot": "v4.5/ONION-TDD.md",
   "updated_at": "2026-05-25T02:00:00Z",
   "max_parallel": 4,
-  "breadth_ring": "semantic-terminal — 13 模块 VM + 15link 证明 + daily 升维",
+  "breadth_ring": "semantic-terminal \u2014 13 \u6a21\u5757 VM + 15link \u8bc1\u660e + daily \u5347\u7ef4",
   "nodes": [
     {
       "id": "v45-st-gate",
       "layer": 43,
       "ring": "gate",
       "onion_ring": 24,
-      "status": "ready",
+      "status": "done",
       "deps": [],
       "accept": [
         "v45.v45.compose_deep_continue.100=1",
@@ -23,8 +23,10 @@
       "layer": 43,
       "ring": "Codegen",
       "onion_ring": 24,
-      "status": "ready",
-      "deps": ["v45-st-gate"],
+      "status": "done",
+      "deps": [
+        "v45-st-gate"
+      ],
       "parallel_slot": "W1",
       "plan": "lisp/bootstrap/bootstrap-v45-runner-modules-full-13.lisp",
       "agent": "engineer-a"
@@ -34,8 +36,10 @@
       "layer": 43,
       "ring": "Codegen",
       "onion_ring": 24,
-      "status": "ready",
-      "deps": ["v45-st-gate"],
+      "status": "done",
+      "deps": [
+        "v45-st-gate"
+      ],
       "parallel_slot": "W2",
       "plan": "lisp/bootstrap/bootstrap-v45-semantic-terminal-proof.lisp",
       "agent": "engineer-b"
@@ -45,8 +49,10 @@
       "layer": 43,
       "ring": "plan",
       "onion_ring": 24,
-      "status": "ready",
-      "deps": ["v45-st-gate"],
+      "status": "done",
+      "deps": [
+        "v45-st-gate"
+      ],
       "parallel_slot": "W3",
       "plan": "lisp/bootstrap/bootstrap-v45-converge-daily-semantic.lisp",
       "agent": "engineer-a"
@@ -54,10 +60,12 @@
     {
       "id": "v45-st-selfhost-semantic",
       "layer": 43,
-      "ring": "代际",
+      "ring": "\u4ee3\u9645",
       "onion_ring": 24,
-      "status": "ready",
-      "deps": ["v45-st-gate"],
+      "status": "done",
+      "deps": [
+        "v45-st-gate"
+      ],
       "parallel_slot": "W4",
       "plan": "lisp/bootstrap/bootstrap-v45-selfhost-semantic-matrix.lisp",
       "agent": "engineer-b"
@@ -65,9 +73,9 @@
     {
       "id": "v45-st-terminal",
       "layer": 44,
-      "ring": "终局",
+      "ring": "\u7ec8\u5c40",
       "onion_ring": 24,
-      "status": "ready",
+      "status": "done",
       "deps": [
         "v45-st-modules-13",
         "v45-st-terminal-proof",
@@ -82,14 +90,16 @@
       "layer": 45,
       "ring": "DONE",
       "onion_ring": 24,
-      "status": "ready",
-      "deps": ["v45-st-terminal"],
+      "status": "done",
+      "deps": [
+        "v45-st-terminal"
+      ],
       "plan": "lisp/bootstrap/bootstrap-v45-goal-v45-semantic-terminal-100.lisp",
       "agent": "reviewer"
     }
   ],
   "next_wave_preview": {
     "id": "wave44-nano-lisp-com-terminal",
-    "theme": "nano-lisp.com 代际跑 full semantic + 物理零 C 诚实卷"
+    "theme": "nano-lisp.com \u4ee3\u9645\u8dd1 full semantic + \u7269\u7406\u96f6 C \u8bda\u5b9e\u5377"
   }
 }

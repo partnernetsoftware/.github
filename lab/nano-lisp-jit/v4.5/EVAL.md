@@ -88,11 +88,11 @@
 
 **日常**：`v45-wave34-runner-codegen-continue-converge.sh`
 
-## Wave43（semantic-terminal · 编排中）
+## Wave43（semantic-terminal · 7/7 ✅）
 
 | 项 | 状态 |
 |----|------|
-| 活图 | `mindmap-frontier-v45-semantic-terminal.json` |
+| 活图 | `mindmap-frontier-v45-semantic-terminal.json` **7/7** |
 | 签收 | `v45.v45.semantic_terminal_continue.100=1` |
 | 广度 | 13 模块 VM + 15link 证明 + daily 升维 |
 

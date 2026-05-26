@@ -23,7 +23,7 @@
 ## 日常
 
 ```bash
-NANO_V45_FRONTIER=mindmap-frontier-v45-daily-plan.json \
+NANO_V45_FRONTIER=mindmap-frontier-v45-semantic-terminal.json \
   python3 lab/nano-lisp-jit/tools/mindmap-dp-v45.py ready
-$COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-converge-daily-plan.lisp
+$COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-converge-daily-semantic.lisp
 ```
