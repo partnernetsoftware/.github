@@ -8181,6 +8181,20 @@ else
   skip_case "run-bootstrap-v45-wave20-lisp-selfhost-unified-converge-plan" "nano-jit.com or v45-wave20-lisp-selfhost-unified-converge.sh missing"
 fi
 
+# --- v4.5: Wave45 physical-zero-c-honest（快 seed + wave44 键）---
+V45_WAVE45_CONVERGE="$LAB_DIR/scripts/v45-wave45-physical-zero-c-honest-converge.sh"
+if [ -f "$NANO_JIT_COM" ] && host_is_linux_x86_64 && [ -x "$V45_WAVE45_CONVERGE" ]; then
+  run_case "run-bootstrap-v45-wave45-physical-zero-c-honest-converge-plan" bash -c '
+    cd "'"$ROOT_DIR"'" && bash "'"$V45_WAVE45_CONVERGE"'"
+    grep -q v45.v45.physical_zero_c_honest_continue.100=1 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.runner.lispjit_codegen_deep=1 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.honest.archive_runner_c=1 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.v45.nano_lisp_com_terminal_continue.100=1 "'"$V45_ENTRY_EVIDENCE"'"
+  '
+else
+  skip_case "run-bootstrap-v45-wave45-physical-zero-c-honest-converge-plan" "nano-jit.com or v45-wave45-physical-zero-c-honest-converge.sh missing"
+fi
+
 # --- v4.5: Wave44 nano-lisp-com-terminal（快 seed + wave43 键）---
 V45_WAVE44_CONVERGE="$LAB_DIR/scripts/v45-wave44-nano-lisp-com-terminal-converge.sh"
 if [ -f "$NANO_JIT_COM" ] && host_is_linux_x86_64 && [ -x "$V45_WAVE44_CONVERGE" ]; then

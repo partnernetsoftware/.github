@@ -15,8 +15,8 @@
 
 ```bash
 COM=lab/nano-lisp-jit/.build/nano-jit/nano-jit.com
-$COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-converge-daily-terminal.lisp
-bash lab/nano-lisp-jit/scripts/v45-wave44-nano-lisp-com-terminal-converge.sh
+$COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-converge-daily-physical-honest.lisp
+bash lab/nano-lisp-jit/scripts/v45-wave45-physical-zero-c-honest-converge.sh
 python3 lab/nano-lisp-jit/tools/mindmap-dp-v45.py stats
 ```
 
