@@ -383,6 +383,15 @@ bash lab/nano-lisp-jit/scripts/v45-cleanup-reflect.sh
 | 第七张活图 | `mindmap-frontier-v45-rollup.json` |
 | 工厂物理 ~99% | `factory_rollup_continue.100`；全量 codegen 仍开卷 |
 
+## 三十三、Wave33（codegen 代际深探）
+
+| 反思 | 调整 |
+|------|------|
+| 探针仅在 host com？ | **selfhost-next** 跑 slice/vm/ir 四轨 |
+| 与 rollupy 关系？ | 链 wave32；不改 `lisp_slices` 计数语义 |
+| 第八张活图 | `mindmap-frontier-v45-codegen-deep.json` |
+| 工厂 ~99.5% | `codegen_deep_continue.100`；154KB 全 C 仍诚实未达 |
+
 ## 十八、Wave3（整表扩散，勿逐条）
 
 见 DIFFUSE-WAVE2 §Wave3：无 C plan · run.sh 单行化 · wave 归档。

@@ -70,37 +70,37 @@
 | 全 monorepo 零 C | **0%** | 诚实未达 |
 | v4 全 frontier | **未并入** | 69 节点独立 SSOT |
 
-**综合（/goal 卷）**：**100%** · **工厂物理终局**：约 **99%**（154KB 全 codegen 仍开卷）。
+**综合（/goal 卷）**：**100%** · **工厂物理终局**：约 **99.5%**（154KB 全 codegen 仍开卷）。
 
-## 合并进度分析（Wave25–32 → `origin/main`）
+## 合并进度分析（Wave25–33 → `origin/main`）
 
 | Wave | 签收键 | 状态 |
 |------|--------|------|
-| 31 | `terminal_continue.100` | ✅ main |
-| **32** | **`factory_rollup_continue.100`** · rollupy **7/7** | ✅ main |
+| 32 | `factory_rollup_continue.100` | ✅ main |
+| **33** | **`codegen_deep_continue.100`** · codegen-deep **7/7** | 🔄 本合并 |
 
 | 指标 | 数值 |
 |------|------|
-| `/goal` 主活图 | **26/26** |
-| Wave25–31 卷签收 | `rollup.waves_25_31=1` |
-| 代际子 goal 复核 | lisp-unified · onion-unified · handoff · terminal |
-| 扩展活图 | **7 张**（各 7 节点） |
-| 工厂物理（诚实） | **~99%** |
+| `/goal` | **26/26** |
+| selfhost-next codegen 四轨 | slice-min · vm-ctrl · ir-table · vm-arith |
+| 扩展活图 | **8 张**（各 7 节点） |
+| 工厂物理（诚实） | **~99.5%** |
 
-**日常**：`v45-wave32-factory-rollup-continue-converge.sh`
+**日常**：`v45-wave33-codegen-deep-continue-converge.sh`
 
-## 反思要点（Wave32）
+## 反思要点（Wave33）
 
-- **rollup 不替代 /goal**：主活图 26 节点不变；Wave25–31 各卷键 + 代际子 goal 复核才写 `factory_rollup_continue.100`。
-- **仍不开卷**：154KB runner 全 Lisp codegen、全仓 zero_c、删 run.sh — `HONEST-REMAINING.md`。
+- **探针在代际 com 绿** ≠ 154KB 全量 C 替代；独立键 `selfhost_next_codegen` 标明代际层。
+- **仍不开卷**：全 monorepo zero_c、物理删 run.sh — `HONEST-REMAINING.md`。
 
 | Wave27 codegen 耦合 | **100%** | `v45.codegen_coupled.100` · 扩展活图 **7/7** |
 | Wave28 工厂物理续推 | **100%** | `factory_physical_continue.100` |
 | Wave29 selfhost 深度 | **100%** | `selfhost_deep_continue.100` |
 | Wave30 /goal×工厂统一 | **100%** | `goal_factory_unified_continue.100` |
 | Wave31 边界代际 | **100%** | `terminal_continue.100` |
-| Wave32 工厂 rollupy | **100%** | `factory_rollup_continue.100` · **7/7** |
-| 全量 runner Lisp codegen | **~42%** | rollupy 绿；154KB 未达 |
+| Wave32 工厂 rollupy | **100%** | `factory_rollup_continue.100` |
+| Wave33 codegen 代际深潜 | **100%** | `codegen_deep_continue.100` · **7/7** |
+| 全量 runner Lisp codegen | **~45%** | 代际 com 四轨探针绿；154KB 未达 |
 | Wave23 继续卷 | **100%** | `v45.v45.continue.100=1` |
 | v4 握手 | **100%** | `v45.v4.handoff.verified=1`（69/69，≠ v45 frontier） |
 | 代际 plan-no-C matrix | **100%** | `factory.next_lisp_only_matrix=1` |
