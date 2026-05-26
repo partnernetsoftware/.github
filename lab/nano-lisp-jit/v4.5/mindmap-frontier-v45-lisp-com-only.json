@@ -10,7 +10,7 @@
       "layer": 35,
       "ring": "gate",
       "onion_ring": 16,
-      "status": "ready",
+      "status": "done",
       "deps": [],
       "accept": [
         "v45.v45.runner_codegen_continue.100=1",
@@ -22,18 +22,22 @@
       "layer": 35,
       "ring": "plan",
       "onion_ring": 16,
-      "status": "ready",
-      "deps": ["v45-lco-gate"],
+      "status": "done",
+      "deps": [
+        "v45-lco-gate"
+      ],
       "parallel_slot": "W1",
       "plan": "lisp/bootstrap/bootstrap-v45-converge-lisp-only.lisp"
     },
     {
       "id": "v45-lco-onion-default",
       "layer": 35,
-      "ring": "洋葱",
+      "ring": "\u6d0b\u8471",
       "onion_ring": 16,
-      "status": "ready",
-      "deps": ["v45-lco-gate"],
+      "status": "done",
+      "deps": [
+        "v45-lco-gate"
+      ],
       "parallel_slot": "W2",
       "plan": "lisp/bootstrap/bootstrap-v45-onion-lisp-only.lisp"
     },
@@ -42,27 +46,31 @@
       "layer": 35,
       "ring": "com",
       "onion_ring": 16,
-      "status": "ready",
-      "deps": ["v45-lco-gate"],
+      "status": "done",
+      "deps": [
+        "v45-lco-gate"
+      ],
       "parallel_slot": "W3",
       "plan": "lisp/bootstrap/bootstrap-v45-nano-lisp-com-output.lisp"
     },
     {
       "id": "v45-lco-next-verify",
       "layer": 35,
-      "ring": "代际",
+      "ring": "\u4ee3\u9645",
       "onion_ring": 16,
-      "status": "ready",
-      "deps": ["v45-lco-gate"],
+      "status": "done",
+      "deps": [
+        "v45-lco-gate"
+      ],
       "parallel_slot": "W4",
       "plan": "lisp/bootstrap/bootstrap-v45-selfhost-next-lisp-only-verify.lisp"
     },
     {
       "id": "v45-lco-terminal",
       "layer": 36,
-      "ring": "终局",
+      "ring": "\u7ec8\u5c40",
       "onion_ring": 16,
-      "status": "ready",
+      "status": "done",
       "deps": [
         "v45-lco-converge-lisp",
         "v45-lco-onion-default",
@@ -76,8 +84,10 @@
       "layer": 37,
       "ring": "DONE",
       "onion_ring": 16,
-      "status": "ready",
-      "deps": ["v45-lco-terminal"],
+      "status": "done",
+      "deps": [
+        "v45-lco-terminal"
+      ],
       "plan": "lisp/bootstrap/bootstrap-v45-goal-v45-lisp-com-only-100.lisp"
     }
   ]

@@ -88,6 +88,15 @@
 
 **日常**：`v45-wave34-runner-codegen-continue-converge.sh`
 
+## Wave35（lisp-com-only · 7/7 ✅）
+
+| 项 | 状态 |
+|----|------|
+| 活图 | `mindmap-frontier-v45-lisp-com-only.json` **7/7** |
+| 签收 | `v45.v45.lisp_com_only_continue.100=1` |
+| 日常 | `v45-wave35-lisp-com-only-converge.sh` |
+| plan 面 | `nano-lisp.com` 产物 · `onion-lisp-only` · 收敛 plan 锚 |
+
 ## Wave34（runner 广面 · 2026-05-26）
 
 | 项 | 状态 |

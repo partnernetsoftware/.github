@@ -12,11 +12,10 @@
 | G | `v45-lco-goal` | `bootstrap-v45-goal-v45-lisp-com-only-100.lisp` |
 
 ```bash
-NANO_V45_FRONTIER=mindmap-frontier-v45-lisp-com-only.json \
-  python3 lab/nano-lisp-jit/tools/mindmap-dp-v45.py stats
-# bash lab/nano-lisp-jit/scripts/v45-wave35-lisp-com-only-converge.sh  # 待实现
+bash lab/nano-lisp-jit/scripts/v45-wave35-lisp-com-only-converge.sh
+grep v45.v45.lisp_com_only_continue.100=1 lab/nano-lisp-jit/.build/v45-entry.evidence
 ```
 
-签收键（规划）：`v45.v45.lisp_com_only_continue.100=1`
+证据：`v45.lisp_com.output_named=1` · `v45.lisp_com.next_onion_lisp_only=1`
 
 **诚实未达**：`.com` 体内 C codegen · 物理删 `archive/c/runner`
