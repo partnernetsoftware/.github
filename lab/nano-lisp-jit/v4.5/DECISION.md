@@ -10,7 +10,7 @@ lisp/**/*.lisp        # bootstrap · modules · core · boundary
 ```
 
 plan 内不出现 `.c` / `.sh` / `.py`；工厂在 `archive/c/`。  
-扩散：[`MINDMAP-TDD-TREE.md`](MINDMAP-TDD-TREE.md) · Wave39 [`DIFFUSE-WAVE39.md`](DIFFUSE-WAVE39.md) · Wave38 [`DIFFUSE-WAVE38.md`](DIFFUSE-WAVE38.md)。
+扩散：[`MINDMAP-TDD-TREE.md`](MINDMAP-TDD-TREE.md) · Wave40 [`DIFFUSE-WAVE40.md`](DIFFUSE-WAVE40.md) · Wave39 [`DIFFUSE-WAVE39.md`](DIFFUSE-WAVE39.md)。
 
 ## 与 v4 的分界
 

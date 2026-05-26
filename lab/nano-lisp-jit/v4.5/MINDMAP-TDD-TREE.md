@@ -53,6 +53,7 @@ bash lab/nano-lisp-jit/scripts/v45-wave21-onion-tdd-tree-mindmap-100-converge.sh
 | `v45.mindmap.zero_sh.nodes_done` / `nodes_total` | **zero-sh**（Wave37 · **7**） |
 | `v45.mindmap.host_orchestrator.nodes_done` / `nodes_total` | **host-orchestrator**（Wave38 · **7**） |
 | `v45.mindmap.runner_physical.nodes_done` / `nodes_total` | **runner-physical**（Wave39 · **7** · 诚实卷） |
+| `v45.mindmap.daily_plan.nodes_done` / `nodes_total` | **daily-plan**（Wave40 · **7**） |
 
 前置：`v45.tier5.100=1` · `v45.scoped.100=1` · `/goal` 26/26
 
@@ -215,6 +216,22 @@ NANO_V45_FRONTIER=mindmap-frontier-v45-runner-physical.json \
 | `v45.v45.runner_physical_continue.100=1` | 物理卷签收 |
 
 见 [`DIFFUSE-WAVE39.md`](DIFFUSE-WAVE39.md)
+
+## 扩展活图（daily-plan · Wave40+）
+
+目标：用户日常 `$COM run-bootstrap-plan converge-daily-plan.lisp`。
+
+```bash
+NANO_V45_FRONTIER=mindmap-frontier-v45-daily-plan.json \
+  python3 lab/nano-lisp-jit/tools/mindmap-dp-v45.py ready
+```
+
+| 键 | 活图 |
+|----|------|
+| `v45.mindmap.daily_plan.nodes_done` / `nodes_total` | Wave40 · **7** |
+| `v45.v45.daily_plan_continue.100=1` | 规划签收 |
+
+见 [`DIFFUSE-WAVE40.md`](DIFFUSE-WAVE40.md)
 
 ## 扩展活图（runner 广面 · Wave34+）
 
