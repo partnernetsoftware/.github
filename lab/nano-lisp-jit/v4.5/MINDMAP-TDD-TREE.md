@@ -234,6 +234,22 @@ NANO_V45_FRONTIER=mindmap-frontier-v45-daily-plan.json \
 
 见 [`DIFFUSE-WAVE40.md`](DIFFUSE-WAVE40.md)
 
+## 扩展活图（compose-modules · Wave41+）
+
+目标：模块 07–12 全量 + compose-Nlink plan-only 深潜。
+
+```bash
+NANO_V45_FRONTIER=mindmap-frontier-v45-compose-modules.json \
+  python3 lab/nano-lisp-jit/tools/mindmap-dp-v45.py ready
+```
+
+| 键 | 活图 |
+|----|------|
+| `v45.mindmap.compose_modules.nodes_done` / `nodes_total` | Wave41 · **7** |
+| `v45.v45.compose_modules_continue.100=1` | 深潜签收 |
+
+见 [`DIFFUSE-WAVE41.md`](DIFFUSE-WAVE41.md)
+
 ## 扩展活图（runner 广面 · Wave34+）
 
 ```bash
