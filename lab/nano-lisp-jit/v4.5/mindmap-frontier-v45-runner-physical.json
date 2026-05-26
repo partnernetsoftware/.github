@@ -4,14 +4,14 @@
   "onion_ssot": "v4.5/ONION-TDD.md",
   "updated_at": "2026-05-24T20:00:00Z",
   "max_parallel": 4,
-  "honest_volume": "154KB runner 全 Lisp codegen — 独立卷，不与 Wave38 混称终局 100%",
+  "honest_volume": "154KB runner \u5168 Lisp codegen \u2014 \u72ec\u7acb\u5377\uff0c\u4e0d\u4e0e Wave38 \u6df7\u79f0\u7ec8\u5c40 100%",
   "nodes": [
     {
       "id": "v45-rp-gate",
       "layer": 39,
       "ring": "gate",
       "onion_ring": 20,
-      "status": "ready",
+      "status": "done",
       "deps": [],
       "accept": [
         "v45.v45.host_orchestrator_continue.100=1",
@@ -23,8 +23,10 @@
       "layer": 39,
       "ring": "Codegen",
       "onion_ring": 20,
-      "status": "ready",
-      "deps": ["v45-rp-gate"],
+      "status": "done",
+      "deps": [
+        "v45-rp-gate"
+      ],
       "parallel_slot": "W1",
       "plan": "lisp/bootstrap/bootstrap-v45-runner-physical-modules-broad.lisp",
       "agent": "engineer-a"
@@ -34,8 +36,10 @@
       "layer": 39,
       "ring": "Codegen",
       "onion_ring": 20,
-      "status": "ready",
-      "deps": ["v45-rp-gate"],
+      "status": "done",
+      "deps": [
+        "v45-rp-gate"
+      ],
       "parallel_slot": "W2",
       "plan": "lisp/bootstrap/bootstrap-v45-runner-physical-emit-chain.lisp",
       "agent": "engineer-b"
@@ -43,10 +47,12 @@
     {
       "id": "v45-rp-codegen-probe",
       "layer": 39,
-      "ring": "代际",
+      "ring": "\u4ee3\u9645",
       "onion_ring": 20,
-      "status": "ready",
-      "deps": ["v45-rp-gate"],
+      "status": "done",
+      "deps": [
+        "v45-rp-gate"
+      ],
       "parallel_slot": "W3",
       "plan": "lisp/bootstrap/bootstrap-v45-runner-physical-codegen-probe.lisp",
       "agent": "engineer-a"
@@ -54,10 +60,12 @@
     {
       "id": "v45-rp-honest-anchor",
       "layer": 39,
-      "ring": "诚实",
+      "ring": "\u8bda\u5b9e",
       "onion_ring": 20,
-      "status": "ready",
-      "deps": ["v45-rp-gate"],
+      "status": "done",
+      "deps": [
+        "v45-rp-gate"
+      ],
       "parallel_slot": "W4",
       "plan": "lisp/bootstrap/bootstrap-v45-runner-physical-honest-anchor.lisp",
       "agent": "engineer-b"
@@ -65,9 +73,9 @@
     {
       "id": "v45-rp-terminal",
       "layer": 40,
-      "ring": "终局",
+      "ring": "\u7ec8\u5c40",
       "onion_ring": 20,
-      "status": "ready",
+      "status": "done",
       "deps": [
         "v45-rp-modules-broad",
         "v45-rp-emit-chain",
@@ -82,8 +90,10 @@
       "layer": 41,
       "ring": "DONE",
       "onion_ring": 20,
-      "status": "ready",
-      "deps": ["v45-rp-terminal"],
+      "status": "done",
+      "deps": [
+        "v45-rp-terminal"
+      ],
       "plan": "lisp/bootstrap/bootstrap-v45-goal-v45-runner-physical-100.lisp",
       "agent": "reviewer"
     }

@@ -88,11 +88,11 @@
 
 **日常**：`v45-wave34-runner-codegen-continue-converge.sh`
 
-## Wave39（runner-physical · 诚实卷）
+## Wave39（runner-physical · 诚实卷 · 7/7 ✅）
 
 | 项 | 状态 |
 |----|------|
-| 活图 | `mindmap-frontier-v45-runner-physical.json` |
+| 活图 | `mindmap-frontier-v45-runner-physical.json` **7/7** |
 | 签收 | `v45.v45.runner_physical_continue.100=1` |
 | 日常 | `v45-wave39-runner-physical-converge.sh` |
 | 编排 | 主对话活图 + 后台四轨 agents |
