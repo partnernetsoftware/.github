@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # 将 append-only 的 v45-entry.evidence  rollup 为 canonical（每键取最后一次赋值）.
 set -euo pipefail
-ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
+ROOT="$(cd "$(dirname "$0")/../../../.." && pwd)"
 SRC="$ROOT/lab/nano-lisp-jit/.build/v45-entry.evidence"
 OUT="$ROOT/lab/nano-lisp-jit/.build/v45-entry.evidence.canonical"
 cd "$ROOT"
