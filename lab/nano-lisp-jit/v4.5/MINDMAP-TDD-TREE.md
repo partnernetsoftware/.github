@@ -316,6 +316,22 @@ NANO_V45_FRONTIER=mindmap-frontier-v45-physical-zero-c-honest.json \
 
 见 [`DIFFUSE-WAVE45.md`](DIFFUSE-WAVE45.md)
 
+## 扩展活图（runner-codegen-terminal · Wave46+）
+
+目标：15link 全链 codegen + host 编排 plan-only 深链。
+
+```bash
+NANO_V45_FRONTIER=mindmap-frontier-v45-runner-codegen-terminal.json \
+  python3 lab/nano-lisp-jit/tools/mindmap-dp-v45.py ready
+```
+
+| 键 | 活图 |
+|----|------|
+| `v45.mindmap.runner_codegen_terminal.nodes_done` / `nodes_total` | Wave46 · **7** |
+| `v45.v45.runner_codegen_terminal_continue.100=1` | 规划签收 |
+
+见 [`DIFFUSE-WAVE46.md`](DIFFUSE-WAVE46.md)
+
 ## 扩展活图（runner 广面 · Wave34+）
 
 ```bash

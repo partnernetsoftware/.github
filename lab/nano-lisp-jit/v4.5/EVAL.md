@@ -88,6 +88,15 @@
 
 **日常**：`v45-wave34-runner-codegen-continue-converge.sh`
 
+## Wave46（runner-codegen-terminal · 7/7 ✅）
+
+| 项 | 状态 |
+|----|------|
+| 活图 | `mindmap-frontier-v45-runner-codegen-terminal.json` **7/7** |
+| 签收 | `v45.v45.runner_codegen_terminal_continue.100=1` |
+| 广度 | 15link 全链 + host plan-only 深链 |
+| 收敛 | 默认快 seed（`V45_FULL=1` 完整链） |
+
 ## Wave45（physical-zero-c-honest · 7/7 ✅）
 
 | 项 | 状态 |
