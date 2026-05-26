@@ -21,7 +21,7 @@
       "layer": 26,
       "ring": "boundary",
       "onion_ring": 12,
-      "status": "ready",
+      "status": "done",
       "deps": [
         "v45-bn-gate"
       ],
@@ -33,7 +33,7 @@
       "layer": 26,
       "ring": "boundary",
       "onion_ring": 12,
-      "status": "ready",
+      "status": "done",
       "deps": [
         "v45-bn-gate"
       ],
@@ -45,7 +45,7 @@
       "layer": 26,
       "ring": "boundary",
       "onion_ring": 12,
-      "status": "ready",
+      "status": "done",
       "deps": [
         "v45-bn-gate"
       ],
@@ -57,7 +57,7 @@
       "layer": 26,
       "ring": "boundary",
       "onion_ring": 12,
-      "status": "ready",
+      "status": "done",
       "deps": [
         "v45-bn-gate"
       ],
@@ -67,9 +67,9 @@
     {
       "id": "v45-bn-terminal",
       "layer": 27,
-      "ring": "终局",
+      "ring": "\u7ec8\u5c40",
       "onion_ring": 12,
-      "status": "ready",
+      "status": "done",
       "deps": [
         "v45-bn-i64",
         "v45-bn-ptr",
@@ -83,7 +83,7 @@
       "layer": 28,
       "ring": "DONE",
       "onion_ring": 12,
-      "status": "ready",
+      "status": "done",
       "deps": [
         "v45-bn-terminal"
       ],
