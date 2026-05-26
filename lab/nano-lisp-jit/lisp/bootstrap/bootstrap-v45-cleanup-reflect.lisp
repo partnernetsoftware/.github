@@ -13,5 +13,5 @@
   (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.v45.host_sh_retire_continue.100" "1")
   (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.v45.tools_py_retire_continue.100" "1")
   (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.physical.zero_cpysh" "1")
-  (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.v45.ci_shell_retire_continue.100" "1")
+  (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.v45.physical_honest_terminal_continue.100" "1")
   (file-hash "lab/nano-lisp-jit/v4.5/HONEST-REMAINING.md"))

@@ -1,16 +1,17 @@
 #!/usr/bin/env bash
-# 清洗 + 反思锚点：canonical + wave60 快收敛.
+# 清洗 + 反思锚点：canonical + wave61 快收敛.
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
 EV="$ROOT/lab/nano-lisp-jit/.build/v45-entry.evidence"
 cd "$ROOT"
 echo "v45-cleanup-reflect=begin"
 bash "$(dirname "$0")/v45-evidence-canonical.sh"
-if [ -x "$ROOT/lab/nano-lisp-jit/.build/nano-jit/nano-jit.com" ]; then
-  if [ -x "$(dirname "$0")/v45-wave60-ci-shell-retire-converge.sh" ]; then
+if [ -x "$ROOT/lab/nano-lisp-jit/.build/nano-lisp/nano-lisp.com" ] \
+  || [ -x "$ROOT/lab/nano-lisp-jit/.build/nano-jit/nano-jit.com" ]; then
+  if [ -x "$(dirname "$0")/v45-wave61-physical-honest-terminal-converge.sh" ]; then
+    bash "$(dirname "$0")/v45-wave61-physical-honest-terminal-converge.sh" || true
+  elif [ -x "$(dirname "$0")/v45-wave60-ci-shell-retire-converge.sh" ]; then
     bash "$(dirname "$0")/v45-wave60-ci-shell-retire-converge.sh" || true
-  elif [ -x "$(dirname "$0")/v45-wave59-tools-py-retire-converge.sh" ]; then
-    bash "$(dirname "$0")/v45-wave59-tools-py-retire-converge.sh" || true
   elif [ -x "$(dirname "$0")/v45-wave58-host-sh-retire-converge.sh" ]; then
     bash "$(dirname "$0")/v45-wave58-host-sh-retire-converge.sh" || true
   elif [ -x "$(dirname "$0")/v45-wave57-lispjit-c-delete-converge.sh" ]; then

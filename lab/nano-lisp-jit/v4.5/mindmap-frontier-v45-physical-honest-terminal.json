@@ -1,0 +1,105 @@
+{
+  "ssot": "v4.5/DIFFUSE-WAVE61.md",
+  "parent_goal": "v45.v45.ci_shell_retire_continue.100",
+  "onion_ssot": "v4.5/ONION-TDD.md",
+  "updated_at": "2026-05-26T22:00:00Z",
+  "max_parallel": 4,
+  "breadth_ring": "physical-honest-terminal \u2014 \u5de5\u5382\u8bda\u5b9e\u7ec8\u5c40 + nano-lisp.com \u81ea\u4e3e",
+  "nodes": [
+    {
+      "id": "v45-pht-gate",
+      "layer": 61,
+      "ring": "gate",
+      "onion_ring": 42,
+      "status": "done",
+      "deps": [],
+      "accept": [
+        "v45.physical.zero_cpysh=1",
+        "v45.v45.ci_shell_retire_continue.100=1"
+      ]
+    },
+    {
+      "id": "v45-pht-sprint",
+      "layer": 61,
+      "ring": "\u81ea\u4e3e",
+      "onion_ring": 42,
+      "status": "done",
+      "deps": [
+        "v45-pht-gate"
+      ],
+      "parallel_slot": "W1",
+      "plan": "lisp/bootstrap/bootstrap-v45-nano-lisp-com-bootstrap-sprint.lisp",
+      "agent": "engineer-a"
+    },
+    {
+      "id": "v45-pht-factory",
+      "layer": 61,
+      "ring": "\u8bda\u5b9e",
+      "onion_ring": 42,
+      "status": "done",
+      "deps": [
+        "v45-pht-gate"
+      ],
+      "parallel_slot": "W2",
+      "plan": "lisp/bootstrap/bootstrap-v45-archive-factory-honest-terminal.lisp",
+      "agent": "engineer-b"
+    },
+    {
+      "id": "v45-pht-daily",
+      "layer": 61,
+      "ring": "plan",
+      "onion_ring": 42,
+      "status": "done",
+      "deps": [
+        "v45-pht-gate"
+      ],
+      "parallel_slot": "W3",
+      "plan": "lisp/bootstrap/bootstrap-v45-converge-daily-v45-nano-lisp-com.lisp",
+      "agent": "engineer-a"
+    },
+    {
+      "id": "v45-pht-selfhost",
+      "layer": 61,
+      "ring": "\u4ee3\u9645",
+      "onion_ring": 42,
+      "status": "done",
+      "deps": [
+        "v45-pht-gate"
+      ],
+      "parallel_slot": "W4",
+      "plan": "lisp/bootstrap/bootstrap-v45-selfhost-physical-honest-terminal-matrix.lisp",
+      "agent": "engineer-b"
+    },
+    {
+      "id": "v45-pht-terminal",
+      "layer": 62,
+      "ring": "\u7ec8\u5c40",
+      "onion_ring": 42,
+      "status": "done",
+      "deps": [
+        "v45-pht-sprint",
+        "v45-pht-factory",
+        "v45-pht-daily",
+        "v45-pht-selfhost"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-physical-honest-terminal-tree.lisp",
+      "agent": "reviewer"
+    },
+    {
+      "id": "v45-pht-goal",
+      "layer": 63,
+      "ring": "continue",
+      "onion_ring": 42,
+      "status": "done",
+      "deps": [
+        "v45-pht-terminal"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-v45-physical-honest-terminal-continue-100.lisp",
+      "agent": "reviewer"
+    }
+  ],
+  "next_wave_preview": {
+    "id": "wave62-nano-lisp-com-host-only",
+    "theme": "host COM \u7edf\u4e00 nano-lisp.com \u00b7 \u9000 nano-jit.com \u53d9\u4e8b"
+  }
+}

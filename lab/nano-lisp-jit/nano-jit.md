@@ -15,9 +15,9 @@
 
 ```bash
 COM=lab/nano-lisp-jit/.build/nano-jit/nano-jit.com
-$COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-converge-daily-v45-physical-zero-cpysh.lisp
-bash lab/nano-lisp-jit/scripts/v45-wave60-ci-shell-retire-converge.sh
-grep v45.physical.zero_cpysh=1 lab/nano-lisp-jit/.build/v45-entry.evidence
+$COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-converge-daily-v45-nano-lisp-com.lisp
+bash lab/nano-lisp-jit/scripts/v45-wave61-physical-honest-terminal-converge.sh
+grep v45.v45.physical_honest_terminal_continue.100=1 lab/nano-lisp-jit/.build/v45-entry.evidence
 ```
 
 ## 详细

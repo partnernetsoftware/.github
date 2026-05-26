@@ -9,27 +9,29 @@
 | 阶段 | Wave | 用户 plan | 仓库诚实 |
 |------|------|-----------|----------|
 | lispjit.c 迁出 | 57 | ✅ | active C 已删 |
-| host wave .sh 迁出 | 58 | ✅ | wave converge 已删 |
+| wave .sh 迁出 | 58 | ✅ | wave converge 已删 |
 | tools .py 迁出 | 59 | ✅ | active py 已删 |
-| **CI shell 终局** | **60** | ✅ `daily_v45_physical_zero_cpysh` | **`physical.zero_cpysh=1`** · 工厂 C **仍在** |
+| CI shell 终局 | 60 | ✅ | **`physical.zero_cpysh=1`** |
+| **工厂诚实 + 自举** | **61** | ✅ `daily_v45_nano_lisp_com` | **`archive/c` 工厂 C 仍在** |
 
-## 签收
+## 签收（≠ DONE）
 
 | 键 | 含义 |
 |----|------|
-| `v45.physical.zero_cpysh=1` | **发行面 active 树零 c/sh/py**（wave converge 链已迁 `retired/`） |
-| `v45.v45.ci_shell_retire_continue.100=1` | Wave60 四轨 + 活图 7/7 |
-| `v45.honest.archive_factory_c=1` | `archive/c/` 工厂 C 仍在（**≠ v4.5 DONE**） |
-| `v45.honest.ci_utility_sh=1` | `v45-evidence-canonical.sh` 等工具 sh 仍存 |
+| `v45.v45.physical_honest_terminal_continue.100=1` | Wave61 四轨 + nano-lisp.com 自举冲刺 |
+| `v45.physical.zero_cpysh=1` | active 发行面树零 c/sh/py |
+| `v45.nano_lisp_com.bootstrap_sprint=1` | pack + 15link 自举绿 |
+| `v45.honest.archive_factory_terminal=1` | 工厂 C 仅在 `archive/c` + `retired/` |
 
 ## 日常
 
 ```bash
+# bootstrap 宿主（Wave62 前仍 nano-jit.com · 目标产物 nano-lisp.com）
 COM=lab/nano-lisp-jit/.build/nano-jit/nano-jit.com
-$COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-converge-daily-v45-physical-zero-cpysh.lisp
-bash lab/nano-lisp-jit/scripts/v45-wave60-ci-shell-retire-converge.sh
+$COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-converge-daily-v45-nano-lisp-com.lisp
+bash lab/nano-lisp-jit/scripts/v45-wave61-physical-honest-terminal-converge.sh
 ```
 
 ## 下一物理轨
 
-Wave61：`archive/c` 工厂诚实终局 · `nano-lisp.com` 自举冲刺
+Wave62：host COM 统一 `nano-lisp.com` · 退 `nano-jit.com` 叙事
