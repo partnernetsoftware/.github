@@ -901,7 +901,7 @@ tasks:
 
 verify:
   commands:
-    - script: scripts/v45-wave47-zero-host-sh-terminal-converge.sh
+    - script: scripts/v45-wave48-lisp-com-bootstrap-terminal-converge.sh
       cwd: .
       fail_on_nonzero: true
 

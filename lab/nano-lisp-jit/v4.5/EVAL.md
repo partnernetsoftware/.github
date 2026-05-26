@@ -88,6 +88,15 @@
 
 **日常**：`v45-wave34-runner-codegen-continue-converge.sh`
 
+## Wave48（lisp-com-bootstrap-terminal · 7/7 ✅）
+
+| 项 | 状态 |
+|----|------|
+| 活图 | `mindmap-frontier-v45-lisp-com-bootstrap-terminal.json` **7/7** |
+| 签收 | `v45.v45.lisp_com_bootstrap_terminal_continue.100=1` |
+| 广度 | nano-lisp.com 自举终局 + 工厂诚实卷闭合 |
+| 辩证 | **卷闭合** ≠ 154KB 物理 DONE |
+
 ## Wave47（zero-host-sh-terminal · 7/7 ✅）
 
 | 项 | 状态 |

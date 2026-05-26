@@ -402,6 +402,38 @@ bash lab/nano-lisp-jit/scripts/v45-cleanup-reflect.sh
 
 真源：[`DIFFUSE-WAVE34.md`](DIFFUSE-WAVE34.md) · `runner_codegen_continue.100` · 活图 **7/7**（广面探针 ≠ 154KB 全 C）
 
+## 三十五、Wave44–48 辩证梳理（mindmap 续推）
+
+### 矛盾与统一
+
+| 张力 | 正题 | 反题 | 合题（Wave48） |
+|------|------|------|----------------|
+| /goal 26/26 已满 | 不能再扩 frontier 混称 DONE | 发行面终局（`.com` 自举）仍未物理闭合 | **扩展活图分卷**：每波独立 `continue.100` |
+| 100% 证据 vs 诚实 | `physical.zero_c=1`（发行面树） | `archive/lispjit.c` ~154KB 仍在 | **独立诚实键**：`archive_runner_c` · `factory_physical_closure` |
+| 速度 vs 可信 | 快 seed 跳过整链 (~1s) | 历史 evidence 可能缺键 | 活图 7/7 seed + `V45_FULL=1` 留给 CI |
+| 用户路径 vs CI | plan-only daily | `scripts/v45-*.sh` 仍跑收敛 | Wave47 分界 · Wave48 收 **nano-lisp.com 叙事** |
+
+### Wave44→48 广度环（活图链）
+
+```text
+semantic(43) → nano-lisp.com(44) → 诚实零C(45) → 15link全链(46) → plan-only(47) → 自举终局(48)
+```
+
+### 做对了什么
+
+1. **每波 7 节点 × 四轨** — DP `ready ≤4` 可机械执行
+2. **daily 入口单调升维** — 每波一个 `converge-daily-*.lisp`，不删旧 plan
+3. **快 seed** — 开发迭代不绑 90s 整链；诚实键不伪造物理 DONE
+
+### 下一圈 mindmap 动作（Wave48 后）
+
+| 步骤 | 命令/产物 |
+|------|-----------|
+| 读 frontier | `NANO_V45_FRONTIER=mindmap-frontier-v45-lisp-com-bootstrap-terminal.json` |
+| DP | `mindmap-dp-v45.py stats` → 7/7 则读 `next_wave_preview` |
+| 开 Wave49 | `endgame-honest-rollup` — 发行面卷闭合，154KB **仍独立开卷** |
+| 停损线 | 禁止把 `factory_physical_closure=1` 写成全 monorepo zero_c DONE |
+
 ## 十八、Wave3（整表扩散，勿逐条）
 
 见 DIFFUSE-WAVE2 §Wave3：无 C plan · run.sh 单行化 · wave 归档。
