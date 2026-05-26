@@ -4,14 +4,14 @@
   "onion_ssot": "v4.5/ONION-TDD.md",
   "updated_at": "2026-05-25T06:00:00Z",
   "max_parallel": 4,
-  "breadth_ring": "nano-lisp-com-terminal — nano-lisp.com 代际 semantic + 诚实零 C 卷",
+  "breadth_ring": "nano-lisp-com-terminal \u2014 nano-lisp.com \u4ee3\u9645 semantic + \u8bda\u5b9e\u96f6 C \u5377",
   "nodes": [
     {
       "id": "v45-nlct-gate",
       "layer": 44,
       "ring": "gate",
       "onion_ring": 25,
-      "status": "ready",
+      "status": "done",
       "deps": [],
       "accept": [
         "v45.v45.semantic_terminal_continue.100=1",
@@ -23,7 +23,7 @@
       "layer": 44,
       "ring": "Codegen",
       "onion_ring": 25,
-      "status": "ready",
+      "status": "done",
       "deps": [
         "v45-nlct-gate"
       ],
@@ -34,9 +34,9 @@
     {
       "id": "v45-nlct-selfhost-matrix",
       "layer": 44,
-      "ring": "代际",
+      "ring": "\u4ee3\u9645",
       "onion_ring": 25,
-      "status": "ready",
+      "status": "done",
       "deps": [
         "v45-nlct-gate"
       ],
@@ -49,7 +49,7 @@
       "layer": 44,
       "ring": "plan",
       "onion_ring": 25,
-      "status": "ready",
+      "status": "done",
       "deps": [
         "v45-nlct-gate"
       ],
@@ -60,9 +60,9 @@
     {
       "id": "v45-nlct-honest-zero-c",
       "layer": 44,
-      "ring": "诚实",
+      "ring": "\u8bda\u5b9e",
       "onion_ring": 25,
-      "status": "ready",
+      "status": "done",
       "deps": [
         "v45-nlct-gate"
       ],
@@ -73,9 +73,9 @@
     {
       "id": "v45-nlct-terminal",
       "layer": 45,
-      "ring": "终局",
+      "ring": "\u7ec8\u5c40",
       "onion_ring": 25,
-      "status": "ready",
+      "status": "done",
       "deps": [
         "v45-nlct-semantic-run",
         "v45-nlct-selfhost-matrix",
@@ -90,7 +90,7 @@
       "layer": 46,
       "ring": "DONE",
       "onion_ring": 25,
-      "status": "ready",
+      "status": "done",
       "deps": [
         "v45-nlct-terminal"
       ],
@@ -100,6 +100,6 @@
   ],
   "next_wave_preview": {
     "id": "wave45-physical-zero-c-honest",
-    "theme": "154KB runner 全 Lisp codegen + 物理零 C 诚实卷（独立活图）"
+    "theme": "154KB runner \u5168 Lisp codegen + \u7269\u7406\u96f6 C \u8bda\u5b9e\u5377\uff08\u72ec\u7acb\u6d3b\u56fe\uff09"
   }
 }
