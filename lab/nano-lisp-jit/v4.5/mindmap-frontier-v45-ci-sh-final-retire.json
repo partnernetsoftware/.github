@@ -1,0 +1,105 @@
+{
+  "ssot": "v4.5/DIFFUSE-WAVE65.md",
+  "parent_goal": "v45.v45.archive_c_factory_retire_continue.100",
+  "onion_ssot": "v4.5/ONION-TDD.md",
+  "updated_at": "2026-05-27T02:00:00Z",
+  "max_parallel": 4,
+  "breadth_ring": "ci-sh-final-retire — CI 工具 .sh 终局退 retired · 用户路径纯 plan",
+  "nodes": [
+    {
+      "id": "v45-csfr-gate",
+      "layer": 65,
+      "ring": "gate",
+      "onion_ring": 46,
+      "status": "pending",
+      "deps": [],
+      "accept": [
+        "v45.v45.archive_c_factory_retire_continue.100=1",
+        "v45.converge.daily_v45_lisp_only_factory=1"
+      ]
+    },
+    {
+      "id": "v45-csfr-replace",
+      "layer": 65,
+      "ring": "plan",
+      "onion_ring": 46,
+      "status": "pending",
+      "deps": [
+        "v45-csfr-gate"
+      ],
+      "parallel_slot": "W1",
+      "plan": "lisp/bootstrap/bootstrap-v45-ci-sh-final-retire-prove.lisp",
+      "agent": "engineer-a"
+    },
+    {
+      "id": "v45-csfr-archive",
+      "layer": 65,
+      "ring": "诚实",
+      "onion_ring": 46,
+      "status": "pending",
+      "deps": [
+        "v45-csfr-gate"
+      ],
+      "parallel_slot": "W2",
+      "plan": "lisp/bootstrap/bootstrap-v45-ci-sh-final-archive-honest.lisp",
+      "agent": "engineer-b"
+    },
+    {
+      "id": "v45-csfr-daily",
+      "layer": 65,
+      "ring": "plan",
+      "onion_ring": 46,
+      "status": "pending",
+      "deps": [
+        "v45-csfr-gate"
+      ],
+      "parallel_slot": "W3",
+      "plan": "lisp/bootstrap/bootstrap-v45-converge-daily-v45-plan-only-final.lisp",
+      "agent": "engineer-a"
+    },
+    {
+      "id": "v45-csfr-selfhost",
+      "layer": 65,
+      "ring": "代际",
+      "onion_ring": 46,
+      "status": "pending",
+      "deps": [
+        "v45-csfr-gate"
+      ],
+      "parallel_slot": "W4",
+      "plan": "lisp/bootstrap/bootstrap-v45-selfhost-ci-sh-final-retire-matrix.lisp",
+      "agent": "engineer-b"
+    },
+    {
+      "id": "v45-csfr-terminal",
+      "layer": 66,
+      "ring": "终局",
+      "onion_ring": 46,
+      "status": "pending",
+      "deps": [
+        "v45-csfr-replace",
+        "v45-csfr-archive",
+        "v45-csfr-daily",
+        "v45-csfr-selfhost"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-ci-sh-final-retire-tree.lisp",
+      "agent": "reviewer"
+    },
+    {
+      "id": "v45-csfr-goal",
+      "layer": 67,
+      "ring": "continue",
+      "onion_ring": 46,
+      "status": "pending",
+      "deps": [
+        "v45-csfr-terminal"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-v45-ci-sh-final-retire-continue-100.lisp",
+      "agent": "reviewer"
+    }
+  ],
+  "next_wave_preview": {
+    "id": "wave66-archive-factory-lisp-retire",
+    "theme": "archive/c/factory lisp 物理退仓 · 全 monorepo 零 archive 路径"
+  }
+}

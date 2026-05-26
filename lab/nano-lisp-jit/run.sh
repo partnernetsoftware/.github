@@ -8195,6 +8195,22 @@ else
   skip_case "run-bootstrap-v45-wave49-endgame-honest-rollup-converge-plan" "nano-jit.com or v45-wave49-endgame-honest-rollup-converge.sh missing"
 fi
 
+# --- v4.5: Wave65 ci-sh-final-retire（CI 工具 sh 终局）---
+V45_WAVE65_CONVERGE="$LAB_DIR/scripts/v45-wave65-ci-sh-final-retire-converge.sh"
+if [ -f "$NANO_JIT_COM" ] && host_is_linux_x86_64 && [ -x "$V45_WAVE65_CONVERGE" ]; then
+  run_case "run-bootstrap-v45-wave65-ci-sh-final-retire-converge-plan" bash -c '
+    cd "'"$ROOT_DIR"'" && bash "'"$V45_WAVE65_CONVERGE"'"
+    grep -q v45.v45.ci_sh_final_retire_continue.100=1 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.ci.utility_sh_retired=1 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.converge.daily_v45_plan_only_final=1 "'"$V45_ENTRY_EVIDENCE"'"
+    test ! -f "'"$ROOT_DIR"'/lab/nano-lisp-jit/scripts/v45-wave64-archive-c-factory-retire-converge.sh"
+    test ! -f "'"$ROOT_DIR"'/lab/nano-lisp-jit/scripts/v45-evidence-canonical.sh"
+    test -f "'"$ROOT_DIR"'/lab/nano-lisp-jit/retired/scripts/v45-evidence-canonical.sh"
+  '
+else
+  skip_case "run-bootstrap-v45-wave65-ci-sh-final-retire-converge-plan" "nano-jit.com or v45-wave65-ci-sh-final-retire-converge.sh missing"
+fi
+
 # --- v4.5: Wave64 archive-c-factory-retire（runner C 退仓）---
 V45_WAVE64_CONVERGE="$LAB_DIR/scripts/v45-wave64-archive-c-factory-retire-converge.sh"
 if [ -f "$NANO_JIT_COM" ] && host_is_linux_x86_64 && [ -x "$V45_WAVE64_CONVERGE" ]; then
