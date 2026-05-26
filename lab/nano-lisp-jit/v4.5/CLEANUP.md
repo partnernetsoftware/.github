@@ -24,11 +24,11 @@ bash lab/nano-lisp-jit/scripts/v45-evidence-canonical.sh
 ## 日常收敛链（推荐顺序）
 
 ```bash
-# 边界代际四轨（推荐）
-bash lab/nano-lisp-jit/scripts/v45-wave31-terminal-continue-converge.sh
+# 工厂终局 rollupy（推荐）
+bash lab/nano-lisp-jit/scripts/v45-wave32-factory-rollup-continue-converge.sh
 
-# /goal×工厂统一（wave30 子集）
-bash lab/nano-lisp-jit/scripts/v45-wave30-goal-factory-unified-converge.sh
+# 边界代际四轨（wave31 子集）
+bash lab/nano-lisp-jit/scripts/v45-wave31-terminal-continue-converge.sh
 
 # codegen 四轨（wave25 子集）
 bash lab/nano-lisp-jit/scripts/v45-wave25-codegen-probe-converge.sh
@@ -42,8 +42,8 @@ bash lab/nano-lisp-jit/scripts/v45-cleanup-reflect.sh
 
 | 脚本 | 用途 |
 |------|------|
-| **`v45-wave31-terminal-continue-converge.sh`** | **默认**（wave30 + boundary 代际四轨） |
-| `v45-wave30-goal-factory-unified-converge.sh` | /goal×工厂 7/7 |
+| **`v45-wave32-factory-rollup-continue-converge.sh`** | **默认**（wave31 + 子 goal rollupy） |
+| `v45-wave31-terminal-continue-converge.sh` | boundary 代际 7/7 |
 | `v45-wave24-release-converge.sh` | 发行面继续 |
 | `v45-wave23-continue-converge.sh` | continue + v4 握手 |
 | `v45-wave21-*` | /goal 总签收子集 |

@@ -8181,6 +8181,20 @@ else
   skip_case "run-bootstrap-v45-wave20-lisp-selfhost-unified-converge-plan" "nano-jit.com or v45-wave20-lisp-selfhost-unified-converge.sh missing"
 fi
 
+# --- v4.5: Wave32 工厂 rollupy（子 goal 四轨 + wave31）---
+V45_WAVE32_CONVERGE="$LAB_DIR/scripts/v45-wave32-factory-rollup-continue-converge.sh"
+if [ -f "$NANO_JIT_COM" ] && host_is_linux_x86_64 && [ -x "$V45_WAVE32_CONVERGE" ]; then
+  run_case "run-bootstrap-v45-wave32-factory-rollup-continue-converge-plan" bash -c '
+    cd "'"$ROOT_DIR"'" && bash "'"$V45_WAVE32_CONVERGE"'"
+    grep -q v45.v45.factory_rollup_continue.100=1 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.rollup.waves_25_31=1 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.rollup.selfhost_sub_goals=1 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.goal.onion_tdd_tree_mindmap.100=1 "'"$V45_ENTRY_EVIDENCE"'"
+  '
+else
+  skip_case "run-bootstrap-v45-wave32-factory-rollup-continue-converge-plan" "nano-jit.com or v45-wave32-factory-rollup-continue-converge.sh missing"
+fi
+
 # --- v4.5: Wave31 边界代际（next 四轨 + wave30）---
 V45_WAVE31_CONVERGE="$LAB_DIR/scripts/v45-wave31-terminal-continue-converge.sh"
 if [ -f "$NANO_JIT_COM" ] && host_is_linux_x86_64 && [ -x "$V45_WAVE31_CONVERGE" ]; then

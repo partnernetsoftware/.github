@@ -1,0 +1,95 @@
+{
+  "ssot": "v4.5/DIFFUSE-WAVE32.md",
+  "parent_goal": "v45.v45.terminal_continue.100",
+  "onion_ssot": "v4.5/ONION-TDD.md",
+  "mindmap_ssot": "v4.5/MINDMAP-TDD-TREE.md",
+  "updated_at": "2026-05-25T22:00:00Z",
+  "max_parallel": 4,
+  "nodes": [
+    {
+      "id": "v45-ru-gate",
+      "layer": 29,
+      "ring": "gate",
+      "onion_ring": 12,
+      "status": "done",
+      "deps": [],
+      "accept": [
+        "v45.v45.terminal_continue.100=1",
+        "v45.goal.onion_tdd_tree_mindmap.100=1"
+      ]
+    },
+    {
+      "id": "v45-ru-lisp-unified",
+      "layer": 29,
+      "ring": "自举",
+      "onion_ring": 13,
+      "status": "ready",
+      "deps": [
+        "v45-ru-gate"
+      ],
+      "parallel_slot": "W1",
+      "plan": "samples/bootstrap-v45-goal-lisp-selfhost-unified-100.lisp"
+    },
+    {
+      "id": "v45-ru-onion-unified",
+      "layer": 29,
+      "ring": "洋葱",
+      "onion_ring": 13,
+      "status": "ready",
+      "deps": [
+        "v45-ru-gate"
+      ],
+      "parallel_slot": "W2",
+      "plan": "samples/bootstrap-v45-goal-onion-mindmap-unified-100.lisp"
+    },
+    {
+      "id": "v45-ru-v4-handoff",
+      "layer": 29,
+      "ring": "handoff",
+      "onion_ring": 13,
+      "status": "ready",
+      "deps": [
+        "v45-ru-gate"
+      ],
+      "parallel_slot": "W3",
+      "plan": "samples/bootstrap-v45-v4-handoff.lisp"
+    },
+    {
+      "id": "v45-ru-terminal",
+      "layer": 29,
+      "ring": "终局",
+      "onion_ring": 13,
+      "status": "ready",
+      "deps": [
+        "v45-ru-gate"
+      ],
+      "parallel_slot": "W4",
+      "plan": "samples/bootstrap-v45-selfhost-terminal.lisp"
+    },
+    {
+      "id": "v45-ru-tree",
+      "layer": 30,
+      "ring": "树",
+      "onion_ring": 13,
+      "status": "ready",
+      "deps": [
+        "v45-ru-lisp-unified",
+        "v45-ru-onion-unified",
+        "v45-ru-v4-handoff",
+        "v45-ru-terminal"
+      ],
+      "plan": "samples/bootstrap-v45-mindmap-rollup-unified-tree.lisp"
+    },
+    {
+      "id": "v45-ru-goal",
+      "layer": 31,
+      "ring": "DONE",
+      "onion_ring": 13,
+      "status": "ready",
+      "deps": [
+        "v45-ru-tree"
+      ],
+      "plan": "samples/bootstrap-v45-goal-v45-factory-rollup-continue-100.lisp"
+    }
+  ]
+}

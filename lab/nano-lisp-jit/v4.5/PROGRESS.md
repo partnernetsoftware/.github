@@ -61,3 +61,4 @@ grep v45.goal.onion_tdd_tree_mindmap.100=1 \
 | **29** | selfhost-next 深度矩阵 [`DIFFUSE-WAVE29.md`](DIFFUSE-WAVE29.md) |
 | **30** | /goal×工厂统一 [`DIFFUSE-WAVE30.md`](DIFFUSE-WAVE30.md) |
 | **31** | 边界代际四轨 [`DIFFUSE-WAVE31.md`](DIFFUSE-WAVE31.md) |
+| **32** | 工厂终局 rollupy [`DIFFUSE-WAVE32.md`](DIFFUSE-WAVE32.md) |

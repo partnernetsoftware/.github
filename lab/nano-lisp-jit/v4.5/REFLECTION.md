@@ -374,6 +374,15 @@ bash lab/nano-lisp-jit/scripts/v45-cleanup-reflect.sh
 | /goal L11–13 与代际脱节 | 第六张活图 `boundary-next.json` |
 | 工厂物理 ~98% | `terminal_continue.100`；154KB 全 codegen 仍开卷 |
 
+## 三十二、Wave32（工厂终局 rollupy）
+
+| 反思 | 调整 |
+|------|------|
+| Wave25–31 键分散？ | `rollup.waves_25_31=1` 一次复核七卷 |
+| 子 goal 仅 host 绿？ | next 跑 lisp-unified + onion-unified |
+| 第七张活图 | `mindmap-frontier-v45-rollup.json` |
+| 工厂物理 ~99% | `factory_rollup_continue.100`；全量 codegen 仍开卷 |
+
 ## 十八、Wave3（整表扩散，勿逐条）
 
 见 DIFFUSE-WAVE2 §Wave3：无 C plan · run.sh 单行化 · wave 归档。
