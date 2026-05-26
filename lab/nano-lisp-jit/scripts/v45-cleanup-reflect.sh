@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 清洗 + 反思锚点：canonical + wave63 快收敛.
+# 清洗 + 反思锚点：canonical + wave64 快收敛.
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
 EV="$ROOT/lab/nano-lisp-jit/.build/v45-entry.evidence"
@@ -8,28 +8,16 @@ echo "v45-cleanup-reflect=begin"
 bash "$(dirname "$0")/v45-evidence-canonical.sh"
 if [ -x "$ROOT/lab/nano-lisp-jit/.build/nano-lisp/nano-lisp.com" ] \
   || [ -x "$ROOT/lab/nano-lisp-jit/.build/nano-jit/nano-jit.com" ]; then
-  if [ -x "$(dirname "$0")/v45-wave63-nano-lisp-com-native-bootstrap-converge.sh" ]; then
-    bash "$(dirname "$0")/v45-wave63-nano-lisp-com-native-bootstrap-converge.sh" || true
+  if [ -x "$(dirname "$0")/v45-wave64-archive-c-factory-retire-converge.sh" ]; then
+    bash "$(dirname "$0")/v45-wave64-archive-c-factory-retire-converge.sh" || true
+  elif [ -x "$ROOT/lab/nano-lisp-jit/retired/scripts/v45-wave63-nano-lisp-com-native-bootstrap-converge.sh" ]; then
+    bash "$ROOT/lab/nano-lisp-jit/retired/scripts/v45-wave63-nano-lisp-com-native-bootstrap-converge.sh" || true
   elif [ -x "$ROOT/lab/nano-lisp-jit/retired/scripts/v45-wave62-nano-lisp-com-host-only-converge.sh" ]; then
     bash "$ROOT/lab/nano-lisp-jit/retired/scripts/v45-wave62-nano-lisp-com-host-only-converge.sh" || true
   elif [ -x "$ROOT/lab/nano-lisp-jit/retired/scripts/v45-wave61-physical-honest-terminal-converge.sh" ]; then
     bash "$ROOT/lab/nano-lisp-jit/retired/scripts/v45-wave61-physical-honest-terminal-converge.sh" || true
   elif [ -x "$(dirname "$0")/v45-wave60-ci-shell-retire-converge.sh" ]; then
     bash "$(dirname "$0")/v45-wave60-ci-shell-retire-converge.sh" || true
-  elif [ -x "$(dirname "$0")/v45-wave58-host-sh-retire-converge.sh" ]; then
-    bash "$(dirname "$0")/v45-wave58-host-sh-retire-converge.sh" || true
-  elif [ -x "$(dirname "$0")/v45-wave57-lispjit-c-delete-converge.sh" ]; then
-    bash "$(dirname "$0")/v45-wave57-lispjit-c-delete-converge.sh" || true
-  elif [ -x "$(dirname "$0")/v45-wave56-zero-cpysh-target-converge.sh" ]; then
-    bash "$(dirname "$0")/v45-wave56-zero-cpysh-target-converge.sh" || true
-  elif [ -x "$(dirname "$0")/v45-wave55-tools-py-plan-only-converge.sh" ]; then
-    bash "$(dirname "$0")/v45-wave53-lispjit-154kb-codegen-expand-converge.sh" || true
-  elif [ -x "$(dirname "$0")/v45-wave52-physical-zero-cpysh-continue-converge.sh" ]; then
-    bash "$(dirname "$0")/v45-wave52-physical-zero-cpysh-continue-converge.sh" || true
-  elif [ -x "$(dirname "$0")/v45-wave51-v45-terminal-complete-converge.sh" ]; then
-    bash "$(dirname "$0")/v45-wave51-v45-terminal-complete-converge.sh" || true
-  elif [ -x "$(dirname "$0")/v45-wave48-lisp-com-bootstrap-terminal-converge.sh" ]; then
-    bash "$(dirname "$0")/v45-wave48-lisp-com-bootstrap-terminal-converge.sh" || true
   fi
 fi
 bash "$(dirname "$0")/v45-evidence-canonical.sh"

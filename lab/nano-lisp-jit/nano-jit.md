@@ -15,9 +15,9 @@
 
 ```bash
 COM=lab/nano-lisp-jit/.build/nano-lisp/nano-lisp.com
-$COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-converge-daily-v45-nano-lisp-com-native.lisp
-bash lab/nano-lisp-jit/scripts/v45-wave63-nano-lisp-com-native-bootstrap-converge.sh
-grep v45.v45.nano_lisp_com_native_bootstrap_continue.100=1 lab/nano-lisp-jit/.build/v45-entry.evidence
+$COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-converge-daily-v45-lisp-only-factory.lisp
+bash lab/nano-lisp-jit/scripts/v45-wave64-archive-c-factory-retire-converge.sh
+grep v45.v45.archive_c_factory_retire_continue.100=1 lab/nano-lisp-jit/.build/v45-entry.evidence
 ```
 
 > `nano-lisp.com` 为唯一用户 COM；`nano-lisp-host.com` 已迁 `retired/com/`（见 [`v4.5/HONEST-REMAINING.md`](v4.5/HONEST-REMAINING.md)）。

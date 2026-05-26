@@ -12,28 +12,27 @@
 | wave .sh 迁出 | 58 | ✅ | wave converge 已删 |
 | tools .py 迁出 | 59 | ✅ | active py 已删 |
 | CI shell 终局 | 60 | ✅ | **`physical.zero_cpysh=1`** |
-| 工厂诚实 + 自举 | 61 | ✅ | **`archive/c` 工厂 C 仍在** |
-| host COM 统一 | 62 | ✅ | 宿主迁 `nano-lisp/` |
-| **原生 bootstrap** | **63** | ✅ `daily_v45_nano_lisp_com_native` | **promote 仍种子** |
+| 原生 bootstrap | 63 | ✅ | COM = `nano-lisp.com` |
+| **runner C 退仓** | **64** | ✅ `daily_v45_lisp_only_factory` | **factory lisp 仍在 archive/c** |
 
 ## 签收（≠ DONE）
 
 | 键 | 含义 |
 |----|------|
-| `v45.v45.nano_lisp_com_native_bootstrap_continue.100=1` | Wave63 四轨 + `nano-lisp.com` 直接 bootstrap |
-| `v45.nano_lisp_com.native_bootstrap=1` | 产品 COM 可 `run-bootstrap-plan` |
-| `v45.honest.nano_lisp_host_retired=1` | `nano-lisp-host.com` 已迁 `retired/com/` |
+| `v45.v45.archive_c_factory_retire_continue.100=1` | Wave64 四轨 + runner C 迁 retired |
+| `v45.honest.archive_c_runner_retired=1` | `archive/c/runner` → `retired/archive-c/runner` |
+| `v45.converge.daily_v45_lisp_only_factory=1` | 用户 daily 零 `archive/c` 路径 |
 | `v45.physical.zero_cpysh=1` | active 发行面树零 c/sh/py |
 
 ## 日常
 
 ```bash
-# bootstrap 宿主（Wave63 · nano-lisp.com 原生）
+# bootstrap 宿主 + daily（Wave64 · lisp-only factory）
 COM=lab/nano-lisp-jit/.build/nano-lisp/nano-lisp.com
-$COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-converge-daily-v45-nano-lisp-com-native.lisp
-bash lab/nano-lisp-jit/scripts/v45-wave63-nano-lisp-com-native-bootstrap-converge.sh
+$COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-converge-daily-v45-lisp-only-factory.lisp
+bash lab/nano-lisp-jit/scripts/v45-wave64-archive-c-factory-retire-converge.sh
 ```
 
 ## 下一物理轨
 
-Wave64：`archive/c` 工厂 C 物理退仓 · 全 monorepo 诚实
+Wave65：CI 工具 `.sh` 终局退 retired · 用户路径纯 plan
