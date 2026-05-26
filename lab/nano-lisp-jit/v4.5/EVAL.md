@@ -88,11 +88,11 @@
 
 **日常**：`v45-wave34-runner-codegen-continue-converge.sh`
 
-## fasmgx Wave34（runner 广面 · 2026-05-26）
+## Wave34（runner 广面 · 2026-05-26）
 
 | 项 | 状态 |
 |----|------|
-| [`fasmgx/`](../../../fasmgx/) 活图 | **7/7** · `runner_codegen_continue.100` |
+| 扩展活图 | **7/7** · `runner_codegen_continue.100` |
 | `/goal` 26/26 | 不变 |
 | 日常收敛 | **`v45-wave34-runner-codegen-continue-converge.sh`** |
 | 工厂物理（诚实） | **~99.8%** · 154KB 全 C 仍未达 |

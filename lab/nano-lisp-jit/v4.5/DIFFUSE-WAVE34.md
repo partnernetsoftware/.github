@@ -1,4 +1,4 @@
-# Wave34 — runner codegen 广面（fasmgx 第九活图）
+# Wave34 — runner codegen 广面（扩展活图 9/9）
 
 在 Wave33 代际深潜之上，把 codegen 从四轨探针扩到 **runner 广面**（模块表 · emit 宽表 · ir-facade · modules 子集）。
 
@@ -11,8 +11,7 @@
 | R | `runsh-slim-terminal` |
 | T/G | mindmap-tree · goal-100 |
 
-**活图 SSOT**：[`../../../fasmgx/mindmap-frontier-runner-codegen.json`](../../../fasmgx/mindmap-frontier-runner-codegen.json)  
-**策划**：[`../../../fasmgx/NEXT-ONION-TDD-TREE.md`](../../../fasmgx/NEXT-ONION-TDD-TREE.md)
+**活图 SSOT**：[`mindmap-frontier-v45-runner-codegen.json`](mindmap-frontier-v45-runner-codegen.json)
 
 ```bash
 bash lab/nano-lisp-jit/scripts/v45-wave34-runner-codegen-continue-converge.sh

@@ -43,6 +43,7 @@ bash lab/nano-lisp-jit/scripts/v45-wave21-onion-tdd-tree-mindmap-100-converge.sh
 | `v45.mindmap.boundary_next.nodes_done` / `nodes_total` | **边界代际**（Wave31 · **7**） |
 | `v45.mindmap.rollup.nodes_done` / `nodes_total` | **工厂 rollupy**（Wave32 · **7**） |
 | `v45.mindmap.codegen_deep.nodes_done` / `nodes_total` | **codegen 代际**（Wave33 · **7**） |
+| `v45.mindmap.runner_codegen.nodes_done` / `nodes_total` | **runner 广面**（Wave34 · **7**） |
 
 前置：`v45.tier5.100=1` · `v45.scoped.100=1` · `/goal` 26/26
 
@@ -102,19 +103,17 @@ NANO_V45_FRONTIER=mindmap-frontier-v45-codegen-deep.json \
 bash lab/nano-lisp-jit/scripts/v45-wave33-codegen-deep-continue-converge.sh
 ```
 
-## fasmgx 卷（runner 广面 · Wave34+）
-
-工厂物理续推 SSOT：[`../../../fasmgx/README.md`](../../../fasmgx/README.md)
+## 扩展活图（runner 广面 · Wave34+）
 
 ```bash
-bash lab/nano-lisp-jit/scripts/v45-wave34-runner-codegen-continue-converge.sh
-FASMGX_FRONTIER=mindmap-frontier-runner-codegen.json \
+NANO_V45_FRONTIER=mindmap-frontier-v45-runner-codegen.json \
   python3 lab/nano-lisp-jit/tools/mindmap-dp-v45.py stats
+bash lab/nano-lisp-jit/scripts/v45-wave34-runner-codegen-continue-converge.sh
 ```
 
 | 键 | 活图 |
 |----|------|
-| `v45.mindmap.runner_codegen.nodes_done` / `nodes_total` | **fasmgx** 第九张 · **7** |
+| `v45.mindmap.runner_codegen.nodes_done` / `nodes_total` | **7** · `mindmap-frontier-v45-runner-codegen.json` |
 | `v45.v45.runner_codegen_continue.100=1` | Wave34 |
 
 ## 日常（/goal 终局）

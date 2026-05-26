@@ -8,12 +8,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 _DEFAULT = "mindmap-frontier-v45.json"
-_WS = ROOT.parents[1]
-_FASMGX = os.environ.get("FASMGX_FRONTIER")
-if _FASMGX:
-    FRONTIER = _WS / "fasmgx" / _FASMGX
-else:
-    FRONTIER = ROOT / "v4.5" / os.environ.get("NANO_V45_FRONTIER", _DEFAULT)
+FRONTIER = ROOT / "v4.5" / os.environ.get("NANO_V45_FRONTIER", _DEFAULT)
 
 
 def load() -> dict:

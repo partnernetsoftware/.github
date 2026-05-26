@@ -14,8 +14,6 @@ genesis/nano-jit.x86_64
 v4.5/                                # ONION-TDD · PROGRESS · EVAL · PRODUCT-FEEDBACK
 ```
 
-工厂续推（/goal 之后）：[`../../fasmgx/`](../../fasmgx/) — Wave34 runner codegen 广面
-
 入口：[`v4.5/ONION-TDD.md`](v4.5/ONION-TDD.md)
 
 ## v4 活跃文档（14 个）

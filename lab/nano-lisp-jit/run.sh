@@ -8181,7 +8181,7 @@ else
   skip_case "run-bootstrap-v45-wave20-lisp-selfhost-unified-converge-plan" "nano-jit.com or v45-wave20-lisp-selfhost-unified-converge.sh missing"
 fi
 
-# --- v4.5: Wave34 runner codegen 广面（fasmgx 活图 + wave33）---
+# --- v4.5: Wave34 runner codegen 广面（扩展活图 + wave33）---
 V45_WAVE34_CONVERGE="$LAB_DIR/scripts/v45-wave34-runner-codegen-continue-converge.sh"
 if [ -f "$NANO_JIT_COM" ] && host_is_linux_x86_64 && [ -x "$V45_WAVE34_CONVERGE" ]; then
   run_case "run-bootstrap-v45-wave34-runner-codegen-continue-converge-plan" bash -c '

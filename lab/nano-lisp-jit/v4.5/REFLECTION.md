@@ -392,19 +392,15 @@ bash lab/nano-lisp-jit/scripts/v45-cleanup-reflect.sh
 | 第八张活图 | `mindmap-frontier-v45-codegen-deep.json` |
 | 工厂 ~99.5% | `codegen_deep_continue.100`；154KB 全 C 仍诚实未达 |
 
-## 三十四、fasmgx 梳理（Wave34 开卷）
+## 三十四、Wave34（runner codegen 广面）
 
 | 反思 | 调整 |
 |------|------|
-| 扩展活图挤在 `v4.5/` 难扫？ | 建 **[`fasmgx/`](../../../fasmgx/)** 工厂续推 SSOT |
-| /goal 26/26 后往哪推？ | **runner 广面** 第九活图，独立键 `runner_codegen_continue.100` |
-| Wave33 四轨够吗？ | 不够 — 模块表 + emit 宽表 + ir-facade + modules 子集 |
-| DP 路径 | `FASMGX_FRONTIER=…` · `mindmap-dp-v45.py` |
+| /goal 26/26 后往哪推？ | 第九张扩展活图 `mindmap-frontier-v45-runner-codegen.json` |
+| Wave33 四轨够吗？ | 模块表 + emit 宽表 + ir-facade + modules 子集 |
+| DP | `NANO_V45_FRONTIER=mindmap-frontier-v45-runner-codegen.json` |
 
-真源：[`fasmgx/REFLECTION.md`](../../../fasmgx/REFLECTION.md) · [`DIFFUSE-WAVE34.md`](DIFFUSE-WAVE34.md)
-
-| 交付 | `runner_codegen_continue.100` · 四轨 host+next 绿 · 活图 **7/7** |
-| 诚实 | 154KB 全 C 替代仍未达 — 广面探针 ≠ 终局 |
+真源：[`DIFFUSE-WAVE34.md`](DIFFUSE-WAVE34.md) · `runner_codegen_continue.100` · 活图 **7/7**（广面探针 ≠ 154KB 全 C）
 
 ## 十八、Wave3（整表扩散，勿逐条）
 

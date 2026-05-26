@@ -1,5 +1,7 @@
 # v4.5 — 发行面 = `nano-jit.com` + `*.lisp`
 
+> **范围**：本仓库只维护 **nano-lisp-jit**；**fasmgx**（fasmg + `.fg`）为独立项目，勿在本仓建 `fasmgx/` 目录。
+
 **前置**：v4 lispjit-from-lisp DONE · tier0 ✅
 
 ## 发行面验收（tier1 · 仅 `.com`）

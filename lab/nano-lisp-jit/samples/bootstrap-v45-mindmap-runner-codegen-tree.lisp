@@ -1,6 +1,6 @@
-; Wave34: fasmgx runner codegen 活图终局树.
+; Wave34: runner codegen 活图终局树.
 (bootstrap
-  (file-size "fasmgx/mindmap-frontier-runner-codegen.json")
+  (file-size "lab/nano-lisp-jit/v4.5/mindmap-frontier-v45-runner-codegen.json")
   (file-size "lab/nano-lisp-jit/samples/bootstrap-v45-factory-next-runner-codegen-matrix.lisp")
   (file-size "lab/nano-lisp-jit/samples/bootstrap-v45-runsh-slim-terminal.lisp")
   (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.codegen.runner_broad_profiles" "4")

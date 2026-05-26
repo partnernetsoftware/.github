@@ -24,7 +24,7 @@ bash lab/nano-lisp-jit/scripts/v45-evidence-canonical.sh
 ## 日常收敛链（推荐顺序）
 
 ```bash
-# fasmgx runner 广面（推荐）
+# runner 广面（推荐）
 bash lab/nano-lisp-jit/scripts/v45-wave34-runner-codegen-continue-converge.sh
 
 # codegen 代际深潜（wave34 子集）
@@ -70,15 +70,6 @@ grep v45.goal.onion_tdd_tree_mindmap.100=1 \
 - 终局：**26/26** `done`（layer 0–13）
 - DP：`tools/mindmap-dp-v45.py ready|stats`
 
-## fasmgx（工厂续推 · 与 /goal 分卷）
-
-SSOT：[`../../../fasmgx/`](../../../fasmgx/) · Wave34 活图在 `fasmgx/mindmap-frontier-runner-codegen.json`
-
-```bash
-FASMGX_FRONTIER=mindmap-frontier-runner-codegen.json \
-  python3 lab/nano-lisp-jit/tools/mindmap-dp-v45.py ready
-```
-
 ## 仍开卷（清洗后也不混称 /goal）
 
 | 项 | 说明 |
@@ -86,7 +77,7 @@ FASMGX_FRONTIER=mindmap-frontier-runner-codegen.json \
 | v4 全图 69 节点 | 独立 SSOT，≠ v45 % |
 | S4/S5 零 C plan | Wave22 · `selfhost.plan_no_c=1`（另有经典 C 对照 plan） |
 | 全 monorepo `physical.zero_c` | 见 `HONEST-REMAINING.md` |
-| **runner 全量 codegen** | **fasmgx Wave34** · 见 `DIFFUSE-WAVE34.md` |
+| **runner 全量 codegen** | **Wave34** · 见 `DIFFUSE-WAVE34.md` |
 
 ## 历史（2026-05-24 目录清理）
 

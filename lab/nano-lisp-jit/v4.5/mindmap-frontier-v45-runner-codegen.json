@@ -1,7 +1,7 @@
 {
-  "ssot": "fasmgx/NEXT-ONION-TDD-TREE.md",
+  "ssot": "v4.5/DIFFUSE-WAVE34.md",
   "parent_goal": "v45.v45.codegen_deep_continue.100",
-  "onion_ssot": "lab/nano-lisp-jit/v4.5/ONION-TDD.md",
+  "onion_ssot": "v4.5/ONION-TDD.md",
   "updated_at": "2026-05-26T00:00:00Z",
   "max_parallel": 4,
   "nodes": [
@@ -23,9 +23,7 @@
       "ring": "Codegen",
       "onion_ring": 15,
       "status": "done",
-      "deps": [
-        "v45-rc-gate"
-      ],
+      "deps": ["v45-rc-gate"],
       "parallel_slot": "W1",
       "plan": "samples/bootstrap-v45-codegen-runner-module-table.lisp"
     },
@@ -35,9 +33,7 @@
       "ring": "Codegen",
       "onion_ring": 15,
       "status": "done",
-      "deps": [
-        "v45-rc-gate"
-      ],
+      "deps": ["v45-rc-gate"],
       "parallel_slot": "W2",
       "plan": "samples/bootstrap-v45-codegen-runner-emit-broad.lisp"
     },
@@ -47,9 +43,7 @@
       "ring": "Codegen",
       "onion_ring": 15,
       "status": "done",
-      "deps": [
-        "v45-rc-gate"
-      ],
+      "deps": ["v45-rc-gate"],
       "parallel_slot": "W3",
       "plan": "samples/bootstrap-v45-codegen-ir-facade-next.lisp"
     },
@@ -59,16 +53,14 @@
       "ring": "Codegen",
       "onion_ring": 15,
       "status": "done",
-      "deps": [
-        "v45-rc-gate"
-      ],
+      "deps": ["v45-rc-gate"],
       "parallel_slot": "W4",
       "plan": "samples/bootstrap-v45-codegen-lispjit-modules-subset.lisp"
     },
     {
       "id": "v45-rc-terminal",
       "layer": 35,
-      "ring": "\u7ec8\u5c40",
+      "ring": "终局",
       "onion_ring": 15,
       "status": "done",
       "deps": [
@@ -85,9 +77,7 @@
       "ring": "DONE",
       "onion_ring": 15,
       "status": "done",
-      "deps": [
-        "v45-rc-terminal"
-      ],
+      "deps": ["v45-rc-terminal"],
       "plan": "samples/bootstrap-v45-goal-v45-runner-codegen-continue-100.lisp"
     }
   ]
