@@ -7,14 +7,16 @@ cd "$ROOT"
 echo "v45-cleanup-reflect=begin"
 bash "$(dirname "$0")/v45-evidence-canonical.sh"
 if [ -x "$ROOT/lab/nano-lisp-jit/.build/nano-jit/nano-jit.com" ]; then
-  if [ -x "$(dirname "$0")/v45-wave51-v45-terminal-complete-converge.sh" ]; then
+  if [ -x "$(dirname "$0")/v45-wave52-v5-open-maintenance-converge.sh" ]; then
+    bash "$(dirname "$0")/v45-wave52-v5-open-maintenance-converge.sh" || true
+  elif [ -x "$(dirname "$0")/v45-wave51-v45-terminal-complete-converge.sh" ]; then
     bash "$(dirname "$0")/v45-wave51-v45-terminal-complete-converge.sh" || true
   elif [ -x "$(dirname "$0")/v45-wave48-lisp-com-bootstrap-terminal-converge.sh" ]; then
     bash "$(dirname "$0")/v45-wave48-lisp-com-bootstrap-terminal-converge.sh" || true
   fi
 fi
 bash "$(dirname "$0")/v45-evidence-canonical.sh"
-NANO_V45_FRONTIER=mindmap-frontier-v45-v45-terminal-complete.json \
+NANO_V45_FRONTIER=mindmap-frontier-v45-v5-open-maintenance.json \
   python3 "$ROOT/lab/nano-lisp-jit/tools/mindmap-dp-v45.py" stats || true
 {
   echo "v45.cleanup.reflect=1"

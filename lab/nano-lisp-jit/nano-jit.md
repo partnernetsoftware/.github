@@ -9,16 +9,17 @@
 |------|------|
 | [`lisp/`](lisp/README.md) | 发行面 `*.lisp` |
 | [`v4.5/`](v4.5/README.md) | 洋葱 TDD · 活图 · 扩散 wave |
+| [`v5/`](v5/README.md) | 物理终局开卷（154KB · 产品硬切） |
 | [`archive/c/`](archive/c/README.md) | 含 C 工厂（维护回归，非发行面） |
 
 ## 日常
 
 ```bash
 COM=lab/nano-lisp-jit/.build/nano-jit/nano-jit.com
-$COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-converge-daily-v45-complete.lisp
-bash lab/nano-lisp-jit/scripts/v45-wave51-v45-terminal-complete-converge.sh
+$COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-converge-daily-v45-maintenance.lisp
+bash lab/nano-lisp-jit/scripts/v45-wave52-v5-open-maintenance-converge.sh
 python3 lab/nano-lisp-jit/tools/mindmap-dp-v45.py stats
-grep v45.v45.v45_terminal_complete.100=1 lab/nano-lisp-jit/.build/v45-entry.evidence
+grep v45.v45.v5_open_maintenance_continue.100=1 lab/nano-lisp-jit/.build/v45-entry.evidence
 ```
 
 ## 详细

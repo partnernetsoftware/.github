@@ -6,16 +6,16 @@
 
 ## v4.5 规划面 DONE ✅
 
-签收：`v45.v45.v45_terminal_complete.100=1`
+签收：`v45.v45.v45_terminal_complete.100=1` · 维护轨：`v45.v45.v5_open_maintenance_continue.100=1`
 
 | 层 | 状态 |
 |----|------|
 | /goal 主活图 | 26/26 |
-| 扩展活图 Wave34–51 | **18 张 × 7/7** |
-| 用户 daily | `converge-daily-v45-complete.lisp` |
-| CI verify | `v45-wave51-v45-terminal-complete-converge.sh` |
+| 扩展活图 Wave34–52 | **19 张 × 7/7** |
+| 用户 daily（维护） | `converge-daily-v45-maintenance.lisp` |
+| CI verify | `v45-wave52-v5-open-maintenance-converge.sh` |
 
-推进记录：Wave44–51 发行面终局链 · Wave50 154KB 独立活图 · Wave51 全链 rollup。
+推进记录：Wave44–51 发行面终局链 · Wave52 v5 开卷维护 · v5 物理轨见 [`v5/README.md`](../v5/README.md)
 
 ## 已签收（v4.5 /goal 等 · ≠ 物理终局）
 
@@ -34,9 +34,9 @@
 ## 日常
 
 ```bash
-NANO_V45_FRONTIER=mindmap-frontier-v45-v45-terminal-complete.json \
+NANO_V45_FRONTIER=mindmap-frontier-v45-v5-open-maintenance.json \
   python3 lab/nano-lisp-jit/tools/mindmap-dp-v45.py stats
 COM=lab/nano-lisp-jit/.build/nano-jit/nano-jit.com
-$COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-converge-daily-v45-complete.lisp
-bash lab/nano-lisp-jit/scripts/v45-wave51-v45-terminal-complete-converge.sh
+$COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-converge-daily-v45-maintenance.lisp
+bash lab/nano-lisp-jit/scripts/v45-wave52-v5-open-maintenance-converge.sh
 ```

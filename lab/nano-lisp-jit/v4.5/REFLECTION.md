@@ -451,6 +451,14 @@ semantic(43) → nano-lisp.com(44) → 诚实零C(45) → 15link全链(46) → p
 | 扩展活图 18 张需终局键 | Wave51 `v45_terminal_complete.100` |
 | 文档 SSOT 漂移 | 全指向 wave51 daily + converge |
 
+## 三十八、Wave52（v5 开卷维护）
+
+| 反思 | 调整 |
+|------|------|
+| v4.5 DONE 后缺维护轨 | Wave52 `v5_open_maintenance_continue.100` |
+| v5 物理轨不能与规划面混键 | 独立 `v5/README.md` + `DECISION.md` |
+| cleanup-reflect 仍绑 wave51 | 改绑 wave52 快收敛 |
+
 ## 十八、Wave3（整表扩散，勿逐条）
 
 见 DIFFUSE-WAVE2 §Wave3：无 C plan · run.sh 单行化 · wave 归档。

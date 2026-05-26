@@ -27,15 +27,16 @@
 | tier5 发行面 | `v45.tier5.100=1` |
 | lisp 自举 | `v45.selfhost.100=1` |
 | **总签收** | **`v45.goal.onion_tdd_tree_mindmap.100=1`** · frontier **26/26** |
-| **v4.5 终局** | **`v45.v45.v45_terminal_complete.100=1`** · 扩展活图 **18 张** |
+| **v4.5 终局** | **`v45.v45.v45_terminal_complete.100=1`** · 扩展活图 **19 张** |
+| **维护轨** | **`v45.v45.v5_open_maintenance_continue.100=1`** · v5 开卷 |
 
 ## 收敛（清洗后日常）
 
 ```bash
 bash lab/nano-lisp-jit/scripts/v45-cleanup-reflect.sh
-# 或 v4.5 终局（快）：v45-wave51-v45-terminal-complete-converge.sh
+# 或维护 + v5 开卷（快）：v45-wave52-v5-open-maintenance-converge.sh
 # 或 /goal 总签收（慢）：v45-wave21-onion-tdd-tree-mindmap-100-converge.sh
-grep v45.v45.v45_terminal_complete.100=1 \
+grep v45.v45.v5_open_maintenance_continue.100=1 \
   lab/nano-lisp-jit/.build/v45-entry.evidence.canonical
 ```
 
@@ -69,3 +70,4 @@ grep v45.v45.v45_terminal_complete.100=1 \
 | **49** | endgame 诚实 rollup [`DIFFUSE-WAVE49.md`](DIFFUSE-WAVE49.md) |
 | **50** | 154KB codegen 独立 [`DIFFUSE-WAVE50.md`](DIFFUSE-WAVE50.md) |
 | **51** | **v4.5 终局** [`DIFFUSE-WAVE51.md`](DIFFUSE-WAVE51.md) |
+| **52** | **v5 开卷维护** [`DIFFUSE-WAVE52.md`](DIFFUSE-WAVE52.md) |

@@ -901,7 +901,7 @@ tasks:
 
 verify:
   commands:
-    - script: scripts/v45-wave51-v45-terminal-complete-converge.sh
+    - script: scripts/v45-wave52-v5-open-maintenance-converge.sh
       cwd: .
       fail_on_nonzero: true
 
