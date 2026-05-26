@@ -10,7 +10,7 @@
       "layer": 38,
       "ring": "gate",
       "onion_ring": 19,
-      "status": "ready",
+      "status": "done",
       "deps": [],
       "accept": [
         "v45.v45.zero_sh_continue.100=1",
@@ -22,8 +22,10 @@
       "layer": 38,
       "ring": "plan",
       "onion_ring": 19,
-      "status": "ready",
-      "deps": ["v45-ho-gate"],
+      "status": "done",
+      "deps": [
+        "v45-ho-gate"
+      ],
       "parallel_slot": "W1",
       "plan": "lisp/bootstrap/bootstrap-v45-converge-via-plan.lisp",
       "agent": "engineer-a"
@@ -33,8 +35,10 @@
       "layer": 38,
       "ring": "entry",
       "onion_ring": 19,
-      "status": "ready",
-      "deps": ["v45-ho-gate"],
+      "status": "done",
+      "deps": [
+        "v45-ho-gate"
+      ],
       "parallel_slot": "W2",
       "plan": "lisp/bootstrap/bootstrap-v45-entry-plan-only.lisp",
       "agent": "engineer-b"
@@ -44,8 +48,10 @@
       "layer": 38,
       "ring": "com",
       "onion_ring": 19,
-      "status": "ready",
-      "deps": ["v45-ho-gate"],
+      "status": "done",
+      "deps": [
+        "v45-ho-gate"
+      ],
       "parallel_slot": "W3",
       "plan": "lisp/bootstrap/bootstrap-v45-nano-lisp-com-primary.lisp",
       "agent": "engineer-a"
@@ -53,10 +59,12 @@
     {
       "id": "v45-ho-gen-matrix",
       "layer": 38,
-      "ring": "代际",
+      "ring": "\u4ee3\u9645",
       "onion_ring": 19,
-      "status": "ready",
-      "deps": ["v45-ho-gate"],
+      "status": "done",
+      "deps": [
+        "v45-ho-gate"
+      ],
       "parallel_slot": "W4",
       "plan": "lisp/bootstrap/bootstrap-v45-selfhost-generation-matrix.lisp",
       "agent": "engineer-b"
@@ -64,9 +72,9 @@
     {
       "id": "v45-ho-terminal",
       "layer": 39,
-      "ring": "终局",
+      "ring": "\u7ec8\u5c40",
       "onion_ring": 19,
-      "status": "ready",
+      "status": "done",
       "deps": [
         "v45-ho-converge-via-plan",
         "v45-ho-entry-plan",
@@ -81,8 +89,10 @@
       "layer": 40,
       "ring": "DONE",
       "onion_ring": 19,
-      "status": "ready",
-      "deps": ["v45-ho-terminal"],
+      "status": "done",
+      "deps": [
+        "v45-ho-terminal"
+      ],
       "plan": "lisp/bootstrap/bootstrap-v45-goal-v45-host-orchestrator-100.lisp",
       "agent": "reviewer"
     }
@@ -90,6 +100,6 @@
   "next_wave_preview": {
     "id": "wave39-runner-physical",
     "frontier": "mindmap-frontier-v45-runner-physical.json",
-    "theme": "154KB runner 全 Lisp codegen（独立诚实卷，不与 Wave38 混称 100%）"
+    "theme": "154KB runner \u5168 Lisp codegen\uff08\u72ec\u7acb\u8bda\u5b9e\u5377\uff0c\u4e0d\u4e0e Wave38 \u6df7\u79f0 100%\uff09"
   }
 }
