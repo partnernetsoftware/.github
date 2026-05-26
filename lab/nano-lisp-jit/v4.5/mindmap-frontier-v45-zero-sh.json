@@ -10,7 +10,7 @@
       "layer": 37,
       "ring": "gate",
       "onion_ring": 18,
-      "status": "ready",
+      "status": "done",
       "deps": [],
       "accept": [
         "v45.v45.plan_converge_continue.100=1",
@@ -22,7 +22,7 @@
       "layer": 37,
       "ring": "plan",
       "onion_ring": 18,
-      "status": "ready",
+      "status": "done",
       "deps": [
         "v45-zs-gate"
       ],
@@ -34,7 +34,7 @@
       "layer": 37,
       "ring": "com",
       "onion_ring": 18,
-      "status": "ready",
+      "status": "done",
       "deps": [
         "v45-zs-gate"
       ],
@@ -46,7 +46,7 @@
       "layer": 37,
       "ring": "verify",
       "onion_ring": 18,
-      "status": "ready",
+      "status": "done",
       "deps": [
         "v45-zs-gate"
       ],
@@ -56,9 +56,9 @@
     {
       "id": "v45-zs-selfhost-matrix",
       "layer": 37,
-      "ring": "代际",
+      "ring": "\u4ee3\u9645",
       "onion_ring": 18,
-      "status": "ready",
+      "status": "done",
       "deps": [
         "v45-zs-gate"
       ],
@@ -68,9 +68,9 @@
     {
       "id": "v45-zs-terminal",
       "layer": 38,
-      "ring": "终局",
+      "ring": "\u7ec8\u5c40",
       "onion_ring": 18,
-      "status": "ready",
+      "status": "done",
       "deps": [
         "v45-zs-squad-plan",
         "v45-zs-com-canonical",
@@ -84,7 +84,7 @@
       "layer": 39,
       "ring": "DONE",
       "onion_ring": 18,
-      "status": "ready",
+      "status": "done",
       "deps": [
         "v45-zs-terminal"
       ],
