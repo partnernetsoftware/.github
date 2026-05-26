@@ -77,7 +77,7 @@
 | Wave | 签收键 | 活图 | 状态 |
 |------|--------|------|------|
 | 28 | `factory_physical_continue.100` | factory 7/7 | ✅ main |
-| **29** | **`selfhost_deep_continue.100`** | selfhost-deep **7/7** | 🔄 本合并 |
+| **29** | **`selfhost_deep_continue.100`** | selfhost-deep **7/7** | ✅ main |
 
 | 指标 | 数值 |
 |------|------|
