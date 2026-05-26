@@ -86,7 +86,15 @@
 | 扩展活图 | **16 张**（Wave34–49，各 7 节点） |
 | 工厂物理（诚实） | **~99.8%** · 154KB 仍开卷 |
 
-**日常**：`v45-wave52-physical-zero-cpysh-continue-converge.sh` · 用户 plan：`converge-daily-zero-cpysh.lisp`
+**日常**：`v45-wave53-lispjit-154kb-codegen-expand-converge.sh` · 用户 plan：`converge-daily-v45-physical.lisp`
+
+## Wave53（lispjit-154kb-codegen-expand · 7/7 ✅）
+
+| 项 | 状态 |
+|----|------|
+| 活图 | `mindmap-frontier-v45-lispjit-154kb-codegen-expand.json` **7/7** |
+| 签收 | `v45.v45.lispjit_154kb_codegen_continue.100=1` |
+| 广度 | 15link 全 13 模块 · **lispjit.c 仍在 archive** |
 
 ## Wave52（physical-zero-cpysh-continue · 7/7 ✅）
 

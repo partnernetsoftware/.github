@@ -19,3 +19,5 @@ grep v45.v45.physical_zero_cpysh_continue.100=1 lab/nano-lisp-jit/.build/v45-ent
 **用户日常入口**：`converge-daily-zero-cpysh.lisp`（plan-only · 无 `.sh` 步骤）
 
 **诚实未达**：`archive/c/runner/lispjit.c` ~154KB · CI `scripts/v45-*.sh` · `tools/*.py`
+
+**下一波**：Wave53 154KB 扩面 → [`DIFFUSE-WAVE53.md`](DIFFUSE-WAVE53.md)

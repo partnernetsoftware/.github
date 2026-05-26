@@ -66,8 +66,9 @@ bash lab/nano-lisp-jit/scripts/v45-wave21-onion-tdd-tree-mindmap-100-converge.sh
 | `v45.mindmap.lispjit_codegen_dedicated.nodes_done` / `nodes_total` | **lispjit-codegen-dedicated**（Wave50 · **7**） |
 | `v45.mindmap.v45_terminal_complete.nodes_done` / `nodes_total` | **v45-terminal-complete**（Wave51 · **7**） |
 | `v45.mindmap.physical_zero_cpysh_continue.nodes_done` / `nodes_total` | **physical-zero-cpysh-continue**（Wave52 · **7**） |
+| `v45.mindmap.lispjit_154kb_codegen_expand.nodes_done` / `nodes_total` | **lispjit-154kb-codegen-expand**（Wave53 · **7**） |
 
-前置：`v45.tier5.100=1` · `v45.scoped.100=1` · `/goal` 26/26 · 扩展活图 **19 张** · **v4.5 目标未达**（见 `HONEST-REMAINING.md`）
+前置：`/goal` 26/26 · 扩展活图 **20 张** · **v4.5 目标未达**（`HONEST-REMAINING.md`）
 
 ## 编排协议（主对话 × 后台 team）
 
@@ -416,6 +417,20 @@ NANO_V45_FRONTIER=mindmap-frontier-v45-physical-zero-cpysh-continue.json \
 | `v45.mindmap.physical_zero_cpysh_continue.nodes_done` / `nodes_total` | Wave52 · **7** |
 
 见 [`DIFFUSE-WAVE52.md`](DIFFUSE-WAVE52.md)
+
+## 扩展活图（lispjit-154kb-codegen-expand · Wave53 · 消 C 主路径）
+
+```bash
+NANO_V45_FRONTIER=mindmap-frontier-v45-lispjit-154kb-codegen-expand.json \
+  python3 lab/nano-lisp-jit/tools/mindmap-dp-v45.py stats
+```
+
+| 键 | 活图 |
+|----|------|
+| `v45.v45.lispjit_154kb_codegen_continue.100=1` | **154KB 扩面续推** |
+| `v45.mindmap.lispjit_154kb_codegen_expand.nodes_done` / `nodes_total` | Wave53 · **7** |
+
+见 [`DIFFUSE-WAVE53.md`](DIFFUSE-WAVE53.md)
 
 ## 扩展活图（runner 广面 · Wave34+）
 

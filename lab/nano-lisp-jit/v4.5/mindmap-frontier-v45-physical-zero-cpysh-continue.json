@@ -99,7 +99,7 @@
     }
   ],
   "next_wave_preview": {
-    "id": "wave53-lispjit-154kb-codegen",
-    "theme": "154KB lispjit \u5168 Lisp codegen \u6269\u9762\uff08v4.5 \u7269\u7406\u8f68\uff0c\u4ecd\u975e v5\uff09"
+    "id": "wave53-lispjit-154kb-codegen-expand",
+    "theme": "154KB 全模块 15link 扩面（v4.5 消 C 主路径）"
   }
 }

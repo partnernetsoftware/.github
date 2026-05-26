@@ -459,6 +459,14 @@ semantic(43) → nano-lisp.com(44) → 诚实零C(45) → 15link全链(46) → p
 |  prematurely 开 v5 | 撤回 v5/；Wave52 回到 v4.5 物理轨 |
 | 真目标仍是零 cpysh | `physical_zero_cpysh_continue.100` + 诚实锚 |
 
+## 三十九、Wave53（154KB codegen 扩面 · v4.5 消 C 主路径）
+
+| 反思 | 调整 |
+|------|------|
+| 应集中精力完成 v4.5 | Wave53 154KB 15link 全模块扩面 |
+| 扩面绿 ≠ C 已删 | `honest.lispjit_c_remains=1` 显式锚 |
+| 日常应指向物理轨 | `converge-daily-v45-physical.lisp` |
+
 ## 十八、Wave3（整表扩散，勿逐条）
 
 见 DIFFUSE-WAVE2 §Wave3：无 C plan · run.sh 单行化 · wave 归档。

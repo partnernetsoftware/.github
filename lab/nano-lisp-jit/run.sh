@@ -8195,6 +8195,20 @@ else
   skip_case "run-bootstrap-v45-wave49-endgame-honest-rollup-converge-plan" "nano-jit.com or v45-wave49-endgame-honest-rollup-converge.sh missing"
 fi
 
+# --- v4.5: Wave53 lispjit-154kb-codegen-expand（消 C 主路径）---
+V45_WAVE53_CONVERGE="$LAB_DIR/scripts/v45-wave53-lispjit-154kb-codegen-expand-converge.sh"
+if [ -f "$NANO_JIT_COM" ] && host_is_linux_x86_64 && [ -x "$V45_WAVE53_CONVERGE" ]; then
+  run_case "run-bootstrap-v45-wave53-lispjit-154kb-codegen-expand-converge-plan" bash -c '
+    cd "'"$ROOT_DIR"'" && bash "'"$V45_WAVE53_CONVERGE"'"
+    grep -q v45.v45.lispjit_154kb_codegen_continue.100=1 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.codegen.lispjit_154kb_expand=1 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.honest.lispjit_c_remains=1 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.converge.daily_v45_physical=1 "'"$V45_ENTRY_EVIDENCE"'"
+  '
+else
+  skip_case "run-bootstrap-v45-wave53-lispjit-154kb-codegen-expand-converge-plan" "nano-jit.com or v45-wave53-lispjit-154kb-codegen-expand-converge.sh missing"
+fi
+
 # --- v4.5: Wave52 physical-zero-cpysh-continue（v4.5 物理续推）---
 V45_WAVE52_CONVERGE="$LAB_DIR/scripts/v45-wave52-physical-zero-cpysh-continue-converge.sh"
 if [ -f "$NANO_JIT_COM" ] && host_is_linux_x86_64 && [ -x "$V45_WAVE52_CONVERGE" ]; then
