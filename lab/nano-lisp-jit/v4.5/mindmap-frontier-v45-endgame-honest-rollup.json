@@ -1,0 +1,105 @@
+{
+  "ssot": "v4.5/DIFFUSE-WAVE49.md",
+  "parent_goal": "v45.v45.lisp_com_bootstrap_terminal_continue.100",
+  "onion_ssot": "v4.5/ONION-TDD.md",
+  "updated_at": "2026-05-25T16:00:00Z",
+  "max_parallel": 4,
+  "breadth_ring": "endgame-honest-rollup — Wave44–48 键收束 + 发行面诚实终局",
+  "nodes": [
+    {
+      "id": "v45-ehr-gate",
+      "layer": 49,
+      "ring": "gate",
+      "onion_ring": 30,
+      "status": "ready",
+      "deps": [],
+      "accept": [
+        "v45.v45.lisp_com_bootstrap_terminal_continue.100=1",
+        "v45.goal.onion_tdd_tree_mindmap.100=1"
+      ]
+    },
+    {
+      "id": "v45-ehr-waves-rollup",
+      "layer": 49,
+      "ring": "rollup",
+      "onion_ring": 30,
+      "status": "ready",
+      "deps": [
+        "v45-ehr-gate"
+      ],
+      "parallel_slot": "W1",
+      "plan": "lisp/bootstrap/bootstrap-v45-endgame-waves-44-48-rollup.lisp",
+      "agent": "engineer-a"
+    },
+    {
+      "id": "v45-ehr-honest-anchor",
+      "layer": 49,
+      "ring": "诚实",
+      "onion_ring": 30,
+      "status": "ready",
+      "deps": [
+        "v45-ehr-gate"
+      ],
+      "parallel_slot": "W2",
+      "plan": "lisp/bootstrap/bootstrap-v45-endgame-honest-remaining-anchor.lisp",
+      "agent": "engineer-b"
+    },
+    {
+      "id": "v45-ehr-daily",
+      "layer": 49,
+      "ring": "plan",
+      "onion_ring": 30,
+      "status": "ready",
+      "deps": [
+        "v45-ehr-gate"
+      ],
+      "parallel_slot": "W3",
+      "plan": "lisp/bootstrap/bootstrap-v45-converge-daily-endgame.lisp",
+      "agent": "engineer-a"
+    },
+    {
+      "id": "v45-ehr-selfhost",
+      "layer": 49,
+      "ring": "代际",
+      "onion_ring": 30,
+      "status": "ready",
+      "deps": [
+        "v45-ehr-gate"
+      ],
+      "parallel_slot": "W4",
+      "plan": "lisp/bootstrap/bootstrap-v45-selfhost-endgame-honest-matrix.lisp",
+      "agent": "engineer-b"
+    },
+    {
+      "id": "v45-ehr-terminal",
+      "layer": 50,
+      "ring": "终局",
+      "onion_ring": 30,
+      "status": "ready",
+      "deps": [
+        "v45-ehr-waves-rollup",
+        "v45-ehr-honest-anchor",
+        "v45-ehr-daily",
+        "v45-ehr-selfhost"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-endgame-honest-rollup-tree.lisp",
+      "agent": "reviewer"
+    },
+    {
+      "id": "v45-ehr-goal",
+      "layer": 51,
+      "ring": "DONE",
+      "onion_ring": 30,
+      "status": "ready",
+      "deps": [
+        "v45-ehr-terminal"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-v45-endgame-honest-rollup-100.lisp",
+      "agent": "reviewer"
+    }
+  ],
+  "next_wave_preview": {
+    "id": "wave50-lispjit-codegen-dedicated",
+    "theme": "154KB runner 全 Lisp codegen 独立活图（不进发行面 rollup DONE）"
+  }
+}

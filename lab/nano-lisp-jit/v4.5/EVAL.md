@@ -83,10 +83,18 @@
 |------|------|
 | `/goal` | **26/26** |
 | selfhost-next codegen 四轨 | slice-min · vm-ctrl · ir-table · vm-arith |
-| 扩展活图 | **8 张**（各 7 节点） |
-| 工厂物理（诚实） | **~99.5%** |
+| 扩展活图 | **16 张**（Wave34–49，各 7 节点） |
+| 工厂物理（诚实） | **~99.8%** · 154KB 仍开卷 |
 
-**日常**：`v45-wave34-runner-codegen-continue-converge.sh`
+**日常**：`v45-wave48-lisp-com-bootstrap-terminal-converge.sh` · 用户 plan：`converge-daily-lisp-com-terminal.lisp`
+
+## Wave49（endgame-honest-rollup · 7/7 ✅）
+
+| 项 | 状态 |
+|----|------|
+| 活图 | `mindmap-frontier-v45-endgame-honest-rollup.json` **7/7** |
+| 签收 | `v45.v45.endgame_honest_rollup_continue.100=1` |
+| 广度 | Wave44–48 键 rollup + 诚实终局锚 |
 
 ## Wave48（lisp-com-bootstrap-terminal · 7/7 ✅）
 

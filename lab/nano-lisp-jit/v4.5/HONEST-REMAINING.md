@@ -3,7 +3,7 @@
 ## 发行面目标（洋葱 TDD 扩散）
 
 **`*.lisp` 自举 `nano-lisp.com`**，用户路径 plan 内无 `.c` / `.sh` / `.py`。  
-推进方式：mindmap 广度设计 → 主对话编排 → 后台 agents 四轨并发 → 收敛（Wave48 lisp-com-bootstrap-terminal）。
+推进方式：mindmap 广度设计 → 主对话编排 → 后台 agents 四轨并发 → 收敛（Wave49 endgame-honest-rollup）。
 
 ## 已签收（v4.5 /goal 等 · ≠ 上表终局）
 
@@ -16,14 +16,14 @@
 ## 诚实未达
 
 - `.com` 体内 C codegen（`archive/c/runner/` 真源仍在）
-- 用户路径已 plan-only（`converge-daily-zero-host-sh.lisp`）；CI/维护仍用 `scripts/v45-*.sh`
-- 产物名统一 `nano-lisp.com`（仓内暂 `nano-jit.com`）
-- 154KB runner 全 Lisp codegen
+- 用户路径 plan-only（`converge-daily-lisp-com-terminal.lisp`）；CI/维护仍用 `scripts/v45-*.sh`
+- 产物名统一 `nano-lisp.com`（仓内 host 暂 `nano-jit.com`）
+- 154KB runner 全 Lisp codegen（独立开卷，见 Wave49+）
 
 ## 日常
 
 ```bash
-NANO_V45_FRONTIER=mindmap-frontier-v45-lisp-com-bootstrap-terminal.json \
+NANO_V45_FRONTIER=mindmap-frontier-v45-endgame-honest-rollup.json \
   python3 lab/nano-lisp-jit/tools/mindmap-dp-v45.py ready
-$COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-converge-daily-lisp-com-terminal.lisp
+$COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-converge-daily-endgame.lisp
 ```

@@ -1,6 +1,6 @@
 # v4.5 清洗与反思（SSOT）
 
-> **继续开发前**：先跑本节「一轮清洗」，再读 [`REFLECTION.md`](REFLECTION.md) §二十二。
+> **继续开发前**：先跑本节「一轮清洗」，再读 [`REFLECTION.md`](REFLECTION.md) §三十五。
 
 ## 证据键分层（避免误读 100%）
 
@@ -13,6 +13,7 @@
 | L4 | `selfhost.100` | S5+T3+代际 | 自举卷 |
 | L5 | `goal.lisp_selfhost.unified.100` | 20 节点 | Wave20 |
 | **L6** | **`goal.onion_tdd_tree_mindmap.100`** | **26 节点 + boundary** | **/goal 总签收** |
+| L7 | `v45.*.continue.100` | 扩展活图 Wave34–49 | **分卷签收**，≠ L6 扩容 |
 
 `v45-entry.evidence` 为 **append-only**（同键可出现多次）；审计用 canonical：
 
@@ -21,23 +22,21 @@ bash lab/nano-lisp-jit/scripts/v45-evidence-canonical.sh
 # → lab/nano-lisp-jit/.build/v45-entry.evidence.canonical
 ```
 
-## 日常收敛链（推荐顺序）
+## 日常收敛链（推荐顺序 · 2026-05-25 更新）
 
 ```bash
-# runner 广面（推荐）
-bash lab/nano-lisp-jit/scripts/v45-wave34-runner-codegen-continue-converge.sh
+# 发行面终局（默认 · 快 seed ~1s）
+bash lab/nano-lisp-jit/scripts/v45-wave48-lisp-com-bootstrap-terminal-converge.sh
 
-# codegen 代际深潜（wave34 子集）
-bash lab/nano-lisp-jit/scripts/v45-wave33-codegen-deep-continue-converge.sh
+# Wave49 诚实 rollup（扩展活图收束）
+bash lab/nano-lisp-jit/scripts/v45-wave49-endgame-honest-rollup-converge.sh
 
-# 工厂 rollupy（wave32 子集）
-bash lab/nano-lisp-jit/scripts/v45-wave32-factory-rollup-continue-converge.sh
+# 用户 plan-only（无 .sh 步骤）
+COM=lab/nano-lisp-jit/.build/nano-jit/nano-jit.com
+$COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-converge-daily-lisp-com-terminal.lisp
 
-# codegen 四轨（wave25 子集）
-bash lab/nano-lisp-jit/scripts/v45-wave25-codegen-probe-converge.sh
-
-# 仅发行面继续
-bash lab/nano-lisp-jit/scripts/v45-wave24-release-converge.sh
+# /goal 总签收（慢 · 完整链）
+bash lab/nano-lisp-jit/scripts/v45-wave21-onion-tdd-tree-mindmap-100-converge.sh
 
 # 最快：canonical + 证据核对
 bash lab/nano-lisp-jit/scripts/v45-cleanup-reflect.sh
@@ -45,20 +44,21 @@ bash lab/nano-lisp-jit/scripts/v45-cleanup-reflect.sh
 
 | 脚本 | 用途 |
 |------|------|
-| **`v45-wave33-codegen-deep-continue-converge.sh`** | **默认**（wave32 + next codegen 四轨） |
-| `v45-wave32-factory-rollup-continue-converge.sh` | 工厂 rollupy 7/7 |
-| `v45-wave24-release-converge.sh` | 发行面继续 |
-| `v45-wave23-continue-converge.sh` | continue + v4 握手 |
-| `v45-wave21-*` | /goal 总签收子集 |
-| `v45-wave22-*` | 工厂 plan 零 C |
-| `v45-wave17~20` | 历史子集，勿单独当终局 |
+| **`v45-wave48-lisp-com-bootstrap-terminal-converge.sh`** | **默认 CI verify**（快 seed） |
+| `v45-wave49-endgame-honest-rollup-converge.sh` | Wave44–48 rollup + 诚实终局 |
+| `v45-wave21-*` | /goal 26/26 总签收 |
+| `v45-wave34-*` | runner 广面（历史子集） |
+| `v45-wave33~21` | 工厂/codegen 子链，勿单独当终局 |
 
 ## 一轮清洗（推荐命令）
 
 ```bash
 bash lab/nano-lisp-jit/scripts/v45-cleanup-reflect.sh
-python3 lab/nano-lisp-jit/tools/mindmap-dp-v45.py stats
+NANO_V45_FRONTIER=mindmap-frontier-v45-lisp-com-bootstrap-terminal.json \
+  python3 lab/nano-lisp-jit/tools/mindmap-dp-v45.py stats
 grep v45.goal.onion_tdd_tree_mindmap.100=1 \
+  lab/nano-lisp-jit/.build/v45-entry.evidence.canonical
+grep v45.v45.lisp_com_bootstrap_terminal_continue.100=1 \
   lab/nano-lisp-jit/.build/v45-entry.evidence.canonical
 ```
 
@@ -66,8 +66,9 @@ grep v45.goal.onion_tdd_tree_mindmap.100=1 \
 
 ## 活图
 
-- SSOT：[`mindmap-frontier-v45.json`](mindmap-frontier-v45.json)
-- 终局：**26/26** `done`（layer 0–13）
+- SSOT 主树：[`mindmap-frontier-v45.json`](mindmap-frontier-v45.json) — **26/26**
+- 扩展活图：**16 张**（Wave34–49，各 7 节点）
+- 当前前沿：`mindmap-frontier-v45-lisp-com-bootstrap-terminal.json`（Wave48）→ Wave49 rollup
 - DP：`tools/mindmap-dp-v45.py ready|stats`
 
 ## 仍开卷（清洗后也不混称 /goal）
@@ -75,9 +76,9 @@ grep v45.goal.onion_tdd_tree_mindmap.100=1 \
 | 项 | 说明 |
 |----|------|
 | v4 全图 69 节点 | 独立 SSOT，≠ v45 % |
-| S4/S5 零 C plan | Wave22 · `selfhost.plan_no_c=1`（另有经典 C 对照 plan） |
 | 全 monorepo `physical.zero_c` | 见 `HONEST-REMAINING.md` |
-| **runner 全量 codegen** | **Wave34** · 见 `DIFFUSE-WAVE34.md` |
+| **runner 全量 codegen** | **154KB** · 独立键 · Wave50+ |
+| CI `scripts/v45-*.sh` | 用户路径已 plan-only；host 外层仍 .sh |
 
 ## 历史（2026-05-24 目录清理）
 

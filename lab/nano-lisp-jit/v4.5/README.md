@@ -34,7 +34,7 @@ grep v45.verify.plan_only=1 lab/nano-lisp-jit/.build/v45-entry.evidence
 | **scoped 100%** | **✅** |
 | **DECISION tier0–4** | **✅** `v45.endgame.100=1` |
 | **合卷（非零 C）** | **✅** `v45.warehouse.100=1` |
-| **物理零 C** | **❌** `v45.physical.zero_c=0` |
+| **物理零 C（发行面树）** | **✅** | `v45.physical.zero_c=1`（`lisp/` 无真 `.c`；**≠** 全 monorepo） |
 | 3 `lispjit.c` 出仓 | **✅** `v45.runner.no_c_src=1` |
 | 4 VM emit（IR Lisp） | **✅** `v45.codegen.vm_emit=1` |
 
@@ -44,3 +44,11 @@ grep v45.physical.zero_c=0 lab/nano-lisp-jit/.build/v45-entry.evidence
 ```
 
 口径：[`DECISION.md`](DECISION.md) · [`PROGRESS.md`](PROGRESS.md) · [`HONEST-REMAINING.md`](HONEST-REMAINING.md)
+
+## 日常（Wave48+）
+
+```bash
+COM=lab/nano-lisp-jit/.build/nano-jit/nano-jit.com
+$COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-converge-daily-lisp-com-terminal.lisp
+bash lab/nano-lisp-jit/scripts/v45-wave48-lisp-com-bootstrap-terminal-converge.sh
+```

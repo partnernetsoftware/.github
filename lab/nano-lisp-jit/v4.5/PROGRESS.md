@@ -32,8 +32,9 @@
 
 ```bash
 bash lab/nano-lisp-jit/scripts/v45-cleanup-reflect.sh
-# 或完整收敛：v45-wave21-onion-tdd-tree-mindmap-100-converge.sh
-grep v45.goal.onion_tdd_tree_mindmap.100=1 \
+# 或发行面终局（快）：v45-wave48-lisp-com-bootstrap-terminal-converge.sh
+# 或 /goal 总签收（慢）：v45-wave21-onion-tdd-tree-mindmap-100-converge.sh
+grep v45.v45.lisp_com_bootstrap_terminal_continue.100=1 \
   lab/nano-lisp-jit/.build/v45-entry.evidence.canonical
 ```
 
@@ -63,3 +64,5 @@ grep v45.goal.onion_tdd_tree_mindmap.100=1 \
 | **31** | 边界代际四轨 [`DIFFUSE-WAVE31.md`](DIFFUSE-WAVE31.md) |
 | **32** | 工厂终局 rollupy [`DIFFUSE-WAVE32.md`](DIFFUSE-WAVE32.md) |
 | **33** | codegen 代际深潜 [`DIFFUSE-WAVE33.md`](DIFFUSE-WAVE33.md) |
+| **34–48** | 扩展活图 15 张 · [`MINDMAP-TDD-TREE.md`](MINDMAP-TDD-TREE.md) |
+| **49** | endgame 诚实 rollup [`DIFFUSE-WAVE49.md`](DIFFUSE-WAVE49.md) |

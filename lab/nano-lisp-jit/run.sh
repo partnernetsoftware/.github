@@ -8181,6 +8181,20 @@ else
   skip_case "run-bootstrap-v45-wave20-lisp-selfhost-unified-converge-plan" "nano-jit.com or v45-wave20-lisp-selfhost-unified-converge.sh missing"
 fi
 
+# --- v4.5: Wave49 endgame-honest-rollup（快 seed + wave48 键）---
+V45_WAVE49_CONVERGE="$LAB_DIR/scripts/v45-wave49-endgame-honest-rollup-converge.sh"
+if [ -f "$NANO_JIT_COM" ] && host_is_linux_x86_64 && [ -x "$V45_WAVE49_CONVERGE" ]; then
+  run_case "run-bootstrap-v45-wave49-endgame-honest-rollup-converge-plan" bash -c '
+    cd "'"$ROOT_DIR"'" && bash "'"$V45_WAVE49_CONVERGE"'"
+    grep -q v45.v45.endgame_honest_rollup_continue.100=1 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.rollup.waves_44_48=1 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.honest.endgame_remaining=1 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.v45.lisp_com_bootstrap_terminal_continue.100=1 "'"$V45_ENTRY_EVIDENCE"'"
+  '
+else
+  skip_case "run-bootstrap-v45-wave49-endgame-honest-rollup-converge-plan" "nano-jit.com or v45-wave49-endgame-honest-rollup-converge.sh missing"
+fi
+
 # --- v4.5: Wave48 lisp-com-bootstrap-terminal（快 seed + wave47 键）---
 V45_WAVE48_CONVERGE="$LAB_DIR/scripts/v45-wave48-lisp-com-bootstrap-terminal-converge.sh"
 if [ -f "$NANO_JIT_COM" ] && host_is_linux_x86_64 && [ -x "$V45_WAVE48_CONVERGE" ]; then

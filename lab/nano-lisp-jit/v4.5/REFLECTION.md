@@ -434,6 +434,15 @@ semantic(43) → nano-lisp.com(44) → 诚实零C(45) → 15link全链(46) → p
 | 开 Wave49 | `endgame-honest-rollup` — 发行面卷闭合，154KB **仍独立开卷** |
 | 停损线 | 禁止把 `factory_physical_closure=1` 写成全 monorepo zero_c DONE |
 
+## 三十六、Wave49（文档 SSOT + endgame rollup）
+
+| 反思 | 调整 |
+|------|------|
+| CLEANUP/PROGRESS 仍指 wave34 | P0 文档对齐 → wave48/49 为日常 |
+| Wave44–48 键分散 | W1 `rollup.waves_44_48` 一次复核 |
+| rollup 易被误读为物理 DONE | W2 `honest.endgame_remaining` 显式锚 |
+| cleanup-reflect 绑 wave21（慢） | 改绑 wave48 快收敛 |
+
 ## 十八、Wave3（整表扩散，勿逐条）
 
 见 DIFFUSE-WAVE2 §Wave3：无 C plan · run.sh 单行化 · wave 归档。
