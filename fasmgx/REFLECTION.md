@@ -30,7 +30,7 @@
 1. **不删** `run.sh` / `archive/runner` — 仅 scoped CI + `v45-release-run.sh` 锚。
 2. **不并** v4 全图 69 节点进 v45 %。
 3. **fasmgx/** 只承载工厂续推 SSOT；样例仍放 `lab/nano-lisp-jit/samples/`。
-4. Wave34 收敛脚本待补：`v45-wave34-runner-codegen-continue-converge.sh`（见 [`NEXT-ONION-TDD-TREE.md`](NEXT-ONION-TDD-TREE.md)）。
+4. Wave34 已落地：`v45-wave34-runner-codegen-continue-converge.sh` · 活图 **7/7**。
 
 ## 五、与 v4.5 文档关系
 

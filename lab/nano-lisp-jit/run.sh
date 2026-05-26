@@ -8181,6 +8181,19 @@ else
   skip_case "run-bootstrap-v45-wave20-lisp-selfhost-unified-converge-plan" "nano-jit.com or v45-wave20-lisp-selfhost-unified-converge.sh missing"
 fi
 
+# --- v4.5: Wave34 runner codegen 广面（fasmgx 活图 + wave33）---
+V45_WAVE34_CONVERGE="$LAB_DIR/scripts/v45-wave34-runner-codegen-continue-converge.sh"
+if [ -f "$NANO_JIT_COM" ] && host_is_linux_x86_64 && [ -x "$V45_WAVE34_CONVERGE" ]; then
+  run_case "run-bootstrap-v45-wave34-runner-codegen-continue-converge-plan" bash -c '
+    cd "'"$ROOT_DIR"'" && bash "'"$V45_WAVE34_CONVERGE"'"
+    grep -q v45.v45.runner_codegen_continue.100=1 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.codegen.runner_broad_profiles=4 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.goal.onion_tdd_tree_mindmap.100=1 "'"$V45_ENTRY_EVIDENCE"'"
+  '
+else
+  skip_case "run-bootstrap-v45-wave34-runner-codegen-continue-converge-plan" "nano-jit.com or v45-wave34-runner-codegen-continue-converge.sh missing"
+fi
+
 # --- v4.5: Wave33 codegen 代际深潜（next 四轨 + wave32）---
 V45_WAVE33_CONVERGE="$LAB_DIR/scripts/v45-wave33-codegen-deep-continue-converge.sh"
 if [ -f "$NANO_JIT_COM" ] && host_is_linux_x86_64 && [ -x "$V45_WAVE33_CONVERGE" ]; then

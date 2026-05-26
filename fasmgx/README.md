@@ -26,9 +26,8 @@
 # 当前默认收敛（Wave33）
 bash lab/nano-lisp-jit/scripts/v45-wave33-codegen-deep-continue-converge.sh
 
-# Wave34 规划活图（待收敛脚本）
-FASMGX_FRONTIER=mindmap-frontier-runner-codegen.json \
-  python3 lab/nano-lisp-jit/tools/mindmap-dp-v45.py stats
+# Wave34 runner 广面（默认）
+bash lab/nano-lisp-jit/scripts/v45-wave34-runner-codegen-continue-converge.sh
 
 # 清洗 + /goal 复核
 bash lab/nano-lisp-jit/scripts/v45-cleanup-reflect.sh
@@ -40,4 +39,4 @@ bash lab/nano-lisp-jit/scripts/v45-cleanup-reflect.sh
 |----|------|--------|
 | /goal 总签收 | **26** | `v45.goal.onion_tdd_tree_mindmap.100=1` |
 | v4.5 扩展活图 ×8 | 各 **7** | `codegen_deep_continue.100` 等 |
-| **fasmgx Wave34** | **7** | `v45.v45.runner_codegen_continue.100`（规划） |
+| **fasmgx Wave34** | **7** | `v45.v45.runner_codegen_continue.100` |

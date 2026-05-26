@@ -15,12 +15,10 @@
 **策划**：[`../../../fasmgx/NEXT-ONION-TDD-TREE.md`](../../../fasmgx/NEXT-ONION-TDD-TREE.md)
 
 ```bash
-FASMGX_FRONTIER=mindmap-frontier-runner-codegen.json \
-  python3 lab/nano-lisp-jit/tools/mindmap-dp-v45.py stats
-# 收敛脚本（待实现）:
-# bash lab/nano-lisp-jit/scripts/v45-wave34-runner-codegen-continue-converge.sh
+bash lab/nano-lisp-jit/scripts/v45-wave34-runner-codegen-continue-converge.sh
+grep v45.v45.runner_codegen_continue.100=1 lab/nano-lisp-jit/.build/v45-entry.evidence
 ```
 
-证据（规划）：`v45.v45.runner_codegen_continue.100=1` · `v45.codegen.runner_broad_profiles=4`
+证据：`v45.codegen.selfhost_next_runner_broad=1` · `v45.codegen.runner_broad_profiles=4`
 
 **诚实未达**：154KB runner 全 Lisp codegen · 物理删 `run.sh`

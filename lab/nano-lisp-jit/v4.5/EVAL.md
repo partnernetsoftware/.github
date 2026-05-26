@@ -86,16 +86,16 @@
 | 扩展活图 | **8 张**（各 7 节点） |
 | 工厂物理（诚实） | **~99.5%** |
 
-**日常**：`v45-wave33-codegen-deep-continue-converge.sh`
+**日常**：`v45-wave34-runner-codegen-continue-converge.sh`
 
-## fasmgx 梳理（Wave34 规划 · 2026-05-26）
+## fasmgx Wave34（runner 广面 · 2026-05-26）
 
 | 项 | 状态 |
 |----|------|
-| [`fasmgx/`](../../../fasmgx/) SSOT | ✅ 反思 · 清理 · 第九活图 |
-| `/goal` 26/26 | 不变 · 不重开 |
-| Wave34 runner 广面 | **ready** · 收敛脚本待建 |
-| 工厂物理（诚实） | **~99.5%** → Wave34 目标 ~99.8%（仍非全 C） |
+| [`fasmgx/`](../../../fasmgx/) 活图 | **7/7** · `runner_codegen_continue.100` |
+| `/goal` 26/26 | 不变 |
+| 日常收敛 | **`v45-wave34-runner-codegen-continue-converge.sh`** |
+| 工厂物理（诚实） | **~99.8%** · 154KB 全 C 仍未达 |
 
 ## 反思要点（Wave33）
 

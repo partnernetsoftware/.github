@@ -24,7 +24,10 @@ bash lab/nano-lisp-jit/scripts/v45-evidence-canonical.sh
 ## 日常收敛链（推荐顺序）
 
 ```bash
-# codegen 代际深潜（推荐）
+# fasmgx runner 广面（推荐）
+bash lab/nano-lisp-jit/scripts/v45-wave34-runner-codegen-continue-converge.sh
+
+# codegen 代际深潜（wave34 子集）
 bash lab/nano-lisp-jit/scripts/v45-wave33-codegen-deep-continue-converge.sh
 
 # 工厂 rollupy（wave32 子集）

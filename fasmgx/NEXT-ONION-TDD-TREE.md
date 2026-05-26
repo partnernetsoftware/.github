@@ -8,13 +8,13 @@
 
 | 轨 | 规划 plan | 节点 id |
 |----|-----------|---------|
-| W1 | `bootstrap-v45-codegen-runner-module-table.lisp`（待建） | `v45-rc-module-table` |
-| W2 | `bootstrap-v45-codegen-runner-emit-broad.lisp`（待建） | `v45-rc-emit-broad` |
-| W3 | `bootstrap-v45-codegen-ir-facade-next.lisp`（待建） | `v45-rc-ir-facade` |
-| W4 | `bootstrap-v45-codegen-lispjit-modules-subset.lisp`（待建） | `v45-rc-modules-subset` |
-| R | `bootstrap-v45-runsh-slim-terminal.lisp`（已有） | 发行锚 |
-| T | `bootstrap-v45-mindmap-runner-codegen-tree.lisp`（待建） | `v45-rc-terminal` |
-| G | `bootstrap-v45-goal-v45-runner-codegen-continue-100.lisp`（待建） | `v45-rc-goal` |
+| W1 | `bootstrap-v45-codegen-runner-module-table.lisp` | `v45-rc-module-table` |
+| W2 | `bootstrap-v45-codegen-runner-emit-broad.lisp` | `v45-rc-emit-broad` |
+| W3 | `bootstrap-v45-codegen-ir-facade-next.lisp` | `v45-rc-ir-facade` |
+| W4 | `bootstrap-v45-codegen-lispjit-modules-subset.lisp` | `v45-rc-modules-subset` |
+| R | `bootstrap-v45-runsh-slim-terminal.lisp` | 发行锚 |
+| T | `bootstrap-v45-mindmap-runner-codegen-tree.lisp` | `v45-rc-terminal` |
+| G | `bootstrap-v45-goal-v45-runner-codegen-continue-100.lisp` | `v45-rc-goal` |
 
 ## 扩散循环（同 Wave27–33）
 
@@ -22,7 +22,7 @@
 读 fasmgx/mindmap-frontier-runner-codegen.json
   → DP ready ≤4
   → 四轨 bootstrap 并行（host + next）
-  → v45-wave34-runner-codegen-continue-converge.sh（待实现）
+  → v45-wave34-runner-codegen-continue-converge.sh
   → evidence: v45.v45.runner_codegen_continue.100=1
 ```
 
@@ -47,9 +47,8 @@ FASMGX_FRONTIER=mindmap-frontier-runner-codegen.json \
 - **≠** 154KB 全 C 替代（广面探针绿后仍写诚实未达）
 - **≠** 物理删 `run.sh`
 
-## 收敛链顺序（实现 Wave34 时）
+## 日常收敛
 
-1. `v45-wave33-codegen-deep-continue-converge.sh`
-2. 新建四轨 plan + matrix + rollup lisp
-3. `v45-wave34-runner-codegen-continue-converge.sh`
-4. 更新 `run.sh` gate · `catalog-v45.yaml` 默认指向 wave34
+```bash
+bash lab/nano-lisp-jit/scripts/v45-wave34-runner-codegen-continue-converge.sh
+```

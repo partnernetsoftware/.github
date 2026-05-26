@@ -10,7 +10,7 @@
       "layer": 34,
       "ring": "gate",
       "onion_ring": 15,
-      "status": "ready",
+      "status": "done",
       "deps": [],
       "accept": [
         "v45.v45.codegen_deep_continue.100=1",
@@ -22,8 +22,10 @@
       "layer": 34,
       "ring": "Codegen",
       "onion_ring": 15,
-      "status": "ready",
-      "deps": ["v45-rc-gate"],
+      "status": "done",
+      "deps": [
+        "v45-rc-gate"
+      ],
       "parallel_slot": "W1",
       "plan": "samples/bootstrap-v45-codegen-runner-module-table.lisp"
     },
@@ -32,8 +34,10 @@
       "layer": 34,
       "ring": "Codegen",
       "onion_ring": 15,
-      "status": "ready",
-      "deps": ["v45-rc-gate"],
+      "status": "done",
+      "deps": [
+        "v45-rc-gate"
+      ],
       "parallel_slot": "W2",
       "plan": "samples/bootstrap-v45-codegen-runner-emit-broad.lisp"
     },
@@ -42,8 +46,10 @@
       "layer": 34,
       "ring": "Codegen",
       "onion_ring": 15,
-      "status": "ready",
-      "deps": ["v45-rc-gate"],
+      "status": "done",
+      "deps": [
+        "v45-rc-gate"
+      ],
       "parallel_slot": "W3",
       "plan": "samples/bootstrap-v45-codegen-ir-facade-next.lisp"
     },
@@ -52,17 +58,19 @@
       "layer": 34,
       "ring": "Codegen",
       "onion_ring": 15,
-      "status": "ready",
-      "deps": ["v45-rc-gate"],
+      "status": "done",
+      "deps": [
+        "v45-rc-gate"
+      ],
       "parallel_slot": "W4",
       "plan": "samples/bootstrap-v45-codegen-lispjit-modules-subset.lisp"
     },
     {
       "id": "v45-rc-terminal",
       "layer": 35,
-      "ring": "终局",
+      "ring": "\u7ec8\u5c40",
       "onion_ring": 15,
-      "status": "ready",
+      "status": "done",
       "deps": [
         "v45-rc-module-table",
         "v45-rc-emit-broad",
@@ -76,8 +84,10 @@
       "layer": 36,
       "ring": "DONE",
       "onion_ring": 15,
-      "status": "ready",
-      "deps": ["v45-rc-terminal"],
+      "status": "done",
+      "deps": [
+        "v45-rc-terminal"
+      ],
       "plan": "samples/bootstrap-v45-goal-v45-runner-codegen-continue-100.lisp"
     }
   ]

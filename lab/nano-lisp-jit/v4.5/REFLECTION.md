@@ -401,7 +401,10 @@ bash lab/nano-lisp-jit/scripts/v45-cleanup-reflect.sh
 | Wave33 四轨够吗？ | 不够 — 模块表 + emit 宽表 + ir-facade + modules 子集 |
 | DP 路径 | `FASMGX_FRONTIER=…` · `mindmap-dp-v45.py` |
 
-真源：[`fasmgx/REFLECTION.md`](../../../fasmgx/REFLECTION.md) · [`fasmgx/NEXT-ONION-TDD-TREE.md`](../../../fasmgx/NEXT-ONION-TDD-TREE.md) · [`DIFFUSE-WAVE34.md`](DIFFUSE-WAVE34.md)
+真源：[`fasmgx/REFLECTION.md`](../../../fasmgx/REFLECTION.md) · [`DIFFUSE-WAVE34.md`](DIFFUSE-WAVE34.md)
+
+| 交付 | `runner_codegen_continue.100` · 四轨 host+next 绿 · 活图 **7/7** |
+| 诚实 | 154KB 全 C 替代仍未达 — 广面探针 ≠ 终局 |
 
 ## 十八、Wave3（整表扩散，勿逐条）
 
