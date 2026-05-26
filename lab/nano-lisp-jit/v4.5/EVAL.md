@@ -77,7 +77,7 @@
 | Wave | 签收键 | 活图 | 状态 |
 |------|--------|------|------|
 | 29 | `selfhost_deep_continue.100` | selfhost-deep 7/7 | ✅ main |
-| **30** | **`goal_factory_unified_continue.100`** | goal-factory **7/7** | 🔄 本合并 |
+| **30** | **`goal_factory_unified_continue.100`** | goal-factory **7/7** | ✅ main |
 
 | 指标 | 数值 |
 |------|------|
