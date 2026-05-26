@@ -23,7 +23,7 @@ grep -q v45.v45.goal_factory_unified_continue.100=1 "$EV" || fail=$((fail + 1))
 
 run_plan() {
   "${GEN[@]}" "$COM" run-bootstrap-plan \
-    "lab/nano-lisp-jit/samples/bootstrap-v45-$1.lisp" >/dev/null
+    "lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-$1.lisp" >/dev/null
 }
 
 next_plan_ok() {
@@ -39,10 +39,10 @@ boundary_ok=1
 if [ -x "$NEXT_FULL" ]; then
   pids=()
   for spec in \
-    "i64:lab/nano-lisp-jit/samples/bootstrap-v45-boundary-i64.lisp" \
-    "ptr:lab/nano-lisp-jit/samples/bootstrap-v45-boundary-ptr.lisp" \
-    "func:lab/nano-lisp-jit/samples/bootstrap-v45-boundary-func.lisp" \
-    "negative:lab/nano-lisp-jit/samples/bootstrap-v45-boundary-negative.lisp"; do
+    "i64:lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-boundary-i64.lisp" \
+    "ptr:lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-boundary-ptr.lisp" \
+    "func:lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-boundary-func.lisp" \
+    "negative:lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-boundary-negative.lisp"; do
     name=${spec%%:*}
     plan=${spec#*:}
     ( next_plan_ok "$plan" && echo "v45-wave31=ok next_boundary $name" ) \

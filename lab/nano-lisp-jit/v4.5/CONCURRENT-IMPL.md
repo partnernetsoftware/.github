@@ -26,7 +26,7 @@ v4.5/SELFHOST.md
 
 ```bash
 COM=lab/nano-lisp-jit/.build/nano-jit/nano-jit.com
-$COM run-bootstrap-plan lab/nano-lisp-jit/samples/bootstrap-v45-selfhost-modules-full.lisp
+$COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-selfhost-modules-full.lisp
 # → 13× compile/run 绿
 ```
 

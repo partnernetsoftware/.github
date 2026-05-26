@@ -39,15 +39,15 @@
 COM=lab/nano-lisp-jit/.build/nano-jit/nano-jit.com
 
 # B01 VM 红 / AOT 绿
-$COM compile lab/nano-lisp-jit/samples/boundary/func-block-vm-gap.lisp /tmp/gap.lbin
+$COM compile lab/nano-lisp-jit/lisp/boundary/func-block-vm-gap.lisp /tmp/gap.lbin
 $COM run /tmp/gap.lbin   # → func.unsupported.op=11
-$COM compile-elf64-exe lab/nano-lisp-jit/samples/boundary/func-block-vm-gap.lisp /tmp/gap.elf nano_gap
+$COM compile-elf64-exe lab/nano-lisp-jit/lisp/boundary/func-block-vm-gap.lisp /tmp/gap.elf nano_gap
 $COM run-expect-exit /tmp/gap.elf 42
 
 # 全矩阵
-$COM run-bootstrap-plan lab/nano-lisp-jit/samples/bootstrap-v45-boundary-probe.lisp
-$COM run-bootstrap-plan lab/nano-lisp-jit/samples/bootstrap-v45-boundary-negative.lisp
-$COM run-bootstrap-plan lab/nano-lisp-jit/samples/bootstrap-v45-boundary-feedback.lisp
+$COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-boundary-probe.lisp
+$COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-boundary-negative.lisp
+$COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-boundary-feedback.lisp
 ```
 
 ## 与签收关系

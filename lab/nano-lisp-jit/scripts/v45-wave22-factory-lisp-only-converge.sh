@@ -18,7 +18,7 @@ bash "$(dirname "$0")/v45-cleanup-reflect.sh" || fail=$((fail + 1))
 
 for p in selfhost-regenesis-lisp-only selfhost-chain-lisp-only mindmap-factory-lisp-only; do
   if "${GEN[@]}" "$COM" run-bootstrap-plan \
-      "lab/nano-lisp-jit/samples/bootstrap-v45-$p.lisp" >/dev/null 2>&1; then
+      "lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-$p.lisp" >/dev/null 2>&1; then
     echo "v45-wave22=ok plan=$p"
   else
     echo "v45-wave22=fail plan=$p"

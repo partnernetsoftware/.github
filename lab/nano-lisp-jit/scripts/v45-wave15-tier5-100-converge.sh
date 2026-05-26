@@ -21,7 +21,7 @@ for pid in "${pids[@]}"; do wait "$pid" || fail=$((fail + 1)); done
 COM="$ROOT/lab/nano-lisp-jit/.build/nano-jit/nano-jit.com"
 if [ -x "$COM" ]; then
   for p in tier5-100 wave15-diffuse-global wave15-rollup terminal-done; do
-    if "$COM" run-bootstrap-plan "lab/nano-lisp-jit/samples/bootstrap-v45-$p.lisp" >/dev/null; then
+    if "$COM" run-bootstrap-plan "lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-$p.lisp" >/dev/null; then
       echo "v45-wave15-tier5-100-converge=ok plan=$p"
     else
       echo "v45-wave15-tier5-100-converge=fail plan=$p"
@@ -30,7 +30,7 @@ if [ -x "$COM" ]; then
   done
   if env -u NANO_SELFHOST_REUSE_X86 -u NANO_SELFHOST_REUSE_AARCH64 \
     -u NANO_BUILD_SLICE_SELFHOST_REUSE -u NANO_REGENESIS \
-    "$COM" run-bootstrap-plan "lab/nano-lisp-jit/samples/bootstrap-v45-onion-tdd.lisp" >/dev/null; then
+    "$COM" run-bootstrap-plan "lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-onion-tdd.lisp" >/dev/null; then
     echo "v45-wave15-tier5-100-converge=ok plan=onion-tdd"
   else
     echo "v45-wave15-tier5-100-converge=fail plan=onion-tdd"
@@ -43,7 +43,7 @@ c_samples=$(find "$ROOT/lab/nano-lisp-jit/samples" -name '*.c' ! -type l 2>/dev/
 c_arch=$(find "$ROOT/lab/nano-lisp-jit/archive/runner" -name '*.c' ! -type l 2>/dev/null | wc -l)
 c_fix=$(find "$ROOT/lab/nano-lisp-jit/archive/fixtures" -name '*.c' ! -type l 2>/dev/null | wc -l)
 symlinks=$(find "$ROOT/lab/lispjit-ir" -name '*.c' -type l 2>/dev/null | wc -l)
-n=$(ls -1 lab/nano-lisp-jit/samples/bootstrap-v45-*.lisp 2>/dev/null | wc -l)
+n=$(ls -1 lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-*.lisp 2>/dev/null | wc -l)
 
 if [ "$c_ir" -ne 0 ] || [ "$c_samples" -ne 0 ]; then
   echo "v45-wave15-tier5-100-converge=fail release_surface c_ir=$c_ir c_samples=$c_samples"

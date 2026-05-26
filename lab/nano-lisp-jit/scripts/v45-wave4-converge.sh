@@ -32,7 +32,7 @@ run_plan() {
 }
 # Wave4-only plans (tier3 anchor, squad plan-only, diffuse/rollup)
 for p in wave4-tier3-anchor wave4-squad-plan wave4-diffuse-global wave4-rollup; do
-  src="lab/nano-lisp-jit/samples/bootstrap-v45-$p.lisp"
+  src="lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-$p.lisp"
   if run_plan "$COM" "$src" "$p"; then
     echo "v45-wave4-converge=ok plan=$p"
   else
@@ -42,14 +42,14 @@ for p in wave4-tier3-anchor wave4-squad-plan wave4-diffuse-global wave4-rollup; 
 done
 if [ -x "$NEXT" ]; then
   for p in onion-tdd verify-core entry boundary-probe; do
-    if run_plan "$NEXT" "lab/nano-lisp-jit/samples/bootstrap-v45-$p.lisp" "$p"; then
+    if run_plan "$NEXT" "lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-$p.lisp" "$p"; then
       echo "v45-wave4-converge=ok next_com plan=$p"
     else
       echo "v45-wave4-converge=fail next_com plan=$p"
       fail=$((fail + 1))
     fi
   done
-  if run_plan "$NEXT" "lab/nano-lisp-jit/samples/bootstrap-v45-onion-tdd.lisp" "next-onion"; then
+  if run_plan "$NEXT" "lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-onion-tdd.lisp" "next-onion"; then
     echo "v45-wave4-converge=ok next_com_onion_tdd=1"
   else
     echo "v45-wave4-converge=fail next_com_onion_tdd"
@@ -58,7 +58,7 @@ if [ -x "$NEXT" ]; then
   echo "v45.selfhost.next_onion=1" >>"$EV"
 fi
 shopt -s nullglob
-n=$(ls -1 lab/nano-lisp-jit/samples/bootstrap-v45-*.lisp 2>/dev/null | wc -l)
+n=$(ls -1 lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-*.lisp 2>/dev/null | wc -l)
 {
   echo "v45.wave4.diffuse=1"
   echo "v45.wave4.plans=$n"

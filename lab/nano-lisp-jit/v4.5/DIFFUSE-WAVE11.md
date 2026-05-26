@@ -7,7 +7,7 @@
 | 轨 | 角色 | T5 | 交付 |
 |----|------|-----|------|
 | **A** | engineer-a | T5a | 无参 `run.sh` → `NANO_V45_SCOPED_ONLY=1` 默认 |
-| **B** | engineer-a | T5b | `nano_bootstrap.c` 迁 `archive/runner/` + symlink |
+| **B** | engineer-a | T5b | `nano_bootstrap.c` 迁 `archive/c/runner/` + symlink |
 | **C** | engineer-b | T5c | [`PHYSICAL-INVENTORY.md`](PHYSICAL-INVENTORY.md) + 计数 plan |
 | **D** | engineer-b | T5d | `wave11-vm-emit-matrix` — tier4 IR 扩面 smoke |
 | **R** | reviewer | — | `wave11-rollup` + `REFLECTION` |

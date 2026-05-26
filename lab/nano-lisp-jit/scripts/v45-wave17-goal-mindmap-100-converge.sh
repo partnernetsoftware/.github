@@ -13,7 +13,7 @@ COM="$ROOT/lab/nano-lisp-jit/.build/nano-jit/nano-jit.com"
 if [ -x "$COM" ]; then
   if env -u NANO_SELFHOST_REUSE_X86 -u NANO_SELFHOST_REUSE_AARCH64 \
     -u NANO_BUILD_SLICE_SELFHOST_REUSE -u NANO_REGENESIS \
-    "$COM" run-bootstrap-plan "lab/nano-lisp-jit/samples/bootstrap-v45-goal-mindmap-tree-100.lisp" >/dev/null; then
+    "$COM" run-bootstrap-plan "lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-goal-mindmap-tree-100.lisp" >/dev/null; then
     echo "v45-wave17-goal-mindmap-100-converge=ok plan=goal-mindmap-tree-100"
   else
     echo "v45-wave17-goal-mindmap-100-converge=fail plan=goal-mindmap-tree-100"
@@ -21,12 +21,12 @@ if [ -x "$COM" ]; then
   fi
   env -u NANO_SELFHOST_REUSE_X86 -u NANO_SELFHOST_REUSE_AARCH64 \
     -u NANO_BUILD_SLICE_SELFHOST_REUSE -u NANO_REGENESIS \
-    "$COM" run-bootstrap-plan "lab/nano-lisp-jit/samples/bootstrap-v45-onion-tdd.lisp" >/dev/null \
+    "$COM" run-bootstrap-plan "lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-onion-tdd.lisp" >/dev/null \
     && echo "v45-wave17-goal-mindmap-100-converge=ok plan=onion-tdd" \
     || { echo "v45-wave17-goal-mindmap-100-converge=fail plan=onion-tdd"; fail=$((fail + 1)); }
   env -u NANO_SELFHOST_REUSE_X86 -u NANO_SELFHOST_REUSE_AARCH64 \
     -u NANO_BUILD_SLICE_SELFHOST_REUSE -u NANO_REGENESIS \
-    "$COM" run-bootstrap-plan "lab/nano-lisp-jit/samples/bootstrap-v45-terminal-done.lisp" >/dev/null \
+    "$COM" run-bootstrap-plan "lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-terminal-done.lisp" >/dev/null \
     && echo "v45-wave17-goal-mindmap-100-converge=ok plan=terminal-done" \
     || { echo "v45-wave17-goal-mindmap-100-converge=fail plan=terminal-done"; fail=$((fail + 1)); }
 fi
@@ -43,7 +43,7 @@ p.write_text(json.dumps(data, indent=2) + "\n")
 print("v45-wave17-goal-mindmap-100-converge=ok frontier_goal_done")
 PY
 
-n=$(ls -1 lab/nano-lisp-jit/samples/bootstrap-v45-*.lisp 2>/dev/null | wc -l)
+n=$(ls -1 lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-*.lisp 2>/dev/null | wc -l)
 {
   echo "v45.wave17.diffuse=1"
   echo "v45.wave17.rollup=1"

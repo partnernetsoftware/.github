@@ -27,7 +27,7 @@ done
 
 run_plan() {
   "${GEN[@]}" "$COM" run-bootstrap-plan \
-    "lab/nano-lisp-jit/samples/bootstrap-v45-$1.lisp" >/dev/null
+    "lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-$1.lisp" >/dev/null
 }
 
 next_plan_ok() {
@@ -43,10 +43,10 @@ rollup_ok=1
 if [ -x "$NEXT_FULL" ]; then
   pids=()
   for spec in \
-    "lisp:lab/nano-lisp-jit/samples/bootstrap-v45-goal-lisp-selfhost-unified-100.lisp" \
-    "onion:lab/nano-lisp-jit/samples/bootstrap-v45-goal-onion-mindmap-unified-100.lisp" \
-    "handoff:lab/nano-lisp-jit/samples/bootstrap-v45-v4-handoff.lisp" \
-    "terminal:lab/nano-lisp-jit/samples/bootstrap-v45-selfhost-terminal.lisp"; do
+    "lisp:lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-goal-lisp-selfhost-unified-100.lisp" \
+    "onion:lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-goal-onion-mindmap-unified-100.lisp" \
+    "handoff:lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-v4-handoff.lisp" \
+    "terminal:lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-selfhost-terminal.lisp"; do
     name=${spec%%:*}
     plan=${spec#*:}
     ( next_plan_ok "$plan" && echo "v45-wave32=ok next_rollup $name" ) \

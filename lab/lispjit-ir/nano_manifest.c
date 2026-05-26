@@ -1,1 +1,1 @@
-../nano-lisp-jit/archive/runner/nano_manifest.c
+../nano-lisp-jit/archive/c/runner/nano_manifest.c

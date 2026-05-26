@@ -19,7 +19,7 @@ bash "$(dirname "$0")/v45-wave24-release-converge.sh" || fail=$((fail + 1))
 
 run_plan() {
   "${GEN[@]}" "$COM" run-bootstrap-plan \
-    "lab/nano-lisp-jit/samples/bootstrap-v45-$1.lisp" >/dev/null
+    "lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-$1.lisp" >/dev/null
 }
 
 probe_ok=1
@@ -34,7 +34,7 @@ for pid in "${pids[@]}"; do wait "$pid" || probe_ok=0; done
 next_lo_onion_ok() {
   local out ec=0
   out=$("${GEN[@]}" "$NEXT_LO" run-bootstrap-plan \
-      lab/nano-lisp-jit/samples/bootstrap-v45-onion-lisp-only.lisp 2>&1) || ec=$?
+      lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-onion-lisp-only.lisp 2>&1) || ec=$?
   printf '%s\n' "$out" | grep -qE 'run-expect-exit\.ok=1|run-ape-expect-exit\.ok=1' && return 0
   [ "$ec" = 0 ] || [ "$ec" = 42 ]
 }

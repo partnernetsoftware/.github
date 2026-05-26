@@ -17,7 +17,7 @@ run_plan() {
   "$COM" run-bootstrap-plan "$1" >/dev/null || return 1
 }
 for p in onion-lisp-only wave5-w3-com-matrix wave5-diffuse-global; do
-  src="lab/nano-lisp-jit/samples/bootstrap-v45-$p.lisp"
+  src="lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-$p.lisp"
   if run_plan "$src"; then
     echo "v45-wave5-converge=ok plan=$p"
   else
@@ -26,7 +26,7 @@ for p in onion-lisp-only wave5-w3-com-matrix wave5-diffuse-global; do
   fi
 done
 scoped_pass=0
-if run_plan lab/nano-lisp-jit/samples/bootstrap-v45-terminal-done.lisp; then
+if run_plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-terminal-done.lisp; then
   scoped_pass=$((scoped_pass + 1))
   echo "v45-wave5-converge=ok terminal-done"
 else
@@ -39,20 +39,20 @@ OUT="$ROOT/lab/nano-lisp-jit/.build/v45-scoped-results.txt"
   echo "tests.fail=0"
   echo "v45.scoped.ci=1"
 } >"$OUT"
-if run_plan lab/nano-lisp-jit/samples/bootstrap-v45-wave5-ci-scoped.lisp; then
+if run_plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-wave5-ci-scoped.lisp; then
   echo "v45-wave5-converge=ok plan=wave5-ci-scoped"
 else
   echo "v45-wave5-converge=fail plan=wave5-ci-scoped"
   fail=$((fail + 1))
 fi
-if run_plan lab/nano-lisp-jit/samples/bootstrap-v45-wave5-rollup.lisp; then
+if run_plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-wave5-rollup.lisp; then
   echo "v45-wave5-converge=ok plan=wave5-rollup"
 else
   echo "v45-wave5-converge=fail plan=wave5-rollup"
   fail=$((fail + 1))
 fi
 if [ ! -x "$W3" ]; then
-  "$COM" run-bootstrap-plan lab/nano-lisp-jit/samples/bootstrap-v45-wave3-lisp-only-regenesis.lisp >/dev/null 2>&1 || true
+  "$COM" run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-wave3-lisp-only-regenesis.lisp >/dev/null 2>&1 || true
 fi
 w3_ok=0
 if [ -x "$W3" ]; then
@@ -64,7 +64,7 @@ if [ -x "$W3" ]; then
     echo "v45-wave5-converge=skip w3_slice_exit=$rc"
   fi
 fi
-n=$(ls -1 lab/nano-lisp-jit/samples/bootstrap-v45-*.lisp 2>/dev/null | wc -l)
+n=$(ls -1 lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-*.lisp 2>/dev/null | wc -l)
 {
   echo "v45.wave5.diffuse=1"
   echo "v45.wave5.plans=$n"

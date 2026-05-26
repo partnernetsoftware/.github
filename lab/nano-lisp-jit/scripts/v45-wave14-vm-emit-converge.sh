@@ -12,7 +12,7 @@ if [ -x "$COM" ]; then
   pids=()
   for p in vm-emit-arith vm-emit-strlen vm-emit-ctrl vm-emit-multi; do
     (
-      if "$COM" run-bootstrap-plan "lab/nano-lisp-jit/samples/bootstrap-v45-wave14-$p.lisp" >/dev/null; then
+      if "$COM" run-bootstrap-plan "lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-wave14-$p.lisp" >/dev/null; then
         echo "v45-wave14-vm-emit-converge=ok plan=$p"
       else
         echo "v45-wave14-vm-emit-converge=fail plan=$p"
@@ -23,7 +23,7 @@ if [ -x "$COM" ]; then
   done
   for pid in "${pids[@]}"; do wait "$pid" || fail=$((fail + 1)); done
   for p in diffuse-global rollup; do
-    "$COM" run-bootstrap-plan "lab/nano-lisp-jit/samples/bootstrap-v45-wave14-$p.lisp" >/dev/null \
+    "$COM" run-bootstrap-plan "lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-wave14-$p.lisp" >/dev/null \
       && echo "v45-wave14-vm-emit-converge=ok plan=$p" \
       || { echo "v45-wave14-vm-emit-converge=fail plan=$p"; fail=$((fail + 1)); }
   done

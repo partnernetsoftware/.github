@@ -24,7 +24,7 @@ if [ -x "$COM" ]; then
   pids=()
   for p in ape-anchor irjit-anchor onion-after-archive physical-rollup; do
     (
-      if "$COM" run-bootstrap-plan "lab/nano-lisp-jit/samples/bootstrap-v45-wave13-$p.lisp" >/dev/null; then
+      if "$COM" run-bootstrap-plan "lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-wave13-$p.lisp" >/dev/null; then
         echo "v45-wave13-tier5-converge=ok plan=$p"
       else
         echo "v45-wave13-tier5-converge=fail plan=$p"
@@ -37,7 +37,7 @@ if [ -x "$COM" ]; then
     wait "$pid" || fail=$((fail + 1))
   done
   for p in diffuse-global rollup; do
-    if "$COM" run-bootstrap-plan "lab/nano-lisp-jit/samples/bootstrap-v45-wave13-$p.lisp" >/dev/null; then
+    if "$COM" run-bootstrap-plan "lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-wave13-$p.lisp" >/dev/null; then
       echo "v45-wave13-tier5-converge=ok plan=$p"
     else
       echo "v45-wave13-tier5-converge=fail plan=$p"
@@ -49,7 +49,7 @@ fi
 c_ir=$(find "$ROOT/lab/lispjit-ir" -name '*.c' ! -type l 2>/dev/null | wc -l)
 c_arch=$(find "$ROOT/lab/nano-lisp-jit/archive/runner" -name '*.c' ! -type l 2>/dev/null | wc -l)
 symlinks=$(find "$ROOT/lab/lispjit-ir" -name '*.c' -type l 2>/dev/null | wc -l)
-n=$(ls -1 lab/nano-lisp-jit/samples/bootstrap-v45-*.lisp 2>/dev/null | wc -l)
+n=$(ls -1 lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-*.lisp 2>/dev/null | wc -l)
 {
   echo "v45.wave13.diffuse=1"
   echo "v45.wave13.parallel=4"

@@ -9,7 +9,7 @@
 ```bash
 COM=lab/nano-lisp-jit/.build/nano-jit/nano-jit.com
 for p in verify-smoke verify-core v4-handoff verify-all entry; do
-  $COM run-bootstrap-plan lab/nano-lisp-jit/samples/bootstrap-v45-$p.lisp
+  $COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-$p.lisp
 done
 grep v45.verify.plan_only=1 lab/nano-lisp-jit/.build/v45-entry.evidence
 ```

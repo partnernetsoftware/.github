@@ -1,6 +1,0 @@
-; wave58 track-B: onion rings recap.
-(bootstrap
-  (file-size "lab/nano-lisp-jit/samples/v4-onion-rings-v1.lisp")
-  (file-size "lab/nano-lisp-jit/samples/bootstrap-v4-wave30-diffusion.lisp")
-  (file-size "lab/nano-lisp-jit/samples/bootstrap-v4-wave32-diffusion.lisp")
-  (file-hash "lab/nano-lisp-jit/samples/bootstrap-v4-onion-tick.lisp"))

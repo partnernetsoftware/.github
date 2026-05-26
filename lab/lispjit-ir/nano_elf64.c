@@ -1,1 +1,1 @@
-../nano-lisp-jit/archive/runner/nano_elf64.c
+../nano-lisp-jit/archive/c/runner/nano_elf64.c

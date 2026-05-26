@@ -1,29 +1,12 @@
-# samples 目录梳理
+# samples/（已迁移）
 
-## 发行面（v4.5 · 优先）
+**发行面 `*.lisp` 自举** → [`../lisp/`](../lisp/README.md)
 
-| 前缀 / 目录 | 数量级 | 用途 |
-|-------------|--------|------|
-| `bootstrap-v45-*.lisp` | ~13 | 洋葱 TDD、verify、boundary、DONE |
-| `boundary/*.lisp` | 14 | 能力边界 + 产品反馈样例 |
-| `*.lisp`（根） | ~30 | VM/AOT 核心样例（arithmetic、strlen、…） |
-| `lispjit-modules/` | 13 | lispjit-from-lisp 模块 TU |
-
-验收：[`../v4.5/ONION-TDD.md`](../v4.5/ONION-TDD.md)
-
-## v4 工厂（维护 · 勿删）
-
-| 前缀 | 数量级 | 用途 |
-|------|--------|------|
-| `bootstrap-v4-zero-host-*` | ~60 | 零宿主 gen2–gen60 |
-| `archive/samples/v4-waves/bootstrap-v4-wave*` | ~660 | 波次 tick（已归档） |
-| `bootstrap-v4-slice*-evidence` | ~90 | slice 证据 rollup |
-| `nano-jit-slice-add-*` | ~80 | addNN aarch64 切片 |
-
-由 `run.sh` 全量回归；**用户路径不经过此目录全部文件**。
-
-## 命名约定
-
-- `bootstrap-v45-*` — 发行面 plan（无 `.c`）
-- `bootstrap-v4-zero-host-*` — 自举链
-- `bootstrap-v4-waveNN-*` — 历史波次（归档语义，仍在仓内）
+| 原路径 | 新路径 |
+|--------|--------|
+| `samples/bootstrap-v45-*.lisp` | [`lisp/bootstrap/`](../lisp/bootstrap/) |
+| `samples/lispjit-modules/` | [`lisp/modules/`](../lisp/modules/) |
+| `samples/boundary/` | [`lisp/boundary/`](../lisp/boundary/) |
+| VM 核心样例 | [`lisp/core/`](../lisp/core/) |
+| `bootstrap-v4-*` · 工厂 wave | [`archive/c/factory/`](../archive/c/README.md) |
+| C runner 真源 | [`archive/c/runner/`](../archive/c/runner/) |

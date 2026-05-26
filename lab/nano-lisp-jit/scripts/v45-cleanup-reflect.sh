@@ -18,7 +18,7 @@ python3 "$ROOT/lab/nano-lisp-jit/tools/mindmap-dp-v45.py" stats || true
 COM="$ROOT/lab/nano-lisp-jit/.build/nano-jit/nano-jit.com"
 if [ -x "$COM" ]; then
   "$COM" run-bootstrap-plan \
-    "$ROOT/lab/nano-lisp-jit/samples/bootstrap-v45-cleanup-reflect.lisp" >/dev/null 2>&1 \
+    "$ROOT/lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-cleanup-reflect.lisp" >/dev/null 2>&1 \
     && echo "v45-cleanup-reflect=ok plan=cleanup-reflect" \
     || echo "v45-cleanup-reflect=warn plan=cleanup-reflect"
 fi

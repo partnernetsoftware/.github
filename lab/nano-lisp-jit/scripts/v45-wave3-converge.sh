@@ -30,7 +30,7 @@ run_plan() {
   fi
 }
 shopt -s nullglob
-plans=(lab/nano-lisp-jit/samples/bootstrap-v45-*.lisp)
+plans=(lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-*.lisp)
 n=${#plans[@]}
 [ "$n" -gt 0 ] || { echo "v45-wave3-converge=no_plans"; exit 1; }
 for src in "${plans[@]}"; do
@@ -45,12 +45,12 @@ for src in "${plans[@]}"; do
 done
 # Critical gates (must pass)
 for p in wave3-lisp-only-regenesis onion-tdd selfhost-chain build-slice-genesis; do
-  src="lab/nano-lisp-jit/samples/bootstrap-v45-$p.lisp"
+  src="lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-$p.lisp"
   run_plan "$COM" "$src" "$p" || fail=$((fail + 1))
 done
 if [ -x "$NEXT" ]; then
   for p in verify-smoke verify-core boundary-probe; do
-    if run_plan "$NEXT" "lab/nano-lisp-jit/samples/bootstrap-v45-$p.lisp" "$p"; then
+    if run_plan "$NEXT" "lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-$p.lisp" "$p"; then
       echo "v45-wave3-converge=ok next_com plan=$p"
     else
       echo "v45-wave3-converge=fail next_com plan=$p"
@@ -60,7 +60,7 @@ if [ -x "$NEXT" ]; then
   echo "v45.selfhost.next_com=1" >>"$EV"
 fi
 W3="$ROOT/lab/nano-lisp-jit/.build/v45-w3-lisp-only.com"
-if [ -x "$W3" ] && run_plan "$W3" "lab/nano-lisp-jit/samples/bootstrap-v45-verify-smoke.lisp" "verify-smoke"; then
+if [ -x "$W3" ] && run_plan "$W3" "lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-verify-smoke.lisp" "verify-smoke"; then
   echo "v45-wave3-converge=ok w3_lisp_only_com"
 fi
 {

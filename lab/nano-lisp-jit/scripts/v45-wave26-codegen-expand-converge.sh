@@ -19,7 +19,7 @@ bash "$(dirname "$0")/v45-wave25-codegen-probe-converge.sh" || fail=$((fail + 1)
 
 run_plan() {
   "${GEN[@]}" "$COM" run-bootstrap-plan \
-    "lab/nano-lisp-jit/samples/bootstrap-v45-$1.lisp" >/dev/null
+    "lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-$1.lisp" >/dev/null
 }
 
 probe_ok=1

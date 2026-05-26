@@ -22,7 +22,7 @@ grep -q v45.goal.onion_tdd_tree_mindmap.100=1 "$EV" \
 
 run_plan() {
   "${GEN[@]}" "$COM" run-bootstrap-plan \
-    "lab/nano-lisp-jit/samples/bootstrap-v45-$1.lisp" >/dev/null
+    "lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-$1.lisp" >/dev/null
 }
 
 probe_ok=1

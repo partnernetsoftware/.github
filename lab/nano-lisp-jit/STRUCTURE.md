@@ -1,50 +1,45 @@
 # lab/nano-lisp-jit 目录结构
 
-> 清理后地图 · 详见 [`v4.5/CLEANUP.md`](v4.5/CLEANUP.md)
+> 入口：[`nano-jit.md`](nano-jit.md) · v4.5：[`v4.5/CLEANUP.md`](v4.5/CLEANUP.md)
 
-## 发行面（用户 · v4.5）
-
-```text
-nano-jit.com                         # .build/nano-jit/nano-jit.com
-samples/bootstrap-v45-*.lisp         # 洋葱 TDD / verify / DONE
-samples/boundary/*.lisp              # 能力边界（10 正向）
-samples/bootstrap-v45-boundary-*.lisp # 正/负向 boundary plan
-samples/{arithmetic,strlen,...}.lisp # 核心 VM 样例
-genesis/nano-jit.x86_64
-v4.5/                                # ONION-TDD · PROGRESS · EVAL · PRODUCT-FEEDBACK
-```
-
-入口：[`v4.5/ONION-TDD.md`](v4.5/ONION-TDD.md)
-
-## v4 活跃文档（14 个）
-
-[`v4/INDEX.md`](v4/INDEX.md) — PROGRESS · DECISION · MINDMAP · TERMINAL-BFS · …
-
-## 归档
-
-| 路径 | 内容 |
-|------|------|
-| [`archive/v4/slices/`](archive/v4/slices/) | 244× `SLICE*.md` |
-| [`archive/v4/factory-docs/`](archive/v4/factory-docs/) | LONG-RUN · DIFFUSE · DEV-AGENTS |
-| [`archive/versions/`](archive/versions/) | v2–v3.5 |
-| [`archive/specs/`](archive/specs/) | APE 规范 |
-
-## 开发工厂
+## 发行面（`*.lisp` 完全自举）
 
 ```text
-run.sh                               # 全量回归（路径已指向 archive/v4/slices）
-build_nano_jit.sh
-lab/lispjit-ir/*.c
-archive/samples/v4-waves/          # ~660 wave 工厂（已迁出 samples/）
-samples/bootstrap-v4-zero-host-*     # 自举链
-tools/gen-v4-wave-batch.py
-squad/catalog-v4.yaml · catalog-v45.yaml
+lisp/
+  bootstrap/          # bootstrap-v45-*.lisp — 洋葱 / verify / 自举 / DONE
+  modules/            # lispjit-modules（13 TU）
+  core/               # arithmetic、strlen、ir-table…
+  boundary/           # 能力边界样例
+.build/nano-jit/nano-jit.com
+genesis/
+v4.5/                 # ONION-TDD · mindmap · EVAL
 ```
 
-## 子目录
+验收：[`v4.5/ONION-TDD.md`](v4.5/ONION-TDD.md)
 
-| 路径 | 用途 |
-|------|------|
-| [`samples/README.md`](samples/README.md) | 样例命名梳理 |
-| [`samples/lispjit-modules/`](samples/lispjit-modules/) | gen60 模块 TU |
-| [`.build/`](.build/) | 产物 · evidence（gitignore） |
+## 归档 · 含 C 工厂
+
+```text
+archive/c/
+  runner/             # lispjit.c 等 C 真源（原 archive/runner）
+  factory/
+    bootstrap-v4/     # zero-host 自举链
+    v4-waves/         # wave tick
+    legacy/           # v3/v3.5 bootstrap
+    misc/             # slice-add、历史 lisp 样例
+archive/v4/slices/    # SLICE 记账
+```
+
+`lab/lispjit-ir/*.c` → symlink 至 `archive/c/runner/`。
+
+## 维护工厂
+
+```text
+run.sh                # 全量回归（默认 scoped v4.5）
+scripts/v45-*-converge.sh
+squad/catalog-v45.yaml
+```
+
+## 已废弃
+
+`samples/` — 见 [`samples/README.md`](samples/README.md) 迁移表。

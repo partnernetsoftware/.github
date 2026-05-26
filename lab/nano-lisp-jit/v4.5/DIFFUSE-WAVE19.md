@@ -20,5 +20,5 @@ grep v45.selfhost.100= lab/nano-lisp-jit/.build/v45-entry.evidence
 
 ## 诚实边界（仍开放）
 
-- S4/S5 **发行 plan** 仍可用 `archive/runner/lispjit.c` 产 slice（日常 host 不 cc）
+- S4/S5 **发行 plan** 仍可用 `archive/c/runner/lispjit.c` 产 slice（日常 host 不 cc）
 - 全仓物理零 C 见 `v45.physical.*`（与自举卷分离）

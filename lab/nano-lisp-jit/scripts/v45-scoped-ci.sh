@@ -15,7 +15,7 @@ if [ ! -x "$COM" ]; then
   echo "v45.scoped.ci=skip"
   exit 0
 fi
-if "$COM" run-bootstrap-plan lab/nano-lisp-jit/samples/bootstrap-v45-terminal-done.lisp >/dev/null 2>&1; then
+if "$COM" run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-terminal-done.lisp >/dev/null 2>&1; then
   pass=$((pass + 1))
   echo "v45-scoped-ci=ok terminal-done"
 else

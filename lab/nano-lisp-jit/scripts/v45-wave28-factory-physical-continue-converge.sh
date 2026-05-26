@@ -25,7 +25,7 @@ grep -q v45.v45.codegen_coupled.100=1 "$EV" \
 
 run_plan() {
   "${GEN[@]}" "$COM" run-bootstrap-plan \
-    "lab/nano-lisp-jit/samples/bootstrap-v45-$1.lisp" >/dev/null
+    "lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-$1.lisp" >/dev/null
 }
 
 next_plan_ok() {
@@ -41,9 +41,9 @@ matrix_ok=1
 if [ -x "$NEXT_FULL" ]; then
   pids=()
   for spec in \
-    "smoke:lab/nano-lisp-jit/samples/bootstrap-v45-verify-smoke.lisp" \
-    "core:lab/nano-lisp-jit/samples/bootstrap-v45-verify-core.lisp" \
-    "onion:lab/nano-lisp-jit/samples/bootstrap-v45-onion-lisp-only.lisp"; do
+    "smoke:lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-verify-smoke.lisp" \
+    "core:lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-verify-core.lisp" \
+    "onion:lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-onion-lisp-only.lisp"; do
     name=${spec%%:*}
     plan=${spec#*:}
     ( next_plan_ok "$plan" && echo "v45-wave28=ok next_full $name" ) \

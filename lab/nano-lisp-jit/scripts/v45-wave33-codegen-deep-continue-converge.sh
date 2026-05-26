@@ -23,7 +23,7 @@ grep -q v45.v45.factory_rollup_continue.100=1 "$EV" || fail=$((fail + 1))
 
 run_plan() {
   "${GEN[@]}" "$COM" run-bootstrap-plan \
-    "lab/nano-lisp-jit/samples/bootstrap-v45-$1.lisp" >/dev/null
+    "lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-$1.lisp" >/dev/null
 }
 
 next_plan_ok() {
@@ -39,10 +39,10 @@ deep_ok=1
 if [ -x "$NEXT_FULL" ]; then
   pids=()
   for spec in \
-    "min:lab/nano-lisp-jit/samples/bootstrap-v45-codegen-lisp-slice-min.lisp" \
-    "ctrl:lab/nano-lisp-jit/samples/bootstrap-v45-codegen-lisp-vm-ctrl.lisp" \
-    "ir:lab/nano-lisp-jit/samples/bootstrap-v45-codegen-lisp-ir-table.lisp" \
-    "arith:lab/nano-lisp-jit/samples/bootstrap-v45-codegen-lisp-vm-arith.lisp"; do
+    "min:lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-codegen-lisp-slice-min.lisp" \
+    "ctrl:lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-codegen-lisp-vm-ctrl.lisp" \
+    "ir:lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-codegen-lisp-ir-table.lisp" \
+    "arith:lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-codegen-lisp-vm-arith.lisp"; do
     name=${spec%%:*}
     plan=${spec#*:}
     ( next_plan_ok "$plan" && echo "v45-wave33=ok next_codegen $name" ) \

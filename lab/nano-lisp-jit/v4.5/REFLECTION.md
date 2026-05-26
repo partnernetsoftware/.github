@@ -59,7 +59,7 @@ lab/nano-lisp-jit/
 
 ```bash
 COM=lab/nano-lisp-jit/.build/nano-jit/nano-jit.com
-$COM run-bootstrap-plan lab/nano-lisp-jit/samples/bootstrap-v45-onion-tdd.lisp
+$COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-onion-tdd.lisp
 grep v45.scoped.100=1 lab/nano-lisp-jit/.build/v45-entry.evidence
 ```
 
@@ -119,7 +119,7 @@ grep v45.scoped.100=1 lab/nano-lisp-jit/.build/v45-entry.evidence
 |------|------|
 | 默认入口 | 无参 `run.sh` 设 `NANO_V45_SCOPED_ONLY=1`；全量须 `NANO_V45_FULL_FACTORY=1` |
 | 并发收敛 | 四轨 plan **后台并行** `wait` → rollup（见 `v45-wave11-tier5-converge.sh`） |
-| 归档扩散 | `nano_bootstrap.c` 跟 tier3 同模式迁 `archive/runner/` |
+| 归档扩散 | `nano_bootstrap.c` 跟 tier3 同模式迁 `archive/c/runner/` |
 | 诚实 | `lispjit_ir` 计数下降 ≠ `physical.zero_c=1` |
 
 **扩散思维**：同一 wave 同时 touch T5a–T5d，禁止按单 `.c` 顺序碎迁。  

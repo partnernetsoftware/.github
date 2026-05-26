@@ -12,7 +12,7 @@
 | S3 | **modules** | `lispjit-modules/*.lisp` VM 链 | `bootstrap-v45-selfhost-modules` | `v45.selfhost.modules=1` |
 | S4 | **regenesis** | seed `.com` → `pack-ape` 出 **next.com** | `bootstrap-v45-selfhost-regenesis` | `v45.selfhost.regenesis=1` |
 | S5 | **chain** | S1–S4 单 plan 串联 | `bootstrap-v45-selfhost-chain` | `v45.selfhost.chain=1` |
-| T3 | no-c-src | `lispjit.c` 真源在 `archive/runner/` | ✅ | `v45.runner.no_c_src=1` |
+| T3 | no-c-src | `lispjit.c` 真源在 `archive/c/runner/` | ✅ | `v45.runner.no_c_src=1` |
 | T4 | vm-emit | `ir-table-lisp` + VM/AOT smoke | ✅ | `v45.codegen.vm_emit=1` |
 
 **完全自举（用户口径）** ≈ **S5 + T3 + 代际矩阵**；Wave19 签收 **`v45.selfhost.100=1`**（`v45-wave19-selfhost-converge.sh`）。
@@ -35,7 +35,7 @@ export -n NANO_SELFHOST_REUSE_X86 NANO_SELFHOST_REUSE_AARCH64 \
   NANO_BUILD_SLICE_SELFHOST_REUSE NANO_REGENESIS 2>/dev/null || true
 
 for p in build-slice-lisp selfhost-modules selfhost-regenesis selfhost-chain selfhost-terminal; do
-  $COM run-bootstrap-plan lab/nano-lisp-jit/samples/bootstrap-v45-$p.lisp
+  $COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-$p.lisp
 done
 
 grep -E 'v45\.selfhost\.(lisp_slice|modules|regenesis|chain)=' \

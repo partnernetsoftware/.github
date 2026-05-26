@@ -16,7 +16,7 @@ echo "v45-wave21-onion-tdd-tree-mindmap-100-converge=begin"
 bash "$(dirname "$0")/v45-wave20-lisp-selfhost-unified-converge.sh" || fail=$((fail + 1))
 
 run_plan() {
-  "$COM" run-bootstrap-plan "lab/nano-lisp-jit/samples/bootstrap-v45-$1.lisp" >/dev/null
+  "$COM" run-bootstrap-plan "lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-$1.lisp" >/dev/null
 }
 
 pids=()

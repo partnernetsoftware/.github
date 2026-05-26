@@ -6,7 +6,7 @@ EV="$ROOT/lab/nano-lisp-jit/.build/v45-entry.evidence"
 COM="$ROOT/lab/nano-lisp-jit/.build/nano-jit/nano-jit.com"
 NEXT_LO="$ROOT/lab/nano-lisp-jit/.build/v45-next-lisp-only.com"
 CHAIN_LO="$ROOT/lab/nano-lisp-jit/.build/v45-chain-lo-next.com"
-SMOKE="$ROOT/lab/nano-lisp-jit/samples/bootstrap-v45-verify-smoke.lisp"
+SMOKE="$ROOT/lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-verify-smoke.lisp"
 cd "$ROOT"
 fail=0
 touch "$EV"
@@ -59,11 +59,11 @@ echo "v45.v4.handoff.verified=1" >>"$EV"
 echo "v45.v4.handoff.nodes_done=69" >>"$EV"
 echo "v45.v4.handoff.nodes_total=69" >>"$EV"
 
-"$COM" run-bootstrap-plan lab/nano-lisp-jit/samples/bootstrap-v45-v4-handoff.lisp >/dev/null \
+"$COM" run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-v4-handoff.lisp >/dev/null \
   && echo "v45-wave23=ok v4-handoff" || { echo "v45-wave23=fail v4-handoff"; fail=$((fail + 1)); }
 
 for p in factory-next-lisp-only-matrix mindmap-v4-handoff-bridge goal-v45-continue-100; do
-  "$COM" run-bootstrap-plan "lab/nano-lisp-jit/samples/bootstrap-v45-$p.lisp" >/dev/null \
+  "$COM" run-bootstrap-plan "lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-$p.lisp" >/dev/null \
     && echo "v45-wave23=ok plan=$p" \
     || { echo "v45-wave23=fail plan=$p"; fail=$((fail + 1)); }
 done

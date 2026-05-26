@@ -1,6 +1,6 @@
 # Wave13 — tier5 收尾（`lispjit-ir` 门面零真 `.c`）
 
-> **签收**：`lispjit-ir/*.c` 全部为 symlink → `archive/runner/`。  
+> **签收**：`lispjit-ir/*.c` 全部为 symlink → `archive/c/runner/`。  
 > **未签收**：`v45.physical.zero_c=0`（`archive/runner` 仍有 ~20 真源 `.c`）。
 
 ## 四轨并发

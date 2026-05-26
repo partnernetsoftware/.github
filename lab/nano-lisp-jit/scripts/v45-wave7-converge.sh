@@ -16,19 +16,19 @@ run_plan() {
   "$COM" run-bootstrap-plan "$1" >/dev/null || return 1
 }
 for p in wave7-release-audit wave7-factory-v4-skip wave7-diffuse-global; do
-  if run_plan "lab/nano-lisp-jit/samples/bootstrap-v45-$p.lisp"; then
+  if run_plan "lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-$p.lisp"; then
     echo "v45-wave7-converge=ok plan=$p"
   else
     echo "v45-wave7-converge=fail plan=$p"
     fail=$((fail + 1))
   fi
 done
-if run_plan lab/nano-lisp-jit/samples/bootstrap-v45-terminal-done.lisp; then
+if run_plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-terminal-done.lisp; then
   echo "v45-wave7-converge=ok terminal-done"
 else
   fail=$((fail + 1))
 fi
-n=$(ls -1 lab/nano-lisp-jit/samples/bootstrap-v45-*.lisp 2>/dev/null | wc -l)
+n=$(ls -1 lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-*.lisp 2>/dev/null | wc -l)
 {
   echo "v45.wave7.diffuse=1"
   echo "v45.wave7.plans=$n"
@@ -37,13 +37,13 @@ n=$(ls -1 lab/nano-lisp-jit/samples/bootstrap-v45-*.lisp 2>/dev/null | wc -l)
   echo "v45.endgame.release=1"
   echo "v45.wave7.rollup=1"
 } >>"$EV"
-if run_plan lab/nano-lisp-jit/samples/bootstrap-v45-endgame-100.lisp; then
+if run_plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-endgame-100.lisp; then
   echo "v45-wave7-converge=ok endgame-100"
 else
   echo "v45-wave7-converge=fail endgame-100"
   fail=$((fail + 1))
 fi
-if run_plan lab/nano-lisp-jit/samples/bootstrap-v45-wave7-rollup.lisp; then
+if run_plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-wave7-rollup.lisp; then
   echo "v45-wave7-converge=ok plan=wave7-rollup"
 else
   fail=$((fail + 1))

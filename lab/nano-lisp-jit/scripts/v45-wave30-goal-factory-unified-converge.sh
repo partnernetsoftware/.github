@@ -25,7 +25,7 @@ grep -q v45.v45.selfhost_deep_continue.100=1 "$EV" \
 
 run_plan() {
   "${GEN[@]}" "$COM" run-bootstrap-plan \
-    "lab/nano-lisp-jit/samples/bootstrap-v45-$1.lisp" >/dev/null
+    "lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-$1.lisp" >/dev/null
 }
 
 next_plan_ok() {
@@ -41,10 +41,10 @@ recheck_ok=1
 if [ -x "$NEXT_FULL" ]; then
   pids=()
   for spec in \
-    "goal:lab/nano-lisp-jit/samples/bootstrap-v45-goal-onion-tdd-tree-mindmap-100.lisp" \
-    "boundary:lab/nano-lisp-jit/samples/bootstrap-v45-boundary-probe.lisp" \
-    "terminal:lab/nano-lisp-jit/samples/bootstrap-v45-terminal-done.lisp" \
-    "onion:lab/nano-lisp-jit/samples/bootstrap-v45-onion-lisp-only.lisp"; do
+    "goal:lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-goal-onion-tdd-tree-mindmap-100.lisp" \
+    "boundary:lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-boundary-probe.lisp" \
+    "terminal:lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-terminal-done.lisp" \
+    "onion:lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-onion-lisp-only.lisp"; do
     name=${spec%%:*}
     plan=${spec#*:}
     ( next_plan_ok "$plan" && echo "v45-wave30=ok next_recheck $name" ) \

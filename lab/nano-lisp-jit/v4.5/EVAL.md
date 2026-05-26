@@ -178,7 +178,7 @@
 
 | 维度 | 评估 |
 |------|------|
-| tier3 真源 | **100%** — `archive/runner/lispjit.c`；`lispjit-ir` symlink |
+| tier3 真源 | **100%** — `archive/c/runner/lispjit.c`；`lispjit-ir` symlink |
 | tier4 VM emit | **100%** — `tier4-vm-emit` · `v45.codegen.vm_emit=1` |
 | endgame | **100%** — `v45.endgame.100=1` |
 

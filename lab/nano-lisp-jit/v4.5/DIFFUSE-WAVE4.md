@@ -7,7 +7,7 @@
 | 面 | 交付 |
 |----|------|
 | 收敛 | `scripts/v45-wave4-converge.sh` — 内含 wave3 + wave4 四 plan + **next 跑 onion-tdd** |
-| tier3 | `archive/runner/` README + `lispjit.c` 符号链接锚点 |
+| tier3 | `archive/c/runner/` README + `lispjit.c` 符号链接锚点 |
 | squad | `bootstrap-v45-wave4-squad-plan.lisp` — plan 内仅 `squad-dispatch`/`squad-assess`（无 `.sh` 步骤） |
 | runner C | `nano_bootstrap.c` — `squad-assess` 改为 catalog smoke（与 dispatch 同构） |
 | run.sh | 单 case `run-bootstrap-v45-wave4-converge-plan` |

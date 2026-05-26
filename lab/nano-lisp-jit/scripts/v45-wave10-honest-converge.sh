@@ -10,7 +10,7 @@ bash "$(dirname "$0")/v45-wave9-converge.sh" || fail=$((fail + 1))
 COM="$ROOT/lab/nano-lisp-jit/.build/nano-jit/nano-jit.com"
 if [ -x "$COM" ]; then
   for p in honest-remaining wave10-diffuse-global wave10-rollup; do
-    if "$COM" run-bootstrap-plan "lab/nano-lisp-jit/samples/bootstrap-v45-$p.lisp" >/dev/null; then
+    if "$COM" run-bootstrap-plan "lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-$p.lisp" >/dev/null; then
       echo "v45-wave10-honest-converge=ok plan=$p"
     else
       echo "v45-wave10-honest-converge=fail plan=$p"
@@ -20,7 +20,7 @@ if [ -x "$COM" ]; then
 fi
 c_ir=$(find "$ROOT/lab/lispjit-ir" -name '*.c' ! -type l 2>/dev/null | wc -l)
 c_arch=$(find "$ROOT/lab/nano-lisp-jit/archive" -name '*.c' ! -type l 2>/dev/null | wc -l)
-n=$(ls -1 lab/nano-lisp-jit/samples/bootstrap-v45-*.lisp 2>/dev/null | wc -l)
+n=$(ls -1 lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-*.lisp 2>/dev/null | wc -l)
 {
   echo "v45.wave10.honest=1"
   echo "v45.wave10.plans=$n"

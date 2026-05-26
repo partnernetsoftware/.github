@@ -733,15 +733,15 @@ export NANO_SLICE_COMPILER=native && bash lab/nano-lisp-jit/run.sh
 
 ```bash
 lab/nano-lisp-jit/.build/nano-jit/selfhost/zero-host-gen7-nano-jit.com run-bootstrap-plan \
-  lab/nano-lisp-jit/samples/bootstrap-v4-zero-host-gen9-via-gen7-com.lisp
+  lab/nano-lisp-jit/archive/c/factory/bootstrap-v4/bootstrap-v4-zero-host-gen9-via-gen7-com.lisp
 lab/nano-lisp-jit/.build/nano-jit/selfhost/zero-host-gen9-nano-jit.com run-bootstrap-plan \
-  lab/nano-lisp-jit/samples/bootstrap-v4-zero-host-gen10-via-gen9-com.lisp
+  lab/nano-lisp-jit/archive/c/factory/bootstrap-v4/bootstrap-v4-zero-host-gen10-via-gen9-com.lisp
 grep zero.host.chain.complete=1 lab/nano-lisp-jit/.build/v4-zero-host-bootstrap.evidence
 ```
 
 ```bash
 cd /workspace && lab/nano-lisp-jit/.build/nano-lisp-jit run-bootstrap-plan \
-  lab/nano-lisp-jit/samples/bootstrap-v4-terminal-edge.lisp
+  lab/nano-lisp-jit/archive/c/factory/bootstrap-v4/bootstrap-v4-terminal-edge.lisp
 ```
 
 ## terminal-bfs（终局广度优先 · 六轨）

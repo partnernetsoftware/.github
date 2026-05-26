@@ -14,7 +14,7 @@ run_plan() {
   local p=$1
   env -u NANO_SELFHOST_REUSE_X86 -u NANO_SELFHOST_REUSE_AARCH64 \
     -u NANO_BUILD_SLICE_SELFHOST_REUSE -u NANO_REGENESIS \
-    "$COM" run-bootstrap-plan "lab/nano-lisp-jit/samples/bootstrap-v45-$p.lisp"
+    "$COM" run-bootstrap-plan "lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-$p.lisp"
 }
 
 if [ -x "$COM" ]; then

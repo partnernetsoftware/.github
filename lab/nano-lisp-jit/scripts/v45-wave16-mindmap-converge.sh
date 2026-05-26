@@ -18,7 +18,7 @@ if [ -x "$COM" ]; then
     (
       if env -u NANO_SELFHOST_REUSE_X86 -u NANO_SELFHOST_REUSE_AARCH64 \
         -u NANO_BUILD_SLICE_SELFHOST_REUSE -u NANO_REGENESIS \
-        "$COM" run-bootstrap-plan "lab/nano-lisp-jit/samples/bootstrap-v45-$p.lisp" >/dev/null; then
+        "$COM" run-bootstrap-plan "lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-$p.lisp" >/dev/null; then
         echo "v45-wave16-mindmap-converge=ok plan=$p"
       else
         echo "v45-wave16-mindmap-converge=fail plan=$p"
@@ -31,7 +31,7 @@ if [ -x "$COM" ]; then
   for p in mindmap-onion-tree wave16-diffuse-global wave16-rollup; do
     env -u NANO_SELFHOST_REUSE_X86 -u NANO_SELFHOST_REUSE_AARCH64 \
       -u NANO_BUILD_SLICE_SELFHOST_REUSE -u NANO_REGENESIS \
-      "$COM" run-bootstrap-plan "lab/nano-lisp-jit/samples/bootstrap-v45-$p.lisp" >/dev/null \
+      "$COM" run-bootstrap-plan "lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-$p.lisp" >/dev/null \
       && echo "v45-wave16-mindmap-converge=ok plan=$p" \
       || { echo "v45-wave16-mindmap-converge=fail plan=$p"; fail=$((fail + 1)); }
   done

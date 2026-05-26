@@ -7,7 +7,7 @@ COM="$ROOT/lab/nano-lisp-jit/.build/nano-jit/nano-jit.com"
 NEXT="$ROOT/lab/nano-lisp-jit/.build/v45-selfhost-next.com"
 W3="$ROOT/lab/nano-lisp-jit/.build/v45-w3-lisp-only.com"
 GEN2="$ROOT/lab/nano-lisp-jit/.build/v45-w19-lisp-gen2.com"
-SMOKE="$ROOT/lab/nano-lisp-jit/samples/bootstrap-v45-verify-smoke.lisp"
+SMOKE="$ROOT/lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-verify-smoke.lisp"
 GEN=(env -u NANO_SELFHOST_REUSE_X86 -u NANO_SELFHOST_REUSE_AARCH64
   -u NANO_BUILD_SLICE_SELFHOST_REUSE -u NANO_REGENESIS)
 cd "$ROOT"
@@ -27,7 +27,7 @@ run_seed() {
 
 # W2: re-assert S2–S5 on seed
 for p in build-slice-lisp selfhost-modules selfhost-regenesis selfhost-chain; do
-  src="lab/nano-lisp-jit/samples/bootstrap-v45-$p.lisp"
+  src="lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-$p.lisp"
   if run_seed "$src"; then
     echo "v45-wave19-selfhost-converge=ok seed plan=$p"
   else
@@ -43,7 +43,7 @@ done
 } >>"$EV"
 
 # W1: lisp-only chain (zero lispjit.c in plan)
-if run_seed "lab/nano-lisp-jit/samples/bootstrap-v45-selfhost-lisp-only-chain.lisp"; then
+if run_seed "lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-selfhost-lisp-only-chain.lisp"; then
   echo "v45-wave19-selfhost-converge=ok lisp_only_chain"
   echo "v45.selfhost.lisp_only_chain=1" >>"$EV"
 else
@@ -52,7 +52,7 @@ else
 fi
 if [ ! -x "$W3" ]; then
   "$COM" run-bootstrap-plan \
-    lab/nano-lisp-jit/samples/bootstrap-v45-wave3-lisp-only-regenesis.lisp >/dev/null 2>&1 || true
+    lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-wave3-lisp-only-regenesis.lisp >/dev/null 2>&1 || true
 fi
 echo "v45.lisp_only.regenesis=1" >>"$EV"
 
@@ -60,11 +60,11 @@ echo "v45.lisp_only.regenesis=1" >>"$EV"
 matrix_ok=1
 run_next_plan() {
   local plan=$1
-  "${GEN[@]}" "$NEXT" run-bootstrap-plan "lab/nano-lisp-jit/samples/bootstrap-v45-$plan.lisp" >/dev/null
+  "${GEN[@]}" "$NEXT" run-bootstrap-plan "lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-$plan.lisp" >/dev/null
 }
 run_w3_plan() {
   local plan=$1
-  "$W3" run-bootstrap-plan "lab/nano-lisp-jit/samples/bootstrap-v45-$plan.lisp" >/dev/null
+  "$W3" run-bootstrap-plan "lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-$plan.lisp" >/dev/null
 }
 if [ -x "$NEXT" ]; then
   pids=()
@@ -91,7 +91,7 @@ else
 fi
 if [ -x "$W3" ]; then
   if run_w3_plan onion-lisp-only || "$COM" run-bootstrap-plan \
-      lab/nano-lisp-jit/samples/bootstrap-v45-wave6-w3-minimal-probe.lisp >/dev/null; then
+      lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-wave6-w3-minimal-probe.lisp >/dev/null; then
     echo "v45-wave19-selfhost-converge=ok w3_minimal=1"
     echo "v45.selfhost.next_onion_lisp_only=1" >>"$EV"
   else
@@ -117,7 +117,7 @@ fi
 
 # anchors + goal
 for p in wave19-diffuse-global selfhost-next-com-verify wave19-rollup goal-selfhost-100; do
-  src="lab/nano-lisp-jit/samples/bootstrap-v45-$p.lisp"
+  src="lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-$p.lisp"
   if "$COM" run-bootstrap-plan "$src" >/dev/null; then
     echo "v45-wave19-selfhost-converge=ok plan=$p"
   else
@@ -126,7 +126,7 @@ for p in wave19-diffuse-global selfhost-next-com-verify wave19-rollup goal-selfh
   fi
 done
 
-n=$(ls -1 lab/nano-lisp-jit/samples/bootstrap-v45-*.lisp 2>/dev/null | wc -l)
+n=$(ls -1 lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-*.lisp 2>/dev/null | wc -l)
 if [ "$fail" = 0 ] && [ "$matrix_ok" = 1 ]; then
   {
     echo "v45.wave19.diffuse=1"

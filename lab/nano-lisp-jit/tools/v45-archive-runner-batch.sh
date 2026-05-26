@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 将 lispjit-ir/*.c 真源迁至 archive/runner/ 并建 symlink（供 wave12 四轨并发调用）.
+# 将 lispjit-ir/*.c 真源迁至 archive/c/runner/ 并建 symlink（供 wave12 四轨并发调用）.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
 IR="$ROOT/lab/lispjit-ir"
@@ -29,7 +29,7 @@ for f in "$@"; do
     cp "$src" "$dst"
   fi
   rm -f "$src"
-  ln -sf "../nano-lisp-jit/archive/runner/$base" "$src"
+  ln -sf "../nano-lisp-jit/archive/c/runner/$base" "$src"
   echo "v45-archive-runner=ok track=$track file=$base"
   n=$((n + 1))
 done

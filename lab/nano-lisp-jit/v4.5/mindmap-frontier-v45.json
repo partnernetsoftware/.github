@@ -29,7 +29,7 @@
         "run-bootstrap-v45-mindmap-verify-smoke-plan"
       ],
       "parallel_slot": "W1",
-      "plan": "samples/bootstrap-v45-mindmap-verify-smoke.lisp"
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-verify-smoke.lisp"
     },
     {
       "id": "v45-mindmap-com-lbin",
@@ -44,7 +44,7 @@
         "pack-app.payload.lbin=1"
       ],
       "parallel_slot": "W2",
-      "plan": "samples/bootstrap-v45-mindmap-com-lbin.lisp"
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-com-lbin.lisp"
     },
     {
       "id": "v45-mindmap-ir-exit",
@@ -59,7 +59,7 @@
         "ir-table-lisp + build-slice-lisp ir-exit"
       ],
       "parallel_slot": "W3",
-      "plan": "samples/bootstrap-v45-mindmap-ir-exit.lisp"
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-ir-exit.lisp"
     },
     {
       "id": "v45-mindmap-onion-ring",
@@ -74,7 +74,7 @@
         "v45.onion.lisp_only=1"
       ],
       "parallel_slot": "W4",
-      "plan": "samples/bootstrap-v45-mindmap-onion-ring.lisp"
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-onion-ring.lisp"
     },
     {
       "id": "v45-mindmap-onion-tree",
@@ -91,7 +91,7 @@
       "accept": [
         "v45.mindmap.tree.coupled=1"
       ],
-      "plan": "samples/bootstrap-v45-mindmap-onion-tree.lisp"
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-onion-tree.lisp"
     },
     {
       "id": "v45-goal-mindmap-tree",
@@ -105,7 +105,7 @@
       "accept": [
         "v45.goal.mindmap_tree.100=1"
       ],
-      "plan": "samples/bootstrap-v45-goal-mindmap-tree-100.lisp"
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-mindmap-tree-100.lisp"
     },
     {
       "id": "v45-mm-boot-com",
@@ -117,7 +117,7 @@
         "v45-goal-mindmap-tree"
       ],
       "parallel_slot": "W1",
-      "plan": "samples/bootstrap-v45-mindmap-boot-com.lisp"
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-boot-com.lisp"
     },
     {
       "id": "v45-mm-bare-loader",
@@ -129,7 +129,7 @@
         "v45-goal-mindmap-tree"
       ],
       "parallel_slot": "W2",
-      "plan": "samples/bootstrap-v45-mindmap-bare-loader.lisp"
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-bare-loader.lisp"
     },
     {
       "id": "v45-mm-verify-core-slice",
@@ -141,7 +141,7 @@
         "v45-goal-mindmap-tree"
       ],
       "parallel_slot": "W3",
-      "plan": "samples/bootstrap-v45-mindmap-verify-core-slice.lisp"
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-verify-core-slice.lisp"
     },
     {
       "id": "v45-mm-selfhost-next",
@@ -153,7 +153,7 @@
         "v45-goal-mindmap-tree"
       ],
       "parallel_slot": "W4",
-      "plan": "samples/bootstrap-v45-mindmap-selfhost-next.lisp"
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-selfhost-next.lisp"
     },
     {
       "id": "v45-mm-onion-terminal",
@@ -167,7 +167,7 @@
         "v45-mm-verify-core-slice",
         "v45-mm-selfhost-next"
       ],
-      "plan": "samples/bootstrap-v45-mindmap-onion-terminal.lisp"
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-onion-terminal.lisp"
     },
     {
       "id": "v45-mm-unified-tree",
@@ -178,7 +178,7 @@
       "deps": [
         "v45-mm-onion-terminal"
       ],
-      "plan": "samples/bootstrap-v45-mindmap-unified-tree.lisp"
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-unified-tree.lisp"
     },
     {
       "id": "v45-goal-onion-mindmap-unified",
@@ -189,7 +189,7 @@
       "deps": [
         "v45-mm-unified-tree"
       ],
-      "plan": "samples/bootstrap-v45-goal-onion-mindmap-unified-100.lisp"
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-onion-mindmap-unified-100.lisp"
     },
     {
       "id": "v45-sh-lisp-only-chain",
@@ -201,7 +201,7 @@
         "v45-goal-onion-mindmap-unified"
       ],
       "parallel_slot": "W1",
-      "plan": "samples/bootstrap-v45-mindmap-lisp-only-chain.lisp"
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-lisp-only-chain.lisp"
     },
     {
       "id": "v45-sh-next-matrix",
@@ -213,7 +213,7 @@
         "v45-goal-onion-mindmap-unified"
       ],
       "parallel_slot": "W2",
-      "plan": "samples/bootstrap-v45-mindmap-next-verify-matrix.lisp"
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-next-verify-matrix.lisp"
     },
     {
       "id": "v45-sh-gen2-onion",
@@ -225,7 +225,7 @@
         "v45-goal-onion-mindmap-unified"
       ],
       "parallel_slot": "W3",
-      "plan": "samples/bootstrap-v45-mindmap-gen2-onion.lisp"
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-gen2-onion.lisp"
     },
     {
       "id": "v45-sh-w3-regenesis",
@@ -237,7 +237,7 @@
         "v45-goal-onion-mindmap-unified"
       ],
       "parallel_slot": "W4",
-      "plan": "samples/bootstrap-v45-mindmap-w3-lisp-only.lisp"
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-w3-lisp-only.lisp"
     },
     {
       "id": "v45-sh-selfhost-terminal",
@@ -251,7 +251,7 @@
         "v45-sh-gen2-onion",
         "v45-sh-w3-regenesis"
       ],
-      "plan": "samples/bootstrap-v45-mindmap-selfhost-unified-tree.lisp"
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-selfhost-unified-tree.lisp"
     },
     {
       "id": "v45-goal-lisp-selfhost-unified",
@@ -262,7 +262,7 @@
       "deps": [
         "v45-sh-selfhost-terminal"
       ],
-      "plan": "samples/bootstrap-v45-goal-lisp-selfhost-unified-100.lisp"
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-lisp-selfhost-unified-100.lisp"
     },
     {
       "id": "v45-bd-i64",
@@ -274,7 +274,7 @@
         "v45-goal-lisp-selfhost-unified"
       ],
       "parallel_slot": "W1",
-      "plan": "samples/bootstrap-v45-mindmap-boundary-i64.lisp"
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-boundary-i64.lisp"
     },
     {
       "id": "v45-bd-ptr",
@@ -286,7 +286,7 @@
         "v45-goal-lisp-selfhost-unified"
       ],
       "parallel_slot": "W2",
-      "plan": "samples/bootstrap-v45-mindmap-boundary-ptr.lisp"
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-boundary-ptr.lisp"
     },
     {
       "id": "v45-bd-func",
@@ -298,7 +298,7 @@
         "v45-goal-lisp-selfhost-unified"
       ],
       "parallel_slot": "W3",
-      "plan": "samples/bootstrap-v45-mindmap-boundary-func.lisp"
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-boundary-func.lisp"
     },
     {
       "id": "v45-bd-probe",
@@ -310,7 +310,7 @@
         "v45-goal-lisp-selfhost-unified"
       ],
       "parallel_slot": "W4",
-      "plan": "samples/bootstrap-v45-mindmap-boundary-probe.lisp"
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-boundary-probe.lisp"
     },
     {
       "id": "v45-bd-terminal",
@@ -324,7 +324,7 @@
         "v45-bd-func",
         "v45-bd-probe"
       ],
-      "plan": "samples/bootstrap-v45-mindmap-boundary-terminal.lisp"
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-boundary-terminal.lisp"
     },
     {
       "id": "v45-goal-onion-tdd-tree-mindmap",
@@ -335,7 +335,7 @@
       "deps": [
         "v45-bd-terminal"
       ],
-      "plan": "samples/bootstrap-v45-goal-onion-tdd-tree-mindmap-100.lisp"
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-onion-tdd-tree-mindmap-100.lisp"
     }
   ]
 }

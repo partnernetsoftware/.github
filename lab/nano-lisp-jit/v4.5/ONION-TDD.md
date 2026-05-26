@@ -13,10 +13,10 @@ export -n NANO_SELFHOST_REUSE_X86 NANO_SELFHOST_REUSE_AARCH64 \
 #       -u NANO_BUILD_SLICE_SELFHOST_REUSE -u NANO_REGENESIS $COM run-bootstrap-plan …
 
 # 洋葱主门禁（发行面优先 lisp-only，无 plan 内 lispjit.c）
-$COM run-bootstrap-plan lab/nano-lisp-jit/samples/bootstrap-v45-onion-lisp-only.lisp
+$COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-onion-lisp-only.lisp
 
 # tier2 genesis compare 锚点（仍含 build-slice C）
-$COM run-bootstrap-plan lab/nano-lisp-jit/samples/bootstrap-v45-onion-tdd.lisp
+$COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-onion-tdd.lisp
 
 # 完整 verify 矩阵
 for p in verify-smoke verify-core v4-handoff build-slice-genesis \
@@ -24,11 +24,11 @@ for p in verify-smoke verify-core v4-handoff build-slice-genesis \
   boundary-probe boundary-negative boundary-feedback \
   build-slice-lisp selfhost-chain selfhost-regenesis \
   diffuse-global wave1-rollup verify-all entry; do
-  $COM run-bootstrap-plan lab/nano-lisp-jit/samples/bootstrap-v45-$p.lisp
+  $COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-$p.lisp
 done
 
 # scoped 100% 签收
-$COM run-bootstrap-plan lab/nano-lisp-jit/samples/bootstrap-v45-terminal-done.lisp
+$COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-terminal-done.lisp
 grep v45.scoped.100=1 lab/nano-lisp-jit/.build/v45-entry.evidence
 
 # /goal 洋葱 TDD × tree-mind-map 总签收 100%

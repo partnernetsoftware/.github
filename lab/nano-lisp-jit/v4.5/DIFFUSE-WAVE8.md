@@ -6,10 +6,10 @@
 
 | 面 | 交付 |
 |----|------|
-| tier3 | `lispjit.c` 真源迁至 `archive/runner/`；`lispjit-ir/lispjit.c` 仅为 symlink |
+| tier3 | `lispjit.c` 真源迁至 `archive/c/runner/`；`lispjit-ir/lispjit.c` 仅为 symlink |
 | tier4 | `bootstrap-v45-tier4-vm-emit.lisp` — `ir-table-lisp` + VM/AOT smoke |
 | 收敛 | `scripts/v45-wave8-converge.sh` |
-| 工厂 | `run.sh` / `build_nano_jit.sh` → `archive/runner/lispjit.c` |
+| 工厂 | `run.sh` / `build_nano_jit.sh` → `archive/c/runner/lispjit.c` |
 
 ## 证据键
 

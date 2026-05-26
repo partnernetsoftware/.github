@@ -15,7 +15,7 @@ run_on_com() {
   local com=$1 plan=$2
   [ -x "$com" ] || return 1
   local out ec=0
-  out=$("$com" run-bootstrap-plan "lab/nano-lisp-jit/samples/bootstrap-v45-$plan.lisp" 2>&1) || ec=$?
+  out=$("$com" run-bootstrap-plan "lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-$plan.lisp" 2>&1) || ec=$?
   printf '%s\n' "$out" | grep -qE 'run-expect-exit\.ok=1|bootstrap-step.*=file-hash|bootstrap-step.*=run ' \
     && return 0
   [ "$ec" = 0 ] || [ "$ec" = 42 ]
@@ -41,7 +41,7 @@ echo "v45.release.scoped_ci=1" >>"$EV"
 COM="$ROOT/lab/nano-lisp-jit/.build/nano-jit/nano-jit.com"
 if [ -x "$COM" ]; then
   for p in factory-next-lisp-only-full runsh-release-anchor goal-v45-release-100; do
-    "$COM" run-bootstrap-plan "lab/nano-lisp-jit/samples/bootstrap-v45-$p.lisp" >/dev/null \
+    "$COM" run-bootstrap-plan "lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-$p.lisp" >/dev/null \
       && echo "v45-wave24=ok plan=$p" \
       || { echo "v45-wave24=fail plan=$p"; fail=$((fail + 1)); }
   done

@@ -12,7 +12,7 @@ bash "$(dirname "$0")/v45-factory-slim.sh" 2>&1 | tail -3 || fail=$((fail + 1))
 COM="$ROOT/lab/nano-lisp-jit/.build/nano-jit/nano-jit.com"
 if [ -x "$COM" ]; then
   for p in factory-100 warehouse-100 wave9-diffuse-global wave9-rollup; do
-    if "$COM" run-bootstrap-plan "lab/nano-lisp-jit/samples/bootstrap-v45-$p.lisp" >/dev/null; then
+    if "$COM" run-bootstrap-plan "lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-$p.lisp" >/dev/null; then
       echo "v45-wave9-converge=ok plan=$p"
     else
       echo "v45-wave9-converge=fail plan=$p"
@@ -20,7 +20,7 @@ if [ -x "$COM" ]; then
     fi
   done
 fi
-n=$(ls -1 lab/nano-lisp-jit/samples/bootstrap-v45-*.lisp 2>/dev/null | wc -l)
+n=$(ls -1 lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-*.lisp 2>/dev/null | wc -l)
 {
   echo "v45.wave9.diffuse=1"
   echo "v45.wave9.plans=$n"

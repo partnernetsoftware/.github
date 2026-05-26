@@ -11,13 +11,13 @@ echo "v45-wave2-converge=begin"
 bash lab/nano-lisp-jit/scripts/v45-com-verify.sh
 COM=lab/nano-lisp-jit/.build/nano-jit/nano-jit.com
 for p in selfhost-modules-full factory-matrix wave2-diffuse-global selfhost-next-com-verify wave2-assess-tick wave2-rollup; do
-  src="lab/nano-lisp-jit/samples/bootstrap-v45-$p.lisp"
+  src="lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-$p.lisp"
   test -f "$src"
   "$COM" run-bootstrap-plan "$src" >/dev/null
   echo "v45-wave2-converge=ok plan=$p"
 done
 NEXT=lab/nano-lisp-jit/.build/v45-selfhost-next.com
-SMOKE=lab/nano-lisp-jit/samples/bootstrap-v45-verify-smoke.lisp
+SMOKE=lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-verify-smoke.lisp
 if [ -x "$NEXT" ] && [ -f "$SMOKE" ]; then
   "${GEN[@]}" "$NEXT" run-bootstrap-plan "$SMOKE" >/dev/null
   echo "v45-wave2-converge=ok next_com_smoke"

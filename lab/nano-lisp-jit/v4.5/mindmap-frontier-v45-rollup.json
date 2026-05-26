@@ -28,7 +28,7 @@
         "v45-ru-gate"
       ],
       "parallel_slot": "W1",
-      "plan": "samples/bootstrap-v45-goal-lisp-selfhost-unified-100.lisp"
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-lisp-selfhost-unified-100.lisp"
     },
     {
       "id": "v45-ru-onion-unified",
@@ -40,7 +40,7 @@
         "v45-ru-gate"
       ],
       "parallel_slot": "W2",
-      "plan": "samples/bootstrap-v45-goal-onion-mindmap-unified-100.lisp"
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-onion-mindmap-unified-100.lisp"
     },
     {
       "id": "v45-ru-v4-handoff",
@@ -52,7 +52,7 @@
         "v45-ru-gate"
       ],
       "parallel_slot": "W3",
-      "plan": "samples/bootstrap-v45-v4-handoff.lisp"
+      "plan": "lisp/bootstrap/bootstrap-v45-v4-handoff.lisp"
     },
     {
       "id": "v45-ru-terminal",
@@ -64,7 +64,7 @@
         "v45-ru-gate"
       ],
       "parallel_slot": "W4",
-      "plan": "samples/bootstrap-v45-selfhost-terminal.lisp"
+      "plan": "lisp/bootstrap/bootstrap-v45-selfhost-terminal.lisp"
     },
     {
       "id": "v45-ru-tree",
@@ -78,7 +78,7 @@
         "v45-ru-v4-handoff",
         "v45-ru-terminal"
       ],
-      "plan": "samples/bootstrap-v45-mindmap-rollup-unified-tree.lisp"
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-rollup-unified-tree.lisp"
     },
     {
       "id": "v45-ru-goal",
@@ -89,7 +89,7 @@
       "deps": [
         "v45-ru-tree"
       ],
-      "plan": "samples/bootstrap-v45-goal-v45-factory-rollup-continue-100.lisp"
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-v45-factory-rollup-continue-100.lisp"
     }
   ]
 }

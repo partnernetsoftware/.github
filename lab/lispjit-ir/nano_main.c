@@ -1,1 +1,1 @@
-../nano-lisp-jit/archive/runner/nano_main.c
+../nano-lisp-jit/archive/c/runner/nano_main.c

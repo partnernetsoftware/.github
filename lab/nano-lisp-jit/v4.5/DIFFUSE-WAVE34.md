@@ -4,7 +4,7 @@
 
 | 轨 | plan（规划） |
 |----|----------------|
-| W1 | `codegen-runner-module-table` |
+| `v45-rc-module-table` | W1 | `lisp/bootstrap/bootstrap-v45-codegen-runner-module-table.lisp` |
 | W2 | `codegen-runner-emit-broad` |
 | W3 | `codegen-ir-facade-next` |
 | W4 | `codegen-lispjit-modules-subset` |

@@ -21,7 +21,7 @@ bash "$(dirname "$0")/v45-wave19-selfhost-converge.sh" || fail=$((fail + 1))
 run_plan() {
   env -u NANO_SELFHOST_REUSE_X86 -u NANO_SELFHOST_REUSE_AARCH64 \
     -u NANO_BUILD_SLICE_SELFHOST_REUSE -u NANO_REGENESIS \
-    "$COM" run-bootstrap-plan "lab/nano-lisp-jit/samples/bootstrap-v45-$1.lisp"
+    "$COM" run-bootstrap-plan "lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-$1.lisp"
 }
 
 pids=()
@@ -35,7 +35,7 @@ for pid in "${pids[@]}"; do wait "$pid" || fail=$((fail + 1)); done
 gen2_onion_ok() {
   local out ec=0
   out=$("${GEN[@]}" "$GEN2" run-bootstrap-plan \
-    lab/nano-lisp-jit/samples/bootstrap-v45-onion-tdd.lisp 2>&1) || ec=$?
+    lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-onion-tdd.lisp 2>&1) || ec=$?
   printf '%s\n' "$out" | grep -qE 'run-expect-exit\.ok=1|run-ape-expect-exit\.ok=1' \
     && { return 0; }
   [ "$ec" = 0 ] || [ "$ec" = 42 ]

@@ -45,24 +45,24 @@ signoff:
       path_glob: "STRUCTURE.md"
     - id: v45-onion-tdd-plan
       check: artifact
-      path_glob: "samples/bootstrap-v45-onion-tdd.lisp"
+      path_glob: "lisp/bootstrap/bootstrap-v45-onion-tdd.lisp"
       plan_must_not_match: '\\.c'
     - id: v45-terminal-done-plan
       check: artifact
-      path_glob: "samples/bootstrap-v45-terminal-done.lisp"
+      path_glob: "lisp/bootstrap/bootstrap-v45-terminal-done.lisp"
     - id: v45-boundary-readme
       check: artifact
-      path_glob: "samples/boundary/README.md"
+      path_glob: "lisp/boundary/README.md"
     - id: v45-boundary-negative-plan
       check: artifact
-      path_glob: "samples/bootstrap-v45-boundary-negative.lisp"
+      path_glob: "lisp/bootstrap/bootstrap-v45-boundary-negative.lisp"
       plan_must_not_match: '\\.c'
     - id: v45-product-feedback-doc
       check: artifact
       path_glob: "v4.5/PRODUCT-FEEDBACK.md"
     - id: v45-boundary-feedback-plan
       check: artifact
-      path_glob: "samples/bootstrap-v45-boundary-feedback.lisp"
+      path_glob: "lisp/bootstrap/bootstrap-v45-boundary-feedback.lisp"
       plan_must_not_match: '\\.c'
     - id: v45-boundary-probes
       check: results
@@ -117,7 +117,7 @@ signoff:
       path_glob: "v4.5/SELFHOST.md"
     - id: v45-selfhost-chain-plan
       check: artifact
-      path_glob: "samples/bootstrap-v45-selfhost-chain.lisp"
+      path_glob: "lisp/bootstrap/bootstrap-v45-selfhost-chain.lisp"
       plan_must_not_match: '\\.c'
     - id: v45-selfhost-lisp-slice
       check: results
@@ -167,7 +167,7 @@ signoff:
       min_pass: 2
     - id: v45-onion-lisp-only-plan
       check: artifact
-      path_glob: "samples/bootstrap-v45-onion-lisp-only.lisp"
+      path_glob: "lisp/bootstrap/bootstrap-v45-onion-lisp-only.lisp"
       plan_must_not_match: 'lispjit\\.c'
     - id: v45-onion-lisp-only-plan-ev
       check: results
@@ -227,17 +227,17 @@ signoff:
       min_pass: 1
     - id: v45-tier3-no-c-src-plan
       check: artifact
-      path_glob: "samples/bootstrap-v45-tier3-no-c-src.lisp"
+      path_glob: "lisp/bootstrap/bootstrap-v45-tier3-no-c-src.lisp"
     - id: v45-tier4-vm-emit-plan
       check: artifact
-      path_glob: "samples/bootstrap-v45-tier4-vm-emit.lisp"
+      path_glob: "lisp/bootstrap/bootstrap-v45-tier4-vm-emit.lisp"
       plan_must_not_match: '\\.c'
     - id: v45-wave8-diffuse-doc
       check: artifact
       path_glob: "v4.5/DIFFUSE-WAVE8.md"
     - id: v45-endgame-100-plan
       check: artifact
-      path_glob: "samples/bootstrap-v45-endgame-100.lisp"
+      path_glob: "lisp/bootstrap/bootstrap-v45-endgame-100.lisp"
       plan_must_not_match: '\\.c'
     - id: v45-factory-v4-skipped
       check: results
@@ -437,8 +437,8 @@ tasks:
     assign_role: engineer-a
     priority: P0
     touch_paths:
-      - "samples/bootstrap-v45-boundary-i64.lisp"
-      - "samples/boundary/add-i64-chain.lisp"
+      - "lisp/bootstrap/bootstrap-v45-boundary-i64.lisp"
+      - "lisp/boundary/add-i64-chain.lisp"
       - "run.sh"
     accept:
       - "run-bootstrap-v45-boundary-i64-plan"
@@ -446,7 +446,7 @@ tasks:
     assign_role: engineer-a
     priority: P0
     touch_paths:
-      - "samples/bootstrap-v45-boundary-ptr.lisp"
+      - "lisp/bootstrap/bootstrap-v45-boundary-ptr.lisp"
       - "run.sh"
     accept:
       - "run-bootstrap-v45-boundary-ptr-plan"
@@ -454,8 +454,8 @@ tasks:
     assign_role: engineer-a
     priority: P0
     touch_paths:
-      - "samples/bootstrap-v45-boundary-func.lisp"
-      - "samples/boundary/func-block-vm-gap.lisp"
+      - "lisp/bootstrap/bootstrap-v45-boundary-func.lisp"
+      - "lisp/boundary/func-block-vm-gap.lisp"
       - "run.sh"
     accept:
       - "run-bootstrap-v45-boundary-func-plan"
@@ -463,7 +463,7 @@ tasks:
     assign_role: engineer-a
     priority: P0
     touch_paths:
-      - "samples/bootstrap-v45-boundary-rodata.lisp"
+      - "lisp/bootstrap/bootstrap-v45-boundary-rodata.lisp"
       - "run.sh"
     accept:
       - "run-bootstrap-v45-boundary-rodata-plan"
@@ -471,7 +471,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "samples/bootstrap-v45-diffuse-global.lisp"
+      - "lisp/bootstrap/bootstrap-v45-diffuse-global.lisp"
       - "v4.5/PARALLEL.md"
       - "run.sh"
     accept:
@@ -481,7 +481,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "samples/bootstrap-v45-onion-parallel-matrix.lisp"
+      - "lisp/bootstrap/bootstrap-v45-onion-parallel-matrix.lisp"
       - "scripts/v45-com-verify.sh"
       - "run.sh"
     accept:
@@ -516,8 +516,8 @@ tasks:
     assign_role: engineer-a
     priority: P0
     touch_paths:
-      - "samples/bootstrap-v45-selfhost-modules-full.lisp"
-      - "samples/bootstrap-v45-selfhost-next-com-verify.lisp"
+      - "lisp/bootstrap/bootstrap-v45-selfhost-modules-full.lisp"
+      - "lisp/bootstrap/bootstrap-v45-selfhost-next-com-verify.lisp"
       - "v4.5/SELFHOST.md"
     accept:
       - "run-bootstrap-v45-selfhost-modules-full-plan"
@@ -525,8 +525,8 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "samples/bootstrap-v45-factory-matrix.lisp"
-      - "samples/bootstrap-v45-wave2-diffuse-global.lisp"
+      - "lisp/bootstrap/bootstrap-v45-factory-matrix.lisp"
+      - "lisp/bootstrap/bootstrap-v45-wave2-diffuse-global.lisp"
       - "v4.5/DIFFUSE-WAVE2.md"
       - "v4.5/CONCURRENT-IMPL.md"
     accept:
@@ -565,8 +565,8 @@ tasks:
     assign_role: engineer-a
     priority: P0
     touch_paths:
-      - "archive/runner/README.md"
-      - "samples/bootstrap-v45-wave4-tier3-anchor.lisp"
+      - "archive/c/runner/README.md"
+      - "lisp/bootstrap/bootstrap-v45-wave4-tier3-anchor.lisp"
     accept:
       - "run-bootstrap-v45-wave4-tier3-anchor-plan"
   wave4-v45-track-b-next-onion:
@@ -580,7 +580,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "samples/bootstrap-v45-wave4-squad-plan.lisp"
+      - "lisp/bootstrap/bootstrap-v45-wave4-squad-plan.lisp"
     accept:
       - "run-bootstrap-v45-wave4-squad-plan-plan"
   wave4-v45-track-d-assess:
@@ -607,7 +607,7 @@ tasks:
     assign_role: engineer-a
     priority: P0
     touch_paths:
-      - "samples/bootstrap-v45-onion-lisp-only.lisp"
+      - "lisp/bootstrap/bootstrap-v45-onion-lisp-only.lisp"
     accept:
       - "run-bootstrap-v45-onion-lisp-only-plan"
   wave5-v45-track-b-scoped-ci:
@@ -622,7 +622,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "samples/bootstrap-v45-wave5-w3-com-matrix.lisp"
+      - "lisp/bootstrap/bootstrap-v45-wave5-w3-com-matrix.lisp"
     accept:
       - "run-bootstrap-v45-wave5-w3-com-matrix-plan"
   wave5-v45-track-d-assess:
@@ -647,7 +647,7 @@ tasks:
     assign_role: engineer-a
     priority: P0
     touch_paths:
-      - "samples/bootstrap-v45-wave6-onion-primary.lisp"
+      - "lisp/bootstrap/bootstrap-v45-wave6-onion-primary.lisp"
       - "v4.5/ONION-TDD.md"
     accept:
       - "run-bootstrap-v45-wave6-onion-primary-plan"
@@ -662,7 +662,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "samples/bootstrap-v45-wave6-w3-minimal-probe.lisp"
+      - "lisp/bootstrap/bootstrap-v45-wave6-w3-minimal-probe.lisp"
     accept:
       - "run-bootstrap-v45-wave6-w3-minimal-probe-plan"
   wave6-v45-track-d-assess:
@@ -687,8 +687,8 @@ tasks:
     assign_role: engineer-a
     priority: P0
     touch_paths:
-      - "samples/bootstrap-v45-endgame-100.lisp"
-      - "samples/bootstrap-v45-terminal-done.lisp"
+      - "lisp/bootstrap/bootstrap-v45-endgame-100.lisp"
+      - "lisp/bootstrap/bootstrap-v45-terminal-done.lisp"
     accept:
       - "run-bootstrap-v45-endgame-100-plan"
       - "v45.release.100=1"
@@ -703,7 +703,7 @@ tasks:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "samples/bootstrap-v45-wave7-release-audit.lisp"
+      - "lisp/bootstrap/bootstrap-v45-wave7-release-audit.lisp"
     accept:
       - "run-bootstrap-v45-wave7-release-audit-plan"
   wave7-v45-track-d-assess:
@@ -730,16 +730,16 @@ tasks:
     priority: P0
     touch_paths:
       - "run.sh"
-      - "samples/bootstrap-v45-wave11-runsh-default.lisp"
+      - "lisp/bootstrap/bootstrap-v45-wave11-runsh-default.lisp"
     accept:
       - "v45.tier5.runsh_default=1"
   wave11-v45-track-b-bootstrap-archive:
     assign_role: engineer-a
     priority: P0
     touch_paths:
-      - "archive/runner/nano_bootstrap.c"
-      - "archive/runner/README.md"
-      - "samples/bootstrap-v45-wave11-tier5-bootstrap-anchor.lisp"
+      - "archive/c/runner/nano_bootstrap.c"
+      - "archive/c/runner/README.md"
+      - "lisp/bootstrap/bootstrap-v45-wave11-tier5-bootstrap-anchor.lisp"
     accept:
       - "v45.tier5.archive_symlinks=2"
   wave11-v45-track-c-physical-inventory:
@@ -747,14 +747,14 @@ tasks:
     priority: P0
     touch_paths:
       - "v4.5/PHYSICAL-INVENTORY.md"
-      - "samples/bootstrap-v45-wave11-physical-inventory.lisp"
+      - "lisp/bootstrap/bootstrap-v45-wave11-physical-inventory.lisp"
     accept:
       - "run-bootstrap-v45-wave11-physical-inventory-plan"
   wave11-v45-track-d-vm-emit-matrix:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "samples/bootstrap-v45-wave11-vm-emit-matrix.lisp"
+      - "lisp/bootstrap/bootstrap-v45-wave11-vm-emit-matrix.lisp"
     accept:
       - "run-bootstrap-v45-wave11-vm-emit-matrix-plan"
   wave11-v45-R:
@@ -772,34 +772,34 @@ tasks:
     assign_role: engineer-a
     priority: P0
     touch_paths:
-      - "archive/runner/nano_abi.c"
-      - "archive/runner/nano_util.c"
-      - "archive/runner/nano_manifest.c"
-      - "archive/runner/nano_main.c"
+      - "archive/c/runner/nano_abi.c"
+      - "archive/c/runner/nano_util.c"
+      - "archive/c/runner/nano_manifest.c"
+      - "archive/c/runner/nano_main.c"
     accept:
       - "run-bootstrap-v45-wave12-track-a-anchor-plan"
   wave12-v45-track-b-parse:
     assign_role: engineer-a
     priority: P0
     touch_paths:
-      - "archive/runner/nano_lisp_parse.c"
-      - "archive/runner/nano_blob_vm.c"
+      - "archive/c/runner/nano_lisp_parse.c"
+      - "archive/c/runner/nano_blob_vm.c"
     accept:
       - "run-bootstrap-v45-wave12-track-b-anchor-plan"
   wave12-v45-track-c-elf:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "archive/runner/nano_elf64.c"
-      - "archive/runner/nano_cc.c"
+      - "archive/c/runner/nano_elf64.c"
+      - "archive/c/runner/nano_cc.c"
     accept:
       - "run-bootstrap-v45-wave12-track-c-anchor-plan"
   wave12-v45-track-d-cli:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "archive/runner/nano_ape.c"
-      - "archive/runner/nano_run_cli.c"
+      - "archive/c/runner/nano_ape.c"
+      - "archive/c/runner/nano_run_cli.c"
     accept:
       - "run-bootstrap-v45-wave12-track-d-anchor-plan"
   wave12-v45-R:
@@ -817,21 +817,21 @@ tasks:
     assign_role: engineer-a
     priority: P0
     touch_paths:
-      - "archive/runner/ape_v2.c"
+      - "archive/c/runner/ape_v2.c"
     accept:
       - "run-bootstrap-v45-wave13-ape-anchor-plan"
   wave13-v45-track-b-irjit:
     assign_role: engineer-a
     priority: P0
     touch_paths:
-      - "archive/runner/irjit.c"
+      - "archive/c/runner/irjit.c"
     accept:
       - "run-bootstrap-v45-wave13-irjit-anchor-plan"
   wave13-v45-track-c-onion:
     assign_role: engineer-b
     priority: P0
     touch_paths:
-      - "samples/bootstrap-v45-wave13-onion-after-archive.lisp"
+      - "lisp/bootstrap/bootstrap-v45-wave13-onion-after-archive.lisp"
     accept:
       - "run-bootstrap-v45-wave13-onion-after-archive-plan"
   wave13-v45-track-d-physical:
@@ -857,7 +857,7 @@ tasks:
     assign_role: engineer-a
     priority: P0
     touch_paths:
-      - "samples/bootstrap-v45-selfhost-lisp-only-chain.lisp"
+      - "lisp/bootstrap/bootstrap-v45-selfhost-lisp-only-chain.lisp"
       - "v4.5/SELFHOST.md"
     accept:
       - "run-bootstrap-v45-selfhost-lisp-only-chain-plan"
@@ -873,7 +873,7 @@ tasks:
     assign_role: reviewer
     priority: P0
     touch_paths:
-      - "samples/bootstrap-v45-goal-selfhost-100.lisp"
+      - "lisp/bootstrap/bootstrap-v45-goal-selfhost-100.lisp"
       - "v4.5/EVAL.md"
     accept:
       - "run-bootstrap-v45-goal-selfhost-100-plan"

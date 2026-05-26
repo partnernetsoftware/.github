@@ -28,7 +28,7 @@
         "v45-gf-gate"
       ],
       "parallel_slot": "W1",
-      "plan": "samples/bootstrap-v45-goal-onion-tdd-tree-mindmap-100.lisp"
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-onion-tdd-tree-mindmap-100.lisp"
     },
     {
       "id": "v45-gf-boundary",
@@ -40,7 +40,7 @@
         "v45-gf-gate"
       ],
       "parallel_slot": "W2",
-      "plan": "samples/bootstrap-v45-boundary-probe.lisp"
+      "plan": "lisp/bootstrap/bootstrap-v45-boundary-probe.lisp"
     },
     {
       "id": "v45-gf-terminal",
@@ -52,7 +52,7 @@
         "v45-gf-gate"
       ],
       "parallel_slot": "W3",
-      "plan": "samples/bootstrap-v45-terminal-done.lisp"
+      "plan": "lisp/bootstrap/bootstrap-v45-terminal-done.lisp"
     },
     {
       "id": "v45-gf-onion",
@@ -64,7 +64,7 @@
         "v45-gf-gate"
       ],
       "parallel_slot": "W4",
-      "plan": "samples/bootstrap-v45-onion-lisp-only.lisp"
+      "plan": "lisp/bootstrap/bootstrap-v45-onion-lisp-only.lisp"
     },
     {
       "id": "v45-gf-tree",
@@ -78,7 +78,7 @@
         "v45-gf-terminal",
         "v45-gf-onion"
       ],
-      "plan": "samples/bootstrap-v45-mindmap-goal-factory-unified-tree.lisp"
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-goal-factory-unified-tree.lisp"
     },
     {
       "id": "v45-gf-goal",
@@ -89,7 +89,7 @@
       "deps": [
         "v45-gf-tree"
       ],
-      "plan": "samples/bootstrap-v45-goal-v45-goal-factory-unified-100.lisp"
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-v45-goal-factory-unified-100.lisp"
     }
   ]
 }

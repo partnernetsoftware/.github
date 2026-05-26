@@ -20,7 +20,7 @@ plans=(
   selfhost-modules-full factory-matrix wave2-diffuse-global selfhost-next-com-verify
 )
 for p in "${plans[@]}"; do
-  src="lab/nano-lisp-jit/samples/bootstrap-v45-${p}.lisp"
+  src="lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-${p}.lisp"
   if [ ! -f "$src" ]; then
     echo "v45-com-verify=missing $src" >&2
     exit 1

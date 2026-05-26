@@ -1,1 +1,1 @@
-../nano-lisp-jit/archive/runner/nano_genesis_pin.c
+../nano-lisp-jit/archive/c/runner/nano_genesis_pin.c

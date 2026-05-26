@@ -26,7 +26,7 @@
         "v45-cg-gate"
       ],
       "parallel_slot": "W1",
-      "plan": "samples/bootstrap-v45-codegen-lisp-vm-ctrl.lisp"
+      "plan": "lisp/bootstrap/bootstrap-v45-codegen-lisp-vm-ctrl.lisp"
     },
     {
       "id": "v45-cg-vm-multi",
@@ -38,7 +38,7 @@
         "v45-cg-gate"
       ],
       "parallel_slot": "W2",
-      "plan": "samples/bootstrap-v45-codegen-lisp-vm-multi.lisp"
+      "plan": "lisp/bootstrap/bootstrap-v45-codegen-lisp-vm-multi.lisp"
     },
     {
       "id": "v45-cg-chain-lo",
@@ -50,7 +50,7 @@
         "v45-cg-gate"
       ],
       "parallel_slot": "W3",
-      "plan": "samples/bootstrap-v45-onion-chain-lo-minimal.lisp"
+      "plan": "lisp/bootstrap/bootstrap-v45-onion-chain-lo-minimal.lisp"
     },
     {
       "id": "v45-cg-gen60",
@@ -62,7 +62,7 @@
         "v45-cg-gate"
       ],
       "parallel_slot": "W4",
-      "plan": "samples/bootstrap-v45-codegen-lisp-gen60-handshake.lisp"
+      "plan": "lisp/bootstrap/bootstrap-v45-codegen-lisp-gen60-handshake.lisp"
     },
     {
       "id": "v45-cg-terminal",
@@ -76,7 +76,7 @@
         "v45-cg-chain-lo",
         "v45-cg-gen60"
       ],
-      "plan": "samples/bootstrap-v45-mindmap-codegen-coupled-tree.lisp"
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-codegen-coupled-tree.lisp"
     },
     {
       "id": "v45-cg-goal",
@@ -87,7 +87,7 @@
       "deps": [
         "v45-cg-terminal"
       ],
-      "plan": "samples/bootstrap-v45-goal-v45-codegen-coupled-100.lisp"
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-v45-codegen-coupled-100.lisp"
     }
   ]
 }

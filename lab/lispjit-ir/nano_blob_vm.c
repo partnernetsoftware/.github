@@ -1,1 +1,1 @@
-../nano-lisp-jit/archive/runner/nano_blob_vm.c
+../nano-lisp-jit/archive/c/runner/nano_blob_vm.c
