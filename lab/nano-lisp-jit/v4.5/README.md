@@ -45,12 +45,12 @@ grep v45.physical.zero_c=0 lab/nano-lisp-jit/.build/v45-entry.evidence
 
 口径：[`DECISION.md`](DECISION.md) · [`PROGRESS.md`](PROGRESS.md) · [`HONEST-REMAINING.md`](HONEST-REMAINING.md)
 
-## 日常（Wave52 · 维护 + v5 开卷）
+## 日常（Wave52 · 物理续推）
 
 ```bash
 COM=lab/nano-lisp-jit/.build/nano-jit/nano-jit.com
-$COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-converge-daily-v45-maintenance.lisp
-bash lab/nano-lisp-jit/scripts/v45-wave52-v5-open-maintenance-converge.sh
+$COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-converge-daily-zero-cpysh.lisp
+bash lab/nano-lisp-jit/scripts/v45-wave52-physical-zero-cpysh-continue-converge.sh
 ```
 
-v5 物理轨：[`v5/README.md`](../v5/README.md)
+v4.5 真目标见 [`HONEST-REMAINING.md`](HONEST-REMAINING.md) — **零 `.c/.py/.sh` 未达前禁止开 v5**。

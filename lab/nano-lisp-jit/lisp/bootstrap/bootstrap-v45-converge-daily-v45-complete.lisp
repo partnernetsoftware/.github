@@ -1,4 +1,4 @@
-; Wave51 W3: v4.5 终局 daily — merge endgame + codegen dedicated + verify 子集.
+; Wave51 W3: 扩展 rollup daily — merge endgame + codegen dedicated + verify 子集.
 ; Prefix v45-cdvc- · no build-slice lispjit.c · no .sh steps.
 (bootstrap
   (file-size "lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-converge-daily-endgame.lisp")

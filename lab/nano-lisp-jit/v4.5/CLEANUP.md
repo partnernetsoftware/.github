@@ -26,13 +26,13 @@ bash lab/nano-lisp-jit/scripts/v45-evidence-canonical.sh
 
 ```bash
 # v4.5 维护 + v5 开卷（默认 · 快 seed ~1s）
-bash lab/nano-lisp-jit/scripts/v45-wave52-v5-open-maintenance-converge.sh
+bash lab/nano-lisp-jit/scripts/v45-wave52-physical-zero-cpysh-continue-converge.sh
 
 # 用户 plan-only（无 .sh 步骤）
 COM=lab/nano-lisp-jit/.build/nano-jit/nano-jit.com
-$COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-converge-daily-v45-maintenance.lisp
+$COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-converge-daily-zero-cpysh.lisp
 
-# v4.5 终局复核（Wave51 · 可选）
+# 扩展活图 rollup 复核（Wave51 · 可选）
 bash lab/nano-lisp-jit/scripts/v45-wave51-v45-terminal-complete-converge.sh
 
 # /goal 总签收（慢 · 完整链）
@@ -44,8 +44,8 @@ bash lab/nano-lisp-jit/scripts/v45-cleanup-reflect.sh
 
 | 脚本 | 用途 |
 |------|------|
-| **`v45-wave52-v5-open-maintenance-converge.sh`** | **维护 + v5 开卷 CI verify**（快 seed） |
-| `v45-wave51-v45-terminal-complete-converge.sh` | v4.5 终局复核 |
+| **`v45-wave52-physical-zero-cpysh-continue-converge.sh`** | **v4.5 物理续推 CI verify**（快 seed） |
+| `v45-wave51-v45-terminal-complete-converge.sh` | 扩展活图 rollup 复核 |
 | `v45-wave50-lispjit-codegen-dedicated-converge.sh` | 154KB codegen 独立活图 |
 | `v45-wave49-endgame-honest-rollup-converge.sh` | Wave44–48 rollup + 诚实终局 |
 | `v45-wave21-*` | /goal 26/26 总签收 |
@@ -56,11 +56,11 @@ bash lab/nano-lisp-jit/scripts/v45-cleanup-reflect.sh
 
 ```bash
 bash lab/nano-lisp-jit/scripts/v45-cleanup-reflect.sh
-NANO_V45_FRONTIER=mindmap-frontier-v45-v5-open-maintenance.json \
+NANO_V45_FRONTIER=mindmap-frontier-v45-physical-zero-cpysh-continue.json \
   python3 lab/nano-lisp-jit/tools/mindmap-dp-v45.py stats
 grep v45.goal.onion_tdd_tree_mindmap.100=1 \
   lab/nano-lisp-jit/.build/v45-entry.evidence.canonical
-grep v45.v45.v5_open_maintenance_continue.100=1 \
+grep v45.v45.physical_zero_cpysh_continue.100=1 \
   lab/nano-lisp-jit/.build/v45-entry.evidence.canonical
 ```
 
@@ -70,7 +70,7 @@ grep v45.v45.v5_open_maintenance_continue.100=1 \
 
 - SSOT 主树：[`mindmap-frontier-v45.json`](mindmap-frontier-v45.json) — **26/26**
 - 扩展活图：**19 张**（Wave34–52，各 7 节点）
-- 当前前沿：`mindmap-frontier-v45-v5-open-maintenance.json`（Wave52 · v5 开卷维护）
+- 当前前沿：`mindmap-frontier-v45-physical-zero-cpysh-continue.json`（Wave52 · 物理续推）
 - DP：`tools/mindmap-dp-v45.py ready|stats`
 
 ## 仍开卷（清洗后也不混称 /goal）

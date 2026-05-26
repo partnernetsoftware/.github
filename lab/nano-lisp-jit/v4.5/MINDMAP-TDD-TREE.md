@@ -65,9 +65,9 @@ bash lab/nano-lisp-jit/scripts/v45-wave21-onion-tdd-tree-mindmap-100-converge.sh
 | `v45.mindmap.endgame_honest_rollup.nodes_done` / `nodes_total` | **endgame-honest-rollup**（Wave49 · **7**） |
 | `v45.mindmap.lispjit_codegen_dedicated.nodes_done` / `nodes_total` | **lispjit-codegen-dedicated**（Wave50 · **7**） |
 | `v45.mindmap.v45_terminal_complete.nodes_done` / `nodes_total` | **v45-terminal-complete**（Wave51 · **7**） |
-| `v45.mindmap.v5_open_maintenance.nodes_done` / `nodes_total` | **v5-open-maintenance**（Wave52 · **7**） |
+| `v45.mindmap.physical_zero_cpysh_continue.nodes_done` / `nodes_total` | **physical-zero-cpysh-continue**（Wave52 · **7**） |
 
-前置：`v45.tier5.100=1` · `v45.scoped.100=1` · `/goal` 26/26 · 扩展活图 **19 张** · **`v45.v45.v5_open_maintenance_continue.100=1`**
+前置：`v45.tier5.100=1` · `v45.scoped.100=1` · `/goal` 26/26 · 扩展活图 **19 张** · **v4.5 目标未达**（见 `HONEST-REMAINING.md`）
 
 ## 编排协议（主对话 × 后台 team）
 
@@ -389,7 +389,7 @@ NANO_V45_FRONTIER=mindmap-frontier-v45-endgame-honest-rollup.json \
 
 见 [`DIFFUSE-WAVE49.md`](DIFFUSE-WAVE49.md)
 
-## 扩展活图（v45-terminal-complete · Wave51 · v4.5 DONE）
+## 扩展活图（v45-terminal-complete · Wave51 · 扩展 rollup）
 
 ```bash
 NANO_V45_FRONTIER=mindmap-frontier-v45-v45-terminal-complete.json \
@@ -398,24 +398,24 @@ NANO_V45_FRONTIER=mindmap-frontier-v45-v45-terminal-complete.json \
 
 | 键 | 活图 |
 |----|------|
-| `v45.v45.v45_terminal_complete.100=1` | **v4.5 规划面终局** |
+| `v45.v45.v45_terminal_complete.100=1` | **扩展活图 Wave34–51 rollup**（≠ v4.5 目标达成） |
 | `v45.mindmap.v45_terminal_complete.nodes_done` / `nodes_total` | Wave51 · **7** |
 
 见 [`DIFFUSE-WAVE51.md`](DIFFUSE-WAVE51.md)
 
-## 扩展活图（v5-open-maintenance · Wave52 · 维护轨）
+## 扩展活图（physical-zero-cpysh-continue · Wave52 · 物理续推）
 
 ```bash
-NANO_V45_FRONTIER=mindmap-frontier-v45-v5-open-maintenance.json \
+NANO_V45_FRONTIER=mindmap-frontier-v45-physical-zero-cpysh-continue.json \
   python3 lab/nano-lisp-jit/tools/mindmap-dp-v45.py stats
 ```
 
 | 键 | 活图 |
 |----|------|
-| `v45.v45.v5_open_maintenance_continue.100=1` | **v5 开卷维护** |
-| `v45.mindmap.v5_open_maintenance.nodes_done` / `nodes_total` | Wave52 · **7** |
+| `v45.v45.physical_zero_cpysh_continue.100=1` | **零 cpysh 物理续推** |
+| `v45.mindmap.physical_zero_cpysh_continue.nodes_done` / `nodes_total` | Wave52 · **7** |
 
-见 [`DIFFUSE-WAVE52.md`](DIFFUSE-WAVE52.md) · v5 SSOT：[`v5/README.md`](../v5/README.md)
+见 [`DIFFUSE-WAVE52.md`](DIFFUSE-WAVE52.md)
 
 ## 扩展活图（runner 广面 · Wave34+）
 

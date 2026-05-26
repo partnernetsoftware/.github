@@ -1,6 +1,6 @@
-# Wave51 — v45-terminal-complete（v4.5 规划面终局）
+# Wave51 — v45-terminal-complete（扩展活图 rollup）
 
-**签收**：`v45.v45.v45_terminal_complete.100=1` — **v4.5 扩展活图 + 发行面验收闭合**（≠ 154KB 物理 DONE）。
+**签收**：`v45.v45.v45_terminal_complete.100=1` — **扩展活图 Wave34–51 全链 rollup**（**≠ v4.5 目标达成**）。
 
 | 轨 | plan |
 |----|------|
@@ -14,6 +14,6 @@ bash lab/nano-lisp-jit/scripts/v45-wave51-v45-terminal-complete-converge.sh
 grep v45.v45.v45_terminal_complete.100=1 lab/nano-lisp-jit/.build/v45-entry.evidence
 ```
 
-**用户日常入口（v4.5 终局）**：`converge-daily-v45-complete.lisp`
+**下一波**：Wave52 物理续推 → [`DIFFUSE-WAVE52.md`](DIFFUSE-WAVE52.md)
 
-**仍开卷（v5/maintenance）**：154KB 物理 C · host `.sh` CI · `nano-jit.com` 硬切
+**诚实未达（v4.5 真目标）**：154KB C · CI `.sh` · tools `.py` — 见 [`HONEST-REMAINING.md`](HONEST-REMAINING.md)

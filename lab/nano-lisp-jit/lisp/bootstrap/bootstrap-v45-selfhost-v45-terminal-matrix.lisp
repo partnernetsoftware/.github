@@ -1,4 +1,4 @@
-; Wave51 W4: selfhost × v4.5 终局矩阵.
+; Wave51 W4: selfhost × 扩展 rollup 矩阵.
 ; Prefix v45-svtm- · no build-slice lispjit.c · no .sh steps.
 (bootstrap
   (file-size "lab/nano-lisp-jit/.build/v45-selfhost-next.com")

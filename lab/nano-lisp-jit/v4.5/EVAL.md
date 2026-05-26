@@ -86,17 +86,17 @@
 | 扩展活图 | **16 张**（Wave34–49，各 7 节点） |
 | 工厂物理（诚实） | **~99.8%** · 154KB 仍开卷 |
 
-**日常**：`v45-wave52-v5-open-maintenance-converge.sh` · 用户 plan：`converge-daily-v45-maintenance.lisp`
+**日常**：`v45-wave52-physical-zero-cpysh-continue-converge.sh` · 用户 plan：`converge-daily-zero-cpysh.lisp`
 
-## Wave52（v5-open-maintenance · 7/7 ✅）
+## Wave52（physical-zero-cpysh-continue · 7/7 ✅）
 
 | 项 | 状态 |
 |----|------|
-| 活图 | `mindmap-frontier-v45-v5-open-maintenance.json` **7/7** |
-| 签收 | `v45.v45.v5_open_maintenance_continue.100=1` |
-| 广度 | v4.5 DONE 维护 + v5 诚实开卷 |
+| 活图 | `mindmap-frontier-v45-physical-zero-cpysh-continue.json` **7/7** |
+| 签收 | `v45.v45.physical_zero_cpysh_continue.100=1` |
+| 广度 | 零 cpysh 盘点 + 诚实锚 · **v4.5 目标仍未达** |
 
-## Wave51（v45-terminal-complete · v4.5 DONE ✅）
+## Wave51（v45-terminal-complete · 扩展 rollup ✅）
 
 | 项 | 状态 |
 |----|------|

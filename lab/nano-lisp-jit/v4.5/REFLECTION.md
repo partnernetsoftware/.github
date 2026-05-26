@@ -443,21 +443,21 @@ semantic(43) → nano-lisp.com(44) → 诚实零C(45) → 15link全链(46) → p
 | rollup 易被误读为物理 DONE | W2 `honest.endgame_remaining` 显式锚 |
 | cleanup-reflect 绑 wave21（慢） | 改绑 wave51 快收敛 |
 
-## 三十七、Wave50–51（v4.5 完成）
+## 三十七、Wave50–51（扩展活图 rollup · ≠ v4.5 目标达成）
 
 | 反思 | 调整 |
 |------|------|
 | 154KB 不能并进 rollup DONE | Wave50 独立活图 + 诚实键 |
-| 扩展活图 18 张需终局键 | Wave51 `v45_terminal_complete.100` |
-| 文档 SSOT 漂移 | 全指向 wave51 daily + converge |
+| 扩展活图 18 张需 rollup 键 | Wave51 `v45_terminal_complete.100`（**非**物理 DONE） |
+| 文档 SSOT 漂移 | 禁止混称 v4.5 DONE |
 
-## 三十八、Wave52（v5 开卷维护）
+## 三十八、Wave52（物理零 cpysh 续推）
 
 | 反思 | 调整 |
 |------|------|
-| v4.5 DONE 后缺维护轨 | Wave52 `v5_open_maintenance_continue.100` |
-| v5 物理轨不能与规划面混键 | 独立 `v5/README.md` + `DECISION.md` |
-| cleanup-reflect 仍绑 wave51 | 改绑 wave52 快收敛 |
+| Wave51 被误读为 v4.5 DONE | 改口径：扩展 rollup ≠ 目标达成 |
+|  prematurely 开 v5 | 撤回 v5/；Wave52 回到 v4.5 物理轨 |
+| 真目标仍是零 cpysh | `physical_zero_cpysh_continue.100` + 诚实锚 |
 
 ## 十八、Wave3（整表扩散，勿逐条）
 

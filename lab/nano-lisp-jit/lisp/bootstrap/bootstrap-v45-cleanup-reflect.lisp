@@ -7,5 +7,5 @@
   (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.selfhost.100" "1")
   (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.v45.lisp_com_bootstrap_terminal_continue.100" "1")
   (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.v45.v45_terminal_complete.100" "1")
-  (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.v45.v5_open_maintenance_continue.100" "1")
-  (file-hash "lab/nano-lisp-jit/v5/README.md"))
+  (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.v45.physical_zero_cpysh_continue.100" "1")
+  (file-hash "lab/nano-lisp-jit/v4.5/HONEST-REMAINING.md"))

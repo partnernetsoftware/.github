@@ -2,12 +2,12 @@
   "ssot": "v4.5/DIFFUSE-WAVE52.md",
   "parent_goal": "v45.v45.v45_terminal_complete.100",
   "onion_ssot": "v4.5/ONION-TDD.md",
-  "updated_at": "2026-05-26T00:00:00Z",
+  "updated_at": "2026-05-26T01:00:00Z",
   "max_parallel": 4,
-  "breadth_ring": "v5-open-maintenance \u2014 v4.5 \u89c4\u5212\u9762 DONE \u540e\u7ef4\u62a4\u8f68 + v5 \u8bda\u5b9e\u5f00\u5377",
+  "breadth_ring": "physical-zero-cpysh-continue \u2014 v4.5 \u7269\u7406\u7eed\u63a8\uff1a\u96f6 .c/.py/.sh\uff08\u2260 \u89c4\u5212 rollup DONE\uff09",
   "nodes": [
     {
-      "id": "v45-vom-gate",
+      "id": "v45-pzc-gate",
       "layer": 52,
       "ring": "gate",
       "onion_ring": 33,
@@ -19,87 +19,87 @@
       ]
     },
     {
-      "id": "v45-vom-done-rollup",
+      "id": "v45-pzc-inventory",
       "layer": 52,
-      "ring": "rollup",
+      "ring": "inventory",
       "onion_ring": 33,
       "status": "done",
       "deps": [
-        "v45-vom-gate"
+        "v45-pzc-gate"
       ],
       "parallel_slot": "W1",
-      "plan": "lisp/bootstrap/bootstrap-v45-v45-done-state-rollup.lisp",
+      "plan": "lisp/bootstrap/bootstrap-v45-physical-zero-cpysh-inventory.lisp",
       "agent": "engineer-a"
     },
     {
-      "id": "v45-vom-v5-anchor",
+      "id": "v45-pzc-honest",
       "layer": 52,
       "ring": "\u8bda\u5b9e",
       "onion_ring": 33,
       "status": "done",
       "deps": [
-        "v45-vom-gate"
+        "v45-pzc-gate"
       ],
       "parallel_slot": "W2",
-      "plan": "lisp/bootstrap/bootstrap-v45-v5-open-honest-anchor.lisp",
+      "plan": "lisp/bootstrap/bootstrap-v45-physical-zero-cpysh-honest-anchor.lisp",
       "agent": "engineer-b"
     },
     {
-      "id": "v45-vom-daily",
+      "id": "v45-pzc-daily",
       "layer": 52,
       "ring": "plan",
       "onion_ring": 33,
       "status": "done",
       "deps": [
-        "v45-vom-gate"
+        "v45-pzc-gate"
       ],
       "parallel_slot": "W3",
-      "plan": "lisp/bootstrap/bootstrap-v45-converge-daily-v45-maintenance.lisp",
+      "plan": "lisp/bootstrap/bootstrap-v45-converge-daily-zero-cpysh.lisp",
       "agent": "engineer-a"
     },
     {
-      "id": "v45-vom-selfhost",
+      "id": "v45-pzc-selfhost",
       "layer": 52,
       "ring": "\u4ee3\u9645",
       "onion_ring": 33,
       "status": "done",
       "deps": [
-        "v45-vom-gate"
+        "v45-pzc-gate"
       ],
       "parallel_slot": "W4",
-      "plan": "lisp/bootstrap/bootstrap-v45-selfhost-v5-open-matrix.lisp",
+      "plan": "lisp/bootstrap/bootstrap-v45-selfhost-zero-cpysh-matrix.lisp",
       "agent": "engineer-b"
     },
     {
-      "id": "v45-vom-terminal",
+      "id": "v45-pzc-terminal",
       "layer": 53,
       "ring": "\u7ec8\u5c40",
       "onion_ring": 33,
       "status": "done",
       "deps": [
-        "v45-vom-done-rollup",
-        "v45-vom-v5-anchor",
-        "v45-vom-daily",
-        "v45-vom-selfhost"
+        "v45-pzc-inventory",
+        "v45-pzc-honest",
+        "v45-pzc-daily",
+        "v45-pzc-selfhost"
       ],
-      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-v5-open-maintenance-tree.lisp",
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-physical-zero-cpysh-continue-tree.lisp",
       "agent": "reviewer"
     },
     {
-      "id": "v45-vom-goal",
+      "id": "v45-pzc-goal",
       "layer": 54,
-      "ring": "DONE",
+      "ring": "continue",
       "onion_ring": 33,
       "status": "done",
       "deps": [
-        "v45-vom-terminal"
+        "v45-pzc-terminal"
       ],
-      "plan": "lisp/bootstrap/bootstrap-v45-goal-v45-v5-open-maintenance-100.lisp",
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-v45-physical-zero-cpysh-continue-100.lisp",
       "agent": "reviewer"
     }
   ],
   "next_wave_preview": {
-    "id": "v5-physical-154kb",
-    "theme": "v5 \u7269\u7406\u8f68\uff1a154KB lispjit \u5168 Lisp codegen\uff08\u72ec\u7acb SSOT\uff0c\u2260 v4.5 \u89c4\u5212\u9762\uff09"
+    "id": "wave53-lispjit-154kb-codegen",
+    "theme": "154KB lispjit \u5168 Lisp codegen \u6269\u9762\uff08v4.5 \u7269\u7406\u8f68\uff0c\u4ecd\u975e v5\uff09"
   }
 }
