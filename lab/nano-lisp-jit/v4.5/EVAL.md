@@ -88,6 +88,15 @@
 
 **日常**：`v45-wave33-codegen-deep-continue-converge.sh`
 
+## fasmgx 梳理（Wave34 规划 · 2026-05-26）
+
+| 项 | 状态 |
+|----|------|
+| [`fasmgx/`](../../../fasmgx/) SSOT | ✅ 反思 · 清理 · 第九活图 |
+| `/goal` 26/26 | 不变 · 不重开 |
+| Wave34 runner 广面 | **ready** · 收敛脚本待建 |
+| 工厂物理（诚实） | **~99.5%** → Wave34 目标 ~99.8%（仍非全 C） |
+
 ## 反思要点（Wave33）
 
 - **探针在代际 com 绿** ≠ 154KB 全量 C 替代；独立键 `selfhost_next_codegen` 标明代际层。

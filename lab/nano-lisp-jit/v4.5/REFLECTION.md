@@ -392,6 +392,17 @@ bash lab/nano-lisp-jit/scripts/v45-cleanup-reflect.sh
 | 第八张活图 | `mindmap-frontier-v45-codegen-deep.json` |
 | 工厂 ~99.5% | `codegen_deep_continue.100`；154KB 全 C 仍诚实未达 |
 
+## 三十四、fasmgx 梳理（Wave34 开卷）
+
+| 反思 | 调整 |
+|------|------|
+| 扩展活图挤在 `v4.5/` 难扫？ | 建 **[`fasmgx/`](../../../fasmgx/)** 工厂续推 SSOT |
+| /goal 26/26 后往哪推？ | **runner 广面** 第九活图，独立键 `runner_codegen_continue.100` |
+| Wave33 四轨够吗？ | 不够 — 模块表 + emit 宽表 + ir-facade + modules 子集 |
+| DP 路径 | `FASMGX_FRONTIER=…` · `mindmap-dp-v45.py` |
+
+真源：[`fasmgx/REFLECTION.md`](../../../fasmgx/REFLECTION.md) · [`fasmgx/NEXT-ONION-TDD-TREE.md`](../../../fasmgx/NEXT-ONION-TDD-TREE.md) · [`DIFFUSE-WAVE34.md`](DIFFUSE-WAVE34.md)
+
 ## 十八、Wave3（整表扩散，勿逐条）
 
 见 DIFFUSE-WAVE2 §Wave3：无 C plan · run.sh 单行化 · wave 归档。

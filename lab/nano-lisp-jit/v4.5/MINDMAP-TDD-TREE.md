@@ -102,6 +102,21 @@ NANO_V45_FRONTIER=mindmap-frontier-v45-codegen-deep.json \
 bash lab/nano-lisp-jit/scripts/v45-wave33-codegen-deep-continue-converge.sh
 ```
 
+## fasmgx 卷（runner 广面 · Wave34+）
+
+工厂物理续推 SSOT：[`../../../fasmgx/README.md`](../../../fasmgx/README.md)
+
+```bash
+FASMGX_FRONTIER=mindmap-frontier-runner-codegen.json \
+  python3 lab/nano-lisp-jit/tools/mindmap-dp-v45.py stats
+# 见 fasmgx/NEXT-ONION-TDD-TREE.md · DIFFUSE-WAVE34.md
+```
+
+| 键 | 活图 |
+|----|------|
+| `v45.mindmap.runner_codegen.nodes_done` / `nodes_total` | **fasmgx** 第九张 · **7** |
+| `v45.v45.runner_codegen_continue.100=1` | Wave34（规划） |
+
 ## 日常（/goal 终局）
 
 ```bash
