@@ -52,6 +52,7 @@ bash lab/nano-lisp-jit/scripts/v45-wave21-onion-tdd-tree-mindmap-100-converge.sh
 | `v45.mindmap.plan_converge.nodes_done` / `nodes_total` | **plan-converge**（Wave36 · **7**） |
 | `v45.mindmap.zero_sh.nodes_done` / `nodes_total` | **zero-sh**（Wave37 · **7**） |
 | `v45.mindmap.host_orchestrator.nodes_done` / `nodes_total` | **host-orchestrator**（Wave38 · **7**） |
+| `v45.mindmap.runner_physical.nodes_done` / `nodes_total` | **runner-physical**（Wave39 · **7** · 诚实卷） |
 
 前置：`v45.tier5.100=1` · `v45.scoped.100=1` · `/goal` 26/26
 
@@ -198,6 +199,22 @@ NANO_V45_FRONTIER=mindmap-frontier-v45-host-orchestrator.json \
 | `v45.v45.host_orchestrator_continue.100=1` | 规划签收 |
 
 见 [`DIFFUSE-WAVE38.md`](DIFFUSE-WAVE38.md)
+
+## 扩展活图（runner-physical · Wave39+ · 诚实卷）
+
+目标：154KB runner 全 Lisp codegen 深潜（≠ 发行面终局 100%）。
+
+```bash
+NANO_V45_FRONTIER=mindmap-frontier-v45-runner-physical.json \
+  python3 lab/nano-lisp-jit/tools/mindmap-dp-v45.py ready
+```
+
+| 键 | 活图 |
+|----|------|
+| `v45.mindmap.runner_physical.nodes_done` / `nodes_total` | Wave39 · **7** |
+| `v45.v45.runner_physical_continue.100=1` | 物理卷签收 |
+
+见 [`DIFFUSE-WAVE39.md`](DIFFUSE-WAVE39.md)
 
 ## 扩展活图（runner 广面 · Wave34+）
 
