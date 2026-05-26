@@ -901,7 +901,7 @@ tasks:
 
 verify:
   commands:
-    - script: scripts/v45-wave29-selfhost-deep-continue-converge.sh
+    - script: scripts/v45-wave30-goal-factory-unified-converge.sh
       cwd: .
       fail_on_nonzero: true
 

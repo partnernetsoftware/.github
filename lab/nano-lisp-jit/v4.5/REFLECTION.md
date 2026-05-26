@@ -357,6 +357,15 @@ bash lab/nano-lisp-jit/scripts/v45-cleanup-reflect.sh
 | 活图继续分卷 | 第四张 `mindmap-frontier-v45-selfhost-deep.json` |
 | 工厂物理 ~96% | `selfhost_deep_continue.100`；154KB 全 codegen 仍开卷 |
 
+## 三十、Wave30（/goal×工厂 统一耦合）
+
+| 反思 | 调整 |
+|------|------|
+| /goal 仅在 host com 签收不够？ | **selfhost-next 跑 goal-onion-tdd-tree-mindmap-100** |
+| 四扩展活图如何收束？ | 第五张 `mindmap-frontier-v45-goal-factory.json` |
+| boundary/terminal 代际？ | next 跑 boundary-probe + terminal-done |
+| 工厂物理 ~97% | `goal_factory_unified_continue.100`；全量 codegen 仍未达 |
+
 ## 十八、Wave3（整表扩散，勿逐条）
 
 见 DIFFUSE-WAVE2 §Wave3：无 C plan · run.sh 单行化 · wave 归档。
