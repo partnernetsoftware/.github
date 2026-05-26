@@ -77,7 +77,7 @@
 | Wave | 签收键 | 状态 |
 |------|--------|------|
 | 31 | `terminal_continue.100` | ✅ main |
-| **32** | **`factory_rollup_continue.100`** · rollupy **7/7** | 🔄 本合并 |
+| **32** | **`factory_rollup_continue.100`** · rollupy **7/7** | ✅ main |
 
 | 指标 | 数值 |
 |------|------|

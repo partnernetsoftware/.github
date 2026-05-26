@@ -21,9 +21,9 @@
     {
       "id": "v45-ru-lisp-unified",
       "layer": 29,
-      "ring": "自举",
+      "ring": "\u81ea\u4e3e",
       "onion_ring": 13,
-      "status": "ready",
+      "status": "done",
       "deps": [
         "v45-ru-gate"
       ],
@@ -33,9 +33,9 @@
     {
       "id": "v45-ru-onion-unified",
       "layer": 29,
-      "ring": "洋葱",
+      "ring": "\u6d0b\u8471",
       "onion_ring": 13,
-      "status": "ready",
+      "status": "done",
       "deps": [
         "v45-ru-gate"
       ],
@@ -47,7 +47,7 @@
       "layer": 29,
       "ring": "handoff",
       "onion_ring": 13,
-      "status": "ready",
+      "status": "done",
       "deps": [
         "v45-ru-gate"
       ],
@@ -57,9 +57,9 @@
     {
       "id": "v45-ru-terminal",
       "layer": 29,
-      "ring": "终局",
+      "ring": "\u7ec8\u5c40",
       "onion_ring": 13,
-      "status": "ready",
+      "status": "done",
       "deps": [
         "v45-ru-gate"
       ],
@@ -69,9 +69,9 @@
     {
       "id": "v45-ru-tree",
       "layer": 30,
-      "ring": "树",
+      "ring": "\u6811",
       "onion_ring": 13,
-      "status": "ready",
+      "status": "done",
       "deps": [
         "v45-ru-lisp-unified",
         "v45-ru-onion-unified",
@@ -85,7 +85,7 @@
       "layer": 31,
       "ring": "DONE",
       "onion_ring": 13,
-      "status": "ready",
+      "status": "done",
       "deps": [
         "v45-ru-tree"
       ],
