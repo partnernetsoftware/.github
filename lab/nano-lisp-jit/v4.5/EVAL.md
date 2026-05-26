@@ -88,6 +88,15 @@
 
 **日常**：`v45-wave34-runner-codegen-continue-converge.sh`
 
+## Wave41（compose-modules · 编排中）
+
+| 项 | 状态 |
+|----|------|
+| 活图 | `mindmap-frontier-v45-compose-modules.json` |
+| 签收 | `v45.v45.compose_modules_continue.100=1` |
+| 深潜 | 模块 07–12 + compose 3/5 link |
+| 日常 | `v45-wave41-compose-modules-converge.sh` |
+
 ## Wave40（daily-plan · 7/7 ✅）
 
 | 项 | 状态 |

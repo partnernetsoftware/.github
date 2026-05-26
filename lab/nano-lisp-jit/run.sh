@@ -8181,6 +8181,20 @@ else
   skip_case "run-bootstrap-v45-wave20-lisp-selfhost-unified-converge-plan" "nano-jit.com or v45-wave20-lisp-selfhost-unified-converge.sh missing"
 fi
 
+# --- v4.5: Wave41 compose-modules（07–12 + Nlink + wave40）---
+V45_WAVE41_CONVERGE="$LAB_DIR/scripts/v45-wave41-compose-modules-converge.sh"
+if [ -f "$NANO_JIT_COM" ] && host_is_linux_x86_64 && [ -x "$V45_WAVE41_CONVERGE" ]; then
+  run_case "run-bootstrap-v45-wave41-compose-modules-converge-plan" bash -c '
+    cd "'"$ROOT_DIR"'" && bash "'"$V45_WAVE41_CONVERGE"'"
+    grep -q v45.v45.compose_modules_continue.100=1 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.runner.modules_07_12=1 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.runner.compose_3link=1 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.v45.daily_plan_continue.100=1 "'"$V45_ENTRY_EVIDENCE"'"
+  '
+else
+  skip_case "run-bootstrap-v45-wave41-compose-modules-converge-plan" "nano-jit.com or v45-wave41-compose-modules-converge.sh missing"
+fi
+
 # --- v4.5: Wave40 daily-plan（converge-daily + wave39）---
 V45_WAVE40_CONVERGE="$LAB_DIR/scripts/v45-wave40-daily-plan-converge.sh"
 if [ -f "$NANO_JIT_COM" ] && host_is_linux_x86_64 && [ -x "$V45_WAVE40_CONVERGE" ]; then
