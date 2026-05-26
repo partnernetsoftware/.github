@@ -23,7 +23,7 @@
       "layer": 23,
       "ring": "/goal",
       "onion_ring": 11,
-      "status": "ready",
+      "status": "done",
       "deps": [
         "v45-gf-gate"
       ],
@@ -35,7 +35,7 @@
       "layer": 23,
       "ring": "boundary",
       "onion_ring": 11,
-      "status": "ready",
+      "status": "done",
       "deps": [
         "v45-gf-gate"
       ],
@@ -45,9 +45,9 @@
     {
       "id": "v45-gf-terminal",
       "layer": 23,
-      "ring": "终局",
+      "ring": "\u7ec8\u5c40",
       "onion_ring": 11,
-      "status": "ready",
+      "status": "done",
       "deps": [
         "v45-gf-gate"
       ],
@@ -57,9 +57,9 @@
     {
       "id": "v45-gf-onion",
       "layer": 23,
-      "ring": "洋葱",
+      "ring": "\u6d0b\u8471",
       "onion_ring": 11,
-      "status": "ready",
+      "status": "done",
       "deps": [
         "v45-gf-gate"
       ],
@@ -69,9 +69,9 @@
     {
       "id": "v45-gf-tree",
       "layer": 24,
-      "ring": "树",
+      "ring": "\u6811",
       "onion_ring": 11,
-      "status": "ready",
+      "status": "done",
       "deps": [
         "v45-gf-goal-recheck",
         "v45-gf-boundary",
@@ -85,7 +85,7 @@
       "layer": 25,
       "ring": "DONE",
       "onion_ring": 11,
-      "status": "ready",
+      "status": "done",
       "deps": [
         "v45-gf-tree"
       ],
