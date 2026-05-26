@@ -901,7 +901,7 @@ tasks:
 
 verify:
   commands:
-    - script: scripts/v45-wave62-nano-lisp-com-host-only-converge.sh
+    - script: scripts/v45-wave63-nano-lisp-com-native-bootstrap-converge.sh
       cwd: .
       fail_on_nonzero: true
 
