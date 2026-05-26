@@ -22,7 +22,7 @@
       "layer": 32,
       "ring": "Codegen",
       "onion_ring": 14,
-      "status": "ready",
+      "status": "done",
       "deps": [
         "v45-cd-gate"
       ],
@@ -34,7 +34,7 @@
       "layer": 32,
       "ring": "Codegen",
       "onion_ring": 14,
-      "status": "ready",
+      "status": "done",
       "deps": [
         "v45-cd-gate"
       ],
@@ -46,7 +46,7 @@
       "layer": 32,
       "ring": "Codegen",
       "onion_ring": 14,
-      "status": "ready",
+      "status": "done",
       "deps": [
         "v45-cd-gate"
       ],
@@ -58,7 +58,7 @@
       "layer": 32,
       "ring": "Codegen",
       "onion_ring": 14,
-      "status": "ready",
+      "status": "done",
       "deps": [
         "v45-cd-gate"
       ],
@@ -68,9 +68,9 @@
     {
       "id": "v45-cd-terminal",
       "layer": 33,
-      "ring": "终局",
+      "ring": "\u7ec8\u5c40",
       "onion_ring": 14,
-      "status": "ready",
+      "status": "done",
       "deps": [
         "v45-cd-slice-min",
         "v45-cd-vm-ctrl",
@@ -84,7 +84,7 @@
       "layer": 34,
       "ring": "DONE",
       "onion_ring": 14,
-      "status": "ready",
+      "status": "done",
       "deps": [
         "v45-cd-terminal"
       ],
