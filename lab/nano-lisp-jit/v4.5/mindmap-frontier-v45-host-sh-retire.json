@@ -1,0 +1,105 @@
+{
+  "ssot": "v4.5/DIFFUSE-WAVE58.md",
+  "parent_goal": "v45.v45.lispjit_c_delete_continue.100",
+  "onion_ssot": "v4.5/ONION-TDD.md",
+  "updated_at": "2026-05-26T16:00:00Z",
+  "max_parallel": 4,
+  "breadth_ring": "host-sh-retire \u2014 \u7269\u7406\u8fc1\u51fa wave converge \u811a\u672c + plan-only \u5916\u5c42",
+  "nodes": [
+    {
+      "id": "v45-hsr-gate",
+      "layer": 58,
+      "ring": "gate",
+      "onion_ring": 39,
+      "status": "done",
+      "deps": [],
+      "accept": [
+        "v45.v45.lispjit_c_delete_continue.100=1",
+        "v45.runner.lispjit_c_active_deleted=1"
+      ]
+    },
+    {
+      "id": "v45-hsr-replace",
+      "layer": 58,
+      "ring": "plan",
+      "onion_ring": 39,
+      "status": "done",
+      "deps": [
+        "v45-hsr-gate"
+      ],
+      "parallel_slot": "W1",
+      "plan": "lisp/bootstrap/bootstrap-v45-host-sh-plan-only-replacement-prove.lisp",
+      "agent": "engineer-a"
+    },
+    {
+      "id": "v45-hsr-archive",
+      "layer": 58,
+      "ring": "\u8bda\u5b9e",
+      "onion_ring": 39,
+      "status": "done",
+      "deps": [
+        "v45-hsr-gate"
+      ],
+      "parallel_slot": "W2",
+      "plan": "lisp/bootstrap/bootstrap-v45-host-sh-archive-honest.lisp",
+      "agent": "engineer-b"
+    },
+    {
+      "id": "v45-hsr-daily",
+      "layer": 58,
+      "ring": "plan",
+      "onion_ring": 39,
+      "status": "done",
+      "deps": [
+        "v45-hsr-gate"
+      ],
+      "parallel_slot": "W3",
+      "plan": "lisp/bootstrap/bootstrap-v45-converge-daily-v45-plan-only-outer.lisp",
+      "agent": "engineer-a"
+    },
+    {
+      "id": "v45-hsr-selfhost",
+      "layer": 58,
+      "ring": "\u4ee3\u9645",
+      "onion_ring": 39,
+      "status": "done",
+      "deps": [
+        "v45-hsr-gate"
+      ],
+      "parallel_slot": "W4",
+      "plan": "lisp/bootstrap/bootstrap-v45-selfhost-host-sh-retire-matrix.lisp",
+      "agent": "engineer-b"
+    },
+    {
+      "id": "v45-hsr-terminal",
+      "layer": 59,
+      "ring": "\u7ec8\u5c40",
+      "onion_ring": 39,
+      "status": "done",
+      "deps": [
+        "v45-hsr-replace",
+        "v45-hsr-archive",
+        "v45-hsr-daily",
+        "v45-hsr-selfhost"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-host-sh-retire-tree.lisp",
+      "agent": "reviewer"
+    },
+    {
+      "id": "v45-hsr-goal",
+      "layer": 60,
+      "ring": "continue",
+      "onion_ring": 39,
+      "status": "done",
+      "deps": [
+        "v45-hsr-terminal"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-v45-host-sh-retire-continue-100.lisp",
+      "agent": "reviewer"
+    }
+  ],
+  "next_wave_preview": {
+    "id": "wave59-tools-py-retire",
+    "theme": "tools/*.py \u9000 retired \u00b7 \u5168 monorepo plan-only \u7ec8\u5c40"
+  }
+}

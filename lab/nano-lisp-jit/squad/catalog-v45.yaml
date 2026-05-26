@@ -901,7 +901,7 @@ tasks:
 
 verify:
   commands:
-    - script: scripts/v45-wave57-lispjit-c-delete-converge.sh
+    - script: scripts/v45-wave58-host-sh-retire-converge.sh
       cwd: .
       fail_on_nonzero: true
 
