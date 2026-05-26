@@ -1,0 +1,94 @@
+{
+  "ssot": "v4.5/DIFFUSE-WAVE29.md",
+  "parent_goal": "v45.v45.factory_physical_continue.100",
+  "onion_ssot": "v4.5/ONION-TDD.md",
+  "updated_at": "2026-05-25T16:00:00Z",
+  "max_parallel": 4,
+  "nodes": [
+    {
+      "id": "v45-shd-gate",
+      "layer": 20,
+      "ring": "gate",
+      "onion_ring": 9,
+      "status": "done",
+      "deps": [],
+      "accept": [
+        "v45.factory.selfhost_next_full=1",
+        "v45.goal.onion_tdd_tree_mindmap.100=1"
+      ]
+    },
+    {
+      "id": "v45-shd-modules",
+      "layer": 20,
+      "ring": "modules",
+      "onion_ring": 10,
+      "status": "ready",
+      "deps": [
+        "v45-shd-gate"
+      ],
+      "parallel_slot": "W1",
+      "plan": "samples/bootstrap-v45-selfhost-modules-full.lisp"
+    },
+    {
+      "id": "v45-shd-regenesis",
+      "layer": 20,
+      "ring": "自举",
+      "onion_ring": 10,
+      "status": "ready",
+      "deps": [
+        "v45-shd-gate"
+      ],
+      "parallel_slot": "W2",
+      "plan": "samples/bootstrap-v45-selfhost-regenesis-lisp-only.lisp"
+    },
+    {
+      "id": "v45-shd-chain",
+      "layer": 20,
+      "ring": "链",
+      "onion_ring": 10,
+      "status": "ready",
+      "deps": [
+        "v45-shd-gate"
+      ],
+      "parallel_slot": "W3",
+      "plan": "samples/bootstrap-v45-selfhost-chain-lisp-only.lisp"
+    },
+    {
+      "id": "v45-shd-onion",
+      "layer": 20,
+      "ring": "洋葱",
+      "onion_ring": 10,
+      "status": "ready",
+      "deps": [
+        "v45-shd-gate"
+      ],
+      "parallel_slot": "W4",
+      "plan": "samples/bootstrap-v45-onion-tdd.lisp"
+    },
+    {
+      "id": "v45-shd-terminal",
+      "layer": 21,
+      "ring": "终局",
+      "onion_ring": 10,
+      "status": "ready",
+      "deps": [
+        "v45-shd-modules",
+        "v45-shd-regenesis",
+        "v45-shd-chain",
+        "v45-shd-onion"
+      ],
+      "plan": "samples/bootstrap-v45-mindmap-selfhost-deep-tree.lisp"
+    },
+    {
+      "id": "v45-shd-goal",
+      "layer": 22,
+      "ring": "DONE",
+      "onion_ring": 10,
+      "status": "ready",
+      "deps": [
+        "v45-shd-terminal"
+      ],
+      "plan": "samples/bootstrap-v45-goal-v45-selfhost-deep-continue-100.lisp"
+    }
+  ]
+}

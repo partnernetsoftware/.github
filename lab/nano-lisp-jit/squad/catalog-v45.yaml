@@ -901,7 +901,7 @@ tasks:
 
 verify:
   commands:
-    - script: scripts/v45-wave28-factory-physical-continue-converge.sh
+    - script: scripts/v45-wave29-selfhost-deep-continue-converge.sh
       cwd: .
       fail_on_nonzero: true
 

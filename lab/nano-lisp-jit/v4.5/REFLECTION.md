@@ -348,6 +348,15 @@ bash lab/nano-lisp-jit/scripts/v45-cleanup-reflect.sh
 | 扩展活图如何叠层？ | 第三张活图 `mindmap-frontier-v45-factory.json`（7 节点） |
 | 仍不能喊物理 100% | `factory_physical_continue.100` · 工厂终局 **~93%** 诚实 |
 
+## 二十九、Wave29（selfhost-next 深度矩阵）
+
+| 反思 | 调整 |
+|------|------|
+| Wave28 仅 smoke/core/onion | 加 modules-full + regenesis + chain 四轨 |
+| /goal 能否在代际 com 复核？ | **selfhost-next 跑 onion-tdd** → `next_onion_tdd=1` |
+| 活图继续分卷 | 第四张 `mindmap-frontier-v45-selfhost-deep.json` |
+| 工厂物理 ~96% | `selfhost_deep_continue.100`；154KB 全 codegen 仍开卷 |
+
 ## 十八、Wave3（整表扩散，勿逐条）
 
 见 DIFFUSE-WAVE2 §Wave3：无 C plan · run.sh 单行化 · wave 归档。
