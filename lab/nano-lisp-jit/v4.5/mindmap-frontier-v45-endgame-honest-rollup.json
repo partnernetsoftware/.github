@@ -4,14 +4,14 @@
   "onion_ssot": "v4.5/ONION-TDD.md",
   "updated_at": "2026-05-25T16:00:00Z",
   "max_parallel": 4,
-  "breadth_ring": "endgame-honest-rollup — Wave44–48 键收束 + 发行面诚实终局",
+  "breadth_ring": "endgame-honest-rollup \u2014 Wave44\u201348 \u952e\u6536\u675f + \u53d1\u884c\u9762\u8bda\u5b9e\u7ec8\u5c40",
   "nodes": [
     {
       "id": "v45-ehr-gate",
       "layer": 49,
       "ring": "gate",
       "onion_ring": 30,
-      "status": "ready",
+      "status": "done",
       "deps": [],
       "accept": [
         "v45.v45.lisp_com_bootstrap_terminal_continue.100=1",
@@ -23,7 +23,7 @@
       "layer": 49,
       "ring": "rollup",
       "onion_ring": 30,
-      "status": "ready",
+      "status": "done",
       "deps": [
         "v45-ehr-gate"
       ],
@@ -34,9 +34,9 @@
     {
       "id": "v45-ehr-honest-anchor",
       "layer": 49,
-      "ring": "诚实",
+      "ring": "\u8bda\u5b9e",
       "onion_ring": 30,
-      "status": "ready",
+      "status": "done",
       "deps": [
         "v45-ehr-gate"
       ],
@@ -49,7 +49,7 @@
       "layer": 49,
       "ring": "plan",
       "onion_ring": 30,
-      "status": "ready",
+      "status": "done",
       "deps": [
         "v45-ehr-gate"
       ],
@@ -60,9 +60,9 @@
     {
       "id": "v45-ehr-selfhost",
       "layer": 49,
-      "ring": "代际",
+      "ring": "\u4ee3\u9645",
       "onion_ring": 30,
-      "status": "ready",
+      "status": "done",
       "deps": [
         "v45-ehr-gate"
       ],
@@ -73,9 +73,9 @@
     {
       "id": "v45-ehr-terminal",
       "layer": 50,
-      "ring": "终局",
+      "ring": "\u7ec8\u5c40",
       "onion_ring": 30,
-      "status": "ready",
+      "status": "done",
       "deps": [
         "v45-ehr-waves-rollup",
         "v45-ehr-honest-anchor",
@@ -90,7 +90,7 @@
       "layer": 51,
       "ring": "DONE",
       "onion_ring": 30,
-      "status": "ready",
+      "status": "done",
       "deps": [
         "v45-ehr-terminal"
       ],
@@ -100,6 +100,6 @@
   ],
   "next_wave_preview": {
     "id": "wave50-lispjit-codegen-dedicated",
-    "theme": "154KB runner 全 Lisp codegen 独立活图（不进发行面 rollup DONE）"
+    "theme": "154KB runner \u5168 Lisp codegen \u72ec\u7acb\u6d3b\u56fe\uff08\u4e0d\u8fdb\u53d1\u884c\u9762 rollup DONE\uff09"
   }
 }
