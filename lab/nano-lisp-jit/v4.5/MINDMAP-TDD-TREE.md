@@ -284,6 +284,22 @@ NANO_V45_FRONTIER=mindmap-frontier-v45-semantic-terminal.json \
 
 见 [`DIFFUSE-WAVE43.md`](DIFFUSE-WAVE43.md)
 
+## 扩展活图（nano-lisp-com-terminal · Wave44+）
+
+目标：`nano-lisp.com` 代际 semantic + 终局 daily 入口 + 诚实零 C 卷。
+
+```bash
+NANO_V45_FRONTIER=mindmap-frontier-v45-nano-lisp-com-terminal.json \
+  python3 lab/nano-lisp-jit/tools/mindmap-dp-v45.py ready
+```
+
+| 键 | 活图 |
+|----|------|
+| `v45.mindmap.nano_lisp_com_terminal.nodes_done` / `nodes_total` | Wave44 · **7** |
+| `v45.v45.nano_lisp_com_terminal_continue.100=1` | 规划签收 |
+
+见 [`DIFFUSE-WAVE44.md`](DIFFUSE-WAVE44.md)
+
 ## 扩展活图（runner 广面 · Wave34+）
 
 ```bash

@@ -88,6 +88,15 @@
 
 **日常**：`v45-wave34-runner-codegen-continue-converge.sh`
 
+## Wave44（nano-lisp-com-terminal · 7/7 ✅）
+
+| 项 | 状态 |
+|----|------|
+| 活图 | `mindmap-frontier-v45-nano-lisp-com-terminal.json` **7/7** |
+| 签收 | `v45.v45.nano_lisp_com_terminal_continue.100=1` |
+| 广度 | nano-lisp.com 代际 semantic + 终局 daily 入口 |
+| 收敛 | 默认快 seed（`V45_FULL=1` 完整链） |
+
 ## Wave43（semantic-terminal · 7/7 ✅）
 
 | 项 | 状态 |

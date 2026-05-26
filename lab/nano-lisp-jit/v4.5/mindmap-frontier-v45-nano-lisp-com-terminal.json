@@ -1,0 +1,105 @@
+{
+  "ssot": "v4.5/DIFFUSE-WAVE44.md",
+  "parent_goal": "v45.v45.semantic_terminal_continue.100",
+  "onion_ssot": "v4.5/ONION-TDD.md",
+  "updated_at": "2026-05-25T06:00:00Z",
+  "max_parallel": 4,
+  "breadth_ring": "nano-lisp-com-terminal — nano-lisp.com 代际 semantic + 诚实零 C 卷",
+  "nodes": [
+    {
+      "id": "v45-nlct-gate",
+      "layer": 44,
+      "ring": "gate",
+      "onion_ring": 25,
+      "status": "ready",
+      "deps": [],
+      "accept": [
+        "v45.v45.semantic_terminal_continue.100=1",
+        "v45.goal.onion_tdd_tree_mindmap.100=1"
+      ]
+    },
+    {
+      "id": "v45-nlct-semantic-run",
+      "layer": 44,
+      "ring": "Codegen",
+      "onion_ring": 25,
+      "status": "ready",
+      "deps": [
+        "v45-nlct-gate"
+      ],
+      "parallel_slot": "W1",
+      "plan": "lisp/bootstrap/bootstrap-v45-nano-lisp-com-semantic-run.lisp",
+      "agent": "engineer-a"
+    },
+    {
+      "id": "v45-nlct-selfhost-matrix",
+      "layer": 44,
+      "ring": "代际",
+      "onion_ring": 25,
+      "status": "ready",
+      "deps": [
+        "v45-nlct-gate"
+      ],
+      "parallel_slot": "W2",
+      "plan": "lisp/bootstrap/bootstrap-v45-selfhost-nano-lisp-com-matrix.lisp",
+      "agent": "engineer-b"
+    },
+    {
+      "id": "v45-nlct-daily-terminal",
+      "layer": 44,
+      "ring": "plan",
+      "onion_ring": 25,
+      "status": "ready",
+      "deps": [
+        "v45-nlct-gate"
+      ],
+      "parallel_slot": "W3",
+      "plan": "lisp/bootstrap/bootstrap-v45-converge-daily-terminal.lisp",
+      "agent": "engineer-a"
+    },
+    {
+      "id": "v45-nlct-honest-zero-c",
+      "layer": 44,
+      "ring": "诚实",
+      "onion_ring": 25,
+      "status": "ready",
+      "deps": [
+        "v45-nlct-gate"
+      ],
+      "parallel_slot": "W4",
+      "plan": "lisp/bootstrap/bootstrap-v45-honest-zero-c-progress.lisp",
+      "agent": "engineer-b"
+    },
+    {
+      "id": "v45-nlct-terminal",
+      "layer": 45,
+      "ring": "终局",
+      "onion_ring": 25,
+      "status": "ready",
+      "deps": [
+        "v45-nlct-semantic-run",
+        "v45-nlct-selfhost-matrix",
+        "v45-nlct-daily-terminal",
+        "v45-nlct-honest-zero-c"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-nano-lisp-com-terminal-tree.lisp",
+      "agent": "reviewer"
+    },
+    {
+      "id": "v45-nlct-goal",
+      "layer": 46,
+      "ring": "DONE",
+      "onion_ring": 25,
+      "status": "ready",
+      "deps": [
+        "v45-nlct-terminal"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-v45-nano-lisp-com-terminal-100.lisp",
+      "agent": "reviewer"
+    }
+  ],
+  "next_wave_preview": {
+    "id": "wave45-physical-zero-c-honest",
+    "theme": "154KB runner 全 Lisp codegen + 物理零 C 诚实卷（独立活图）"
+  }
+}

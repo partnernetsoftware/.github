@@ -901,7 +901,7 @@ tasks:
 
 verify:
   commands:
-    - script: scripts/v45-wave43-semantic-terminal-converge.sh
+    - script: scripts/v45-wave44-nano-lisp-com-terminal-converge.sh
       cwd: .
       fail_on_nonzero: true
 
