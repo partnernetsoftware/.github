@@ -4,14 +4,14 @@
   "onion_ssot": "v4.5/ONION-TDD.md",
   "updated_at": "2026-05-26T23:00:00Z",
   "max_parallel": 4,
-  "breadth_ring": "nano-lisp-com-host-only — bootstrap 宿主迁 nano-lisp/ · 退 nano-jit.com 叙事",
+  "breadth_ring": "nano-lisp-com-host-only \u2014 bootstrap \u5bbf\u4e3b\u8fc1 nano-lisp/ \u00b7 \u9000 nano-jit.com \u53d9\u4e8b",
   "nodes": [
     {
       "id": "v45-nlcho-gate",
       "layer": 62,
       "ring": "gate",
       "onion_ring": 43,
-      "status": "pending",
+      "status": "done",
       "deps": [],
       "accept": [
         "v45.v45.physical_honest_terminal_continue.100=1",
@@ -23,7 +23,7 @@
       "layer": 62,
       "ring": "host",
       "onion_ring": 43,
-      "status": "pending",
+      "status": "done",
       "deps": [
         "v45-nlcho-gate"
       ],
@@ -34,9 +34,9 @@
     {
       "id": "v45-nlcho-archive",
       "layer": 62,
-      "ring": "诚实",
+      "ring": "\u8bda\u5b9e",
       "onion_ring": 43,
-      "status": "pending",
+      "status": "done",
       "deps": [
         "v45-nlcho-gate"
       ],
@@ -49,7 +49,7 @@
       "layer": 62,
       "ring": "plan",
       "onion_ring": 43,
-      "status": "pending",
+      "status": "done",
       "deps": [
         "v45-nlcho-gate"
       ],
@@ -60,9 +60,9 @@
     {
       "id": "v45-nlcho-selfhost",
       "layer": 62,
-      "ring": "代际",
+      "ring": "\u4ee3\u9645",
       "onion_ring": 43,
-      "status": "pending",
+      "status": "done",
       "deps": [
         "v45-nlcho-gate"
       ],
@@ -73,9 +73,9 @@
     {
       "id": "v45-nlcho-terminal",
       "layer": 63,
-      "ring": "终局",
+      "ring": "\u7ec8\u5c40",
       "onion_ring": 43,
-      "status": "pending",
+      "status": "done",
       "deps": [
         "v45-nlcho-unify",
         "v45-nlcho-archive",
@@ -90,7 +90,7 @@
       "layer": 64,
       "ring": "continue",
       "onion_ring": 43,
-      "status": "pending",
+      "status": "done",
       "deps": [
         "v45-nlcho-terminal"
       ],
@@ -100,6 +100,6 @@
   ],
   "next_wave_preview": {
     "id": "wave63-nano-lisp-com-native-bootstrap",
-    "theme": "nano-lisp.com 原生 bootstrap · 退 nano-lisp-host.com 种子"
+    "theme": "nano-lisp.com \u539f\u751f bootstrap \u00b7 \u9000 nano-lisp-host.com \u79cd\u5b50"
   }
 }
