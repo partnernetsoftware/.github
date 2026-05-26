@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 清洗 + 反思锚点：canonical + wave51 快收敛 + DP stats.
+# 清洗 + 反思锚点：canonical + wave57 快收敛 + DP stats.
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
 EV="$ROOT/lab/nano-lisp-jit/.build/v45-entry.evidence"
@@ -7,7 +7,9 @@ cd "$ROOT"
 echo "v45-cleanup-reflect=begin"
 bash "$(dirname "$0")/v45-evidence-canonical.sh"
 if [ -x "$ROOT/lab/nano-lisp-jit/.build/nano-jit/nano-jit.com" ]; then
-  if [ -x "$(dirname "$0")/v45-wave56-zero-cpysh-target-converge.sh" ]; then
+  if [ -x "$(dirname "$0")/v45-wave57-lispjit-c-delete-converge.sh" ]; then
+    bash "$(dirname "$0")/v45-wave57-lispjit-c-delete-converge.sh" || true
+  elif [ -x "$(dirname "$0")/v45-wave56-zero-cpysh-target-converge.sh" ]; then
     bash "$(dirname "$0")/v45-wave56-zero-cpysh-target-converge.sh" || true
   elif [ -x "$(dirname "$0")/v45-wave55-tools-py-plan-only-converge.sh" ]; then
     bash "$(dirname "$0")/v45-wave53-lispjit-154kb-codegen-expand-converge.sh" || true
@@ -20,7 +22,7 @@ if [ -x "$ROOT/lab/nano-lisp-jit/.build/nano-jit/nano-jit.com" ]; then
   fi
 fi
 bash "$(dirname "$0")/v45-evidence-canonical.sh"
-NANO_V45_FRONTIER=mindmap-frontier-v45-zero-cpysh-target.json \
+NANO_V45_FRONTIER=mindmap-frontier-v45-lispjit-c-delete.json \
   python3 "$ROOT/lab/nano-lisp-jit/tools/mindmap-dp-v45.py" stats || true
 {
   echo "v45.cleanup.reflect=1"

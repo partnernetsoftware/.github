@@ -45,12 +45,12 @@ grep v45.physical.zero_c=0 lab/nano-lisp-jit/.build/v45-entry.evidence
 
 口径：[`DECISION.md`](DECISION.md) · [`PROGRESS.md`](PROGRESS.md) · [`HONEST-REMAINING.md`](HONEST-REMAINING.md)
 
-## 日常（Wave56 · v4.5 目标轨）
+## 日常（Wave57 · v4.5 目标轨）
 
 ```bash
 COM=lab/nano-lisp-jit/.build/nano-jit/nano-jit.com
-$COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-converge-daily-v45-target.lisp
-bash lab/nano-lisp-jit/scripts/v45-wave56-zero-cpysh-target-converge.sh
+$COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-converge-daily-v45-zero-c.lisp
+bash lab/nano-lisp-jit/scripts/v45-wave57-lispjit-c-delete-converge.sh
 ```
 
 真目标与完成路径：[`HONEST-REMAINING.md`](HONEST-REMAINING.md)

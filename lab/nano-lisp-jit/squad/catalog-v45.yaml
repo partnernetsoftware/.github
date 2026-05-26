@@ -901,7 +901,7 @@ tasks:
 
 verify:
   commands:
-    - script: scripts/v45-wave56-zero-cpysh-target-converge.sh
+    - script: scripts/v45-wave57-lispjit-c-delete-converge.sh
       cwd: .
       fail_on_nonzero: true
 
