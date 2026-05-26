@@ -10,7 +10,7 @@
       "layer": 36,
       "ring": "gate",
       "onion_ring": 17,
-      "status": "ready",
+      "status": "done",
       "deps": [],
       "accept": [
         "v45.v45.lisp_com_only_continue.100=1",
@@ -22,7 +22,7 @@
       "layer": 36,
       "ring": "plan",
       "onion_ring": 17,
-      "status": "ready",
+      "status": "done",
       "deps": [
         "v45-pc-gate"
       ],
@@ -32,9 +32,9 @@
     {
       "id": "v45-pc-onion-default",
       "layer": 36,
-      "ring": "洋葱",
+      "ring": "\u6d0b\u8471",
       "onion_ring": 17,
-      "status": "ready",
+      "status": "done",
       "deps": [
         "v45-pc-gate"
       ],
@@ -46,7 +46,7 @@
       "layer": 36,
       "ring": "com",
       "onion_ring": 17,
-      "status": "ready",
+      "status": "done",
       "deps": [
         "v45-pc-gate"
       ],
@@ -56,9 +56,9 @@
     {
       "id": "v45-pc-next-verify",
       "layer": 36,
-      "ring": "代际",
+      "ring": "\u4ee3\u9645",
       "onion_ring": 17,
-      "status": "ready",
+      "status": "done",
       "deps": [
         "v45-pc-gate"
       ],
@@ -68,9 +68,9 @@
     {
       "id": "v45-pc-terminal",
       "layer": 37,
-      "ring": "终局",
+      "ring": "\u7ec8\u5c40",
       "onion_ring": 17,
-      "status": "ready",
+      "status": "done",
       "deps": [
         "v45-pc-converge-all",
         "v45-pc-onion-default",
@@ -84,7 +84,7 @@
       "layer": 38,
       "ring": "DONE",
       "onion_ring": 17,
-      "status": "ready",
+      "status": "done",
       "deps": [
         "v45-pc-terminal"
       ],
