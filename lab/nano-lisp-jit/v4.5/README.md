@@ -49,6 +49,6 @@ grep v45.physical.zero_c=0 lab/nano-lisp-jit/.build/v45-entry.evidence
 
 ```bash
 COM=lab/nano-lisp-jit/.build/nano-jit/nano-jit.com
-$COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-converge-daily-lisp-com-terminal.lisp
-bash lab/nano-lisp-jit/scripts/v45-wave48-lisp-com-bootstrap-terminal-converge.sh
+$COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-converge-daily-v45-complete.lisp
+bash lab/nano-lisp-jit/scripts/v45-wave51-v45-terminal-complete-converge.sh
 ```

@@ -63,8 +63,10 @@ bash lab/nano-lisp-jit/scripts/v45-wave21-onion-tdd-tree-mindmap-100-converge.sh
 | `v45.mindmap.zero_host_sh_terminal.nodes_done` / `nodes_total` | **zero-host-sh-terminal**（Wave47 · **7**） |
 | `v45.mindmap.lisp_com_bootstrap_terminal.nodes_done` / `nodes_total` | **lisp-com-bootstrap-terminal**（Wave48 · **7**） |
 | `v45.mindmap.endgame_honest_rollup.nodes_done` / `nodes_total` | **endgame-honest-rollup**（Wave49 · **7**） |
+| `v45.mindmap.lispjit_codegen_dedicated.nodes_done` / `nodes_total` | **lispjit-codegen-dedicated**（Wave50 · **7**） |
+| `v45.mindmap.v45_terminal_complete.nodes_done` / `nodes_total` | **v45-terminal-complete**（Wave51 · **7**） |
 
-前置：`v45.tier5.100=1` · `v45.scoped.100=1` · `/goal` 26/26 · 扩展活图 **16 张**（Wave34–49）
+前置：`v45.tier5.100=1` · `v45.scoped.100=1` · `/goal` 26/26 · 扩展活图 **18 张** · **`v45.v45.v45_terminal_complete.100=1`**
 
 ## 编排协议（主对话 × 后台 team）
 
@@ -385,6 +387,20 @@ NANO_V45_FRONTIER=mindmap-frontier-v45-endgame-honest-rollup.json \
 | `v45.v45.endgame_honest_rollup_continue.100=1` | 规划签收 |
 
 见 [`DIFFUSE-WAVE49.md`](DIFFUSE-WAVE49.md)
+
+## 扩展活图（v45-terminal-complete · Wave51 · v4.5 DONE）
+
+```bash
+NANO_V45_FRONTIER=mindmap-frontier-v45-v45-terminal-complete.json \
+  python3 lab/nano-lisp-jit/tools/mindmap-dp-v45.py stats
+```
+
+| 键 | 活图 |
+|----|------|
+| `v45.v45.v45_terminal_complete.100=1` | **v4.5 规划面终局** |
+| `v45.mindmap.v45_terminal_complete.nodes_done` / `nodes_total` | Wave51 · **7** |
+
+见 [`DIFFUSE-WAVE51.md`](DIFFUSE-WAVE51.md)
 
 ## 扩展活图（runner 广面 · Wave34+）
 

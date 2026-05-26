@@ -1,0 +1,105 @@
+{
+  "ssot": "v4.5/DIFFUSE-WAVE50.md",
+  "parent_goal": "v45.v45.endgame_honest_rollup_continue.100",
+  "onion_ssot": "v4.5/ONION-TDD.md",
+  "updated_at": "2026-05-25T18:00:00Z",
+  "max_parallel": 4,
+  "breadth_ring": "lispjit-codegen-dedicated \u2014 154KB runner \u5168 Lisp codegen \u72ec\u7acb\u6d3b\u56fe",
+  "nodes": [
+    {
+      "id": "v45-lcd-gate",
+      "layer": 50,
+      "ring": "gate",
+      "onion_ring": 31,
+      "status": "done",
+      "deps": [],
+      "accept": [
+        "v45.v45.endgame_honest_rollup_continue.100=1",
+        "v45.goal.onion_tdd_tree_mindmap.100=1"
+      ]
+    },
+    {
+      "id": "v45-lcd-154kb-probe",
+      "layer": 50,
+      "ring": "Codegen",
+      "onion_ring": 31,
+      "status": "done",
+      "deps": [
+        "v45-lcd-gate"
+      ],
+      "parallel_slot": "W1",
+      "plan": "lisp/bootstrap/bootstrap-v45-runner-lispjit-154kb-codegen-probe.lisp",
+      "agent": "engineer-a"
+    },
+    {
+      "id": "v45-lcd-gen60-handshake",
+      "layer": 50,
+      "ring": "Codegen",
+      "onion_ring": 31,
+      "status": "done",
+      "deps": [
+        "v45-lcd-gate"
+      ],
+      "parallel_slot": "W2",
+      "plan": "lisp/bootstrap/bootstrap-v45-codegen-gen60-handshake-deep.lisp",
+      "agent": "engineer-b"
+    },
+    {
+      "id": "v45-lcd-daily",
+      "layer": 50,
+      "ring": "plan",
+      "onion_ring": 31,
+      "status": "done",
+      "deps": [
+        "v45-lcd-gate"
+      ],
+      "parallel_slot": "W3",
+      "plan": "lisp/bootstrap/bootstrap-v45-converge-daily-codegen-dedicated.lisp",
+      "agent": "engineer-a"
+    },
+    {
+      "id": "v45-lcd-selfhost",
+      "layer": 50,
+      "ring": "\u4ee3\u9645",
+      "onion_ring": 31,
+      "status": "done",
+      "deps": [
+        "v45-lcd-gate"
+      ],
+      "parallel_slot": "W4",
+      "plan": "lisp/bootstrap/bootstrap-v45-selfhost-codegen-154kb-deep-matrix.lisp",
+      "agent": "engineer-b"
+    },
+    {
+      "id": "v45-lcd-terminal",
+      "layer": 51,
+      "ring": "\u7ec8\u5c40",
+      "onion_ring": 31,
+      "status": "done",
+      "deps": [
+        "v45-lcd-154kb-probe",
+        "v45-lcd-gen60-handshake",
+        "v45-lcd-daily",
+        "v45-lcd-selfhost"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-lispjit-codegen-dedicated-tree.lisp",
+      "agent": "reviewer"
+    },
+    {
+      "id": "v45-lcd-goal",
+      "layer": 52,
+      "ring": "DONE",
+      "onion_ring": 31,
+      "status": "done",
+      "deps": [
+        "v45-lcd-terminal"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-v45-lispjit-codegen-dedicated-100.lisp",
+      "agent": "reviewer"
+    }
+  ],
+  "next_wave_preview": {
+    "id": "wave51-v45-terminal-complete",
+    "theme": "v4.5 \u7ec8\u5c40\u6536\u675f \u2014 \u6269\u5c55\u6d3b\u56fe\u5168\u94fe + \u53d1\u884c\u9762\u9a8c\u6536 DONE \u952e"
+  }
+}

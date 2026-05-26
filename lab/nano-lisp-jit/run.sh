@@ -8195,6 +8195,33 @@ else
   skip_case "run-bootstrap-v45-wave49-endgame-honest-rollup-converge-plan" "nano-jit.com or v45-wave49-endgame-honest-rollup-converge.sh missing"
 fi
 
+# --- v4.5: Wave51 v45-terminal-complete（v4.5 终局）---
+V45_WAVE51_CONVERGE="$LAB_DIR/scripts/v45-wave51-v45-terminal-complete-converge.sh"
+if [ -f "$NANO_JIT_COM" ] && host_is_linux_x86_64 && [ -x "$V45_WAVE51_CONVERGE" ]; then
+  run_case "run-bootstrap-v45-wave51-v45-terminal-complete-converge-plan" bash -c '
+    cd "'"$ROOT_DIR"'" && bash "'"$V45_WAVE51_CONVERGE"'"
+    grep -q v45.v45.v45_terminal_complete.100=1 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.rollup.extension_waves_all=1 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.converge.daily_v45_complete=1 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.v45.lispjit_codegen_dedicated_continue.100=1 "'"$V45_ENTRY_EVIDENCE"'"
+  '
+else
+  skip_case "run-bootstrap-v45-wave51-v45-terminal-complete-converge-plan" "nano-jit.com or v45-wave51-v45-terminal-complete-converge.sh missing"
+fi
+
+# --- v4.5: Wave50 lispjit-codegen-dedicated ---
+V45_WAVE50_CONVERGE="$LAB_DIR/scripts/v45-wave50-lispjit-codegen-dedicated-converge.sh"
+if [ -f "$NANO_JIT_COM" ] && host_is_linux_x86_64 && [ -x "$V45_WAVE50_CONVERGE" ]; then
+  run_case "run-bootstrap-v45-wave50-lispjit-codegen-dedicated-converge-plan" bash -c '
+    cd "'"$ROOT_DIR"'" && bash "'"$V45_WAVE50_CONVERGE"'"
+    grep -q v45.v45.lispjit_codegen_dedicated_continue.100=1 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.codegen.lispjit_154kb_probe=1 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.honest.archive_runner_c=1 "'"$V45_ENTRY_EVIDENCE"'"
+  '
+else
+  skip_case "run-bootstrap-v45-wave50-lispjit-codegen-dedicated-converge-plan" "nano-jit.com or v45-wave50-lispjit-codegen-dedicated-converge.sh missing"
+fi
+
 # --- v4.5: Wave48 lisp-com-bootstrap-terminal（快 seed + wave47 键）---
 V45_WAVE48_CONVERGE="$LAB_DIR/scripts/v45-wave48-lisp-com-bootstrap-terminal-converge.sh"
 if [ -f "$NANO_JIT_COM" ] && host_is_linux_x86_64 && [ -x "$V45_WAVE48_CONVERGE" ]; then

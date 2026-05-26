@@ -88,6 +88,22 @@
 
 **日常**：`v45-wave48-lisp-com-bootstrap-terminal-converge.sh` · 用户 plan：`converge-daily-lisp-com-terminal.lisp`
 
+## Wave51（v45-terminal-complete · v4.5 DONE ✅）
+
+| 项 | 状态 |
+|----|------|
+| 活图 | `mindmap-frontier-v45-v45-terminal-complete.json` **7/7** |
+| 签收 | `v45.v45.v45_terminal_complete.100=1` |
+| 广度 | 扩展活图全链 rollup + 发行面验收 |
+
+## Wave50（lispjit-codegen-dedicated · 7/7 ✅）
+
+| 项 | 状态 |
+|----|------|
+| 活图 | `mindmap-frontier-v45-lispjit-codegen-dedicated.json` **7/7** |
+| 签收 | `v45.v45.lispjit_codegen_dedicated_continue.100=1` |
+| 广度 | 154KB 独立活图（探针 ≠ 物理 DONE） |
+
 ## Wave49（endgame-honest-rollup · 7/7 ✅）
 
 | 项 | 状态 |

@@ -441,7 +441,15 @@ semantic(43) → nano-lisp.com(44) → 诚实零C(45) → 15link全链(46) → p
 | CLEANUP/PROGRESS 仍指 wave34 | P0 文档对齐 → wave48/49 为日常 |
 | Wave44–48 键分散 | W1 `rollup.waves_44_48` 一次复核 |
 | rollup 易被误读为物理 DONE | W2 `honest.endgame_remaining` 显式锚 |
-| cleanup-reflect 绑 wave21（慢） | 改绑 wave48 快收敛 |
+| cleanup-reflect 绑 wave21（慢） | 改绑 wave51 快收敛 |
+
+## 三十七、Wave50–51（v4.5 完成）
+
+| 反思 | 调整 |
+|------|------|
+| 154KB 不能并进 rollup DONE | Wave50 独立活图 + 诚实键 |
+| 扩展活图 18 张需终局键 | Wave51 `v45_terminal_complete.100` |
+| 文档 SSOT 漂移 | 全指向 wave51 daily + converge |
 
 ## 十八、Wave3（整表扩散，勿逐条）
 
