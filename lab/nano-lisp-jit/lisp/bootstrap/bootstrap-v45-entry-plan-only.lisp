@@ -1,0 +1,15 @@
+; Wave38 W2: 用户日常入口 plan-only — $COM run-bootstrap-plan，plan 内零 .sh 步骤.
+(bootstrap
+  (squad-dispatch "lab/nano-lisp-jit/squad/catalog-v45.yaml")
+  (squad-assess "lab/nano-lisp-jit/squad/catalog-v45.yaml")
+  (file-size "lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-converge-via-plan.lisp")
+  (file-size "lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-onion-lisp-only.lisp")
+  (file-size "lab/nano-lisp-jit/nano-jit.md")
+  (file-size "lab/nano-lisp-jit/v4.5/ONION-TDD.md")
+  (file-size "lab/nano-lisp-jit/v4.5/DIFFUSE-WAVE38.md")
+  (file-size "lab/nano-lisp-jit/v4.5/mindmap-frontier-v45-host-orchestrator.json")
+  (file-size "lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-verify-all.lisp")
+  (file-size "lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-verify-matrix-plan.lisp")
+  (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.verify.matrix_plan" "1")
+  (file-hash "lab/nano-lisp-jit/.build/nano-jit/nano-jit.com")
+  (file-hash "lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-entry-plan-only.lisp"))

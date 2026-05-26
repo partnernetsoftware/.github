@@ -1,0 +1,95 @@
+{
+  "ssot": "v4.5/DIFFUSE-WAVE38.md",
+  "parent_goal": "v45.v45.zero_sh_continue.100",
+  "onion_ssot": "v4.5/ONION-TDD.md",
+  "updated_at": "2026-05-24T18:00:00Z",
+  "max_parallel": 4,
+  "nodes": [
+    {
+      "id": "v45-ho-gate",
+      "layer": 38,
+      "ring": "gate",
+      "onion_ring": 19,
+      "status": "ready",
+      "deps": [],
+      "accept": [
+        "v45.v45.zero_sh_continue.100=1",
+        "v45.goal.onion_tdd_tree_mindmap.100=1"
+      ]
+    },
+    {
+      "id": "v45-ho-converge-via-plan",
+      "layer": 38,
+      "ring": "plan",
+      "onion_ring": 19,
+      "status": "ready",
+      "deps": ["v45-ho-gate"],
+      "parallel_slot": "W1",
+      "plan": "lisp/bootstrap/bootstrap-v45-converge-via-plan.lisp",
+      "agent": "engineer-a"
+    },
+    {
+      "id": "v45-ho-entry-plan",
+      "layer": 38,
+      "ring": "entry",
+      "onion_ring": 19,
+      "status": "ready",
+      "deps": ["v45-ho-gate"],
+      "parallel_slot": "W2",
+      "plan": "lisp/bootstrap/bootstrap-v45-entry-plan-only.lisp",
+      "agent": "engineer-b"
+    },
+    {
+      "id": "v45-ho-com-primary",
+      "layer": 38,
+      "ring": "com",
+      "onion_ring": 19,
+      "status": "ready",
+      "deps": ["v45-ho-gate"],
+      "parallel_slot": "W3",
+      "plan": "lisp/bootstrap/bootstrap-v45-nano-lisp-com-primary.lisp",
+      "agent": "engineer-a"
+    },
+    {
+      "id": "v45-ho-gen-matrix",
+      "layer": 38,
+      "ring": "代际",
+      "onion_ring": 19,
+      "status": "ready",
+      "deps": ["v45-ho-gate"],
+      "parallel_slot": "W4",
+      "plan": "lisp/bootstrap/bootstrap-v45-selfhost-generation-matrix.lisp",
+      "agent": "engineer-b"
+    },
+    {
+      "id": "v45-ho-terminal",
+      "layer": 39,
+      "ring": "终局",
+      "onion_ring": 19,
+      "status": "ready",
+      "deps": [
+        "v45-ho-converge-via-plan",
+        "v45-ho-entry-plan",
+        "v45-ho-com-primary",
+        "v45-ho-gen-matrix"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-host-orchestrator-tree.lisp",
+      "agent": "reviewer"
+    },
+    {
+      "id": "v45-ho-goal",
+      "layer": 40,
+      "ring": "DONE",
+      "onion_ring": 19,
+      "status": "ready",
+      "deps": ["v45-ho-terminal"],
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-v45-host-orchestrator-100.lisp",
+      "agent": "reviewer"
+    }
+  ],
+  "next_wave_preview": {
+    "id": "wave39-runner-physical",
+    "frontier": "mindmap-frontier-v45-runner-physical.json",
+    "theme": "154KB runner 全 Lisp codegen（独立诚实卷，不与 Wave38 混称 100%）"
+  }
+}

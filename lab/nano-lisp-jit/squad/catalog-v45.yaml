@@ -901,7 +901,7 @@ tasks:
 
 verify:
   commands:
-    - script: scripts/v45-wave37-zero-sh-converge.sh
+    - script: scripts/v45-wave38-host-orchestrator-converge.sh
       cwd: .
       fail_on_nonzero: true
 

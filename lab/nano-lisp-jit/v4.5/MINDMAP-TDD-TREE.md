@@ -6,6 +6,10 @@
 ## 扩散循环（广度 × 并发）
 
 ```text
+主对话：广度设计活图 → DP ready ≤4 槽 → 编排后台 agents 四轨并行实现 → 一次 wave converge → 回写 evidence → 下一圈
+```
+
+```text
 读 frontier-v45 → DP ready ≤4 槽 → 四轨 bootstrap 并行 → 一次 wave16/17 converge → 回写 evidence
 ```
 
@@ -47,8 +51,27 @@ bash lab/nano-lisp-jit/scripts/v45-wave21-onion-tdd-tree-mindmap-100-converge.sh
 | `v45.mindmap.lisp_com_only.nodes_done` / `nodes_total` | **lisp-com-only**（Wave35 · **7**） |
 | `v45.mindmap.plan_converge.nodes_done` / `nodes_total` | **plan-converge**（Wave36 · **7**） |
 | `v45.mindmap.zero_sh.nodes_done` / `nodes_total` | **zero-sh**（Wave37 · **7**） |
+| `v45.mindmap.host_orchestrator.nodes_done` / `nodes_total` | **host-orchestrator**（Wave38 · **7**） |
 
 前置：`v45.tier5.100=1` · `v45.scoped.100=1` · `/goal` 26/26
+
+## 编排协议（主对话 × 后台 team）
+
+| 角色 | 职责 |
+|------|------|
+| **主对话** | 维护洋葱-TDD 活图、广度拆节点、写 DIFFUSE-WAVE*.md、跑 converge、合 evidence |
+| **W1–W4 agents** | 各实现一个 `bootstrap-v45-*.lisp`（plan 内零 `.c`/`.sh`/`.py`） |
+| **reviewer** | T/G plan + 活图终局树 + rollup |
+| **converge** | `v45-waveN-*-converge.sh` 链式上游 + 四轨 host 并行 |
+
+```bash
+# 主对话：读活图
+NANO_V45_FRONTIER=mindmap-frontier-v45-host-orchestrator.json \
+  python3 lab/nano-lisp-jit/tools/mindmap-dp-v45.py ready
+
+# 后台四轨（squad-parallel 或 agents team）
+skills/squad-parallel/scripts/fast-wave.sh lab/nano-lisp-jit/squad/catalog-v45.yaml wave38
+```
 
 ## 扩展活图（工厂 codegen · Wave27+）
 
@@ -159,6 +182,22 @@ NANO_V45_FRONTIER=mindmap-frontier-v45-zero-sh.json \
 | `v45.v45.zero_sh_continue.100=1` | 规划签收 |
 
 见 [`DIFFUSE-WAVE37.md`](DIFFUSE-WAVE37.md)
+
+## 扩展活图（host-orchestrator · Wave38+）
+
+目标：用户日常入口 plan-only；host 外层 `.sh` 退 CI。
+
+```bash
+NANO_V45_FRONTIER=mindmap-frontier-v45-host-orchestrator.json \
+  python3 lab/nano-lisp-jit/tools/mindmap-dp-v45.py ready
+```
+
+| 键 | 活图 |
+|----|------|
+| `v45.mindmap.host_orchestrator.nodes_done` / `nodes_total` | Wave38 · **7** |
+| `v45.v45.host_orchestrator_continue.100=1` | 规划签收 |
+
+见 [`DIFFUSE-WAVE38.md`](DIFFUSE-WAVE38.md)
 
 ## 扩展活图（runner 广面 · Wave34+）
 

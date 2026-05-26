@@ -3,7 +3,7 @@
 ## 发行面目标（洋葱 TDD 扩散）
 
 **`*.lisp` 自举 `nano-lisp.com`**，用户路径 plan 内无 `.c` / `.sh` / `.py`。  
-推进方式：mindmap 广度设计 → 四轨并发 → 收敛 → 循环（Wave37 活图）。
+推进方式：mindmap 广度设计 → 主对话编排 → 后台 agents 四轨并发 → 收敛（Wave38 活图）。
 
 ## 已签收（v4.5 /goal 等 · ≠ 上表终局）
 
@@ -23,7 +23,7 @@
 ## 日常
 
 ```bash
-NANO_V45_FRONTIER=mindmap-frontier-v45-zero-sh.json \
+NANO_V45_FRONTIER=mindmap-frontier-v45-host-orchestrator.json \
   python3 lab/nano-lisp-jit/tools/mindmap-dp-v45.py ready
-bash lab/nano-lisp-jit/scripts/v45-wave37-zero-sh-converge.sh
+bash lab/nano-lisp-jit/scripts/v45-wave38-host-orchestrator-converge.sh
 ```
