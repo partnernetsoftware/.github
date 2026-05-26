@@ -1,26 +1,38 @@
-# lisp/ — 完全自举发行面（`*.lisp`）
+# lisp/ — `*.lisp` 自举 `nano-lisp.com`
 
-> **种子**：`nano-jit.com`（genesis 二进制）· **验收**：`run-bootstrap-plan` · 真源：[`../v4.5/ONION-TDD.md`](../v4.5/ONION-TDD.md)
+> **北极星**：plan 里只有 Lisp 步骤（`build-slice-lisp` · `pack-ape` · `run-bootstrap-plan`…），**不出现 `.c` / `.sh` / `.py`**。  
+> 种子：`.com`（当前 `.build/nano-jit/nano-jit.com`，对外 **`nano-lisp.com`**）。
 
 ## 目录
 
 | 子目录 | 内容 |
 |--------|------|
-| [`bootstrap/`](bootstrap/) | `bootstrap-v45-*.lisp` — 洋葱 TDD / verify / 自举 / DONE |
-| [`modules/`](modules/) | `lispjit-modules` — 13 个 TU（gen60） |
-| [`core/`](core/) | VM/AOT 核心样例（arithmetic、strlen、ir-table…） |
-| [`boundary/`](boundary/) | 能力边界正向样例 |
+| [`bootstrap/`](bootstrap/) | `bootstrap-v45-*.lisp` — verify / 洋葱 / 自举 / DONE |
+| [`modules/`](modules/) | `lispjit-modules`（13 TU） |
+| [`core/`](core/) | VM/AOT 样例 |
+| [`boundary/`](boundary/) | 能力边界 |
+
+## 零 C plan 示例（已存在）
+
+| plan | 作用 |
+|------|------|
+| `bootstrap-v45-selfhost-regenesis-lisp-only.lisp` | `build-slice-lisp` → `pack-ape` → next `.com` |
+| `bootstrap-v45-selfhost-chain-lisp-only.lisp` | S2–S5 链，plan 内无 `lispjit.c` |
+| `bootstrap-v45-onion-lisp-only.lisp` | 洋葱验收，无 `build-slice "…lispjit.c"` |
 
 ## 日常
 
 ```bash
 COM=lab/nano-lisp-jit/.build/nano-jit/nano-jit.com
-$COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-onion-tdd.lisp
-bash lab/nano-lisp-jit/scripts/v45-wave34-runner-codegen-continue-converge.sh
+$COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-onion-lisp-only.lisp
 ```
 
-## 与 `archive/c/`
+## 仍开卷（≠ 说「还要改 C」）
 
-本目录 **不含** `.c` 真源与 v4 工厂 plan；含 C 的第一代维护面见 [`../archive/c/`](../archive/c/README.md)。
+| 项 | 说明 |
+|----|------|
+| `.com` 体内 | 仍有 C 时代 codegen；154KB runner 未全 Lisp 化 |
+| 收敛 | 仍用 `scripts/v45-*.sh`；目标迁入 `lisp/bootstrap/*-converge*.lisp` |
+| 产物名 | 目标统一 `nano-lisp.com` / `.build/nano-lisp/` |
 
-旧路径 `samples/` 已废弃，仅留 [`../samples/README.md`](../samples/README.md) 指向此处。
+`archive/c/` 仅工厂归档，**不是**用户自举路径。

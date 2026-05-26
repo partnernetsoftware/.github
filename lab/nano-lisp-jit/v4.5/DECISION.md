@@ -7,12 +7,14 @@
 用户路径上只保留：
 
 ```text
-nano-jit.com          # 唯一二进制入口（seed；对外可称 nano-lisp.com）
-**/*.lisp             # 源码、模块、bootstrap plan、verify 矩阵
-genesis/*.x86_64      # 可选 bootstrap pin（非日常 host cc）
+nano-lisp.com         # 唯一二进制（对外名；仓内暂 .build/nano-jit/nano-jit.com）
+lisp/**/*.lisp        # 源码、模块、bootstrap plan、verify
+genesis/*.x86_64      # 可选 pin（非日常 host cc）
 ```
 
-**开发工厂**（`run.sh`、`lispjit.c`、`gen-*.py`）可与发行面分离；tier0 不要求立刻删除。
+**禁止出现在用户自举路径**：`.c` · `.sh` · `.py`（工厂进 `archive/c/`，收敛脚本待迁入 plan）。
+
+**开发工厂**（`run.sh`、`archive/c/runner`、`gen-*.py`）与发行面分离。
 
 ## 与 v4 的分界
 
