@@ -8181,6 +8181,20 @@ else
   skip_case "run-bootstrap-v45-wave20-lisp-selfhost-unified-converge-plan" "nano-jit.com or v45-wave20-lisp-selfhost-unified-converge.sh missing"
 fi
 
+# --- v4.5: Wave43 semantic-terminal（13 模块 + wave42）---
+V45_WAVE43_CONVERGE="$LAB_DIR/scripts/v45-wave43-semantic-terminal-converge.sh"
+if [ -f "$NANO_JIT_COM" ] && host_is_linux_x86_64 && [ -x "$V45_WAVE43_CONVERGE" ]; then
+  run_case "run-bootstrap-v45-wave43-semantic-terminal-converge-plan" bash -c '
+    cd "'"$ROOT_DIR"'" && bash "'"$V45_WAVE43_CONVERGE"'"
+    grep -q v45.v45.semantic_terminal_continue.100=1 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.runner.modules_full_13=1 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.runner.semantic_terminal=1 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.v45.compose_deep_continue.100=1 "'"$V45_ENTRY_EVIDENCE"'"
+  '
+else
+  skip_case "run-bootstrap-v45-wave43-semantic-terminal-converge-plan" "nano-jit.com or v45-wave43-semantic-terminal-converge.sh missing"
+fi
+
 # --- v4.5: Wave42 compose-deep（9/15link + wave41）---
 V45_WAVE42_CONVERGE="$LAB_DIR/scripts/v45-wave42-compose-deep-converge.sh"
 if [ -f "$NANO_JIT_COM" ] && host_is_linux_x86_64 && [ -x "$V45_WAVE42_CONVERGE" ]; then
