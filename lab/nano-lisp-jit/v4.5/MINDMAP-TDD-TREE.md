@@ -44,6 +44,7 @@ bash lab/nano-lisp-jit/scripts/v45-wave21-onion-tdd-tree-mindmap-100-converge.sh
 | `v45.mindmap.rollup.nodes_done` / `nodes_total` | **工厂 rollupy**（Wave32 · **7**） |
 | `v45.mindmap.codegen_deep.nodes_done` / `nodes_total` | **codegen 代际**（Wave33 · **7**） |
 | `v45.mindmap.runner_codegen.nodes_done` / `nodes_total` | **runner 广面**（Wave34 · **7**） |
+| `v45.mindmap.lisp_com_only.nodes_done` / `nodes_total` | **lisp-com-only**（Wave35 · **7**） |
 
 前置：`v45.tier5.100=1` · `v45.scoped.100=1` · `/goal` 26/26
 
@@ -102,6 +103,28 @@ NANO_V45_FRONTIER=mindmap-frontier-v45-codegen-deep.json \
   python3 lab/nano-lisp-jit/tools/mindmap-dp-v45.py stats
 bash lab/nano-lisp-jit/scripts/v45-wave33-codegen-deep-continue-converge.sh
 ```
+
+## 扩展活图（lisp-com-only · Wave35+）
+
+目标：`*.lisp` 自举 `nano-lisp.com`，plan 面无 `.c`/`.sh`/`.py`。
+
+```bash
+NANO_V45_FRONTIER=mindmap-frontier-v45-lisp-com-only.json \
+  python3 lab/nano-lisp-jit/tools/mindmap-dp-v45.py ready
+```
+
+扩散循环（不变）：
+
+```text
+读活图 → DP ready ≤4 → 四轨 bootstrap 并行 → wave 收敛 → evidence → 未 100% 则下一圈
+```
+
+| 键 | 活图 |
+|----|------|
+| `v45.mindmap.lisp_com_only.nodes_done` / `nodes_total` | Wave35 · **7** |
+| `v45.v45.lisp_com_only_continue.100=1` | 规划签收 |
+
+见 [`DIFFUSE-WAVE35.md`](DIFFUSE-WAVE35.md)
 
 ## 扩展活图（runner 广面 · Wave34+）
 

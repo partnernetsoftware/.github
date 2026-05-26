@@ -2,19 +2,15 @@
 
 **前提**：v4 **lispjit-from-lisp 子轨 DONE**（gen60 · `semantic-terminal`）；v4 **scoped catalog** 已闭合。v4.5 开卷 **终局未做部分**（`v4/DECISION.md` 刻意排除项）。
 
-## 北极星（发行面）
-
-用户路径上只保留：
+## 发行面（用户路径）
 
 ```text
-nano-lisp.com         # 唯一二进制（对外名；仓内暂 .build/nano-jit/nano-jit.com）
-lisp/**/*.lisp        # 源码、模块、bootstrap plan、verify
-genesis/*.x86_64      # 可选 pin（非日常 host cc）
+nano-lisp.com         # 对外名；仓内暂 .build/nano-jit/nano-jit.com
+lisp/**/*.lisp        # bootstrap · modules · core · boundary
 ```
 
-**禁止出现在用户自举路径**：`.c` · `.sh` · `.py`（工厂进 `archive/c/`，收敛脚本待迁入 plan）。
-
-**开发工厂**（`run.sh`、`archive/c/runner`、`gen-*.py`）与发行面分离。
+plan 内不出现 `.c` / `.sh` / `.py`；工厂在 `archive/c/`。  
+扩散：[`MINDMAP-TDD-TREE.md`](MINDMAP-TDD-TREE.md) · Wave35 [`DIFFUSE-WAVE35.md`](DIFFUSE-WAVE35.md)。
 
 ## 与 v4 的分界
 

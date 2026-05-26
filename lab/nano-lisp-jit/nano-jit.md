@@ -1,41 +1,25 @@
 # nano-lisp-jit
 
-**北极星**：`*.lisp` 自举出 **`nano-lisp.com`** — 用户路径上 **无 `.c` / `.sh` / `.py`**。
-
-> 仓内种子路径暂为 `.build/nano-jit/nano-jit.com`（与 `nano-lisp.com` 同一产品；见 [`v4.5/DECISION.md`](v4.5/DECISION.md)）。
-
-## 用户路径（目标形态）
-
-```bash
-COM=lab/nano-lisp-jit/.build/nano-lisp/nano-lisp.com   # 目标名；当前见下
-$COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-selfhost-regenesis-lisp-only.lisp
-# plan 内：build-slice-lisp → pack-ape → next .com（无 lispjit.c / 无 run.sh）
-```
-
-当前种子（构建产物）：
-
-```bash
-COM=lab/nano-lisp-jit/.build/nano-jit/nano-jit.com
-$COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-verify-smoke.lisp
-```
+`*.lisp` 自举 **`nano-lisp.com`**（用户路径无 `.c` / `.sh` / `.py`）。  
+方法：**洋葱 TDD × mindmap 活图** — 广度设计 → 四轨并发 → 收敛 → 循环（见 [`v4.5/MINDMAP-TDD-TREE.md`](v4.5/MINDMAP-TDD-TREE.md)）。
 
 ## 目录
 
 | 路径 | 用途 |
 |------|------|
-| [`lisp/`](lisp/README.md) | 发行面 **仅 `*.lisp`** — bootstrap / modules / core / boundary |
-| [`v4.5/`](v4.5/README.md) | 洋葱 TDD · 活图 · 签收 |
-| [`archive/c/`](archive/c/README.md) | 第一代 C 工厂（**不在用户路径**） |
-| [`genesis/`](genesis/) | 可选 genesis pin（非日常 host cc） |
+| [`lisp/`](lisp/README.md) | 发行面 `*.lisp` |
+| [`v4.5/`](v4.5/README.md) | 洋葱 TDD · 活图 · 扩散 wave |
+| [`archive/c/`](archive/c/README.md) | 含 C 工厂（维护回归，非发行面） |
 
-**不在用户路径**：`run.sh` · `scripts/v45-*.sh` · `archive/c/runner/*.c` · `tools/*.py` — 维护/历史用。
+## 日常
 
-## 与 fasmgx
-
-**fasmgx**（fasmg + `.fg`）为独立产品线，不在本仓。
+```bash
+COM=lab/nano-lisp-jit/.build/nano-jit/nano-jit.com
+$COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-onion-lisp-only.lisp
+bash lab/nano-lisp-jit/scripts/v45-wave34-runner-codegen-continue-converge.sh
+python3 lab/nano-lisp-jit/tools/mindmap-dp-v45.py stats
+```
 
 ## 详细
 
-- 结构：[`STRUCTURE.md`](STRUCTURE.md)
-- 自举阶梯：[`v4.5/SELFHOST.md`](v4.5/SELFHOST.md)
-- 诚实未达：[`v4.5/HONEST-REMAINING.md`](v4.5/HONEST-REMAINING.md)
+[`STRUCTURE.md`](STRUCTURE.md) · [`v4.5/ONION-TDD.md`](v4.5/ONION-TDD.md) · [`v4.5/HONEST-REMAINING.md`](v4.5/HONEST-REMAINING.md)
