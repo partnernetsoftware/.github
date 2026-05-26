@@ -1,0 +1,15 @@
+; Wave60 W2: CI shell archive 诚实 — wave converge 已迁 · 工具 sh + 工厂 C 仍存.
+(bootstrap
+  (file-size "lab/nano-lisp-jit/v4.5/HONEST-REMAINING.md")
+  (file-size "lab/nano-lisp-jit/v4.5/DIFFUSE-WAVE60.md")
+  (file-size "lab/nano-lisp-jit/retired/scripts/v45-wave59-tools-py-retire-converge.sh")
+  (file-size "lab/nano-lisp-jit/scripts/v45-wave60-ci-shell-retire-converge.sh")
+  (file-size "lab/nano-lisp-jit/scripts/v45-evidence-canonical.sh")
+  (file-size "lab/nano-lisp-jit/archive/c/factory/misc/lisp-tu-main.lisp")
+  (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.ci.wave_converge_active_deleted" "1")
+  (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.honest.ci_utility_sh" "1")
+  (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.honest.archive_factory_c" "1")
+  (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.honest.tools_py_retired" "1")
+  (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.honest.lispjit_c_retired" "1")
+  (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.physical.zero_cpysh" "1")
+  (file-hash "lab/nano-lisp-jit/v4.5/DIFFUSE-WAVE60.md"))

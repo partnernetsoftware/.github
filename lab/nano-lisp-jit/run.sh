@@ -8195,6 +8195,22 @@ else
   skip_case "run-bootstrap-v45-wave49-endgame-honest-rollup-converge-plan" "nano-jit.com or v45-wave49-endgame-honest-rollup-converge.sh missing"
 fi
 
+# --- v4.5: Wave60 ci-shell-retire（physical.zero_cpysh=1）---
+V45_WAVE60_CONVERGE="$LAB_DIR/scripts/v45-wave60-ci-shell-retire-converge.sh"
+if [ -f "$NANO_JIT_COM" ] && host_is_linux_x86_64 && [ -x "$V45_WAVE60_CONVERGE" ]; then
+  run_case "run-bootstrap-v45-wave60-ci-shell-retire-converge-plan" bash -c '
+    cd "'"$ROOT_DIR"'" && bash "'"$V45_WAVE60_CONVERGE"'"
+    grep -q v45.physical.zero_cpysh=1 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.v45.ci_shell_retire_continue.100=1 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.ci.wave_converge_active_deleted=1 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.converge.daily_v45_physical_zero_cpysh=1 "'"$V45_ENTRY_EVIDENCE"'"
+    test ! -f "'"$ROOT_DIR"'/lab/nano-lisp-jit/scripts/v45-wave59-tools-py-retire-converge.sh"
+    test -f "'"$ROOT_DIR"'/lab/nano-lisp-jit/retired/scripts/v45-wave59-tools-py-retire-converge.sh"
+  '
+else
+  skip_case "run-bootstrap-v45-wave60-ci-shell-retire-converge-plan" "nano-jit.com or v45-wave60-ci-shell-retire-converge.sh missing"
+fi
+
 # --- v4.5: Wave59 tools-py-retire（active py 迁 retired + plan-only 终局）---
 V45_WAVE59_CONVERGE="$LAB_DIR/scripts/v45-wave59-tools-py-retire-converge.sh"
 if [ -f "$NANO_JIT_COM" ] && host_is_linux_x86_64 && [ -x "$V45_WAVE59_CONVERGE" ]; then

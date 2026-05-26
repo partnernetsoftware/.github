@@ -1,0 +1,105 @@
+{
+  "ssot": "v4.5/DIFFUSE-WAVE60.md",
+  "parent_goal": "v45.v45.tools_py_retire_continue.100",
+  "onion_ssot": "v4.5/ONION-TDD.md",
+  "updated_at": "2026-05-26T20:00:00Z",
+  "max_parallel": 4,
+  "breadth_ring": "ci-shell-retire \u2014 \u6700\u540e wave converge \u8fc1\u51fa + physical.zero_cpysh=1",
+  "nodes": [
+    {
+      "id": "v45-csr-gate",
+      "layer": 60,
+      "ring": "gate",
+      "onion_ring": 41,
+      "status": "done",
+      "deps": [],
+      "accept": [
+        "v45.v45.tools_py_retire_continue.100=1",
+        "v45.tools.py_active_deleted=1"
+      ]
+    },
+    {
+      "id": "v45-csr-replace",
+      "layer": 60,
+      "ring": "plan",
+      "onion_ring": 41,
+      "status": "done",
+      "deps": [
+        "v45-csr-gate"
+      ],
+      "parallel_slot": "W1",
+      "plan": "lisp/bootstrap/bootstrap-v45-ci-shell-plan-only-replacement-prove.lisp",
+      "agent": "engineer-a"
+    },
+    {
+      "id": "v45-csr-archive",
+      "layer": 60,
+      "ring": "\u8bda\u5b9e",
+      "onion_ring": 41,
+      "status": "done",
+      "deps": [
+        "v45-csr-gate"
+      ],
+      "parallel_slot": "W2",
+      "plan": "lisp/bootstrap/bootstrap-v45-ci-shell-archive-honest.lisp",
+      "agent": "engineer-b"
+    },
+    {
+      "id": "v45-csr-daily",
+      "layer": 60,
+      "ring": "plan",
+      "onion_ring": 41,
+      "status": "done",
+      "deps": [
+        "v45-csr-gate"
+      ],
+      "parallel_slot": "W3",
+      "plan": "lisp/bootstrap/bootstrap-v45-converge-daily-v45-physical-zero-cpysh.lisp",
+      "agent": "engineer-a"
+    },
+    {
+      "id": "v45-csr-selfhost",
+      "layer": 60,
+      "ring": "\u4ee3\u9645",
+      "onion_ring": 41,
+      "status": "done",
+      "deps": [
+        "v45-csr-gate"
+      ],
+      "parallel_slot": "W4",
+      "plan": "lisp/bootstrap/bootstrap-v45-selfhost-ci-shell-retire-matrix.lisp",
+      "agent": "engineer-b"
+    },
+    {
+      "id": "v45-csr-terminal",
+      "layer": 61,
+      "ring": "\u7ec8\u5c40",
+      "onion_ring": 41,
+      "status": "done",
+      "deps": [
+        "v45-csr-replace",
+        "v45-csr-archive",
+        "v45-csr-daily",
+        "v45-csr-selfhost"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-ci-shell-retire-tree.lisp",
+      "agent": "reviewer"
+    },
+    {
+      "id": "v45-csr-goal",
+      "layer": 62,
+      "ring": "continue",
+      "onion_ring": 41,
+      "status": "done",
+      "deps": [
+        "v45-csr-terminal"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-v45-ci-shell-retire-continue-100.lisp",
+      "agent": "reviewer"
+    }
+  ],
+  "next_wave_preview": {
+    "id": "wave61-v45-physical-honest-terminal",
+    "theme": "archive/c \u5de5\u5382\u8bda\u5b9e\u7ec8\u5c40 \u00b7 v4.5 \u76ee\u6807 nano-lisp.com \u51b2\u523a"
+  }
+}

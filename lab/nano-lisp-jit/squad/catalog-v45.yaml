@@ -901,7 +901,7 @@ tasks:
 
 verify:
   commands:
-    - script: scripts/v45-wave59-tools-py-retire-converge.sh
+    - script: scripts/v45-wave60-ci-shell-retire-converge.sh
       cwd: .
       fail_on_nonzero: true
 
