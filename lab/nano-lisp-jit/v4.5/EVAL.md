@@ -88,13 +88,13 @@
 
 **日常**：`v45-wave34-runner-codegen-continue-converge.sh`
 
-## Wave40（daily-plan · 编排中）
+## Wave40（daily-plan · 7/7 ✅）
 
 | 项 | 状态 |
 |----|------|
-| 活图 | `mindmap-frontier-v45-daily-plan.json` |
+| 活图 | `mindmap-frontier-v45-daily-plan.json` **7/7** |
 | 签收 | `v45.v45.daily_plan_continue.100=1` |
-| 用户入口 | `bootstrap-v45-converge-daily-plan.lisp` |
+| 用户入口 | `bootstrap-v45-converge-daily-plan.lisp`（35 步） |
 | 日常 CI | `v45-wave40-daily-plan-converge.sh` |
 
 ## Wave39（runner-physical · 诚实卷 · 7/7 ✅）
