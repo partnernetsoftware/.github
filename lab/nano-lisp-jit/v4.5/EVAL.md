@@ -77,7 +77,7 @@
 | Wave | 签收键 | 状态 |
 |------|--------|------|
 | 32 | `factory_rollup_continue.100` | ✅ main |
-| **33** | **`codegen_deep_continue.100`** · codegen-deep **7/7** | 🔄 本合并 |
+| **33** | **`codegen_deep_continue.100`** · codegen-deep **7/7** | ✅ main |
 
 | 指标 | 数值 |
 |------|------|
