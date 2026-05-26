@@ -332,6 +332,22 @@ NANO_V45_FRONTIER=mindmap-frontier-v45-runner-codegen-terminal.json \
 
 见 [`DIFFUSE-WAVE46.md`](DIFFUSE-WAVE46.md)
 
+## 扩展活图（zero-host-sh-terminal · Wave47+）
+
+目标：用户路径 plan-only；host `.sh` 仅 CI/维护。
+
+```bash
+NANO_V45_FRONTIER=mindmap-frontier-v45-zero-host-sh-terminal.json \
+  python3 lab/nano-lisp-jit/tools/mindmap-dp-v45.py ready
+```
+
+| 键 | 活图 |
+|----|------|
+| `v45.mindmap.zero_host_sh_terminal.nodes_done` / `nodes_total` | Wave47 · **7** |
+| `v45.v45.zero_host_sh_terminal_continue.100=1` | 规划签收 |
+
+见 [`DIFFUSE-WAVE47.md`](DIFFUSE-WAVE47.md)
+
 ## 扩展活图（runner 广面 · Wave34+）
 
 ```bash

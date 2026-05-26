@@ -88,6 +88,15 @@
 
 **日常**：`v45-wave34-runner-codegen-continue-converge.sh`
 
+## Wave47（zero-host-sh-terminal · 7/7 ✅）
+
+| 项 | 状态 |
+|----|------|
+| 活图 | `mindmap-frontier-v45-zero-host-sh-terminal.json` **7/7** |
+| 签收 | `v45.v45.zero_host_sh_terminal_continue.100=1` |
+| 广度 | 用户 plan-only · `.sh` 退居 CI |
+| 收敛 | 默认快 seed（`V45_FULL=1` 完整链） |
+
 ## Wave46（runner-codegen-terminal · 7/7 ✅）
 
 | 项 | 状态 |

@@ -1,0 +1,105 @@
+{
+  "ssot": "v4.5/DIFFUSE-WAVE47.md",
+  "parent_goal": "v45.v45.runner_codegen_terminal_continue.100",
+  "onion_ssot": "v4.5/ONION-TDD.md",
+  "updated_at": "2026-05-25T12:00:00Z",
+  "max_parallel": 4,
+  "breadth_ring": "zero-host-sh-terminal — host .sh 退居 CI + plan 内全收敛终局",
+  "nodes": [
+    {
+      "id": "v45-zhst-gate",
+      "layer": 47,
+      "ring": "gate",
+      "onion_ring": 28,
+      "status": "ready",
+      "deps": [],
+      "accept": [
+        "v45.v45.runner_codegen_terminal_continue.100=1",
+        "v45.goal.onion_tdd_tree_mindmap.100=1"
+      ]
+    },
+    {
+      "id": "v45-zhst-plan-terminal",
+      "layer": 47,
+      "ring": "plan",
+      "onion_ring": 28,
+      "status": "ready",
+      "deps": [
+        "v45-zhst-gate"
+      ],
+      "parallel_slot": "W1",
+      "plan": "lisp/bootstrap/bootstrap-v45-converge-plan-only-terminal.lisp",
+      "agent": "engineer-a"
+    },
+    {
+      "id": "v45-zhst-ci-boundary",
+      "layer": 47,
+      "ring": "诚实",
+      "onion_ring": 28,
+      "status": "ready",
+      "deps": [
+        "v45-zhst-gate"
+      ],
+      "parallel_slot": "W2",
+      "plan": "lisp/bootstrap/bootstrap-v45-host-sh-ci-boundary.lisp",
+      "agent": "engineer-b"
+    },
+    {
+      "id": "v45-zhst-daily",
+      "layer": 47,
+      "ring": "plan",
+      "onion_ring": 28,
+      "status": "ready",
+      "deps": [
+        "v45-zhst-gate"
+      ],
+      "parallel_slot": "W3",
+      "plan": "lisp/bootstrap/bootstrap-v45-converge-daily-zero-host-sh.lisp",
+      "agent": "engineer-a"
+    },
+    {
+      "id": "v45-zhst-selfhost",
+      "layer": 47,
+      "ring": "代际",
+      "onion_ring": 28,
+      "status": "ready",
+      "deps": [
+        "v45-zhst-gate"
+      ],
+      "parallel_slot": "W4",
+      "plan": "lisp/bootstrap/bootstrap-v45-selfhost-plan-only-terminal-matrix.lisp",
+      "agent": "engineer-b"
+    },
+    {
+      "id": "v45-zhst-terminal",
+      "layer": 48,
+      "ring": "终局",
+      "onion_ring": 28,
+      "status": "ready",
+      "deps": [
+        "v45-zhst-plan-terminal",
+        "v45-zhst-ci-boundary",
+        "v45-zhst-daily",
+        "v45-zhst-selfhost"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-zero-host-sh-terminal-tree.lisp",
+      "agent": "reviewer"
+    },
+    {
+      "id": "v45-zhst-goal",
+      "layer": 49,
+      "ring": "DONE",
+      "onion_ring": 28,
+      "status": "ready",
+      "deps": [
+        "v45-zhst-terminal"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-v45-zero-host-sh-terminal-100.lisp",
+      "agent": "reviewer"
+    }
+  ],
+  "next_wave_preview": {
+    "id": "wave48-lisp-com-bootstrap-terminal",
+    "theme": "nano-lisp.com 自举终局 + 工厂物理诚实卷闭合"
+  }
+}
