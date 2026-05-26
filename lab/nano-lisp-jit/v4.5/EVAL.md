@@ -88,6 +88,15 @@
 
 **日常**：`v45-wave34-runner-codegen-continue-converge.sh`
 
+## Wave37（zero-sh · 7/7 ✅）
+
+| 项 | 状态 |
+|----|------|
+| 活图 | `mindmap-frontier-v45-zero-sh.json` **7/7** |
+| 签收 | `v45.v45.zero_sh_continue.100=1` |
+| 日常 | `v45-wave37-zero-sh-converge.sh` |
+| plan 面 | squad 编排 · `nano-lisp.com` 统一 · verify 矩阵 |
+
 ## Wave36（plan-converge · 7/7 ✅）
 
 | 项 | 状态 |

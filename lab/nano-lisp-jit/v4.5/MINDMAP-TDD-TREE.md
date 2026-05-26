@@ -46,6 +46,7 @@ bash lab/nano-lisp-jit/scripts/v45-wave21-onion-tdd-tree-mindmap-100-converge.sh
 | `v45.mindmap.runner_codegen.nodes_done` / `nodes_total` | **runner 广面**（Wave34 · **7**） |
 | `v45.mindmap.lisp_com_only.nodes_done` / `nodes_total` | **lisp-com-only**（Wave35 · **7**） |
 | `v45.mindmap.plan_converge.nodes_done` / `nodes_total` | **plan-converge**（Wave36 · **7**） |
+| `v45.mindmap.zero_sh.nodes_done` / `nodes_total` | **zero-sh**（Wave37 · **7**） |
 
 前置：`v45.tier5.100=1` · `v45.scoped.100=1` · `/goal` 26/26
 
@@ -142,6 +143,22 @@ NANO_V45_FRONTIER=mindmap-frontier-v45-plan-converge.json \
 | `v45.v45.plan_converge_continue.100=1` | 规划签收 |
 
 见 [`DIFFUSE-WAVE36.md`](DIFFUSE-WAVE36.md)
+
+## 扩展活图（zero-sh · Wave37+）
+
+目标：plan 面零 `.sh` 步骤编排 + `nano-lisp.com` 产物名统一。
+
+```bash
+NANO_V45_FRONTIER=mindmap-frontier-v45-zero-sh.json \
+  python3 lab/nano-lisp-jit/tools/mindmap-dp-v45.py ready
+```
+
+| 键 | 活图 |
+|----|------|
+| `v45.mindmap.zero_sh.nodes_done` / `nodes_total` | Wave37 · **7** |
+| `v45.v45.zero_sh_continue.100=1` | 规划签收 |
+
+见 [`DIFFUSE-WAVE37.md`](DIFFUSE-WAVE37.md)
 
 ## 扩展活图（runner 广面 · Wave34+）
 

@@ -8181,6 +8181,20 @@ else
   skip_case "run-bootstrap-v45-wave20-lisp-selfhost-unified-converge-plan" "nano-jit.com or v45-wave20-lisp-selfhost-unified-converge.sh missing"
 fi
 
+# --- v4.5: Wave37 zero-sh（plan 面编排 + wave36）---
+V45_WAVE37_CONVERGE="$LAB_DIR/scripts/v45-wave37-zero-sh-converge.sh"
+if [ -f "$NANO_JIT_COM" ] && host_is_linux_x86_64 && [ -x "$V45_WAVE37_CONVERGE" ]; then
+  run_case "run-bootstrap-v45-wave37-zero-sh-converge-plan" bash -c '
+    cd "'"$ROOT_DIR"'" && bash "'"$V45_WAVE37_CONVERGE"'"
+    grep -q v45.v45.zero_sh_continue.100=1 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.converge.squad_plan=1 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.lisp_com.canonical=1 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.v45.plan_converge_continue.100=1 "'"$V45_ENTRY_EVIDENCE"'"
+  '
+else
+  skip_case "run-bootstrap-v45-wave37-zero-sh-converge-plan" "nano-jit.com or v45-wave37-zero-sh-converge.sh missing"
+fi
+
 # --- v4.5: Wave36 plan-converge（plan 内收敛 + 默认洋葱 + wave35）---
 V45_WAVE36_CONVERGE="$LAB_DIR/scripts/v45-wave36-plan-converge-converge.sh"
 if [ -f "$NANO_JIT_COM" ] && host_is_linux_x86_64 && [ -x "$V45_WAVE36_CONVERGE" ]; then
