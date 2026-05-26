@@ -1,0 +1,106 @@
+{
+  "ssot": "v4.5/DIFFUSE-WAVE56.md",
+  "parent_goal": "v45.v45.tools_py_plan_only_continue.100",
+  "onion_ssot": "v4.5/ONION-TDD.md",
+  "updated_at": "2026-05-26T05:00:00Z",
+  "max_parallel": 4,
+  "breadth_ring": "zero-cpysh-target \u2014 v4.5 \u56db\u8f68 rollup + \u8bda\u5b9e\u7ec8\u5c40 gap\uff08\u2260 DONE \u5192\u5145\uff09",
+  "nodes": [
+    {
+      "id": "v45-zct-gate",
+      "layer": 56,
+      "ring": "gate",
+      "onion_ring": 37,
+      "status": "done",
+      "deps": [],
+      "accept": [
+        "v45.v45.tools_py_plan_only_continue.100=1",
+        "v45.v45.ci_plan_only_converge_continue.100=1",
+        "v45.v45.lispjit_154kb_codegen_continue.100=1"
+      ]
+    },
+    {
+      "id": "v45-zct-rollup",
+      "layer": 56,
+      "ring": "rollup",
+      "onion_ring": 37,
+      "status": "done",
+      "deps": [
+        "v45-zct-gate"
+      ],
+      "parallel_slot": "W1",
+      "plan": "lisp/bootstrap/bootstrap-v45-physical-zero-cpysh-target-rollup.lisp",
+      "agent": "engineer-a"
+    },
+    {
+      "id": "v45-zct-gap",
+      "layer": 56,
+      "ring": "\u8bda\u5b9e",
+      "onion_ring": 37,
+      "status": "done",
+      "deps": [
+        "v45-zct-gate"
+      ],
+      "parallel_slot": "W2",
+      "plan": "lisp/bootstrap/bootstrap-v45-physical-zero-cpysh-honest-gap.lisp",
+      "agent": "engineer-b"
+    },
+    {
+      "id": "v45-zct-daily",
+      "layer": 56,
+      "ring": "plan",
+      "onion_ring": 37,
+      "status": "done",
+      "deps": [
+        "v45-zct-gate"
+      ],
+      "parallel_slot": "W3",
+      "plan": "lisp/bootstrap/bootstrap-v45-converge-daily-v45-target.lisp",
+      "agent": "engineer-a"
+    },
+    {
+      "id": "v45-zct-selfhost",
+      "layer": 56,
+      "ring": "\u4ee3\u9645",
+      "onion_ring": 37,
+      "status": "done",
+      "deps": [
+        "v45-zct-gate"
+      ],
+      "parallel_slot": "W4",
+      "plan": "lisp/bootstrap/bootstrap-v45-selfhost-zero-cpysh-target-matrix.lisp",
+      "agent": "engineer-b"
+    },
+    {
+      "id": "v45-zct-terminal",
+      "layer": 57,
+      "ring": "\u7ec8\u5c40",
+      "onion_ring": 37,
+      "status": "done",
+      "deps": [
+        "v45-zct-rollup",
+        "v45-zct-gap",
+        "v45-zct-daily",
+        "v45-zct-selfhost"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-zero-cpysh-target-tree.lisp",
+      "agent": "reviewer"
+    },
+    {
+      "id": "v45-zct-goal",
+      "layer": 58,
+      "ring": "continue",
+      "onion_ring": 37,
+      "status": "done",
+      "deps": [
+        "v45-zct-terminal"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-v45-zero-cpysh-target-continue-100.lisp",
+      "agent": "reviewer"
+    }
+  ],
+  "next_wave_preview": {
+    "id": "wave57-lispjit-c-delete",
+    "theme": "archive lispjit.c \u7269\u7406\u5220\u9664 / \u5168 Lisp \u66ff\u4ee3\uff08\u771f zero_c \u8f68\uff09"
+  }
+}

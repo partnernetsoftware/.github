@@ -8195,6 +8195,33 @@ else
   skip_case "run-bootstrap-v45-wave49-endgame-honest-rollup-converge-plan" "nano-jit.com or v45-wave49-endgame-honest-rollup-converge.sh missing"
 fi
 
+# --- v4.5: Wave56 zero-cpysh-target（四轨 rollup + gap）---
+V45_WAVE56_CONVERGE="$LAB_DIR/scripts/v45-wave56-zero-cpysh-target-converge.sh"
+if [ -f "$NANO_JIT_COM" ] && host_is_linux_x86_64 && [ -x "$V45_WAVE56_CONVERGE" ]; then
+  run_case "run-bootstrap-v45-wave56-zero-cpysh-target-converge-plan" bash -c '
+    cd "'"$ROOT_DIR"'" && bash "'"$V45_WAVE56_CONVERGE"'"
+    grep -q v45.v45.zero_cpysh_target_continue.100=1 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.physical.zero_cpysh_progress=1 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.honest.zero_cpysh_gap=1 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.converge.daily_v45_target=1 "'"$V45_ENTRY_EVIDENCE"'"
+  '
+else
+  skip_case "run-bootstrap-v45-wave56-zero-cpysh-target-converge-plan" "nano-jit.com or v45-wave56-zero-cpysh-target-converge.sh missing"
+fi
+
+# --- v4.5: Wave55 tools-py-plan-only（消 py 轨）---
+V45_WAVE55_CONVERGE="$LAB_DIR/scripts/v45-wave55-tools-py-plan-only-converge.sh"
+if [ -f "$NANO_JIT_COM" ] && host_is_linux_x86_64 && [ -x "$V45_WAVE55_CONVERGE" ]; then
+  run_case "run-bootstrap-v45-wave55-tools-py-plan-only-converge-plan" bash -c '
+    cd "'"$ROOT_DIR"'" && bash "'"$V45_WAVE55_CONVERGE"'"
+    grep -q v45.v45.tools_py_plan_only_continue.100=1 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.tools.py_inventory=1 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.honest.tools_py_maintenance_only=1 "'"$V45_ENTRY_EVIDENCE"'"
+  '
+else
+  skip_case "run-bootstrap-v45-wave55-tools-py-plan-only-converge-plan" "nano-jit.com or v45-wave55-tools-py-plan-only-converge.sh missing"
+fi
+
 # --- v4.5: Wave54 ci-plan-only-converge（消 sh 轨）---
 V45_WAVE54_CONVERGE="$LAB_DIR/scripts/v45-wave54-ci-plan-only-converge-converge.sh"
 if [ -f "$NANO_JIT_COM" ] && host_is_linux_x86_64 && [ -x "$V45_WAVE54_CONVERGE" ]; then

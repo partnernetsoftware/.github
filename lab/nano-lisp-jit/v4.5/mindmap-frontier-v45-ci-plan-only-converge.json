@@ -100,6 +100,6 @@
   ],
   "next_wave_preview": {
     "id": "wave55-tools-py-plan-only",
-    "theme": "tools/*.py \u51fa\u4ed3\u6216 Lisp \u66ff\u4ee3\uff08v4.5 \u6d88 py \u8f68\uff09"
+    "theme": "tools/*.py 维护诚实锚（用户 plan 零 .py）"
   }
 }
