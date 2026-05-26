@@ -1,0 +1,105 @@
+{
+  "ssot": "v4.5/DIFFUSE-WAVE62.md",
+  "parent_goal": "v45.v45.physical_honest_terminal_continue.100",
+  "onion_ssot": "v4.5/ONION-TDD.md",
+  "updated_at": "2026-05-26T23:00:00Z",
+  "max_parallel": 4,
+  "breadth_ring": "nano-lisp-com-host-only — bootstrap 宿主迁 nano-lisp/ · 退 nano-jit.com 叙事",
+  "nodes": [
+    {
+      "id": "v45-nlcho-gate",
+      "layer": 62,
+      "ring": "gate",
+      "onion_ring": 43,
+      "status": "pending",
+      "deps": [],
+      "accept": [
+        "v45.v45.physical_honest_terminal_continue.100=1",
+        "v45.nano_lisp_com.bootstrap_sprint=1"
+      ]
+    },
+    {
+      "id": "v45-nlcho-unify",
+      "layer": 62,
+      "ring": "host",
+      "onion_ring": 43,
+      "status": "pending",
+      "deps": [
+        "v45-nlcho-gate"
+      ],
+      "parallel_slot": "W1",
+      "plan": "lisp/bootstrap/bootstrap-v45-nano-lisp-com-host-unify-prove.lisp",
+      "agent": "engineer-a"
+    },
+    {
+      "id": "v45-nlcho-archive",
+      "layer": 62,
+      "ring": "诚实",
+      "onion_ring": 43,
+      "status": "pending",
+      "deps": [
+        "v45-nlcho-gate"
+      ],
+      "parallel_slot": "W2",
+      "plan": "lisp/bootstrap/bootstrap-v45-nano-jit-com-archive-honest.lisp",
+      "agent": "engineer-b"
+    },
+    {
+      "id": "v45-nlcho-daily",
+      "layer": 62,
+      "ring": "plan",
+      "onion_ring": 43,
+      "status": "pending",
+      "deps": [
+        "v45-nlcho-gate"
+      ],
+      "parallel_slot": "W3",
+      "plan": "lisp/bootstrap/bootstrap-v45-converge-daily-v45-nano-lisp-com-host.lisp",
+      "agent": "engineer-a"
+    },
+    {
+      "id": "v45-nlcho-selfhost",
+      "layer": 62,
+      "ring": "代际",
+      "onion_ring": 43,
+      "status": "pending",
+      "deps": [
+        "v45-nlcho-gate"
+      ],
+      "parallel_slot": "W4",
+      "plan": "lisp/bootstrap/bootstrap-v45-selfhost-nano-lisp-com-host-matrix.lisp",
+      "agent": "engineer-b"
+    },
+    {
+      "id": "v45-nlcho-terminal",
+      "layer": 63,
+      "ring": "终局",
+      "onion_ring": 43,
+      "status": "pending",
+      "deps": [
+        "v45-nlcho-unify",
+        "v45-nlcho-archive",
+        "v45-nlcho-daily",
+        "v45-nlcho-selfhost"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-nano-lisp-com-host-only-tree.lisp",
+      "agent": "reviewer"
+    },
+    {
+      "id": "v45-nlcho-goal",
+      "layer": 64,
+      "ring": "continue",
+      "onion_ring": 43,
+      "status": "pending",
+      "deps": [
+        "v45-nlcho-terminal"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-v45-nano-lisp-com-host-only-continue-100.lisp",
+      "agent": "reviewer"
+    }
+  ],
+  "next_wave_preview": {
+    "id": "wave63-nano-lisp-com-native-bootstrap",
+    "theme": "nano-lisp.com 原生 bootstrap · 退 nano-lisp-host.com 种子"
+  }
+}

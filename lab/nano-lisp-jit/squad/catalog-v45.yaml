@@ -901,7 +901,7 @@ tasks:
 
 verify:
   commands:
-    - script: scripts/v45-wave61-physical-honest-terminal-converge.sh
+    - script: scripts/v45-wave62-nano-lisp-com-host-only-converge.sh
       cwd: .
       fail_on_nonzero: true
 

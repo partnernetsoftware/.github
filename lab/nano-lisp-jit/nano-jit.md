@@ -14,11 +14,13 @@
 ## 日常
 
 ```bash
-COM=lab/nano-lisp-jit/.build/nano-jit/nano-jit.com
-$COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-converge-daily-v45-nano-lisp-com.lisp
-bash lab/nano-lisp-jit/scripts/v45-wave61-physical-honest-terminal-converge.sh
-grep v45.v45.physical_honest_terminal_continue.100=1 lab/nano-lisp-jit/.build/v45-entry.evidence
+COM=lab/nano-lisp-jit/.build/nano-lisp/nano-lisp-host.com
+$COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-converge-daily-v45-nano-lisp-com-host.lisp
+bash lab/nano-lisp-jit/scripts/v45-wave62-nano-lisp-com-host-only-converge.sh
+grep v45.v45.nano_lisp_com_host_only_continue.100=1 lab/nano-lisp-jit/.build/v45-entry.evidence
 ```
+
+> `nano-jit.com` 为 legacy 种子；用户 COM 路径统一在 `nano-lisp/`（见 [`v4.5/HONEST-REMAINING.md`](v4.5/HONEST-REMAINING.md)）。
 
 ## 详细
 

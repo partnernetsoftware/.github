@@ -8195,6 +8195,22 @@ else
   skip_case "run-bootstrap-v45-wave49-endgame-honest-rollup-converge-plan" "nano-jit.com or v45-wave49-endgame-honest-rollup-converge.sh missing"
 fi
 
+# --- v4.5: Wave62 nano-lisp-com-host-only（COM 统一 nano-lisp/）---
+V45_WAVE62_CONVERGE="$LAB_DIR/scripts/v45-wave62-nano-lisp-com-host-only-converge.sh"
+if [ -f "$NANO_JIT_COM" ] && host_is_linux_x86_64 && [ -x "$V45_WAVE62_CONVERGE" ]; then
+  run_case "run-bootstrap-v45-wave62-nano-lisp-com-host-only-converge-plan" bash -c '
+    cd "'"$ROOT_DIR"'" && bash "'"$V45_WAVE62_CONVERGE"'"
+    grep -q v45.v45.nano_lisp_com_host_only_continue.100=1 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.host.com_nano_lisp_only=1 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.converge.daily_v45_nano_lisp_com_host=1 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.honest.nano_jit_com_legacy=1 "'"$V45_ENTRY_EVIDENCE"'"
+    test ! -f "'"$ROOT_DIR"'/lab/nano-lisp-jit/scripts/v45-wave61-physical-honest-terminal-converge.sh"
+    test -f "'"$ROOT_DIR"'/lab/nano-lisp-jit/.build/nano-lisp/nano-lisp-host.com"
+  '
+else
+  skip_case "run-bootstrap-v45-wave62-nano-lisp-com-host-only-converge-plan" "nano-jit.com or v45-wave62-nano-lisp-com-host-only-converge.sh missing"
+fi
+
 # --- v4.5: Wave61 physical-honest-terminal（nano-lisp.com 自举冲刺）---
 V45_WAVE61_CONVERGE="$LAB_DIR/scripts/v45-wave61-physical-honest-terminal-converge.sh"
 if [ -f "$NANO_JIT_COM" ] && host_is_linux_x86_64 && [ -x "$V45_WAVE61_CONVERGE" ]; then
