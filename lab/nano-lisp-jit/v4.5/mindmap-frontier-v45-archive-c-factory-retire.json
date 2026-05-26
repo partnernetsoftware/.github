@@ -4,14 +4,14 @@
   "onion_ssot": "v4.5/ONION-TDD.md",
   "updated_at": "2026-05-27T01:00:00Z",
   "max_parallel": 4,
-  "breadth_ring": "archive-c-factory-retire — runner C 物理退仓 · 用户 plan 零 archive/c",
+  "breadth_ring": "archive-c-factory-retire \u2014 runner C \u7269\u7406\u9000\u4ed3 \u00b7 \u7528\u6237 plan \u96f6 archive/c",
   "nodes": [
     {
       "id": "v45-acfr-gate",
       "layer": 64,
       "ring": "gate",
       "onion_ring": 45,
-      "status": "pending",
+      "status": "done",
       "deps": [],
       "accept": [
         "v45.v45.nano_lisp_com_native_bootstrap_continue.100=1",
@@ -23,7 +23,7 @@
       "layer": 64,
       "ring": "physical",
       "onion_ring": 45,
-      "status": "pending",
+      "status": "done",
       "deps": [
         "v45-acfr-gate"
       ],
@@ -34,9 +34,9 @@
     {
       "id": "v45-acfr-archive",
       "layer": 64,
-      "ring": "诚实",
+      "ring": "\u8bda\u5b9e",
       "onion_ring": 45,
-      "status": "pending",
+      "status": "done",
       "deps": [
         "v45-acfr-gate"
       ],
@@ -49,7 +49,7 @@
       "layer": 64,
       "ring": "plan",
       "onion_ring": 45,
-      "status": "pending",
+      "status": "done",
       "deps": [
         "v45-acfr-gate"
       ],
@@ -60,9 +60,9 @@
     {
       "id": "v45-acfr-selfhost",
       "layer": 64,
-      "ring": "代际",
+      "ring": "\u4ee3\u9645",
       "onion_ring": 45,
-      "status": "pending",
+      "status": "done",
       "deps": [
         "v45-acfr-gate"
       ],
@@ -73,9 +73,9 @@
     {
       "id": "v45-acfr-terminal",
       "layer": 65,
-      "ring": "终局",
+      "ring": "\u7ec8\u5c40",
       "onion_ring": 45,
-      "status": "pending",
+      "status": "done",
       "deps": [
         "v45-acfr-retire",
         "v45-acfr-archive",
@@ -90,7 +90,7 @@
       "layer": 66,
       "ring": "continue",
       "onion_ring": 45,
-      "status": "pending",
+      "status": "done",
       "deps": [
         "v45-acfr-terminal"
       ],
@@ -100,6 +100,6 @@
   ],
   "next_wave_preview": {
     "id": "wave65-ci-sh-final-retire",
-    "theme": "CI 工具 .sh 终局退 retired · 用户路径纯 plan"
+    "theme": "CI \u5de5\u5177 .sh \u7ec8\u5c40\u9000 retired \u00b7 \u7528\u6237\u8def\u5f84\u7eaf plan"
   }
 }
