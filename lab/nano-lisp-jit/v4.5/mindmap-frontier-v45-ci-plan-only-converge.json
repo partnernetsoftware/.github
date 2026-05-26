@@ -1,0 +1,105 @@
+{
+  "ssot": "v4.5/DIFFUSE-WAVE54.md",
+  "parent_goal": "v45.v45.lispjit_154kb_codegen_continue.100",
+  "onion_ssot": "v4.5/ONION-TDD.md",
+  "updated_at": "2026-05-26T03:00:00Z",
+  "max_parallel": 4,
+  "breadth_ring": "ci-plan-only-converge \u2014 \u5916\u5c42\u6536\u655b plan-only \u5316\uff08.sh \u9000 host \u58f3\uff09",
+  "nodes": [
+    {
+      "id": "v45-cpo-gate",
+      "layer": 54,
+      "ring": "gate",
+      "onion_ring": 35,
+      "status": "done",
+      "deps": [],
+      "accept": [
+        "v45.v45.lispjit_154kb_codegen_continue.100=1",
+        "v45.converge.daily_v45_physical=1"
+      ]
+    },
+    {
+      "id": "v45-cpo-chain",
+      "layer": 54,
+      "ring": "converge",
+      "onion_ring": 35,
+      "status": "done",
+      "deps": [
+        "v45-cpo-gate"
+      ],
+      "parallel_slot": "W1",
+      "plan": "lisp/bootstrap/bootstrap-v45-ci-plan-only-converge-chain.lisp",
+      "agent": "engineer-a"
+    },
+    {
+      "id": "v45-cpo-honest",
+      "layer": 54,
+      "ring": "\u8bda\u5b9e",
+      "onion_ring": 35,
+      "status": "done",
+      "deps": [
+        "v45-cpo-gate"
+      ],
+      "parallel_slot": "W2",
+      "plan": "lisp/bootstrap/bootstrap-v45-ci-sh-honest-boundary.lisp",
+      "agent": "engineer-b"
+    },
+    {
+      "id": "v45-cpo-daily",
+      "layer": 54,
+      "ring": "plan",
+      "onion_ring": 35,
+      "status": "done",
+      "deps": [
+        "v45-cpo-gate"
+      ],
+      "parallel_slot": "W3",
+      "plan": "lisp/bootstrap/bootstrap-v45-converge-daily-v45-complete-plan-only.lisp",
+      "agent": "engineer-a"
+    },
+    {
+      "id": "v45-cpo-selfhost",
+      "layer": 54,
+      "ring": "\u4ee3\u9645",
+      "onion_ring": 35,
+      "status": "done",
+      "deps": [
+        "v45-cpo-gate"
+      ],
+      "parallel_slot": "W4",
+      "plan": "lisp/bootstrap/bootstrap-v45-selfhost-ci-plan-only-matrix.lisp",
+      "agent": "engineer-b"
+    },
+    {
+      "id": "v45-cpo-terminal",
+      "layer": 55,
+      "ring": "\u7ec8\u5c40",
+      "onion_ring": 35,
+      "status": "done",
+      "deps": [
+        "v45-cpo-chain",
+        "v45-cpo-honest",
+        "v45-cpo-daily",
+        "v45-cpo-selfhost"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-ci-plan-only-converge-tree.lisp",
+      "agent": "reviewer"
+    },
+    {
+      "id": "v45-cpo-goal",
+      "layer": 56,
+      "ring": "continue",
+      "onion_ring": 35,
+      "status": "done",
+      "deps": [
+        "v45-cpo-terminal"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-v45-ci-plan-only-converge-continue-100.lisp",
+      "agent": "reviewer"
+    }
+  ],
+  "next_wave_preview": {
+    "id": "wave55-tools-py-plan-only",
+    "theme": "tools/*.py \u51fa\u4ed3\u6216 Lisp \u66ff\u4ee3\uff08v4.5 \u6d88 py \u8f68\uff09"
+  }
+}

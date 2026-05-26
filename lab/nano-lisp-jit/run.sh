@@ -8195,6 +8195,20 @@ else
   skip_case "run-bootstrap-v45-wave49-endgame-honest-rollup-converge-plan" "nano-jit.com or v45-wave49-endgame-honest-rollup-converge.sh missing"
 fi
 
+# --- v4.5: Wave54 ci-plan-only-converge（消 sh 轨）---
+V45_WAVE54_CONVERGE="$LAB_DIR/scripts/v45-wave54-ci-plan-only-converge-converge.sh"
+if [ -f "$NANO_JIT_COM" ] && host_is_linux_x86_64 && [ -x "$V45_WAVE54_CONVERGE" ]; then
+  run_case "run-bootstrap-v45-wave54-ci-plan-only-converge-plan" bash -c '
+    cd "'"$ROOT_DIR"'" && bash "'"$V45_WAVE54_CONVERGE"'"
+    grep -q v45.v45.ci_plan_only_converge_continue.100=1 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.converge.ci_plan_only_chain=1 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.converge.daily_v45_complete_plan_only=1 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.honest.host_sh_ci_only=1 "'"$V45_ENTRY_EVIDENCE"'"
+  '
+else
+  skip_case "run-bootstrap-v45-wave54-ci-plan-only-converge-plan" "nano-jit.com or v45-wave54-ci-plan-only-converge-converge.sh missing"
+fi
+
 # --- v4.5: Wave53 lispjit-154kb-codegen-expand（消 C 主路径）---
 V45_WAVE53_CONVERGE="$LAB_DIR/scripts/v45-wave53-lispjit-154kb-codegen-expand-converge.sh"
 if [ -f "$NANO_JIT_COM" ] && host_is_linux_x86_64 && [ -x "$V45_WAVE53_CONVERGE" ]; then

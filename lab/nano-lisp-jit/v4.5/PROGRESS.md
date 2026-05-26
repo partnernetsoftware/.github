@@ -27,14 +27,14 @@
 | tier5 发行面 | `v45.tier5.100=1` |
 | lisp 自举 | `v45.selfhost.100=1` |
 | **总签收** | **`v45.goal.onion_tdd_tree_mindmap.100=1`** · frontier **26/26** |
-| **154KB 扩面** | **`v45.v45.lispjit_154kb_codegen_continue.100=1`** · 扩展活图 **20 张** |
+| **CI plan-only** | **`v45.v45.ci_plan_only_converge_continue.100=1`** · 扩展活图 **21 张** |
 
 ## 收敛（清洗后日常）
 
 ```bash
 bash lab/nano-lisp-jit/scripts/v45-cleanup-reflect.sh
-# 或消 C 主路径（快）：v45-wave53-lispjit-154kb-codegen-expand-converge.sh
-grep v45.v45.lispjit_154kb_codegen_continue.100=1 \
+# 或 plan-only 收敛（快）：v45-wave54-ci-plan-only-converge-converge.sh
+grep v45.v45.ci_plan_only_converge_continue.100=1 \
   lab/nano-lisp-jit/.build/v45-entry.evidence.canonical
 ```
 
@@ -69,4 +69,5 @@ grep v45.v45.lispjit_154kb_codegen_continue.100=1 \
 | **50** | 154KB codegen 独立 [`DIFFUSE-WAVE50.md`](DIFFUSE-WAVE50.md) |
 | **51** | 扩展活图 rollup [`DIFFUSE-WAVE51.md`](DIFFUSE-WAVE51.md) |
 | **52** | 物理零 cpysh 续推 [`DIFFUSE-WAVE52.md`](DIFFUSE-WAVE52.md) |
-| **53** | **154KB codegen 扩面** [`DIFFUSE-WAVE53.md`](DIFFUSE-WAVE53.md) |
+| **53** | 154KB codegen 扩面 [`DIFFUSE-WAVE53.md`](DIFFUSE-WAVE53.md) |
+| **54** | **CI plan-only 收敛** [`DIFFUSE-WAVE54.md`](DIFFUSE-WAVE54.md) |

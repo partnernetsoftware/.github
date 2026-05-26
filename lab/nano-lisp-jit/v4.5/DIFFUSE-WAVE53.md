@@ -17,3 +17,5 @@ grep v45.v45.lispjit_154kb_codegen_continue.100=1 lab/nano-lisp-jit/.build/v45-e
 **用户日常（v4.5 物理）**：`converge-daily-v45-physical.lisp`
 
 **诚实未达**：`lispjit.c` 仍在 archive · `v45.physical.zero_cpysh=1` 未达
+
+**下一波**：Wave54 CI plan-only → [`DIFFUSE-WAVE54.md`](DIFFUSE-WAVE54.md)

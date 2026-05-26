@@ -15,10 +15,10 @@
 
 ```bash
 COM=lab/nano-lisp-jit/.build/nano-jit/nano-jit.com
-$COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-converge-daily-v45-physical.lisp
-bash lab/nano-lisp-jit/scripts/v45-wave53-lispjit-154kb-codegen-expand-converge.sh
+$COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-converge-daily-v45-complete-plan-only.lisp
+bash lab/nano-lisp-jit/scripts/v45-wave54-ci-plan-only-converge-converge.sh
 python3 lab/nano-lisp-jit/tools/mindmap-dp-v45.py stats
-grep v45.v45.lispjit_154kb_codegen_continue.100=1 lab/nano-lisp-jit/.build/v45-entry.evidence
+grep v45.v45.ci_plan_only_converge_continue.100=1 lab/nano-lisp-jit/.build/v45-entry.evidence
 ```
 
 ## 详细

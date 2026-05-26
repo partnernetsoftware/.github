@@ -467,6 +467,14 @@ semantic(43) → nano-lisp.com(44) → 诚实零C(45) → 15link全链(46) → p
 | 扩面绿 ≠ C 已删 | `honest.lispjit_c_remains=1` 显式锚 |
 | 日常应指向物理轨 | `converge-daily-v45-physical.lisp` |
 
+## 四十、Wave54（CI plan-only 收敛 · 消 sh 轨）
+
+| 反思 | 调整 |
+|------|------|
+| 用户路径应可无 `.sh` | `converge-daily-v45-complete-plan-only.lisp` |
+| host CI `.sh` 不能混称 DONE | `honest.host_sh_ci_only=1` 保留 |
+| 收敛链迁入 plan | `ci_plan_only_converge_chain=1` |
+
 ## 十八、Wave3（整表扩散，勿逐条）
 
 见 DIFFUSE-WAVE2 §Wave3：无 C plan · run.sh 单行化 · wave 归档。

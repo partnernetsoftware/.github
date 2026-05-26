@@ -86,7 +86,15 @@
 | 扩展活图 | **16 张**（Wave34–49，各 7 节点） |
 | 工厂物理（诚实） | **~99.8%** · 154KB 仍开卷 |
 
-**日常**：`v45-wave53-lispjit-154kb-codegen-expand-converge.sh` · 用户 plan：`converge-daily-v45-physical.lisp`
+**日常**：`v45-wave54-ci-plan-only-converge-converge.sh` · 用户 plan：`converge-daily-v45-complete-plan-only.lisp`
+
+## Wave54（ci-plan-only-converge · 7/7 ✅）
+
+| 项 | 状态 |
+|----|------|
+| 活图 | `mindmap-frontier-v45-ci-plan-only-converge.json` **7/7** |
+| 签收 | `v45.v45.ci_plan_only_converge_continue.100=1` |
+| 广度 | 用户路径 plan-only · **host `.sh` 仍在** |
 
 ## Wave53（lispjit-154kb-codegen-expand · 7/7 ✅）
 

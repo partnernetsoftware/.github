@@ -100,6 +100,6 @@
   ],
   "next_wave_preview": {
     "id": "wave54-ci-plan-only-converge",
-    "theme": "\u5916\u5c42 CI \u6536\u655b plan-only \u5316\uff08.sh \u9000 host \u58f3 \u00b7 v4.5 \u6d88 sh \u8f68\uff09"
+    "theme": "外层 CI 收敛 plan-only 化（.sh 退 host 壳）"
   }
 }
