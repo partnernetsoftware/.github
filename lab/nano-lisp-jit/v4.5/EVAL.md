@@ -70,34 +70,30 @@
 | 全 monorepo 零 C | **0%** | 诚实未达 |
 | v4 全 frontier | **未并入** | 69 节点独立 SSOT |
 
-**综合（/goal 卷）**：**100%** — 可停；**代际复核**：selfhost-next 跑通 `/goal` plan；**综合（工厂物理终局）**：约 **97%**。
+**综合（工厂物理终局）**：约 **98%**。
 
-## 合并进度分析（Wave25–30 → `origin/main` · 2026-05-25）
+## 合并进度分析（Wave25–31 → `origin/main`）
 
-| Wave | 签收键 | 活图 | 状态 |
-|------|--------|------|------|
-| 29 | `selfhost_deep_continue.100` | selfhost-deep 7/7 | ✅ main |
-| **30** | **`goal_factory_unified_continue.100`** | goal-factory **7/7** | ✅ main |
+| Wave | 签收键 | 状态 |
+|------|--------|------|
+| 30 | `goal_factory_unified_continue.100` | ✅ main |
+| **31** | **`terminal_continue.100`** · boundary-next **7/7** | 🔄 本合并 |
 
 | 指标 | 数值 |
 |------|------|
-| `/goal` 主活图 | **26/26** |
-| 扩展活图 | codegen · factory · selfhost-deep · **goal-factory**（各 7） |
-| 代际 /goal 复核 | `next_goal_signoff=1` · `next_com_reverified=1` |
-| 工厂物理终局（诚实） | **~97%** |
+| `/goal` | **100%** · 26/26 |
+| selfhost-next boundary 代际 | i64 · ptr · func · negative |
+| 扩展活图 | 6 张（各 7 节点） |
+| 工厂物理（诚实） | **~98%** |
 
-**日常**：`v45-wave30-goal-factory-unified-converge.sh`
-
-## 反思要点（Wave30）
-
-- **耦合真义**：不仅在 nano-jit.com 签收 /goal，还让 **selfhost-next** 亲自跑 `goal-onion-tdd-tree-mindmap-100`。
-- **仍不开卷冒充 100%**：154KB runner 全 Lisp codegen、全仓 zero_c、删 run.sh 见 `HONEST-REMAINING.md`。
+**日常**：`v45-wave31-terminal-continue-converge.sh`
 
 | Wave27 codegen 耦合 | **100%** | `v45.codegen_coupled.100` · 扩展活图 **7/7** |
 | Wave28 工厂物理续推 | **100%** | `factory_physical_continue.100` |
 | Wave29 selfhost 深度 | **100%** | `selfhost_deep_continue.100` |
-| Wave30 /goal×工厂统一 | **100%** | `goal_factory_unified_continue.100` · **7/7** |
-| 全量 runner Lisp codegen | **~38%** | 代际 /goal 复核绿；154KB 未达 |
+| Wave30 /goal×工厂统一 | **100%** | `goal_factory_unified_continue.100` |
+| Wave31 边界代际 | **100%** | `terminal_continue.100` · **7/7** |
+| 全量 runner Lisp codegen | **~40%** | 边界代际绿；154KB 未达 |
 | Wave23 继续卷 | **100%** | `v45.v45.continue.100=1` |
 | v4 握手 | **100%** | `v45.v4.handoff.verified=1`（69/69，≠ v45 frontier） |
 | 代际 plan-no-C matrix | **100%** | `factory.next_lisp_only_matrix=1` |

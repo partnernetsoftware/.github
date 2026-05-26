@@ -59,4 +59,5 @@ grep v45.goal.onion_tdd_tree_mindmap.100=1 \
 | **27** | **codegen 耦合** 扩展活图 7/7 + gen60 握手 [`DIFFUSE-WAVE27.md`](DIFFUSE-WAVE27.md) |
 | **28** | 工厂物理续推 [`DIFFUSE-WAVE28.md`](DIFFUSE-WAVE28.md) |
 | **29** | selfhost-next 深度矩阵 [`DIFFUSE-WAVE29.md`](DIFFUSE-WAVE29.md) |
-| **30** | /goal×工厂统一耦合 [`DIFFUSE-WAVE30.md`](DIFFUSE-WAVE30.md) |
+| **30** | /goal×工厂统一 [`DIFFUSE-WAVE30.md`](DIFFUSE-WAVE30.md) |
+| **31** | 边界代际四轨 [`DIFFUSE-WAVE31.md`](DIFFUSE-WAVE31.md) |

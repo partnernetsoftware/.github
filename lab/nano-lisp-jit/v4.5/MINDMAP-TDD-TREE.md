@@ -40,6 +40,7 @@ bash lab/nano-lisp-jit/scripts/v45-wave21-onion-tdd-tree-mindmap-100-converge.sh
 | `v45.mindmap.factory.nodes_done` / `nodes_total` | **工厂物理活图**（Wave28 · **7**） |
 | `v45.mindmap.selfhost_deep.nodes_done` / `nodes_total` | **selfhost 深度**（Wave29 · **7**） |
 | `v45.mindmap.goal_factory.nodes_done` / `nodes_total` | **/goal×工厂**（Wave30 · **7**） |
+| `v45.mindmap.boundary_next.nodes_done` / `nodes_total` | **边界代际**（Wave31 · **7**） |
 
 前置：`v45.tier5.100=1` · `v45.scoped.100=1` · `/goal` 26/26
 
@@ -73,6 +74,14 @@ bash lab/nano-lisp-jit/scripts/v45-wave29-selfhost-deep-continue-converge.sh
 NANO_V45_FRONTIER=mindmap-frontier-v45-goal-factory.json \
   python3 lab/nano-lisp-jit/tools/mindmap-dp-v45.py stats
 bash lab/nano-lisp-jit/scripts/v45-wave30-goal-factory-unified-converge.sh
+```
+
+## 扩展活图（边界代际 · Wave31+）
+
+```bash
+NANO_V45_FRONTIER=mindmap-frontier-v45-boundary-next.json \
+  python3 lab/nano-lisp-jit/tools/mindmap-dp-v45.py stats
+bash lab/nano-lisp-jit/scripts/v45-wave31-terminal-continue-converge.sh
 ```
 
 ## 日常（/goal 终局）

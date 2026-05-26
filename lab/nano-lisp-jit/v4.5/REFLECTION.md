@@ -366,6 +366,14 @@ bash lab/nano-lisp-jit/scripts/v45-cleanup-reflect.sh
 | boundary/terminal 代际？ | next 跑 boundary-probe + terminal-done |
 | 工厂物理 ~97% | `goal_factory_unified_continue.100`；全量 codegen 仍未达 |
 
+## 三十一、Wave31（边界代际四轨）
+
+| 反思 | 调整 |
+|------|------|
+| Wave21 boundary 仅在 host com？ | **selfhost-next** 跑 i64/ptr/func/negative 四轨 |
+| /goal L11–13 与代际脱节 | 第六张活图 `boundary-next.json` |
+| 工厂物理 ~98% | `terminal_continue.100`；154KB 全 codegen 仍开卷 |
+
 ## 十八、Wave3（整表扩散，勿逐条）
 
 见 DIFFUSE-WAVE2 §Wave3：无 C plan · run.sh 单行化 · wave 归档。
