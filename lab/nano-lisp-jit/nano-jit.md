@@ -15,10 +15,9 @@
 
 ```bash
 COM=lab/nano-lisp-jit/.build/nano-jit/nano-jit.com
-$COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-converge-daily-v45-plan-only-outer.lisp
-bash lab/nano-lisp-jit/scripts/v45-wave58-host-sh-retire-converge.sh
-python3 lab/nano-lisp-jit/tools/mindmap-dp-v45.py stats
-grep v45.v45.host_sh_retire_continue.100=1 lab/nano-lisp-jit/.build/v45-entry.evidence
+$COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-converge-daily-v45-zero-cpysh-terminal.lisp
+bash lab/nano-lisp-jit/scripts/v45-wave59-tools-py-retire-converge.sh
+grep v45.v45.tools_py_retire_continue.100=1 lab/nano-lisp-jit/.build/v45-entry.evidence
 ```
 
 ## 详细

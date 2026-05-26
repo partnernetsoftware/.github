@@ -11,4 +11,5 @@
   (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.v45.zero_cpysh_target_continue.100" "1")
   (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.v45.lispjit_c_delete_continue.100" "1")
   (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.v45.host_sh_retire_continue.100" "1")
+  (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.v45.tools_py_retire_continue.100" "1")
   (file-hash "lab/nano-lisp-jit/v4.5/HONEST-REMAINING.md"))

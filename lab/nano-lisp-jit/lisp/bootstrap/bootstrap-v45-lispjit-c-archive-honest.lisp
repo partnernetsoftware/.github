@@ -6,7 +6,7 @@
   (file-hash "lab/nano-lisp-jit/retired/lispjit.c.archived")
   (file-size "lab/nano-lisp-jit/retired/scripts/v45-wave57-lispjit-c-delete-converge.sh")
   (file-size "lab/nano-lisp-jit/retired/scripts/v45-wave56-zero-cpysh-target-converge.sh")
-  (file-size "lab/nano-lisp-jit/tools/mindmap-dp-v45.py")
+  (file-size "lab/nano-lisp-jit/retired/tools/mindmap-dp-v45.py")
   (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.runner.lispjit_c_active_deleted" "1")
   (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.honest.lispjit_c_retired" "1")
   (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.honest.host_sh_retired" "1")

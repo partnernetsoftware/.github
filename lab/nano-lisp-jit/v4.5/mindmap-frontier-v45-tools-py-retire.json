@@ -1,0 +1,105 @@
+{
+  "ssot": "v4.5/DIFFUSE-WAVE59.md",
+  "parent_goal": "v45.v45.host_sh_retire_continue.100",
+  "onion_ssot": "v4.5/ONION-TDD.md",
+  "updated_at": "2026-05-26T18:00:00Z",
+  "max_parallel": 4,
+  "breadth_ring": "tools-py-retire \u2014 \u7269\u7406\u8fc1\u51fa\u7ef4\u62a4 .py + plan-only \u7ec8\u5c40 daily",
+  "nodes": [
+    {
+      "id": "v45-tpr-gate",
+      "layer": 59,
+      "ring": "gate",
+      "onion_ring": 40,
+      "status": "done",
+      "deps": [],
+      "accept": [
+        "v45.v45.host_sh_retire_continue.100=1",
+        "v45.host.wave_sh_active_deleted=1"
+      ]
+    },
+    {
+      "id": "v45-tpr-replace",
+      "layer": 59,
+      "ring": "plan",
+      "onion_ring": 40,
+      "status": "done",
+      "deps": [
+        "v45-tpr-gate"
+      ],
+      "parallel_slot": "W1",
+      "plan": "lisp/bootstrap/bootstrap-v45-tools-py-plan-only-replacement-prove.lisp",
+      "agent": "engineer-a"
+    },
+    {
+      "id": "v45-tpr-archive",
+      "layer": 59,
+      "ring": "\u8bda\u5b9e",
+      "onion_ring": 40,
+      "status": "done",
+      "deps": [
+        "v45-tpr-gate"
+      ],
+      "parallel_slot": "W2",
+      "plan": "lisp/bootstrap/bootstrap-v45-tools-py-archive-honest.lisp",
+      "agent": "engineer-b"
+    },
+    {
+      "id": "v45-tpr-daily",
+      "layer": 59,
+      "ring": "plan",
+      "onion_ring": 40,
+      "status": "done",
+      "deps": [
+        "v45-tpr-gate"
+      ],
+      "parallel_slot": "W3",
+      "plan": "lisp/bootstrap/bootstrap-v45-converge-daily-v45-zero-cpysh-terminal.lisp",
+      "agent": "engineer-a"
+    },
+    {
+      "id": "v45-tpr-selfhost",
+      "layer": 59,
+      "ring": "\u4ee3\u9645",
+      "onion_ring": 40,
+      "status": "done",
+      "deps": [
+        "v45-tpr-gate"
+      ],
+      "parallel_slot": "W4",
+      "plan": "lisp/bootstrap/bootstrap-v45-selfhost-tools-py-retire-matrix.lisp",
+      "agent": "engineer-b"
+    },
+    {
+      "id": "v45-tpr-terminal",
+      "layer": 60,
+      "ring": "\u7ec8\u5c40",
+      "onion_ring": 40,
+      "status": "done",
+      "deps": [
+        "v45-tpr-replace",
+        "v45-tpr-archive",
+        "v45-tpr-daily",
+        "v45-tpr-selfhost"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-tools-py-retire-tree.lisp",
+      "agent": "reviewer"
+    },
+    {
+      "id": "v45-tpr-goal",
+      "layer": 61,
+      "ring": "continue",
+      "onion_ring": 40,
+      "status": "done",
+      "deps": [
+        "v45-tpr-terminal"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-v45-tools-py-retire-continue-100.lisp",
+      "agent": "reviewer"
+    }
+  ],
+  "next_wave_preview": {
+    "id": "wave60-ci-shell-retire",
+    "theme": "\u6700\u540e CI wave59 .sh \u9000 retired \u00b7 v45.physical.zero_cpysh=1 \u51b2\u523a"
+  }
+}

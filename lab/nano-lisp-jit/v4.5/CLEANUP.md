@@ -13,7 +13,7 @@
 | L4 | `selfhost.100` | S5+T3+代际 | 自举卷 |
 | L5 | `goal.lisp_selfhost.unified.100` | 20 节点 | Wave20 |
 | **L6** | **`goal.onion_tdd_tree_mindmap.100`** | **26 节点 + boundary** | **/goal 总签收** |
-| L7 | `v45.*.continue.100` | 扩展活图 Wave34–58 | **分卷签收**，≠ v4.5 目标达成 |
+| L7 | `v45.*.continue.100` | 扩展活图 Wave34–59 | **分卷签收**，≠ v4.5 目标达成 |
 
 `v45-entry.evidence` 为 **append-only**（同键可出现多次）；审计用 canonical：
 
@@ -26,10 +26,10 @@ bash lab/nano-lisp-jit/scripts/v45-evidence-canonical.sh
 
 ```bash
 # v4.5 目标 daily（默认 · 快 seed ~1s）
-bash lab/nano-lisp-jit/scripts/v45-wave58-host-sh-retire-converge.sh
+bash lab/nano-lisp-jit/scripts/v45-wave59-tools-py-retire-converge.sh
 
 COM=lab/nano-lisp-jit/.build/nano-jit/nano-jit.com
-$COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-converge-daily-v45-plan-only-outer.lisp
+$COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-converge-daily-v45-zero-cpysh-terminal.lisp
 
 # /goal 总签收（慢 · 完整链）
 bash lab/nano-lisp-jit/scripts/v45-wave21-onion-tdd-tree-mindmap-100-converge.sh
@@ -40,8 +40,8 @@ bash lab/nano-lisp-jit/scripts/v45-cleanup-reflect.sh
 
 | 脚本 | 用途 |
 |------|------|
-| **`v45-wave58-host-sh-retire-converge.sh`** | **v4.5 目标轨 CI verify（Wave58 · wave `.sh` 迁出）** |
-| `v45-wave57-lispjit-c-delete-converge.sh` | Wave57 active C 迁出复核（`retired/scripts/`） |
+| **`v45-wave59-tools-py-retire-converge.sh`** | **v4.5 目标轨 CI verify（Wave59 · active py 迁出）** |
+| `v45-wave58-host-sh-retire-converge.sh` | Wave58 wave `.sh` 迁出复核（`retired/scripts/`） |
 | `v45-wave56-zero-cpysh-target-converge.sh` | Wave56 四轨 rollup 复核 |
 | `v45-wave55-tools-py-plan-only-converge.sh` | 消 py 复核 |
 | `v45-wave50-lispjit-codegen-dedicated-converge.sh` | 154KB codegen 独立活图 |
@@ -54,9 +54,9 @@ bash lab/nano-lisp-jit/scripts/v45-cleanup-reflect.sh
 
 ```bash
 bash lab/nano-lisp-jit/scripts/v45-cleanup-reflect.sh
-NANO_V45_FRONTIER=mindmap-frontier-v45-ci-plan-only-converge.json \
-  python3 lab/nano-lisp-jit/tools/mindmap-dp-v45.py stats
-grep v45.v45.host_sh_retire_continue.100=1 \
+NANO_V45_FRONTIER=mindmap-frontier-v45-tools-py-retire.json \
+  python3 lab/nano-lisp-jit/retired/tools/mindmap-dp-v45.py stats
+grep v45.v45.tools_py_retire_continue.100=1 \
   lab/nano-lisp-jit/.build/v45-entry.evidence.canonical
 ```
 
@@ -65,9 +65,9 @@ grep v45.v45.host_sh_retire_continue.100=1 \
 ## 活图
 
 - SSOT 主树：[`mindmap-frontier-v45.json`](mindmap-frontier-v45.json) — **26/26**
-- 扩展活图：**24 张**（Wave34–58）
-- 当前前沿：`mindmap-frontier-v45-host-sh-retire.json`
-- DP：`tools/mindmap-dp-v45.py ready|stats`
+- 扩展活图：**25 张**（Wave34–59）
+- 当前前沿：`mindmap-frontier-v45-tools-py-retire.json`
+- DP：`retired/tools/mindmap-dp-v45.py`（维护层已归档；活图 JSON 直读）
 
 ## 仍开卷（清洗后也不混称 /goal）
 
