@@ -1,0 +1,90 @@
+{
+  "ssot": "v4.5/DIFFUSE-WAVE42.md",
+  "parent_goal": "v45.v45.compose_modules_continue.100",
+  "onion_ssot": "v4.5/ONION-TDD.md",
+  "updated_at": "2026-05-25T00:00:00Z",
+  "max_parallel": 4,
+  "nodes": [
+    {
+      "id": "v45-cd-gate",
+      "layer": 42,
+      "ring": "gate",
+      "onion_ring": 23,
+      "status": "ready",
+      "deps": [],
+      "accept": [
+        "v45.v45.compose_modules_continue.100=1",
+        "v45.goal.onion_tdd_tree_mindmap.100=1"
+      ]
+    },
+    {
+      "id": "v45-cd-compose-9link",
+      "layer": 42,
+      "ring": "Codegen",
+      "onion_ring": 23,
+      "status": "ready",
+      "deps": ["v45-cd-gate"],
+      "parallel_slot": "W1",
+      "plan": "lisp/bootstrap/bootstrap-v45-compose-link-9chain.lisp",
+      "agent": "engineer-a"
+    },
+    {
+      "id": "v45-cd-compose-15link",
+      "layer": 42,
+      "ring": "Codegen",
+      "onion_ring": 23,
+      "status": "ready",
+      "deps": ["v45-cd-gate"],
+      "parallel_slot": "W2",
+      "plan": "lisp/bootstrap/bootstrap-v45-compose-link-15chain.lisp",
+      "agent": "engineer-b"
+    },
+    {
+      "id": "v45-cd-daily-compose",
+      "layer": 42,
+      "ring": "plan",
+      "onion_ring": 23,
+      "status": "ready",
+      "deps": ["v45-cd-gate"],
+      "parallel_slot": "W3",
+      "plan": "lisp/bootstrap/bootstrap-v45-converge-daily-compose.lisp",
+      "agent": "engineer-a"
+    },
+    {
+      "id": "v45-cd-selfhost-deep",
+      "layer": 42,
+      "ring": "代际",
+      "onion_ring": 23,
+      "status": "ready",
+      "deps": ["v45-cd-gate"],
+      "parallel_slot": "W4",
+      "plan": "lisp/bootstrap/bootstrap-v45-selfhost-compose-deep.lisp",
+      "agent": "engineer-b"
+    },
+    {
+      "id": "v45-cd-terminal",
+      "layer": 43,
+      "ring": "终局",
+      "onion_ring": 23,
+      "status": "ready",
+      "deps": [
+        "v45-cd-compose-9link",
+        "v45-cd-compose-15link",
+        "v45-cd-daily-compose",
+        "v45-cd-selfhost-deep"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-compose-deep-tree.lisp",
+      "agent": "reviewer"
+    },
+    {
+      "id": "v45-cd-goal",
+      "layer": 44,
+      "ring": "DONE",
+      "onion_ring": 23,
+      "status": "ready",
+      "deps": ["v45-cd-terminal"],
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-v45-compose-deep-100.lisp",
+      "agent": "reviewer"
+    }
+  ]
+}

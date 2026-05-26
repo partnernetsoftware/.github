@@ -55,6 +55,7 @@ bash lab/nano-lisp-jit/scripts/v45-wave21-onion-tdd-tree-mindmap-100-converge.sh
 | `v45.mindmap.runner_physical.nodes_done` / `nodes_total` | **runner-physical**（Wave39 · **7** · 诚实卷） |
 | `v45.mindmap.daily_plan.nodes_done` / `nodes_total` | **daily-plan**（Wave40 · **7**） |
 | `v45.mindmap.compose_modules.nodes_done` / `nodes_total` | **compose-modules**（Wave41 · **7**） |
+| `v45.mindmap.compose_deep.nodes_done` / `nodes_total` | **compose-deep**（Wave42 · **7**） |
 
 前置：`v45.tier5.100=1` · `v45.scoped.100=1` · `/goal` 26/26
 
@@ -249,6 +250,22 @@ NANO_V45_FRONTIER=mindmap-frontier-v45-compose-modules.json \
 | `v45.v45.compose_modules_continue.100=1` | 深潜签收 |
 
 见 [`DIFFUSE-WAVE41.md`](DIFFUSE-WAVE41.md)
+
+## 扩展活图（compose-deep · Wave42+）
+
+目标：compose 9/15link plan-only + daily 并入。
+
+```bash
+NANO_V45_FRONTIER=mindmap-frontier-v45-compose-deep.json \
+  python3 lab/nano-lisp-jit/tools/mindmap-dp-v45.py ready
+```
+
+| 键 | 活图 |
+|----|------|
+| `v45.mindmap.compose_deep.nodes_done` / `nodes_total` | Wave42 · **7** |
+| `v45.v45.compose_deep_continue.100=1` | 深潜签收 |
+
+见 [`DIFFUSE-WAVE42.md`](DIFFUSE-WAVE42.md)
 
 ## 扩展活图（runner 广面 · Wave34+）
 

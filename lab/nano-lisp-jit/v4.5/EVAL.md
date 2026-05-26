@@ -88,6 +88,15 @@
 
 **日常**：`v45-wave34-runner-codegen-continue-converge.sh`
 
+## Wave42（compose-deep · 编排中）
+
+| 项 | 状态 |
+|----|------|
+| 活图 | `mindmap-frontier-v45-compose-deep.json` |
+| 签收 | `v45.v45.compose_deep_continue.100=1` |
+| 深潜 | compose 9link + 15link plan-only |
+| 日常 | `v45-wave42-compose-deep-converge.sh` |
+
 ## Wave41（compose-modules · 7/7 ✅）
 
 | 项 | 状态 |
