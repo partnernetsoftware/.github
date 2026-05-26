@@ -22,7 +22,7 @@
       "layer": 20,
       "ring": "modules",
       "onion_ring": 10,
-      "status": "ready",
+      "status": "done",
       "deps": [
         "v45-shd-gate"
       ],
@@ -32,9 +32,9 @@
     {
       "id": "v45-shd-regenesis",
       "layer": 20,
-      "ring": "自举",
+      "ring": "\u81ea\u4e3e",
       "onion_ring": 10,
-      "status": "ready",
+      "status": "done",
       "deps": [
         "v45-shd-gate"
       ],
@@ -44,9 +44,9 @@
     {
       "id": "v45-shd-chain",
       "layer": 20,
-      "ring": "链",
+      "ring": "\u94fe",
       "onion_ring": 10,
-      "status": "ready",
+      "status": "done",
       "deps": [
         "v45-shd-gate"
       ],
@@ -56,9 +56,9 @@
     {
       "id": "v45-shd-onion",
       "layer": 20,
-      "ring": "洋葱",
+      "ring": "\u6d0b\u8471",
       "onion_ring": 10,
-      "status": "ready",
+      "status": "done",
       "deps": [
         "v45-shd-gate"
       ],
@@ -68,9 +68,9 @@
     {
       "id": "v45-shd-terminal",
       "layer": 21,
-      "ring": "终局",
+      "ring": "\u7ec8\u5c40",
       "onion_ring": 10,
-      "status": "ready",
+      "status": "done",
       "deps": [
         "v45-shd-modules",
         "v45-shd-regenesis",
@@ -84,7 +84,7 @@
       "layer": 22,
       "ring": "DONE",
       "onion_ring": 10,
-      "status": "ready",
+      "status": "done",
       "deps": [
         "v45-shd-terminal"
       ],
