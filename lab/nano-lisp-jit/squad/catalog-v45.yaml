@@ -901,7 +901,7 @@ tasks:
 
 verify:
   commands:
-    - script: scripts/v45-wave35-lisp-com-only-converge.sh
+    - script: scripts/v45-wave36-plan-converge-converge.sh
       cwd: .
       fail_on_nonzero: true
 

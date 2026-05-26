@@ -88,6 +88,15 @@
 
 **日常**：`v45-wave34-runner-codegen-continue-converge.sh`
 
+## Wave36（plan-converge · 7/7 ✅）
+
+| 项 | 状态 |
+|----|------|
+| 活图 | `mindmap-frontier-v45-plan-converge.json` **7/7** |
+| 签收 | `v45.v45.plan_converge_continue.100=1` |
+| 日常 | `v45-wave36-plan-converge-converge.sh` |
+| plan 面 | plan 内收敛 · 默认洋葱 · `nano-lisp.com` 矩阵 |
+
 ## Wave35（lisp-com-only · 7/7 ✅）
 
 | 项 | 状态 |

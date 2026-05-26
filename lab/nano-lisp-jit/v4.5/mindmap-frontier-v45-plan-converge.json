@@ -1,0 +1,94 @@
+{
+  "ssot": "v4.5/DIFFUSE-WAVE36.md",
+  "parent_goal": "v45.v45.lisp_com_only_continue.100",
+  "onion_ssot": "v4.5/ONION-TDD.md",
+  "updated_at": "2026-05-24T00:00:00Z",
+  "max_parallel": 4,
+  "nodes": [
+    {
+      "id": "v45-pc-gate",
+      "layer": 36,
+      "ring": "gate",
+      "onion_ring": 17,
+      "status": "ready",
+      "deps": [],
+      "accept": [
+        "v45.v45.lisp_com_only_continue.100=1",
+        "v45.goal.onion_tdd_tree_mindmap.100=1"
+      ]
+    },
+    {
+      "id": "v45-pc-converge-all",
+      "layer": 36,
+      "ring": "plan",
+      "onion_ring": 17,
+      "status": "ready",
+      "deps": [
+        "v45-pc-gate"
+      ],
+      "parallel_slot": "W1",
+      "plan": "lisp/bootstrap/bootstrap-v45-converge-all.lisp"
+    },
+    {
+      "id": "v45-pc-onion-default",
+      "layer": 36,
+      "ring": "洋葱",
+      "onion_ring": 17,
+      "status": "ready",
+      "deps": [
+        "v45-pc-gate"
+      ],
+      "parallel_slot": "W2",
+      "plan": "lisp/bootstrap/bootstrap-v45-onion-default-all.lisp"
+    },
+    {
+      "id": "v45-pc-com-matrix",
+      "layer": 36,
+      "ring": "com",
+      "onion_ring": 17,
+      "status": "ready",
+      "deps": [
+        "v45-pc-gate"
+      ],
+      "parallel_slot": "W3",
+      "plan": "lisp/bootstrap/bootstrap-v45-nano-lisp-com-matrix.lisp"
+    },
+    {
+      "id": "v45-pc-next-verify",
+      "layer": 36,
+      "ring": "代际",
+      "onion_ring": 17,
+      "status": "ready",
+      "deps": [
+        "v45-pc-gate"
+      ],
+      "parallel_slot": "W4",
+      "plan": "lisp/bootstrap/bootstrap-v45-selfhost-nano-lisp-com-verify.lisp"
+    },
+    {
+      "id": "v45-pc-terminal",
+      "layer": 37,
+      "ring": "终局",
+      "onion_ring": 17,
+      "status": "ready",
+      "deps": [
+        "v45-pc-converge-all",
+        "v45-pc-onion-default",
+        "v45-pc-com-matrix",
+        "v45-pc-next-verify"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-plan-converge-tree.lisp"
+    },
+    {
+      "id": "v45-pc-goal",
+      "layer": 38,
+      "ring": "DONE",
+      "onion_ring": 17,
+      "status": "ready",
+      "deps": [
+        "v45-pc-terminal"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-v45-plan-converge-100.lisp"
+    }
+  ]
+}
