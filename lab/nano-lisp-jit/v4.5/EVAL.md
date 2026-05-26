@@ -77,7 +77,7 @@
 | Wave | 签收键 | 状态 |
 |------|--------|------|
 | 30 | `goal_factory_unified_continue.100` | ✅ main |
-| **31** | **`terminal_continue.100`** · boundary-next **7/7** | 🔄 本合并 |
+| **31** | **`terminal_continue.100`** · boundary-next **7/7** | ✅ main |
 
 | 指标 | 数值 |
 |------|------|
