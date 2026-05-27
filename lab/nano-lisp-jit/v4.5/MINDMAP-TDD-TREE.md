@@ -1,7 +1,11 @@
 # 洋葱 TDD × tree-mind-map 耦合（v4.5 SSOT）
 
-> **2026-05-27 · Wave70**  
-> **当前活图**：[`mindmap-frontier-v45-daily-zero-archive-audit.json`](mindmap-frontier-v45-daily-zero-archive-audit.json) · [`DIFFUSE-WAVE70.md`](DIFFUSE-WAVE70.md)
+> **2026-05-27 · Wave72**  
+> **当前活图**：[`mindmap-frontier-v45-compose15-runner-promote.json`](mindmap-frontier-v45-compose15-runner-promote.json) · [`DIFFUSE-WAVE72.md`](DIFFUSE-WAVE72.md)
+
+> **Wave71（已签收）**：[`mindmap-frontier-v45-lisp-codegen-diffuse.json`](mindmap-frontier-v45-lisp-codegen-diffuse.json) · [`DIFFUSE-WAVE71.md`](DIFFUSE-WAVE71.md)
+
+> **Wave70**：[`mindmap-frontier-v45-daily-zero-archive-audit.json`](mindmap-frontier-v45-daily-zero-archive-audit.json) · [`DIFFUSE-WAVE70.md`](DIFFUSE-WAVE70.md)
 
 > **活图（历史基线）**：[`mindmap-frontier-v45.json`](mindmap-frontier-v45.json) · **DP**：`retired/tools/mindmap-dp-v45.py`  
 > **洋葱真源**：[`ONION-TDD.md`](ONION-TDD.md)

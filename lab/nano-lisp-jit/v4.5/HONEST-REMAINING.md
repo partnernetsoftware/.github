@@ -4,7 +4,22 @@
 
 ```bash
 COM=lab/nano-lisp-jit/release/nano-lisp.com   # 309945 bytes · git 跟踪
-$COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-converge-daily-v45-zero-archive-audit-terminal.lisp
+$COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-converge-daily-v45-compose15-runner-promote.lisp
+```
+
+## Wave72 扩散（当前）
+
+```bash
+NANO_V45_FRONTIER=mindmap-frontier-v45-compose15-runner-promote.json \
+  python3 lab/nano-lisp-jit/retired/tools/mindmap-dp-v45.py ready
+bash lab/nano-lisp-jit/retired/scripts/v45-wave72-compose15-runner-promote-converge.sh
+```
+
+## Wave71（已签收）
+
+```bash
+# v45.v45.lisp_codegen_diffuse_continue.100=1
+bash lab/nano-lisp-jit/retired/scripts/v45-wave71-lisp-codegen-diffuse-converge.sh
 ```
 
 | 项 | 状态 |
@@ -36,3 +51,4 @@ grep v45.v45.terminal_done=1 lab/nano-lisp-jit/.build/v45-entry.evidence.canonic
 | `v45.v45.terminal_done=1` | COM promote + 矩阵绿 |
 | `v45.v45.terminal_com_promoted=1` | release/ 已更新 |
 | `v45.honest.aarch64_slim_slice=1` | 双架构 154KB slice |
+| `v45.v45.compose15_runner_promote_continue.100=1` | Wave72 compose15 promote 续推 |

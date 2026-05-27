@@ -724,8 +724,11 @@ static const char *lispjit_from_lisp_profile_path(void) {
     return "lab/nano-lisp-jit/lisp/modules/00-runtime-core.lisp";
   if (lispjit_from_lisp_profile_named("lispjit-mod-compile"))
     return "lab/nano-lisp-jit/lisp/modules/02-compile.lisp";
+  if (lispjit_from_lisp_profile_named("compose-15link") ||
+      lispjit_from_lisp_profile_named("semantic-full"))
+    return "lab/nano-lisp-jit/lisp/core/lisp-tu-main.lisp";
   if (p) return p;
-  return "lab/nano-lisp-jit/samples/nano-jit-runner-core.lisp";
+  return "lab/nano-lisp-jit/lisp/core/nano-jit-slice-min.lisp";
 }
 
 static int lispjit_from_lisp_profile_is_linked_tu(void) {
@@ -1101,7 +1104,13 @@ static int build_slice_use_lispjit_from_lisp(const char *src_path) {
 static int build_slice_via_lispjit_from_lisp(const char *src_path, const char *out_path,
                                              const char *arch) {
   const char *profile = lispjit_from_lisp_profile_path();
+  const char *profile_env = lispjit_from_lisp_profile_env();
   int rc;
+  /* Early dispatch: env profile string (COM slice may not match named() after exec). */
+  if (profile_env && strcmp(profile_env, "compose-15link") == 0)
+    return lispjit_from_lisp_build_compose_15link(out_path, arch);
+  if (profile_env && strcmp(profile_env, "semantic-full") == 0)
+    return lispjit_from_lisp_build_compose_15link(out_path, arch);
   if (lispjit_from_lisp_profile_named("full"))
     return lispjit_from_lisp_build_full(src_path, out_path, arch);
   if (lispjit_from_lisp_profile_named("semantic-terminal") ||
