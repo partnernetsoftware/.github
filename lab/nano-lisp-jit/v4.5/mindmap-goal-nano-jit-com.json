@@ -2,7 +2,7 @@
   "goal": "nano-jit.com",
   "ssot": "v4.5/mindmap-goal-nano-jit-com.json",
   "north_star": "release/nano-lisp.com \u4e3a\u7528\u6237 COM\uff1b.build/nano-jit/nano-jit.com \u5de5\u5382\u79cd\u5b50\uff1b\u7ec8\u5c40 *.lisp plan-only \u81ea\u4e3e COM",
-  "updated_at": "2026-05-27T17:00:00Z",
+  "updated_at": "2026-05-27T18:00:00Z",
   "strict_done_requires": [
     "v45.goal.nano_jit_com.lisp_only_regenesis=1",
     "v45.goal.nano_jit_com.release_parity=1",
@@ -117,13 +117,58 @@
       ],
       "verified": true,
       "blocker": null
+    },
+    {
+      "round": 3,
+      "ts": "2026-05-27T18:00:00Z",
+      "read_mindmap": "wave74 done \u00b7 preview wave75 full-runner-154kb",
+      "plan": [
+        "T1: plan-only genesis-pin build-slice \u2192 158392B",
+        "T2: pack full x86 + ir aarch64",
+        "T3: gap audit compose15 4096 vs genesis-pin",
+        "T4: four-track converge + journal"
+      ],
+      "attempts": [
+        {
+          "id": "T1-genesis-pin",
+          "status": "ok",
+          "detail": "bytes=158392 smoke=strlen ok"
+        },
+        {
+          "id": "T2-pack",
+          "status": "ok"
+        },
+        {
+          "id": "T3-gap",
+          "status": "ok",
+          "detail": "compose15=4096 genesis-pin=158392"
+        },
+        {
+          "id": "T4-link-elf64-fix",
+          "status": "deferred",
+          "detail": "4096 is page-aligned emit; full size via genesis-pin not link fix"
+        }
+      ],
+      "results": {
+        "converge_fail": 0,
+        "full_runner_bytes": "158392",
+        "frontier": "7/7"
+      },
+      "self_critique": "\u7528\u6237 plan \u5185\u5df2\u53ef build-slice \u5f97\u5230 158KB full runner\uff08genesis-pin \u89d2\u8272\uff09\uff1b\u4ecd\u975e compose15 \u7eaf codegen\u3002/goal \u7ec8\u5c40\u9700 Wave76 \u96f6 genesis-pin \u6216 regenesis \u5168 lisp \u94fe\u3002",
+      "git_ops": [],
+      "evidence_keys": [
+        "v45.goal.full_runner_154kb_continue.100=1"
+      ],
+      "verified": true,
+      "blocker": null
     }
   ],
-  "active_frontier": "mindmap-frontier-v45-regenesis-promote.json",
+  "active_frontier": "mindmap-frontier-v45-full-runner-154kb.json",
   "waves_done": [
     "wave71-lisp-codegen-diffuse",
     "wave72-compose15-runner-promote",
     "wave73-nano-jit-com-goal",
-    "wave74-regenesis-promote"
+    "wave74-regenesis-promote",
+    "wave75-full-runner-154kb"
   ]
 }
