@@ -49,7 +49,8 @@
       "self_critique": "Wave73 \u7b7e\u6536 continue.100 \u975e\u7ec8\u5c40\uff1alisp-only pack \u4ecd\u7626 slice\uff1b154KB full runner \u9700 regenesis \u6216 compose15 codegen \u6df1\u5316\u3002compose15 linked \u4ecd 4096B stub\u3002",
       "git_ops": [
         "git checkout main && git merge cursor/v45-wave71-lisp-codegen-diffuse-fc19 → fast-forward 8f7c95d",
-        "git push origin main (pending wave73 commit)"
+        "git commit 080cfa0 Wave73 /goal nano-jit.com on main",
+        "git push origin main"
       ],
       "evidence_keys": [
         "v45.goal.nano_jit_com.continue.100=1",
