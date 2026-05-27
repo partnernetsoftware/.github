@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Wave67: wave-converge-shell-retire — 最后 wave sh · wave66+self 迁 retired · 快 seed（默认）.
 set -uo pipefail
-ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
+ROOT="$(cd "$(dirname "$0")/../../../.." && pwd)"
 EV="$ROOT/lab/nano-lisp-jit/.build/v45-entry.evidence"
 COM="$ROOT/lab/nano-lisp-jit/.build/nano-lisp/nano-lisp.com"
 SELF="$ROOT/lab/nano-lisp-jit/scripts/v45-wave67-wave-converge-shell-retire-converge.sh"

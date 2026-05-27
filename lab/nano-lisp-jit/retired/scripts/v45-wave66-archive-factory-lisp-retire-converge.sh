@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Wave66: archive-factory-lisp-retire — factory lisp 迁 retired + wave65 迁 retired · 快 seed（默认）.
 set -uo pipefail
-ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
+ROOT="$(cd "$(dirname "$0")/../../../.." && pwd)"
 EV="$ROOT/lab/nano-lisp-jit/.build/v45-entry.evidence"
 COM="$ROOT/lab/nano-lisp-jit/.build/nano-lisp/nano-lisp.com"
 FACTORY_SRC="$ROOT/lab/nano-lisp-jit/archive/c/factory"

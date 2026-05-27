@@ -1,0 +1,105 @@
+{
+  "ssot": "v4.5/DIFFUSE-WAVE68.md",
+  "parent_goal": "v45.v45.wave_converge_shell_retire_continue.100",
+  "onion_ssot": "v4.5/ONION-TDD.md",
+  "updated_at": "2026-05-27T05:00:00Z",
+  "max_parallel": 4,
+  "breadth_ring": "lisp-selfhost-bootstrap-chain \u2014 promote \u9000 nano-jit.com \u79cd\u5b50 \u00b7 \u7eaf COM+plan",
+  "nodes": [
+    {
+      "id": "v45-lsbc-gate",
+      "layer": 68,
+      "ring": "gate",
+      "onion_ring": 49,
+      "status": "done",
+      "deps": [],
+      "accept": [
+        "v45.v45.wave_converge_shell_retire_continue.100=1",
+        "v45.converge.daily_v45_com_plan_only_terminal=1"
+      ]
+    },
+    {
+      "id": "v45-lsbc-prove",
+      "layer": 68,
+      "ring": "plan",
+      "onion_ring": 49,
+      "status": "done",
+      "deps": [
+        "v45-lsbc-gate"
+      ],
+      "parallel_slot": "W1",
+      "plan": "lisp/bootstrap/bootstrap-v45-lisp-selfhost-bootstrap-chain-prove.lisp",
+      "agent": "engineer-a"
+    },
+    {
+      "id": "v45-lsbc-archive",
+      "layer": 68,
+      "ring": "\u8bda\u5b9e",
+      "onion_ring": 49,
+      "status": "done",
+      "deps": [
+        "v45-lsbc-gate"
+      ],
+      "parallel_slot": "W2",
+      "plan": "lisp/bootstrap/bootstrap-v45-lisp-selfhost-seed-archive-honest.lisp",
+      "agent": "engineer-b"
+    },
+    {
+      "id": "v45-lsbc-daily",
+      "layer": 68,
+      "ring": "plan",
+      "onion_ring": 49,
+      "status": "done",
+      "deps": [
+        "v45-lsbc-gate"
+      ],
+      "parallel_slot": "W3",
+      "plan": "lisp/bootstrap/bootstrap-v45-converge-daily-v45-lisp-selfhost-bootstrap-chain.lisp",
+      "agent": "engineer-a"
+    },
+    {
+      "id": "v45-lsbc-selfhost",
+      "layer": 68,
+      "ring": "\u4ee3\u9645",
+      "onion_ring": 49,
+      "status": "done",
+      "deps": [
+        "v45-lsbc-gate"
+      ],
+      "parallel_slot": "W4",
+      "plan": "lisp/bootstrap/bootstrap-v45-selfhost-lisp-selfhost-bootstrap-chain-matrix.lisp",
+      "agent": "engineer-b"
+    },
+    {
+      "id": "v45-lsbc-terminal",
+      "layer": 69,
+      "ring": "\u7ec8\u5c40",
+      "onion_ring": 49,
+      "status": "done",
+      "deps": [
+        "v45-lsbc-prove",
+        "v45-lsbc-archive",
+        "v45-lsbc-daily",
+        "v45-lsbc-selfhost"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-lisp-selfhost-bootstrap-chain-tree.lisp",
+      "agent": "reviewer"
+    },
+    {
+      "id": "v45-lsbc-goal",
+      "layer": 70,
+      "ring": "continue",
+      "onion_ring": 49,
+      "status": "done",
+      "deps": [
+        "v45-lsbc-terminal"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-v45-lisp-selfhost-bootstrap-chain-continue-100.lisp",
+      "agent": "reviewer"
+    }
+  ],
+  "next_wave_preview": {
+    "id": "wave69-run-sh-archive-honest",
+    "theme": "CI run.sh \u5de5\u5382\u9762 symlink \u8bda\u5b9e\u6536\u53e3 \u00b7 v4.5 \u7ec8\u5c40\u51b2\u523a"
+  }
+}
