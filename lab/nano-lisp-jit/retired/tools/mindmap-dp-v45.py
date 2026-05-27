@@ -6,7 +6,7 @@ import os
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 _DEFAULT = "mindmap-frontier-v45.json"
 FRONTIER = ROOT / "v4.5" / os.environ.get("NANO_V45_FRONTIER", _DEFAULT)
 

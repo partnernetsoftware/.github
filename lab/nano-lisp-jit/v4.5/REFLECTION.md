@@ -520,5 +520,35 @@ COM 统一(nano-lisp/) → 原生 bootstrap(63) → runner C 退仓(64) → CI s
 | 路径迁移 | bootstrap / 收敛脚本 / 文档 → `release/` 取代 `.build/nano-lisp/` |
 | `.build/` | 仍 gitignore · 仅本地 runtime 缓存 |
 
+## 四十三、honest-cleanup（反思整理 · Wave70+ 冻结）
+
+### 问题
+
+Wave34–69 产生 **36+ 张**扩展活图与大量 `*.continue.100` 键；听像完成，物理上仍是 **2/6 APE · Linux-only · genesis 依赖**。Agent 未用 mindmap DP 编排后台池，而是 wave 编号记账式推进。
+
+### 调整
+
+| 动作 | 产物 |
+|------|------|
+| 冻结 Wave70+ 功能 | `v45.honest.wave70_plus_frozen=1` |
+| 证据键审计 | [`EVIDENCE-GAP-AUDIT.md`](EVIDENCE-GAP-AUDIT.md) |
+| 单一活图工作池 | `mindmap-frontier-v45-honest-cleanup.json` 7 节点 |
+| 非 continue.100 签收 | `v45.honest.cleanup_pool=1` |
+| daily 切换 | `converge-daily-v45-honest-cleanup.lisp` |
+
+### 编排协议（恢复）
+
+```text
+读 honest-cleanup frontier → DP ready ≤4 → 四轨 bootstrap 并行 → v45-honest-cleanup-converge → 用户确认下一目标
+```
+
+### 停损线
+
+- 禁止把 L7 `continue.100` 写成 v4.5 DONE
+- 禁止未过 `cleanup_pool` 就开 Wave70 功能
+- 下一 falsifiable 目标：**daily 零 archive 审计** 或 **APE 6 面** — 须用户选定
+
+见 [`DIFFUSE-WAVE-CLEANUP.md`](DIFFUSE-WAVE-CLEANUP.md)
+
 
 见 DIFFUSE-WAVE2 §Wave3：无 C plan · run.sh 单行化 · wave 归档。

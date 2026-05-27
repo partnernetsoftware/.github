@@ -8,7 +8,9 @@ echo "v45-cleanup-reflect=begin"
 bash "$(dirname "$0")/v45-evidence-canonical.sh"
 if [ -x "$ROOT/lab/nano-lisp-jit/release/nano-lisp.com" ] \
   || [ -x "$ROOT/lab/nano-lisp-jit/.build/nano-jit/nano-jit.com" ]; then
-  if [ -x "$(dirname "$0")/v45-wave64-archive-c-factory-retire-converge.sh" ]; then
+  if [ -x "$(dirname "$0")/v45-honest-cleanup-converge.sh" ]; then
+    bash "$(dirname "$0")/v45-honest-cleanup-converge.sh" || true
+  elif [ -x "$(dirname "$0")/v45-wave64-archive-c-factory-retire-converge.sh" ]; then
     bash "$(dirname "$0")/v45-wave64-archive-c-factory-retire-converge.sh" || true
   elif [ -x "$ROOT/lab/nano-lisp-jit/retired/scripts/v45-wave63-nano-lisp-com-native-bootstrap-converge.sh" ]; then
     bash "$ROOT/lab/nano-lisp-jit/retired/scripts/v45-wave63-nano-lisp-com-native-bootstrap-converge.sh" || true
