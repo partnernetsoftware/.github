@@ -901,7 +901,7 @@ tasks:
 
 verify:
   commands:
-    - script: scripts/v45-wave65-ci-sh-final-retire-converge.sh
+    - script: scripts/v45-wave66-archive-factory-lisp-retire-converge.sh
       cwd: .
       fail_on_nonzero: true
 

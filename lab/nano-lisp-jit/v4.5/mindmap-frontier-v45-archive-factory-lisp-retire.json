@@ -1,0 +1,105 @@
+{
+  "ssot": "v4.5/DIFFUSE-WAVE66.md",
+  "parent_goal": "v45.v45.ci_sh_final_retire_continue.100",
+  "onion_ssot": "v4.5/ONION-TDD.md",
+  "updated_at": "2026-05-27T03:00:00Z",
+  "max_parallel": 4,
+  "breadth_ring": "archive-factory-lisp-retire — factory lisp 物理退仓 · 用户 plan 零 archive 路径",
+  "nodes": [
+    {
+      "id": "v45-aflr-gate",
+      "layer": 66,
+      "ring": "gate",
+      "onion_ring": 47,
+      "status": "pending",
+      "deps": [],
+      "accept": [
+        "v45.v45.ci_sh_final_retire_continue.100=1",
+        "v45.converge.daily_v45_plan_only_final=1"
+      ]
+    },
+    {
+      "id": "v45-aflr-retire",
+      "layer": 66,
+      "ring": "physical",
+      "onion_ring": 47,
+      "status": "pending",
+      "deps": [
+        "v45-aflr-gate"
+      ],
+      "parallel_slot": "W1",
+      "plan": "lisp/bootstrap/bootstrap-v45-archive-factory-lisp-retire-prove.lisp",
+      "agent": "engineer-a"
+    },
+    {
+      "id": "v45-aflr-archive",
+      "layer": 66,
+      "ring": "诚实",
+      "onion_ring": 47,
+      "status": "pending",
+      "deps": [
+        "v45-aflr-gate"
+      ],
+      "parallel_slot": "W2",
+      "plan": "lisp/bootstrap/bootstrap-v45-archive-factory-lisp-honest-retire.lisp",
+      "agent": "engineer-b"
+    },
+    {
+      "id": "v45-aflr-daily",
+      "layer": 66,
+      "ring": "plan",
+      "onion_ring": 47,
+      "status": "pending",
+      "deps": [
+        "v45-aflr-gate"
+      ],
+      "parallel_slot": "W3",
+      "plan": "lisp/bootstrap/bootstrap-v45-converge-daily-v45-zero-archive-path.lisp",
+      "agent": "engineer-a"
+    },
+    {
+      "id": "v45-aflr-selfhost",
+      "layer": 66,
+      "ring": "代际",
+      "onion_ring": 47,
+      "status": "pending",
+      "deps": [
+        "v45-aflr-gate"
+      ],
+      "parallel_slot": "W4",
+      "plan": "lisp/bootstrap/bootstrap-v45-selfhost-archive-factory-lisp-retire-matrix.lisp",
+      "agent": "engineer-b"
+    },
+    {
+      "id": "v45-aflr-terminal",
+      "layer": 67,
+      "ring": "终局",
+      "onion_ring": 47,
+      "status": "pending",
+      "deps": [
+        "v45-aflr-retire",
+        "v45-aflr-archive",
+        "v45-aflr-daily",
+        "v45-aflr-selfhost"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-archive-factory-lisp-retire-tree.lisp",
+      "agent": "reviewer"
+    },
+    {
+      "id": "v45-aflr-goal",
+      "layer": 68,
+      "ring": "continue",
+      "onion_ring": 47,
+      "status": "pending",
+      "deps": [
+        "v45-aflr-terminal"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-v45-archive-factory-lisp-retire-continue-100.lisp",
+      "agent": "reviewer"
+    }
+  ],
+  "next_wave_preview": {
+    "id": "wave67-wave-converge-shell-retire",
+    "theme": "wave converge .sh 终局退 retired · 用户路径纯 COM+plan"
+  }
+}
