@@ -1,16 +1,7 @@
 # 洋葱 TDD × tree-mind-map 耦合（v4.5 SSOT）
 
-> **2026-05-27 · Wave70+ 冻结**  
-> **当前活图**：[`mindmap-frontier-v45-honest-cleanup.json`](mindmap-frontier-v45-honest-cleanup.json) · [`DIFFUSE-WAVE-CLEANUP.md`](DIFFUSE-WAVE-CLEANUP.md)  
-> **证据审计**：[`EVIDENCE-GAP-AUDIT.md`](EVIDENCE-GAP-AUDIT.md) · **v4.5 目标仍未达**（[`HONEST-REMAINING.md`](HONEST-REMAINING.md)）
-
-```bash
-# 主对话：读工作池 → DP ready ≤4 → 四轨并行 → 一次 converge
-NANO_V45_FRONTIER=mindmap-frontier-v45-honest-cleanup.json \
-  python3 lab/nano-lisp-jit/retired/tools/mindmap-dp-v45.py ready
-
-bash lab/nano-lisp-jit/retired/scripts/v45-honest-cleanup-converge.sh
-```
+> **2026-05-27 · Wave70**  
+> **当前活图**：[`mindmap-frontier-v45-daily-zero-archive-audit.json`](mindmap-frontier-v45-daily-zero-archive-audit.json) · [`DIFFUSE-WAVE70.md`](DIFFUSE-WAVE70.md)
 
 > **活图（历史基线）**：[`mindmap-frontier-v45.json`](mindmap-frontier-v45.json) · **DP**：`retired/tools/mindmap-dp-v45.py`  
 > **洋葱真源**：[`ONION-TDD.md`](ONION-TDD.md)

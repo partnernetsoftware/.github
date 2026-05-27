@@ -545,10 +545,20 @@ Wave34–69 产生 **36+ 张**扩展活图与大量 `*.continue.100` 键；听�
 ### 停损线
 
 - 禁止把 L7 `continue.100` 写成 v4.5 DONE
-- 禁止未过 `cleanup_pool` 就开 Wave70 功能
-- 下一 falsifiable 目标：**daily 零 archive 审计** 或 **APE 6 面** — 须用户选定
+- 下一 falsifiable 目标见 [`DIFFUSE-WAVE70.md`](DIFFUSE-WAVE70.md) `next_wave_preview`
 
-见 [`DIFFUSE-WAVE-CLEANUP.md`](DIFFUSE-WAVE-CLEANUP.md)
+## 四十四、Wave70（daily zero-archive audit）
+
+| 变更 | 说明 |
+|------|------|
+| `lisp/core/nano-jit-slice-add.lisp` | 自举链 slice 迁出 archive/c symlink |
+| `ARCHIVE-PATH-AUDIT.md` | 活跃 daily 零 archive/c · ~84 历史 plan 保留 |
+| daily 升维 | `converge-daily-v45-zero-archive-audit-terminal.lisp` |
+| 签收 | `v45.v45.daily_zero_archive_audit_continue.100=1` |
+
+**诚实**：`release/nano-lisp.com` 仍 ~819KB genesis 锚 · 瘦 slice pack 不能替代 runner
+
+见 [`DIFFUSE-WAVE70.md`](DIFFUSE-WAVE70.md)
 
 
 见 DIFFUSE-WAVE2 §Wave3：无 C plan · run.sh 单行化 · wave 归档。

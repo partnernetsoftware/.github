@@ -11,7 +11,7 @@
                     "lab/nano-lisp-jit/.build/v45-lsbc-min-x86.elf"
                     "x86_64")
   (run-expect-exit "lab/nano-lisp-jit/.build/v45-lsbc-min-x86.elf" 42)
-  (build-slice-lisp "lab/nano-lisp-jit/archive/c/factory/misc/nano-jit-slice-add.lisp"
+  (build-slice-lisp "lab/nano-lisp-jit/lisp/core/nano-jit-slice-add.lisp"
                     "lab/nano-lisp-jit/.build/v45-lsbc-add-x86.elf"
                     "x86_64")
   (run-expect-exit "lab/nano-lisp-jit/.build/v45-lsbc-add-x86.elf" 42)

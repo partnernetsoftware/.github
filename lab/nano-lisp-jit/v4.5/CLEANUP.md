@@ -1,7 +1,6 @@
 # v4.5 清洗与反思（SSOT）
 
-> **2026-05-27**：**Wave70+ 冻结**。当前前沿 = [`mindmap-frontier-v45-honest-cleanup.json`](mindmap-frontier-v45-honest-cleanup.json) · 见 [`DIFFUSE-WAVE-CLEANUP.md`](DIFFUSE-WAVE-CLEANUP.md)。  
-> **继续开发前**：先跑「一轮清洗」，再读 [`REFLECTION.md`](REFLECTION.md) §四十三 · [`EVIDENCE-GAP-AUDIT.md`](EVIDENCE-GAP-AUDIT.md)。
+> **2026-05-27**：当前前沿 = [`mindmap-frontier-v45-daily-zero-archive-audit.json`](mindmap-frontier-v45-daily-zero-archive-audit.json) · Wave70 · 见 [`DIFFUSE-WAVE70.md`](DIFFUSE-WAVE70.md)。
 
 ## 证据键分层（避免误读 100%）
 
@@ -28,16 +27,14 @@ bash lab/nano-lisp-jit/scripts/v45-evidence-canonical.sh
 ## 日常收敛链（推荐顺序 · 2026-05-27 更新）
 
 ```bash
-# honest-cleanup daily（默认 · Wave70+ 冻结）
+# Wave70 daily（默认）
 COM=lab/nano-lisp-jit/release/nano-lisp.com
-$COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-converge-daily-v45-honest-cleanup.lisp
+$COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-converge-daily-v45-zero-archive-audit-terminal.lisp
 
-# honest-cleanup 收敛（四轨 + 工作池签收）
-bash lab/nano-lisp-jit/retired/scripts/v45-honest-cleanup-converge.sh
+bash lab/nano-lisp-jit/retired/scripts/v45-wave70-daily-zero-archive-audit-converge.sh
 
-# mindmap DP（后台工作池编排）
-NANO_V45_FRONTIER=mindmap-frontier-v45-honest-cleanup.json \
-  python3 lab/nano-lisp-jit/retired/tools/mindmap-dp-v45.py ready
+NANO_V45_FRONTIER=mindmap-frontier-v45-daily-zero-archive-audit.json \
+  python3 lab/nano-lisp-jit/retired/tools/mindmap-dp-v45.py stats
 
 # 历史：Wave69 工厂诚实（非默认 daily）
 # $COM run-bootstrap-plan .../bootstrap-v45-converge-daily-v45-factory-honest-terminal.lisp
@@ -52,8 +49,8 @@ bash lab/nano-lisp-jit/retired/scripts/v45-cleanup-reflect.sh
 
 | 脚本 | 用途 |
 |------|------|
-| **`converge-daily-v45-honest-cleanup.lisp`** | **默认 daily · SSOT 清理轨** |
-| `v45-honest-cleanup-converge.sh` | honest-cleanup 四轨收敛 |
+| **`converge-daily-v45-zero-archive-audit-terminal.lisp`** | **默认 daily · Wave70** |
+| `v45-wave70-daily-zero-archive-audit-converge.sh` | Wave70 四轨收敛 |
 | `converge-daily-v45-factory-honest-terminal.lisp` | Wave69 工厂诚实（历史 daily） |
 | `v45-wave69-run-sh-archive-honest-converge.sh` | Wave69 run.sh 工厂面诚实（`retired/scripts/`） |
 | `v45-wave68-lisp-selfhost-bootstrap-chain-converge.sh` | Wave68 种子退仓（`retired/scripts/`） |
@@ -89,7 +86,7 @@ grep v45.honest.ape_two_slice_linux_only=1 \
 
 - SSOT 主树：[`mindmap-frontier-v45.json`](mindmap-frontier-v45.json) — **26/26**
 - 扩展活图：**35 张**（Wave34–69 · 历史）
-- **当前前沿**：[`mindmap-frontier-v45-honest-cleanup.json`](mindmap-frontier-v45-honest-cleanup.json) — **Wave70+ 冻结**
+- **当前前沿**：[`mindmap-frontier-v45-daily-zero-archive-audit.json`](mindmap-frontier-v45-daily-zero-archive-audit.json)
 - 证据审计：[`EVIDENCE-GAP-AUDIT.md`](EVIDENCE-GAP-AUDIT.md)
 - DP：`retired/tools/mindmap-dp-v45.py`
 
