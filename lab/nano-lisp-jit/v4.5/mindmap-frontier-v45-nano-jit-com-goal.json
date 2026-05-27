@@ -1,0 +1,105 @@
+{
+  "ssot": "v4.5/DIFFUSE-WAVE73.md",
+  "parent_goal": "mindmap-goal-nano-jit-com.json",
+  "onion_ssot": "v4.5/ONION-TDD.md",
+  "updated_at": "2026-05-27T16:00:00Z",
+  "max_parallel": 4,
+  "breadth_ring": "nano-jit.com /goal \u2014 regenesis probe \u00b7 goal matrix \u00b7 lisp-only pack \u00b7 154KB gap audit",
+  "nodes": [
+    {
+      "id": "v45-njc-gate",
+      "layer": 73,
+      "ring": "gate",
+      "onion_ring": 50,
+      "status": "done",
+      "deps": [],
+      "accept": [
+        "v45.v45.compose15_runner_promote_continue.100=1",
+        "v45.v45.terminal_done=1"
+      ]
+    },
+    {
+      "id": "v45-njc-regenesis",
+      "layer": 73,
+      "ring": "\u5de5\u5382",
+      "onion_ring": 50,
+      "status": "done",
+      "deps": [
+        "v45-njc-gate"
+      ],
+      "parallel_slot": "W1",
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-nano-jit-com-regenesis-probe.lisp",
+      "agent": "engineer-a"
+    },
+    {
+      "id": "v45-njc-matrix",
+      "layer": 73,
+      "ring": "\u9a8c\u6536",
+      "onion_ring": 50,
+      "status": "done",
+      "deps": [
+        "v45-njc-gate"
+      ],
+      "parallel_slot": "W2",
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-nano-jit-com-matrix.lisp",
+      "agent": "engineer-b"
+    },
+    {
+      "id": "v45-njc-lisp-pack",
+      "layer": 73,
+      "ring": "\u81ea\u4e3e",
+      "onion_ring": 50,
+      "status": "done",
+      "deps": [
+        "v45-njc-gate"
+      ],
+      "parallel_slot": "W3",
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-nano-jit-com-lisp-regenesis-pack.lisp",
+      "agent": "engineer-a"
+    },
+    {
+      "id": "v45-njc-gap-audit",
+      "layer": 73,
+      "ring": "\u8bda\u5b9e",
+      "onion_ring": 50,
+      "status": "done",
+      "deps": [
+        "v45-njc-gate"
+      ],
+      "parallel_slot": "W4",
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-nano-jit-com-154kb-gap-audit.lisp",
+      "agent": "engineer-b"
+    },
+    {
+      "id": "v45-njc-terminal",
+      "layer": 74,
+      "ring": "\u7ec8\u5c40",
+      "onion_ring": 50,
+      "status": "done",
+      "deps": [
+        "v45-njc-regenesis",
+        "v45-njc-matrix",
+        "v45-njc-lisp-pack",
+        "v45-njc-gap-audit"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-nano-jit-com-goal-tree.lisp",
+      "agent": "reviewer"
+    },
+    {
+      "id": "v45-njc-goal",
+      "layer": 75,
+      "ring": "continue",
+      "onion_ring": 50,
+      "status": "done",
+      "deps": [
+        "v45-njc-terminal"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-v45-nano-jit-com-continue-100.lisp",
+      "agent": "reviewer"
+    }
+  ],
+  "next_wave_preview": {
+    "id": "wave74-lispjit-c-regenesis-promote",
+    "theme": "regenesis slice \u8fdb release \u00b7 compose-15link C early-dispatch \u751f\u6548"
+  }
+}
