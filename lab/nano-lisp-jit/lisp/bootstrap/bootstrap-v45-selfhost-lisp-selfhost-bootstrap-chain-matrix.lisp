@@ -1,8 +1,8 @@
 ; Wave68 W4: selfhost × Lisp 自举链 promote 矩阵.
 ; Prefix v45-slsbcm- · no .sh · no .py steps.
 (bootstrap
-  (file-size "lab/nano-lisp-jit/.build/v45-selfhost-next.com")
-  (file-size "lab/nano-lisp-jit/.build/nano-lisp/nano-lisp.com")
+  (file-size "lab/nano-lisp-jit/release/v45-selfhost-next.com")
+  (file-size "lab/nano-lisp-jit/release/nano-lisp.com")
   (file-size "lab/nano-lisp-jit/lisp/core/lisp-tu-main.lisp")
   (file-size "lab/nano-lisp-jit/retired/com/nano-jit.com.archived")
   (build-slice-lisp "lab/nano-lisp-jit/lisp/core/nano-jit-slice-min.lisp"

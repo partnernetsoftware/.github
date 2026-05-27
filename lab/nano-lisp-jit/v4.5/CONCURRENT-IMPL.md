@@ -13,7 +13,9 @@
 samples/bootstrap-v45-selfhost-modules-full.lisp   ← 新建/扩全 13 TU
 samples/bootstrap-v45-selfhost-next-com-verify.lisp ← 锚点（执行在 converge 脚本）
 v4.5/SELFHOST.md
-.build/v45-selfhost-next.com                        ← 产物，勿手改
+release/nano-lisp.com                               ← 产品 COM（进仓 SSOT）
+release/v45-selfhost-next.com                       ← 自举代际 COM（进仓）
+release/manifest.txt                                ← fnv1a64 pin
 ```
 
 **实施清单**：
@@ -25,7 +27,7 @@ v4.5/SELFHOST.md
 **轨 A 完成判据**：
 
 ```bash
-COM=lab/nano-lisp-jit/.build/nano-jit/nano-jit.com
+COM=lab/nano-lisp-jit/release/nano-lisp.com
 $COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-selfhost-modules-full.lisp
 # → 13× compile/run 绿
 ```

@@ -1,7 +1,7 @@
 ; Wave46 W4: selfhost × codegen terminal 矩阵 — 15link 代际 + broad ir.
 ; Prefix v45-sctm- · no build-slice lispjit.c · no .sh steps.
 (bootstrap
-  (file-size "lab/nano-lisp-jit/.build/v45-selfhost-next.com")
+  (file-size "lab/nano-lisp-jit/release/v45-selfhost-next.com")
   (file-size "lab/nano-lisp-jit/archive/c/runner/lispjit.c")
   (ir-table-lisp "lab/nano-lisp-jit/lisp/core/v4-ir-table-v2-broad.lisp")
   (build-slice-lisp "lab/nano-lisp-jit/lisp/core/nano-jit-slice-min.lisp"

@@ -3,7 +3,7 @@
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/../../../.." && pwd)"
 EV="$ROOT/lab/nano-lisp-jit/.build/v45-entry.evidence"
-COM="$ROOT/lab/nano-lisp-jit/.build/nano-lisp/nano-lisp.com"
+COM="$ROOT/lab/nano-lisp-jit/release/nano-lisp.com"
 SELF="$ROOT/lab/nano-lisp-jit/scripts/v45-wave67-wave-converge-shell-retire-converge.sh"
 WCSR_FRONTIER="$ROOT/lab/nano-lisp-jit/v4.5/mindmap-frontier-v45-wave-converge-shell-retire.json"
 SCRIPTS="$ROOT/lab/nano-lisp-jit/scripts"
@@ -123,7 +123,7 @@ next_plan_ok() {
   [ "$ec" = 0 ]
 }
 
-NEXT_FULL="$ROOT/lab/nano-lisp-jit/.build/v45-selfhost-next.com"
+NEXT_FULL="$ROOT/lab/nano-lisp-jit/release/v45-selfhost-next.com"
 broad_ok=1
 bpids=()
 if [ -x "$NEXT_FULL" ]; then

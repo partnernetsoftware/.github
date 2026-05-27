@@ -1,8 +1,8 @@
 ; Wave57 W4: selfhost × lispjit-c-delete 矩阵.
 ; Prefix v45-slcd- · no build-slice lispjit.c · no .sh · no .py steps.
 (bootstrap
-  (file-size "lab/nano-lisp-jit/.build/v45-selfhost-next.com")
-  (file-size "lab/nano-lisp-jit/.build/nano-lisp/nano-lisp.com")
+  (file-size "lab/nano-lisp-jit/release/v45-selfhost-next.com")
+  (file-size "lab/nano-lisp-jit/release/nano-lisp.com")
   (file-size "lab/nano-lisp-jit/retired/lispjit.c.archived")
   (build-slice-lisp "lab/nano-lisp-jit/lisp/core/nano-jit-slice-min.lisp"
                     "lab/nano-lisp-jit/.build/v45-slcd-min-x86.elf"

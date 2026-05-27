@@ -2,7 +2,7 @@
 (bootstrap
   (file-size "lab/nano-lisp-jit/v4.5/HONEST-REMAINING.md")
   (file-size "lab/nano-lisp-jit/v4.5/DIFFUSE-WAVE63.md")
-  (file-size "lab/nano-lisp-jit/.build/nano-lisp/nano-lisp.com")
+  (file-size "lab/nano-lisp-jit/release/nano-lisp.com")
   (file-size "lab/nano-lisp-jit/retired/com/nano-lisp-host.com.archived")
   (file-size "lab/nano-lisp-jit/retired/scripts/v45-wave62-nano-lisp-com-host-only-converge.sh")
   (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.nano_lisp_com.native_bootstrap" "1")

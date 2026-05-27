@@ -3,7 +3,7 @@
 (bootstrap
   (file-size "lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-converge-daily-v45-complete.lisp")
   (file-size "lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-converge-daily-zero-host-sh.lisp")
-  (file-size "lab/nano-lisp-jit/.build/nano-lisp/nano-lisp.com")
+  (file-size "lab/nano-lisp-jit/release/nano-lisp.com")
   (squad-dispatch "lab/nano-lisp-jit/squad/catalog-v45.yaml")
   (squad-assess "lab/nano-lisp-jit/squad/catalog-v45.yaml")
   (compile "lab/nano-lisp-jit/lisp/core/strlen.lisp"

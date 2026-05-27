@@ -1,7 +1,7 @@
 ; Wave63 W1: nano-lisp.com 原生 bootstrap 证明 — host 种子 promote 前跑（零 .sh/.py 步骤）.
 ; Prefix v45-nlcnbs- · run on nano-lisp-host.com before promote.
 (bootstrap
-  (file-size "lab/nano-lisp-jit/.build/nano-lisp/nano-lisp.com")
+  (file-size "lab/nano-lisp-jit/release/nano-lisp.com")
   (file-size "lab/nano-lisp-jit/.build/nano-lisp/nano-lisp-host.com")
   (build-slice-lisp "lab/nano-lisp-jit/lisp/core/nano-jit-slice-min.lisp"
                     "lab/nano-lisp-jit/.build/v45-nlcnbs-min-x86.elf"
@@ -10,10 +10,10 @@
   (build-slice-lisp "lab/nano-lisp-jit/lisp/core/nano-jit-slice-ir-exit-v1.lisp"
                     "lab/nano-lisp-jit/.build/v45-nlcnbs-ir-aarch64.elf"
                     "aarch64")
-  (pack-ape "lab/nano-lisp-jit/.build/nano-lisp/nano-lisp.com"
+  (pack-ape "lab/nano-lisp-jit/release/nano-lisp.com"
             "lab/nano-lisp-jit/.build/v45-nlcnbs-min-x86.elf"
             "lab/nano-lisp-jit/.build/v45-nlcnbs-ir-aarch64.elf")
-  (inspect-ape "lab/nano-lisp-jit/.build/nano-lisp/nano-lisp.com")
+  (inspect-ape "lab/nano-lisp-jit/release/nano-lisp.com")
   (compile "lab/nano-lisp-jit/lisp/core/strlen.lisp"
            "lab/nano-lisp-jit/.build/v45-nlcnbs-smoke-strlen.lbin")
   (run "lab/nano-lisp-jit/.build/v45-nlcnbs-smoke-strlen.lbin")

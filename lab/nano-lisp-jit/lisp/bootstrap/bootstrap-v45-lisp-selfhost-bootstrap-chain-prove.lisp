@@ -1,7 +1,7 @@
 ; Wave68 W1: Lisp 自举链 promote 证明 — 种子退仓前跑（零 plan 内 .sh 步骤）.
 ; Prefix v45-lsbc- · pack 自举链 COM 可 bootstrap.
 (bootstrap
-  (file-size "lab/nano-lisp-jit/.build/nano-lisp/nano-lisp.com")
+  (file-size "lab/nano-lisp-jit/release/nano-lisp.com")
   (file-size "lab/nano-lisp-jit/.build/nano-jit/nano-jit.com")
   (file-size "lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-selfhost-lisp-only-chain.lisp")
   (build-slice-lisp "lab/nano-lisp-jit/lisp/core/nano-jit-slice-ir-exit-v1.lisp"

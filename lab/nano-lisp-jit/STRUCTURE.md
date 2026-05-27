@@ -10,8 +10,8 @@ lisp/
   modules/            # lispjit-modules（13 TU）
   core/               # arithmetic、strlen、ir-table…
   boundary/           # 能力边界样例
-.build/nano-jit/nano-jit.com
-genesis/
+release/nano-lisp.com # 产品 COM（进仓 SSOT）
+genesis/              # genesis pin 切片
 v4.5/                 # ONION-TDD · mindmap · EVAL
 ```
 

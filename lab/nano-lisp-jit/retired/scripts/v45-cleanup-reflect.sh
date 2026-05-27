@@ -6,7 +6,7 @@ EV="$ROOT/lab/nano-lisp-jit/.build/v45-entry.evidence"
 cd "$ROOT"
 echo "v45-cleanup-reflect=begin"
 bash "$(dirname "$0")/v45-evidence-canonical.sh"
-if [ -x "$ROOT/lab/nano-lisp-jit/.build/nano-lisp/nano-lisp.com" ] \
+if [ -x "$ROOT/lab/nano-lisp-jit/release/nano-lisp.com" ] \
   || [ -x "$ROOT/lab/nano-lisp-jit/.build/nano-jit/nano-jit.com" ]; then
   if [ -x "$(dirname "$0")/v45-wave64-archive-c-factory-retire-converge.sh" ]; then
     bash "$(dirname "$0")/v45-wave64-archive-c-factory-retire-converge.sh" || true
@@ -25,7 +25,7 @@ bash "$(dirname "$0")/v45-evidence-canonical.sh"
   echo "v45.cleanup.reflect=1"
   echo "v45.cleanup.canonical=1"
 } >>"$EV"
-COM="$ROOT/lab/nano-lisp-jit/.build/nano-lisp/nano-lisp.com"
+COM="$ROOT/lab/nano-lisp-jit/release/nano-lisp.com"
 if [ ! -x "$COM" ]; then
   COM="$ROOT/lab/nano-lisp-jit/.build/nano-jit/nano-jit.com"
 fi

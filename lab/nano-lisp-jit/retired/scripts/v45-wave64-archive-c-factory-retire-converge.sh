@@ -3,7 +3,7 @@
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
 EV="$ROOT/lab/nano-lisp-jit/.build/v45-entry.evidence"
-COM="$ROOT/lab/nano-lisp-jit/.build/nano-lisp/nano-lisp.com"
+COM="$ROOT/lab/nano-lisp-jit/release/nano-lisp.com"
 RUNNER_SRC="$ROOT/lab/nano-lisp-jit/archive/c/runner"
 RUNNER_RET="$ROOT/lab/nano-lisp-jit/retired/archive-c/runner"
 TU_SRC="$ROOT/lab/nano-lisp-jit/archive/c/factory/misc/lisp-tu-main.lisp"
@@ -151,7 +151,7 @@ next_plan_ok() {
   [ "$ec" = 0 ]
 }
 
-NEXT_FULL="$ROOT/lab/nano-lisp-jit/.build/v45-selfhost-next.com"
+NEXT_FULL="$ROOT/lab/nano-lisp-jit/release/v45-selfhost-next.com"
 broad_ok=1
 bpids=()
 if [ -x "$NEXT_FULL" ]; then

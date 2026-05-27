@@ -4,7 +4,7 @@ set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
 EV="$ROOT/lab/nano-lisp-jit/.build/v45-entry.evidence"
 COM="$ROOT/lab/nano-lisp-jit/.build/nano-jit/nano-jit.com"
-NEXT_FULL="$ROOT/lab/nano-lisp-jit/.build/v45-selfhost-next.com"
+NEXT_FULL="$ROOT/lab/nano-lisp-jit/release/v45-selfhost-next.com"
 CSR_FRONTIER="$ROOT/lab/nano-lisp-jit/v4.5/mindmap-frontier-v45-ci-shell-retire.json"
 SCRIPTS="$ROOT/lab/nano-lisp-jit/scripts"
 RETIRED_SCRIPTS="$ROOT/lab/nano-lisp-jit/retired/scripts"

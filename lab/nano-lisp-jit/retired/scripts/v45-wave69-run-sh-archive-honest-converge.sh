@@ -3,8 +3,8 @@
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/../../../.." && pwd)"
 EV="$ROOT/lab/nano-lisp-jit/.build/v45-entry.evidence"
-COM="$ROOT/lab/nano-lisp-jit/.build/nano-lisp/nano-lisp.com"
-NEXT_FULL="$ROOT/lab/nano-lisp-jit/.build/v45-selfhost-next.com"
+COM="$ROOT/lab/nano-lisp-jit/release/nano-lisp.com"
+NEXT_FULL="$ROOT/lab/nano-lisp-jit/release/v45-selfhost-next.com"
 RSHAH_FRONTIER="$ROOT/lab/nano-lisp-jit/v4.5/mindmap-frontier-v45-run-sh-archive-honest.json"
 LSBC_FRONTIER="$ROOT/lab/nano-lisp-jit/v4.5/mindmap-frontier-v45-lisp-selfhost-bootstrap-chain.json"
 RETIRED_SEED="$ROOT/lab/nano-lisp-jit/retired/com/nano-jit.com.archived"

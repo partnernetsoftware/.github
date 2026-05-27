@@ -4,7 +4,7 @@ set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
 EV="$ROOT/lab/nano-lisp-jit/.build/v45-entry.evidence"
 SEED_COM="$ROOT/lab/nano-lisp-jit/.build/nano-jit/nano-jit.com"
-PRODUCT_COM="$ROOT/lab/nano-lisp-jit/.build/nano-lisp/nano-lisp.com"
+PRODUCT_COM="$ROOT/lab/nano-lisp-jit/release/nano-lisp.com"
 HOST_COM="$ROOT/lab/nano-lisp-jit/.build/nano-lisp/nano-lisp-host.com"
 COM="$HOST_COM"
 NLCHO_FRONTIER="$ROOT/lab/nano-lisp-jit/v4.5/mindmap-frontier-v45-nano-lisp-com-host-only.json"
@@ -127,7 +127,7 @@ next_plan_ok() {
   [ "$ec" = 0 ]
 }
 
-NEXT_FULL="$ROOT/lab/nano-lisp-jit/.build/v45-selfhost-next.com"
+NEXT_FULL="$ROOT/lab/nano-lisp-jit/release/v45-selfhost-next.com"
 broad_ok=1
 bpids=()
 if [ -x "$NEXT_FULL" ]; then

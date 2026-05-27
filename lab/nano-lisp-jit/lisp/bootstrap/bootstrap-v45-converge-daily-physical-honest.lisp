@@ -10,7 +10,7 @@
   (compile "lab/nano-lisp-jit/lisp/core/arithmetic.lisp"
            "lab/nano-lisp-jit/.build/v45-cdph-smoke-arithmetic.lbin")
   (run "lab/nano-lisp-jit/.build/v45-cdph-smoke-arithmetic.lbin")
-  (file-size "lab/nano-lisp-jit/.build/nano-lisp/nano-lisp.com")
+  (file-size "lab/nano-lisp-jit/release/nano-lisp.com")
   (compile-elf64-obj-code "lab/nano-lisp-jit/archive/c/factory/misc/lisp-tu-callee.lisp"
                           "lab/nano-lisp-jit/.build/v45-cdph-cl5-callee.o"
                           "nano_tu_callee")

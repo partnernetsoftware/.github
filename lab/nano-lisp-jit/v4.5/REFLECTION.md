@@ -511,5 +511,14 @@ COM 统一(nano-lisp/) → 原生 bootstrap(63) → runner C 退仓(64) → CI s
 
 **停损线**：Wave69 只收口「run.sh = 工厂 · 用户不依赖」；不删 `run.sh`、不宣称 v4.5 DONE。
 
+## 四十二、release/ COM 进仓（2026-05-27）
+
+| 变更 | 说明 |
+|------|------|
+| `release/nano-lisp.com` | 产品 COM SSOT · git 跟踪 · `manifest.txt` pin |
+| `release/v45-selfhost-next.com` | 自举代际 COM 同步进仓 |
+| 路径迁移 | bootstrap / 收敛脚本 / 文档 → `release/` 取代 `.build/nano-lisp/` |
+| `.build/` | 仍 gitignore · 仅本地 runtime 缓存 |
+
 
 见 DIFFUSE-WAVE2 §Wave3：无 C plan · run.sh 单行化 · wave 归档。

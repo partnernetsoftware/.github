@@ -1,6 +1,6 @@
 ; Wave38 W4: 代际 selfhost generation matrix on lisp-only path.
 (bootstrap
-  (file-size "lab/nano-lisp-jit/.build/v45-selfhost-next.com")
+  (file-size "lab/nano-lisp-jit/release/v45-selfhost-next.com")
   (build-slice-lisp "lab/nano-lisp-jit/lisp/core/nano-jit-slice-min.lisp"
                     "lab/nano-lisp-jit/.build/v45-sgm-min-x86.elf"
                     "x86_64")

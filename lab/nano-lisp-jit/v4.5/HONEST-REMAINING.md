@@ -26,7 +26,7 @@
 
 ```bash
 # 用户路径（工厂诚实终局 · Wave69）
-COM=lab/nano-lisp-jit/.build/nano-lisp/nano-lisp.com
+COM=lab/nano-lisp-jit/release/nano-lisp.com
 $COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-converge-daily-v45-factory-honest-terminal.lisp
 
 # CI 收敛（retired 壳 · run.sh 工厂面仍 host bash）

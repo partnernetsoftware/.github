@@ -1,7 +1,7 @@
 ; Wave55 W4: selfhost × tools py plan-only 矩阵.
 ; Prefix v45-stpom- · no build-slice lispjit.c · no .sh · no .py steps.
 (bootstrap
-  (file-size "lab/nano-lisp-jit/.build/v45-selfhost-next.com")
+  (file-size "lab/nano-lisp-jit/release/v45-selfhost-next.com")
   (file-size "lab/nano-lisp-jit/tools/mindmap-dp-v45.py")
   (build-slice-lisp "lab/nano-lisp-jit/lisp/core/nano-jit-slice-min.lisp"
                     "lab/nano-lisp-jit/.build/v45-stpom-min-x86.elf"

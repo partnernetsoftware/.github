@@ -27,7 +27,7 @@ bash lab/nano-lisp-jit/scripts/v45-evidence-canonical.sh
 
 ```bash
 # v4.5 目标 daily（默认 · 工厂诚实终局 · Wave69）
-COM=lab/nano-lisp-jit/.build/nano-lisp/nano-lisp.com
+COM=lab/nano-lisp-jit/release/nano-lisp.com
 $COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-converge-daily-v45-factory-honest-terminal.lisp
 
 # CI 收敛（Wave69 · run.sh 工厂面诚实分层）
