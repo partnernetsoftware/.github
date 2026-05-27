@@ -155,7 +155,10 @@
         "frontier": "7/7"
       },
       "self_critique": "\u7528\u6237 plan \u5185\u5df2\u53ef build-slice \u5f97\u5230 158KB full runner\uff08genesis-pin \u89d2\u8272\uff09\uff1b\u4ecd\u975e compose15 \u7eaf codegen\u3002/goal \u7ec8\u5c40\u9700 Wave76 \u96f6 genesis-pin \u6216 regenesis \u5168 lisp \u94fe\u3002",
-      "git_ops": [],
+      "git_ops": [
+        "git commit 4e0ad30 Wave75 full-runner-154kb",
+        "git push origin main"
+      ],
       "evidence_keys": [
         "v45.goal.full_runner_154kb_continue.100=1"
       ],
