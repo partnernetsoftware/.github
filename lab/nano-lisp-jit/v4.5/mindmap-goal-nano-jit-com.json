@@ -202,7 +202,7 @@
       },
       "self_critique": "plan \u5185\u96f6 genesis-pin \u8fbe\u6210\uff1bbuild-slice-compile \u4ecd\u8c03 host cc\uff08\u5de5\u5382\u9762\u5728 COM \u5185\uff09\u3002\u975e\u7eaf lisp \u6a21\u5757 codegen 158KB\u3002compose15 env \u94fe\u4ecd 4096B\u3002/goal \u4e25\u683c\u7ec8\u5c40\uff1aWave77 release promote + \u77e9\u9635\uff1b\u7eaf lisp 158KB \u4ecd\u5f00\u5377\u3002",
       "git_ops": [
-        "git commit (pending) Wave76 build-slice-compile",
+        "git commit 091ef17 Wave76 build-slice-compile",
         "git push origin main"
       ],
       "evidence_keys": [
