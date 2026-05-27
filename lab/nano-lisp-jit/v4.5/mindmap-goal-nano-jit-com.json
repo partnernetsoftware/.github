@@ -2,7 +2,7 @@
   "goal": "nano-jit.com",
   "ssot": "v4.5/mindmap-goal-nano-jit-com.json",
   "north_star": "release/nano-lisp.com \u4e3a\u7528\u6237 COM\uff1b.build/nano-jit/nano-jit.com \u5de5\u5382\u79cd\u5b50\uff1b\u7ec8\u5c40 *.lisp plan-only \u81ea\u4e3e COM",
-  "updated_at": "2026-05-27T16:00:00Z",
+  "updated_at": "2026-05-27T17:00:00Z",
   "strict_done_requires": [
     "v45.goal.nano_jit_com.lisp_only_regenesis=1",
     "v45.goal.nano_jit_com.release_parity=1",
@@ -48,7 +48,7 @@
       },
       "self_critique": "Wave73 \u7b7e\u6536 continue.100 \u975e\u7ec8\u5c40\uff1alisp-only pack \u4ecd\u7626 slice\uff1b154KB full runner \u9700 regenesis \u6216 compose15 codegen \u6df1\u5316\u3002compose15 linked \u4ecd 4096B stub\u3002",
       "git_ops": [
-        "git checkout main && git merge cursor/v45-wave71-lisp-codegen-diffuse-fc19 → fast-forward 8f7c95d",
+        "git checkout main && git merge cursor/v45-wave71-lisp-codegen-diffuse-fc19 \u2192 fast-forward 8f7c95d",
         "git commit 080cfa0 Wave73 /goal nano-jit.com on main",
         "git push origin main"
       ],
@@ -58,12 +58,72 @@
       ],
       "verified": true,
       "blocker": null
+    },
+    {
+      "round": 2,
+      "ts": "2026-05-27T17:00:00Z",
+      "read_mindmap": "wave73 done \u00b7 preview wave74 regenesis-promote",
+      "plan": [
+        "T1: fix lispjit.c symlink + build -I lispjit-ir",
+        "T2: NANO_REGENESIS build \u2192 158392B slice",
+        "T3: compose-15link env probe on regenesis COM",
+        "T4: promote release COM + manifest + four-track converge"
+      ],
+      "attempts": [
+        {
+          "id": "T1-symlink",
+          "status": "ok",
+          "detail": "cp lispjit.c.archived \u2192 runner/lispjit.c"
+        },
+        {
+          "id": "T1b-headers",
+          "status": "ok",
+          "detail": "build_nano_jit.sh NANO_INC=lab/lispjit-ir"
+        },
+        {
+          "id": "T1c-first-regen",
+          "status": "fail",
+          "detail": "ape_v2.h missing before -I fix"
+        },
+        {
+          "id": "T2-regenesis",
+          "status": "ok",
+          "detail": "x86_bytes=158392 com=318137"
+        },
+        {
+          "id": "T3-compose15-env",
+          "status": "ok",
+          "detail": "build-slice-lisp.mode=compose-15link exit=42"
+        },
+        {
+          "id": "T4-promote",
+          "status": "ok"
+        }
+      ],
+      "results": {
+        "converge_fail": 0,
+        "x86_bytes": "158392",
+        "frontier": "7/7"
+      },
+      "self_critique": "compose-15link env \u5df2\u751f\u6548\u4f46 linked ELF \u4ecd 4096B stub\uff1b/goal \u7ec8\u5c40\u4ecd\u9700 plan-only 154KB full runner \u6216 link-elf64 \u6df1\u5316\u3002regenesis \u4f9d\u8d56\u5de5\u5382 lispjit.c \u5b9e\u6587\u4ef6+\u5934\u6587\u4ef6\u8def\u5f84\u3002",
+      "git_ops": [
+        "git pull origin main",
+        "git commit 3987bb4 Wave74 regenesis-promote",
+        "git push origin main"
+      ],
+      "evidence_keys": [
+        "v45.goal.regenesis_promote_continue.100=1",
+        "v45.lisp_codegen.compose15_env_probe=1"
+      ],
+      "verified": true,
+      "blocker": null
     }
   ],
-  "active_frontier": "mindmap-frontier-v45-nano-jit-com-goal.json",
+  "active_frontier": "mindmap-frontier-v45-regenesis-promote.json",
   "waves_done": [
     "wave71-lisp-codegen-diffuse",
     "wave72-compose15-runner-promote",
-    "wave73-nano-jit-com-goal"
+    "wave73-nano-jit-com-goal",
+    "wave74-regenesis-promote"
   ]
 }

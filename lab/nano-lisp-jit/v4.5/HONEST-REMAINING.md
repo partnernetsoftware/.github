@@ -3,21 +3,21 @@
 ## v4.5 用户路径（✅ 2026-05-27）
 
 ```bash
-COM=lab/nano-lisp-jit/release/nano-lisp.com   # 309945 bytes · git 跟踪
-$COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-converge-daily-v45-nano-jit-com-goal.lisp
+COM=lab/nano-lisp-jit/release/nano-lisp.com   # 318137 bytes · regenesis promote
+$COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-converge-daily-v45-regenesis-promote.lisp
 ```
 
-## /goal nano-jit.com · Wave73（当前）
+## /goal nano-jit.com · Wave74（当前）
 
 ```bash
-NANO_V45_FRONTIER=mindmap-frontier-v45-nano-jit-com-goal.json \
+NANO_V45_FRONTIER=mindmap-frontier-v45-regenesis-promote.json \
   python3 lab/nano-lisp-jit/retired/tools/mindmap-dp-v45.py ready
-bash lab/nano-lisp-jit/retired/scripts/v45-wave73-nano-jit-com-goal-converge.sh
+bash lab/nano-lisp-jit/retired/scripts/v45-wave74-regenesis-promote-converge.sh
 ```
 
-**活图 journal**：[`mindmap-goal-nano-jit-com.json`](mindmap-goal-nano-jit-com.json)
+**journal**：[`mindmap-goal-nano-jit-com.json`](mindmap-goal-nano-jit-com.json) · release COM **318137B** · slice **158392B**
 
-## Wave72（已签收）
+## Wave73（已签收）
 
 ```bash
 NANO_V45_FRONTIER=mindmap-frontier-v45-compose15-runner-promote.json \
@@ -62,4 +62,4 @@ grep v45.v45.terminal_done=1 lab/nano-lisp-jit/.build/v45-entry.evidence.canonic
 | `v45.v45.terminal_com_promoted=1` | release/ 已更新 |
 | `v45.honest.aarch64_slim_slice=1` | 双架构 154KB slice |
 | `v45.v45.compose15_runner_promote_continue.100=1` | Wave72 compose15 promote 续推 |
-| `v45.goal.nano_jit_com.continue.100=1` | /goal nano-jit.com Wave73 续推（非终局） |
+| `v45.goal.regenesis_promote_continue.100=1` | Wave74 regenesis promote · compose15 env OK |
