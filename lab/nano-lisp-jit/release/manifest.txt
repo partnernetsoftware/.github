@@ -1,6 +1,6 @@
 # fnv1a64 and byte size for pinned release .com artifacts
 
-nano-lisp.com.bytes=819137
-nano-lisp.com.fnv1a64=944aa8e7d2f10726
-v45-selfhost-next.com.bytes=819137
-v45-selfhost-next.com.fnv1a64=944aa8e7d2f10726
+nano-lisp.com.bytes=309945
+nano-lisp.com.fnv1a64=625bf8767bfbe137
+v45-selfhost-next.com.bytes=309945
+v45-selfhost-next.com.fnv1a64=625bf8767bfbe137

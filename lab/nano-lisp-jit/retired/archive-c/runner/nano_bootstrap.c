@@ -980,8 +980,8 @@ static int lispjit_from_lisp_build_compose_15link(const char *out_path, const ch
     const char *sym;
     const char *tag;
   } mods[] = {
-      {"lab/nano-lisp-jit/samples/lisp-tu-main.lisp", "nano_tu_main", "main"},
-      {"lab/nano-lisp-jit/samples/lisp-tu-callee.lisp", "nano_tu_callee", "callee"},
+      {"lab/nano-lisp-jit/lisp/core/lisp-tu-main.lisp", "nano_tu_main", "main"},
+      {"lab/nano-lisp-jit/lisp/core/lisp-tu-callee.lisp", "nano_tu_callee", "callee"},
       {"lab/nano-lisp-jit/lisp/modules/01-runtime-extra.lisp", "nano_lispjit_extra",
        "extra"},
       {"lab/nano-lisp-jit/lisp/modules/00-runtime-core.lisp", "nano_mod_core", "core"},
