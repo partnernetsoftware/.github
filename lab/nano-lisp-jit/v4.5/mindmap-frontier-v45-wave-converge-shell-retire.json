@@ -1,0 +1,105 @@
+{
+  "ssot": "v4.5/DIFFUSE-WAVE67.md",
+  "parent_goal": "v45.v45.archive_factory_lisp_retire_continue.100",
+  "onion_ssot": "v4.5/ONION-TDD.md",
+  "updated_at": "2026-05-27T04:00:00Z",
+  "max_parallel": 4,
+  "breadth_ring": "wave-converge-shell-retire \u2014 scripts/ \u96f6 wave sh \u00b7 \u7528\u6237\u7eaf COM+plan",
+  "nodes": [
+    {
+      "id": "v45-wcsr-gate",
+      "layer": 67,
+      "ring": "gate",
+      "onion_ring": 48,
+      "status": "done",
+      "deps": [],
+      "accept": [
+        "v45.v45.archive_factory_lisp_retire_continue.100=1",
+        "v45.converge.daily_v45_zero_archive_path=1"
+      ]
+    },
+    {
+      "id": "v45-wcsr-replace",
+      "layer": 67,
+      "ring": "plan",
+      "onion_ring": 48,
+      "status": "done",
+      "deps": [
+        "v45-wcsr-gate"
+      ],
+      "parallel_slot": "W1",
+      "plan": "lisp/bootstrap/bootstrap-v45-wave-converge-shell-retire-prove.lisp",
+      "agent": "engineer-a"
+    },
+    {
+      "id": "v45-wcsr-archive",
+      "layer": 67,
+      "ring": "\u8bda\u5b9e",
+      "onion_ring": 48,
+      "status": "done",
+      "deps": [
+        "v45-wcsr-gate"
+      ],
+      "parallel_slot": "W2",
+      "plan": "lisp/bootstrap/bootstrap-v45-wave-converge-shell-archive-honest.lisp",
+      "agent": "engineer-b"
+    },
+    {
+      "id": "v45-wcsr-daily",
+      "layer": 67,
+      "ring": "plan",
+      "onion_ring": 48,
+      "status": "done",
+      "deps": [
+        "v45-wcsr-gate"
+      ],
+      "parallel_slot": "W3",
+      "plan": "lisp/bootstrap/bootstrap-v45-converge-daily-v45-com-plan-only-terminal.lisp",
+      "agent": "engineer-a"
+    },
+    {
+      "id": "v45-wcsr-selfhost",
+      "layer": 67,
+      "ring": "\u4ee3\u9645",
+      "onion_ring": 48,
+      "status": "done",
+      "deps": [
+        "v45-wcsr-gate"
+      ],
+      "parallel_slot": "W4",
+      "plan": "lisp/bootstrap/bootstrap-v45-selfhost-wave-converge-shell-retire-matrix.lisp",
+      "agent": "engineer-b"
+    },
+    {
+      "id": "v45-wcsr-terminal",
+      "layer": 68,
+      "ring": "\u7ec8\u5c40",
+      "onion_ring": 48,
+      "status": "done",
+      "deps": [
+        "v45-wcsr-replace",
+        "v45-wcsr-archive",
+        "v45-wcsr-daily",
+        "v45-wcsr-selfhost"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-wave-converge-shell-retire-tree.lisp",
+      "agent": "reviewer"
+    },
+    {
+      "id": "v45-wcsr-goal",
+      "layer": 69,
+      "ring": "continue",
+      "onion_ring": 48,
+      "status": "done",
+      "deps": [
+        "v45-wcsr-terminal"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-v45-wave-converge-shell-retire-continue-100.lisp",
+      "agent": "reviewer"
+    }
+  ],
+  "next_wave_preview": {
+    "id": "wave68-lisp-selfhost-bootstrap-chain",
+    "theme": "Lisp \u81ea\u4e3e\u94fe promote \u9000\u79cd\u5b50 \u00b7 \u8bda\u5b9e\u7ec8\u5c40\u51b2\u523a"
+  }
+}
