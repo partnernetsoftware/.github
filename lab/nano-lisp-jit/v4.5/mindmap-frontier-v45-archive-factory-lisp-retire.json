@@ -4,14 +4,14 @@
   "onion_ssot": "v4.5/ONION-TDD.md",
   "updated_at": "2026-05-27T03:00:00Z",
   "max_parallel": 4,
-  "breadth_ring": "archive-factory-lisp-retire — factory lisp 物理退仓 · 用户 plan 零 archive 路径",
+  "breadth_ring": "archive-factory-lisp-retire \u2014 factory lisp \u7269\u7406\u9000\u4ed3 \u00b7 \u7528\u6237 plan \u96f6 archive \u8def\u5f84",
   "nodes": [
     {
       "id": "v45-aflr-gate",
       "layer": 66,
       "ring": "gate",
       "onion_ring": 47,
-      "status": "pending",
+      "status": "done",
       "deps": [],
       "accept": [
         "v45.v45.ci_sh_final_retire_continue.100=1",
@@ -23,7 +23,7 @@
       "layer": 66,
       "ring": "physical",
       "onion_ring": 47,
-      "status": "pending",
+      "status": "done",
       "deps": [
         "v45-aflr-gate"
       ],
@@ -34,9 +34,9 @@
     {
       "id": "v45-aflr-archive",
       "layer": 66,
-      "ring": "诚实",
+      "ring": "\u8bda\u5b9e",
       "onion_ring": 47,
-      "status": "pending",
+      "status": "done",
       "deps": [
         "v45-aflr-gate"
       ],
@@ -49,7 +49,7 @@
       "layer": 66,
       "ring": "plan",
       "onion_ring": 47,
-      "status": "pending",
+      "status": "done",
       "deps": [
         "v45-aflr-gate"
       ],
@@ -60,9 +60,9 @@
     {
       "id": "v45-aflr-selfhost",
       "layer": 66,
-      "ring": "代际",
+      "ring": "\u4ee3\u9645",
       "onion_ring": 47,
-      "status": "pending",
+      "status": "done",
       "deps": [
         "v45-aflr-gate"
       ],
@@ -73,9 +73,9 @@
     {
       "id": "v45-aflr-terminal",
       "layer": 67,
-      "ring": "终局",
+      "ring": "\u7ec8\u5c40",
       "onion_ring": 47,
-      "status": "pending",
+      "status": "done",
       "deps": [
         "v45-aflr-retire",
         "v45-aflr-archive",
@@ -90,7 +90,7 @@
       "layer": 68,
       "ring": "continue",
       "onion_ring": 47,
-      "status": "pending",
+      "status": "done",
       "deps": [
         "v45-aflr-terminal"
       ],
@@ -100,6 +100,6 @@
   ],
   "next_wave_preview": {
     "id": "wave67-wave-converge-shell-retire",
-    "theme": "wave converge .sh 终局退 retired · 用户路径纯 COM+plan"
+    "theme": "wave converge .sh \u7ec8\u5c40\u9000 retired \u00b7 \u7528\u6237\u8def\u5f84\u7eaf COM+plan"
   }
 }
