@@ -173,6 +173,7 @@
 #define BOOTSTRAP_STEP_SQUAD_DISPATCH 38u
 #define BOOTSTRAP_STEP_RESULTS_MIN 38u
 #define BOOTSTRAP_STEP_IR_TABLE_LISP 39u
+#define BOOTSTRAP_STEP_BUILD_SLICE_COMPILE 40u
 
 typedef uint64_t (*jit_entry_fn)(void);
 typedef int (*ffi_i32_ptr_fn)(const char *);

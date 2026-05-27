@@ -4,20 +4,20 @@
 
 ```bash
 COM=lab/nano-lisp-jit/release/nano-lisp.com
-$COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-converge-daily-v45-full-runner-154kb.lisp
+$COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-converge-daily-v45-zero-genesis-pin.lisp
 ```
 
-## /goal nano-jit.com · Wave75（当前）
+## /goal nano-jit.com · Wave76（当前）
 
 ```bash
-NANO_V45_FRONTIER=mindmap-frontier-v45-full-runner-154kb.json \
+NANO_V45_FRONTIER=mindmap-frontier-v45-zero-genesis-pin.json \
   python3 lab/nano-lisp-jit/retired/tools/mindmap-dp-v45.py ready
-bash lab/nano-lisp-jit/retired/scripts/v45-wave75-full-runner-154kb-converge.sh
+bash lab/nano-lisp-jit/retired/scripts/v45-wave76-zero-genesis-pin-converge.sh
 ```
 
-**journal**：[`mindmap-goal-nano-jit-com.json`](mindmap-goal-nano-jit-com.json) · plan-only **158392B** full runner（genesis-pin）
+**突破**：plan 内 `build-slice-compile` → **158392B** · 零 genesis-pin
 
-## Wave74（已签收）
+## Wave75（已签收）
 
 ```bash
 NANO_V45_FRONTIER=mindmap-frontier-v45-compose15-runner-promote.json \
@@ -62,4 +62,4 @@ grep v45.v45.terminal_done=1 lab/nano-lisp-jit/.build/v45-entry.evidence.canonic
 | `v45.v45.terminal_com_promoted=1` | release/ 已更新 |
 | `v45.honest.aarch64_slim_slice=1` | 双架构 154KB slice |
 | `v45.v45.compose15_runner_promote_continue.100=1` | Wave72 compose15 promote 续推 |
-| `v45.goal.full_runner_154kb_continue.100=1` | Wave75 plan-only 158KB runner（genesis-pin） |
+| `v45.goal.zero_genesis_pin_continue.100=1` | Wave76 build-slice-compile 158KB（零 genesis-pin） |

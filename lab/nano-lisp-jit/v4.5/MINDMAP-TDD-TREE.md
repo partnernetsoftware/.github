@@ -1,7 +1,7 @@
 # 洋葱 TDD × tree-mind-map 耦合（v4.5 SSOT）
 
-> **2026-05-27 · /goal nano-jit.com · Wave75**  
-> **当前活图**：[`mindmap-frontier-v45-full-runner-154kb.json`](mindmap-frontier-v45-full-runner-154kb.json) · [`DIFFUSE-WAVE75.md`](DIFFUSE-WAVE75.md)
+> **2026-05-27 · /goal · Wave76**  
+> **活图**：[`mindmap-frontier-v45-zero-genesis-pin.json`](mindmap-frontier-v45-zero-genesis-pin.json) · [`DIFFUSE-WAVE76.md`](DIFFUSE-WAVE76.md) · **journal**：[`mindmap-goal-nano-jit-com.json`](mindmap-goal-nano-jit-com.json)
 
 > **Wave74（已签收）**：[`mindmap-frontier-v45-regenesis-promote.json`](mindmap-frontier-v45-regenesis-promote.json)
 

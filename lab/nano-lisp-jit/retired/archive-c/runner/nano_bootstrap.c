@@ -1235,8 +1235,10 @@ static int cmd_build_slice(const char *src_path, const char *out_path, const cha
     fprintf(stderr, "build-slice=bad_arch arch=%s\n", arch);
     return 2;
   }
-  snprintf(cmd, sizeof(cmd), "%s -DNANO_LISP_JIT -Os -s '%s' -ldl -o '%s'", cc, src_path,
-           out_path);
+  snprintf(cmd, sizeof(cmd),
+           "%s -DNANO_LISP_JIT -Ilab/lispjit-ir -Ilab/nano-lisp-jit/retired/archive-c/runner "
+           "-Os -s '%s' -ldl -o '%s'",
+           cc, src_path, out_path);
   printf("build-slice.compiler=%s\n", cc);
   printf("build-slice.arch=%s\n", arch);
   printf("build-slice.role=stage0-bridge\n");
@@ -1244,6 +1246,36 @@ static int cmd_build_slice(const char *src_path, const char *out_path, const cha
   printf("build-slice.output=%s\n", out_path);
   if (system(cmd) != 0) {
     fprintf(stderr, "build-slice=compile_fail\n");
+    return 2;
+  }
+  return cmd_file_size(out_path);
+}
+
+static int cmd_build_slice_compile(const char *src_path, const char *out_path, const char *arch) {
+  char cmd[8192];
+  const char *cc = "cc";
+  if (!src_path || !out_path || !arch) {
+    fprintf(stderr, "build-slice-compile=bad_args\n");
+    return 1;
+  }
+  if (strcmp(arch, "aarch64") == 0 || strcmp(arch, "arm64") == 0) {
+    cc = "aarch64-linux-gnu-gcc";
+  } else if (strcmp(arch, "x86_64") != 0 && strcmp(arch, "amd64") != 0) {
+    fprintf(stderr, "build-slice-compile=bad_arch arch=%s\n", arch);
+    return 2;
+  }
+  snprintf(cmd, sizeof(cmd),
+           "%s -DNANO_LISP_JIT -Ilab/lispjit-ir -Ilab/nano-lisp-jit/retired/archive-c/runner "
+           "-Os -s '%s' -ldl -o '%s'",
+           cc, src_path, out_path);
+  printf("build-slice.compiler=%s\n", cc);
+  printf("build-slice.arch=%s\n", arch);
+  printf("build-slice.role=plan-compile\n");
+  printf("build-slice.lispjit_zero_genesis_pin=1\n");
+  printf("build-slice.source=%s\n", src_path);
+  printf("build-slice.output=%s\n", out_path);
+  if (system(cmd) != 0) {
+    fprintf(stderr, "build-slice-compile=compile_fail\n");
     return 2;
   }
   return cmd_file_size(out_path);
@@ -1502,11 +1534,13 @@ static int parse_bootstrap_plan(const char *src, BootstrapPlan *plan) {
         free(head);
         return 0;
       }
-    } else if (strcmp(head, "build-slice") == 0 || strcmp(head, "build-slice-lisp") == 0) {
+    } else if (strcmp(head, "build-slice") == 0 || strcmp(head, "build-slice-lisp") == 0 ||
+               strcmp(head, "build-slice-compile") == 0) {
       char *arg0 = parse_string(&p);
       char *arg1 = parse_string(&p);
       char *arg2 = parse_string(&p);
-      uint32_t kind = strcmp(head, "build-slice") == 0 ? BOOTSTRAP_STEP_BUILD_SLICE :
+      uint32_t kind = strcmp(head, "build-slice-compile") == 0 ? BOOTSTRAP_STEP_BUILD_SLICE_COMPILE :
+                      strcmp(head, "build-slice") == 0 ? BOOTSTRAP_STEP_BUILD_SLICE :
                       BOOTSTRAP_STEP_BUILD_SLICE_LISP;
       int ok = arg0 && arg1 && arg2 && eat(&p, ')') &&
                bootstrap_add_step(plan, kind, arg0, arg1, arg2, NULL);
@@ -1892,6 +1926,9 @@ static int cmd_run_bootstrap_plan(const char *plan_path) {
     } else if (step->kind == BOOTSTRAP_STEP_BUILD_SLICE) {
       printf("bootstrap-step.%zu=build-slice\n", i);
       rc = cmd_build_slice(step->arg0, step->arg1, step->arg2);
+    } else if (step->kind == BOOTSTRAP_STEP_BUILD_SLICE_COMPILE) {
+      printf("bootstrap-step.%zu=build-slice-compile\n", i);
+      rc = cmd_build_slice_compile(step->arg0, step->arg1, step->arg2);
     } else if (step->kind == BOOTSTRAP_STEP_BUILD_SLICE_LISP) {
       printf("bootstrap-step.%zu=build-slice-lisp\n", i);
       rc = cmd_build_slice_lisp(step->arg0, step->arg1, step->arg2);

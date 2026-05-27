@@ -2,7 +2,7 @@
   "goal": "nano-jit.com",
   "ssot": "v4.5/mindmap-goal-nano-jit-com.json",
   "north_star": "release/nano-lisp.com \u4e3a\u7528\u6237 COM\uff1b.build/nano-jit/nano-jit.com \u5de5\u5382\u79cd\u5b50\uff1b\u7ec8\u5c40 *.lisp plan-only \u81ea\u4e3e COM",
-  "updated_at": "2026-05-27T18:00:00Z",
+  "updated_at": "2026-05-27T19:00:00Z",
   "strict_done_requires": [
     "v45.goal.nano_jit_com.lisp_only_regenesis=1",
     "v45.goal.nano_jit_com.release_parity=1",
@@ -164,14 +164,61 @@
       ],
       "verified": true,
       "blocker": null
+    },
+    {
+      "round": 4,
+      "ts": "2026-05-27T19:00:00Z",
+      "read_mindmap": "wave75 done \u00b7 preview wave76 zero-genesis-pin",
+      "plan": [
+        "T1: add build-slice-compile bootstrap op + -I paths",
+        "T2: NANO_REGENESIS promote COM with new op",
+        "T3: plan-only compile 158392B + pack",
+        "T4: compose15 4096B contrast \u00b7 converge"
+      ],
+      "attempts": [
+        {
+          "id": "T1-host-cc-fail",
+          "status": "fail",
+          "detail": "NANO_SLICE_ALLOW_HOST_CC without -I"
+        },
+        {
+          "id": "T1b-build-slice-compile",
+          "status": "ok",
+          "detail": "bytes=158392 role=plan-compile"
+        },
+        {
+          "id": "T2-regenesis-promote",
+          "status": "ok"
+        },
+        {
+          "id": "T3-pack",
+          "status": "ok"
+        }
+      ],
+      "results": {
+        "converge_fail": 0,
+        "compile_bytes": "158392",
+        "frontier": "7/7"
+      },
+      "self_critique": "plan \u5185\u96f6 genesis-pin \u8fbe\u6210\uff1bbuild-slice-compile \u4ecd\u8c03 host cc\uff08\u5de5\u5382\u9762\u5728 COM \u5185\uff09\u3002\u975e\u7eaf lisp \u6a21\u5757 codegen 158KB\u3002compose15 env \u94fe\u4ecd 4096B\u3002/goal \u4e25\u683c\u7ec8\u5c40\uff1aWave77 release promote + \u77e9\u9635\uff1b\u7eaf lisp 158KB \u4ecd\u5f00\u5377\u3002",
+      "git_ops": [
+        "git commit (pending) Wave76 build-slice-compile",
+        "git push origin main"
+      ],
+      "evidence_keys": [
+        "v45.goal.zero_genesis_pin_continue.100=1"
+      ],
+      "verified": true,
+      "blocker": null
     }
   ],
-  "active_frontier": "mindmap-frontier-v45-full-runner-154kb.json",
+  "active_frontier": "mindmap-frontier-v45-zero-genesis-pin.json",
   "waves_done": [
     "wave71-lisp-codegen-diffuse",
     "wave72-compose15-runner-promote",
     "wave73-nano-jit-com-goal",
     "wave74-regenesis-promote",
-    "wave75-full-runner-154kb"
+    "wave75-full-runner-154kb",
+    "wave76-zero-genesis-pin"
   ]
 }
