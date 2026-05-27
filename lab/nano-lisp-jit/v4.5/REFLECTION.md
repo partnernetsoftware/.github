@@ -475,6 +475,41 @@ semantic(43) → nano-lisp.com(44) → 诚实零C(45) → 15link全链(46) → p
 | host CI `.sh` 不能混称 DONE | `honest.host_sh_ci_only=1` 保留 |
 | 收敛链迁入 plan | `ci_plan_only_converge_chain=1` |
 
-## 十八、Wave3（整表扩散，勿逐条）
+## 四十一、Wave68–69（v4.5 真目标树 · 广度扩散）
+
+### 真目标（未完成 ❌）
+
+```text
+用户路径 = nano-lisp.com + *.lisp bootstrap plan
+  └─ plan 内零 .c / .sh / .py 步骤
+  └─ plan 内零 archive/c 路径（Wave66+ daily 已收口）
+物理诚实 = retired/ 可存历史 · CI run.sh 工厂面须显式分层，禁止混称 DONE
+```
+
+### 三层签收（禁止混称）
+
+| 层 | 键族 | 能声称 | 不能声称 |
+|----|------|--------|----------|
+| L6 | `goal.onion_tdd_tree_mindmap.100` | /goal 26/26 | v4.5 物理 DONE |
+| L7 | `v45.*.continue.100` | 扩展活图分卷 Wave34–N | 全仓零 C/sh/py |
+| **L8** | **用户 daily + 诚实键** | **用户可 COM+plan 收敛** | **run.sh 已退役** |
+
+### 已完成物理轨（Wave62–68）
+
+```text
+COM 统一(nano-lisp/) → 原生 bootstrap(63) → runner C 退仓(64) → CI sh 退(65)
+→ factory lisp 退(66) → wave sh 退(67) → 种子 COM 退(68)
+```
+
+### 广度扩散（下一圈 ≤4 槽）
+
+| Wave | 环 | W1 | W2 | W3 daily | W4 |
+|------|-----|----|----|----------|-----|
+| **69** | run.sh 工厂诚实 | prove | archive-honest | factory-honest-terminal | selfhost-matrix |
+| 70 | daily 零 archive 审计 | audit-prove | stale-plan-honest | daily-audit-terminal | matrix |
+| 71 | genesis 锚点诚实 | genesis-prove | anchor-honest | daily-genesis-free | matrix |
+
+**停损线**：Wave69 只收口「run.sh = 工厂 · 用户不依赖」；不删 `run.sh`、不宣称 v4.5 DONE。
+
 
 见 DIFFUSE-WAVE2 §Wave3：无 C plan · run.sh 单行化 · wave 归档。

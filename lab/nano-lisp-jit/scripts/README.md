@@ -4,7 +4,7 @@
 
 ```bash
 COM=lab/nano-lisp-jit/.build/nano-lisp/nano-lisp.com
-$COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-converge-daily-v45-lisp-selfhost-bootstrap-chain.lisp
+$COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-converge-daily-v45-factory-honest-terminal.lisp
 ```
 
 历史 wave/CI shell 见 [`retired/scripts/`](../retired/scripts/)。

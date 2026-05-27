@@ -13,7 +13,7 @@
 | L4 | `selfhost.100` | S5+T3+代际 | 自举卷 |
 | L5 | `goal.lisp_selfhost.unified.100` | 20 节点 | Wave20 |
 | **L6** | **`goal.onion_tdd_tree_mindmap.100`** | **26 节点 + boundary** | **/goal 总签收** |
-| L7 | `v45.*.continue.100` | 扩展活图 Wave34–68 | **分卷签收**，≠ v4.5 DONE |
+| L7 | `v45.*.continue.100` | 扩展活图 Wave34–69 | **分卷签收**，≠ v4.5 DONE |
 
 `v45-entry.evidence` 为 **append-only**（同键可出现多次）；审计用 canonical：
 
@@ -26,12 +26,12 @@ bash lab/nano-lisp-jit/scripts/v45-evidence-canonical.sh
 ## 日常收敛链（推荐顺序 · 2026-05-27 更新）
 
 ```bash
-# v4.5 目标 daily（默认 · Lisp 自举链 promote）
+# v4.5 目标 daily（默认 · 工厂诚实终局 · Wave69）
 COM=lab/nano-lisp-jit/.build/nano-lisp/nano-lisp.com
-$COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-converge-daily-v45-lisp-selfhost-bootstrap-chain.lisp
+$COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-converge-daily-v45-factory-honest-terminal.lisp
 
-# CI 收敛（Wave68 · retired 壳复核）
-bash lab/nano-lisp-jit/retired/scripts/v45-wave68-lisp-selfhost-bootstrap-chain-converge.sh
+# CI 收敛（Wave69 · run.sh 工厂面诚实分层）
+bash lab/nano-lisp-jit/retired/scripts/v45-wave69-run-sh-archive-honest-converge.sh
 
 # /goal 总签收（慢 · 完整链）
 bash lab/nano-lisp-jit/retired/scripts/v45-wave21-onion-tdd-tree-mindmap-100-converge.sh
@@ -42,7 +42,8 @@ bash lab/nano-lisp-jit/retired/scripts/v45-cleanup-reflect.sh
 
 | 脚本 | 用途 |
 |------|------|
-| **`converge-daily-v45-lisp-selfhost-bootstrap-chain.lisp`** | **v4.5 目标轨 · Lisp 自举链 daily** |
+| **`converge-daily-v45-factory-honest-terminal.lisp`** | **v4.5 目标轨 · 工厂诚实 daily** |
+| `v45-wave69-run-sh-archive-honest-converge.sh` | Wave69 run.sh 工厂面诚实（`retired/scripts/`） |
 | `v45-wave68-lisp-selfhost-bootstrap-chain-converge.sh` | Wave68 种子退仓（`retired/scripts/`） |
 | `v45-wave67-wave-converge-shell-retire-converge.sh` | Wave67 wave sh 终局复核（`retired/scripts/`） |
 | `v45-wave66-archive-factory-lisp-retire-converge.sh` | Wave66 factory lisp 退仓复核（`retired/scripts/`） |
@@ -62,9 +63,11 @@ bash lab/nano-lisp-jit/retired/scripts/v45-cleanup-reflect.sh
 bash lab/nano-lisp-jit/scripts/v45-cleanup-reflect.sh
 NANO_V45_FRONTIER=mindmap-frontier-v45-tools-py-retire.json \
   python3 lab/nano-lisp-jit/retired/tools/mindmap-dp-v45.py stats
-grep v45.v45.lisp_selfhost_bootstrap_chain_continue.100=1 \
+grep v45.v45.run_sh_archive_honest_continue.100=1 \
   lab/nano-lisp-jit/.build/v45-entry.evidence.canonical
-grep v45.honest.seed_com_retired=1 \
+grep v45.honest.run_sh_factory_only=1 \
+  lab/nano-lisp-jit/.build/v45-entry.evidence.canonical
+grep v45.honest.archive_symlink_ci_only=1 \
   lab/nano-lisp-jit/.build/v45-entry.evidence.canonical
 ```
 
@@ -73,8 +76,8 @@ grep v45.honest.seed_com_retired=1 \
 ## 活图
 
 - SSOT 主树：[`mindmap-frontier-v45.json`](mindmap-frontier-v45.json) — **26/26**
-- 扩展活图：**34 张**（Wave34–68）
-- 当前前沿：`mindmap-frontier-v45-lisp-selfhost-bootstrap-chain.json`
+- 扩展活图：**35 张**（Wave34–69）
+- 当前前沿：`mindmap-frontier-v45-run-sh-archive-honest.json`
 - DP：`retired/tools/mindmap-dp-v45.py`（维护层已归档；活图 JSON 直读）
 
 ## 仍开卷（清洗后也不混称 /goal）

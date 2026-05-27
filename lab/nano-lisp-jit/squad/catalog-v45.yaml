@@ -901,7 +901,7 @@ tasks:
 
 verify:
   commands:
-    - script: retired/scripts/v45-wave68-lisp-selfhost-bootstrap-chain-converge.sh
+    - script: retired/scripts/v45-wave69-run-sh-archive-honest-converge.sh
       cwd: .
       fail_on_nonzero: true
 
