@@ -2,7 +2,7 @@
   "goal": "nano-jit.com",
   "ssot": "v4.5/mindmap-goal-nano-jit-com.json",
   "north_star": "release/nano-lisp.com \u4e3a\u7528\u6237 COM\uff1b.build/nano-jit/nano-jit.com \u5de5\u5382\u79cd\u5b50\uff1b\u7ec8\u5c40 *.lisp plan-only \u81ea\u4e3e COM",
-  "updated_at": "2026-05-27T20:00:00Z",
+  "updated_at": "2026-05-28T09:00:00Z",
   "strict_done_requires": [
     "v45.goal.nano_jit_com.lisp_only_regenesis=1",
     "v45.goal.nano_jit_com.release_parity=1",
@@ -214,12 +214,12 @@
     {
       "round": 5,
       "ts": "2026-05-27T20:00:00Z",
-      "read_mindmap": "wave76 done · preview wave77 release-promote-compile-com",
+      "read_mindmap": "wave76 done \u00b7 preview wave77 release-promote-compile-com",
       "plan": [
-        "T1: compose15 hybrid fallback (<16KB → build-slice-compile)",
+        "T1: compose15 hybrid fallback (<16KB \u2192 build-slice-compile)",
         "T2: NANO_REGENESIS promote COM + manifest",
         "T3: zero-pin COM pack + release promote",
-        "T4: terminal 矩阵 + journal"
+        "T4: terminal \u77e9\u9635 + journal"
       ],
       "attempts": [
         {
@@ -247,7 +247,7 @@
         "zero_pin_bytes": "163837",
         "frontier": "7/7"
       },
-      "self_critique": "compose15 env 链经 hybrid 可产出 158KB；回退仍调 host cc。release COM promote + zero-pin pack 矩阵全绿。/goal 严格终局：纯 lisp 模块 codegen 158KB 仍开卷。",
+      "self_critique": "compose15 env \u94fe\u7ecf hybrid \u53ef\u4ea7\u51fa 158KB\uff1b\u56de\u9000\u4ecd\u8c03 host cc\u3002release COM promote + zero-pin pack \u77e9\u9635\u5168\u7eff\u3002/goal \u4e25\u683c\u7ec8\u5c40\uff1a\u7eaf lisp \u6a21\u5757 codegen 158KB \u4ecd\u5f00\u5377\u3002",
       "git_ops": [
         "git commit cca17ab fix bootstrap_path_bytes forward-decl",
         "git commit Wave77 converge journal round5"
@@ -258,9 +258,55 @@
       ],
       "verified": true,
       "blocker": null
+    },
+    {
+      "round": 6,
+      "ts": "2026-05-28T09:00:00Z",
+      "read_mindmap": "wave77 done · preview wave78 compose15-full-codegen",
+      "plan": [
+        "T1: NANO_COMPOSE15_NO_HYBRID pure link probe (4096B)",
+        "T2: gap audit pure vs hybrid 158KB",
+        "T3: 15 TU object-sum prove + regenesis promote",
+        "T4: terminal 矩阵 + journal"
+      ],
+      "attempts": [
+        {
+          "id": "T1-pure-link",
+          "status": "ok",
+          "detail": "compose15_pure_bytes=4096"
+        },
+        {
+          "id": "T2-gap-audit",
+          "status": "ok",
+          "detail": "pure<16KB hybrid=158392 target=158392"
+        },
+        {
+          "id": "T3-object-sum",
+          "status": "ok",
+          "detail": "linked_plan_bytes=4096"
+        },
+        {
+          "id": "T4-terminal-matrix",
+          "status": "ok"
+        }
+      ],
+      "results": {
+        "converge_fail": 0,
+        "compose15_pure_bytes": "4096",
+        "linked_plan_bytes": "4096",
+        "frontier": "7/7"
+      },
+      "self_critique": "NANO_COMPOSE15_NO_HYBRID 可探针纯 link 4096B（code≈445B）；158KB 仍依赖 hybrid host cc。/goal 严格终局：模块 stub 扩面至 154KB codegen 仍开卷。",
+      "git_ops": [],
+      "evidence_keys": [
+        "v45.goal.compose15_full_codegen_continue.100=1",
+        "v45.lisp_codegen.compose15_pure_link_probe=1"
+      ],
+      "verified": true,
+      "blocker": null
     }
   ],
-  "active_frontier": "mindmap-frontier-v45-release-promote-compile-com.json",
+  "active_frontier": "mindmap-frontier-v45-compose15-full-codegen.json",
   "waves_done": [
     "wave71-lisp-codegen-diffuse",
     "wave72-compose15-runner-promote",
@@ -268,6 +314,7 @@
     "wave74-regenesis-promote",
     "wave75-full-runner-154kb",
     "wave76-zero-genesis-pin",
-    "wave77-release-promote-compile-com"
+    "wave77-release-promote-compile-com",
+    "wave78-compose15-full-codegen"
   ]
 }

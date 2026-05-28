@@ -1009,6 +1009,7 @@ static int lispjit_from_lisp_build_compose_15link(const char *out_path, const ch
   char *link_argv[4 + 15];
   int rc;
   size_t i;
+  size_t object_bytes_total = 0;
   if (strcmp(arch, "aarch64") == 0 || strcmp(arch, "arm64") == 0) {
     fprintf(stderr, "lispjit-from-lisp-compose-15link=aarch64_unsupported\n");
     return 2;
@@ -1021,6 +1022,10 @@ static int lispjit_from_lisp_build_compose_15link(const char *out_path, const ch
     snprintf(obj_paths[i], sizeof(obj_paths[i]), "%s.lispjit-compose15-%s.o", out_path, mods[i].tag);
     rc = cmd_compile_elf64_obj_code(mods[i].path, obj_paths[i], mods[i].sym);
     if (rc != 0) return rc;
+    {
+      long ob = bootstrap_path_bytes(obj_paths[i]);
+      if (ob > 0) object_bytes_total += (size_t)ob;
+    }
   }
   link_argv[0] = (char *)"run-bootstrap-plan";
   link_argv[1] = (char *)"link-elf64-exe";
@@ -1032,11 +1037,22 @@ static int lispjit_from_lisp_build_compose_15link(const char *out_path, const ch
   {
     long linked_bytes = bootstrap_path_bytes(out_path);
     static const char *lispjit_factory = "lab/nano-lisp-jit/archive/c/runner/lispjit.c";
+    const char *no_hybrid = getenv("NANO_COMPOSE15_NO_HYBRID");
+    printf("build-slice-lisp.compose15_link.object_bytes_total=%zu\n", object_bytes_total);
+    printf("build-slice-lisp.compose15_link.linked_bytes=%ld\n", linked_bytes);
     if (linked_bytes >= 0 && linked_bytes < 16384) {
-      printf("build-slice-lisp.compose15_hybrid=stub linked_bytes=%ld\n", linked_bytes);
-      rc = cmd_build_slice_compile(lispjit_factory, out_path, arch);
-      if (rc != 0) return rc;
-      printf("build-slice-lisp.compose15_hybrid=fallback_compile\n");
+      if (no_hybrid && no_hybrid[0] == '1') {
+        printf("build-slice-lisp.compose15_pure=1\n");
+        printf("build-slice-lisp.compose15_hybrid=skipped\n");
+      } else {
+        printf("build-slice-lisp.compose15_hybrid=stub linked_bytes=%ld\n", linked_bytes);
+        rc = cmd_build_slice_compile(lispjit_factory, out_path, arch);
+        if (rc != 0) return rc;
+        printf("build-slice-lisp.compose15_hybrid=fallback_compile\n");
+      }
+    } else if (linked_bytes >= 16384) {
+      printf("build-slice-lisp.compose15_pure=1\n");
+      printf("build-slice-lisp.compose15_full_codegen=1\n");
     }
   }
   printf("build-slice-lisp.mode=compose-15link\n");
