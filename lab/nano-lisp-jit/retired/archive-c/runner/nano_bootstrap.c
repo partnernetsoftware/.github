@@ -1,6 +1,7 @@
 /* Included from lispjit.c — bootstrap plan DSL parse + run-bootstrap-plan. */
 static int cmd_compile_elf64_code(const char *src_path, const char *out_path);
 static int cmd_compile_elf64_exe(const char *src_path, const char *out_path, const char *symbol);
+static int cmd_build_slice_compile(const char *src_path, const char *out_path, const char *arch);
 
 unsigned char *compile_source_path_to_blob(const char *src_path, size_t *out_blob_n,
                                            int *out_rc);
@@ -1027,6 +1028,16 @@ static int lispjit_from_lisp_build_compose_15link(const char *out_path, const ch
   for (i = 0; i < (size_t)mod_count; ++i) link_argv[4 + i] = obj_paths[i];
   rc = cmd_link_elf64_exe(4 + mod_count, link_argv);
   if (rc != 0) return rc;
+  {
+    long linked_bytes = bootstrap_path_bytes(out_path);
+    static const char *lispjit_factory = "lab/nano-lisp-jit/archive/c/runner/lispjit.c";
+    if (linked_bytes >= 0 && linked_bytes < 16384) {
+      printf("build-slice-lisp.compose15_hybrid=stub linked_bytes=%ld\n", linked_bytes);
+      rc = cmd_build_slice_compile(lispjit_factory, out_path, arch);
+      if (rc != 0) return rc;
+      printf("build-slice-lisp.compose15_hybrid=fallback_compile\n");
+    }
+  }
   printf("build-slice-lisp.mode=compose-15link\n");
   printf("build-slice-lisp.link.objects=%d\n", mod_count);
   printf("build-slice.lispjit_codegen=1\n");
@@ -1249,6 +1260,12 @@ static int cmd_build_slice(const char *src_path, const char *out_path, const cha
     return 2;
   }
   return cmd_file_size(out_path);
+}
+
+static long bootstrap_path_bytes(const char *path) {
+  struct stat st;
+  if (!path || stat(path, &st) != 0) return -1;
+  return (long)st.st_size;
 }
 
 static int cmd_build_slice_compile(const char *src_path, const char *out_path, const char *arch) {
