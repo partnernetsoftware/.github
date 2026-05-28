@@ -2,6 +2,7 @@
 static int cmd_compile_elf64_code(const char *src_path, const char *out_path);
 static int cmd_compile_elf64_exe(const char *src_path, const char *out_path, const char *symbol);
 static int cmd_build_slice_compile(const char *src_path, const char *out_path, const char *arch);
+static long bootstrap_path_bytes(const char *path);
 
 unsigned char *compile_source_path_to_blob(const char *src_path, size_t *out_blob_n,
                                            int *out_rc);
