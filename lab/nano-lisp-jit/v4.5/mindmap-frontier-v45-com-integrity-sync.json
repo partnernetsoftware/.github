@@ -1,0 +1,107 @@
+{
+  "ssot": "v4.5/DIFFUSE-WAVE79.md",
+  "parent_goal": "mindmap-goal-nano-jit-com.json",
+  "updated_at": "2026-05-28T10:00:00Z",
+  "max_parallel": 4,
+  "breadth_ring": "com-integrity-sync — manifest pin · APE 容器 · bootstrap-host 口径",
+  "nodes": [
+    {
+      "id": "v45-cis79-gate",
+      "layer": 79,
+      "ring": "gate",
+      "status": "pending",
+      "deps": [],
+      "accept": [
+        "v45.goal.compose15_full_codegen_continue.100=1"
+      ]
+    },
+    {
+      "id": "v45-cis79-manifest",
+      "layer": 79,
+      "ring": "release",
+      "status": "pending",
+      "deps": [
+        "v45-cis79-gate"
+      ],
+      "parallel_slot": "W1",
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-com-manifest-pin-sync.lisp",
+      "accept": [
+        "v45.goal.nano_jit_com.release_parity=1"
+      ]
+    },
+    {
+      "id": "v45-cis79-container",
+      "layer": 79,
+      "ring": "容器",
+      "status": "pending",
+      "deps": [
+        "v45-cis79-gate"
+      ],
+      "parallel_slot": "W2",
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-com-container-audit.lisp",
+      "accept": [
+        "v45.goal.com_container_audit=1"
+      ]
+    },
+    {
+      "id": "v45-cis79-host-matrix",
+      "layer": 79,
+      "ring": "自举",
+      "status": "pending",
+      "deps": [
+        "v45-cis79-gate"
+      ],
+      "parallel_slot": "W3",
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-com-bootstrap-host-matrix.lisp",
+      "accept": [
+        "v45.goal.com_bootstrap_host_matrix=1"
+      ]
+    },
+    {
+      "id": "v45-cis79-daily",
+      "layer": 79,
+      "ring": "plan",
+      "status": "pending",
+      "deps": [
+        "v45-cis79-gate"
+      ],
+      "parallel_slot": "W4",
+      "plan": "lisp/bootstrap/bootstrap-v45-converge-daily-v45-com-integrity-sync.lisp"
+    },
+    {
+      "id": "v45-cis79-terminal",
+      "layer": 80,
+      "ring": "终局",
+      "status": "pending",
+      "deps": [
+        "v45-cis79-manifest",
+        "v45-cis79-container",
+        "v45-cis79-host-matrix",
+        "v45-cis79-daily"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-com-integrity-sync-tree.lisp"
+    },
+    {
+      "id": "v45-cis79-goal",
+      "layer": 81,
+      "ring": "continue",
+      "status": "pending",
+      "deps": [
+        "v45-cis79-terminal"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-v45-com-integrity-sync-continue-100.lisp",
+      "accept": [
+        "v45.goal.com_integrity_sync_continue.100=1"
+      ]
+    }
+  ],
+  "next_wave_preview": {
+    "id": "wave80-compose15-module-expand",
+    "theme": "L4 语义层 · 模块 stub → 154KB 逐模块 codegen"
+  },
+  "honest_notes": [
+    "release COM run-ape exit≠42 为预期（158KB full runner，非 stub）",
+    "双 slice 同 hash 为 slim_duplicate，非原生 aarch64",
+    "manifest.fnv 须与 COM file-hash 一致才签 release_parity"
+  ]
+}

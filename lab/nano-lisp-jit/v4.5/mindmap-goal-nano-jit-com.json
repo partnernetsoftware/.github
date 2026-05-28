@@ -2,13 +2,89 @@
   "goal": "nano-jit.com",
   "ssot": "v4.5/mindmap-goal-nano-jit-com.json",
   "north_star": "release/nano-lisp.com \u4e3a\u7528\u6237 COM\uff1b.build/nano-jit/nano-jit.com \u5de5\u5382\u79cd\u5b50\uff1b\u7ec8\u5c40 *.lisp plan-only \u81ea\u4e3e COM",
-  "updated_at": "2026-05-28T09:00:00Z",
+  "updated_at": "2026-05-28T10:00:00Z",
   "strict_done_requires": [
     "v45.goal.nano_jit_com.lisp_only_regenesis=1",
     "v45.goal.nano_jit_com.release_parity=1",
+    "v45.goal.com_container_audit=1",
     "v45.goal.nano_jit_com.continue.100=1",
     "journal[-1].verified=true"
   ],
+  "continue_requires": [
+    "v45.goal.compose15_full_codegen_continue.100=1",
+    "journal[-1].verified=true"
+  ],
+  "integrity_layers": {
+    "L1_container": {
+      "label": "APE v2 容器",
+      "status": "pass",
+      "checks": [
+        "inspect-ape.ok=1",
+        "com.bytes=318137",
+        "slice0.hash=slice1.hash=genesis.fnv"
+      ],
+      "facts": {
+        "com_bytes": 318137,
+        "payload_offset": 1281,
+        "slice_bytes": 158392,
+        "slice_hash": "0256064f134c8792",
+        "dual_slice_identical": true,
+        "build_release_identical": true
+      }
+    },
+    "L2_release_pin": {
+      "label": "发行 manifest pin",
+      "status": "fail",
+      "gap": "manifest.fnv1a64 与 COM file-hash 不一致（regenesis promote 后未同步）",
+      "checks": [
+        "manifest.bytes==com.bytes",
+        "manifest.fnv==com.file-hash"
+      ],
+      "action": "Wave79 W1 manifest-pin-sync；promote 硬门禁"
+    },
+    "L3_bootstrap_host": {
+      "label": "自举宿主矩阵",
+      "status": "pass",
+      "checks": [
+        "verify-smoke",
+        "verify-core",
+        "verify-all",
+        "entry",
+        "onion-tdd"
+      ],
+      "scope_note": "release 158KB slice 不用 run-ape-expect-exit 42 验收"
+    },
+    "L4_semantic_codegen": {
+      "label": "纯 lisp 158KB codegen",
+      "status": "open",
+      "checks": [
+        "compose15_pure_link.bytes>=154000",
+        "zero host cc fallback"
+      ],
+      "facts": {
+        "compose15_pure_bytes": 4096,
+        "compose15_hybrid_bytes": 158392,
+        "linked_code_bytes": 445
+      }
+    }
+  },
+  "v45_adjustment": {
+    "ts": "2026-05-28T10:00:00Z",
+    "trigger": "release/nano-lisp.com 四层完整性分析",
+    "principles": [
+      "continue.100 签收 ≠ strict_done；分层诚实",
+      "promote 后 manifest file-hash 必须与 COM 一致（release_parity 硬门禁）",
+      "矩阵口径：bootstrap-host 验 COM 自举面；run-ape exit42 仅用于 plan 内 stub ELF",
+      "双 slice 同构标注 slim_duplicate；APE 6 面仍 2/6 Linux",
+      "158KB 生产路径：build-slice-compile / hybrid；纯 compose15 为探针路径",
+      "Wave79 插队 integrity-sync；Wave80 再 module-expand（L4 语义层）"
+    ],
+    "reprioritize": {
+      "was": "wave79-compose15-module-expand",
+      "now": "wave79-com-integrity-sync",
+      "defer": "wave80-compose15-module-expand"
+    }
+  },
   "journal": [
     {
       "round": 1,
@@ -304,9 +380,56 @@
       ],
       "verified": true,
       "blocker": null
+    },
+    {
+      "round": 7,
+      "ts": "2026-05-28T10:00:00Z",
+      "read_mindmap": "wave78 done · integrity 反思 · reprioritize wave79",
+      "plan": [
+        "T1: 四层完整性模型写入 goal mindmap",
+        "T2: Wave79 插队 com-integrity-sync（manifest + 容器 + host 口径）",
+        "T3: module-expand 顺延 Wave80（L4 语义层）",
+        "T4: 更新 strict_done / continue 分层签收"
+      ],
+      "attempts": [
+        {
+          "id": "T1-L1-container",
+          "status": "ok",
+          "detail": "APE v2 pass · slice=genesis · 318137B"
+        },
+        {
+          "id": "T2-L2-manifest",
+          "status": "fail",
+          "detail": "manifest fnv stale vs COM file-hash 3154e3bb075c026b"
+        },
+        {
+          "id": "T3-L3-host",
+          "status": "ok",
+          "detail": "matrix 5/5 · 不用 run-ape exit42 验 release slice"
+        },
+        {
+          "id": "T4-L4-codegen",
+          "status": "open",
+          "detail": "pure=4096 hybrid=158392 · Wave80 module-expand"
+        }
+      ],
+      "results": {
+        "integrity_L1": "pass",
+        "integrity_L2": "fail",
+        "integrity_L3": "pass",
+        "integrity_L4": "open",
+        "frontier": "wave79 pending"
+      },
+      "self_critique": "v4.5 调整：先修 L2 release pin 与验收口径，再攻 L4 纯 lisp 158KB。continue.100 已覆盖 L1+L3，不可冒充 strict_done。",
+      "git_ops": [],
+      "evidence_keys": [
+        "v45.goal.integrity_reflection=1"
+      ],
+      "verified": true,
+      "blocker": null
     }
   ],
-  "active_frontier": "mindmap-frontier-v45-compose15-full-codegen.json",
+  "active_frontier": "mindmap-frontier-v45-com-integrity-sync.json",
   "waves_done": [
     "wave71-lisp-codegen-diffuse",
     "wave72-compose15-runner-promote",
