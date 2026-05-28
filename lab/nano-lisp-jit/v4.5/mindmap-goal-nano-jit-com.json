@@ -2,7 +2,7 @@
   "goal": "nano-jit.com",
   "ssot": "v4.5/mindmap-goal-nano-jit-com.json",
   "north_star": "release/nano-lisp.com \u4e3a\u7528\u6237 COM\uff1b.build/nano-jit/nano-jit.com \u5de5\u5382\u79cd\u5b50\uff1b\u7ec8\u5c40 *.lisp plan-only \u81ea\u4e3e COM",
-  "updated_at": "2026-05-27T19:00:00Z",
+  "updated_at": "2026-05-27T20:00:00Z",
   "strict_done_requires": [
     "v45.goal.nano_jit_com.lisp_only_regenesis=1",
     "v45.goal.nano_jit_com.release_parity=1",
@@ -210,15 +210,64 @@
       ],
       "verified": true,
       "blocker": null
+    },
+    {
+      "round": 5,
+      "ts": "2026-05-27T20:00:00Z",
+      "read_mindmap": "wave76 done · preview wave77 release-promote-compile-com",
+      "plan": [
+        "T1: compose15 hybrid fallback (<16KB → build-slice-compile)",
+        "T2: NANO_REGENESIS promote COM + manifest",
+        "T3: zero-pin COM pack + release promote",
+        "T4: terminal 矩阵 + journal"
+      ],
+      "attempts": [
+        {
+          "id": "T1-hybrid-codegen",
+          "status": "ok",
+          "detail": "compose15_hybrid_bytes=158392"
+        },
+        {
+          "id": "T2-regenesis-promote",
+          "status": "ok"
+        },
+        {
+          "id": "T3-zero-pin-pack",
+          "status": "ok",
+          "detail": "zero_pin_bytes=163837"
+        },
+        {
+          "id": "T4-terminal-matrix",
+          "status": "ok"
+        }
+      ],
+      "results": {
+        "converge_fail": 0,
+        "compose15_hybrid_bytes": "158392",
+        "zero_pin_bytes": "163837",
+        "frontier": "7/7"
+      },
+      "self_critique": "compose15 env 链经 hybrid 可产出 158KB；回退仍调 host cc。release COM promote + zero-pin pack 矩阵全绿。/goal 严格终局：纯 lisp 模块 codegen 158KB 仍开卷。",
+      "git_ops": [
+        "git commit cca17ab fix bootstrap_path_bytes forward-decl",
+        "git commit Wave77 converge journal round5"
+      ],
+      "evidence_keys": [
+        "v45.goal.release_promote_compile_com_continue.100=1",
+        "v45.lisp_codegen.compose15_hybrid_probe=1"
+      ],
+      "verified": true,
+      "blocker": null
     }
   ],
-  "active_frontier": "mindmap-frontier-v45-zero-genesis-pin.json",
+  "active_frontier": "mindmap-frontier-v45-release-promote-compile-com.json",
   "waves_done": [
     "wave71-lisp-codegen-diffuse",
     "wave72-compose15-runner-promote",
     "wave73-nano-jit-com-goal",
     "wave74-regenesis-promote",
     "wave75-full-runner-154kb",
-    "wave76-zero-genesis-pin"
+    "wave76-zero-genesis-pin",
+    "wave77-release-promote-compile-com"
   ]
 }

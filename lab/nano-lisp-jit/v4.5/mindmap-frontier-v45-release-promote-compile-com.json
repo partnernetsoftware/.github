@@ -3,13 +3,13 @@
   "parent_goal": "mindmap-goal-nano-jit-com.json",
   "updated_at": "2026-05-27T20:00:00Z",
   "max_parallel": 4,
-  "breadth_ring": "release-promote-compile-com — zero-pin COM promote · compose15 hybrid · 矩阵",
+  "breadth_ring": "release-promote-compile-com \u2014 zero-pin COM promote \u00b7 compose15 hybrid \u00b7 \u77e9\u9635",
   "nodes": [
     {
       "id": "v45-rpc77-gate",
       "layer": 77,
       "ring": "gate",
-      "status": "pending",
+      "status": "done",
       "deps": [],
       "accept": [
         "v45.goal.zero_genesis_pin_continue.100=1"
@@ -19,7 +19,7 @@
       "id": "v45-rpc77-promote",
       "layer": 77,
       "ring": "release",
-      "status": "pending",
+      "status": "done",
       "deps": [
         "v45-rpc77-gate"
       ],
@@ -30,7 +30,7 @@
       "id": "v45-rpc77-hybrid",
       "layer": 77,
       "ring": "codegen",
-      "status": "pending",
+      "status": "done",
       "deps": [
         "v45-rpc77-gate"
       ],
@@ -40,8 +40,8 @@
     {
       "id": "v45-rpc77-pack",
       "layer": 77,
-      "ring": "自举",
-      "status": "pending",
+      "ring": "\u81ea\u4e3e",
+      "status": "done",
       "deps": [
         "v45-rpc77-gate"
       ],
@@ -52,7 +52,7 @@
       "id": "v45-rpc77-daily",
       "layer": 77,
       "ring": "plan",
-      "status": "pending",
+      "status": "done",
       "deps": [
         "v45-rpc77-gate"
       ],
@@ -62,8 +62,8 @@
     {
       "id": "v45-rpc77-terminal",
       "layer": 78,
-      "ring": "终局",
-      "status": "pending",
+      "ring": "\u7ec8\u5c40",
+      "status": "done",
       "deps": [
         "v45-rpc77-promote",
         "v45-rpc77-hybrid",
@@ -76,7 +76,7 @@
       "id": "v45-rpc77-goal",
       "layer": 79,
       "ring": "continue",
-      "status": "pending",
+      "status": "done",
       "deps": [
         "v45-rpc77-terminal"
       ],
@@ -85,6 +85,6 @@
   ],
   "next_wave_preview": {
     "id": "wave78-compose15-full-codegen",
-    "theme": "纯 lisp 158KB · 零 host cc fallback"
+    "theme": "\u7eaf lisp 158KB \u00b7 \u96f6 host cc fallback"
   }
 }

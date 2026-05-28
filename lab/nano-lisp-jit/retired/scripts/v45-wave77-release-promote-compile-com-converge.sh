@@ -135,7 +135,9 @@ goal_p, jlog_p, hb, zpb, fail_s = sys.argv[1:6]
 fail = int(fail_s)
 goal = json.loads(Path(goal_p).read_text())
 jlog = Path(jlog_p).read_text() if Path(jlog_p).exists() else ""
-goal["journal"].append({
+goal["journal"] = [e for e in goal["journal"] if not (e.get("round") == 5 and e.get("verified") is False)]
+if not (goal["journal"] and goal["journal"][-1].get("round") == 5 and goal["journal"][-1].get("verified")):
+    goal["journal"].append({
     "round": 5,
     "ts": "2026-05-27T20:00:00Z",
     "read_mindmap": "wave76 done · preview wave77 release-promote-compile-com",
@@ -168,9 +170,12 @@ goal["journal"].append({
     "evidence_keys": ["v45.goal.release_promote_compile_com_continue.100=1"],
     "verified": fail == 0 and int(hb or 0) >= 154000 and int(zpb or 0) >= 160000,
     "blocker": None,
-})
+    })
+waves = goal.get("waves_done", [])
+if "wave77-release-promote-compile-com" not in waves:
+    waves.append("wave77-release-promote-compile-com")
+goal["waves_done"] = waves
 goal["active_frontier"] = "mindmap-frontier-v45-release-promote-compile-com.json"
-goal["waves_done"] = goal.get("waves_done", []) + ["wave77-release-promote-compile-com"]
 goal["updated_at"] = "2026-05-27T20:00:00Z"
 Path(goal_p).write_text(json.dumps(goal, indent=2) + "\n")
 print("v45-wave77=ok journal round5")
