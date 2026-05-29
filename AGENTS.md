@@ -34,6 +34,7 @@ Multi-product personal codebase:
 - **CosmoRun**: Requires `third_party/cosmocc/` (Cosmopolitan cross-compiler) which is in `.gitignore`. Use the dev container (`Dockerfile.dev`) instead — cosmocc is at `/opt/cosmocc/bin/`.
 - **Bun**: Installed to `~/.bun/bin/bun`; add to PATH before use.
 - **Python packages**: `duckdb` and `pyyaml` are required by `products/ctx_store.py` and `products/ctx.mgr.py`.
+- **Broken symlinks**: The `lab/` directory contains broken symlinks (targets removed from repo). These cause Jekyll to crash with `Errno::ENOENT`. The update script removes them automatically; if you see this error, run `find /workspace -type l ! -exec test -e {} \; -delete`.
 
 ### Dev container (Docker)
 
