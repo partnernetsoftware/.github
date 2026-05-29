@@ -144,6 +144,20 @@ claude mcp add session-vault bun /workspace/products/session_vault_mcp.ts server
 | `session_delete` | `site`, `profile`, optional `owner` |
 | `session_list` | optional `owner`, `source`, `tag` |
 
+### 用页面 JS 存 cookie（跨浏览器）
+
+在已登录页打开 DevTools Console，运行  
+[`snippets/capture-cookies.js`](snippets/capture-cookies.js) → 复制 JSON → `session_put` / MCP `session_put`（`kind=cookies`）。
+
+恢复时在同一站点运行 [`snippets/apply-cookies.js`](snippets/apply-cookies.js) 的 `applyCookiesFromVault(data)`，然后刷新。
+
+含 **HttpOnly** 的站（如部分 OAuth）请用 Playwright 抓取：
+
+```bash
+python3 tools/session_vault_browser_cookies.py capture \
+  --url https://claude.ai/code --site claude.ai --profile code
+```
+
 ### 跨 Cloud Agent 复用（browser-use / OAuth）
 
 1. **Agent A（Take Control 登录后）**  
