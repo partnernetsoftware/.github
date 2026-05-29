@@ -45,6 +45,7 @@ def _vault(method: str, path: str, *, body: dict | None = None, query: dict | No
     headers = {
         "Authorization": f"Bearer {_env('SESSION_VAULT_TOKEN')}",
         "Accept": "application/json",
+        "User-Agent": "session-vault-client/1.0",
     }
     if body is not None:
         data = json.dumps(body).encode("utf-8")

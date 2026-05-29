@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "playwright": {
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp@latest"]
+    },
+    "session-vault": {
+      "url": "https://<your-mcp-host>/mcp",
+      "headers": {
+        "Authorization": "Bearer ${env:SESSION_VAULT_TOKEN}",
+        "X-Session-Vault-Owner": "${env:SESSION_VAULT_OWNER}"
+      }
+    }
+  }
+}
