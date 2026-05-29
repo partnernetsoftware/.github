@@ -10,7 +10,7 @@
 | **nano-lisp-jit-v4-longrun** | [`skills/nano-lisp-jit-v4-longrun/`](skills/nano-lisp-jit-v4-longrun/) | v4 长程 `/loop`：state SSOT → apply → gate → cc repair；**Bun TS 可执行 skill** |
 
 浏览器 + 跨会话登录：见 [`docs/browser-automation.md`](docs/browser-automation.md)。  
-**Claude Code CLI** 跨会话（不增新 MCP）：见 [`docs/claude-code-session-reuse.md`](docs/claude-code-session-reuse.md)，`tools/session_vault_claude_code.py`。
+**中台派 Claude 工人**：见 [`docs/claude-orchestrator.md`](docs/claude-orchestrator.md)，入口 `tools/claude_worker.sh`（自动 restore vault → `claude`）。
 
 ### Codebase overview
 
