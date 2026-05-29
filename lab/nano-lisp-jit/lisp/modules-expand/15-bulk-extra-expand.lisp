@@ -1,4 +1,4 @@
-; Wave81 W2 bulk .text — 80 func codegen surface (mf slot).
+; Wave81 W2 bulk .text — 80 func codegen surface (extra slot).
 (module
   (func f000
     (u64 0)

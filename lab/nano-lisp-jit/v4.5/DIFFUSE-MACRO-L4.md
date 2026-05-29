@@ -20,4 +20,18 @@
 - ~~object_bytes_total~~（ELF 元数据）
 - ~~linked_bytes / wc -c~~（4096 页对齐）
 
-**SSOT**: `link.code.bytes`（当前 expand ≈1239，stub ≈445，目标 ≥154000）
+**SSOT**: `link.code.bytes`（Wave81 round10 ≈1630，stub ≈445，目标 ≥154000）
+
+## Wave82 里程碑（bulk-scale）
+
+| 指标 | Wave81 (round 10) | Wave82 目标 |
+|------|-------------------|-------------|
+| `link.code.bytes` | 1630 | **≥3000**（3K 中间里程碑） |
+| bulk 槽 | 单槽 13-bulk-text | **core+extra+vm+mf** 四槽 (13–16) |
+| frontier | `l4-codegen-parallel` | `l4-bulk-scale` |
+
+**路径**: 1630 → **3K** → … → 154KB
+
+- 探针: `bootstrap-v45-probe-compose15-bulk-scale-pure-link.lisp`
+- converge: `retired/scripts/v45-l4-bulk-scale-converge.sh`
+- `NANO_L4_CODE_BYTES_THRESHOLD` 默认 3000，可 env 覆盖
