@@ -992,9 +992,9 @@ static int compose15_use_expand_modules(void) {
 static const char *compose15_expand_path_for_tag(const char *tag) {
   if (!tag) return NULL;
   if (strcmp(tag, "main") == 0)
-    return "lab/nano-lisp-jit/lisp/core/lisp-tu-main-expand.lisp";
+    return "lab/nano-lisp-jit/lisp/modules-expand/26-bulk-main-expand.lisp";
   if (strcmp(tag, "callee") == 0)
-    return "lab/nano-lisp-jit/lisp/core/lisp-tu-callee-expand.lisp";
+    return "lab/nano-lisp-jit/lisp/modules-expand/27-bulk-callee-expand.lisp";
   if (strcmp(tag, "mf") == 0)
     return "lab/nano-lisp-jit/lisp/modules-expand/13-bulk-text-expand.lisp";
   if (strcmp(tag, "extra") == 0)

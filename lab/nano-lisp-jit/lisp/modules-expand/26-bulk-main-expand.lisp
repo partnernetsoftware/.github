@@ -1,4 +1,4 @@
-; Wave84 bulk .text — 185 func (aot slot).
+; Wave84 bulk .text — 185 func (main slot).
 (module
   (func f000
     (u64 0)
