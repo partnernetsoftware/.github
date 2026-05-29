@@ -44,7 +44,11 @@ CLAUDE_JSON = Path.home() / ".claude.json"
 def _env(name: str) -> str:
     v = os.environ.get(name, "").strip()
     if not v:
-        raise RuntimeError(f"{name} is not set")
+        raise RuntimeError(
+            f"{name} is not set. "
+            "In Cloud Agent: add to Secrets (same as session-vault MCP). "
+            "Locally: export SESSION_VAULT_URL SESSION_VAULT_TOKEN"
+        )
     return v
 
 
@@ -173,8 +177,7 @@ def cmd_capture_token(token: str) -> None:
     out = _vault("PUT", _session_path(), body=body, query={"owner": _owner()})
     print(json.dumps({"ok": True, "vault": out, "stored": "oauth.setup_token"}, indent=2))
     print(
-        "Add to Cloud Agent secrets: CLAUDE_CODE_OAUTH_TOKEN=<same token>\n"
-        "Or: eval $(python3 tools/session_vault_claude_code.py print-env)",
+        "Token stored in session-vault only. New sessions: restore + print-env (no extra Agent Secret).",
         file=sys.stderr,
     )
 
