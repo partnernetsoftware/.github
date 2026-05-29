@@ -22,24 +22,9 @@ cp -f "$SRC" "$ROOT/lab/nano-lisp-jit/release/v45-selfhost-next.com"
 chmod +x "$REL" "$ROOT/lab/nano-lisp-jit/release/v45-selfhost-next.com"
 
 BYTES=$(wc -c <"$REL" | tr -d ' ')
-HASH=$("$REL" run-bootstrap-plan /dev/null 2>/dev/null; \
-  python3 - <<PY
-import pathlib
-p=pathlib.Path("$REL")
-h=0xcbf29ce484222325
-for b in p.read_bytes():
-    h=(h^b)*0x100000001b3 & 0xffffffffffffffff
-print(f"{h:016x}")
-PY
-)
-cat >"$ROOT/lab/nano-lisp-jit/release/manifest.txt" <<EOF
-# fnv1a64 and byte size for pinned release .com artifacts
-
-nano-lisp.com.bytes=$BYTES
-nano-lisp.com.fnv1a64=$HASH
-v45-selfhost-next.com.bytes=$BYTES
-v45-selfhost-next.com.fnv1a64=$HASH
-EOF
+bash "$ROOT/lab/nano-lisp-jit/retired/scripts/v45-manifest-pin.sh" "$REL" >/dev/null
+HASH=$(grep -E '^nano-lisp\.com\.fnv1a64=' "$ROOT/lab/nano-lisp-jit/release/manifest.txt" \
+  | head -1 | cut -d= -f2 | tr -d '[:space:]')
 
 GEN=(env -u NANO_SELFHOST_REUSE_X86 -u NANO_SELFHOST_REUSE_AARCH64
   -u NANO_BUILD_SLICE_SELFHOST_REUSE)

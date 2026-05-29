@@ -35,24 +35,10 @@ if [ -x "$BUILD_COM" ]; then
     "$ROOT/lab/nano-lisp-jit/genesis/nano-jit.x86_64"
   cp -f "$ROOT/lab/nano-lisp-jit/.build/nano-jit/nano-jit.aarch64" \
     "$ROOT/lab/nano-lisp-jit/genesis/nano-jit.aarch64" 2>/dev/null || true
+  bash "$RETIRED/v45-manifest-pin.sh" "$COM" >>"$JLOG" 2>&1 || true
   BYTES=$(wc -c <"$COM" | tr -d ' ')
-  HASH=$(python3 - <<PY
-import pathlib
-p=pathlib.Path("$COM")
-h=0xcbf29ce484222325
-for b in p.read_bytes():
-    h=(h^b)*0x100000001b3 & 0xffffffffffffffff
-print(f"{h:016x}")
-PY
-)
-  cat >"$ROOT/lab/nano-lisp-jit/release/manifest.txt" <<EOF
-# fnv1a64 and byte size for pinned release .com artifacts
-
-nano-lisp.com.bytes=$BYTES
-nano-lisp.com.fnv1a64=$HASH
-v45-selfhost-next.com.bytes=$BYTES
-v45-selfhost-next.com.fnv1a64=$HASH
-EOF
+  HASH=$(grep -E '^nano-lisp\.com\.fnv1a64=' "$ROOT/lab/nano-lisp-jit/release/manifest.txt" \
+    | head -1 | cut -d= -f2 | tr -d '[:space:]')
   echo "v45.goal.release_promote_compile=1" >>"$EV"
 fi
 
