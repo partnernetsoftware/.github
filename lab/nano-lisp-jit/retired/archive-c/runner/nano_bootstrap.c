@@ -994,7 +994,7 @@ static const char *compose15_expand_path_for_tag(const char *tag) {
   if (strcmp(tag, "callee") == 0)
     return "lab/nano-lisp-jit/lisp/core/lisp-tu-callee-expand.lisp";
   if (strcmp(tag, "mf") == 0)
-    return "lab/nano-lisp-jit/lisp/core/multi-func-control-flow.lisp";
+    return "lab/nano-lisp-jit/lisp/modules-expand/13-bulk-text-expand.lisp";
   if (strcmp(tag, "extra") == 0)
     return "lab/nano-lisp-jit/lisp/modules-expand/01-runtime-extra-expand.lisp";
   if (strcmp(tag, "core") == 0)

@@ -2,7 +2,7 @@
   "goal": "nano-jit.com",
   "ssot": "v4.5/mindmap-goal-nano-jit-com.json",
   "north_star": "release/nano-lisp.com \u4e3a\u7528\u6237 COM\uff1b.build/nano-jit/nano-jit.com \u5de5\u5382\u79cd\u5b50\uff1b\u7ec8\u5c40 *.lisp plan-only \u81ea\u4e3e COM",
-  "updated_at": "2026-05-29T03:00:00Z",
+  "updated_at": "2026-05-29T04:00:00Z",
   "strict_done_requires": [
     "v45.goal.nano_jit_com.lisp_only_regenesis=1",
     "v45.goal.nano_jit_com.release_parity=1",
@@ -71,39 +71,47 @@
         "compose15_expand_object_bytes": "12680",
         "compose15_expand_linked_bytes": "4096",
         "compose15_expand_code_bytes": "1239",
-        "ssot_metric": "link.code.bytes"
+        "ssot_metric": "link.code.bytes",
+        "compose15_code_bytes": "1630"
       }
     }
   },
   "macro_strategy": {
-    "principle": "抓大放小 — macro_think_parallel_micro",
+    "principle": "\u6293\u5927\u653e\u5c0f \u2014 macro_think_parallel_micro",
     "updated_at": "2026-05-29T04:00:00Z",
     "macro_tracks": {
       "A_L4_codegen": {
-        "goal": "link.code.bytes >= 154000 · zero host cc",
+        "goal": "link.code.bytes >= 154000 \u00b7 zero host cc",
         "ssot_metric": "link.code.bytes",
-        "current": {"stub": 445, "expand": 1239, "hybrid": 158392},
+        "current": {
+          "stub": 445,
+          "expand": 1239,
+          "hybrid": 158392
+        },
         "status": "active"
       },
       "B_release_guard": {
-        "goal": "manifest pin + bootstrap-host 矩阵常绿",
+        "goal": "manifest pin + bootstrap-host \u77e9\u9635\u5e38\u7eff",
         "status": "maintain",
         "automation": "v45-manifest-pin.sh on every promote"
       },
       "C_honest_gate": {
-        "goal": "continue.100 ≠ strict_done until L4 pass",
+        "goal": "continue.100 \u2260 strict_done until L4 pass",
         "status": "always_on"
       }
     },
     "parallel_micro": {
       "max_slots": 4,
-      "deprecate_metrics": ["object_bytes_total", "linked_bytes_file_size"],
+      "deprecate_metrics": [
+        "object_bytes_total",
+        "linked_bytes_file_size"
+      ],
       "frontier": "mindmap-frontier-v45-l4-codegen-parallel.json"
     },
     "stop_doing": [
-      "逐 wave 签收 vanity object_bytes 膨胀",
-      "serial wave 无宏观轨划分",
-      "用 run-ape exit42 验 release 158KB slice"
+      "\u9010 wave \u7b7e\u6536 vanity object_bytes \u81a8\u80c0",
+      "serial wave \u65e0\u5b8f\u89c2\u8f68\u5212\u5206",
+      "\u7528 run-ape exit42 \u9a8c release 158KB slice"
     ]
   },
   "v45_adjustment": {
@@ -543,6 +551,51 @@
       ],
       "verified": true,
       "blocker": null
+    },
+    {
+      "round": 10,
+      "ts": "2026-05-29T04:00:00Z",
+      "read_mindmap": "L4-codegen-parallel \u00b7 link.code.bytes SSOT",
+      "plan": [
+        "T1: NANO_REGENESIS + v45-manifest-pin.sh",
+        "T2: parallel W3 manifest parity + W4 verify-smoke/core",
+        "T3: W1 expand pure link \u00b7 compose15_link.code_bytes SSOT",
+        "T4: W2 bulk .text beat wave80 baseline 1239"
+      ],
+      "attempts": [
+        {
+          "id": "T1-codebytes",
+          "status": "ok",
+          "detail": "code_bytes=1630 threshold=1200 wave80_base=1239"
+        },
+        {
+          "id": "T2-bulk-text",
+          "status": "ok",
+          "detail": "beat_base=True"
+        },
+        {
+          "id": "T3-parity",
+          "status": "ok"
+        },
+        {
+          "id": "T4-matrix",
+          "status": "ok"
+        }
+      ],
+      "results": {
+        "converge_fail": 0,
+        "code_bytes": "1630",
+        "frontier": "6/6",
+        "parity": 1,
+        "matrix": 1
+      },
+      "self_critique": "SSOT \u5207 compose15_link.code_bytes\uff1b\u5f03 object_bytes/linked \u865a\u8363\u6307\u6807\u3002\u5f53\u524d 1630 vs 154KB \u76ee\u6807\u4ecd\u5f00\u5377\u3002",
+      "git_ops": [],
+      "evidence_keys": [
+        "v45.goal.l4_codegen_parallel_continue.100=1"
+      ],
+      "verified": 1,
+      "blocker": null
     }
   ],
   "active_frontier": "mindmap-frontier-v45-l4-codegen-parallel.json",
@@ -556,6 +609,7 @@
     "wave77-release-promote-compile-com",
     "wave78-compose15-full-codegen",
     "wave79-com-integrity-sync",
-    "wave80-compose15-module-expand"
+    "wave80-compose15-module-expand",
+    "l4-codegen-parallel"
   ]
 }

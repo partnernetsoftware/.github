@@ -14,6 +14,8 @@ enum {
 
 #define ELF64_EXEC_BASE 0x400000u
 
+static size_t g_link_last_code_bytes;
+
 typedef struct {
   size_t text_va;
   size_t rodata_va;
@@ -1003,8 +1005,6 @@ done:
   link_cleanup(owned, owned_n, objs, obj_count, syms, &code);
   return rc;
 }
-
-static size_t g_link_last_code_bytes;
 
 size_t nano_link_last_code_bytes(void) {
   return g_link_last_code_bytes;
