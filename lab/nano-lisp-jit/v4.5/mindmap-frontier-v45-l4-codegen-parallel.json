@@ -1,0 +1,88 @@
+{
+  "ssot": "v4.5/DIFFUSE-MACRO-L4.md",
+  "parent_goal": "mindmap-goal-nano-jit-com.json",
+  "updated_at": "2026-05-29T04:00:00Z",
+  "max_parallel": 4,
+  "macro_ring": "L4-codegen-parallel — 抓大放小 · link.code.bytes SSOT",
+  "strategy": "macro_think_parallel_micro",
+  "north_star_blocker": "link.code.bytes >= 154000 && zero host cc",
+  "ssot_metric": "link.code.bytes",
+  "deprecate_vanity_metrics": [
+    "object_bytes_total",
+    "linked_bytes (page-padded ELF file size)"
+  ],
+  "nodes": [
+    {
+      "id": "v45-macro-gate",
+      "layer": 81,
+      "ring": "gate",
+      "status": "pending",
+      "deps": [],
+      "accept": [
+        "v45.goal.compose15_module_expand_continue.100=1"
+      ]
+    },
+    {
+      "id": "v45-macro-w1-codebytes",
+      "layer": 81,
+      "ring": "L4-SSOT",
+      "status": "pending",
+      "deps": ["v45-macro-gate"],
+      "parallel_slot": "W1",
+      "plan": "lisp/bootstrap/bootstrap-v45-probe-compose15-expand-pure-link.lisp",
+      "accept": ["v45.lisp_codegen.compose15_code_bytes_probe=1"]
+    },
+    {
+      "id": "v45-macro-w2-bulk-text",
+      "layer": 81,
+      "ring": "L4-codegen",
+      "status": "pending",
+      "deps": ["v45-macro-gate"],
+      "parallel_slot": "W2",
+      "plan": "lisp/modules-expand/00-runtime-core-expand.lisp",
+      "accept": ["v45.goal.l4_bulk_text_expand=1"]
+    },
+    {
+      "id": "v45-macro-w3-promote-gate",
+      "layer": 81,
+      "ring": "L2-guard",
+      "status": "pending",
+      "deps": ["v45-macro-gate"],
+      "parallel_slot": "W3",
+      "plan": "retired/scripts/v45-manifest-pin.sh",
+      "accept": ["v45.goal.nano_jit_com.release_parity=1"]
+    },
+    {
+      "id": "v45-macro-w4-matrix",
+      "layer": 81,
+      "ring": "L3-host",
+      "status": "pending",
+      "deps": ["v45-macro-gate"],
+      "parallel_slot": "W4",
+      "plan": "lisp/bootstrap/bootstrap-v45-verify-smoke.lisp",
+      "accept": ["v45.goal.com_bootstrap_host_matrix=1"]
+    },
+    {
+      "id": "v45-macro-terminal",
+      "layer": 82,
+      "ring": "continue",
+      "status": "pending",
+      "deps": [
+        "v45-macro-w1-codebytes",
+        "v45-macro-w2-bulk-text",
+        "v45-macro-w3-promote-gate",
+        "v45-macro-w4-matrix"
+      ],
+      "accept": ["v45.goal.l4_codegen_parallel_continue.100=1"]
+    }
+  ],
+  "parallel_tracks": {
+    "A_L4_codegen": "link.code.bytes 154KB · 零 host cc",
+    "B_release_guard": "manifest pin + promote 硬门禁（已完成，维持绿）",
+    "C_honest_gate": "strict_done 仅 L4 满足时签收"
+  },
+  "next_wave_preview": {
+    "id": "wave81-l4-link-code-bytes",
+    "theme": "code_bytes SSOT + bulk .text 扩面"
+  }
+}

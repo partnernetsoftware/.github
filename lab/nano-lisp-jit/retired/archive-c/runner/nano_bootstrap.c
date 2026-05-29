@@ -3,6 +3,7 @@ static int cmd_compile_elf64_code(const char *src_path, const char *out_path);
 static int cmd_compile_elf64_exe(const char *src_path, const char *out_path, const char *symbol);
 static int cmd_build_slice_compile(const char *src_path, const char *out_path, const char *arch);
 static long bootstrap_path_bytes(const char *path);
+size_t nano_link_last_code_bytes(void);
 
 unsigned char *compile_source_path_to_blob(const char *src_path, size_t *out_blob_n,
                                            int *out_rc);
@@ -1083,11 +1084,26 @@ static int lispjit_from_lisp_build_compose_15link(const char *out_path, const ch
   if (rc != 0) return rc;
   {
     long linked_bytes = bootstrap_path_bytes(out_path);
+    size_t code_bytes = nano_link_last_code_bytes();
     static const char *lispjit_factory = "lab/nano-lisp-jit/archive/c/runner/lispjit.c";
     const char *no_hybrid = getenv("NANO_COMPOSE15_NO_HYBRID");
     printf("build-slice-lisp.compose15_link.object_bytes_total=%zu\n", object_bytes_total);
     printf("build-slice-lisp.compose15_link.linked_bytes=%ld\n", linked_bytes);
-    if (linked_bytes >= 0 && linked_bytes < 16384) {
+    printf("build-slice-lisp.compose15_link.code_bytes=%zu\n", code_bytes);
+    if (code_bytes > 0 && code_bytes < 16384) {
+      if (no_hybrid && no_hybrid[0] == '1') {
+        printf("build-slice-lisp.compose15_pure=1\n");
+        printf("build-slice-lisp.compose15_hybrid=skipped\n");
+      } else {
+        printf("build-slice-lisp.compose15_hybrid=stub code_bytes=%zu\n", code_bytes);
+        rc = cmd_build_slice_compile(lispjit_factory, out_path, arch);
+        if (rc != 0) return rc;
+        printf("build-slice-lisp.compose15_hybrid=fallback_compile\n");
+      }
+    } else if (code_bytes >= 16384) {
+      printf("build-slice-lisp.compose15_pure=1\n");
+      printf("build-slice-lisp.compose15_full_codegen=1\n");
+    } else if (linked_bytes >= 0 && linked_bytes < 16384) {
       if (no_hybrid && no_hybrid[0] == '1') {
         printf("build-slice-lisp.compose15_pure=1\n");
         printf("build-slice-lisp.compose15_hybrid=skipped\n");
