@@ -88,6 +88,31 @@ curl -sS "$SESSION_VAULT_URL/v1/session/example.com/default?kind=storage_state" 
 
 ## Cursor / Claude MCP 配置
 
+### 远程 HTTP MCP（推荐，免本地 Python）
+
+Worker 已实现 **Streamable HTTP** MCP 端点：`POST /mcp`（根路径 `POST /` 在带 MCP `Accept` 头时同等可用）。
+
+```json
+{
+  "mcpServers": {
+    "session-vault": {
+      "url": "https://<your-worker>.<subdomain>.workers.dev/mcp",
+      "headers": {
+        "Authorization": "Bearer <VAULT_TOKEN>"
+      }
+    }
+  }
+}
+```
+
+也可用站点根 URL（Cursor 会向该 URL 发 `initialize`）：
+
+```json
+"url": "https://<your-worker>.<subdomain>.workers.dev"
+```
+
+### 本地 stdio MCP（可选）
+
 ```bash
 export SESSION_VAULT_URL="https://<your-worker>.<subdomain>.workers.dev"
 export SESSION_VAULT_TOKEN="<vault-token>"
@@ -124,7 +149,7 @@ claude mcp add session-vault bun /workspace/products/session_vault_mcp.ts server
 
 - **R2**：超大 `storage_state`  offload，DO 只存指针
 - **KV**：全局 `site/profile` 索引（当前 MVP 用 `RegistryDO`）
-- **Remote MCP HTTP**：Worker 侧 Streamable HTTP MCP，免本地 stdio
+- **SSE 长连接 GET**：当前返回 405；Cursor 以 JSON `POST` 响应为主，一般无需 SSE
 
 ## 用户手动步骤
 
