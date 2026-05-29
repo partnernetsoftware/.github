@@ -18,7 +18,19 @@ import urllib.parse
 import urllib.request
 from typing import Any, Dict, List, Optional
 
-KINDS = ("oauth", "cookies", "storage_state")
+KINDS = ("oauth", "cookies", "storage_state", "config")
+
+
+def _meta_from_args(args: Dict[str, Any]) -> Dict[str, Any]:
+    meta: Dict[str, Any] = {}
+    for key in ("expires_at", "label", "source", "notes"):
+        val = args.get(key)
+        if isinstance(val, str) and val:
+            meta[key] = val
+    tags = args.get("tags")
+    if isinstance(tags, list):
+        meta["tags"] = [str(t) for t in tags]
+    return meta
 
 
 def _base_url() -> str:
@@ -92,14 +104,64 @@ def _vault_fetch(
         return {"raw": text}
 
 
+def _tool_browser_session_save(args: Dict[str, Any]) -> str:
+    body: Dict[str, Any] = {}
+    for key in ("storage_state", "oauth", "cookies", "config"):
+        if key in args and args[key] is not None:
+            body[key] = args[key]
+    meta = _meta_from_args(args)
+    if not meta.get("source"):
+        meta["source"] = "browser-use"
+    if meta:
+        body["meta"] = meta
+    if len(body) <= (1 if "meta" in body else 0):
+        raise ValueError("provide at least one of storage_state, oauth, cookies, config")
+    result = _vault_fetch(
+        "PUT",
+        _session_path(str(args["site"]), str(args["profile"])),
+        body=body,
+        query={"owner": _resolve_owner(args)},
+    )
+    return json.dumps(result, indent=2, ensure_ascii=False)
+
+
+def _tool_browser_session_load(args: Dict[str, Any]) -> str:
+    result = _vault_fetch(
+        "GET",
+        _session_path(str(args["site"]), str(args["profile"])),
+        query={"owner": _resolve_owner(args)},
+    )
+    if not args.get("include_oauth") and not args.get("include_cookies") and not args.get("include_config"):
+        slim = {"meta": result.get("meta")}
+        if "storage_state" in result:
+            slim["storage_state"] = result["storage_state"]
+        return json.dumps(slim, indent=2, ensure_ascii=False)
+    return json.dumps(result, indent=2, ensure_ascii=False)
+
+
+def _tool_session_meta(args: Dict[str, Any]) -> str:
+    owner = _resolve_owner(args)
+    url = f"{_session_path(str(args['site']), str(args['profile']))}?{urllib.parse.urlencode({'owner': owner, 'meta_only': '1'})}"
+    req = urllib.request.Request(
+        f"{_base_url()}{url}",
+        headers={
+            "Authorization": f"Bearer {_vault_token()}",
+            "Accept": "application/json",
+        },
+        method="GET",
+    )
+    with urllib.request.urlopen(req, timeout=60) as resp:
+        return json.dumps(json.loads(resp.read().decode()), indent=2, ensure_ascii=False)
+
+
 def _tool_session_put(args: Dict[str, Any]) -> str:
     kind = str(args.get("kind", ""))
     if kind not in KINDS:
         raise ValueError(f"invalid kind: {kind}")
     body: Dict[str, Any] = {kind: args.get("data")}
-    expires_at = args.get("expires_at")
-    if isinstance(expires_at, str) and expires_at:
-        body["meta"] = {"expires_at": expires_at}
+    meta = _meta_from_args(args)
+    if meta:
+        body["meta"] = meta
     result = _vault_fetch(
         "PUT",
         _session_path(str(args["site"]), str(args["profile"])),
@@ -132,15 +194,61 @@ def _tool_session_delete(args: Dict[str, Any]) -> str:
 
 
 def _tool_session_list(args: Dict[str, Any]) -> str:
-    result = _vault_fetch(
-        "GET",
-        "/v1/sessions",
-        query={"owner": _resolve_owner(args)},
-    )
+    query: Dict[str, str] = {"owner": _resolve_owner(args)}
+    if isinstance(args.get("source"), str) and args["source"]:
+        query["source"] = args["source"]
+    if isinstance(args.get("tag"), str) and args["tag"]:
+        query["tag"] = args["tag"]
+    result = _vault_fetch("GET", "/v1/sessions", query=query)
     return json.dumps(result, indent=2, ensure_ascii=False)
 
 
 TOOLS: List[Dict[str, Any]] = [
+    {
+        "name": "browser_session_save",
+        "description": "Save browser-use session for cross-agent reuse",
+        "required": ["site", "profile"],
+        "properties": {
+            "site": {"type": "string"},
+            "profile": {"type": "string"},
+            "storage_state": {"description": "Playwright storageState"},
+            "oauth": {"description": "OAuth JSON"},
+            "cookies": {"description": "Cookie list JSON"},
+            "config": {"description": "browser-use agent config JSON"},
+            "label": {"type": "string"},
+            "source": {"type": "string"},
+            "tags": {"type": "array", "items": {"type": "string"}},
+            "notes": {"type": "string"},
+            "expires_at": {"type": "string"},
+            "owner": {"type": "string"},
+        },
+        "handler": _tool_browser_session_save,
+    },
+    {
+        "name": "browser_session_load",
+        "description": "Load browser-use session (storage_state + optional fields)",
+        "required": ["site", "profile"],
+        "properties": {
+            "site": {"type": "string"},
+            "profile": {"type": "string"},
+            "include_oauth": {"type": "boolean"},
+            "include_cookies": {"type": "boolean"},
+            "include_config": {"type": "boolean"},
+            "owner": {"type": "string"},
+        },
+        "handler": _tool_browser_session_load,
+    },
+    {
+        "name": "session_meta",
+        "description": "Read session metadata (label, tags, expiry) only",
+        "required": ["site", "profile"],
+        "properties": {
+            "site": {"type": "string"},
+            "profile": {"type": "string"},
+            "owner": {"type": "string"},
+        },
+        "handler": _tool_session_meta,
+    },
     {
         "name": "session_put",
         "description": "Store oauth, cookies, or Playwright storage_state for site/profile",
@@ -151,6 +259,10 @@ TOOLS: List[Dict[str, Any]] = [
             "kind": {"type": "string", "enum": list(KINDS)},
             "data": {"description": "JSON-serializable session payload"},
             "owner": {"type": "string", "description": "Owner namespace"},
+            "label": {"type": "string"},
+            "source": {"type": "string"},
+            "tags": {"type": "array", "items": {"type": "string"}},
+            "notes": {"type": "string"},
             "expires_at": {"type": "string", "description": "Optional ISO8601 expiry"},
         },
         "handler": _tool_session_put,
@@ -184,6 +296,8 @@ TOOLS: List[Dict[str, Any]] = [
         "required": [],
         "properties": {
             "owner": {"type": "string", "description": "Owner namespace"},
+            "source": {"type": "string"},
+            "tag": {"type": "string"},
         },
         "handler": _tool_session_list,
     },
@@ -195,8 +309,8 @@ TOOL_MAP = {t["name"]: t for t in TOOLS}
 class SessionVaultMCPServer:
     server_info = {
         "name": "session-vault-mcp",
-        "version": "0.1.0",
-        "description": "Encrypted OAuth/cookie/storageState vault (Cloudflare DO)",
+        "version": "0.3.0",
+        "description": "Cross-agent OAuth / browser-use vault (Cloudflare DO)",
     }
 
     @staticmethod

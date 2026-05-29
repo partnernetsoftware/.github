@@ -4,19 +4,19 @@ import {
   encryptJson,
   encryptionSecret,
 } from "./crypto";
-
-const KINDS = ["oauth", "cookies", "storage_state"] as const;
-export type SessionKind = (typeof KINDS)[number];
-
-interface SessionMeta {
-  updated_at: string;
-  expires_at?: string;
-}
+import {
+  isExpired,
+  mergeMeta,
+  SESSION_KINDS,
+  type SessionKind,
+  type SessionMeta,
+} from "./kinds";
 
 interface StoredSession {
   oauth?: string;
   cookies?: string;
   storage_state?: string;
+  config?: string;
   meta?: SessionMeta;
 }
 
@@ -46,15 +46,29 @@ export class SessionVaultDO implements DurableObject {
   async fetch(request: Request): Promise<Response> {
     const url = new URL(request.url);
     const kindParam = url.searchParams.get("kind");
+    const metaOnly = url.searchParams.get("meta_only") === "1";
 
     if (request.method === "GET") {
       const record = await this.load();
+      if (isExpired(record.meta)) {
+        return Response.json(
+          { error: "Session expired", meta: record.meta },
+          { status: 410 },
+        );
+      }
+      if (metaOnly) {
+        if (!record.meta) {
+          return new Response("Not found", { status: 404 });
+        }
+        return Response.json({ meta: record.meta });
+      }
+
       const key = await this.aesKey();
       const out: Record<string, unknown> = {};
       const kinds =
-        kindParam && KINDS.includes(kindParam as SessionKind)
+        kindParam && SESSION_KINDS.includes(kindParam as SessionKind)
           ? [kindParam as SessionKind]
-          : [...KINDS];
+          : [...SESSION_KINDS];
 
       for (const k of kinds) {
         const enc = record[k];
@@ -83,21 +97,17 @@ export class SessionVaultDO implements DurableObject {
       const key = await this.aesKey();
       const now = new Date().toISOString();
 
-      for (const k of KINDS) {
+      for (const k of SESSION_KINDS) {
         if (k in body && body[k] !== undefined) {
           record[k] = await encryptJson(key, body[k]);
         }
       }
 
-      const prevMeta = record.meta ?? { updated_at: now };
       const incomingMeta: Partial<SessionMeta> =
         typeof body.meta === "object" && body.meta !== null
           ? (body.meta as Partial<SessionMeta>)
           : {};
-      record.meta = {
-        updated_at: now,
-        expires_at: incomingMeta.expires_at ?? prevMeta.expires_at,
-      };
+      record.meta = mergeMeta(record.meta, incomingMeta, now);
 
       await this.save(record);
       return Response.json({ ok: true, meta: record.meta });

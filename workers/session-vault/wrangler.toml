@@ -16,4 +16,5 @@ tag = "v1"
 new_classes = ["SessionVaultDO", "RegistryDO"]
 
 [vars]
-# Non-secret defaults; override owner via ?owner= query
+# Override per deploy: wrangler vars set DEFAULT_OWNER cloud-agent
+DEFAULT_OWNER = "default"

@@ -133,10 +133,29 @@ claude mcp add session-vault bun /workspace/products/session_vault_mcp.ts server
 
 | Tool | 参数 |
 |------|------|
-| `session_put` | `site`, `profile`, `kind` (`oauth`\|`cookies`\|`storage_state`), `data`, optional `owner`, `expires_at` |
+| `browser_session_save` | 一次写入 `storage_state` / `oauth` / `cookies` / `config` + `label` / `tags` / `expires_at` |
+| `browser_session_load` | 读出 browser-use 会话（默认仅 `storage_state`） |
+| `session_meta` | 只读元数据（不过解密 payload） |
+| `session_put` | `site`, `profile`, `kind` (`oauth`\|`cookies`\|`storage_state`\|`config`), `data` |
 | `session_get` | `site`, `profile`, optional `kind`, `owner` |
 | `session_delete` | `site`, `profile`, optional `owner` |
-| `session_list` | optional `owner` |
+| `session_list` | optional `owner`, `source`, `tag` |
+
+### 跨 Cloud Agent 复用（browser-use / OAuth）
+
+1. **Agent A（Take Control 登录后）**  
+   `browser_session_save(site="github.com", profile="default", storage_state={...}, oauth={...}, label="ci-bot", tags=["prod"], owner="team")`
+
+2. **Agent B（新实例）**  
+   `browser_session_load(site="github.com", profile="default", owner="team")` → 注入 Playwright / browser-use
+
+3. **发现已有会话**  
+   `session_list(owner="team", source="browser-use")` 或 `session_meta(...)` 查看 `expires_at`
+
+4. **过期**  
+   `expires_at` 到期后 `session_get` / `browser_session_load` 返回 HTTP 410，需重新登录并 `browser_session_save`
+
+`owner` 与 Cloud Agent 的 `SESSION_VAULT_OWNER` 对齐；远程 MCP 也可传 HTTP 头 `X-Session-Vault-Owner`。
 
 ## 安全
 
