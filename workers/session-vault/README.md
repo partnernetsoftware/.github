@@ -7,7 +7,7 @@
 | 组件 | 运行时 | 说明 |
 |------|--------|------|
 | **Worker + DO** | [Cloudflare Workers](https://developers.cloudflare.com/workers/) | 仅 Web 标准 API（`fetch`、`crypto.subtle`、`DurableObject` 等），由 **wrangler** 编译部署，**不用 Bun/Node** |
-| **MCP 客户端** | **Bun + TypeScript** | `products/session_vault_mcp.ts`，本地 stdio 工具链；**不用 Python** |
+| **MCP 客户端** | **Python**（推荐）或 Bun TS | `products/session_vault_mcp.py`；可选 `session_vault_mcp.ts` |
 
 - **存储**：Worker + Durable Object（AES-GCM，无 KV/D1）
 - **DO 命名**：`vault/{owner}/{site}/{profile}`（`owner` 默认 `default`，`?owner=` 可覆盖）
@@ -16,7 +16,7 @@
 
 ```mermaid
 flowchart LR
-  Agent[Cursor Cloud Agent] --> MCP[session_vault_mcp.ts]
+  Agent[Cursor Cloud Agent] --> MCP[session_vault_mcp.py]
   MCP -->|Bearer VAULT_TOKEN| Worker[CF Worker]
   Worker --> VaultDO[SessionVaultDO]
   Worker --> RegDO[RegistryDO]
@@ -89,10 +89,16 @@ curl -sS "$SESSION_VAULT_URL/v1/session/example.com/default?kind=storage_state" 
 ## Cursor / Claude MCP 配置
 
 ```bash
-export PATH="$HOME/.bun/bin:$PATH"
 export SESSION_VAULT_URL="https://<your-worker>.<subdomain>.workers.dev"
 export SESSION_VAULT_TOKEN="<vault-token>"
 
+claude mcp add session-vault python3 /workspace/products/session_vault_mcp.py server
+```
+
+可选（Bun TS 同等工具）：
+
+```bash
+export PATH="$HOME/.bun/bin:$PATH"
 claude mcp add session-vault bun /workspace/products/session_vault_mcp.ts server
 ```
 
