@@ -968,6 +968,46 @@ tasks:
     accept:
       - "v45-l4-8k-milestone-converge done"
 
+  wave85-v45-track-a-bulk-n370:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "lisp/modules-expand/13-bulk-text-expand.lisp"
+      - "lisp/modules-expand/14-bulk-core-expand.lisp"
+      - "lisp/modules-expand/15-bulk-extra-expand.lisp"
+      - "lisp/modules-expand/16-bulk-vm-expand.lisp"
+      - "lisp/modules-expand/17-bulk-boot-expand.lisp"
+      - "lisp/modules-expand/18-bulk-aot-expand.lisp"
+      - "lisp/modules-expand/19-bulk-elf-expand.lisp"
+      - "lisp/modules-expand/20-bulk-abi-expand.lisp"
+      - "lisp/modules-expand/21-bulk-manifest-expand.lisp"
+      - "lisp/modules-expand/22-bulk-run-expand.lisp"
+      - "lisp/modules-expand/23-bulk-pack-expand.lisp"
+      - "lisp/modules-expand/24-bulk-ape-expand.lisp"
+      - "lisp/modules-expand/25-bulk-parse-expand.lisp"
+      - "lisp/modules-expand/26-bulk-main-expand.lisp"
+      - "lisp/modules-expand/27-bulk-callee-expand.lisp"
+      - "tools/gen-bulk-expand.py"
+      - "archive/c/runner/nano_bootstrap.c"
+    accept:
+      - "v45.goal.l4_64k_milestone_modules=1"
+  wave85-v45-track-b-64k-converge:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "retired/scripts/v45-l4-64k-milestone-converge.sh"
+      - "v4.5/mindmap-frontier-v45-l4-64k-milestone.json"
+    accept:
+      - "run-bootstrap-v45-l4-64k-milestone-converge-plan"
+  wave85-v45-R:
+    assign_role: reviewer
+    priority: meta
+    depends:
+      - wave85-v45-track-a-bulk-n370
+      - wave85-v45-track-b-64k-converge
+    accept:
+      - "v45-l4-64k-milestone-converge done"
+
 verify:
   commands:
     - script: retired/scripts/v45-wave69-run-sh-archive-honest-converge.sh

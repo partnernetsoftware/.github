@@ -562,3 +562,12 @@ Wave34–69 产生 **36+ 张**扩展活图与大量 `*.continue.100` 键；听�
 
 
 见 DIFFUSE-WAVE2 §Wave3：无 C plan · run.sh 单行化 · wave 归档。
+
+## Wave85 反思
+
+- **code_bytes 阶梯**：stub 445 → wave84 bulk 32459（`link.code.bytes` SSOT）；`gen-bulk-expand.py -n` 线性扩面，下一档 64K、终局 154K 需 n≈877 或真实语义模块替代纯 .text 堆量。
+
+## Wave86 反思
+
+- **154K 纯 link 探针**：`-n 925` × 15 槽 bulk → `code_bytes=154559`，`linked_bytes=155648`，零 hybrid；L4 compose15 体积目标在 bulk 路径上达成。
+- **下一刀**：从 bulk stub 切到真实 `lispjit.c` 语义模块 codegen，或 regenesis 全 lisp 链签收 `nano-jit.com`。
