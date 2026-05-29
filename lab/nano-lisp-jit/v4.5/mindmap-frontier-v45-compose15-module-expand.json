@@ -1,0 +1,93 @@
+{
+  "ssot": "v4.5/DIFFUSE-WAVE80.md",
+  "parent_goal": "mindmap-goal-nano-jit-com.json",
+  "updated_at": "2026-05-29T03:00:00Z",
+  "max_parallel": 4,
+  "breadth_ring": "compose15-module-expand — L4 模块 stub 扩面 · 零 hybrid",
+  "nodes": [
+    {
+      "id": "v45-c15me80-gate",
+      "layer": 80,
+      "ring": "gate",
+      "status": "pending",
+      "deps": [],
+      "accept": [
+        "v45.goal.com_integrity_sync_continue.100=1"
+      ]
+    },
+    {
+      "id": "v45-c15me80-expand",
+      "layer": 80,
+      "ring": "codegen",
+      "status": "pending",
+      "deps": [
+        "v45-c15me80-gate"
+      ],
+      "parallel_slot": "W1",
+      "plan": "lisp/bootstrap/bootstrap-v45-probe-compose15-expand-pure-link.lisp"
+    },
+    {
+      "id": "v45-c15me80-gap",
+      "layer": 80,
+      "ring": "诚实",
+      "status": "pending",
+      "deps": [
+        "v45-c15me80-gate"
+      ],
+      "parallel_slot": "W2",
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-compose15-module-expand-gap-audit.lisp"
+    },
+    {
+      "id": "v45-c15me80-prove",
+      "layer": 80,
+      "ring": "自举",
+      "status": "pending",
+      "deps": [
+        "v45-c15me80-gate"
+      ],
+      "parallel_slot": "W3",
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-compose15-module-expand-prove.lisp"
+    },
+    {
+      "id": "v45-c15me80-daily",
+      "layer": 80,
+      "ring": "plan",
+      "status": "pending",
+      "deps": [
+        "v45-c15me80-gate"
+      ],
+      "parallel_slot": "W4",
+      "plan": "lisp/bootstrap/bootstrap-v45-converge-daily-v45-compose15-module-expand.lisp"
+    },
+    {
+      "id": "v45-c15me80-terminal",
+      "layer": 81,
+      "ring": "终局",
+      "status": "pending",
+      "deps": [
+        "v45-c15me80-expand",
+        "v45-c15me80-gap",
+        "v45-c15me80-prove",
+        "v45-c15me80-daily"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-compose15-module-expand-tree.lisp"
+    },
+    {
+      "id": "v45-c15me80-goal",
+      "layer": 82,
+      "ring": "continue",
+      "status": "pending",
+      "deps": [
+        "v45-c15me80-terminal"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-v45-compose15-module-expand-continue-100.lisp",
+      "accept": [
+        "v45.goal.compose15_module_expand_continue.100=1"
+      ]
+    }
+  ],
+  "next_wave_preview": {
+    "id": "wave81-compose15-codegen-deep",
+    "theme": "继续扩面至 linked>16KB · 逼近 154KB 纯 lisp"
+  }
+}
