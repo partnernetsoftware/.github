@@ -1,0 +1,115 @@
+{
+  "ssot": "v4.5/DIFFUSE-WAVE87.md",
+  "parent_goal": "mindmap-goal-nano-jit-com.json",
+  "onion_ssot": "v4.5/ONION-TDD.md",
+  "updated_at": "2026-05-29T22:00:00Z",
+  "max_parallel": 4,
+  "breadth_ring": "compose15-regenesis-promote \u2014 154KB bulk-scale pack \u00b7 lisp-only regenesis \u00b7 release promote",
+  "nodes": [
+    {
+      "id": "v45-c15rp87-gate",
+      "layer": 87,
+      "ring": "gate",
+      "onion_ring": 50,
+      "status": "done",
+      "deps": [],
+      "accept": [
+        "v45.goal.l4_154k_push_continue.100=1"
+      ]
+    },
+    {
+      "id": "v45-c15rp87-pack",
+      "layer": 87,
+      "ring": "L4-codegen",
+      "onion_ring": 50,
+      "status": "done",
+      "deps": [
+        "v45-c15rp87-gate"
+      ],
+      "parallel_slot": "W1",
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-compose15-154k-com-pack.lisp",
+      "env": [
+        "NANO_LISPJIT_FROM_LISP=1",
+        "NANO_LISPJIT_FROM_LISP_PROFILE=compose-15link-bulk-scale",
+        "NANO_COMPOSE15_NO_HYBRID=1"
+      ],
+      "accept": [
+        "v45.goal.compose15_154k_com_pack=1",
+        "v45.goal.l4_semantic_codegen_pass=1"
+      ],
+      "target": "v45-w87-c15-154k-x86.elf >= 154000"
+    },
+    {
+      "id": "v45-c15rp87-lisp-regenesis",
+      "layer": 87,
+      "ring": "\u5de5\u5382",
+      "onion_ring": 50,
+      "status": "done",
+      "deps": [
+        "v45-c15rp87-pack"
+      ],
+      "parallel_slot": "W2",
+      "plan": "build_nano_jit.sh (no NANO_REGENESIS) + release promote",
+      "accept": [
+        "v45.goal.nano_jit_com.lisp_only_regenesis=1",
+        "v45.goal.nano_jit_com.regenesis_slice_154kb=1"
+      ]
+    },
+    {
+      "id": "v45-c15rp87-manifest",
+      "layer": 87,
+      "ring": "L2-guard",
+      "onion_ring": 50,
+      "status": "done",
+      "deps": [
+        "v45-c15rp87-lisp-regenesis"
+      ],
+      "parallel_slot": "W3",
+      "plan": "retired/scripts/v45-manifest-pin.sh",
+      "accept": [
+        "v45.goal.nano_jit_com.release_parity=1",
+        "v45.goal.manifest_pin_sync=1"
+      ]
+    },
+    {
+      "id": "v45-c15rp87-matrix",
+      "layer": 87,
+      "ring": "L3-host",
+      "onion_ring": 50,
+      "status": "done",
+      "deps": [
+        "v45-c15rp87-manifest"
+      ],
+      "parallel_slot": "W4",
+      "plan": "lisp/bootstrap/bootstrap-v45-verify-smoke.lisp + bootstrap-v45-goal-nano-jit-com-release-matrix.lisp",
+      "accept": [
+        "v45.goal.com_bootstrap_host_matrix=1"
+      ]
+    },
+    {
+      "id": "v45-c15rp87-terminal",
+      "layer": 88,
+      "ring": "continue",
+      "onion_ring": 50,
+      "status": "done",
+      "deps": [
+        "v45-c15rp87-pack",
+        "v45-c15rp87-lisp-regenesis",
+        "v45-c15rp87-manifest",
+        "v45-c15rp87-matrix"
+      ],
+      "accept": [
+        "v45.goal.compose15_regenesis_promote_continue.100=1"
+      ]
+    }
+  ],
+  "parallel_tracks": {
+    "A_L4_pack": "compose-15link-bulk-scale 154KB x86 + ir-exit aarch64 pack",
+    "B_lisp_regenesis": "build_nano_jit without NANO_REGENESIS \u00b7 genesis sync \u00b7 COM promote",
+    "C_release_guard": "manifest pin + parity + verify-smoke/core + release-matrix"
+  },
+  "next_wave_preview": {
+    "id": "wave88-l4-zero-host-cc",
+    "theme": "154KB pack \u8fbe\u6210\u540e \u00b7 zero host cc \u8bda\u5b9e\u95e8\u7981 \u00b7 strict_done"
+  }
+}

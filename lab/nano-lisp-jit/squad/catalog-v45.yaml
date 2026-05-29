@@ -1008,6 +1008,32 @@ tasks:
     accept:
       - "v45-l4-64k-milestone-converge done"
 
+  wave87-v45-track-a-pack:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "lisp/bootstrap/bootstrap-v45-goal-compose15-154k-com-pack.lisp"
+      - "genesis/nano-jit.x86_64"
+    accept:
+      - "run-bootstrap-v45-goal-compose15-154k-com-pack-plan"
+  wave87-v45-track-b-promote:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "retired/scripts/v45-wave87-compose15-regenesis-promote-converge.sh"
+      - "v4.5/mindmap-frontier-v45-compose15-regenesis-promote.json"
+      - "release/nano-lisp.com"
+    accept:
+      - "v45-wave87-compose15-regenesis-promote-converge done"
+  wave87-v45-R:
+    assign_role: reviewer
+    priority: meta
+    depends:
+      - wave87-v45-track-a-pack
+      - wave87-v45-track-b-promote
+    accept:
+      - "v45.goal.compose15_regenesis_promote_continue.100=1"
+
 verify:
   commands:
     - script: retired/scripts/v45-wave69-run-sh-archive-honest-converge.sh
