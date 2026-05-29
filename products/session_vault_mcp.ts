@@ -1,6 +1,7 @@
 #!/usr/bin/env bun
 /**
- * Session Vault MCP — Bun/TS stdio server for encrypted browser sessions.
+ * Session Vault MCP — local Bun/TS stdio tool (NOT deployed to CF).
+ * Calls the Cloudflare Worker REST API (Workers runtime is separate under workers/session-vault/).
  *
  *   claude mcp add session-vault bun /workspace/products/session_vault_mcp.ts server
  *

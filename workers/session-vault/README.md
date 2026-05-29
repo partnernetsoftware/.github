@@ -2,8 +2,14 @@
 
 跨 Cursor Cloud Agent 实例共享的 **OAuth / cookie / Playwright storageState** 保险箱。
 
-- **存储**：Cloudflare Worker + Durable Object（AES-GCM 加密 blob，无 KV/D1）
-- **MCP**：Bun/TS stdio（`products/session_vault_mcp.ts`）→ Agent / browser-use
+## 技术栈分工
+
+| 组件 | 运行时 | 说明 |
+|------|--------|------|
+| **Worker + DO** | [Cloudflare Workers](https://developers.cloudflare.com/workers/) | 仅 Web 标准 API（`fetch`、`crypto.subtle`、`DurableObject` 等），由 **wrangler** 编译部署，**不用 Bun/Node** |
+| **MCP 客户端** | **Bun + TypeScript** | `products/session_vault_mcp.ts`，本地 stdio 工具链；**不用 Python** |
+
+- **存储**：Worker + Durable Object（AES-GCM，无 KV/D1）
 - **DO 命名**：`vault/{owner}/{site}/{profile}`（`owner` 默认 `default`，`?owner=` 可覆盖）
 
 ## 架构

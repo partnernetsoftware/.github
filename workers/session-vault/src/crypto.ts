@@ -1,4 +1,25 @@
+/**
+ * Web Crypto + Workers runtime only (no Node/Bun APIs).
+ * @see https://developers.cloudflare.com/workers/runtime-apis/web-crypto/
+ */
 const IV_BYTES = 12;
+
+function bytesToBase64(bytes: Uint8Array): string {
+  let binary = "";
+  for (let i = 0; i < bytes.length; i++) {
+    binary += String.fromCharCode(bytes[i]!);
+  }
+  return btoa(binary);
+}
+
+function base64ToBytes(blob: string): Uint8Array {
+  const binary = atob(blob);
+  const out = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    out[i] = binary.charCodeAt(i);
+  }
+  return out;
+}
 
 export async function deriveAesKey(secret: string): Promise<CryptoKey> {
   const material = new TextEncoder().encode(secret);
@@ -20,14 +41,14 @@ export async function encryptJson(
   const out = new Uint8Array(iv.length + cipher.byteLength);
   out.set(iv, 0);
   out.set(new Uint8Array(cipher), iv.length);
-  return btoa(String.fromCharCode(...out));
+  return bytesToBase64(out);
 }
 
 export async function decryptJson<T>(
   key: CryptoKey,
   blob: string,
 ): Promise<T> {
-  const raw = Uint8Array.from(atob(blob), (c) => c.charCodeAt(0));
+  const raw = base64ToBytes(blob);
   const iv = raw.slice(0, IV_BYTES);
   const data = raw.slice(IV_BYTES);
   const plain = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, data);

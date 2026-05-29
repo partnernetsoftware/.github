@@ -1,7 +1,9 @@
-# Override name at deploy: CLOUDFLARE_WORKER_NAME=session-vault npx wrangler deploy
+# Cloudflare Workers runtime only — wrangler bundles src/ for the edge (not Bun).
+# Override name: CLOUDFLARE_WORKER_NAME=session-vault npx wrangler deploy
 name = "session-vault"
 main = "src/index.ts"
 compatibility_date = "2024-11-01"
+# Web Crypto AES-GCM + Durable Objects; no nodejs_compat required for MVP
 
 [durable_objects]
 bindings = [
