@@ -571,3 +571,8 @@ Wave34–69 产生 **36+ 张**扩展活图与大量 `*.continue.100` 键；听�
 
 - **154K 纯 link 探针**：`-n 925` × 15 槽 bulk → `code_bytes=154559`，`linked_bytes=155648`，零 hybrid；L4 compose15 体积目标在 bulk 路径上达成。
 - **下一刀**：从 bulk stub 切到真实 `lispjit.c` 语义模块 codegen，或 regenesis 全 lisp 链签收 `nano-jit.com`。
+
+## Wave87 反思
+
+- **154KB pack → genesis pin → release promote**：compose15 bulk-scale x86 slice 写入 genesis，`build_nano_jit.sh` 无 REGENESIS 重建 COM，矩阵并行跑通即签收。
+- **下一刀**：bulk stub 换真实语义模块；`strict_done` 全 lisp plan-only regenesis 终局。

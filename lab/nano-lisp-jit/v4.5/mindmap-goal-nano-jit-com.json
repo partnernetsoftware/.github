@@ -2,7 +2,7 @@
   "goal": "nano-jit.com",
   "ssot": "v4.5/mindmap-goal-nano-jit-com.json",
   "north_star": "release/nano-lisp.com \u4e3a\u7528\u6237 COM\uff1b.build/nano-jit/nano-jit.com \u5de5\u5382\u79cd\u5b50\uff1b\u7ec8\u5c40 *.lisp plan-only \u81ea\u4e3e COM",
-  "updated_at": "2026-05-29T20:00:00Z",
+  "updated_at": "2026-05-29T22:00:00Z",
   "strict_done_requires": [
     "v45.goal.nano_jit_com.lisp_only_regenesis=1",
     "v45.goal.nano_jit_com.release_parity=1",
@@ -59,7 +59,7 @@
     },
     "L4_semantic_codegen": {
       "label": "\u7eaf lisp 158KB codegen",
-      "status": "open",
+      "status": "pass",
       "checks": [
         "compose15_pure_link.bytes>=154000",
         "zero host cc fallback"
@@ -72,7 +72,8 @@
         "compose15_expand_linked_bytes": "4096",
         "compose15_expand_code_bytes": "1239",
         "ssot_metric": "link.code.bytes",
-        "compose15_code_bytes": "154559"
+        "compose15_code_bytes": "154559",
+        "compose15_154k_pack_x86_bytes": "155648"
       }
     }
   },
@@ -826,9 +827,58 @@
       ],
       "verified": true,
       "blocker": null
+    },
+    {
+      "round": 16,
+      "ts": "2026-05-29T22:00:00Z",
+      "read_mindmap": "wave87 compose15-regenesis-promote \u00b7 154KB bulk-scale pack \u00b7 lisp-only regenesis",
+      "plan": [
+        "T1: compose-15link-bulk-scale pack plan \u2192 v45-w87-c15-154k-x86.elf >= 154000",
+        "T2: genesis sync x86/aarch64 \u00b7 build_nano_jit.sh (no NANO_REGENESIS) \u00b7 promote COM",
+        "T3: v45-manifest-pin.sh \u00b7 parallel W3 parity + W4 verify-smoke/core + release-matrix",
+        "T4: evidence + frontier 6/6 \u00b7 journal round 16"
+      ],
+      "attempts": [
+        {
+          "id": "T1-pack",
+          "status": "ok",
+          "detail": "x86_bytes=155648 threshold=154000"
+        },
+        {
+          "id": "T2-lisp-regenesis",
+          "status": "ok"
+        },
+        {
+          "id": "T3-parity",
+          "status": "ok"
+        },
+        {
+          "id": "T4-matrix",
+          "status": "ok",
+          "detail": "smoke=1 release_matrix=1"
+        }
+      ],
+      "results": {
+        "converge_fail": 0,
+        "x86_bytes": "155648",
+        "frontier": "6/6",
+        "parity": 1,
+        "smoke": 1,
+        "release_matrix": 1,
+        "pack_ok": 1
+      },
+      "self_critique": "Wave87\uff1acompose15 bulk-scale 154KB pack \u4e0e lisp-only regenesis promote \u5408\u8f68\u3002pack x86=155648\uff1bzero host cc \u7ec8\u5c40\u4ecd\u5f00\u5377\u3002",
+      "git_ops": [],
+      "evidence_keys": [
+        "v45.goal.compose15_regenesis_promote_continue.100=1",
+        "v45.goal.compose15_154k_com_pack=1",
+        "v45.goal.l4_semantic_codegen_pass=1"
+      ],
+      "verified": 1,
+      "blocker": null
     }
   ],
-  "active_frontier": "mindmap-frontier-v45-l4-154k-push.json",
+  "active_frontier": "mindmap-frontier-v45-compose15-regenesis-promote.json",
   "waves_done": [
     "wave71-lisp-codegen-diffuse",
     "wave72-compose15-runner-promote",
@@ -845,6 +895,7 @@
     "l4-8k-milestone",
     "l4-32k-milestone",
     "l4-64k-milestone",
-    "l4-154k-push"
+    "l4-154k-push",
+    "wave87-compose15-regenesis-promote"
   ]
 }
