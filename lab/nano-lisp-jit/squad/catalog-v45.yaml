@@ -934,6 +934,40 @@ tasks:
     accept:
       - "v45-l4-bulk-scale-converge done"
 
+  wave83-v45-track-a-bulk-all-slots:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "lisp/modules-expand/17-bulk-boot-expand.lisp"
+      - "lisp/modules-expand/18-bulk-aot-expand.lisp"
+      - "lisp/modules-expand/19-bulk-elf-expand.lisp"
+      - "lisp/modules-expand/20-bulk-abi-expand.lisp"
+      - "lisp/modules-expand/21-bulk-manifest-expand.lisp"
+      - "lisp/modules-expand/22-bulk-run-expand.lisp"
+      - "lisp/modules-expand/23-bulk-pack-expand.lisp"
+      - "lisp/modules-expand/24-bulk-ape-expand.lisp"
+      - "lisp/modules-expand/25-bulk-parse-expand.lisp"
+      - "tools/gen-bulk-expand.py"
+      - "archive/c/runner/nano_bootstrap.c"
+    accept:
+      - "v45.goal.l4_8k_milestone_modules=1"
+  wave83-v45-track-b-8k-converge:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "retired/scripts/v45-l4-8k-milestone-converge.sh"
+      - "v4.5/mindmap-frontier-v45-l4-8k-milestone.json"
+    accept:
+      - "run-bootstrap-v45-l4-8k-milestone-converge-plan"
+  wave83-v45-R:
+    assign_role: reviewer
+    priority: meta
+    depends:
+      - wave83-v45-track-a-bulk-all-slots
+      - wave83-v45-track-b-8k-converge
+    accept:
+      - "v45-l4-8k-milestone-converge done"
+
 verify:
   commands:
     - script: retired/scripts/v45-wave69-run-sh-archive-honest-converge.sh

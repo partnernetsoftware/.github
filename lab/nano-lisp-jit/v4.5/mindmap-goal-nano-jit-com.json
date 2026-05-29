@@ -2,7 +2,7 @@
   "goal": "nano-jit.com",
   "ssot": "v4.5/mindmap-goal-nano-jit-com.json",
   "north_star": "release/nano-lisp.com \u4e3a\u7528\u6237 COM\uff1b.build/nano-jit/nano-jit.com \u5de5\u5382\u79cd\u5b50\uff1b\u7ec8\u5c40 *.lisp plan-only \u81ea\u4e3e COM",
-  "updated_at": "2026-05-29T05:00:00Z",
+  "updated_at": "2026-05-29T06:00:00Z",
   "strict_done_requires": [
     "v45.goal.nano_jit_com.lisp_only_regenesis=1",
     "v45.goal.nano_jit_com.release_parity=1",
@@ -72,7 +72,7 @@
         "compose15_expand_linked_bytes": "4096",
         "compose15_expand_code_bytes": "1239",
         "ssot_metric": "link.code.bytes",
-        "compose15_code_bytes": "4783"
+        "compose15_code_bytes": "13252"
       }
     }
   },
@@ -106,7 +106,7 @@
         "object_bytes_total",
         "linked_bytes_file_size"
       ],
-      "frontier": "mindmap-frontier-v45-l4-bulk-scale.json"
+      "frontier": "mindmap-frontier-v45-l4-8k-milestone.json"
     },
     "stop_doing": [
       "\u9010 wave \u7b7e\u6536 vanity object_bytes \u81a8\u80c0",
@@ -642,9 +642,55 @@
       ],
       "verified": true,
       "blocker": null
+    },
+    {
+      "round": 12,
+      "ts": "2026-05-29T06:00:00Z",
+      "read_mindmap": "L4-8k-milestone \u00b7 link.code.bytes SSOT \u00b7 8K milestone",
+      "plan": [
+        "T1: NANO_REGENESIS + v45-manifest-pin.sh",
+        "T2: parallel W3 manifest parity + W4 verify-smoke/core",
+        "T3: W1 bulk-scale pure link \u00b7 compose15_link.code_bytes >= 8000",
+        "T4: W2 thirteen bulk slots 13-25 beat wave82 baseline 4783"
+      ],
+      "attempts": [
+        {
+          "id": "T1-codebytes",
+          "status": "ok",
+          "detail": "code_bytes=13252 threshold=8000 wave82_base=4783"
+        },
+        {
+          "id": "T2-bulk-modules",
+          "status": "ok",
+          "detail": "slots_ok=1 beat_base=True"
+        },
+        {
+          "id": "T3-parity",
+          "status": "ok"
+        },
+        {
+          "id": "T4-matrix",
+          "status": "ok"
+        }
+      ],
+      "results": {
+        "converge_fail": 0,
+        "code_bytes": "13252",
+        "frontier": "6/6",
+        "parity": 1,
+        "matrix": 1,
+        "bulk_modules": 1
+      },
+      "self_critique": "Wave83 8K-milestone\uff1a\u5341\u4e09\u69fd bulk 13-25 \u6269\u9762 + 8K code_bytes \u4e2d\u95f4\u91cc\u7a0b\u7891\u3002\u5f53\u524d 13252 vs 154KB \u76ee\u6807\u4ecd\u5f00\u5377\u3002",
+      "git_ops": [],
+      "evidence_keys": [
+        "v45.goal.l4_8k_milestone_continue.100=1"
+      ],
+      "verified": true,
+      "blocker": null
     }
   ],
-  "active_frontier": "mindmap-frontier-v45-l4-bulk-scale.json",
+  "active_frontier": "mindmap-frontier-v45-l4-8k-milestone.json",
   "waves_done": [
     "wave71-lisp-codegen-diffuse",
     "wave72-compose15-runner-promote",
@@ -657,6 +703,7 @@
     "wave79-com-integrity-sync",
     "wave80-compose15-module-expand",
     "l4-codegen-parallel",
-    "l4-bulk-scale"
+    "l4-bulk-scale",
+    "l4-8k-milestone"
   ]
 }

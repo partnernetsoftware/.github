@@ -1002,25 +1002,25 @@ static const char *compose15_expand_path_for_tag(const char *tag) {
   if (strcmp(tag, "core") == 0)
     return "lab/nano-lisp-jit/lisp/modules-expand/14-bulk-core-expand.lisp";
   if (strcmp(tag, "boot") == 0)
-    return "lab/nano-lisp-jit/lisp/modules-expand/03-bootstrap-stub-expand.lisp";
+    return "lab/nano-lisp-jit/lisp/modules-expand/17-bulk-boot-expand.lisp";
   if (strcmp(tag, "vm") == 0)
     return "lab/nano-lisp-jit/lisp/modules-expand/16-bulk-vm-expand.lisp";
   if (strcmp(tag, "aot") == 0)
-    return "lab/nano-lisp-jit/lisp/modules-expand/05-aot-expand.lisp";
+    return "lab/nano-lisp-jit/lisp/modules-expand/18-bulk-aot-expand.lisp";
   if (strcmp(tag, "elf") == 0)
-    return "lab/nano-lisp-jit/lisp/modules-expand/06-elf-expand.lisp";
+    return "lab/nano-lisp-jit/lisp/modules-expand/19-bulk-elf-expand.lisp";
   if (strcmp(tag, "abi") == 0)
-    return "lab/nano-lisp-jit/lisp/modules-expand/07-abi-expand.lisp";
+    return "lab/nano-lisp-jit/lisp/modules-expand/20-bulk-abi-expand.lisp";
   if (strcmp(tag, "manifest") == 0)
-    return "lab/nano-lisp-jit/lisp/modules-expand/08-manifest-expand.lisp";
+    return "lab/nano-lisp-jit/lisp/modules-expand/21-bulk-manifest-expand.lisp";
   if (strcmp(tag, "run") == 0)
-    return "lab/nano-lisp-jit/lisp/modules-expand/09-run-expand.lisp";
+    return "lab/nano-lisp-jit/lisp/modules-expand/22-bulk-run-expand.lisp";
   if (strcmp(tag, "pack") == 0)
-    return "lab/nano-lisp-jit/lisp/modules-expand/10-pack-expand.lisp";
+    return "lab/nano-lisp-jit/lisp/modules-expand/23-bulk-pack-expand.lisp";
   if (strcmp(tag, "ape") == 0)
-    return "lab/nano-lisp-jit/lisp/modules-expand/11-ape-expand.lisp";
+    return "lab/nano-lisp-jit/lisp/modules-expand/24-bulk-ape-expand.lisp";
   if (strcmp(tag, "parse") == 0)
-    return "lab/nano-lisp-jit/lisp/modules-expand/12-parse-expand.lisp";
+    return "lab/nano-lisp-jit/lisp/modules-expand/25-bulk-parse-expand.lisp";
   return NULL;
 }
 

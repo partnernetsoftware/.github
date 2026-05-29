@@ -1,0 +1,107 @@
+{
+  "ssot": "v4.5/DIFFUSE-MACRO-L4.md",
+  "parent_goal": "mindmap-goal-nano-jit-com.json",
+  "updated_at": "2026-05-29T06:00:00Z",
+  "max_parallel": 4,
+  "macro_ring": "L4-8k-milestone \u2014 13 \u69fd bulk \u00b7 link.code.bytes SSOT \u00b7 8K \u91cc\u7a0b\u7891",
+  "strategy": "macro_think_parallel_micro",
+  "north_star_blocker": "link.code.bytes >= 154000 && zero host cc",
+  "ssot_metric": "link.code.bytes",
+  "deprecate_vanity_metrics": [
+    "object_bytes_total",
+    "linked_bytes (page-padded ELF file size)"
+  ],
+  "nodes": [
+    {
+      "id": "v45-8k83-gate",
+      "layer": 83,
+      "ring": "gate",
+      "status": "done",
+      "deps": [],
+      "accept": [
+        "v45.goal.l4_bulk_scale_continue.100=1"
+      ]
+    },
+    {
+      "id": "v45-8k83-w1-codebytes",
+      "layer": 83,
+      "ring": "L4-SSOT",
+      "status": "done",
+      "deps": [
+        "v45-8k83-gate"
+      ],
+      "parallel_slot": "W1",
+      "plan": "lisp/bootstrap/bootstrap-v45-probe-compose15-bulk-scale-pure-link.lisp",
+      "accept": [
+        "v45.lisp_codegen.compose15_code_bytes_probe=1"
+      ],
+      "target": "code_bytes >= 8000"
+    },
+    {
+      "id": "v45-8k83-w2-bulk-modules",
+      "layer": 83,
+      "ring": "L4-codegen",
+      "status": "done",
+      "deps": [
+        "v45-8k83-gate"
+      ],
+      "parallel_slot": "W2",
+      "plan": "lisp/modules-expand/13-25 bulk slots (13 files)",
+      "accept": [
+        "v45.goal.l4_8k_milestone_modules=1"
+      ]
+    },
+    {
+      "id": "v45-8k83-w3-manifest",
+      "layer": 83,
+      "ring": "L2-guard",
+      "status": "done",
+      "deps": [
+        "v45-8k83-gate"
+      ],
+      "parallel_slot": "W3",
+      "plan": "retired/scripts/v45-manifest-pin.sh",
+      "accept": [
+        "v45.goal.nano_jit_com.release_parity=1"
+      ]
+    },
+    {
+      "id": "v45-8k83-w4-matrix",
+      "layer": 83,
+      "ring": "L3-host",
+      "status": "done",
+      "deps": [
+        "v45-8k83-gate"
+      ],
+      "parallel_slot": "W4",
+      "plan": "lisp/bootstrap/bootstrap-v45-verify-smoke.lisp",
+      "accept": [
+        "v45.goal.com_bootstrap_host_matrix=1"
+      ]
+    },
+    {
+      "id": "v45-8k83-terminal",
+      "layer": 84,
+      "ring": "continue",
+      "status": "done",
+      "deps": [
+        "v45-8k83-w1-codebytes",
+        "v45-8k83-w2-bulk-modules",
+        "v45-8k83-w3-manifest",
+        "v45-8k83-w4-matrix"
+      ],
+      "accept": [
+        "v45.goal.l4_8k_milestone_continue.100=1"
+      ]
+    }
+  ],
+  "parallel_tracks": {
+    "A_L4_codegen": "link.code.bytes 3K \u2192 8K \u2192 154KB \u00b7 \u96f6 host cc",
+    "B_release_guard": "manifest pin + promote \u786c\u95e8\u7981\uff08\u7ef4\u6301\u7eff\uff09",
+    "C_honest_gate": "strict_done \u4ec5 L4 \u6ee1\u8db3\u65f6\u7b7e\u6536"
+  },
+  "next_wave_preview": {
+    "id": "wave84-l4-codebytes-16k",
+    "theme": "code_bytes 8K \u2192 16KB \u00b7 \u7ee7\u7eed\u591a\u69fd bulk \u6269\u9762"
+  }
+}
