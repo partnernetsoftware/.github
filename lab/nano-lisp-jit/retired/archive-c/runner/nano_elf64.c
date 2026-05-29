@@ -14,6 +14,8 @@ enum {
 
 #define ELF64_EXEC_BASE 0x400000u
 
+static size_t g_link_last_code_bytes;
+
 typedef struct {
   size_t text_va;
   size_t rodata_va;
@@ -994,6 +996,7 @@ static int cmd_link_elf64_exe(int argc, char **argv) {
   printf("link.code.bytes=%zu\n", code.len);
   if (rodata.len) printf("link.rodata.bytes=%zu\n", rodata.len);
   if (data_buf.len) printf("link.data.bytes=%zu\n", data_buf.len);
+  g_link_last_code_bytes = code.len;
   rc = 0;
 
 done:
@@ -1001,6 +1004,10 @@ done:
   free(data_buf.data);
   link_cleanup(owned, owned_n, objs, obj_count, syms, &code);
   return rc;
+}
+
+size_t nano_link_last_code_bytes(void) {
+  return g_link_last_code_bytes;
 }
 
 static int cmd_link_expect_exit(int argc, char **argv) {

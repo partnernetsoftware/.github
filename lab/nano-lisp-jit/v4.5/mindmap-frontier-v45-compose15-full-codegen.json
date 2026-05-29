@@ -1,0 +1,90 @@
+{
+  "ssot": "v4.5/DIFFUSE-WAVE78.md",
+  "parent_goal": "mindmap-goal-nano-jit-com.json",
+  "updated_at": "2026-05-28T09:00:00Z",
+  "max_parallel": 4,
+  "breadth_ring": "compose15-full-codegen \u2014 \u7eaf lisp link \u00b7 \u96f6 host cc \u56de\u9000\u63a2\u9488",
+  "nodes": [
+    {
+      "id": "v45-c15fc78-gate",
+      "layer": 78,
+      "ring": "gate",
+      "status": "done",
+      "deps": [],
+      "accept": [
+        "v45.goal.release_promote_compile_com_continue.100=1"
+      ]
+    },
+    {
+      "id": "v45-c15fc78-pure",
+      "layer": 78,
+      "ring": "codegen",
+      "status": "done",
+      "deps": [
+        "v45-c15fc78-gate"
+      ],
+      "parallel_slot": "W1",
+      "plan": "lisp/bootstrap/bootstrap-v45-probe-compose15-pure-link.lisp"
+    },
+    {
+      "id": "v45-c15fc78-gap",
+      "layer": 78,
+      "ring": "\u8bda\u5b9e",
+      "status": "done",
+      "deps": [
+        "v45-c15fc78-gate"
+      ],
+      "parallel_slot": "W2",
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-compose15-full-codegen-gap-audit.lisp"
+    },
+    {
+      "id": "v45-c15fc78-objects",
+      "layer": 78,
+      "ring": "\u81ea\u4e3e",
+      "status": "done",
+      "deps": [
+        "v45-c15fc78-gate"
+      ],
+      "parallel_slot": "W3",
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-compose15-object-sum-prove.lisp"
+    },
+    {
+      "id": "v45-c15fc78-daily",
+      "layer": 78,
+      "ring": "plan",
+      "status": "done",
+      "deps": [
+        "v45-c15fc78-gate"
+      ],
+      "parallel_slot": "W4",
+      "plan": "lisp/bootstrap/bootstrap-v45-converge-daily-v45-compose15-full-codegen.lisp"
+    },
+    {
+      "id": "v45-c15fc78-terminal",
+      "layer": 79,
+      "ring": "\u7ec8\u5c40",
+      "status": "done",
+      "deps": [
+        "v45-c15fc78-pure",
+        "v45-c15fc78-gap",
+        "v45-c15fc78-objects",
+        "v45-c15fc78-daily"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-compose15-full-codegen-tree.lisp"
+    },
+    {
+      "id": "v45-c15fc78-goal",
+      "layer": 80,
+      "ring": "continue",
+      "status": "done",
+      "deps": [
+        "v45-c15fc78-terminal"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-v45-compose15-full-codegen-continue-100.lisp"
+    }
+  ],
+  "next_wave_preview": {
+    "id": "wave79-com-integrity-sync",
+    "theme": "manifest pin \u00b7 APE \u5bb9\u5668 \u00b7 bootstrap-host \u53e3\u5f84\uff08integrity \u53cd\u601d\u63d2\u961f\uff09"
+  }
+}
