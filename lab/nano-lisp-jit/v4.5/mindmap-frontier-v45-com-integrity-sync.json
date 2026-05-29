@@ -3,13 +3,13 @@
   "parent_goal": "mindmap-goal-nano-jit-com.json",
   "updated_at": "2026-05-28T10:00:00Z",
   "max_parallel": 4,
-  "breadth_ring": "com-integrity-sync — manifest pin · APE 容器 · bootstrap-host 口径",
+  "breadth_ring": "com-integrity-sync \u2014 manifest pin \u00b7 APE \u5bb9\u5668 \u00b7 bootstrap-host \u53e3\u5f84",
   "nodes": [
     {
       "id": "v45-cis79-gate",
       "layer": 79,
       "ring": "gate",
-      "status": "pending",
+      "status": "done",
       "deps": [],
       "accept": [
         "v45.goal.compose15_full_codegen_continue.100=1"
@@ -19,7 +19,7 @@
       "id": "v45-cis79-manifest",
       "layer": 79,
       "ring": "release",
-      "status": "pending",
+      "status": "done",
       "deps": [
         "v45-cis79-gate"
       ],
@@ -32,8 +32,8 @@
     {
       "id": "v45-cis79-container",
       "layer": 79,
-      "ring": "容器",
-      "status": "pending",
+      "ring": "\u5bb9\u5668",
+      "status": "done",
       "deps": [
         "v45-cis79-gate"
       ],
@@ -46,8 +46,8 @@
     {
       "id": "v45-cis79-host-matrix",
       "layer": 79,
-      "ring": "自举",
-      "status": "pending",
+      "ring": "\u81ea\u4e3e",
+      "status": "done",
       "deps": [
         "v45-cis79-gate"
       ],
@@ -61,7 +61,7 @@
       "id": "v45-cis79-daily",
       "layer": 79,
       "ring": "plan",
-      "status": "pending",
+      "status": "done",
       "deps": [
         "v45-cis79-gate"
       ],
@@ -71,8 +71,8 @@
     {
       "id": "v45-cis79-terminal",
       "layer": 80,
-      "ring": "终局",
-      "status": "pending",
+      "ring": "\u7ec8\u5c40",
+      "status": "done",
       "deps": [
         "v45-cis79-manifest",
         "v45-cis79-container",
@@ -85,7 +85,7 @@
       "id": "v45-cis79-goal",
       "layer": 81,
       "ring": "continue",
-      "status": "pending",
+      "status": "done",
       "deps": [
         "v45-cis79-terminal"
       ],
@@ -97,11 +97,11 @@
   ],
   "next_wave_preview": {
     "id": "wave80-compose15-module-expand",
-    "theme": "L4 语义层 · 模块 stub → 154KB 逐模块 codegen"
+    "theme": "L4 \u8bed\u4e49\u5c42 \u00b7 \u6a21\u5757 stub \u2192 154KB \u9010\u6a21\u5757 codegen"
   },
   "honest_notes": [
-    "release COM run-ape exit≠42 为预期（158KB full runner，非 stub）",
-    "双 slice 同 hash 为 slim_duplicate，非原生 aarch64",
-    "manifest.fnv 须与 COM file-hash 一致才签 release_parity"
+    "release COM run-ape exit\u226042 \u4e3a\u9884\u671f\uff08158KB full runner\uff0c\u975e stub\uff09",
+    "\u53cc slice \u540c hash \u4e3a slim_duplicate\uff0c\u975e\u539f\u751f aarch64",
+    "manifest.fnv \u987b\u4e0e COM file-hash \u4e00\u81f4\u624d\u7b7e release_parity"
   ]
 }

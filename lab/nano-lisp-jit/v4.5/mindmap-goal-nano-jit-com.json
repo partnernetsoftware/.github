@@ -2,7 +2,7 @@
   "goal": "nano-jit.com",
   "ssot": "v4.5/mindmap-goal-nano-jit-com.json",
   "north_star": "release/nano-lisp.com \u4e3a\u7528\u6237 COM\uff1b.build/nano-jit/nano-jit.com \u5de5\u5382\u79cd\u5b50\uff1b\u7ec8\u5c40 *.lisp plan-only \u81ea\u4e3e COM",
-  "updated_at": "2026-05-28T10:00:00Z",
+  "updated_at": "2026-05-28T11:00:00Z",
   "strict_done_requires": [
     "v45.goal.nano_jit_com.lisp_only_regenesis=1",
     "v45.goal.nano_jit_com.release_parity=1",
@@ -16,7 +16,7 @@
   ],
   "integrity_layers": {
     "L1_container": {
-      "label": "APE v2 容器",
+      "label": "APE v2 \u5bb9\u5668",
       "status": "pass",
       "checks": [
         "inspect-ape.ok=1",
@@ -33,17 +33,20 @@
       }
     },
     "L2_release_pin": {
-      "label": "发行 manifest pin",
-      "status": "fail",
-      "gap": "manifest.fnv1a64 与 COM file-hash 不一致（regenesis promote 后未同步）",
+      "label": "\u53d1\u884c manifest pin",
+      "status": "pass",
+      "gap": null,
       "checks": [
         "manifest.bytes==com.bytes",
         "manifest.fnv==com.file-hash"
       ],
-      "action": "Wave79 W1 manifest-pin-sync；promote 硬门禁"
+      "action": "Wave79 W1 manifest-pin-sync\uff1bpromote \u786c\u95e8\u7981",
+      "facts": {
+        "com_fnv": "3154e3bb075c026b"
+      }
     },
     "L3_bootstrap_host": {
-      "label": "自举宿主矩阵",
+      "label": "\u81ea\u4e3e\u5bbf\u4e3b\u77e9\u9635",
       "status": "pass",
       "checks": [
         "verify-smoke",
@@ -52,10 +55,10 @@
         "entry",
         "onion-tdd"
       ],
-      "scope_note": "release 158KB slice 不用 run-ape-expect-exit 42 验收"
+      "scope_note": "release 158KB slice \u4e0d\u7528 run-ape-expect-exit 42 \u9a8c\u6536"
     },
     "L4_semantic_codegen": {
-      "label": "纯 lisp 158KB codegen",
+      "label": "\u7eaf lisp 158KB codegen",
       "status": "open",
       "checks": [
         "compose15_pure_link.bytes>=154000",
@@ -70,14 +73,14 @@
   },
   "v45_adjustment": {
     "ts": "2026-05-28T10:00:00Z",
-    "trigger": "release/nano-lisp.com 四层完整性分析",
+    "trigger": "release/nano-lisp.com \u56db\u5c42\u5b8c\u6574\u6027\u5206\u6790",
     "principles": [
-      "continue.100 签收 ≠ strict_done；分层诚实",
-      "promote 后 manifest file-hash 必须与 COM 一致（release_parity 硬门禁）",
-      "矩阵口径：bootstrap-host 验 COM 自举面；run-ape exit42 仅用于 plan 内 stub ELF",
-      "双 slice 同构标注 slim_duplicate；APE 6 面仍 2/6 Linux",
-      "158KB 生产路径：build-slice-compile / hybrid；纯 compose15 为探针路径",
-      "Wave79 插队 integrity-sync；Wave80 再 module-expand（L4 语义层）"
+      "continue.100 \u7b7e\u6536 \u2260 strict_done\uff1b\u5206\u5c42\u8bda\u5b9e",
+      "promote \u540e manifest file-hash \u5fc5\u987b\u4e0e COM \u4e00\u81f4\uff08release_parity \u786c\u95e8\u7981\uff09",
+      "\u77e9\u9635\u53e3\u5f84\uff1abootstrap-host \u9a8c COM \u81ea\u4e3e\u9762\uff1brun-ape exit42 \u4ec5\u7528\u4e8e plan \u5185 stub ELF",
+      "\u53cc slice \u540c\u6784\u6807\u6ce8 slim_duplicate\uff1bAPE 6 \u9762\u4ecd 2/6 Linux",
+      "158KB \u751f\u4ea7\u8def\u5f84\uff1abuild-slice-compile / hybrid\uff1b\u7eaf compose15 \u4e3a\u63a2\u9488\u8def\u5f84",
+      "Wave79 \u63d2\u961f integrity-sync\uff1bWave80 \u518d module-expand\uff08L4 \u8bed\u4e49\u5c42\uff09"
     ],
     "reprioritize": {
       "was": "wave79-compose15-module-expand",
@@ -338,12 +341,12 @@
     {
       "round": 6,
       "ts": "2026-05-28T09:00:00Z",
-      "read_mindmap": "wave77 done · preview wave78 compose15-full-codegen",
+      "read_mindmap": "wave77 done \u00b7 preview wave78 compose15-full-codegen",
       "plan": [
         "T1: NANO_COMPOSE15_NO_HYBRID pure link probe (4096B)",
         "T2: gap audit pure vs hybrid 158KB",
         "T3: 15 TU object-sum prove + regenesis promote",
-        "T4: terminal 矩阵 + journal"
+        "T4: terminal \u77e9\u9635 + journal"
       ],
       "attempts": [
         {
@@ -372,7 +375,7 @@
         "linked_plan_bytes": "4096",
         "frontier": "7/7"
       },
-      "self_critique": "NANO_COMPOSE15_NO_HYBRID 可探针纯 link 4096B（code≈445B）；158KB 仍依赖 hybrid host cc。/goal 严格终局：模块 stub 扩面至 154KB codegen 仍开卷。",
+      "self_critique": "NANO_COMPOSE15_NO_HYBRID \u53ef\u63a2\u9488\u7eaf link 4096B\uff08code\u2248445B\uff09\uff1b158KB \u4ecd\u4f9d\u8d56 hybrid host cc\u3002/goal \u4e25\u683c\u7ec8\u5c40\uff1a\u6a21\u5757 stub \u6269\u9762\u81f3 154KB codegen \u4ecd\u5f00\u5377\u3002",
       "git_ops": [],
       "evidence_keys": [
         "v45.goal.compose15_full_codegen_continue.100=1",
@@ -384,18 +387,18 @@
     {
       "round": 7,
       "ts": "2026-05-28T10:00:00Z",
-      "read_mindmap": "wave78 done · integrity 反思 · reprioritize wave79",
+      "read_mindmap": "wave78 done \u00b7 integrity \u53cd\u601d \u00b7 reprioritize wave79",
       "plan": [
-        "T1: 四层完整性模型写入 goal mindmap",
-        "T2: Wave79 插队 com-integrity-sync（manifest + 容器 + host 口径）",
-        "T3: module-expand 顺延 Wave80（L4 语义层）",
-        "T4: 更新 strict_done / continue 分层签收"
+        "T1: \u56db\u5c42\u5b8c\u6574\u6027\u6a21\u578b\u5199\u5165 goal mindmap",
+        "T2: Wave79 \u63d2\u961f com-integrity-sync\uff08manifest + \u5bb9\u5668 + host \u53e3\u5f84\uff09",
+        "T3: module-expand \u987a\u5ef6 Wave80\uff08L4 \u8bed\u4e49\u5c42\uff09",
+        "T4: \u66f4\u65b0 strict_done / continue \u5206\u5c42\u7b7e\u6536"
       ],
       "attempts": [
         {
           "id": "T1-L1-container",
           "status": "ok",
-          "detail": "APE v2 pass · slice=genesis · 318137B"
+          "detail": "APE v2 pass \u00b7 slice=genesis \u00b7 318137B"
         },
         {
           "id": "T2-L2-manifest",
@@ -405,12 +408,12 @@
         {
           "id": "T3-L3-host",
           "status": "ok",
-          "detail": "matrix 5/5 · 不用 run-ape exit42 验 release slice"
+          "detail": "matrix 5/5 \u00b7 \u4e0d\u7528 run-ape exit42 \u9a8c release slice"
         },
         {
           "id": "T4-L4-codegen",
           "status": "open",
-          "detail": "pure=4096 hybrid=158392 · Wave80 module-expand"
+          "detail": "pure=4096 hybrid=158392 \u00b7 Wave80 module-expand"
         }
       ],
       "results": {
@@ -420,12 +423,50 @@
         "integrity_L4": "open",
         "frontier": "wave79 pending"
       },
-      "self_critique": "v4.5 调整：先修 L2 release pin 与验收口径，再攻 L4 纯 lisp 158KB。continue.100 已覆盖 L1+L3，不可冒充 strict_done。",
+      "self_critique": "v4.5 \u8c03\u6574\uff1a\u5148\u4fee L2 release pin \u4e0e\u9a8c\u6536\u53e3\u5f84\uff0c\u518d\u653b L4 \u7eaf lisp 158KB\u3002continue.100 \u5df2\u8986\u76d6 L1+L3\uff0c\u4e0d\u53ef\u5192\u5145 strict_done\u3002",
       "git_ops": [],
       "evidence_keys": [
         "v45.goal.integrity_reflection=1"
       ],
       "verified": true,
+      "blocker": null
+    },
+    {
+      "round": 8,
+      "ts": "2026-05-28T11:00:00Z",
+      "read_mindmap": "wave79 com-integrity-sync \u00b7 manifest pin fix",
+      "plan": [
+        "T1: v45-manifest-pin.sh\uff08COM file-hash \u5199 manifest\uff09",
+        "T2: container audit inspect-ape + genesis slice parity",
+        "T3: bootstrap-host \u77e9\u9635 5/5",
+        "T4: journal + integrity L2\u2192pass"
+      ],
+      "attempts": [
+        {
+          "id": "T1-manifest-pin",
+          "status": "ok",
+          "detail": "com_fnv=3154e3bb075c026b parity=1"
+        },
+        {
+          "id": "T2-container",
+          "status": "ok"
+        },
+        {
+          "id": "T3-host-matrix",
+          "status": "ok"
+        }
+      ],
+      "results": {
+        "converge_fail": 0,
+        "com_fnv": "3154e3bb075c026b",
+        "frontier": "7/7"
+      },
+      "self_critique": "L2 manifest pin \u5df2\u4fee\u590d\uff08fnv \u7edf\u4e00 lispjit file-hash \u57fa\uff09\u3002L1/L3 pass\uff1bL4 \u7eaf lisp 158KB \u4ecd Wave80\u3002",
+      "git_ops": [],
+      "evidence_keys": [
+        "v45.goal.com_integrity_sync_continue.100=1"
+      ],
+      "verified": 1,
       "blocker": null
     }
   ],
@@ -438,6 +479,7 @@
     "wave75-full-runner-154kb",
     "wave76-zero-genesis-pin",
     "wave77-release-promote-compile-com",
-    "wave78-compose15-full-codegen"
+    "wave78-compose15-full-codegen",
+    "wave79-com-integrity-sync"
   ]
 }
