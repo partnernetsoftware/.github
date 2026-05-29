@@ -2,8 +2,10 @@
 """
 Persist Claude Code CLI auth across Cloud Agent sessions via session-vault (no new MCP).
 
-After one interactive login (or `claude setup-token`), capture credentials into vault.
-Each new VM session runs restore before `claude`.
+SSOT = session-vault only (SESSION_VAULT_URL + SESSION_VAULT_TOKEN).
+Do NOT require CLAUDE_CODE_OAUTH_TOKEN in Cloud Agent Secrets.
+
+After one interactive login, capture -> vault. Each new session: restore <- vault.
 
   # One-time (after claude login or setup-token):
   export SESSION_VAULT_URL SESSION_VAULT_TOKEN SESSION_VAULT_OWNER=cloud-agent

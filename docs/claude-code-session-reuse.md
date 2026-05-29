@@ -1,57 +1,59 @@
 # Claude Code CLI 跨 Cloud Agent 会话复用
 
-**不增加新的 Cursor MCP。** 继续只用现有的 **session-vault** 远程 MCP 存认证；每个新 VM 会话启动时恢复文件 / 环境变量，再跑 `claude`。
+**不增加新的 Cursor MCP。** 只用你已有的 **session-vault**（`SESSION_VAULT_URL` + `SESSION_VAULT_TOKEN`）做唯一凭据仓库。
 
-## 原理
+**不要**在 Cloud Agent Secrets 里再配一份 `CLAUDE_CODE_OAUTH_TOKEN`——登录态只进 vault，新会话只从 vault 取出。
 
-| 存储位置（Linux） | 内容 |
-|-------------------|------|
-| `~/.claude/.credentials.json` | OAuth access / refresh（`claude login` 后） |
-| `~/.claude/settings.json` | CLI 设置 |
-| `CLAUDE_CODE_OAUTH_TOKEN` | `claude setup-token` 的一年期 token（**最适合无头 Cloud Agent**） |
+## 数据流
 
-Vault 里用 `site=cli.claude`、`profile=default`：
-
-- `config`：上述文件的 JSON bundle  
-- `oauth`（可选）：`setup-token` 明文 token（仅 vault + Agent Secrets，勿提交 git）
-
-## 一次性：登录后写入 vault
-
-```bash
-export SESSION_VAULT_URL SESSION_VAULT_TOKEN SESSION_VAULT_OWNER=cloud-agent
-
-# 方式 A：交互登录后
-claude   # 完成浏览器 OAuth
-python3 tools/session_vault_claude_code.py capture
-
-# 方式 B：长期 token（推荐 Cloud Agent）
-claude setup-token
-# 复制输出的 sk-ant-oat01-...
-python3 tools/session_vault_claude_code.py capture-token --token 'sk-ant-oat01-...'
-# 并把同一 token 写入 Cloud Agent Secret: CLAUDE_CODE_OAUTH_TOKEN
+```mermaid
+flowchart LR
+  Login[你登录一次 claude] --> Local[~/.claude/.credentials.json]
+  Local -->|Agent 读取 + MCP session_put| Vault[(session-vault)]
+  Vault -->|新会话 restore| Local2[~/.claude 恢复]
+  Local2 --> CLI[claude 免登录]
 ```
 
-也可用已有 MCP 工具（等价）：
+Vault 键：`site=cli.claude`，`profile=default`，`kind=config`（文件 bundle）或 `kind=oauth`（若用 setup-token）。
 
-- `session_put(site=cli.claude, profile=default, kind=config, data={...bundle...})`
+## 一次性：登录后由 Agent 存入 vault
+
+1. 你在本 VM 完成：`claude` 并完成 OAuth 登录。  
+2. Agent 执行（读本地 + 调 **现有** MCP，不新加 server）：
+
+```bash
+python3 tools/session_vault_claude_code.py capture
+```
+
+内部用 `SESSION_VAULT_*` 调 vault REST，等价于 MCP：
+
+`session_put(site=cli.claude, profile=default, kind=config, data=<bundle>)`
+
+若你用 `claude setup-token`，把输出 token **只**交给 vault（仍不必写进 Agent Secrets）：
+
+```bash
+python3 tools/session_vault_claude_code.py capture-token --token 'sk-ant-oat01-...'
+```
 
 ## 每个新 Cloud Agent 会话
 
-在 Agent 启动脚本或第一次跑 CLI 前：
+Secrets 里只需保留 MCP 用的 `SESSION_VAULT_URL`、`SESSION_VAULT_TOKEN`（及可选 `SESSION_VAULT_OWNER`）。
+
+Agent 在跑 `claude` 前：
 
 ```bash
-export SESSION_VAULT_URL SESSION_VAULT_TOKEN SESSION_VAULT_OWNER=cloud-agent
 python3 tools/session_vault_claude_code.py restore
-eval "$(python3 tools/session_vault_claude_code.py print-env)"  # 若有 setup-token
-claude -p "your task"
+eval "$(python3 tools/session_vault_claude_code.py print-env 2>/dev/null)"  # 仅 vault 里有 setup-token 时
+claude -p "..."
 ```
 
-`restore` 会把 bundle 写回 `~/.claude/`（权限 `0600`）。
+`restore` 从 vault 拉取并写回 `~/.claude/.credentials.json`（`0600`）。**凭据只存在于 vault，不重复配置 Agent OAuth Secret。**
 
-## 检查
+## 检查 vault 里是否已有 CLI 登录态
 
 ```bash
 python3 tools/session_vault_claude_code.py status
+# 或 MCP: session_get(site=cli.claude, profile=default, kind=config)
 ```
 
 ## 与浏览器 登录（claude.ai）的区别
