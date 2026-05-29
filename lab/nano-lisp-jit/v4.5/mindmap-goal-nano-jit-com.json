@@ -2,7 +2,7 @@
   "goal": "nano-jit.com",
   "ssot": "v4.5/mindmap-goal-nano-jit-com.json",
   "north_star": "release/nano-lisp.com \u4e3a\u7528\u6237 COM\uff1b.build/nano-jit/nano-jit.com \u5de5\u5382\u79cd\u5b50\uff1b\u7ec8\u5c40 *.lisp plan-only \u81ea\u4e3e COM",
-  "updated_at": "2026-05-28T11:00:00Z",
+  "updated_at": "2026-05-29T03:00:00Z",
   "strict_done_requires": [
     "v45.goal.nano_jit_com.lisp_only_regenesis=1",
     "v45.goal.nano_jit_com.release_parity=1",
@@ -67,7 +67,9 @@
       "facts": {
         "compose15_pure_bytes": 4096,
         "compose15_hybrid_bytes": 158392,
-        "linked_code_bytes": 445
+        "linked_code_bytes": 445,
+        "compose15_expand_object_bytes": "12680",
+        "compose15_expand_linked_bytes": "4096"
       }
     }
   },
@@ -468,9 +470,49 @@
       ],
       "verified": 1,
       "blocker": null
+    },
+    {
+      "round": 9,
+      "ts": "2026-05-29T03:00:00Z",
+      "read_mindmap": "wave80 compose15-module-expand \u00b7 L4 \u6269\u9762",
+      "plan": [
+        "T1: modules-expand + compose-15link-expand profile",
+        "T2: object_bytes 9024\u219211000+ \u63a2\u9488",
+        "T3: plan-only expand prove + gap audit",
+        "T4: manifest pin + journal"
+      ],
+      "attempts": [
+        {
+          "id": "T1-expand-link",
+          "status": "ok",
+          "detail": "object_bytes=12680 linked=4096 stub=4096"
+        },
+        {
+          "id": "T2-prove",
+          "status": "ok"
+        },
+        {
+          "id": "T3-gap",
+          "status": "ok"
+        }
+      ],
+      "results": {
+        "converge_fail": 0,
+        "object_bytes": "12680",
+        "expand_linked": "4096",
+        "stub_linked": "4096",
+        "frontier": "7/7"
+      },
+      "self_critique": "Wave80 \u6269\u9762 modules-expand \u63d0\u5347 object_bytes\uff1blinked \u4ecd\u53ef\u80fd 4096 \u9875\u5bf9\u9f50\u3002158KB \u7eaf lisp \u65e0 host cc \u4ecd\u5f00\u5377\u3002",
+      "git_ops": [],
+      "evidence_keys": [
+        "v45.goal.compose15_module_expand_continue.100=1"
+      ],
+      "verified": true,
+      "blocker": null
     }
   ],
-  "active_frontier": "mindmap-frontier-v45-com-integrity-sync.json",
+  "active_frontier": "mindmap-frontier-v45-compose15-module-expand.json",
   "waves_done": [
     "wave71-lisp-codegen-diffuse",
     "wave72-compose15-runner-promote",
@@ -480,6 +522,7 @@
     "wave76-zero-genesis-pin",
     "wave77-release-promote-compile-com",
     "wave78-compose15-full-codegen",
-    "wave79-com-integrity-sync"
+    "wave79-com-integrity-sync",
+    "wave80-compose15-module-expand"
   ]
 }

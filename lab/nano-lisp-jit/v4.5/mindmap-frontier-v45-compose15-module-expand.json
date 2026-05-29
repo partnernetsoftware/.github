@@ -3,13 +3,13 @@
   "parent_goal": "mindmap-goal-nano-jit-com.json",
   "updated_at": "2026-05-29T03:00:00Z",
   "max_parallel": 4,
-  "breadth_ring": "compose15-module-expand — L4 模块 stub 扩面 · 零 hybrid",
+  "breadth_ring": "compose15-module-expand \u2014 L4 \u6a21\u5757 stub \u6269\u9762 \u00b7 \u96f6 hybrid",
   "nodes": [
     {
       "id": "v45-c15me80-gate",
       "layer": 80,
       "ring": "gate",
-      "status": "pending",
+      "status": "done",
       "deps": [],
       "accept": [
         "v45.goal.com_integrity_sync_continue.100=1"
@@ -19,7 +19,7 @@
       "id": "v45-c15me80-expand",
       "layer": 80,
       "ring": "codegen",
-      "status": "pending",
+      "status": "done",
       "deps": [
         "v45-c15me80-gate"
       ],
@@ -29,8 +29,8 @@
     {
       "id": "v45-c15me80-gap",
       "layer": 80,
-      "ring": "诚实",
-      "status": "pending",
+      "ring": "\u8bda\u5b9e",
+      "status": "done",
       "deps": [
         "v45-c15me80-gate"
       ],
@@ -40,8 +40,8 @@
     {
       "id": "v45-c15me80-prove",
       "layer": 80,
-      "ring": "自举",
-      "status": "pending",
+      "ring": "\u81ea\u4e3e",
+      "status": "done",
       "deps": [
         "v45-c15me80-gate"
       ],
@@ -52,7 +52,7 @@
       "id": "v45-c15me80-daily",
       "layer": 80,
       "ring": "plan",
-      "status": "pending",
+      "status": "done",
       "deps": [
         "v45-c15me80-gate"
       ],
@@ -62,8 +62,8 @@
     {
       "id": "v45-c15me80-terminal",
       "layer": 81,
-      "ring": "终局",
-      "status": "pending",
+      "ring": "\u7ec8\u5c40",
+      "status": "done",
       "deps": [
         "v45-c15me80-expand",
         "v45-c15me80-gap",
@@ -76,7 +76,7 @@
       "id": "v45-c15me80-goal",
       "layer": 82,
       "ring": "continue",
-      "status": "pending",
+      "status": "done",
       "deps": [
         "v45-c15me80-terminal"
       ],
@@ -88,6 +88,6 @@
   ],
   "next_wave_preview": {
     "id": "wave81-compose15-codegen-deep",
-    "theme": "继续扩面至 linked>16KB · 逼近 154KB 纯 lisp"
+    "theme": "\u7ee7\u7eed\u6269\u9762\u81f3 linked>16KB \u00b7 \u903c\u8fd1 154KB \u7eaf lisp"
   }
 }
