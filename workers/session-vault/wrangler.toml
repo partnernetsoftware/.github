@@ -3,6 +3,7 @@
 name = "session-vault"
 main = "src/index.ts"
 compatibility_date = "2024-11-01"
+workers_dev = true
 # Web Crypto AES-GCM + Durable Objects; no nodejs_compat required for MVP
 
 [durable_objects]
@@ -18,3 +19,7 @@ new_classes = ["SessionVaultDO", "RegistryDO"]
 [vars]
 # Override per deploy: wrangler vars set DEFAULT_OWNER cloud-agent
 DEFAULT_OWNER = "default"
+
+# Custom MCP hostname (not committed — use env at deploy time):
+#   MCP_CUSTOM_HOST=mcp.example.com npx wrangler deploy --route "${MCP_CUSTOM_HOST}"
+# Or add [[routes]] pattern + custom_domain = true for your zone (see README).

@@ -96,20 +96,23 @@ Worker 已实现 **Streamable HTTP** MCP 端点：`POST /mcp`（根路径 `POST 
 {
   "mcpServers": {
     "session-vault": {
-      "url": "https://<your-worker>.<subdomain>.workers.dev/mcp",
+      "url": "https://<your-mcp-host>/mcp",
       "headers": {
-        "Authorization": "Bearer <VAULT_TOKEN>"
+        "Authorization": "Bearer <VAULT_TOKEN>",
+        "X-Session-Vault-Owner": "cloud-agent"
       }
     }
   }
 }
 ```
 
-也可用站点根 URL（Cursor 会向该 URL 发 `initialize`）：
+绑定自定义域名（zone 须在同一 Cloudflare 账户）：
 
-```json
-"url": "https://<your-worker>.<subdomain>.workers.dev"
+```bash
+MCP_CUSTOM_HOST=mcp.example.com npx wrangler deploy --name session-vault --route "${MCP_CUSTOM_HOST}"
 ```
+
+亦可用 `https://<worker>.<account>.workers.dev/mcp`。
 
 ### 本地 stdio MCP（可选）
 
