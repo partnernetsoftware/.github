@@ -16,6 +16,8 @@ __pycache__/
 
 # Cloudflare Workers
 workers/**/node_modules/
+workers/**/.dev.vars
+workers/**/.wrangler/
 
 # Lab build outputs
 lab/**/.build/
