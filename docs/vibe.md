@@ -4,11 +4,11 @@
 
 | 项 | 值 |
 |---|---|
-| 采集窗口 | `260528 05:51` UTC → `260530 05:51` UTC（48h，cron 触发） |
-| 本文件更新 | `260530 05:51` UTC |
-| 分支 | 已合并 **`origin/main`**（`27eaf3c`，`docs/vibe.md` 在 main） |
-| 条目数 | 18 |
-| token 估算 | 正文约 **字符数÷4**（英文为主）或 **÷1.8**（中文为主），取整 |
+| 采集窗口 | `260528 06:04` UTC → `260530 06:04` UTC（48h，cron 触发 `2026-05-30T06:04Z`） |
+| 本文件更新 | `260530 06:04` UTC |
+| 条目数 | 13 |
+| 新模型 / 新产品 / 新模式 | 11（新模型 3 · 新产品 5 · 新模式 3） |
+| main 合并 commit | *（合并 push 后填写）* |
 
 ---
 
@@ -16,178 +16,167 @@
 
 ```text
 vibe-48h/
-├── 资本市场 · IPO
-├── 旗舰模型 · 产品
-├── 智能体 · 编排 · 工具
-├── VibeCoding · AI 编程
-├── 安全 · 监管 · 地缘
-└── 中国产业 · 开源
+├── 新模型
+├── 新产品
+├── 新模式
+└── 资本动态
 ```
 
-### 资本市场 · IPO
-
-- **Anthropic 完成 650 亿美元 H 轮融资，投后估值 9650 亿美元**
-  - 来源：**Anthropic**
-  - 时间：`260528`（官方稿，具体时刻未标注）
-  - 正文：~**420** tok
-  - URL：https://www.anthropic.com/news/series-h
-  - 要点：领投 Altimeter / Dragoneer / Greenoaks / 红杉；年化收入 run-rate 超 470 亿美元；含亚马逊等超大规模厂商此前承诺的 150 亿美元。
-
-- **Anthropic 估值 9650 亿美元，超越 OpenAI**
-  - 来源：**印经**
-  - 时间：`260529 07:46`
-  - 正文：~**380** tok
-  - URL：https://www.business-standard.com/technology/tech-news/anthropic-valued-at-965-bn-after-latest-funding-round-eclipsing-openai-126052900081_1.html
-  - 要点：Google 数亿美元跟投；OpenAI 3 月轮估值 8520 亿；双方均瞄准 2026 秋 IPO。
-
-- **Anthropic bests OpenAI in valuation race, hitting $965B with Series H**
-  - 来源：**PitchBook**
-  - 时间：`260529`（文内标注，无具体时分）
-  - 正文：~**520** tok
-  - URL：https://pitchbook.com/news/articles/anthropic-bests-openai-in-valuation-race-hitting-965b-with-series-h
-  - 要点：距 G 轮仅三个月再融 650 亿；算力侧与 AWS、Google/Broadcom、SpaceX Colossus 等签多 GW 级协议。
-
-- **Anthropic raises further US$65bn to eclipse OpenAI**
-  - 来源：**台北时报**
-  - 时间：`260530`（纸媒日期，无具体时分）
-  - 正文：~**450** tok
-  - URL：https://www.taipeitimes.com/News/biz/archives/2026/05/30/2003858212
-  - 要点：Micron、三星、SK 海力士首次同现 AI 公司 cap table；轮次数周凑齐。
-
-- **Anthropic hits $965 billion valuation… HBM giants join cap table**
-  - 来源：**BigGo**
-  - 时间：`260529 06:06`
-  - 正文：~**680** tok
-  - URL：https://finance.biggo.com/news/notXcp4BoicNoOgCj55z
-  - 要点：企业采用率首次超 OpenAI；Q2 有望首季运营盈利；OpenAI 或数日内秘密递交 SEC。
-
-- **大模型周刊 第 32 期：上市、融资与梵蒂冈警告**（综合）
-  - 来源：**80aj**
-  - 时间：`260530`（周刊发布日）
-  - 正文：~**2 400** tok
-  - URL：https://www.80aj.com/2026/05/30/ai-week-32-warning/
-  - 要点：OpenAI 5/22 秘密递表目标万亿估值；5/28 Anthropic 同日发 Opus 4.8 + 融资；教皇通谕《Magnifica…》83 页谈 AI 伦理。
-
-### 旗舰模型 · 产品
+### 新模型
 
 - **Introducing Claude Opus 4.8**
   - 来源：**Anthropic**
-  - 时间：`260528`（官方稿）
-  - 正文：~**1 850** tok
+  - 时间：`260528`
+  - 正文：~**1850** tok
   - URL：https://www.anthropic.com/news/claude-opus-4-8
-  - 要点：同价升级；Effort 五档；Fast 模式降价 3×；预告 Mythos 级模型数周内面向客户（Glasswing 网络安全试点）。
+  - 类型：新模型
+  - 要点：
+    - 同价升级 Opus 4.7（$5/$25 per M in/out；Fast 约 150% 更快、费用约降 3×）。
+    - API 标识 `claude-opus-4-8`；默认 1M 上下文、128K 输出；Messages API 支持 messages 内 system 条目以 mid-task 更新指令。
+    - SWE-bench Pro 69.2%、Terminal-Bench 2.1 74.2%；同日预告 Mythos 级模型数周内面向客户。
 
-- **Anthropic 计划解禁 Mythos 级模型**
-  - 来源：**Prompt语宙**
-  - 时间：`260528`（转载 5/28 宣布）
-  - 正文：~**720** tok
-  - URL：https://paooo.com/aigc-news/18242/
-  - 要点：更强安全防护后几周内全量开放；同日 Opus 4.8 加量不加价。
-
-- **OpenAI GPT-5.6 传下月发布：150 万上下文**
-  - 来源：**T客邦**（转凤凰网）
-  - 时间：`260529 14:00`
-  - 正文：~**580** tok
-  - URL：https://www.techbang.com/posts/129756-gpt-5-6-1-5m-context
-  - 要点：Codex 日志现内部代号 iris-alpha / ember-alpha；90 万 token 实测仍流畅；6 月或与 Claude Sonnet 4.8、Gemini 3.5 Pro、Grok 5 撞档。
+- **GPT-5.5 Instant Update（ChatGPT & API）**
+  - 来源：**OpenAI**
+  - 时间：`260528`
+  - 正文：~**420** tok
+  - URL：https://help.openai.com/en/articles/6825453-chatgpt-release-notes
+  - 类型：新模型
+  - 要点：
+    - 对话风格更自然、更少冗长列表；写作/编码改由 chat 内 writing/code blocks 直接呈现。
+    - GPT-5.5 Instant / Thinking 移除 Canvas；付费用户可经 legacy 模型短期继续用 Canvas。
+    - ChatGPT 将退役 o3（`260826`）与 GPT-4.5（`260627`）；**仅 ChatGPT**，API 不变。
 
 - **Keye-VL-2.0-30B-A3B：快手开源 30B 多模态**
-  - 来源：**AI铺子**
+  - 来源：**快手**
   - 时间：`260529`
   - 正文：~**950** tok
-  - URL：https://www.aipuzi.cn/ai-news/keye-vl-2-0-30b-a3b.html
-  - 要点：Apache-2.0；DSA 稀疏注意力；256K 上下文；原生 Code/Tool/Search Agent；推荐/广告已量产。
+  - URL：https://huggingface.co/Kwai-Keye/Keye-VL-2.0-30B-A3B
+  - 类型：新模型
+  - 要点：
+    - Apache-2.0；30B MoE（约 3B 激活）；DSA 稀疏注意力；256K 上下文。
+    - 原生 Code / Tool / Search Agent 能力；推荐与广告场景已量产部署。
 
-### 智能体 · 编排 · 工具
+### 新产品
 
 - **Introducing dynamic workflows in Claude Code**
   - 来源：**Anthropic**
-  - 时间：`260528`（官方稿）
+  - 时间：`260528`
   - 正文：~**680** tok
   - URL：https://claude.com/blog/introducing-dynamic-workflows-in-claude-code
-  - 要点：单会话数十至数百并行子代理；对抗验证后汇总；Max/Team/Enterprise 研究预览；建议开 auto 权限避免审批卡住。
+  - 类型：新产品
+  - 要点：
+    - 单会话可编排数十至数百并行子代理，对抗验证后汇总（研究预览）。
+    - Max / Team / Enterprise；需 Claude Code v2.1.154+；prompt 含 `workflow` 或 `/effort ultracode`。
+    - 官方文档：[`code.claude.com/docs/en/workflows`](https://code.claude.com/docs/en/workflows)。
 
-- **Orchestrate subagents at scale with dynamic workflows**
-  - 来源：**Claude Code Docs**
-  - 时间：`260528`（文档随功能上线）
-  - 正文：~**1 100** tok
-  - URL：https://code.claude.com/docs/en/workflows
-  - 要点：需 v2.1.154+；prompt 含 `workflow` 或 `/effort ultracode`；JS 编排脚本 + 后台 runtime；`disableWorkflows` 可关。
-
-- **Anthropic Ships Opus 4.8 with Multi-Agent Workflows**
-  - 来源：**AwesomeAgents**
+- **Vibe gets to work.**
+  - 来源：**Mistral**
   - 时间：`260528`
   - 正文：~**900** tok
-  - URL：https://awesomeagents.ai/news/claude-opus-48-dynamic-workflows/
-  - 要点：SWE-bench Pro 69.2%；单 run 最多约 1000 agent、16 并发；五档 effort；Fast Mode 降价。
+  - URL：https://mistral.ai/news/vibe-agent/
+  - 类型：新产品
+  - 要点：
+    - Le Chat 全面更名为 **Vibe**；Work Mode（Workspace/Slack/GitHub 等）与 Code Mode（云端沙箱、并行 PR）合一。
+    - 发布 **Mistral Vibe VS Code 扩展**与 CLI `/teleport`（终端↔云端会话迁移）。
+    - 定价：Free / Pro $14.99 / Team $24.99·user / Enterprise 定制。
+
+- **What's new in Copilot Studio: May 2026**
+  - 来源：**MS**
+  - 时间：`260528`
+  - 正文：~**1100** tok
+  - URL：https://www.microsoft.com/en-us/microsoft-copilot/blog/copilot-studio/new-and-improved-computer-using-agents-a-new-workflows-experience-and-real-time-voice-experiences/
+  - 类型：新产品
+  - 要点：
+    - **Computer-using agents** 在 Copilot Studio **GA**；无 API 系统可通过 UI 自动化。
+    - 重设计 **workflows** 可视化编排；Work IQ 支持远程 **MCP** 与 **A2A** 代理互操作。
+    - 北美 Dynamics 365 Contact Center **实时语音代理** GA；新编排层宣称 eval +20%、token −50%。
+
+- **Codex updates: Computer use and remote control for Windows**
+  - 来源：**OpenAI**
+  - 时间：`260529`
+  - 正文：~**380** tok
+  - URL：https://help.openai.com/en/articles/6825453-chatgpt-release-notes
+  - 类型：新产品
+  - 要点：
+    - Codex app 在 **Windows** 支持 Computer Use（见、点、键入本地应用）；主机仍为 Windows 项目上下文。
+    - 可用 iOS/Android ChatGPT 或 Mac Codex **远程操控** Windows 会话；EEA/UK/CH 暂不可用。
+    - 新增 **Codex Profiles**（身份、用量、token 活动统计）。
 
 - **Cloud Agents | Cursor Docs**
   - 来源：**Cursor**
-  - 时间：`260530`（文档持续更新，属产品 SSOT）
+  - 时间：`260530`
   - 正文：~**850** tok
   - URL：https://cursor.com/docs/cloud-agent
-  - 要点：云端隔离 VM；GitHub/Slack/Linear/API 触发；`.cursor/environment.json` 配环境；企业可自托管 K8s worker。
+  - 类型：新产品
+  - 要点：
+    - 云端隔离 VM 运行代理；GitHub / Slack / Linear / API 触发。
+    - `.cursor/environment.json` 定义依赖与构建；企业可自托管 K8s worker。
+    - 与本地 Agent 并行，适合 cron / PR 自动化长任务。
 
-- **AI Weekly: Cheaper Coding Models, Custom Chips, and a Stateless MCP**（节选 Cursor）
-  - 来源：**Substack**
+- **Introducing Workspace MCP: agentic financial workflows**
+  - 来源：**OpenBB**
+  - 时间：`260526`
+  - 正文：~**720** tok
+  - URL：https://openbb.co/blog/introducing-workspace-mcp/
+  - 类型：新产品
+  - 要点：
+    - 开源 [`github.com/OpenBB-finance/workspace-mcp`](https://github.com/OpenBB-finance/workspace-mcp)；本地 sidecar + Workspace **MCP Companion**。
+    - 代理可查询许可数据、生成可复用 **widget/仪表盘/多 tab 应用**（非只读问答）。
+    - 继承 Workspace 权限、凭证保险库与数据 lineage；对接 Claude Code / Codex 等 MCP 客户端。
+
+### 新模式
+
+- **From Human Coders to Autonomous AI Engineers**
+  - 来源：**Medium**
   - 时间：`260528`
-  - 正文：~**1 200** tok（全文更长）
-  - URL：https://amdatalakehouse.substack.com/p/ai-weekly-cheaper-coding-models-custom
-  - 要点：综述 Composer 2.5 定价与 Cursor 3.3/3.5 并行 agent；48h 内行业周报入口。
-
-### VibeCoding · AI 编程
+  - 正文：~**1100** tok
+  - URL：https://medium.com/@shuaib_18577/from-human-coders-to-autonomous-ai-engineers-the-future-of-software-development-db82ea2083b3
+  - 类型：新模式
+  - 要点：
+    - 批判纯 **Vibe Coding** 缺乏确定性与可审计性。
+    - 主张 **Spec-Driven Development**：规格 → 计划 → 原子任务 → 实现/验证闭环。
+    - 与「一句话出整库」的 agent  hype 对照，强调工程可维护性。
 
 - **Vibe Coding for Enterprise: A 2026 Practitioner's Guide**
   - 来源：**Tembo**
   - 时间：`260528`
-  - 正文：~**1 600** tok
+  - 正文：~**1600** tok
   - URL：https://www.tembo.io/blog/vibe-coding-for-enterprise
-  - 要点：企业需沙箱、强制 PR、审计、凭据作用域；Karpathy 梗变预算线；无护栏则不适合生产。
-
-- **From Human Coders to Autonomous AI Engineers**（Spec-Driven vs Vibe）
-  - 来源：**Medium**
-  - 时间：`260528`（文内无精确时分）
-  - 正文：~**1 100** tok
-  - URL：https://medium.com/@shuaib_18577/from-human-coders-to-autonomous-ai-engineers-the-future-of-software-development-db82ea2083b3
-  - 要点：批判纯 Vibe 缺乏确定性；推 Spec-Driven Development（规格→计划→原子任务→实现）。
-
-### 安全 · 监管 · 地缘
+  - 类型：新模式
+  - 要点：
+    - 企业级 Vibe 须配沙箱、强制 PR、审计日志、凭据作用域与策略门禁。
+    - Karpathy「vibe」梗 → 需预算线与合规护栏才能进生产。
+    - 将 AI 辅助编码纳入现有 SDLC，而非绕过 code review。
 
 - **National cyber shield could be ready in five years**
-  - 来源：**ComputerWeekly**
+  - 来源：**CW**
   - 时间：`260528 17:08`
   - 正文：~**520** tok
   - URL：https://www.computerweekly.com/news/366643734/National-cyber-shield-could-be-ready-in-five-years
-  - 要点：GCHQ 局长 Keast-Butler 宣布国家级 agentic AI 网盾蓝图；五年内部署；覆盖能源、医疗、金融等 CNI。
+  - 类型：新模式
+  - 要点：
+    - GCHQ 局长 Keast-Butler 提出国家级 **agentic AI** 网盾蓝图，目标约五年内覆盖 CNI（能源、医疗、金融等）。
+    - 将自主代理用于威胁检测/响应编排，而非仅传统 SIEM 规则。
+    - 与 Bletchley 演讲一脉：AI 为「不可阻挡之力」，呼吁企业把网安紧迫度提 10 倍。
 
-- **GCHQ Chief Urges Action as AI Reshapes Cyber Threats**
-  - 来源：**Infosecurity**
-  - 时间：`260527`（Bletchley 演讲次日报道）
-  - 正文：~**480** tok
-  - URL：https://www.infosecurity-magazine.com/news/gchq-keast-butler-cyber-action-ai/
-  - 要点：AI 为「不可阻挡之力」；呼吁企业把网安紧迫度提 10 倍；量子迁移与 passkey。
+### 资本动态
 
-- **UK spy chief labels AI 'unstoppable force'…**
-  - 来源：**CyberScoop**
-  - 时间：`260528`（周三演讲）
+- **Anthropic raises $65B Series H at $965B post-money valuation**
+  - 来源：**Anthropic**
+  - 时间：`260528`
   - 正文：~**420** tok
-  - URL：https://cyberscoop.com/gchq-warns-ai-cyber-warfare-threats/
-  - 要点：前沿模型快速暴露社会依赖软件的漏洞；俄 hybrid 战升级。
-
-### 中国产业 · 开源
-
-- **李开复、王小川双双战略大撤退…**
-  - 来源：**BigGo TW**
-  - 时间：`260529 01:58`
-  - 正文：~**1 100** tok
-  - URL：https://finance.biggo.com.tw/news/_t10cZ4BrAZSr0oSM00c
-  - 要点：零一万物对标 Palantir、2026 盈利目标；百川 All in 医疗 M4；豆包付费争议、DeepSeek 降价、六小虎分化。
+  - URL：https://www.anthropic.com/news/series-h
+  - 类型：其他
+  - 要点：
+    - 同日发布 **Claude Opus 4.8** 与 **dynamic workflows**；融资与产品绑定，非纯估值稿。
+    - 年化收入 run-rate 超 470 亿美元；领投含 Altimeter / Dragoneer / Greenoaks / 红杉等。
+    - 算力侧延续 AWS、Google、Broadcom 等多 GW 级协议；Micron / 三星 / SK 海力士首入 cap table 报道见媒体跟进。
 
 ---
 
 ## 维护说明
 
-- **Automation 提示词 SSOT**：[`docs/vibe-cron-prompt.md`](vibe-cron-prompt.md)（P0：**新模型 / 新产品 / 新模式**；含合并到 `origin/main` 步骤）。
-- **upsert 规则**：新 cron 轮次在对应分类下追加/更新条目；超 48h 的叶子可移至文末 `## 归档`（尚未启用）。
-- **去重**：同一官方事件（如 Anthropic 5/28 融资+模型）保留多源时，以 **Anthropic 官方** 为 SSOT，媒体稿仅补独家细节。
-- **token 列**：为正文可读篇幅估算，非 API `usage` 计费值。
+- **Automation 提示词 SSOT**：[`docs/vibe-cron-prompt.md`](vibe-cron-prompt.md)。
+- **upsert**：新 cron 在 48h 窗口内追加/更新；过期条目可移至 `## 归档`（未启用）。
+- **去重**：同一官方事件以厂商博客为 SSOT；媒体稿仅补独家细节。
+- **~tok**：正文可读篇幅估算，非 API `usage` 计费。
