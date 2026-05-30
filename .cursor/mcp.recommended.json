@@ -5,7 +5,7 @@
       "args": ["-y", "@playwright/mcp@latest"]
     },
     "mcp-cf-bots": {
-      "url": "https://<your-mcp-host>/mcp",
+      "url": "https://mcp-cf-bots.kcc668.workers.dev/mcp",
       "headers": {
         "Authorization": "Bearer ${env:MCP_CF_BOTS_TOKEN}",
         "X-Cf-Bots-Owner": "${env:MCP_CF_BOTS_OWNER}"
