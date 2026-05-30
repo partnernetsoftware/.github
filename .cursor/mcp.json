@@ -1,9 +1,5 @@
 {
   "mcpServers": {
-    "playwright": {
-      "command": "npx",
-      "args": ["-y", "@playwright/mcp@latest"]
-    },
     "mcp-cf-bots": {
       "url": "${env:MCP_CF_BOTS_URL}/mcp",
       "headers": {
