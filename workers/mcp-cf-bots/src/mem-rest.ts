@@ -154,16 +154,29 @@ export async function handleMemRest(
   }
 
   if (url.pathname === "/v1/mem/search" && request.method === "POST") {
-    let body: { query?: string; top_k?: number };
+    let body: {
+      query?: string;
+      top_k?: number;
+      tag?: string;
+      updated_after?: string;
+      updated_before?: string;
+    };
     try {
-      body = (await request.json()) as { query?: string; top_k?: number };
+      body = (await request.json()) as typeof body;
     } catch {
       return apiError(400, "Invalid JSON");
     }
     const text = await memToolCall(
       env,
       "mem_search",
-      { ...body, owner },
+      {
+        query: body.query,
+        top_k: body.top_k,
+        tag: body.tag,
+        updated_after: body.updated_after,
+        updated_before: body.updated_before,
+        owner,
+      },
       auth,
       owner,
     );

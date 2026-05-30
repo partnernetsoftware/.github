@@ -183,11 +183,14 @@ const MEM_TOOL_DEFS: ToolDef[] = [
   {
     name: "mem_search",
     description:
-      "Hybrid RRF search (Vectorize + DO keyword; do_embed fallback); ranked snippets",
+      "Hybrid RRF search (Vectorize + FTS keyword; do_embed fallback); optional tag / updated_after / updated_before filters; ranked snippets",
     required: ["query"],
     properties: {
       query: { type: "string" },
       top_k: { type: "number", description: "Max results 1-20, default 5" },
+      tag: { type: "string", description: "Filter entries containing tag" },
+      updated_after: { type: "string", description: "ISO8601 lower bound on updated_at" },
+      updated_before: { type: "string", description: "ISO8601 upper bound on updated_at" },
       owner: { type: "string" },
     },
   },
