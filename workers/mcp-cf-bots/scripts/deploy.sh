@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # Full deploy pipeline: install → typecheck → test → wrangler deploy → smoke.
+# Set SKIP_SMOKE=1 to skip post-deploy smoke (./scripts/smoke.sh).
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -13,7 +14,8 @@ echo "==> typecheck + test"
 npm run typecheck
 npm test
 
-echo "==> wrangler deploy --name $WORKER_NAME"
+VERSION="$(grep MCP_SERVER_VERSION wrangler.toml | head -1 | sed -n 's/.*= *"\([^"]*\)".*/\1/p')"
+echo "==> wrangler deploy --name $WORKER_NAME (version ${VERSION:-unknown})"
 npx wrangler deploy --name "$WORKER_NAME"
 
 if [[ "$SKIP_SMOKE" != "1" ]]; then
