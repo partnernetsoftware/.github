@@ -1,6 +1,7 @@
 import { trimOpt } from "./config";
+import { loadVectorGcCursor, saveVectorGcCursor } from "./mem-cron-kv";
+import { memCronGcPagesPerRun, vectorizeIndexName } from "./mem-config";
 import { deleteMemoryVectors, vectorizeEnabled } from "./mem-embed";
-import { vectorizeIndexName } from "./mem-config";
 import { memoryStub, parseMemoryVectorId } from "./memory-store";
 
 type ListVectorsResult = {
@@ -32,31 +33,41 @@ async function cfApiFetch<T>(env: Env, path: string, query?: Record<string, stri
     result?: T;
   };
   if (!res.ok || !json.success || !json.result) {
-    const msg =
-      json.errors?.[0]?.message ?? `Vectorize API ${res.status}`;
+    const msg = json.errors?.[0]?.message ?? `Vectorize API ${res.status}`;
     throw new Error(msg);
   }
   return json.result;
 }
 
-/** Paginated list of all vector ids in the bound index (REST API). */
-export async function listVectorizeIds(env: Env): Promise<string[]> {
+export async function listVectorizeIdsPage(
+  env: Env,
+  cursor?: string,
+): Promise<{ ids: string[]; nextCursor?: string; done: boolean }> {
   const index = vectorizeIndexName(env);
+  const query: Record<string, string> = { count: "1000" };
+  if (cursor) {
+    query.cursor = cursor;
+  }
+  const page = await cfApiFetch<ListVectorsResult>(env, index, query);
+  const ids: string[] = [];
+  for (const v of page.vectors ?? []) {
+    if (v.id) {
+      ids.push(v.id);
+    }
+  }
+  const done = !page.isTruncated;
+  return { ids, nextCursor: done ? undefined : page.nextCursor, done };
+}
+
+/** Full index scan (admin / one-off). Prefer incremental for cron. */
+export async function listVectorizeIds(env: Env): Promise<string[]> {
   const ids: string[] = [];
   let cursor: string | undefined;
   let guard = 0;
   do {
-    const query: Record<string, string> = { count: "1000" };
-    if (cursor) {
-      query.cursor = cursor;
-    }
-    const page = await cfApiFetch<ListVectorsResult>(env, index, query);
-    for (const v of page.vectors ?? []) {
-      if (v.id) {
-        ids.push(v.id);
-      }
-    }
-    cursor = page.isTruncated ? page.nextCursor : undefined;
+    const page = await listVectorizeIdsPage(env, cursor);
+    ids.push(...page.ids);
+    cursor = page.nextCursor;
     guard++;
     if (guard > 500) {
       throw new Error("vectorize list pagination guard exceeded");
@@ -83,48 +94,124 @@ export type VectorGcResult = {
   dry_run: boolean;
 };
 
+export type IncrementalGcResult = {
+  results: VectorGcResult[];
+  pages_processed: number;
+  complete: boolean;
+  cursor?: string;
+};
+
 /**
- * Remove Vectorize rows whose chunk id no longer exists in MemorySqliteDO.
- * Requires CF_ACCOUNT_ID + CF_API_TOKEN (Vectorize Read/Edit).
+ * Paginated orphan GC — resumes from KV cursor between cron ticks.
  */
+export async function gcOrphanVectorsIncremental(
+  env: Env,
+  owners: string[],
+  opts?: { maxPages?: number; dryRun?: boolean },
+): Promise<IncrementalGcResult> {
+  const empty = owners.map((owner) => ({
+    owner,
+    scanned: 0,
+    orphans: 0,
+    deleted: 0,
+    dry_run: Boolean(opts?.dryRun),
+  }));
+
+  if (!vectorizeEnabled(env) || owners.length === 0) {
+    return { results: empty, pages_processed: 0, complete: true };
+  }
+
+  const ownerSet = new Set(owners);
+  const validCache = new Map<string, Set<string>>();
+  const pendingDeletes = new Map<string, string[]>();
+  const tally = new Map(owners.map((o) => [o, { scanned: 0, orphans: 0 }]));
+
+  let cursor = await loadVectorGcCursor(env);
+  const maxPages = opts?.maxPages ?? memCronGcPagesPerRun(env);
+  let pages = 0;
+
+  while (pages < maxPages) {
+    const page = await listVectorizeIdsPage(env, cursor);
+    pages++;
+
+    for (const fullId of page.ids) {
+      const parsed = parseMemoryVectorId(fullId);
+      if (!parsed || !ownerSet.has(parsed.owner)) {
+        continue;
+      }
+      let valid = validCache.get(parsed.owner);
+      if (!valid) {
+        valid = await validChunkIdsForOwner(env, parsed.owner);
+        validCache.set(parsed.owner, valid);
+      }
+      const t = tally.get(parsed.owner)!;
+      t.scanned++;
+      if (!valid.has(parsed.chunkId)) {
+        t.orphans++;
+        if (!opts?.dryRun) {
+          const list = pendingDeletes.get(parsed.owner) ?? [];
+          list.push(parsed.chunkId);
+          pendingDeletes.set(parsed.owner, list);
+        }
+      }
+    }
+
+    if (page.done) {
+      cursor = undefined;
+      break;
+    }
+    cursor = page.nextCursor;
+  }
+
+  await saveVectorGcCursor(env, cursor);
+
+  if (!opts?.dryRun) {
+    for (const [owner, chunkIds] of pendingDeletes) {
+      if (chunkIds.length > 0) {
+        await deleteMemoryVectors(env, owner, chunkIds);
+      }
+    }
+  }
+
+  const results: VectorGcResult[] = owners.map((owner) => {
+    const t = tally.get(owner)!;
+    const deleted = opts?.dryRun ? 0 : (pendingDeletes.get(owner)?.length ?? 0);
+    return {
+      owner,
+      scanned: t.scanned,
+      orphans: t.orphans,
+      deleted,
+      dry_run: Boolean(opts?.dryRun),
+    };
+  });
+
+  return {
+    results,
+    pages_processed: pages,
+    complete: !cursor,
+    cursor,
+  };
+}
+
+/** Single-owner GC (scans index until complete or use incremental with high page limit). */
 export async function gcOrphanVectors(
   env: Env,
   owner: string,
   opts?: { dryRun?: boolean },
 ): Promise<VectorGcResult> {
-  if (!vectorizeEnabled(env)) {
-    return { owner, scanned: 0, orphans: 0, deleted: 0, dry_run: Boolean(opts?.dryRun) };
-  }
-  const valid = await validChunkIdsForOwner(env, owner);
-  const allIds = await listVectorizeIds(env);
-  const ownerPrefix = `${owner}::`;
-  const orphanChunkIds: string[] = [];
-
-  for (const fullId of allIds) {
-    if (!fullId.startsWith(ownerPrefix)) {
-      continue;
+  const inc = await gcOrphanVectorsIncremental(env, [owner], {
+    dryRun: opts?.dryRun,
+    maxPages: 500,
+  });
+  return (
+    inc.results[0] ?? {
+      owner,
+      scanned: 0,
+      orphans: 0,
+      deleted: 0,
+      dry_run: Boolean(opts?.dryRun),
     }
-    const parsed = parseMemoryVectorId(fullId);
-    if (!parsed || parsed.owner !== owner) {
-      continue;
-    }
-    if (!valid.has(parsed.chunkId)) {
-      orphanChunkIds.push(parsed.chunkId);
-    }
-  }
-
-  const dryRun = Boolean(opts?.dryRun);
-  if (!dryRun && orphanChunkIds.length > 0) {
-    await deleteMemoryVectors(env, owner, orphanChunkIds);
-  }
-
-  return {
-    owner,
-    scanned: allIds.filter((id) => id.startsWith(ownerPrefix)).length,
-    orphans: orphanChunkIds.length,
-    deleted: dryRun ? 0 : orphanChunkIds.length,
-    dry_run: dryRun,
-  };
+  );
 }
 
 export async function gcOrphanVectorsAllOwners(
@@ -132,21 +219,9 @@ export async function gcOrphanVectorsAllOwners(
   owners: string[],
   opts?: { dryRun?: boolean },
 ): Promise<VectorGcResult[]> {
-  const out: VectorGcResult[] = [];
-  for (const owner of owners) {
-    try {
-      out.push(await gcOrphanVectors(env, owner, opts));
-    } catch (e) {
-      const message = e instanceof Error ? e.message : String(e);
-      out.push({
-        owner,
-        scanned: 0,
-        orphans: 0,
-        deleted: 0,
-        dry_run: Boolean(opts?.dryRun),
-      });
-      console.error(`gcOrphanVectors ${owner}: ${message}`);
-    }
-  }
-  return out;
+  const inc = await gcOrphanVectorsIncremental(env, owners, {
+    dryRun: opts?.dryRun,
+    maxPages: memCronGcPagesPerRun(env),
+  });
+  return inc.results;
 }

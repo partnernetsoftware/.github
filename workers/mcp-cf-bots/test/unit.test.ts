@@ -4,6 +4,7 @@ import { splitMemoryContent } from "../src/mem-chunk";
 import { mergeHybridResults } from "../src/mem-hybrid";
 import { ragBackend, semanticRagEnabled } from "../src/mem-embed";
 import {
+  memCronGcPagesPerRun,
   memCronReindexEnabled,
   memCronVectorGcEnabled,
   memEncryptAtRest,
@@ -143,6 +144,11 @@ describe("memory", () => {
     expect(memEncryptAtRest({ MEM_ENCRYPT: "true" } as Env)).toBe(true);
     expect(memCronReindexEnabled({ MEM_CRON_REINDEX: "1" } as Env)).toBe(true);
     expect(memCronVectorGcEnabled({} as Env)).toBe(false);
+  });
+
+  it("reads gc pages per cron run", () => {
+    expect(memCronGcPagesPerRun({ MEM_CRON_GC_PAGES_PER_RUN: "10" } as Env)).toBe(10);
+    expect(memCronGcPagesPerRun({} as Env)).toBe(5);
   });
 
   it("detects rag backends", () => {

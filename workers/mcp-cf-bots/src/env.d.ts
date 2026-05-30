@@ -2,6 +2,8 @@ interface Env {
   SESSION_STORE: DurableObjectNamespace;
   REGISTRY: DurableObjectNamespace;
   MEMORY_STORE?: DurableObjectNamespace;
+  /** Legacy MemoryDO (pre-0.8) for mem_migrate_legacy */
+  MEMORY_LEGACY?: DurableObjectNamespace;
   AI?: Ai;
   MEM_VECTORS?: VectorizeIndex;
   /** Per-user API token index (hashed bearer → owner) */
@@ -54,4 +56,8 @@ interface Env {
   MEM_CRON_OWNERS?: string;
   /** Max owners processed per cron tick (default 32) */
   MEM_CRON_OWNER_LIMIT?: string;
+  /** Vectorize list pages per cron tick (default 5) */
+  MEM_CRON_GC_PAGES_PER_RUN?: string;
+  /** Optional POST target for cron report JSON */
+  MEM_CRON_WEBHOOK_URL?: string;
 }

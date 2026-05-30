@@ -1,8 +1,16 @@
 import { trimOpt } from "./config";
 import { listUserTokens } from "./auth";
+import { loadReindexWatermark, saveReindexWatermark } from "./mem-cron-kv";
 import { maybeDecryptContent } from "./mem-crypto";
 import { semanticRagEnabled, upsertMemoryVectors } from "./mem-embed";
 import { memoryStub } from "./memory-store";
+
+export type OwnerStats = {
+  keys: number;
+  chunks: number;
+  bytes: number;
+  max_updated_at: string | null;
+};
 
 /** Distinct owner namespaces for cron / maintenance. */
 export async function listMemOwners(env: Env): Promise<string[]> {
@@ -33,6 +41,27 @@ export async function listMemOwners(env: Env): Promise<string[]> {
   return [...owners].sort();
 }
 
+export async function fetchOwnerStats(env: Env, owner: string): Promise<OwnerStats> {
+  const res = await memoryStub(env, owner).fetch("https://memory.internal/stats");
+  if (!res.ok) {
+    throw new Error(await res.text());
+  }
+  return (await res.json()) as OwnerStats;
+}
+
+export async function ownerNeedsReindex(env: Env, owner: string): Promise<boolean> {
+  const stats = await fetchOwnerStats(env, owner);
+  if (stats.chunks === 0) {
+    return false;
+  }
+  const wm = await loadReindexWatermark(env, owner);
+  if (!wm) {
+    return true;
+  }
+  const maxAt = stats.max_updated_at ?? "";
+  return wm.max_updated_at !== maxAt || wm.chunks !== stats.chunks;
+}
+
 /** Rebuild Vectorize rows from MemorySqliteDO chunks for one owner. */
 export async function reindexOwner(
   env: Env,
@@ -61,16 +90,34 @@ export async function reindexOwner(
     });
   }
   await upsertMemoryVectors(env, owner, items);
+
+  const stats = await fetchOwnerStats(env, owner);
+  if (stats.max_updated_at) {
+    await saveReindexWatermark(env, owner, {
+      max_updated_at: stats.max_updated_at,
+      chunks: stats.chunks,
+    });
+  }
+
   return { upserted: items.length };
 }
 
 export async function reindexOwners(
   env: Env,
   owners: string[],
-): Promise<Array<{ owner: string; upserted: number; error?: string }>> {
-  const out: Array<{ owner: string; upserted: number; error?: string }> = [];
+): Promise<Array<{ owner: string; upserted: number; skipped?: boolean; error?: string }>> {
+  const out: Array<{
+    owner: string;
+    upserted: number;
+    skipped?: boolean;
+    error?: string;
+  }> = [];
   for (const owner of owners) {
     try {
+      if (!(await ownerNeedsReindex(env, owner))) {
+        out.push({ owner, upserted: 0, skipped: true });
+        continue;
+      }
       const { upserted } = await reindexOwner(env, owner);
       out.push({ owner, upserted });
     } catch (e) {

@@ -1,8 +1,6 @@
 import type { AuthContext } from "./auth";
 import { isAdmin } from "./auth";
 import { ownerForTool } from "./owner-scope";
-import { memMaxBytes, memMaxKeys } from "./mem-config";
-import { splitForStorage } from "./mem-chunk";
 import {
   deleteMemoryVectors,
   embedText,
@@ -10,11 +8,12 @@ import {
   queryMemoryVectors,
   ragBackend,
   semanticRagEnabled,
-  upsertMemoryVectors,
 } from "./mem-embed";
 import { mergeHybridResults, type SearchHit } from "./mem-hybrid";
+import { migrateLegacyOwner } from "./mem-migrate";
+import { putMemory } from "./mem-put";
 import { reindexOwner } from "./mem-reindex";
-import { gcOrphanVectors } from "./mem-vector-gc";
+import { gcOrphanVectors, gcOrphanVectorsIncremental } from "./mem-vector-gc";
 import type { MemoryRecord } from "./memory-do";
 import { memoryStub } from "./memory-store";
 import { validateKey } from "./validate";
@@ -22,96 +21,6 @@ import { validateKey } from "./validate";
 export { reindexOwner, listMemOwners, reindexOwners } from "./mem-reindex";
 export { gcOrphanVectors, gcOrphanVectorsAllOwners } from "./mem-vector-gc";
 export { runMemCron } from "./mem-cron";
-
-type PutResult = MemoryRecord & { replaced_chunk_ids?: string[] };
-
-async function syncVectors(
-  env: Env,
-  owner: string,
-  key: string,
-  chunks: Array<{ chunkId: string; text: string; index: number }>,
-  deleteIds: string[],
-): Promise<void> {
-  if (deleteIds.length > 0) {
-    try {
-      await deleteMemoryVectors(env, owner, deleteIds);
-    } catch {
-      /* ignore */
-    }
-  }
-  if (!env.MEM_VECTORS || !semanticRagEnabled(env)) {
-    return;
-  }
-  try {
-    await upsertMemoryVectors(
-      env,
-      owner,
-      chunks.map((c) => ({
-        chunkId: c.chunkId,
-        key,
-        content: c.text,
-        chunkIndex: c.index,
-      })),
-    );
-  } catch {
-    /* DO / keyword still work */
-  }
-}
-
-async function putMemory(
-  env: Env,
-  owner: string,
-  key: string,
-  content: string,
-  opts?: { tags?: string[]; expires_at?: string },
-): Promise<PutResult> {
-  const stub = memoryStub(env, owner);
-  const parts = splitForStorage(content, env);
-  const chunkPayloads: Array<{ content: string; embedding?: number[] }> = [];
-
-  for (const part of parts) {
-    let embedding: number[] | undefined;
-    if (semanticRagEnabled(env)) {
-      try {
-        embedding = await embedText(env, `${key}\n${part.text}`);
-      } catch {
-        embedding = undefined;
-      }
-    }
-    chunkPayloads.push({ content: part.text, embedding });
-  }
-
-  const res = await stub.fetch(
-    `https://memory.internal/entry/${encodeURIComponent(key)}`,
-    {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        chunks: chunkPayloads,
-        tags: opts?.tags,
-        expires_at: opts?.expires_at,
-        quota: { max_keys: memMaxKeys(env), max_bytes: memMaxBytes(env) },
-      }),
-    },
-  );
-  if (!res.ok) {
-    throw new Error(await res.text());
-  }
-  const rec = (await res.json()) as PutResult;
-  const chunkIds = rec.chunk_ids ?? [rec.id];
-  await syncVectors(
-    env,
-    owner,
-    key,
-    parts.map((p, i) => ({
-      chunkId: chunkIds[i] ?? rec.id,
-      text: p.text,
-      index: p.index,
-    })),
-    rec.replaced_chunk_ids ?? [],
-  );
-  return rec;
-}
 
 async function hybridSearch(
   env: Env,
@@ -254,6 +163,22 @@ export async function memToolCall(
         : owner;
     const res = await memoryStub(env, target).fetch("https://memory.internal/stats");
     return res.text();
+  }
+
+  if (name === "mem_migrate_legacy") {
+    if (!isAdmin(auth)) {
+      throw new Error("forbidden: admin token required");
+    }
+    const target =
+      typeof args.owner === "string" && args.owner.trim()
+        ? args.owner.trim()
+        : owner;
+    const force = args.force === true || args.force === "true";
+    const result = await migrateLegacyOwner(env, target, {
+      skip_existing: !force,
+      reindex: true,
+    });
+    return JSON.stringify(result, null, 2);
   }
 
   if (name === "mem_vector_gc") {

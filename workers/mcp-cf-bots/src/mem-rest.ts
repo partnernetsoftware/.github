@@ -95,6 +95,31 @@ export async function handleMemRest(
     });
   }
 
+  if (url.pathname === "/v1/mem/migrate-legacy" && request.method === "POST") {
+    if (!isAdmin(auth)) {
+      return apiError(403, "Forbidden");
+    }
+    let body: { owner?: string; force?: boolean } = {};
+    try {
+      const raw = await request.text();
+      if (raw.trim()) {
+        body = JSON.parse(raw) as { owner?: string; force?: boolean };
+      }
+    } catch {
+      return apiError(400, "Invalid JSON");
+    }
+    const text = await memToolCall(
+      env,
+      "mem_migrate_legacy",
+      { owner: body.owner ?? owner, force: body.force },
+      auth,
+      owner,
+    );
+    return new Response(text, {
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
   if (url.pathname === "/v1/admin/mem/cron" && request.method === "POST") {
     if (!isAdmin(auth)) {
       return apiError(403, "Forbidden");

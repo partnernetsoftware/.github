@@ -16,6 +16,7 @@ HTTP MCP + REST on Cloudflare Workers：`sess_*` 会话、`mem_*` 记忆 RAG、`
 | [scripts/setup-rag.sh](scripts/setup-rag.sh) | Vectorize 索引 + deploy |
 | [scripts/smoke.sh](scripts/smoke.sh) | `/health`、`/v1/me` |
 | [scripts/mem-vector-gc.sh](scripts/mem-vector-gc.sh) | 孤儿向量 GC |
+| [scripts/mem-migrate-legacy.sh](scripts/mem-migrate-legacy.sh) | 旧 MemoryDO 迁移 |
 | [scripts/issue_token.sh](scripts/issue_token.sh) | 签发 `cfb_*` |
 | [scripts/claude_worker.sh](scripts/claude_worker.sh) | restore vault → `claude` |
 | [tools/](tools/) | Python 客户端 |
@@ -113,7 +114,13 @@ API Token（Wrangler / GC）建议：Workers Scripts Edit、KV Edit、DO Edit、
 
 公开 `GET /` 状态页；可选 secrets `CF_ACCOUNT_ID`、`CF_API_TOKEN`（Analytics Read）显示 24h 用量。
 
-**Cron（0.8.1+）**：`0 4 * * *` UTC → `MEM_CRON_REINDEX` + `MEM_CRON_VECTOR_GC`（GC 需 CF API）。手动：`POST /v1/admin/mem/cron`。
+**Cron（0.8.2）**：`0 4 * * *` UTC → 增量 reindex（按 `max_updated_at` 跳过未变 owner）+ 分页 Vectorize GC（`MEM_CRON_GC_PAGES_PER_RUN`，KV 游标续扫）。报告存 KV，状态页 `cron_last`；可选 `MEM_CRON_WEBHOOK_URL`。
+
+| 运维 | 命令 |
+|------|------|
+| 手动 cron | `POST /v1/admin/mem/cron` |
+| 旧 DO 迁移 | `mem_migrate_legacy` / `POST /v1/mem/migrate-legacy`（需 `MEMORY_LEGACY` 绑定） |
+| 孤儿向量 | `mem_vector_gc` / `DRY_RUN=1 ./scripts/mem-vector-gc.sh` |
 
 ---
 
@@ -214,9 +221,9 @@ CLI 凭据：`tools/claude_code.py capture|restore|status`（等价 `sess_put` s
 | ID | 项 | 状态 |
 |----|-----|------|
 | TD-1 | 旧 `MemoryDO` stub | mitigated |
-| TD-2 | pre-0.8 数据需 re-import | open |
+| TD-2 | pre-0.8 数据迁移 | mitigated（`mem_migrate_legacy`） |
 | TD-3 | Vectorize 孤儿 | mitigated（GC + cron） |
-| TD-4 | Cron 全量 list 大索引慢 | open |
+| TD-4 | Cron 全量 list 大索引慢 | mitigated（分页 + KV 游标） |
 | TD-5 | `delete-class MemoryDO` | blocked |
 | TD-6 | 无真 BM25 | open |
 

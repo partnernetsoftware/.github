@@ -1,7 +1,7 @@
 {
   "product": "mcp-cf-bots",
   "ssot": "workers/mcp-cf-bots/mcp-cf-bots.mindmap",
-  "version": "0.8.1",
+  "version": "0.8.2",
   "updated_at": "2026-05-30T00:00:00Z",
   "north_star": "跨 Agent 的 HTTP MCP + REST：sess_* 会话、mem_* 记忆 RAG、cfb_* 多租户",
   "tree": {
@@ -26,7 +26,8 @@
           { "id": "mem-sqlite", "label": "MemorySqliteDO + chunk", "status": "done" },
           { "id": "mem-hybrid", "label": "Hybrid RRF search", "status": "done" },
           { "id": "mem-vectorize", "label": "Vectorize 加速器", "status": "done" },
-          { "id": "mem-cron", "label": "Cron reindex + vector GC", "status": "done" },
+          { "id": "mem-cron", "label": "Cron incremental reindex + paged GC + KV report", "status": "done" },
+          { "id": "mem-migrate", "label": "mem_migrate_legacy", "status": "done" },
           { "id": "mem-encrypt", "label": "MEM_ENCRYPT 静态加密", "status": "optional" }
         ]
       },
@@ -52,7 +53,9 @@
   },
   "tech_debt": [
     { "id": "TD-1", "label": "MemoryDO legacy stub", "status": "mitigated", "doc": "INDEX.md#技术债" },
-    { "id": "TD-2", "label": "Pre-0.8 data re-import", "status": "open", "doc": "INDEX.md#mem_-记忆-rag" },
+    { "id": "TD-2", "label": "Pre-0.8 data re-import", "status": "mitigated", "doc": "INDEX.md#mem_-记忆-rag" },
+    { "id": "TD-3", "label": "Vectorize orphan GC", "status": "mitigated", "doc": "INDEX.md#技术债" },
+    { "id": "TD-4", "label": "Cron paged vector list", "status": "mitigated", "doc": "INDEX.md#cloudflare-服务" },
     { "id": "TD-5", "label": "delete-class MemoryDO", "status": "blocked", "doc": "INDEX.md#技术债" }
   ],
   "cron": {

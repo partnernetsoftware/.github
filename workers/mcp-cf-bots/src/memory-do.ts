@@ -218,10 +218,12 @@ export class MemorySqliteDO implements DurableObject {
         keys: number;
         chunks: number;
         bytes: number;
+        max_updated_at: string | null;
       }>(
         `SELECT COUNT(DISTINCT mem_key) AS keys, COUNT(*) AS chunks,
-                COALESCE(SUM(LENGTH(content)), 0) AS bytes FROM mem_chunks`,
-      )[0] ?? { keys: 0, chunks: 0, bytes: 0 };
+                COALESCE(SUM(LENGTH(content)), 0) AS bytes,
+                MAX(updated_at) AS max_updated_at FROM mem_chunks`,
+      )[0] ?? { keys: 0, chunks: 0, bytes: 0, max_updated_at: null };
       return Response.json(row);
     }
 

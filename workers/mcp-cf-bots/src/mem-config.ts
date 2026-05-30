@@ -54,3 +54,7 @@ export function memCronOwnerLimit(env: Env): number {
 export function cfVectorGcReady(env: Env): boolean {
   return Boolean(trimOpt(env.CF_ACCOUNT_ID) && trimOpt(env.CF_API_TOKEN));
 }
+
+export function memCronGcPagesPerRun(env: Env): number {
+  return intOpt(env.MEM_CRON_GC_PAGES_PER_RUN, 5);
+}

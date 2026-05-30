@@ -4,13 +4,19 @@ import {
   memCronVectorGcEnabled,
   cfVectorGcReady,
 } from "./mem-config";
+import { loadCronReport, postCronWebhook, saveCronReport } from "./mem-cron-kv";
 import { listMemOwners, reindexOwners } from "./mem-reindex";
-import { gcOrphanVectorsAllOwners } from "./mem-vector-gc";
+import { gcOrphanVectorsIncremental } from "./mem-vector-gc";
 
 export type MemCronReport = {
   at: string;
   owners: string[];
-  reindex: Array<{ owner: string; upserted: number; error?: string }>;
+  reindex: Array<{
+    owner: string;
+    upserted: number;
+    skipped?: boolean;
+    error?: string;
+  }>;
   vector_gc: Array<{
     owner: string;
     scanned: number;
@@ -18,9 +24,14 @@ export type MemCronReport = {
     deleted: number;
     dry_run: boolean;
   }>;
+  vector_gc_meta?: {
+    pages_processed: number;
+    complete: boolean;
+    cursor?: string;
+  };
 };
 
-/** Daily cron: optional reindex + orphan Vectorize GC per owner. */
+/** Daily cron: incremental reindex + paginated orphan Vectorize GC. */
 export async function runMemCron(env: Env): Promise<MemCronReport> {
   const report: MemCronReport = {
     at: new Date().toISOString(),
@@ -30,12 +41,14 @@ export async function runMemCron(env: Env): Promise<MemCronReport> {
   };
 
   if (!env.MEMORY_STORE) {
+    await saveCronReport(env, report);
     return report;
   }
 
   const reindexOn = memCronReindexEnabled(env);
   const gcOn = memCronVectorGcEnabled(env) && cfVectorGcReady(env);
   if (!reindexOn && !gcOn) {
+    await saveCronReport(env, report);
     return report;
   }
 
@@ -47,10 +60,18 @@ export async function runMemCron(env: Env): Promise<MemCronReport> {
   }
 
   if (gcOn) {
-    report.vector_gc = await gcOrphanVectorsAllOwners(env, owners, {
-      dryRun: false,
-    });
+    const inc = await gcOrphanVectorsIncremental(env, owners, { dryRun: false });
+    report.vector_gc = inc.results;
+    report.vector_gc_meta = {
+      pages_processed: inc.pages_processed,
+      complete: inc.complete,
+      cursor: inc.cursor,
+    };
   }
 
+  await saveCronReport(env, report);
+  await postCronWebhook(env, report);
   return report;
 }
+
+export { loadCronReport };

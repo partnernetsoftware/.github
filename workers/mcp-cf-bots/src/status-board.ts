@@ -1,5 +1,6 @@
 import { mcpHttpPath, mcpServerInfo, trimOpt } from "./config";
 import { fetchWorkerUsageCached } from "./cf-analytics";
+import { loadCronReport } from "./mem-cron";
 import { ragBackend, semanticRagEnabled } from "./mem-embed";
 import { jsonResponse } from "./http-util";
 
@@ -41,6 +42,15 @@ export type StatusPayload = {
     };
   };
   notes: string[];
+  cron_last: {
+    available: boolean;
+    at?: string;
+    owners?: number;
+    reindex_upserted?: number;
+    gc_deleted?: number;
+    gc_pages?: number;
+    gc_complete?: boolean;
+  };
 };
 
 export async function buildStatusPayload(env: Env): Promise<StatusPayload> {
@@ -64,6 +74,7 @@ export async function buildStatusPayload(env: Env): Promise<StatusPayload> {
   }
 
   const usageResult = await fetchWorkerUsageCached(env);
+  const cronReport = await loadCronReport(env);
   const hasCfCreds = Boolean(trimOpt(env.CF_ACCOUNT_ID) && trimOpt(env.CF_API_TOKEN));
 
   const notes = [
@@ -76,6 +87,21 @@ export async function buildStatusPayload(env: Env): Promise<StatusPayload> {
       "Set wrangler secrets CF_ACCOUNT_ID and CF_API_TOKEN (Analytics Read) to show 24h usage here.",
     );
   }
+
+  const cronLast = cronReport
+    ? {
+        available: true,
+        at: cronReport.at,
+        owners: cronReport.owners.length,
+        reindex_upserted: cronReport.reindex.reduce(
+          (n, r) => n + (r.skipped ? 0 : r.upserted),
+          0,
+        ),
+        gc_deleted: cronReport.vector_gc.reduce((n, r) => n + r.deleted, 0),
+        gc_pages: cronReport.vector_gc_meta?.pages_processed,
+        gc_complete: cronReport.vector_gc_meta?.complete,
+      }
+    : { available: false };
 
   return {
     ok: true,
@@ -130,6 +156,7 @@ export async function buildStatusPayload(env: Env): Promise<StatusPayload> {
             : "Configure CF_ACCOUNT_ID + CF_API_TOKEN secrets.",
         },
     notes,
+    cron_last: cronLast,
   };
 }
 
@@ -194,6 +221,18 @@ function renderHtml(p: StatusPayload): string {
     ${feat(`RAG (${p.features.rag_backend})`, p.features.rag)}
     ${feat("multi-tenant", p.bindings.tokens_kv)}
   </p>
+  <h2>Last mem cron</h2>
+  ${
+    p.cron_last.available
+      ? `<table>
+        <tr><th>At</th><td><small>${esc(p.cron_last.at ?? "")}</small></td></tr>
+        <tr><th>Owners</th><td>${p.cron_last.owners ?? 0}</td></tr>
+        <tr><th>Reindex upserted</th><td>${p.cron_last.reindex_upserted ?? 0}</td></tr>
+        <tr><th>GC deleted</th><td>${p.cron_last.gc_deleted ?? 0}</td></tr>
+        <tr><th>GC pages</th><td>${p.cron_last.gc_pages ?? "—"} (complete: ${p.cron_last.gc_complete ? "yes" : "no"})</td></tr>
+      </table>`
+      : `<p class="muted">No cron report in KV yet.</p>`
+  }
   <h2>Worker usage (24h)</h2>
   ${usageBlock}
   <h2>Routes</h2>
