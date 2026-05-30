@@ -6,26 +6,42 @@ HTTP MCP + REST on Cloudflare Workers：`sess_*` 会话、`mem_*` 记忆 RAG、`
 
 ## 路线图
 
-> **SSOT 思维树**：[mcp-cf-bots.mindmap](mcp-cf-bots.mindmap)（含 `roadmap` 节点）。**每轮收尾必刷新**本节与 mindmap，避免走弯路。
+> **SSOT 思维树**：[mcp-cf-bots.mindmap](mcp-cf-bots.mindmap)（`roadmap.active_waves`）。**每轮收尾必刷新**本节与 mindmap。
 
-| 阶段 | 状态 | 说明 |
-|------|------|------|
-| **P0 稳态** | **已完成** | v0.8.2：SQLite mem、hybrid、migrate_legacy、分页 GC、cron 报告 |
-| **P1 检索质量** | **已完成** | v0.9.0：FTS5 关键词、search 过滤、`/health` 扩展标志 |
-| **P2 规模/安全** | **已完成** | v0.9.0：mem 限流、审计日志（余 TD-5 等见技术债） |
-| **P3 产品化** | **已完成** | v0.9.0：MCP resources、`MCP_PUBLIC_HOST` 自定义域 hint |
-| **稳态运维** | **当前** | 保 CI 绿、cron 跑通、按需 migrate/GC；新能力按需立项 |
+### 现状（v0.9.0）
 
-### 已完成里程碑
+| 项 | 值 |
+|----|-----|
+| **版本** | `0.9.0`（`wrangler.toml` → `MCP_SERVER_VERSION`） |
+| **当前阶段** | **W0 稳态运维**（`steady-ops`） |
+| **北极星** | 跨 Agent：`sess_*` + `mem_*` RAG + `cfb_*` 多租户 |
+| **P0–P3** | 已归档（见 mindmap `completed_phases_archive`） |
+
+### 下一波（按优先级，勿跳序大改检索）
+
+| 波次 | 状态 | 目标 | 启动条件 |
+|------|------|------|----------|
+| **W0 稳态** | **进行中** | CI 绿、cron/health 可观测、文档同步 | 持续 |
+| **W1 落地 0.9.0** | **下一步** | 合 PR、deploy、smoke；可选 `MCP_PUBLIC_HOST` | PR 合入 + `deploy.sh` 本地绿 |
+| **W2 集成测** | backlog | Miniflare / vitest-pool：DO + hybrid | W1 已上线、无 P0 事故 |
+| **W3 TD-5** | blocked | 删 `MemoryDO` class + 去 `MEMORY_LEGACY` | 全 owner 已 migrate，binding 可改 |
+
+**可选（无排期）**：生产 `MEM_ENCRYPT`、状态页 CF 用量图、hybrid 调参、MCP prompts。
+
+### 反思（0.9.0 后）
+
+- **已闭合**：检索栈（FTS + 过滤）、运维面（health/cron）、安全面（限流/审计）、产品面（`mem://` resources）。
+- **仍欠**：真 DO 集成测（TD-7）、legacy class 物理删除（TD-5）。
+- **协作**：并行 Task 按**单文件**拆；`memory-do` / 路由合并留在主线程。
+
+### 历史里程碑
 
 | 版本 | 交付 |
 |------|------|
-| 0.6+ | 生产清单、鉴权、多租户 `cfb_*` |
-| 0.7+ | `mem_*`、Vectorize、公开 `/` 状态页 |
-| 0.8.0 | MemorySqliteDO、分块、hybrid、INDEX 单文档 |
-| 0.8.1 | Cron、deploy 脚本、mindmap |
-| 0.8.2 | P0：legacy 迁移、增量 reindex、分页 Vectorize GC、KV `cron_last` |
-| 0.9.0 | P1–P3：FTS5、search 过滤（tag / updated_*）、扩展 `/health`、mem 限流、审计日志、MCP resources、自定义域 hint |
+| 0.6+ | 鉴权、`cfb_*` |
+| 0.7+ | `mem_*`、Vectorize、公开状态页 |
+| 0.8.x | SQLite DO、hybrid、cron、P0 migrate/GC |
+| 0.9.0 | P1–P3：FTS、过滤、限流、审计、MCP resources |
 
 ### 每轮收尾清单
 
@@ -277,7 +293,8 @@ CLI 凭据：`tools/claude_code.py capture|restore|status`（等价 `sess_put` s
 | TD-2 | pre-0.8 数据迁移 | mitigated（`mem_migrate_legacy`） |
 | TD-3 | Vectorize 孤儿 | mitigated（GC + cron） |
 | TD-4 | Cron 全量 list 大索引慢 | mitigated（分页 + KV 游标） |
-| TD-5 | `delete-class MemoryDO` | blocked |
-| TD-6 | FTS5 关键词（非 Vectorize BM25） | mitigated（0.9.0） |
+| TD-5 | `delete-class MemoryDO` | blocked → **W3** |
+| TD-6 | FTS5 关键词 | mitigated（0.9.0） |
+| TD-7 | Miniflare DO 集成测 | open → **W2** |
 
 详情同步 [mcp-cf-bots.mindmap](mcp-cf-bots.mindmap) → `tech_debt`。
