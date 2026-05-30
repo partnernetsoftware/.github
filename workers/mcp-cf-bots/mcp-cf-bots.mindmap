@@ -12,7 +12,7 @@
       "auth": "VAULT_TOKEN admin + TOKENS KV cfb_* 用户 token + 限流 + 审计"
     },
     "interfaces": ["GET /health", "POST /mcp", "/v1/session/*", "/v1/mem/*", "/v1/admin/*"],
-    "maturity": "生产可用；W2 hybrid 集成测进行中；W3 legacy 清理未开"
+    "maturity": "生产可用；W2 hybrid 集成测完成；W3 legacy 清理未开"
   },
   "architecture_decisions": {
     "canonical_entry": "单一 Worker；workers.dev + CLOUDFLARE_WORKER_DOMAIN（deploy 注入 custom_domain）",
@@ -27,7 +27,7 @@
     "current_phase": "steady-ops",
     "current_version": "0.9.3",
     "last_review": "2026-05-30",
-    "summary": "卫生轮：修复 admin cron 死路由、统一 owner/JSON 抽象、mem_delete 限流、security-check。线上 0.9.3。",
+    "summary": "W2：DO+mock Vectorize hybrid 集成测；MCP 401 排障脚本与 AGENTS gotcha。线上 0.9.3。",
     "for_discussion": [],
     "end_of_round": [
       "merge origin/main",
@@ -65,11 +65,11 @@
       {
         "id": "w2-integration-tests",
         "label": "W2 测试",
-        "status": "active",
+        "status": "done",
         "priority": 2,
         "items": [
           { "id": "w2-fts", "label": "DO FTS 集成测", "status": "done" },
-          { "id": "w2-hybrid", "label": "hybrid/Vectorize 集成测", "status": "pending" }
+          { "id": "w2-hybrid", "label": "hybrid/Vectorize 集成测", "status": "done" }
         ]
       },
       {
@@ -91,7 +91,7 @@
     { "id": "TD-5", "label": "delete-class MemoryDO", "status": "blocked", "wave": "w3-legacy-cleanup" },
     { "id": "TD-8", "label": "URL 漂移", "status": "mitigated", "note": "verify-all-urls" },
     { "id": "TD-9", "label": "admin cron 曾挂在 mem-rest 不可达", "status": "mitigated", "note": "0.9.3 admin-api" },
-    { "id": "TD-10", "label": "hybrid 无集成测", "status": "open", "wave": "w2-integration-tests" }
+    { "id": "TD-10", "label": "hybrid 无集成测", "status": "mitigated", "note": "memory-hybrid.test.ts + mem-hybrid-search.ts" }
   ],
   "doc_index": "INDEX.md"
 }

@@ -2,101 +2,19 @@ import type { AuthContext } from "./auth";
 import { isAdmin } from "./auth";
 import { ownerForTool } from "./owner-scope";
 import { checkMemRateLimit } from "./rate-limit";
-import {
-  deleteMemoryVectors,
-  embedText,
-  queryMemoryDoEmbed,
-  queryMemoryVectors,
-  ragBackend,
-  semanticRagEnabled,
-} from "./mem-embed";
-import { mergeHybridResults, type SearchHit } from "./mem-hybrid";
+import { deleteMemoryVectors, ragBackend } from "./mem-embed";
+import type { MemoryRecord } from "./memory-do";
+import { runHybridSearch, type MemSearchFilters } from "./mem-hybrid-search";
 import { migrateLegacyOwner } from "./mem-migrate";
 import { putMemory } from "./mem-put";
 import { reindexOwner } from "./mem-reindex";
 import { gcOrphanVectors, gcOrphanVectorsIncremental } from "./mem-vector-gc";
-import type { MemoryRecord } from "./memory-do";
 import { memoryStub } from "./memory-store";
 import { validateKey } from "./validate";
 
 export { reindexOwner, listMemOwners, reindexOwners } from "./mem-reindex";
 export { gcOrphanVectors, gcOrphanVectorsAllOwners } from "./mem-vector-gc";
 export { runMemCron } from "./mem-cron";
-
-type MemSearchFilters = {
-  tag?: string;
-  updated_after?: string;
-  updated_before?: string;
-};
-
-async function hybridSearch(
-  env: Env,
-  stub: DurableObjectStub,
-  owner: string,
-  query: string,
-  topK: number,
-  filters?: MemSearchFilters,
-): Promise<{ matches: SearchHit[]; mode: string }> {
-  const vectorHits: SearchHit[] = [];
-  const keywordHits: SearchHit[] = [];
-
-  if (ragBackend(env) === "vectorize") {
-    try {
-      const hits = await queryMemoryVectors(env, owner, query, topK);
-      for (const hit of hits) {
-        const gr = await stub.fetch(
-          `https://memory.internal/entry/${encodeURIComponent(hit.key)}`,
-        );
-        if (!gr.ok) {
-          continue;
-        }
-        const rec = (await gr.json()) as MemoryRecord;
-        vectorHits.push({
-          id: hit.mem_id,
-          key: hit.key,
-          score: hit.score,
-          content: rec.content,
-          tags: rec.tags,
-          updated_at: rec.updated_at,
-          source: "vector",
-        });
-      }
-    } catch {
-      /* continue */
-    }
-  }
-
-  const kwRes = await stub.fetch("https://memory.internal/search", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ query, top_k: topK, ...filters }),
-  });
-  if (kwRes.ok) {
-    const kw = (await kwRes.json()) as { matches: SearchHit[] };
-    for (const m of kw.matches) {
-      keywordHits.push({ ...m, source: "keyword" });
-    }
-  }
-
-  if (vectorHits.length === 0 && semanticRagEnabled(env)) {
-    try {
-      const qEmbed = await embedText(env, query);
-      const doHits = await queryMemoryDoEmbed(stub, qEmbed, topK);
-      for (const m of doHits) {
-        vectorHits.push({ ...m, source: "vector" });
-      }
-    } catch {
-      /* ignore */
-    }
-  }
-
-  if (vectorHits.length > 0 || keywordHits.length > 0) {
-    const merged = mergeHybridResults(vectorHits, keywordHits, topK);
-    return { matches: merged, mode: "hybrid" };
-  }
-
-  return { matches: [], mode: "hybrid" };
-}
 
 /** MCP `mem_*` tool handlers. */
 export async function memToolCall(
@@ -134,7 +52,7 @@ export async function memToolCall(
     if (typeof args.updated_before === "string" && args.updated_before.trim()) {
       filters.updated_before = args.updated_before.trim();
     }
-    const { matches, mode } = await hybridSearch(env, stub, owner, query, topK, filters);
+    const { matches, mode } = await runHybridSearch(env, stub, owner, query, topK, filters);
     return JSON.stringify({ matches, mode }, null, 2);
   }
 

@@ -31,6 +31,7 @@ Multi-product personal codebase:
 
 ### Gotchas
 
+- **mcp-cf-bots MCP 401**：`/health` 200 但 `/mcp` 或 `/v1/me` 401 → 用户 token 须为签发的 `cfb_*`（非 16 字符占位）；`VAULT_TOKEN` 须 `wrangler secret put --name $CLOUDFLARE_WORKER_NAME` 与 URL 同 Worker。见 [`workers/mcp-cf-bots/INDEX.md#连不上--mcp-401排查`](workers/mcp-cf-bots/INDEX.md)、`./scripts/diagnose-connection.sh`。
 - **webrick**: Jekyll 3.x on Ruby 3+ requires `gem "webrick"` in Gemfile (removed from stdlib in Ruby 3.0).
 - **Bundle path**: Use `bundle config set --local path 'vendor/bundle'` to avoid system gem permission issues.
 - **ctx.py singleton**: The `check_singleton()` in `ctx.py` greps `ps aux` for `ctx.py server` and may kill its own process. For testing, instantiate `MCPServer` directly in Python.

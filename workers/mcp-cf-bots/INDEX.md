@@ -26,7 +26,7 @@ HTTP MCP + REST on Cloudflare Workers：`sess_*` 会话、`mem_*` 记忆 RAG、`
 | **本轮修复** | `POST /v1/admin/mem/cron` 迁至 `admin-api`（原在 `mem-rest` 不可达）；`ownerFromHttpRequest`；`mem_delete` 限流 |
 | **门禁** | `scripts/security-check.sh` + `deploy.sh` → `verify-all-urls` |
 | **你怎么连** | `MCP_CF_BOTS_URL` = `CLOUDFLARE_WORKER_DOMAIN`；用户 `cfb_*`；admin `VAULT_TOKEN` |
-| **下一步** | **W2** hybrid 集成测 → **W3** 删 MemoryDO |
+| **下一步** | **W3** 删 MemoryDO（**W2** hybrid 集成测已完成） |
 
 ### 每轮标准流程
 
@@ -45,7 +45,7 @@ git checkout main && git merge <feature-branch> && git push origin main
 |------|------|------|
 | **W-卫生** | **完成** | cron 路由、HTTP 抽象、security-check、delete 限流 |
 | **W0** | 持续 | merge → security-check → test → deploy → verify |
-| **W2** | **当前** | hybrid/Vectorize 集成测（FTS 已有） |
+| **W2** | **完成** | DO embed + mock Vectorize hybrid 集成测 |
 | **W3** | blocked | TD-5 删 MemoryDO |
 
 ### 历史里程碑
@@ -93,6 +93,8 @@ git checkout main && git merge <feature-branch> && git push origin main
 | [scripts/mem-vector-gc.sh](scripts/mem-vector-gc.sh) | 孤儿向量 GC |
 | [scripts/mem-migrate-legacy.sh](scripts/mem-migrate-legacy.sh) | 旧 MemoryDO 迁移 |
 | [scripts/issue_token.sh](scripts/issue_token.sh) | 签发 `cfb_*` |
+| [scripts/diagnose-connection.sh](scripts/diagnose-connection.sh) | health + `/v1/me` + MCP initialize |
+| [scripts/sync-vault-secret.sh](scripts/sync-vault-secret.sh) | `VAULT_TOKEN` → 正确 Worker |
 | [scripts/claude_worker.sh](scripts/claude_worker.sh) | restore vault → `claude` |
 | [tools/](tools/) | Python 客户端 |
 | [snippets/](snippets/) | 浏览器 Console cookie |
