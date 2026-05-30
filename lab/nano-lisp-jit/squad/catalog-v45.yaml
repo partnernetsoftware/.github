@@ -1034,6 +1034,30 @@ tasks:
     accept:
       - "v45.goal.compose15_regenesis_promote_continue.100=1"
 
+  wave88-v45-track-a-strict:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "lisp/bootstrap/bootstrap-v45-goal-nano-jit-com-strict-done.lisp"
+    accept:
+      - "v45.goal.nano_jit_com.strict_done=1"
+  wave88-v45-track-b-terminal:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "retired/scripts/v45-wave88-terminal-strict-done-converge.sh"
+      - "v4.5/mindmap-frontier-v45-terminal-strict-done.json"
+    accept:
+      - "v45-wave88-terminal-strict-done-converge done"
+  wave88-v45-R:
+    assign_role: reviewer
+    priority: meta
+    depends:
+      - wave88-v45-track-a-strict
+      - wave88-v45-track-b-terminal
+    accept:
+      - "v45.goal.nano_jit_com.strict_done=1"
+
 verify:
   commands:
     - script: retired/scripts/v45-wave69-run-sh-archive-honest-converge.sh

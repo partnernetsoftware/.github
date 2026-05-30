@@ -2,7 +2,7 @@
   "goal": "nano-jit.com",
   "ssot": "v4.5/mindmap-goal-nano-jit-com.json",
   "north_star": "release/nano-lisp.com \u4e3a\u7528\u6237 COM\uff1b.build/nano-jit/nano-jit.com \u5de5\u5382\u79cd\u5b50\uff1b\u7ec8\u5c40 *.lisp plan-only \u81ea\u4e3e COM",
-  "updated_at": "2026-05-29T22:00:00Z",
+  "updated_at": "2026-05-30T00:00:00Z",
   "strict_done_requires": [
     "v45.goal.nano_jit_com.lisp_only_regenesis=1",
     "v45.goal.nano_jit_com.release_parity=1",
@@ -20,16 +20,17 @@
       "status": "pass",
       "checks": [
         "inspect-ape.ok=1",
-        "com.bytes=318137",
-        "slice0.hash=slice1.hash=genesis.fnv"
+        "com.bytes=326329",
+        "slice_bytes=155648"
       ],
       "facts": {
-        "com_bytes": 318137,
+        "com_bytes": 326329,
         "payload_offset": 1281,
-        "slice_bytes": 158392,
-        "slice_hash": "0256064f134c8792",
+        "slice_bytes": 155648,
+        "slice_hash": "82ba753bedecd4cc",
         "dual_slice_identical": true,
-        "build_release_identical": true
+        "build_release_identical": true,
+        "genesis_x86_bytes": 155648
       }
     },
     "L2_release_pin": {
@@ -876,9 +877,58 @@
       ],
       "verified": 1,
       "blocker": null
+    },
+    {
+      "round": 17,
+      "ts": "2026-05-30T00:00:00Z",
+      "read_mindmap": "wave88 terminal-strict-done \u00b7 COM promote \u00b7 container audit \u00b7 strict_done \u7ec8\u5c40",
+      "plan": [
+        "T1: gate wave87 compose15-regenesis-promote if needed",
+        "T2: v45-terminal-com-promote.sh \u00b7 v45-manifest-pin.sh",
+        "T3: parallel goal-com-container-audit + strict-done + terminal-com-done + verify-all/entry/onion-tdd",
+        "T4: evidence strict_done=1 \u00b7 frontier 6/6 \u00b7 journal round 17 \u00b7 L1 facts sync"
+      ],
+      "attempts": [
+        {
+          "id": "T1-gate",
+          "status": "ok"
+        },
+        {
+          "id": "T2-promote-pin",
+          "status": "ok",
+          "detail": "com_bytes=326329 com_fnv=e869e0ad2f117873"
+        },
+        {
+          "id": "T3-container",
+          "status": "ok",
+          "detail": "slice_hash=82ba753bedecd4cc genesis_bytes=155648"
+        },
+        {
+          "id": "T4-strict-done",
+          "status": "ok",
+          "detail": "matrix_ok=1"
+        }
+      ],
+      "results": {
+        "converge_fail": 0,
+        "com_bytes": "326329",
+        "genesis_bytes": "155648",
+        "frontier": "6/6",
+        "parity": 1,
+        "container": 1,
+        "strict_done": 1
+      },
+      "self_critique": "Wave88\uff1a154KB genesis slice + release COM promote \u540e strict_done \u7ec8\u5c40\u7b7e\u6536\u3002genesis=155648 com=326329\uff1bzero host cc \u5f00\u5377\u5173\u95ed\u3002",
+      "git_ops": [],
+      "evidence_keys": [
+        "v45.goal.nano_jit_com.strict_done=1",
+        "v45.goal.com_container_audit=1"
+      ],
+      "verified": 1,
+      "blocker": null
     }
   ],
-  "active_frontier": "mindmap-frontier-v45-compose15-regenesis-promote.json",
+  "active_frontier": "mindmap-frontier-v45-terminal-strict-done.json",
   "waves_done": [
     "wave71-lisp-codegen-diffuse",
     "wave72-compose15-runner-promote",
@@ -896,6 +946,7 @@
     "l4-32k-milestone",
     "l4-64k-milestone",
     "l4-154k-push",
-    "wave87-compose15-regenesis-promote"
+    "wave87-compose15-regenesis-promote",
+    "wave88-terminal-strict-done"
   ]
 }

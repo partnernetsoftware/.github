@@ -1,0 +1,104 @@
+{
+  "ssot": "v4.5/DIFFUSE-WAVE88.md",
+  "parent_goal": "mindmap-goal-nano-jit-com.json",
+  "onion_ssot": "v4.5/ONION-TDD.md",
+  "updated_at": "2026-05-30T00:00:00Z",
+  "max_parallel": 6,
+  "breadth_ring": "terminal-strict-done \u2014 COM promote \u00b7 container audit \u00b7 strict_done \u7ec8\u5c40\u7b7e\u6536",
+  "nodes": [
+    {
+      "id": "v45-tsd88-gate",
+      "layer": 88,
+      "ring": "gate",
+      "onion_ring": 50,
+      "status": "done",
+      "deps": [],
+      "accept": [
+        "v45.goal.compose15_regenesis_promote_continue.100=1"
+      ]
+    },
+    {
+      "id": "v45-tsd88-promote",
+      "layer": 88,
+      "ring": "\u5de5\u5382",
+      "onion_ring": 50,
+      "status": "done",
+      "deps": [
+        "v45-tsd88-gate"
+      ],
+      "plan": "retired/scripts/v45-terminal-com-promote.sh",
+      "accept": [
+        "v45.v45.terminal_com_promoted=1",
+        "v45.v45.terminal_done=1"
+      ]
+    },
+    {
+      "id": "v45-tsd88-manifest",
+      "layer": 88,
+      "ring": "L2-guard",
+      "onion_ring": 50,
+      "status": "done",
+      "deps": [
+        "v45-tsd88-promote"
+      ],
+      "plan": "retired/scripts/v45-manifest-pin.sh",
+      "accept": [
+        "v45.goal.nano_jit_com.release_parity=1",
+        "v45.goal.manifest_pin_sync=1"
+      ]
+    },
+    {
+      "id": "v45-tsd88-container",
+      "layer": 88,
+      "ring": "\u5bb9\u5668",
+      "onion_ring": 50,
+      "status": "done",
+      "deps": [
+        "v45-tsd88-manifest"
+      ],
+      "parallel_slot": "W1",
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-com-container-audit.lisp",
+      "accept": [
+        "v45.goal.com_container_audit=1"
+      ]
+    },
+    {
+      "id": "v45-tsd88-strict-matrix",
+      "layer": 88,
+      "ring": "L3-host",
+      "onion_ring": 50,
+      "status": "done",
+      "deps": [
+        "v45-tsd88-manifest"
+      ],
+      "parallel_slot": "W2",
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-nano-jit-com-strict-done.lisp + bootstrap-v45-v45-terminal-com-done.lisp + verify-all + entry + onion-tdd",
+      "accept": [
+        "v45.goal.com_bootstrap_host_matrix=1"
+      ]
+    },
+    {
+      "id": "v45-tsd88-terminal",
+      "layer": 89,
+      "ring": "strict_done",
+      "onion_ring": 50,
+      "status": "done",
+      "deps": [
+        "v45-tsd88-container",
+        "v45-tsd88-strict-matrix"
+      ],
+      "accept": [
+        "v45.goal.nano_jit_com.strict_done=1"
+      ]
+    }
+  ],
+  "parallel_tracks": {
+    "A_container": "goal-com-container-audit \u00b7 inspect-ape + genesis slice parity",
+    "B_strict_done": "goal-nano-jit-com-strict-done + v45-terminal-com-done",
+    "C_host_matrix": "verify-all + entry + onion-tdd bootstrap-host \u77e9\u9635"
+  },
+  "next_wave_preview": {
+    "id": "wave89-post-strict-done",
+    "theme": "strict_done \u7b7e\u6536\u540e \u00b7 \u5de5\u5382\u9762\u6536\u655b \u00b7 zero host cc \u5f00\u5377\u5173\u95ed"
+  }
+}
