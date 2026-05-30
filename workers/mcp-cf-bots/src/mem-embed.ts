@@ -16,17 +16,14 @@ export function ragBackend(env: Env): RagBackend {
   return "keyword";
 }
 
-/** Semantic search available (Workers AI). */
 export function semanticRagEnabled(env: Env): boolean {
   return Boolean(env.AI);
 }
 
-/** Vectorize accelerator bound. */
 export function vectorizeEnabled(env: Env): boolean {
   return Boolean(env.MEM_VECTORS);
 }
 
-/** @deprecated use semanticRagEnabled */
 export function ragEnabled(env: Env): boolean {
   return semanticRagEnabled(env);
 }
@@ -48,9 +45,10 @@ export async function embedText(env: Env, text: string): Promise<number[]> {
 export async function upsertMemoryVector(
   env: Env,
   owner: string,
-  memId: string,
+  chunkId: string,
   key: string,
   content: string,
+  chunkIndex = 0,
 ): Promise<void> {
   if (!env.MEM_VECTORS) {
     return;
@@ -58,22 +56,47 @@ export async function upsertMemoryVector(
   const values = await embedText(env, `${key}\n${content}`);
   await env.MEM_VECTORS.upsert([
     {
-      id: memoryVectorId(owner, memId),
+      id: memoryVectorId(owner, chunkId),
       values,
-      metadata: { owner, key, mem_id: memId },
+      metadata: { owner, key, mem_id: chunkId, chunk_index: chunkIndex },
     },
   ]);
 }
 
-export async function deleteMemoryVector(
+export async function upsertMemoryVectors(
   env: Env,
   owner: string,
-  memId: string,
+  items: Array<{ chunkId: string; key: string; content: string; chunkIndex: number }>,
 ): Promise<void> {
-  if (!env.MEM_VECTORS) {
+  if (!env.MEM_VECTORS || items.length === 0) {
     return;
   }
-  await env.MEM_VECTORS.deleteByIds([memoryVectorId(owner, memId)]);
+  const vectors = [];
+  for (const item of items) {
+    const values = await embedText(env, `${item.key}\n${item.content}`);
+    vectors.push({
+      id: memoryVectorId(owner, item.chunkId),
+      values,
+      metadata: {
+        owner,
+        key: item.key,
+        mem_id: item.chunkId,
+        chunk_index: item.chunkIndex,
+      },
+    });
+  }
+  await env.MEM_VECTORS.upsert(vectors);
+}
+
+export async function deleteMemoryVectors(
+  env: Env,
+  owner: string,
+  chunkIds: string[],
+): Promise<void> {
+  if (!env.MEM_VECTORS || chunkIds.length === 0) {
+    return;
+  }
+  await env.MEM_VECTORS.deleteByIds(chunkIds.map((id) => memoryVectorId(owner, id)));
 }
 
 export async function queryMemoryVectors(
@@ -94,7 +117,7 @@ export async function queryMemoryVectors(
   }
   const values = await embedText(env, query);
   const result = await env.MEM_VECTORS.query(values, {
-    topK,
+    topK: topK * 2,
     returnMetadata: "all",
     filter: { owner },
   });
@@ -106,7 +129,6 @@ export async function queryMemoryVectors(
   }));
 }
 
-/** Semantic search inside MemoryDO (when Vectorize index not bound yet). */
 export async function queryMemoryDoEmbed(
   stub: DurableObjectStub,
   queryEmbedding: number[],

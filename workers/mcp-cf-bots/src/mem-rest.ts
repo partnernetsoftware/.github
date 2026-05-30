@@ -1,4 +1,4 @@
-import { effectiveOwner, type AuthContext } from "./auth";
+import { effectiveOwner, isAdmin, type AuthContext } from "./auth";
 import { readOwnerHeader } from "./config";
 import { apiError } from "./http-util";
 import { memToolCall } from "./mem-tools";
@@ -32,6 +32,66 @@ export async function handleMemRest(
   }
 
   const owner = ownerFromMemRequest(auth, env, url, request);
+
+  if (url.pathname === "/v1/mem/import" && request.method === "POST") {
+    let body: { entries?: unknown };
+    try {
+      body = (await request.json()) as { entries?: unknown };
+    } catch {
+      return apiError(400, "Invalid JSON");
+    }
+    const text = await memToolCall(
+      env,
+      "mem_import",
+      { entries: body.entries, owner },
+      auth,
+      owner,
+    );
+    return new Response(text, {
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  if (url.pathname === "/v1/mem/stats" && request.method === "GET") {
+    if (!isAdmin(auth)) {
+      return apiError(403, "Forbidden");
+    }
+    const text = await memToolCall(
+      env,
+      "mem_stats",
+      { owner: url.searchParams.get("owner") ?? owner },
+      auth,
+      owner,
+    );
+    return new Response(text, {
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  if (url.pathname === "/v1/mem/reindex" && request.method === "POST") {
+    if (!isAdmin(auth)) {
+      return apiError(403, "Forbidden");
+    }
+    let body: { owner?: string } = {};
+    try {
+      const raw = await request.text();
+      if (raw.trim()) {
+        body = JSON.parse(raw) as { owner?: string };
+      }
+    } catch {
+      return apiError(400, "Invalid JSON");
+    }
+    const text = await memToolCall(
+      env,
+      "mem_reindex",
+      { owner: body.owner ?? owner },
+      auth,
+      owner,
+    );
+    return new Response(text, {
+      headers: { "Content-Type": "application/json" },
+    });
+  }
 
   if (url.pathname === "/v1/mem/search" && request.method === "POST") {
     let body: { query?: string; top_k?: number };
@@ -85,16 +145,26 @@ export async function handleMemRest(
   }
 
   if (request.method === "PUT") {
-    let body: { content?: string; tags?: unknown };
+    let body: { content?: string; tags?: unknown; expires_at?: string };
     try {
-      body = (await request.json()) as { content?: string; tags?: unknown };
+      body = (await request.json()) as {
+        content?: string;
+        tags?: unknown;
+        expires_at?: string;
+      };
     } catch {
       return apiError(400, "Invalid JSON");
     }
     const text = await memToolCall(
       env,
       "mem_put",
-      { key, content: body.content, tags: body.tags, owner },
+      {
+        key,
+        content: body.content,
+        tags: body.tags,
+        expires_at: body.expires_at,
+        owner,
+      },
       auth,
       owner,
     );

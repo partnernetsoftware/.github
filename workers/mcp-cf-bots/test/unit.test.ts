@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { safeEqual } from "../src/http-util";
+import { splitMemoryContent } from "../src/mem-chunk";
+import { mergeHybridResults } from "../src/mem-hybrid";
 import { ragBackend, semanticRagEnabled } from "../src/mem-embed";
 import { memoryVectorId } from "../src/memory-store";
 import { resolveToolName, TOOL_ALIASES } from "../src/tool-aliases";
@@ -69,6 +71,53 @@ describe("validate", () => {
     for (const t of tools.filter((x) => x.name.startsWith("mem_"))) {
       expect(t.properties).not.toHaveProperty("owner");
     }
+  });
+});
+
+describe("mem chunk", () => {
+  it("splits long text into multiple chunks", () => {
+    const text = "a".repeat(2000);
+    const chunks = splitMemoryContent(text, 500);
+    expect(chunks.length).toBeGreaterThan(1);
+    expect(chunks[0]!.index).toBe(0);
+  });
+
+  it("keeps short text as one chunk", () => {
+    expect(splitMemoryContent("hello", 1500)).toEqual([
+      { index: 0, text: "hello" },
+    ]);
+  });
+});
+
+describe("mem hybrid", () => {
+  it("merges vector and keyword hits via RRF", () => {
+    const base = {
+      content: "x",
+      updated_at: "2026-01-01T00:00:00Z",
+    };
+    const merged = mergeHybridResults(
+      [
+        {
+          id: "1",
+          key: "a",
+          score: 0.9,
+          source: "vector",
+          ...base,
+        },
+      ],
+      [
+        {
+          id: "2",
+          key: "b",
+          score: 1,
+          source: "keyword",
+          ...base,
+        },
+      ],
+      2,
+    );
+    expect(merged).toHaveLength(2);
+    expect(merged[0]!.key).toBeTruthy();
   });
 });
 

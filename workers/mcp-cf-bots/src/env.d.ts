@@ -33,4 +33,15 @@ interface Env {
   CF_ACCOUNT_ID?: string;
   /** Optional — API token with Account Analytics Read */
   CF_API_TOKEN?: string;
+
+  /** Memory chunk size in chars (default 1500) */
+  MEM_CHUNK_CHARS?: string;
+  /** Max distinct memory keys per owner DO (default 2000) */
+  MAX_MEM_KEYS?: string;
+  /** Max total stored bytes per owner DO (default 8_000_000) */
+  MAX_MEM_BYTES?: string;
+  /** Max single put body chars (default 32_000) */
+  MAX_MEM_CHUNK_BYTES?: string;
+  /** Encrypt memory content at rest in DO (1/true/yes) */
+  MEM_ENCRYPT?: string;
 }

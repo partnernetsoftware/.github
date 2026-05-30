@@ -1,54 +1,206 @@
 import type { AuthContext } from "./auth";
+import { isAdmin } from "./auth";
 import { ownerForTool } from "./owner-scope";
+import { memMaxBytes, memMaxKeys } from "./mem-config";
+import { splitForStorage } from "./mem-chunk";
 import {
-  deleteMemoryVector,
+  deleteMemoryVectors,
   embedText,
   queryMemoryDoEmbed,
   queryMemoryVectors,
   ragBackend,
   semanticRagEnabled,
-  upsertMemoryVector,
+  upsertMemoryVectors,
 } from "./mem-embed";
+import { mergeHybridResults, type SearchHit } from "./mem-hybrid";
 import type { MemoryRecord } from "./memory-do";
 import { memoryStub } from "./memory-store";
 import { validateKey } from "./validate";
 
-async function putRecord(
+type PutResult = MemoryRecord & { replaced_chunk_ids?: string[] };
+
+async function syncVectors(
+  env: Env,
+  owner: string,
+  key: string,
+  chunks: Array<{ chunkId: string; text: string; index: number }>,
+  deleteIds: string[],
+): Promise<void> {
+  if (deleteIds.length > 0) {
+    try {
+      await deleteMemoryVectors(env, owner, deleteIds);
+    } catch {
+      /* ignore */
+    }
+  }
+  if (!env.MEM_VECTORS || !semanticRagEnabled(env)) {
+    return;
+  }
+  try {
+    await upsertMemoryVectors(
+      env,
+      owner,
+      chunks.map((c) => ({
+        chunkId: c.chunkId,
+        key,
+        content: c.text,
+        chunkIndex: c.index,
+      })),
+    );
+  } catch {
+    /* DO / keyword still work */
+  }
+}
+
+async function putMemory(
   env: Env,
   owner: string,
   key: string,
   content: string,
-  tags?: string[],
-): Promise<MemoryRecord> {
+  opts?: { tags?: string[]; expires_at?: string },
+): Promise<PutResult> {
   const stub = memoryStub(env, owner);
-  let embedding: number[] | undefined;
-  if (semanticRagEnabled(env)) {
-    try {
-      embedding = await embedText(env, `${key}\n${content}`);
-    } catch {
-      embedding = undefined;
+  const parts = splitForStorage(content, env);
+  const chunkPayloads: Array<{ content: string; embedding?: number[] }> = [];
+
+  for (const part of parts) {
+    let embedding: number[] | undefined;
+    if (semanticRagEnabled(env)) {
+      try {
+        embedding = await embedText(env, `${key}\n${part.text}`);
+      } catch {
+        embedding = undefined;
+      }
     }
+    chunkPayloads.push({ content: part.text, embedding });
   }
+
   const res = await stub.fetch(
     `https://memory.internal/entry/${encodeURIComponent(key)}`,
     {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ content, tags, embedding }),
+      body: JSON.stringify({
+        chunks: chunkPayloads,
+        tags: opts?.tags,
+        expires_at: opts?.expires_at,
+        quota: { max_keys: memMaxKeys(env), max_bytes: memMaxBytes(env) },
+      }),
     },
   );
   if (!res.ok) {
     throw new Error(await res.text());
   }
-  const rec = (await res.json()) as MemoryRecord;
-  if (env.MEM_VECTORS && embedding) {
+  const rec = (await res.json()) as PutResult;
+  const chunkIds = rec.chunk_ids ?? [rec.id];
+  await syncVectors(
+    env,
+    owner,
+    key,
+    parts.map((p, i) => ({
+      chunkId: chunkIds[i] ?? rec.id,
+      text: p.text,
+      index: p.index,
+    })),
+    rec.replaced_chunk_ids ?? [],
+  );
+  return rec;
+}
+
+async function hybridSearch(
+  env: Env,
+  stub: DurableObjectStub,
+  owner: string,
+  query: string,
+  topK: number,
+): Promise<{ matches: SearchHit[]; mode: string }> {
+  const vectorHits: SearchHit[] = [];
+  const keywordHits: SearchHit[] = [];
+
+  if (ragBackend(env) === "vectorize") {
     try {
-      await upsertMemoryVector(env, owner, rec.id, rec.key, rec.content);
+      const hits = await queryMemoryVectors(env, owner, query, topK);
+      for (const hit of hits) {
+        const gr = await stub.fetch(
+          `https://memory.internal/entry/${encodeURIComponent(hit.key)}`,
+        );
+        if (!gr.ok) {
+          continue;
+        }
+        const rec = (await gr.json()) as MemoryRecord;
+        vectorHits.push({
+          id: hit.mem_id,
+          key: hit.key,
+          score: hit.score,
+          content: rec.content,
+          tags: rec.tags,
+          updated_at: rec.updated_at,
+          source: "vector",
+        });
+      }
     } catch {
-      /* DO embed still works */
+      /* continue */
     }
   }
-  return rec;
+
+  const kwRes = await stub.fetch("https://memory.internal/search", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ query, top_k: topK }),
+  });
+  if (kwRes.ok) {
+    const kw = (await kwRes.json()) as { matches: SearchHit[] };
+    for (const m of kw.matches) {
+      keywordHits.push({ ...m, source: "keyword" });
+    }
+  }
+
+  if (vectorHits.length === 0 && semanticRagEnabled(env)) {
+    try {
+      const qEmbed = await embedText(env, query);
+      const doHits = await queryMemoryDoEmbed(stub, qEmbed, topK);
+      for (const m of doHits) {
+        vectorHits.push({ ...m, source: "vector" });
+      }
+    } catch {
+      /* ignore */
+    }
+  }
+
+  if (vectorHits.length > 0 || keywordHits.length > 0) {
+    const merged = mergeHybridResults(vectorHits, keywordHits, topK);
+    return { matches: merged, mode: "hybrid" };
+  }
+
+  return { matches: [], mode: "hybrid" };
+}
+
+async function reindexOwner(env: Env, owner: string): Promise<{ upserted: number }> {
+  const stub = memoryStub(env, owner);
+  const res = await stub.fetch("https://memory.internal/export");
+  if (!res.ok) {
+    throw new Error(await res.text());
+  }
+  const { chunks } = (await res.json()) as {
+    chunks: Array<{ id: string; key: string; chunk_index: number; content: string }>;
+  };
+  if (!env.MEM_VECTORS || !semanticRagEnabled(env)) {
+    return { upserted: 0 };
+  }
+  const { maybeDecryptContent } = await import("./mem-crypto");
+  const items: Array<{ chunkId: string; key: string; content: string; chunkIndex: number }> =
+    [];
+  for (const c of chunks) {
+    const plain = await maybeDecryptContent(env, c.content);
+    items.push({
+      chunkId: c.id,
+      key: c.key,
+      content: plain,
+      chunkIndex: c.chunk_index,
+    });
+  }
+  await upsertMemoryVectors(env, owner, items);
+  return { upserted: items.length };
 }
 
 /** MCP `mem_*` tool handlers. */
@@ -61,15 +213,13 @@ export async function memToolCall(
 ): Promise<string> {
   const owner = ownerForTool(auth, env, args, requestOwner);
   const stub = memoryStub(env, owner);
-  const backend = ragBackend(env);
 
   if (name === "mem_list") {
     const url = new URL("https://memory.internal/entries");
     if (typeof args.tag === "string" && args.tag) {
       url.searchParams.set("tag", args.tag);
     }
-    const res = await stub.fetch(url.toString());
-    return res.text();
+    return (await stub.fetch(url.toString())).text();
   }
 
   if (name === "mem_search") {
@@ -78,57 +228,53 @@ export async function memToolCall(
       throw new Error("query is required");
     }
     const topK = Math.min(Math.max(Number(args.top_k) || 5, 1), 20);
+    const { matches, mode } = await hybridSearch(env, stub, owner, query, topK);
+    return JSON.stringify({ matches, mode }, null, 2);
+  }
 
-    if (backend === "vectorize") {
-      try {
-        const hits = await queryMemoryVectors(env, owner, query, topK);
-        if (hits.length > 0) {
-          const matches = [];
-          for (const hit of hits) {
-            const res = await stub.fetch(
-              `https://memory.internal/entry/${encodeURIComponent(hit.key)}`,
-            );
-            if (!res.ok) {
-              continue;
-            }
-            const rec = (await res.json()) as MemoryRecord;
-            matches.push({
-              id: rec.id,
-              key: rec.key,
-              score: hit.score,
-              tags: rec.tags,
-              content: rec.content,
-              updated_at: rec.updated_at,
-            });
-          }
-          return JSON.stringify({ matches, mode: "vectorize" }, null, 2);
-        }
-      } catch {
-        /* fall through */
-      }
+  if (name === "mem_import") {
+    const entries = args.entries;
+    if (!Array.isArray(entries)) {
+      throw new Error("entries array is required");
     }
-
-    if (backend === "vectorize" || backend === "do_embed") {
-      try {
-        const qEmbed = await embedText(env, query);
-        const matches = await queryMemoryDoEmbed(stub, qEmbed, topK);
-        if (matches.length > 0) {
-          return JSON.stringify(
-            { matches, mode: backend === "vectorize" ? "do_embed_fallback" : "do_embed" },
-            null,
-            2,
-          );
-        }
-      } catch {
-        /* keyword */
+    let ok = 0;
+    for (const raw of entries) {
+      const row = raw as Record<string, unknown>;
+      const key = validateKey("key", String(row.key ?? ""));
+      const content = String(row.content ?? "").trim();
+      if (!content) {
+        continue;
       }
+      const tags = Array.isArray(row.tags) ? row.tags.map(String) : undefined;
+      const expires_at =
+        typeof row.expires_at === "string" ? row.expires_at : undefined;
+      await putMemory(env, owner, key, content, { tags, expires_at });
+      ok++;
     }
+    return JSON.stringify({ ok: true, imported: ok }, null, 2);
+  }
 
-    const res = await stub.fetch("https://memory.internal/search", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ query, top_k: topK }),
-    });
+  if (name === "mem_reindex") {
+    if (!isAdmin(auth)) {
+      throw new Error("forbidden: admin token required");
+    }
+    const target =
+      typeof args.owner === "string" && args.owner.trim()
+        ? args.owner.trim()
+        : owner;
+    const result = await reindexOwner(env, target);
+    return JSON.stringify(result, null, 2);
+  }
+
+  if (name === "mem_stats") {
+    if (!isAdmin(auth)) {
+      throw new Error("forbidden: admin token required");
+    }
+    const target =
+      typeof args.owner === "string" && args.owner.trim()
+        ? args.owner.trim()
+        : owner;
+    const res = await memoryStub(env, target).fetch("https://memory.internal/stats");
     return res.text();
   }
 
@@ -140,12 +286,15 @@ export async function memToolCall(
       throw new Error("content is required");
     }
     const tags = Array.isArray(args.tags) ? args.tags.map(String) : undefined;
-    const rec = await putRecord(env, owner, key, content, tags);
+    const expires_at =
+      typeof args.expires_at === "string" ? args.expires_at : undefined;
+    const rec = await putMemory(env, owner, key, content, { tags, expires_at });
     return JSON.stringify(
       {
         ok: true,
         id: rec.id,
         key: rec.key,
+        chunks: rec.chunks,
         rag_backend: ragBackend(env),
       },
       null,
@@ -175,14 +324,9 @@ export async function memToolCall(
       `https://memory.internal/entry/${encodeURIComponent(key)}`,
       { method: "DELETE" },
     );
-    if (env.MEM_VECTORS) {
-      try {
-        await deleteMemoryVector(env, owner, existing.id);
-      } catch {
-        /* ignore */
-      }
-    }
-    return res.text();
+    const body = (await res.json()) as { deleted_chunk_ids?: string[] };
+    await deleteMemoryVectors(env, owner, body.deleted_chunk_ids ?? existing.chunk_ids ?? [existing.id]);
+    return JSON.stringify(body, null, 2);
   }
 
   throw new Error(`Unknown mem tool: ${name}`);

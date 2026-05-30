@@ -142,12 +142,14 @@ const SESS_TOOL_DEFS: ToolDef[] = [
 const MEM_TOOL_DEFS: ToolDef[] = [
   {
     name: "mem_put",
-    description: "Store a memory entry (facts, preferences, task context) for RAG retrieval",
+    description:
+      "Store a memory entry (auto-chunked for RAG); optional tags and ISO8601 expires_at",
     required: ["key", "content"],
     properties: {
       key: { type: "string", description: "Unique key within owner namespace" },
       content: { type: "string", description: "Text to remember" },
       tags: { type: "array", items: { type: "string" } },
+      expires_at: { type: "string", description: "ISO8601 expiry" },
       owner: { type: "string" },
     },
   },
@@ -181,11 +183,42 @@ const MEM_TOOL_DEFS: ToolDef[] = [
   {
     name: "mem_search",
     description:
-      "Semantic (vector) or keyword search over stored memories; returns ranked snippets",
+      "Hybrid RRF search (Vectorize + DO keyword; do_embed fallback); ranked snippets",
     required: ["query"],
     properties: {
       query: { type: "string" },
       top_k: { type: "number", description: "Max results 1-20, default 5" },
+      owner: { type: "string" },
+    },
+  },
+  {
+    name: "mem_import",
+    description: "Batch import memory entries [{ key, content, tags?, expires_at? }]",
+    required: ["entries"],
+    properties: {
+      entries: {
+        type: "array",
+        description: "Array of { key, content, tags?, expires_at? }",
+      },
+      owner: { type: "string" },
+    },
+  },
+];
+
+const MEM_ADMIN_TOOL_DEFS: ToolDef[] = [
+  {
+    name: "mem_reindex",
+    description: "Admin: rebuild Vectorize vectors from DO chunks for an owner",
+    required: [] as string[],
+    properties: {
+      owner: { type: "string", description: "Target owner (default: caller scope)" },
+    },
+  },
+  {
+    name: "mem_stats",
+    description: "Admin: memory DO stats (keys, chunks, bytes) for an owner",
+    required: [] as string[],
+    properties: {
       owner: { type: "string" },
     },
   },
@@ -208,7 +241,7 @@ export function toolsForAuth(auth: AuthContext): ToolDef[] {
   const mem =
     auth.role === "user" ? stripOwnerArg(MEM_TOOL_DEFS) : MEM_TOOL_DEFS;
   if (isAdmin(auth)) {
-    return [...sess, ...mem, ...ADMIN_TOOL_DEFS];
+    return [...sess, ...mem, ...MEM_ADMIN_TOOL_DEFS, ...ADMIN_TOOL_DEFS];
   }
   return [...sess, ...mem];
 }

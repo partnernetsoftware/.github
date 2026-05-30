@@ -68,10 +68,14 @@ HTTP MCP + REST on Cloudflare Workers：`sess_*` 会话、`mem_*` 记忆 RAG、`
 | [tool-defs.ts](src/tool-defs.ts) | MCP 工具 schema |
 | [tool-aliases.ts](src/tool-aliases.ts) | 旧工具名 → `sess_*` |
 | [sess-tools.ts](src/sess-tools.ts) | `sess_*` 工具实现 |
-| [mem-tools.ts](src/mem-tools.ts) | `mem_*` 工具实现 |
+| [mem-tools.ts](src/mem-tools.ts) | `mem_*` 工具实现（分块、hybrid、import） |
+| [mem-config.ts](src/mem-config.ts) | chunk 大小、配额、`MEM_ENCRYPT` |
+| [mem-chunk.ts](src/mem-chunk.ts) | 长文分块 |
+| [mem-hybrid.ts](src/mem-hybrid.ts) | RRF 混合检索 |
+| [mem-crypto.ts](src/mem-crypto.ts) | 可选 DO 静态加密 |
 | [mem-embed.ts](src/mem-embed.ts) | Workers AI embedding + Vectorize |
 | [mem-rest.ts](src/mem-rest.ts) | REST `/v1/mem` |
-| [memory-do.ts](src/memory-do.ts) | `MemoryDO` 按 owner 存全文 |
+| [memory-do.ts](src/memory-do.ts) | `MemoryDO` SQLite chunks + 过期 alarm |
 | [memory-store.ts](src/memory-store.ts) | Memory DO id / stub |
 | [vault-api.ts](src/vault-api.ts) | REST `/v1/session`、`/v1/sessions` |
 | [session-store.ts](src/session-store.ts) | DO id + `sessionStub` |
@@ -92,8 +96,8 @@ HTTP MCP + REST on Cloudflare Workers：`sess_*` 会话、`mem_*` 记忆 RAG、`
 | MCP | `POST {MCP_HTTP_PATH}`（默认 `/mcp`） |
 | REST 会话 | `GET/PUT/DELETE /v1/session/:site/:profile`，`GET /v1/sessions` |
 | REST admin | `GET/POST /v1/admin/tokens`，`DELETE /v1/admin/tokens/:id` |
-| MCP 工具 | `sess_*`、`mem_*`，admin：`auth_token_*`；旧 sess 名见 [tool-aliases.ts](src/tool-aliases.ts) |
-| REST 记忆 | `GET /v1/mem`，`PUT/GET/DELETE /v1/mem/:key`，`POST /v1/mem/search` |
+| MCP 工具 | `sess_*`、`mem_*`，admin：`auth_token_*`、`mem_reindex`、`mem_stats`；旧 sess 名见 [tool-aliases.ts](src/tool-aliases.ts) |
+| REST 记忆 | `GET /v1/mem`，`PUT/GET/DELETE /v1/mem/:key`，`POST /v1/mem/search|import`，admin：`GET /v1/mem/stats`，`POST /v1/mem/reindex` |
 
 ## 环境变量（客户端）
 
