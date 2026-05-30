@@ -5,6 +5,8 @@ export interface MemoryRecord {
   tags?: string[];
   created_at: string;
   updated_at: string;
+  /** Workers AI embedding (768-d) when Vectorize not used yet */
+  embedding?: number[];
 }
 
 interface MemoryState {
@@ -68,9 +70,13 @@ export class MemoryDO implements DurableObject {
 
     if (entryMatch && request.method === "PUT") {
       const key = decodeURIComponent(entryMatch[1]!);
-      let body: { content?: string; tags?: unknown };
+      let body: { content?: string; tags?: unknown; embedding?: number[] };
       try {
-        body = (await request.json()) as { content?: string; tags?: unknown };
+        body = (await request.json()) as {
+          content?: string;
+          tags?: unknown;
+          embedding?: number[];
+        };
       } catch {
         return Response.json({ error: "invalid json" }, { status: 400 });
       }
@@ -86,6 +92,7 @@ export class MemoryDO implements DurableObject {
         key,
         content,
         tags: normalizeTags(body.tags) ?? existing?.tags,
+        embedding: Array.isArray(body.embedding) ? body.embedding : existing?.embedding,
         created_at: existing?.created_at ?? now,
         updated_at: now,
       };
@@ -104,6 +111,56 @@ export class MemoryDO implements DurableObject {
       delete data.byKey[key];
       await this.save(data);
       return Response.json({ ok: true, id: rec.id, key: rec.key });
+    }
+
+    if (request.method === "POST" && url.pathname === "/search_semantic") {
+      let body: { embedding?: number[]; top_k?: number };
+      try {
+        body = (await request.json()) as { embedding?: number[]; top_k?: number };
+      } catch {
+        return Response.json({ error: "invalid json" }, { status: 400 });
+      }
+      const embedding = body.embedding;
+      if (!Array.isArray(embedding) || embedding.length === 0) {
+        return Response.json({ error: "embedding required" }, { status: 400 });
+      }
+      const topK = Math.min(Math.max(Number(body.top_k) || 5, 1), 20);
+      const data = await this.load();
+
+      function cosine(a: number[], b: number[]): number {
+        let dot = 0;
+        let na = 0;
+        let nb = 0;
+        const n = Math.min(a.length, b.length);
+        for (let i = 0; i < n; i++) {
+          dot += a[i]! * b[i]!;
+          na += a[i]! * a[i]!;
+          nb += b[i]! * b[i]!;
+        }
+        const denom = Math.sqrt(na) * Math.sqrt(nb);
+        return denom > 0 ? dot / denom : 0;
+      }
+
+      const scored = Object.values(data.byKey)
+        .filter((rec) => Array.isArray(rec.embedding) && rec.embedding!.length > 0)
+        .map((rec) => ({
+          rec,
+          score: cosine(embedding, rec.embedding!),
+        }))
+        .sort((a, b) => b.score - a.score)
+        .slice(0, topK);
+
+      return Response.json({
+        matches: scored.map(({ rec, score }) => ({
+          id: rec.id,
+          key: rec.key,
+          score,
+          content: rec.content,
+          tags: rec.tags,
+          updated_at: rec.updated_at,
+        })),
+        mode: "do_embed",
+      });
     }
 
     if (request.method === "POST" && url.pathname === "/search") {

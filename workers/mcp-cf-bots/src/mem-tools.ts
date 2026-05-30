@@ -2,8 +2,11 @@ import type { AuthContext } from "./auth";
 import { ownerForTool } from "./owner-scope";
 import {
   deleteMemoryVector,
+  embedText,
+  queryMemoryDoEmbed,
   queryMemoryVectors,
-  ragEnabled,
+  ragBackend,
+  semanticRagEnabled,
   upsertMemoryVector,
 } from "./mem-embed";
 import type { MemoryRecord } from "./memory-do";
@@ -18,23 +21,31 @@ async function putRecord(
   tags?: string[],
 ): Promise<MemoryRecord> {
   const stub = memoryStub(env, owner);
+  let embedding: number[] | undefined;
+  if (semanticRagEnabled(env)) {
+    try {
+      embedding = await embedText(env, `${key}\n${content}`);
+    } catch {
+      embedding = undefined;
+    }
+  }
   const res = await stub.fetch(
     `https://memory.internal/entry/${encodeURIComponent(key)}`,
     {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ content, tags }),
+      body: JSON.stringify({ content, tags, embedding }),
     },
   );
   if (!res.ok) {
     throw new Error(await res.text());
   }
   const rec = (await res.json()) as MemoryRecord;
-  if (ragEnabled(env)) {
+  if (env.MEM_VECTORS && embedding) {
     try {
       await upsertMemoryVector(env, owner, rec.id, rec.key, rec.content);
     } catch {
-      /* keyword search still works */
+      /* DO embed still works */
     }
   }
   return rec;
@@ -50,6 +61,7 @@ export async function memToolCall(
 ): Promise<string> {
   const owner = ownerForTool(auth, env, args, requestOwner);
   const stub = memoryStub(env, owner);
+  const backend = ragBackend(env);
 
   if (name === "mem_list") {
     const url = new URL("https://memory.internal/entries");
@@ -67,7 +79,7 @@ export async function memToolCall(
     }
     const topK = Math.min(Math.max(Number(args.top_k) || 5, 1), 20);
 
-    if (ragEnabled(env)) {
+    if (backend === "vectorize") {
       try {
         const hits = await queryMemoryVectors(env, owner, query, topK);
         if (hits.length > 0) {
@@ -89,10 +101,26 @@ export async function memToolCall(
               updated_at: rec.updated_at,
             });
           }
-          return JSON.stringify({ matches, mode: "vector" }, null, 2);
+          return JSON.stringify({ matches, mode: "vectorize" }, null, 2);
         }
       } catch {
-        /* fall through to keyword */
+        /* fall through */
+      }
+    }
+
+    if (backend === "vectorize" || backend === "do_embed") {
+      try {
+        const qEmbed = await embedText(env, query);
+        const matches = await queryMemoryDoEmbed(stub, qEmbed, topK);
+        if (matches.length > 0) {
+          return JSON.stringify(
+            { matches, mode: backend === "vectorize" ? "do_embed_fallback" : "do_embed" },
+            null,
+            2,
+          );
+        }
+      } catch {
+        /* keyword */
       }
     }
 
@@ -118,7 +146,7 @@ export async function memToolCall(
         ok: true,
         id: rec.id,
         key: rec.key,
-        rag: ragEnabled(env),
+        rag_backend: ragBackend(env),
       },
       null,
       2,
@@ -147,7 +175,7 @@ export async function memToolCall(
       `https://memory.internal/entry/${encodeURIComponent(key)}`,
       { method: "DELETE" },
     );
-    if (ragEnabled(env)) {
+    if (env.MEM_VECTORS) {
       try {
         await deleteMemoryVector(env, owner, existing.id);
       } catch {

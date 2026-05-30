@@ -1,7 +1,7 @@
 import { mcpServerInfo } from "./config";
 import { jsonResponse } from "./http-util";
 import type { AuthContext } from "./auth";
-import { ragEnabled } from "./mem-embed";
+import { ragBackend, semanticRagEnabled } from "./mem-embed";
 
 export function handlePublicHealth(env: Env): Response {
   let version = "unknown";
@@ -16,7 +16,8 @@ export function handlePublicHealth(env: Env): Response {
     version,
     features: {
       memory: Boolean(env.MEMORY_STORE),
-      rag: ragEnabled(env),
+      rag: semanticRagEnabled(env),
+      rag_backend: ragBackend(env),
     },
   });
 }

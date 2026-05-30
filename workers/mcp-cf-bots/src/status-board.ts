@@ -1,6 +1,6 @@
 import { mcpHttpPath, mcpServerInfo, trimOpt } from "./config";
 import { fetchWorkerUsageCached } from "./cf-analytics";
-import { ragEnabled } from "./mem-embed";
+import { ragBackend, semanticRagEnabled } from "./mem-embed";
 import { jsonResponse } from "./http-util";
 
 export type StatusPayload = {
@@ -12,6 +12,7 @@ export type StatusPayload = {
   features: {
     memory: boolean;
     rag: boolean;
+    rag_backend: string;
   };
   bindings: {
     session_store: boolean;
@@ -84,7 +85,8 @@ export async function buildStatusPayload(env: Env): Promise<StatusPayload> {
     time: new Date().toISOString(),
     features: {
       memory: Boolean(env.MEMORY_STORE),
-      rag: ragEnabled(env),
+      rag: semanticRagEnabled(env),
+      rag_backend: ragBackend(env),
     },
     bindings: {
       session_store: Boolean(env.SESSION_STORE),
@@ -189,7 +191,7 @@ function renderHtml(p: StatusPayload): string {
   <p>
     ${feat("sess_*", true)}
     ${feat("mem_*", p.features.memory)}
-    ${feat("RAG", p.features.rag)}
+    ${feat(`RAG (${p.features.rag_backend})`, p.features.rag)}
     ${feat("multi-tenant", p.bindings.tokens_kv)}
   </p>
   <h2>Worker usage (24h)</h2>

@@ -4,8 +4,31 @@ const EMBED_MODEL = "@cf/baai/bge-base-en-v1.5";
 
 type EmbedResponse = { data?: number[][] };
 
+export type RagBackend = "vectorize" | "do_embed" | "keyword";
+
+export function ragBackend(env: Env): RagBackend {
+  if (env.AI && env.MEM_VECTORS) {
+    return "vectorize";
+  }
+  if (env.AI) {
+    return "do_embed";
+  }
+  return "keyword";
+}
+
+/** Semantic search available (Workers AI). */
+export function semanticRagEnabled(env: Env): boolean {
+  return Boolean(env.AI);
+}
+
+/** Vectorize accelerator bound. */
+export function vectorizeEnabled(env: Env): boolean {
+  return Boolean(env.MEM_VECTORS);
+}
+
+/** @deprecated use semanticRagEnabled */
 export function ragEnabled(env: Env): boolean {
-  return Boolean(env.AI && env.MEM_VECTORS);
+  return semanticRagEnabled(env);
 }
 
 export async function embedText(env: Env, text: string): Promise<number[]> {
@@ -81,4 +104,40 @@ export async function queryMemoryVectors(
     mem_id: String(m.metadata?.mem_id ?? ""),
     score: m.score,
   }));
+}
+
+/** Semantic search inside MemoryDO (when Vectorize index not bound yet). */
+export async function queryMemoryDoEmbed(
+  stub: DurableObjectStub,
+  queryEmbedding: number[],
+  topK: number,
+): Promise<
+  Array<{
+    id: string;
+    key: string;
+    score: number;
+    content: string;
+    tags?: string[];
+    updated_at: string;
+  }>
+> {
+  const res = await stub.fetch("https://memory.internal/search_semantic", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ embedding: queryEmbedding, top_k: topK }),
+  });
+  if (!res.ok) {
+    throw new Error(await res.text());
+  }
+  const json = (await res.json()) as {
+    matches: Array<{
+      id: string;
+      key: string;
+      score: number;
+      content: string;
+      tags?: string[];
+      updated_at: string;
+    }>;
+  };
+  return json.matches;
 }

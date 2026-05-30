@@ -28,9 +28,10 @@ renamed_classes = [{ from = "SessionVaultDO", to = "SessionStoreDO" }]
 tag = "v3"
 new_classes = ["MemoryDO"]
 
-# Semantic RAG (optional): run ./scripts/setup-rag.sh to create index + enable:
-# [ai]
-# binding = "AI"
+[ai]
+binding = "AI"
+
+# Vectorize accelerator — run ./scripts/setup-rag.sh (needs index + Vectorize Edit token)
 # [[vectorize]]
 # binding = "MEM_VECTORS"
 # index_name = "mcp-cf-bots-mem"
@@ -40,7 +41,7 @@ new_classes = ["MemoryDO"]
 [vars]
 MCP_HTTP_PATH = "/mcp"
 MCP_SERVER_NAME = "mcp-cf-bots"
-MCP_SERVER_VERSION = "0.7.1"
+MCP_SERVER_VERSION = "0.7.2"
 MAX_BODY_BYTES = "2000000"
 MCP_SERVER_DESCRIPTION = "Cloudflare MCP for cross-agent bots"
 MCP_PROTOCOL_VERSION = "2024-11-05"

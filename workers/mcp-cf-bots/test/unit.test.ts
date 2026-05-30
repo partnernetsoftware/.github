@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { safeEqual } from "../src/http-util";
-import { ragEnabled } from "../src/mem-embed";
+import { ragBackend, semanticRagEnabled } from "../src/mem-embed";
 import { memoryVectorId } from "../src/memory-store";
 import { resolveToolName, TOOL_ALIASES } from "../src/tool-aliases";
 import { toolsForAuth } from "../src/tool-defs";
@@ -77,11 +77,13 @@ describe("memory", () => {
     expect(memoryVectorId("cloud-agent", "uuid-1")).toBe("cloud-agent::uuid-1");
   });
 
-  it("detects rag bindings", () => {
-    expect(ragEnabled({} as Env)).toBe(false);
+  it("detects rag backends", () => {
+    expect(ragBackend({} as Env)).toBe("keyword");
+    expect(ragBackend({ AI: {} as Ai } as Env)).toBe("do_embed");
     expect(
-      ragEnabled({ AI: {} as Ai, MEM_VECTORS: {} as VectorizeIndex } as Env),
-    ).toBe(true);
+      ragBackend({ AI: {} as Ai, MEM_VECTORS: {} as VectorizeIndex } as Env),
+    ).toBe("vectorize");
+    expect(semanticRagEnabled({ AI: {} as Ai } as Env)).toBe(true);
   });
 });
 

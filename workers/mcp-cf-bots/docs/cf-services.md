@@ -13,18 +13,23 @@
 
 部署：`cd workers/mcp-cf-bots && npx wrangler deploy`
 
-## 推荐（mem_search 向量语义检索）
+## 推荐（mem_search 语义检索）
 
-| 服务 | 用途 | 你怎么开 |
-|------|------|----------|
-| **Workers AI** | 文本 embedding（`@cf/baai/bge-base-en-v1.5`） | Dashboard → **Workers AI** → 启用 |
-| **Vectorize** | 向量索引 `mcp-cf-bots-mem` | 见下方一键脚本 |
+| 层级 | 服务 | `/health` 显示 | 说明 |
+|------|------|----------------|------|
+| 1 | **Workers AI** | `rag: true`, `rag_backend: do_embed` | 已默认部署；embedding 存 MemoryDO，适合中小规模 |
+| 2 | **+ Vectorize** | `rag_backend: vectorize` | 加速器；大规模检索更快 |
+
+**启用 Vectorize（加速器）** — API Token 需含 **Vectorize Edit** + **Workers Scripts Edit**：
 
 ```bash
 cd workers/mcp-cf-bots
-chmod +x scripts/setup-rag.sh
 ./scripts/setup-rag.sh
 ```
+
+脚本会：创建索引 `mcp-cf-bots-mem`（768 维）→ 解开 `wrangler.toml` 里 `[[vectorize]]` → 再 deploy。
+
+若 Cloud Agent 的 `CLOUDFLARE_API_TOKEN` 无 Vectorize 权限，请在本机 Dashboard 创建 Token 后执行上述命令。
 
 ### API Token 权限（若用 `CLOUDFLARE_API_TOKEN`）
 
