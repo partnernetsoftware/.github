@@ -11,10 +11,10 @@ HTTP MCP + REST on Cloudflare Workers：`sess_*` 会话、`mem_*` 记忆 RAG、`
 | 阶段 | 状态 | 说明 |
 |------|------|------|
 | **P0 稳态** | **已完成** | v0.8.2：SQLite mem、hybrid、migrate_legacy、分页 GC、cron 报告 |
-| **稳态运维** | **当前** | 保 CI 绿、cron 跑通、按需 migrate/GC；不大改检索栈 |
-| **P1 检索质量** | **暂缓** | FTS5/BM25、search 过滤、health 标志 — 见下方启动条件 |
-| **P2 规模/安全** |  backlog | 限流、审计、集成测、delete-class MemoryDO |
-| **P3 产品化** | backlog | MCP resources、自定义域固化 |
+| **P1 检索质量** | **已完成** | v0.9.0：FTS5 关键词、search 过滤、`/health` 扩展标志 |
+| **P2 规模/安全** | **已完成** | v0.9.0：mem 限流、审计日志（余 TD-5 等见技术债） |
+| **P3 产品化** | **已完成** | v0.9.0：MCP resources、`MCP_PUBLIC_HOST` 自定义域 hint |
+| **稳态运维** | **当前** | 保 CI 绿、cron 跑通、按需 migrate/GC；新能力按需立项 |
 
 ### 已完成里程碑
 
@@ -25,12 +25,7 @@ HTTP MCP + REST on Cloudflare Workers：`sess_*` 会话、`mem_*` 记忆 RAG、`
 | 0.8.0 | MemorySqliteDO、分块、hybrid、INDEX 单文档 |
 | 0.8.1 | Cron、deploy 脚本、mindmap |
 | 0.8.2 | P0：legacy 迁移、增量 reindex、分页 Vectorize GC、KV `cron_last` |
-
-### P1 启动条件（未满足前不做）
-
-1. 你明确说「做 P1」或检索质量成为线上瓶颈。  
-2. 不在同一轮混做「大重构 + 新检索算法 + 新 MCP 工具」。  
-3. 开工顺序建议：**FTS5（TD-6）→ search 过滤 → /health 运维标志**。
+| 0.9.0 | P1–P3：FTS5、search 过滤（tag / updated_*）、扩展 `/health`、mem 限流、审计日志、MCP resources、自定义域 hint |
 
 ### 每轮收尾清单
 
@@ -74,9 +69,14 @@ HTTP MCP + REST on Cloudflare Workers：`sess_*` 会话、`mem_*` 记忆 RAG、`
 | [index.ts](src/index.ts) | 路由、cron `scheduled` |
 | [status-board.ts](src/status-board.ts) | 公开 `GET /` |
 | [health.ts](src/health.ts) | `/health`、`/v1/me` |
+| [health-detail.ts](src/health-detail.ts) | 扩展 features、cron_last、自定义域 hint |
 | [mcp-http.ts](src/mcp-http.ts) / [mcp-server.ts](src/mcp-server.ts) | MCP Streamable HTTP |
+| [mcp-resources.ts](src/mcp-resources.ts) | MCP `resources/list`、`resources/read`（`mem://`） |
 | [sess-tools.ts](src/sess-tools.ts) | `sess_*` |
 | [mem-tools.ts](src/mem-tools.ts) | `mem_*` |
+| [mem-fts.ts](src/mem-fts.ts) | FTS5 schema、关键词检索 |
+| [rate-limit.ts](src/rate-limit.ts) | mem 按 owner 滑动窗口限流（KV） |
+| [audit-log.ts](src/audit-log.ts) | 管理操作审计（KV） |
 | [mem-reindex.ts](src/mem-reindex.ts) / [mem-vector-gc.ts](src/mem-vector-gc.ts) / [mem-cron.ts](src/mem-cron.ts) | 运维 |
 | [memory-do.ts](src/memory-do.ts) | `MemorySqliteDO` |
 | [memory-do-legacy.ts](src/memory-do-legacy.ts) | 旧 `MemoryDO` stub |
@@ -92,8 +92,9 @@ HTTP MCP + REST on Cloudflare Workers：`sess_*` 会话、`mem_*` 记忆 RAG、`
 | MCP | `POST /mcp`（默认） |
 | 会话 REST | `/v1/session/:site/:profile`、`GET /v1/sessions` |
 | 记忆 REST | `/v1/mem`、`/v1/mem/:key`、`POST …/search|import|migrate-legacy|vector-gc|reindex` |
-| Admin | `/v1/admin/tokens`、`POST /v1/admin/mem/cron` |
+| Admin | `/v1/admin/tokens`、`GET /v1/admin/audit`、`POST /v1/admin/mem/cron` |
 | MCP 工具 | `sess_*`、`mem_*`；admin：`auth_token_*`、`mem_migrate_legacy`、`mem_reindex`、`mem_stats`、`mem_vector_gc` |
+| MCP resources | `mem://<key>`（`resources/list`、`resources/read`） |
 
 客户端环境变量：`MCP_CF_BOTS_URL`、`MCP_CF_BOTS_TOKEN`、`MCP_CF_BOTS_OWNER`（兼容 `SESSION_VAULT_*`）。
 
@@ -112,6 +113,8 @@ HTTP MCP + REST on Cloudflare Workers：`sess_*` 会话、`mem_*` 记忆 RAG、`
 | `AI` + `MEM_VECTORS` | 语义检索；首次 `./scripts/setup-rag.sh` |
 | `ENCRYPTION_KEY` | 可选，默认同 `VAULT_TOKEN` |
 | `MEM_ENCRYPT` | 可选 var，DO 内 `enc:` 加密 |
+| `MEM_RATE_LIMIT_PER_MIN` | 可选 var，mem 写操作限流（默认 120/min/owner） |
+| `MCP_PUBLIC_HOST` | 可选 var，自定义域 hint（见下方） |
 | `CF_ACCOUNT_ID` / `CF_API_TOKEN` | 可选：状态页用量、Vectorize list/GC |
 
 ### 部署命令
@@ -126,7 +129,11 @@ cd workers/mcp-cf-bots
 
 Cursor MCP：仓库 [`.cursor/mcp.json`](../../.cursor/mcp.json)，`url` = `${env:MCP_CF_BOTS_URL}/mcp`。
 
-自定义域名指向同一 Worker，与 `*.workers.dev` 路由一致。
+### 自定义域
+
+1. 在 Cloudflare 控制台为 Worker 绑定自定义域名（或与 `*.workers.dev` 同路由的 CNAME）。  
+2. 在 [wrangler.toml](wrangler.toml) 取消注释并设置 `MCP_PUBLIC_HOST = "mcp.example.com"`（仅 host，无 `https://`）。  
+3. 部署后 `GET /health` 响应含 `custom_domain_hint`；状态页与 MCP 路径与 `workers.dev` 一致。
 
 CI：`.github/workflows/mcp-cf-bots.yml`（typecheck + vitest）。
 
@@ -147,6 +154,8 @@ CI：`.github/workflows/mcp-cf-bots.yml`（typecheck + vitest）。
 | RAG-1 | Workers AI | `rag: true`, `do_embed` |
 | RAG-2 | + Vectorize | `rag_backend: vectorize` |
 
+**0.9.0 `/health` 扩展**：`features`（含 `fts`、`cron_*`、`mem_encrypt` 等）、`cron_last`、`custom_domain_hint`（设 `MCP_PUBLIC_HOST` 时）。
+
 ```bash
 ./scripts/setup-rag.sh   # 索引 mcp-cf-bots-mem，768 维
 curl -s "$MCP_CF_BOTS_URL/health"
@@ -154,7 +163,7 @@ curl -s "$MCP_CF_BOTS_URL/health"
 
 API Token（Wrangler / GC）建议：Workers Scripts Edit、KV Edit、DO Edit、Vectorize Edit、Workers AI Read。
 
-未开 RAG 时 `mem_search` 退化为 DO 关键词。
+未开 RAG 时 `mem_search` 退化为 DO **FTS5** 关键词。
 
 公开 `GET /` 状态页；可选 secrets `CF_ACCOUNT_ID`、`CF_API_TOKEN`（Analytics Read）显示 24h 用量。
 
@@ -173,7 +182,7 @@ API Token（Wrangler / GC）建议：Workers Scripts Edit、KV Edit、DO Edit、
 | 工具 | 说明 |
 |------|------|
 | `mem_put` / `get` / `delete` / `list` | CRUD；put 自动分块 |
-| `mem_search` | Hybrid RRF（Vectorize + 关键词） |
+| `mem_search` | Hybrid RRF（Vectorize + FTS5）；可选 `tag`、`updated_after` / `updated_before` |
 | `mem_import` | 批量导入 |
 | `mem_reindex` / `mem_stats` / `mem_vector_gc` | Admin |
 
@@ -269,6 +278,6 @@ CLI 凭据：`tools/claude_code.py capture|restore|status`（等价 `sess_put` s
 | TD-3 | Vectorize 孤儿 | mitigated（GC + cron） |
 | TD-4 | Cron 全量 list 大索引慢 | mitigated（分页 + KV 游标） |
 | TD-5 | `delete-class MemoryDO` | blocked |
-| TD-6 | 无真 BM25 | open |
+| TD-6 | FTS5 关键词（非 Vectorize BM25） | mitigated（0.9.0） |
 
 详情同步 [mcp-cf-bots.mindmap](mcp-cf-bots.mindmap) → `tech_debt`。
