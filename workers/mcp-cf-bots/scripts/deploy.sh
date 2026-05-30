@@ -19,25 +19,22 @@ if [[ "${SKIP_INTEGRATION:-0}" != "1" ]]; then
 fi
 
 VERSION="$(grep MCP_SERVER_VERSION wrangler.toml | head -1 | sed -n 's/.*= *"\([^"]*\)".*/\1/p')"
-ROUTES_FILE="$(mktemp)"
 DEPLOY_LOG="$(mktemp)"
-trap 'rm -f "$DEPLOY_LOG" "$ROUTES_FILE"' EXIT
-./scripts/wrangler-routes-snippet.sh "${CLOUDFLARE_WORKER_DOMAIN:-}" >"$ROUTES_FILE"
-DEPLOY_ARGS=(deploy --name "$WORKER_NAME")
-if [[ -s "$ROUTES_FILE" ]]; then
-  echo "==> custom domain route from CLOUDFLARE_WORKER_DOMAIN"
-  DEPLOY_ARGS+=(-c wrangler.toml -c "$ROUTES_FILE")
-else
-  DEPLOY_ARGS+=(-c wrangler.toml)
-fi
+WRANGLER_CFG=".wrangler.deploy.toml"
+trap 'rm -f "$DEPLOY_LOG" "$WRANGLER_CFG"' EXIT
+cp wrangler.toml "$WRANGLER_CFG"
 if [[ -n "${CLOUDFLARE_WORKER_DOMAIN:-}" ]]; then
+  echo "==> custom domain route from CLOUDFLARE_WORKER_DOMAIN"
+  ./scripts/wrangler-routes-snippet.sh "${CLOUDFLARE_WORKER_DOMAIN}" >>"$WRANGLER_CFG"
   HOST="${CLOUDFLARE_WORKER_DOMAIN#https://}"
   HOST="${HOST#http://}"
   HOST="${HOST%%/*}"
-  DEPLOY_ARGS+=(--var "MCP_PUBLIC_HOST:${HOST}")
+  DEPLOY_VARS=(--var "MCP_PUBLIC_HOST:${HOST}")
+else
+  DEPLOY_VARS=()
 fi
-echo "==> wrangler ${DEPLOY_ARGS[*]} (version ${VERSION:-unknown})"
-npx wrangler "${DEPLOY_ARGS[@]}" 2>&1 | tee "$DEPLOY_LOG"
+echo "==> wrangler deploy --name $WORKER_NAME (version ${VERSION:-unknown})"
+npx wrangler deploy --name "$WORKER_NAME" -c "$WRANGLER_CFG" "${DEPLOY_VARS[@]}" 2>&1 | tee "$DEPLOY_LOG"
 WORKERS_DEV_URL="$(grep -oE 'https://[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+\.workers\.dev' "$DEPLOY_LOG" | tail -1 || true)"
 
 if [[ "$SKIP_SMOKE" != "1" ]]; then
