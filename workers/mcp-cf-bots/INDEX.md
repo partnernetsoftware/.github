@@ -8,11 +8,11 @@ HTTP MCP + REST on Cloudflare Workers：`sess_*` 会话、`mem_*` 记忆 RAG、`
 
 > **SSOT 思维树**：[mcp-cf-bots.mindmap](mcp-cf-bots.mindmap)（`roadmap.active_waves`）。**每轮收尾必刷新**本节与 mindmap。
 
-### 现状（v0.9.0）
+### 现状（v0.9.1）
 
 | 项 | 值 |
 |----|-----|
-| **版本** | `0.9.0`（`wrangler.toml` → `MCP_SERVER_VERSION`） |
+| **版本** | `0.9.1`（`wrangler.toml` → `MCP_SERVER_VERSION`） |
 | **当前阶段** | **W0 稳态运维**（`steady-ops`） |
 | **北极星** | 跨 Agent：`sess_*` + `mem_*` RAG + `cfb_*` 多租户 |
 | **P0–P3** | 已归档（见 mindmap `completed_phases_archive`） |
@@ -23,7 +23,7 @@ HTTP MCP + REST on Cloudflare Workers：`sess_*` 会话、`mem_*` 记忆 RAG、`
 |------|------|------|----------|
 | **W0 稳态** | **进行中** | CI 绿、cron/health 可观测、文档同步 | 持续 |
 | **W1 落地 0.9.0** | **下一步** | 合 PR、deploy、smoke；可选 `MCP_PUBLIC_HOST` | PR 合入 + `deploy.sh` 本地绿 |
-| **W2 集成测** | backlog | Miniflare / vitest-pool：DO + hybrid | W1 已上线、无 P0 事故 |
+| **W2 集成测** | **进行中** | `npm run test:integration`（MemorySqliteDO FTS）；hybrid 待补 | W1 已上线、无 P0 事故 |
 | **W3 TD-5** | blocked | 删 `MemoryDO` class + 去 `MEMORY_LEGACY` | 全 owner 已 migrate，binding 可改 |
 
 **可选（无排期）**：生产 `MEM_ENCRYPT`、状态页 CF 用量图、hybrid 调参、MCP prompts。
@@ -42,6 +42,7 @@ HTTP MCP + REST on Cloudflare Workers：`sess_*` 会话、`mem_*` 记忆 RAG、`
 | 0.7+ | `mem_*`、Vectorize、公开状态页 |
 | 0.8.x | SQLite DO、hybrid、cron、P0 migrate/GC |
 | 0.9.0 | P1–P3：FTS、过滤、限流、审计、MCP resources |
+| 0.9.1 | W2：Miniflare FTS 集成测、`auth_audit_list`、`mem_import` 限流、smoke 校验 fts |
 
 ### 每轮收尾清单
 
@@ -76,7 +77,8 @@ HTTP MCP + REST on Cloudflare Workers：`sess_*` 会话、`mem_*` 记忆 RAG、`
 | [scripts/claude_worker.sh](scripts/claude_worker.sh) | restore vault → `claude` |
 | [tools/](tools/) | Python 客户端 |
 | [snippets/](snippets/) | 浏览器 Console cookie |
-| [test/unit.test.ts](test/unit.test.ts) | vitest |
+| [test/unit.test.ts](test/unit.test.ts) | vitest 单元 |
+| [test/integration/](test/integration/) | Miniflare DO/FTS（`npm run test:integration`） |
 
 ## `src/` 模块
 
@@ -109,7 +111,7 @@ HTTP MCP + REST on Cloudflare Workers：`sess_*` 会话、`mem_*` 记忆 RAG、`
 | 会话 REST | `/v1/session/:site/:profile`、`GET /v1/sessions` |
 | 记忆 REST | `/v1/mem`、`/v1/mem/:key`、`POST …/search|import|migrate-legacy|vector-gc|reindex` |
 | Admin | `/v1/admin/tokens`、`GET /v1/admin/audit`、`POST /v1/admin/mem/cron` |
-| MCP 工具 | `sess_*`、`mem_*`；admin：`auth_token_*`、`mem_migrate_legacy`、`mem_reindex`、`mem_stats`、`mem_vector_gc` |
+| MCP 工具 | `sess_*`、`mem_*`；admin：`auth_token_*`、`auth_audit_list`、`mem_migrate_legacy`、`mem_reindex`、`mem_stats`、`mem_vector_gc` |
 | MCP resources | `mem://<key>`（`resources/list`、`resources/read`） |
 
 客户端环境变量：`MCP_CF_BOTS_URL`、`MCP_CF_BOTS_TOKEN`、`MCP_CF_BOTS_OWNER`（兼容 `SESSION_VAULT_*`）。
@@ -295,6 +297,6 @@ CLI 凭据：`tools/claude_code.py capture|restore|status`（等价 `sess_put` s
 | TD-4 | Cron 全量 list 大索引慢 | mitigated（分页 + KV 游标） |
 | TD-5 | `delete-class MemoryDO` | blocked → **W3** |
 | TD-6 | FTS5 关键词 | mitigated（0.9.0） |
-| TD-7 | Miniflare DO 集成测 | open → **W2** |
+| TD-7 | Miniflare DO 集成测 | mitigated（FTS DO 子集）→ hybrid 仍 **W2** |
 
 详情同步 [mcp-cf-bots.mindmap](mcp-cf-bots.mindmap) → `tech_debt`。

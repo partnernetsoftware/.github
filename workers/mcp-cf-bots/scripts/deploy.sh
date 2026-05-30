@@ -13,6 +13,10 @@ npm ci
 echo "==> typecheck + test"
 npm run typecheck
 npm test
+if [[ "${SKIP_INTEGRATION:-0}" != "1" ]]; then
+  echo "==> integration (Miniflare DO/FTS; SKIP_INTEGRATION=1 to skip)"
+  npm run test:integration
+fi
 
 VERSION="$(grep MCP_SERVER_VERSION wrangler.toml | head -1 | sed -n 's/.*= *"\([^"]*\)".*/\1/p')"
 echo "==> wrangler deploy --name $WORKER_NAME (version ${VERSION:-unknown})"

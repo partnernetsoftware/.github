@@ -1,12 +1,12 @@
 {
   "product": "mcp-cf-bots",
   "ssot": "workers/mcp-cf-bots/mcp-cf-bots.mindmap",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "updated_at": "2026-05-30T03:00:00Z",
   "north_star": "跨 Agent 的 HTTP MCP + REST：sess_* 会话、mem_* 记忆 RAG、cfb_* 多租户",
   "roadmap": {
     "current_phase": "steady-ops",
-    "current_version": "0.9.0",
+    "current_version": "0.9.1",
     "last_review": "2026-05-30",
     "summary": "P0–P3 已闭合于 v0.9.0。当前以稳态运维为主；下一波按 W1→W2→W3 顺序，不并行大改检索栈。",
     "reflection": {
@@ -20,7 +20,8 @@
       { "version": "0.8.0", "label": "MemorySqliteDO + hybrid + chunk + 文档 SSOT(INDEX)", "status": "done" },
       { "version": "0.8.1", "label": "Cron reindex/GC + deploy 脚本 + mindmap", "status": "done" },
       { "version": "0.8.2", "label": "P0: migrate_legacy + 分页 GC + cron KV 报告", "status": "done" },
-      { "version": "0.9.0", "label": "P1+P2+P3: FTS5 + search 过滤 + /health; 限流 + 审计 + MCP resources", "status": "done" }
+      { "version": "0.9.0", "label": "P1+P2+P3: FTS5 + search 过滤 + /health; 限流 + 审计 + MCP resources", "status": "done" },
+      { "version": "0.9.1", "label": "W2 起步：DO/FTS 集成测、auth_audit_list、mem_import 限流、smoke fts", "status": "done" }
     ],
     "completed_phases_archive": [
       { "id": "p0-stability", "label": "P0 稳态", "version": "0.8.2" },
@@ -56,12 +57,13 @@
       {
         "id": "w2-integration-tests",
         "label": "W2 DO 集成测",
-        "status": "backlog",
+        "status": "active",
         "priority": 2,
         "start_gates": ["W1 已上线", "无未决 P0 事故"],
         "items": [
-          { "id": "w2-miniflare", "label": "@cloudflare/vitest-pool-workers：MemorySqliteDO + hybrid", "status": "pending" },
-          { "id": "w2-ci", "label": "CI 跑 integration 子集", "status": "pending" }
+          { "id": "w2-miniflare", "label": "@cloudflare/vitest-pool-workers：MemorySqliteDO FTS", "status": "done" },
+          { "id": "w2-ci", "label": "deploy.sh 默认跑 test:integration", "status": "done" },
+          { "id": "w2-hybrid", "label": "hybrid / Vectorize 集成测", "status": "pending" }
         ]
       },
       {
@@ -195,7 +197,7 @@
     { "id": "TD-4", "label": "Cron paged vector list", "status": "mitigated", "doc": "INDEX.md#cloudflare-服务" },
     { "id": "TD-5", "label": "delete-class MemoryDO", "status": "blocked", "wave": "w3-legacy-cleanup" },
     { "id": "TD-6", "label": "无真 BM25 / FTS", "status": "mitigated", "note": "FTS5 in 0.9.0", "phase": "p1-retrieval" },
-    { "id": "TD-7", "label": "无 Miniflare DO 集成测", "status": "open", "wave": "w2-integration-tests" }
+    { "id": "TD-7", "label": "无 Miniflare DO 集成测", "status": "mitigated", "note": "memory-sqlite-fts integration (0.9.1)", "wave": "w2-integration-tests" }
   ],
   "cron": {
     "schedule": "0 4 * * *",
