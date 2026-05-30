@@ -1,4 +1,9 @@
 import {
+  defaultSessionSource,
+  readOwnerHeader,
+  resolveOwner,
+} from "./config";
+import {
   SESSION_KINDS,
   type SessionKind,
   type SessionMeta,
@@ -7,9 +12,15 @@ import { registryEntryFromMeta } from "./registry-do";
 
 const SESSION_RE = /^\/v1\/session\/([^/]+)\/([^/]+)\/?$/;
 
-export function ownerFromRequest(url: URL, fallback = "default"): string {
-  const owner = url.searchParams.get("owner")?.trim();
-  return owner && owner.length > 0 ? owner : fallback;
+export function ownerFromRequest(
+  env: Env,
+  url: URL,
+  request: Request,
+): string {
+  return resolveOwner(env, {
+    headerOwner: readOwnerHeader(request, env),
+    queryOwner: url.searchParams.get("owner"),
+  });
 }
 
 export function vaultId(owner: string, site: string, profile: string): string {
@@ -55,10 +66,8 @@ export async function handleVaultRest(
   env: Env,
   url: URL,
 ): Promise<Response> {
-  const defaultOwner = env.DEFAULT_OWNER?.trim() || "default";
-
   if (request.method === "GET" && url.pathname === "/v1/sessions") {
-    const owner = ownerFromRequest(url, defaultOwner);
+    const owner = ownerFromRequest(env, url, request);
     const id = env.REGISTRY.idFromName(registryId(owner));
     const stub = env.REGISTRY.get(id);
     const regUrl = new URL("https://registry.internal/entries");
@@ -79,7 +88,7 @@ export async function handleVaultRest(
   }
 
   const [, site, profile] = match;
-  const owner = ownerFromRequest(url, defaultOwner);
+  const owner = ownerFromRequest(env, url, request);
   const id = env.SESSION_VAULT.idFromName(vaultId(owner, site, profile));
   const stub = env.SESSION_VAULT.get(id);
 
@@ -114,9 +123,12 @@ export async function handleVaultRest(
   return response;
 }
 
-function resolveOwner(args: Record<string, unknown>, defaultOwner: string): string {
-  const owner = String(args.owner ?? "").trim();
-  return owner || defaultOwner;
+function resolveToolOwner(
+  args: Record<string, unknown>,
+  defaultOwner: string,
+): string {
+  const argOwner = String(args.owner ?? "").trim();
+  return argOwner || defaultOwner;
 }
 
 function buildMetaFromArgs(args: Record<string, unknown>): Partial<SessionMeta> {
@@ -167,12 +179,11 @@ async function vaultPut(
 /** MCP tool handlers (HTTP MCP on Worker; see mcp-server.ts) */
 export async function vaultToolCall(
   env: Env,
-  _baseUrl: string,
   name: string,
   args: Record<string, unknown>,
-  defaultOwner = "default",
+  defaultOwner: string,
 ): Promise<string> {
-  const owner = resolveOwner(args, defaultOwner);
+  const owner = resolveToolOwner(args, defaultOwner);
 
   if (name === "sess_list") {
     const regUrl = new URL("https://registry.internal/entries");
@@ -213,7 +224,7 @@ export async function vaultToolCall(
     }
     const meta = buildMetaFromArgs(args);
     if (!meta.source) {
-      meta.source = "browser-use";
+      meta.source = defaultSessionSource(env);
     }
     if (Object.keys(meta).length > 0) {
       body.meta = meta;
@@ -228,21 +239,7 @@ export async function vaultToolCall(
   }
 
   if (name === "sess_load") {
-    const kinds: string[] = [];
-    if (args.include_oauth === true) {
-      kinds.push("oauth");
-    }
-    if (args.include_cookies === true) {
-      kinds.push("cookies");
-    }
-    if (args.include_config === true) {
-      kinds.push("config");
-    }
-    const q = new URL("https://vault.internal/");
-    if (kinds.length > 0) {
-      /* load specific kinds only — multiple GET not supported; fetch all */
-    }
-    const res = await stub.fetch(q.toString(), { method: "GET" });
+    const res = await stub.fetch("https://vault.internal/", { method: "GET" });
     if (res.status === 410) {
       throw new Error("Session expired — re-login via Take Control and save again");
     }

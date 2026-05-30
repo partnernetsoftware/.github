@@ -21,7 +21,7 @@ export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
 
-    if (isMcpHttpRequest(request, url)) {
+    if (isMcpHttpRequest(request, url, env)) {
       if (!authorize(request, env)) {
         return jsonError(401, "Unauthorized");
       }
@@ -32,6 +32,11 @@ export default {
       return jsonError(401, "Unauthorized");
     }
 
-    return handleVaultRest(request, env, url);
+    try {
+      return await handleVaultRest(request, env, url);
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e);
+      return jsonError(400, message);
+    }
   },
 };

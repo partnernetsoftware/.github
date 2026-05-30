@@ -1,3 +1,4 @@
+import { mcpProtocolVersion, mcpServerInfo } from "./config";
 import { vaultToolCall } from "./vault-api";
 import { SESSION_KINDS } from "./kinds";
 
@@ -107,13 +108,6 @@ const TOOL_DEFS = [
   },
 ] as const;
 
-const SERVER_INFO = {
-  name: "mcp-cf-bots",
-  version: "0.4.0",
-  description:
-    "Cloudflare MCP for cross-agent bots (sessions; memory planned)",
-};
-
 type JsonRpcReq = {
   jsonrpc?: string;
   id?: string | number | null;
@@ -137,7 +131,6 @@ export async function handleMcpJsonRpc(
   request: JsonRpcReq,
   ctx: {
     env: Env;
-    baseUrl: string;
     defaultOwner: string;
     sessionId: string | null;
     isInitialize: boolean;
@@ -152,15 +145,24 @@ export async function handleMcpJsonRpc(
   }
 
   if (method === "initialize") {
-    return {
-      body: ok(requestId, {
-        protocolVersion: "2024-11-05",
-        capabilities: { tools: {} },
-        serverInfo: SERVER_INFO,
-      }),
-      status: 200,
-      isNotification: false,
-    };
+    try {
+      return {
+        body: ok(requestId, {
+          protocolVersion: mcpProtocolVersion(ctx.env),
+          capabilities: { tools: {} },
+          serverInfo: mcpServerInfo(ctx.env),
+        }),
+        status: 200,
+        isNotification: false,
+      };
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e);
+      return {
+        body: err(requestId, -32000, message),
+        status: 500,
+        isNotification: false,
+      };
+    }
   }
 
   if (!ctx.isInitialize && !ctx.sessionId) {
@@ -201,13 +203,7 @@ export async function handleMcpJsonRpc(
       };
     }
     try {
-      const text = await vaultToolCall(
-        ctx.env,
-        ctx.baseUrl,
-        name,
-        args,
-        ctx.defaultOwner,
-      );
+      const text = await vaultToolCall(ctx.env, name, args, ctx.defaultOwner);
       return {
         body: ok(requestId, {
           content: [{ type: "text", text }],

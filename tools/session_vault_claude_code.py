@@ -53,11 +53,12 @@ def _env(primary: str, legacy: str) -> str:
 
 
 def _owner() -> str:
-    return (
-        os.environ.get("MCP_CF_BOTS_OWNER")
-        or os.environ.get("SESSION_VAULT_OWNER")
-        or "cloud-agent"
+    owner = (
+        os.environ.get("MCP_CF_BOTS_OWNER") or os.environ.get("SESSION_VAULT_OWNER") or ""
     ).strip()
+    if not owner:
+        raise RuntimeError("MCP_CF_BOTS_OWNER is not set (legacy: SESSION_VAULT_OWNER)")
+    return owner
 
 
 def _vault(method: str, path: str, *, body: Optional[dict] = None, query: Optional[dict] = None) -> dict:

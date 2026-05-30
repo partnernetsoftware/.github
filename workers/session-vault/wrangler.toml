@@ -1,10 +1,9 @@
-# Cloudflare Workers runtime only — wrangler bundles src/ for the edge (not Bun).
-# Override name: CLOUDFLARE_WORKER_NAME=mcp-cf-bots npx wrangler deploy
+# Cloudflare Workers — mcp-cf-bots (deploy dir: workers/session-vault/)
+# Override worker name: CLOUDFLARE_WORKER_NAME=... npx wrangler deploy
 name = "mcp-cf-bots"
 main = "src/index.ts"
 compatibility_date = "2024-11-01"
 workers_dev = true
-# Web Crypto AES-GCM + Durable Objects; no nodejs_compat required for MVP
 
 [durable_objects]
 bindings = [
@@ -16,10 +15,16 @@ bindings = [
 tag = "v1"
 new_classes = ["SessionVaultDO", "RegistryDO"]
 
+# Non-secret config — override per env (dashboard / wrangler vars put / CI).
+# Secrets (wrangler secret put): VAULT_TOKEN, optional ENCRYPTION_KEY
 [vars]
-# Override per deploy: wrangler vars set DEFAULT_OWNER cloud-agent
-DEFAULT_OWNER = "default"
-
-# Custom MCP hostname (not committed — use env at deploy time):
-#   MCP_CUSTOM_HOST=mcp.example.com npx wrangler deploy --route "${MCP_CUSTOM_HOST}"
-# Or add [[routes]] pattern + custom_domain = true for your zone (see README).
+MCP_HTTP_PATH = "/mcp"
+MCP_SERVER_NAME = "mcp-cf-bots"
+MCP_SERVER_VERSION = "0.4.0"
+MCP_SERVER_DESCRIPTION = "Cloudflare MCP for cross-agent bots"
+MCP_PROTOCOL_VERSION = "2024-11-05"
+OWNER_HEADER = "X-Cf-Bots-Owner"
+# Required for your deployment — set explicitly, do not rely on code defaults:
+# DEFAULT_OWNER = "cloud-agent"
+# DEFAULT_SESSION_SOURCE = "browser-use"
+# MCP_ALLOWED_ORIGINS = "https://cursor.com"

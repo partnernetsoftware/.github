@@ -1,3 +1,9 @@
+import {
+  mcpHttpPath,
+  readOwnerHeader,
+  resolveOwner,
+  validateMcpOrigin,
+} from "./config";
 import { handleMcpJsonRpc } from "./mcp-server";
 
 function acceptsMcpPost(request: Request): boolean {
@@ -11,29 +17,6 @@ function acceptsMcpPost(request: Request): boolean {
 function acceptsMcpGet(request: Request): boolean {
   const accept = request.headers.get("Accept") ?? "";
   return accept.includes("text/event-stream");
-}
-
-/** Spec: reject invalid Origin when present (DNS rebinding). */
-function validateOrigin(request: Request): boolean {
-  const origin = request.headers.get("Origin");
-  if (!origin) {
-    return true;
-  }
-  try {
-    const u = new URL(origin);
-    if (u.protocol === "https:") {
-      return true;
-    }
-    if (u.protocol === "cursor:" || u.protocol === "vscode-file:") {
-      return true;
-    }
-    if (u.hostname === "localhost" || u.hostname === "127.0.0.1") {
-      return true;
-    }
-    return false;
-  } catch {
-    return false;
-  }
 }
 
 async function hmacSessionToken(secret: string, sessionUuid: string): Promise<string> {
@@ -90,8 +73,14 @@ function isJsonRpcBody(body: unknown): body is { method?: string; jsonrpc?: stri
   );
 }
 
-export function isMcpHttpRequest(request: Request, url: URL): boolean {
-  if (url.pathname === "/mcp") {
+export function isMcpHttpRequest(request: Request, url: URL, env: Env): boolean {
+  let mcpPath: string;
+  try {
+    mcpPath = mcpHttpPath(env);
+  } catch {
+    return false;
+  }
+  if (url.pathname === mcpPath) {
     return true;
   }
   if (url.pathname !== "/") {
@@ -114,18 +103,23 @@ export async function handleMcpHttp(
   env: Env,
   url: URL,
 ): Promise<Response> {
-  if (!validateOrigin(request)) {
+  if (!validateMcpOrigin(request, env)) {
     return Response.json(
       { jsonrpc: "2.0", error: { code: -32000, message: "Invalid Origin" } },
       { status: 403 },
     );
   }
 
-  const headerOwner =
-    request.headers.get("X-Cf-Bots-Owner")?.trim() ||
-    request.headers.get("X-Session-Vault-Owner")?.trim();
-  const defaultOwner =
-    headerOwner || env.DEFAULT_OWNER?.trim() || "default";
+  let defaultOwner: string;
+  try {
+    defaultOwner = resolveOwner(env, { headerOwner: readOwnerHeader(request, env) });
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
+    return Response.json(
+      { jsonrpc: "2.0", error: { code: -32000, message } },
+      { status: 400 },
+    );
+  }
 
   if (request.method === "GET") {
     if (!acceptsMcpGet(request)) {
@@ -168,10 +162,8 @@ export async function handleMcpHttp(
     ? await validateSessionId(env, sessionHeader)
     : false;
 
-  const baseUrl = url.origin;
   const result = await handleMcpJsonRpc(body, {
     env,
-    baseUrl,
     defaultOwner,
     sessionId: sessionValid ? sessionHeader : null,
     isInitialize,
