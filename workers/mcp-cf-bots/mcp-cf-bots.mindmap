@@ -1,20 +1,21 @@
 {
   "product": "mcp-cf-bots",
   "ssot": "workers/mcp-cf-bots/mcp-cf-bots.mindmap",
-  "version": "0.8.2",
-  "updated_at": "2026-05-30T02:30:00Z",
+  "version": "0.9.0",
+  "updated_at": "2026-05-30T02:27:00Z",
   "north_star": "跨 Agent 的 HTTP MCP + REST：sess_* 会话、mem_* 记忆 RAG、cfb_* 多租户",
   "roadmap": {
-    "current_phase": "steady-ops",
-    "current_version": "0.8.2",
+    "current_phase": "post-p123",
+    "current_version": "0.9.0",
     "last_review": "2026-05-30",
-    "summary": "P0 已清；产品进入稳态运维。P1 暂缓，启动前须对照本路线图 gate。",
+    "summary": "0.9.0 交付 P1 检索（FTS5 + mem_search 过滤 + /health fts 标志）、P2 规模安全（按 owner 限流 + admin 审计 KV）、P3 产品化（MCP resources 记忆摘要）。TD-5 delete-class 仍阻塞；进入 post-P123 稳态运维。",
     "milestones_done": [
       { "version": "0.6.x", "label": "生产化 / 鉴权 / 多租户 token", "status": "done" },
       { "version": "0.7.x", "label": "mem_* + Vectorize RAG + 公开状态页", "status": "done" },
       { "version": "0.8.0", "label": "MemorySqliteDO + hybrid + chunk + 文档 SSOT(INDEX)", "status": "done" },
       { "version": "0.8.1", "label": "Cron reindex/GC + deploy 脚本 + mindmap", "status": "done" },
-      { "version": "0.8.2", "label": "P0: migrate_legacy + 分页 GC + cron KV 报告", "status": "done" }
+      { "version": "0.8.2", "label": "P0: migrate_legacy + 分页 GC + cron KV 报告", "status": "done" },
+      { "version": "0.9.0", "label": "P1+P2+P3: FTS5 + search 过滤 + /health; 限流 + 审计 KV + MCP resources（TD-5 delete-class 除外）", "status": "done" }
     ],
     "phases": [
       {
@@ -26,43 +27,38 @@
       {
         "id": "p1-retrieval",
         "label": "P1 检索质量",
-        "status": "deferred",
-        "start_gates": [
-          "用户明确要做 P1",
-          "或线上 mem_search 误召/漏召成为瓶颈"
-        ],
+        "status": "done",
         "items": [
-          { "id": "p1-fts", "label": "SQLite FTS5 / 更好关键词层", "priority": 1 },
-          { "id": "p1-filter", "label": "mem_search 按 tag / 时间过滤", "priority": 2 },
-          { "id": "p1-health", "label": "/health 扩展 mem/cron 标志", "priority": 3 }
-        ],
-        "not_now": "未满足 start_gates 前不开工，避免与稳态运维并行改检索栈"
+          { "id": "p1-fts", "label": "SQLite FTS5 / 更好关键词层", "priority": 1, "status": "done" },
+          { "id": "p1-filter", "label": "mem_search 按 tag / 时间过滤", "priority": 2, "status": "done" },
+          { "id": "p1-health", "label": "/health 扩展 mem/cron 标志", "priority": 3, "status": "done" }
+        ]
       },
       {
         "id": "p2-scale-security",
         "label": "P2 规模与安全",
-        "status": "backlog",
+        "status": "done",
+        "note": "p2-delete-class 仍阻塞（TD-5）",
         "items": [
-          { "id": "p2-rate", "label": "按 owner 限流" },
-          { "id": "p2-audit", "label": "admin 操作审计 KV" },
-          { "id": "p2-miniflare", "label": "DO+hybrid 集成测" },
-          { "id": "p2-delete-class", "label": "TD-5 delete-class MemoryDO", "depends": "TD-5" }
+          { "id": "p2-rate", "label": "按 owner 限流", "status": "done" },
+          { "id": "p2-audit", "label": "admin 操作审计 KV", "status": "done" },
+          { "id": "p2-miniflare", "label": "DO+hybrid 集成测", "status": "backlog" },
+          { "id": "p2-delete-class", "label": "TD-5 delete-class MemoryDO", "depends": "TD-5", "status": "blocked" }
         ]
       },
       {
         "id": "p3-product",
         "label": "P3 产品化",
-        "status": "backlog",
+        "status": "done",
         "items": [
-          { "id": "p3-mcp-resources", "label": "MCP resources 暴露记忆摘要" },
-          { "id": "p3-custom-domain", "label": "自定义域运维文档固化" }
+          { "id": "p3-mcp-resources", "label": "MCP resources 暴露记忆摘要", "status": "done" },
+          { "id": "p3-custom-domain", "label": "自定义域运维文档固化", "status": "done" }
         ]
       }
     ],
     "anti_detour": [
       "文档只维护 INDEX.md + 本 mindmap，不新增散落 md",
       "工程习惯走 skills/engineering-hygiene（AGENTS.md 默认），不用 mem_* 存规范",
-      "P1 deferred 时不实现 FTS/BM25/限流",
       "功能改动先对 north_star：是否服务 sess/mem/auth 三支柱"
     ],
     "end_of_round_checklist": [
@@ -99,7 +95,8 @@
           { "id": "mem-cron", "label": "Cron incremental reindex + paged GC + KV report", "status": "done" },
           { "id": "mem-migrate", "label": "mem_migrate_legacy", "status": "done" },
           { "id": "mem-encrypt", "label": "MEM_ENCRYPT 静态加密", "status": "optional" },
-          { "id": "mem-p1-fts", "label": "P1 FTS/BM25", "status": "deferred" }
+          { "id": "mem-p1-fts", "label": "P1 FTS5 keyword layer", "status": "done" },
+          { "id": "mem-mcp-resources", "label": "MCP resources 记忆摘要", "status": "done" }
         ]
       },
       {
@@ -107,7 +104,9 @@
         "label": "auth_token_* + admin",
         "status": "done",
         "children": [
-          { "id": "auth-kv", "label": "TOKENS KV cfb_*", "status": "done" }
+          { "id": "auth-kv", "label": "TOKENS KV cfb_*", "status": "done" },
+          { "id": "auth-rate-limit", "label": "按 owner 限流 (KV sliding window)", "status": "done" },
+          { "id": "auth-audit", "label": "admin 操作审计 KV", "status": "done" }
         ]
       },
       {
@@ -128,7 +127,7 @@
     { "id": "TD-3", "label": "Vectorize orphan GC", "status": "mitigated", "doc": "INDEX.md#技术债" },
     { "id": "TD-4", "label": "Cron paged vector list", "status": "mitigated", "doc": "INDEX.md#cloudflare-服务" },
     { "id": "TD-5", "label": "delete-class MemoryDO", "status": "blocked", "phase": "p2-scale-security" },
-    { "id": "TD-6", "label": "无真 BM25 / FTS", "status": "open", "phase": "p1-retrieval" }
+    { "id": "TD-6", "label": "无真 BM25 / FTS", "status": "mitigated", "note": "FTS5 shipped in 0.9.0", "phase": "p1-retrieval" }
   ],
   "cron": {
     "schedule": "0 4 * * *",
