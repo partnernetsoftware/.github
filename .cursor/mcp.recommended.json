@@ -1,5 +1,6 @@
 {
   "_note": "Canonical copy: workers/mcp-cf-bots/mcp.recommended.json",
+  "_agentGuide": "INDEX workers/mcp-cf-bots/INDEX.md § Agent（MCP）; server sends initialize.instructions",
   "mcpServers": {
     "playwright": {
       "command": "npx",

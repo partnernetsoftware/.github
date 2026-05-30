@@ -22,6 +22,8 @@ interface Env {
   MCP_SERVER_VERSION?: string;
   MCP_SERVER_DESCRIPTION?: string;
   MCP_PROTOCOL_VERSION?: string;
+  /** Optional override for MCP initialize `instructions` (agent tool-use guide). */
+  MCP_SERVER_INSTRUCTIONS?: string;
   /** Comma-separated Origin allowlist; empty = https + cursor IDE + localhost */
   MCP_ALLOWED_ORIGINS?: string;
   MCP_PUBLIC_HOST?: string;

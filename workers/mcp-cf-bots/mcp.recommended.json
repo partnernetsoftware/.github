@@ -1,4 +1,5 @@
 {
+  "_agentGuide": "Agents: read workers/mcp-cf-bots/INDEX.md § Agent（MCP）. Server returns initialize.instructions; use mem_* for user memory, sess_* after browser login.",
   "mcpServers": {
     "playwright": {
       "command": "npx",

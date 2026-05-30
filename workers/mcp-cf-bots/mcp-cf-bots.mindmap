@@ -1,8 +1,8 @@
 {
   "product": "mcp-cf-bots",
   "ssot": "workers/mcp-cf-bots/mcp-cf-bots.mindmap",
-  "version": "0.9.4",
-  "updated_at": "2026-05-30T05:00:00Z",
+  "version": "0.9.5",
+  "updated_at": "2026-05-30T06:00:00Z",
   "north_star": "跨 Agent 的 HTTP MCP + REST：sess_* 会话、mem_* 记忆 RAG、cfb_* 多租户",
   "product_review": {
     "what": "Cloudflare Worker：浏览器会话 vault + 租户记忆 RAG + MCP/REST 多入口",
@@ -12,56 +12,61 @@
       "auth": "VAULT_TOKEN admin + TOKENS KV cfb_* 用户 token + 限流 + 审计"
     },
     "interfaces": ["GET /health", "POST /mcp", "/v1/session/*", "/v1/mem/*", "/v1/admin/*"],
-    "maturity": "生产可用；W3 legacy 已删；稳态运维"
+    "maturity": "生产可用；Agent MCP instructions；W4 可观测进行中"
   },
   "architecture_decisions": {
-    "canonical_entry": "单一 Worker；workers.dev + CLOUDFLARE_WORKER_DOMAIN（deploy 注入 custom_domain）",
+    "canonical_entry": "单一 Worker；workers.dev + CLOUDFLARE_WORKER_DOMAIN",
     "url_for_cursor": "MCP_CF_BOTS_URL = CLOUDFLARE_WORKER_DOMAIN",
-    "priority_order": "稳态运维",
-    "mem_encrypt": "默认关闭",
-    "http_helpers": "ownerFromHttpRequest + readJsonBody/readOptionalJsonBody 统一 REST",
-    "admin_routes": "所有 /v1/admin/* 仅 admin-api.ts",
+    "agent_memory": "mem_* 存用户事实；规范在 INDEX/skills，不 mem_put",
+    "mcp_instructions": "initialize.instructions + tool descriptions（src/mcp-instructions.ts）",
     "deploy_gate": "security-check.sh → test → deploy → verify-all-urls"
   },
   "roadmap": {
-    "current_phase": "steady-ops",
-    "current_version": "0.9.4",
+    "current_phase": "w4-observability",
+    "current_version": "0.9.5",
     "last_review": "2026-05-30",
-    "summary": "W3：migration v5 删除 MemoryDO；移除 migrate API；线上 legacy 0 keys。",
-    "for_discussion": [],
-    "end_of_round": [
-      "merge origin/main",
-      "./scripts/security-check.sh && npm test && npm run test:integration",
-      "./scripts/deploy.sh && verify-all-urls",
-      "更新 INDEX + 本 mindmap"
+    "summary": "MCP Agent 主动使用指南；sess 集成测；W4 CF API secrets 脚本。",
+    "for_discussion": [
+      {
+        "id": "disc-1.0",
+        "label": "1.0 门槛：API 冻结、加密默认、删除 410 路由保留期"
+      }
     ],
-    "last_deploy": {
-      "version": "0.9.4",
-      "note": "W3 deleted_classes MemoryDO"
-    },
+    "ops_playbook": [
+      "MCP 401 → diagnose-connection.sh + sync-vault-secret.sh + issue_token.sh",
+      "cf_api_ready false → sync-cf-api-secrets.sh + check-cf-api.sh"
+    ],
+    "last_deploy": { "version": "0.9.5", "note": "pending" },
     "active_waves": [
       {
         "id": "w0-steady",
         "label": "W0 稳态",
         "status": "ongoing",
+        "priority": 0,
+        "items": [{ "id": "w0-deploy", "label": "deploy + verify-all-urls", "status": "ongoing" }]
+      },
+      {
+        "id": "w4-observability",
+        "label": "W4 可观测 / CF API",
+        "status": "active",
         "priority": 1,
         "items": [
-          { "id": "w0-merge-deploy", "label": "merge + deploy + verify-all-urls", "status": "ongoing" }
+          { "id": "w4-cf-secrets", "label": "sync-cf-api-secrets + cf_api_ready", "status": "ongoing" },
+          { "id": "w4-cron-gc", "label": "cron_vector_gc 产线变 true", "status": "pending" }
         ]
       }
     ],
     "milestones_done": [
-      { "version": "0.9.4", "label": "W3：删 MemoryDO class + 移除 mem_migrate_legacy", "status": "done" },
-      { "version": "0.9.3", "label": "卫生轮 + MCP 401 排障 + W2 hybrid 集成测", "status": "done" },
-      { "version": "0.9.0", "label": "P1–P3 FTS/限流/审计/resources", "status": "done" },
-      { "version": "0.8.2", "label": "P0 migrate/GC/cron", "status": "done" }
+      { "version": "0.9.5", "label": "MCP instructions + Agent 指南 + sess 集成测", "status": "done" },
+      { "version": "0.9.4", "label": "W3 删 MemoryDO", "status": "done" },
+      { "version": "0.9.3", "label": "卫生 + W2 hybrid 测 + MCP 401 排障", "status": "done" }
     ]
   },
   "tech_debt": [
-    { "id": "TD-5", "label": "delete-class MemoryDO", "status": "done", "note": "0.9.4 v5 migration" },
-    { "id": "TD-8", "label": "URL 漂移", "status": "mitigated", "note": "verify-all-urls" },
-    { "id": "TD-9", "label": "admin cron 曾挂在 mem-rest 不可达", "status": "mitigated", "note": "0.9.3 admin-api" },
-    { "id": "TD-10", "label": "hybrid 无集成测", "status": "mitigated", "note": "memory-hybrid.test.ts" }
+    { "id": "TD-11", "label": "INDEX/mindmap 漂移", "status": "mitigated", "note": "收尾清单" },
+    { "id": "TD-12", "label": "cf_api_ready 产线 false", "status": "open", "wave": "w4-observability" },
+    { "id": "TD-10", "label": "hybrid 无集成测", "status": "mitigated" },
+    { "id": "TD-5", "label": "delete-class MemoryDO", "status": "done" }
   ],
   "doc_index": "INDEX.md"
 }

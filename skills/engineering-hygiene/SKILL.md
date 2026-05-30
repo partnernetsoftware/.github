@@ -30,7 +30,7 @@ paths:
 
 | 检查 | 动作 |
 |------|------|
-| 范围 | 用户本轮目标一句话；对照路线图当前 phase，**P1 未启动则不偷做 P1** |
+| 范围 | 用户本轮目标一句话；对照 mindmap `active_waves` / `for_discussion` |
 | SSOT | `workers/mcp-cf-bots` → [INDEX.md](../../workers/mcp-cf-bots/INDEX.md) + [mcp-cf-bots.mindmap](../../workers/mcp-cf-bots/mcp-cf-bots.mindmap) |
 | 多产品 | 根 [AGENTS.md](../../AGENTS.md)；专项 skill（squad / longrun）若适用则 **先读 skill** |
 | 分支 | Cloud Agent 用 `cursor/<topic>-1c37`；合并前 typecheck/test |
@@ -60,7 +60,7 @@ paths:
 |----|------|
 | 路线图 | INDEX §路线图 · mindmap `roadmap` |
 | 当前版本 | `wrangler.toml` → `MCP_SERVER_VERSION` |
-| P1 | **deferred** — 见 INDEX「P1 启动条件」 |
+| MCP 已连接 | 用户事实/偏好 → **主动** `mem_*`；浏览器登录 → `sess_*`（见 INDEX § Agent（MCP）） |
 | 运维 | cron、`mem_vector_gc`、`mem_reindex` |
 | MCP 连不上 | **勿** `mem_put` 存排障；INDEX §连不上 + `diagnose-connection.sh` / `sync-vault-secret.sh` |
 
@@ -74,5 +74,5 @@ paths:
 ## 禁止
 
 - 用 `mem_put` 代替 INDEX / skill 存工程规范  
-- 未读路线图就启动 P1 大特性  
+- 已连 mcp-cf-bots 却不用 mem/sess 存用户上下文（应主动用工具）  
 - 一轮结束不更新 mindmap `last_review`（有该产品时）

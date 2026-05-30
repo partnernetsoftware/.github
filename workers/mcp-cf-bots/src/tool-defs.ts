@@ -48,7 +48,7 @@ const SESS_TOOL_DEFS: ToolDef[] = [
   {
     name: "sess_save",
     description:
-      "Save browser-use / Playwright session for reuse across Cloud Agents (storage_state + optional oauth/cookies/config)",
+      "After browser login: save session for later agents (Playwright storage_state + optional oauth/cookies/config). Call proactively when auth succeeds.",
     required: ["site", "profile"],
     properties: {
       site: { type: "string", description: "Site key (e.g. github.com)" },
@@ -76,7 +76,7 @@ const SESS_TOOL_DEFS: ToolDef[] = [
   {
     name: "sess_load",
     description:
-      "Load saved browser session for browser-use (storage_state; optional oauth/cookies/config)",
+      "Before automating a logged-in site: load saved session (storage_state; optional oauth/cookies/config).",
     required: ["site", "profile"],
     properties: {
       site: { type: "string" },
@@ -151,7 +151,7 @@ const MEM_TOOL_DEFS: ToolDef[] = [
   {
     name: "mem_put",
     description:
-      "Store a memory entry (auto-chunked for RAG); optional tags and ISO8601 expires_at",
+      "Proactively store user facts, preferences, and project context (auto-chunked RAG). Use stable keys and tags — not for repo docs/INDEX/skills.",
     required: ["key", "content"],
     properties: {
       key: { type: "string", description: "Unique key within owner namespace" },
@@ -191,7 +191,7 @@ const MEM_TOOL_DEFS: ToolDef[] = [
   {
     name: "mem_search",
     description:
-      "Hybrid RRF search (Vectorize + FTS keyword; do_embed fallback); optional tag / updated_after / updated_before filters; ranked snippets",
+      "Search tenant memory before recalling prior work (prefer over mem_list). Hybrid RRF: Vectorize + FTS; optional tag / updated_after / updated_before.",
     required: ["query"],
     properties: {
       query: { type: "string" },

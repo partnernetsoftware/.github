@@ -1,5 +1,6 @@
 import type { AuthContext } from "./auth";
 import { mcpProtocolVersion, mcpServerInfo } from "./config";
+import { mcpServerInstructions } from "./mcp-instructions";
 import { listMemResources, readMemResource } from "./mcp-resources";
 import { memToolCall } from "./mem-tools";
 import { sessToolCall } from "./sess-tools";
@@ -60,6 +61,7 @@ export async function handleMcpJsonRpc(
                     owner: ctx.auth.owner,
                   },
           },
+          instructions: mcpServerInstructions(ctx.env),
         }),
         status: 200,
         isNotification: false,

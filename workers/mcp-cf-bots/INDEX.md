@@ -22,11 +22,11 @@ HTTP MCP + REST on Cloudflare Workers：`sess_*` 会话、`mem_*` 记忆 RAG、`
 
 | 项 | 说明 |
 |----|------|
-| **版本** | `0.9.4` — W3 删除 `MemoryDO` / `MEMORY_LEGACY`（migration `v5`） |
-| **本轮** | 移除 `mem_migrate_legacy`；线上 legacy 已审计为 0 keys |
+| **版本** | `0.9.5` — MCP `instructions` + Agent 使用指南 + sess 集成测 |
+| **本轮** | `initialize.instructions`；CF API 脚本；路线图 W4 可观测 |
 | **门禁** | `scripts/security-check.sh` + `deploy.sh` → `verify-all-urls` |
 | **你怎么连** | `MCP_CF_BOTS_URL` = `CLOUDFLARE_WORKER_DOMAIN`；用户 `cfb_*`；admin `VAULT_TOKEN` |
-| **下一步** | 稳态运维；无阻塞大项 |
+| **下一步** | W4：产线 `cf_api_ready`；可选 1.0 定义 |
 
 ### 每轮标准流程
 
@@ -46,7 +46,8 @@ git checkout main && git merge <feature-branch> && git push origin main
 | **W-卫生** | **完成** | cron 路由、HTTP 抽象、security-check、delete 限流 |
 | **W0** | 持续 | merge → security-check → test → deploy → verify |
 | **W2** | **完成** | DO embed + mock Vectorize hybrid 集成测 |
-| **W3** | **完成** | TD-5：`deleted_classes` MemoryDO，移除 migrate API |
+| **W3** | **完成** | TD-5：`deleted_classes` MemoryDO |
+| **W4** | **当前** | CF API secrets → `cf_api_ready` / cron Vectorize GC |
 
 ### 历史里程碑
 
@@ -60,6 +61,7 @@ git checkout main && git merge <feature-branch> && git push origin main
 | 0.9.2 | custom_domain deploy、`verify-all-urls` |
 | 0.9.3 | 卫生轮：admin cron 修复、owner/JSON 复用、security-check |
 | 0.9.4 | W3：删 MemoryDO（v5 migration）、移除 legacy 迁移 API |
+| 0.9.5 | MCP instructions、Agent 指南、sess 集成测、check/sync-cf-api |
 
 ### 每轮收尾清单
 
@@ -95,6 +97,8 @@ git checkout main && git merge <feature-branch> && git push origin main
 | [scripts/issue_token.sh](scripts/issue_token.sh) | 签发 `cfb_*` |
 | [scripts/diagnose-connection.sh](scripts/diagnose-connection.sh) | health + `/v1/me` + MCP initialize |
 | [scripts/sync-vault-secret.sh](scripts/sync-vault-secret.sh) | `VAULT_TOKEN` → 正确 Worker |
+| [scripts/sync-cf-api-secrets.sh](scripts/sync-cf-api-secrets.sh) | `CF_ACCOUNT_ID` + `CF_API_TOKEN` |
+| [scripts/check-cf-api.sh](scripts/check-cf-api.sh) | `/health` 校验 `cf_api_ready` |
 | [scripts/claude_worker.sh](scripts/claude_worker.sh) | restore vault → `claude` |
 | [tools/](tools/) | Python 客户端 |
 | [snippets/](snippets/) | 浏览器 Console cookie |
@@ -137,6 +141,21 @@ git checkout main && git merge <feature-branch> && git push origin main
 | MCP resources | `mem://<key>`（`resources/list`、`resources/read`） |
 
 客户端环境变量：`MCP_CF_BOTS_URL`、`MCP_CF_BOTS_TOKEN`、`MCP_CF_BOTS_OWNER`（兼容 `SESSION_VAULT_*`）。
+
+### Agent（MCP）— 主动使用指南
+
+> Cursor / Cloud Agent：连接后服务端在 **`initialize` 响应**里返回 `instructions`（见 `src/mcp-instructions.ts`）；工具 `description` 也写明何时调用。仓库侧见根 [`AGENTS.md`](../../AGENTS.md)。
+
+| 场景 | 应调用的工具 |
+|------|----------------|
+| 用户说「记住…」、偏好、项目事实、跨会话决策 | `mem_put`（稳定 `key` + `tags`） |
+| 回答「之前说过什么」「上轮进展」、续做项目 | 先 `mem_search`，再 `mem_get` |
+| 浏览器/Playwright 登录成功 | `sess_save`（`site` + `profile` + `storage_state`） |
+| 自动化需要已登录站点 | 先 `sess_load`，再控浏览器 |
+| 已知记忆 key | `resources/read` `mem://<key>` |
+| 仓库工程规范、路线图、skill | **不要** `mem_put` → 改 INDEX / mindmap / `skills/` |
+
+配置：[`mcp.recommended.json`](mcp.recommended.json) · [`.cursor/mcp.json`](../../.cursor/mcp.json)（`url` = `${MCP_CF_BOTS_URL}/mcp`，Bearer = `cfb_*`）。
 
 ### 连不上 / MCP 401（排查）
 
@@ -334,9 +353,11 @@ CLI 凭据：`tools/claude_code.py capture|restore|status`（等价 `sess_put` s
 | TD-4 | Cron 全量 list 大索引慢 | mitigated（分页 + KV 游标） |
 | TD-5 | `delete-class MemoryDO` | **done**（v5 migration） |
 | TD-6 | FTS5 关键词 | mitigated（0.9.0） |
-| TD-7 | Miniflare DO 集成测 | mitigated（FTS 子集）→ hybrid 仍 **W2** |
+| TD-7 | Miniflare DO 集成测 | mitigated（FTS + hybrid + sess） |
 | TD-8 | 自定义 URL 漂移 | mitigated（verify-all-urls） |
 | TD-9 | admin cron 挂在 mem-rest 不可达 | mitigated（0.9.3 admin-api） |
-| TD-10 | hybrid 无集成测 | open → W2 |
+| TD-10 | hybrid 无集成测 | mitigated（memory-hybrid.test.ts） |
+| TD-11 | INDEX/mindmap 漂移 | mitigated（每轮收尾对齐） |
+| TD-12 | 产线 `cf_api_ready` false | **W4** → `sync-cf-api-secrets.sh` |
 
 详情同步 [mcp-cf-bots.mindmap](mcp-cf-bots.mindmap) → `tech_debt`。
