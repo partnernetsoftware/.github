@@ -1,7 +1,6 @@
 import { mcpHttpPath, mcpServerInfo, trimOpt } from "./config";
 import { fetchWorkerUsageCached } from "./cf-analytics";
-import { loadCronReport } from "./mem-cron";
-import { ragBackend, semanticRagEnabled } from "./mem-embed";
+import { buildHealthFeatures, customDomainHint, type HealthCronLast, type HealthFeatures } from "./health-detail";
 import { jsonResponse } from "./http-util";
 
 export type StatusPayload = {
@@ -10,11 +9,8 @@ export type StatusPayload = {
   version: string;
   description: string;
   time: string;
-  features: {
-    memory: boolean;
-    rag: boolean;
-    rag_backend: string;
-  };
+  features: HealthFeatures;
+  hint?: string;
   bindings: {
     session_store: boolean;
     registry: boolean;
@@ -42,15 +38,7 @@ export type StatusPayload = {
     };
   };
   notes: string[];
-  cron_last: {
-    available: boolean;
-    at?: string;
-    owners?: number;
-    reindex_upserted?: number;
-    gc_deleted?: number;
-    gc_pages?: number;
-    gc_complete?: boolean;
-  };
+  cron_last: HealthCronLast;
 };
 
 export async function buildStatusPayload(env: Env): Promise<StatusPayload> {
@@ -73,8 +61,11 @@ export async function buildStatusPayload(env: Env): Promise<StatusPayload> {
     /* default */
   }
 
-  const usageResult = await fetchWorkerUsageCached(env);
-  const cronReport = await loadCronReport(env);
+  const [{ features, cron_last }, usageResult] = await Promise.all([
+    buildHealthFeatures(env),
+    fetchWorkerUsageCached(env),
+  ]);
+  const hint = customDomainHint(env);
   const hasCfCreds = Boolean(trimOpt(env.CF_ACCOUNT_ID) && trimOpt(env.CF_API_TOKEN));
 
   const notes = [
@@ -88,32 +79,13 @@ export async function buildStatusPayload(env: Env): Promise<StatusPayload> {
     );
   }
 
-  const cronLast = cronReport
-    ? {
-        available: true,
-        at: cronReport.at,
-        owners: cronReport.owners.length,
-        reindex_upserted: cronReport.reindex.reduce(
-          (n, r) => n + (r.skipped ? 0 : r.upserted),
-          0,
-        ),
-        gc_deleted: cronReport.vector_gc.reduce((n, r) => n + r.deleted, 0),
-        gc_pages: cronReport.vector_gc_meta?.pages_processed,
-        gc_complete: cronReport.vector_gc_meta?.complete,
-      }
-    : { available: false };
-
   return {
     ok: true,
     service: name,
     version,
     description,
     time: new Date().toISOString(),
-    features: {
-      memory: Boolean(env.MEMORY_STORE),
-      rag: semanticRagEnabled(env),
-      rag_backend: ragBackend(env),
-    },
+    features,
     bindings: {
       session_store: Boolean(env.SESSION_STORE),
       registry: Boolean(env.REGISTRY),
@@ -156,7 +128,8 @@ export async function buildStatusPayload(env: Env): Promise<StatusPayload> {
             : "Configure CF_ACCOUNT_ID + CF_API_TOKEN secrets.",
         },
     notes,
-    cron_last: cronLast,
+    cron_last,
+    ...(hint ? { hint } : {}),
   };
 }
 
@@ -214,11 +187,17 @@ function renderHtml(p: StatusPayload): string {
   <h1>${esc(p.service)}</h1>
   <p class="ver">v${esc(p.version)} · ${esc(p.time)}</p>
   <p>${esc(p.description)}</p>
+  ${p.hint ? `<p><code>${esc(p.hint)}</code></p>` : ""}
   <h2>Features</h2>
   <p>
     ${feat("sess_*", true)}
     ${feat("mem_*", p.features.memory)}
     ${feat(`RAG (${p.features.rag_backend})`, p.features.rag)}
+    ${feat("mem_encrypt", p.features.mem_encrypt)}
+    ${feat("cron_reindex", p.features.cron_reindex)}
+    ${feat("cron_vector_gc", p.features.cron_vector_gc)}
+    ${feat("cf_api", p.features.cf_api_ready)}
+    ${feat("mem_legacy", p.features.memory_legacy)}
     ${feat("multi-tenant", p.bindings.tokens_kv)}
   </p>
   <h2>Last mem cron</h2>
@@ -229,7 +208,7 @@ function renderHtml(p: StatusPayload): string {
         <tr><th>Owners</th><td>${p.cron_last.owners ?? 0}</td></tr>
         <tr><th>Reindex upserted</th><td>${p.cron_last.reindex_upserted ?? 0}</td></tr>
         <tr><th>GC deleted</th><td>${p.cron_last.gc_deleted ?? 0}</td></tr>
-        <tr><th>GC pages</th><td>${p.cron_last.gc_pages ?? "—"} (complete: ${p.cron_last.gc_complete ? "yes" : "no"})</td></tr>
+        <tr><th>GC complete</th><td>${p.cron_last.gc_complete ? "yes" : "no"}</td></tr>
       </table>`
       : `<p class="muted">No cron report in KV yet.</p>`
   }
