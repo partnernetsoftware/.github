@@ -6,7 +6,7 @@
 |---|---|
 | 采集窗口 | `260528 05:51` UTC → `260530 05:51` UTC（48h，cron 触发） |
 | 本文件更新 | `260530 05:51` UTC |
-| 分支 | `cursor/vibe-md-c3e9`（已 `git merge origin/main`，与 `main` 同步） |
+| 分支 | 已合并 **`origin/main`**（`27eaf3c`，`docs/vibe.md` 在 main） |
 | 条目数 | 18 |
 | token 估算 | 正文约 **字符数÷4**（英文为主）或 **÷1.8**（中文为主），取整 |
 
