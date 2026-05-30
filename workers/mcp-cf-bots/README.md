@@ -15,13 +15,15 @@ workers/mcp-cf-bots/
 │   ├── config.ts           # Env / Origin / MCP 元信息
 │   ├── mcp-http.ts         # Streamable HTTP MCP
 │   ├── mcp-server.ts       # sess_* / auth_* 工具
-│   ├── vault-api.ts        # REST /v1/session + 工具实现
-│   ├── session-vault-do.ts # 加密存储 DO
+│   ├── vault-api.ts        # REST /v1/session
+│   ├── session-do.ts       # SessionStoreDO 加密存储
+│   ├── sess-tools.ts       # MCP sess_* 实现
 │   ├── registry-do.ts      # 列表索引 DO
 │   ├── crypto.ts           # AES-GCM
 │   ├── kinds.ts            # oauth / cookies / storage_state / config
 │   └── env.d.ts
 ├── tools/                  # Python REST 客户端（非 MCP）
+│   ├── _client.py          # 共享 REST 客户端
 │   ├── claude_code.py      # CLI 凭据 capture/restore
 │   └── browser_cookies.py  # Playwright cookie
 ├── scripts/                # Shell
@@ -77,6 +79,6 @@ npx wrangler deploy --name mcp-cf-bots
 - 工具：`sess_save` / `sess_load` / `sess_put` / …；admin 另有 `auth_token_*`
 - 配置示例：[mcp.recommended.json](mcp.recommended.json)
 
-## 仓库根路径兼容
+## 文档
 
-`tools/session_vault_*.py`、`tools/claude_worker.sh` 等为 **弃用 shim**，请改用本目录。
+见 [docs/](docs/)。

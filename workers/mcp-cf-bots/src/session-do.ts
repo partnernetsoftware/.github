@@ -20,7 +20,7 @@ interface StoredSession {
   meta?: SessionMeta;
 }
 
-export class SessionVaultDO implements DurableObject {
+export class SessionStoreDO implements DurableObject {
   private keyPromise: Promise<CryptoKey> | null = null;
 
   constructor(

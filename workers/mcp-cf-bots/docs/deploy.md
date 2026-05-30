@@ -57,6 +57,8 @@ npm ci
 npx wrangler deploy --name mcp-cf-bots
 ```
 
+含 DO 迁移 `v2`：`SessionVaultDO` → `SessionStoreDO`（wrangler 自动执行）。
+
 ## 合并 main
 
 已在 `main`；日常 `git pull` 后按上节 deploy 即可。

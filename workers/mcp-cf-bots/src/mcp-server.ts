@@ -1,6 +1,6 @@
 import { isAdmin, type AuthContext } from "./auth";
 import { mcpProtocolVersion, mcpServerInfo } from "./config";
-import { vaultToolCall } from "./vault-api";
+import { vaultToolCall } from "./sess-tools";
 import { SESSION_KINDS } from "./kinds";
 
 type ToolDef = {
@@ -8,7 +8,6 @@ type ToolDef = {
   description: string;
   required: readonly string[];
   properties: Record<string, unknown>;
-  userVisible: boolean;
 };
 
 const ADMIN_TOOL_DEFS: ToolDef[] = [
@@ -16,7 +15,6 @@ const ADMIN_TOOL_DEFS: ToolDef[] = [
     name: "auth_token_create",
     description: "Admin: issue a per-user Bearer token scoped to one owner namespace",
     required: ["owner"],
-    userVisible: false,
     properties: {
       owner: { type: "string", description: "Tenant / user id (vault namespace)" },
       label: { type: "string", description: "Optional note (e.g. alice-cursor)" },
@@ -26,7 +24,6 @@ const ADMIN_TOOL_DEFS: ToolDef[] = [
     name: "auth_token_list",
     description: "Admin: list issued user tokens (metadata only, not secret values)",
     required: [],
-    userVisible: false,
     properties: {
       owner: { type: "string", description: "Filter by owner" },
     },
@@ -35,7 +32,6 @@ const ADMIN_TOOL_DEFS: ToolDef[] = [
     name: "auth_token_revoke",
     description: "Admin: revoke a user token by id",
     required: ["token_id"],
-    userVisible: false,
     properties: {
       token_id: { type: "string" },
     },
@@ -48,7 +44,6 @@ const SESS_TOOL_DEFS: ToolDef[] = [
     description:
       "Save browser-use / Playwright session for reuse across Cloud Agents (storage_state + optional oauth/cookies/config)",
     required: ["site", "profile"],
-    userVisible: true,
     properties: {
       site: { type: "string", description: "Site key (e.g. github.com)" },
       profile: { type: "string", description: "Profile name (e.g. default)" },
@@ -80,7 +75,6 @@ const SESS_TOOL_DEFS: ToolDef[] = [
     description:
       "Load saved browser session for browser-use (storage_state; optional oauth/cookies/config)",
     required: ["site", "profile"],
-    userVisible: true,
     properties: {
       site: { type: "string" },
       profile: { type: "string" },
@@ -94,7 +88,6 @@ const SESS_TOOL_DEFS: ToolDef[] = [
     name: "sess_meta",
     description: "Read label/tags/source/expiry metadata without decrypting payloads",
     required: ["site", "profile"],
-    userVisible: true,
     properties: {
       site: { type: "string" },
       profile: { type: "string" },
@@ -105,7 +98,6 @@ const SESS_TOOL_DEFS: ToolDef[] = [
     name: "sess_put",
     description: "Store a single kind: oauth, cookies, storage_state, or config",
     required: ["site", "profile", "kind", "data"],
-    userVisible: true,
     properties: {
       site: { type: "string", description: "Site key (e.g. claude.ai)" },
       profile: { type: "string", description: "Profile name" },
@@ -123,7 +115,6 @@ const SESS_TOOL_DEFS: ToolDef[] = [
     name: "sess_get",
     description: "Read stored session fields (optional single kind)",
     required: ["site", "profile"],
-    userVisible: true,
     properties: {
       site: { type: "string" },
       profile: { type: "string" },
@@ -135,7 +126,6 @@ const SESS_TOOL_DEFS: ToolDef[] = [
     name: "sess_delete",
     description: "Delete all encrypted session data for site/profile",
     required: ["site", "profile"],
-    userVisible: true,
     properties: {
       site: { type: "string" },
       profile: { type: "string" },
@@ -146,7 +136,6 @@ const SESS_TOOL_DEFS: ToolDef[] = [
     name: "sess_list",
     description: "List site/profile entries with label/source/tags",
     required: [] as string[],
-    userVisible: true,
     properties: {
       owner: { type: "string" },
       source: { type: "string", description: "Filter by meta.source" },

@@ -1,5 +1,5 @@
 interface Env {
-  SESSION_VAULT: DurableObjectNamespace;
+  SESSION_STORE: DurableObjectNamespace;
   REGISTRY: DurableObjectNamespace;
   /** Per-user API token index (hashed bearer → owner) */
   TOKENS?: KVNamespace;

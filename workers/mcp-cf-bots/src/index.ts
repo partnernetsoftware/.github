@@ -1,4 +1,4 @@
-export { SessionVaultDO } from "./session-vault-do";
+export { SessionStoreDO } from "./session-do";
 export { RegistryDO } from "./registry-do";
 
 import { authenticateRequest } from "./auth";

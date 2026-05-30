@@ -5,28 +5,6 @@ export function trimOpt(value: string | undefined): string | undefined {
   return v && v.length > 0 ? v : undefined;
 }
 
-/** Owner namespace: header → query → DEFAULT_OWNER (all required if missing). */
-export function resolveOwner(
-  env: Env,
-  opts?: { headerOwner?: string | null; queryOwner?: string | null },
-): string {
-  const fromHeader = trimOpt(opts?.headerOwner ?? undefined);
-  if (fromHeader) {
-    return fromHeader;
-  }
-  const fromQuery = trimOpt(opts?.queryOwner ?? undefined);
-  if (fromQuery) {
-    return fromQuery;
-  }
-  const fromEnv = trimOpt(env.DEFAULT_OWNER);
-  if (fromEnv) {
-    return fromEnv;
-  }
-  throw new Error(
-    "owner required: set DEFAULT_OWNER on Worker, or ?owner=, or owner tool arg, or owner HTTP header",
-  );
-}
-
 export function ownerHeaderNames(env: Env): string[] {
   const primary = trimOpt(env.OWNER_HEADER) ?? "X-Cf-Bots-Owner";
   const names = [primary];

@@ -7,7 +7,7 @@ workers_dev = true
 
 [durable_objects]
 bindings = [
-  { name = "SESSION_VAULT", class_name = "SessionVaultDO" },
+  { name = "SESSION_STORE", class_name = "SessionStoreDO" },
   { name = "REGISTRY", class_name = "RegistryDO" },
 ]
 
@@ -18,6 +18,10 @@ id = "ac6b8cef3cbe4d5fa315c2ed1106e04d"
 [[migrations]]
 tag = "v1"
 new_classes = ["SessionVaultDO", "RegistryDO"]
+
+[[migrations]]
+tag = "v2"
+renamed_classes = [{ from = "SessionVaultDO", to = "SessionStoreDO" }]
 
 # Non-secret config — override per env (dashboard / wrangler vars put / CI).
 # Secrets (wrangler secret put): VAULT_TOKEN, optional ENCRYPTION_KEY
