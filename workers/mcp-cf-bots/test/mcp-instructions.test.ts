@@ -4,7 +4,7 @@ import { handleMcpJsonRpc } from "../src/mcp-server";
 
 const baseEnv = {
   MCP_SERVER_NAME: "mcp-cf-bots",
-  MCP_SERVER_VERSION: "1.0.1",
+  MCP_SERVER_VERSION: "1.0.2",
   MCP_SERVER_DESCRIPTION: "test",
   MCP_PROTOCOL_VERSION: "2024-11-05",
   MCP_HTTP_PATH: "/mcp",

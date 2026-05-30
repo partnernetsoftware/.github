@@ -18,14 +18,23 @@ HTTP MCP + REST on Cloudflare Workers：`sess_*` 会话、`mem_*` 记忆 RAG、`
 
 对外：`GET /health` · `POST /mcp` · `/v1/session/*` · `/v1/mem/*` · `/v1/admin/*`（仅 admin）。
 
-### 现状（v1.0.1）
+### 现状（v1.0.2）
 
 | 项 | 说明 |
 |----|------|
-| **版本** | **`1.0.1`** — v1.0.x 加固（`api_version` 仍为 **1.0**） |
-| **本轮** | 全 `mem_*`/`sess_*` 限流；可选 `MCP_SESSION_SECRET` 与 admin 分离 |
+| **版本** | **`1.0.2`** — v1.0.x 收尾（`api_version` 仍为 **1.0**） |
+| **本轮** | v1.1 原型迁至 `src/deferred/v11/`；`/health` 返回 `production_hints` |
 | **MCP 传输** | **仅 POST JSON-RPC**（无 SSE `GET /mcp`） |
-| **下一步** | **1.0.2**：产线 `cf_api_ready`；**1.1** 暂缓（brain 代码在库内未注册工具） |
+| **运维** | `cf_api_ready` 需 `./scripts/sync-cf-api-secrets.sh`；`./scripts/verify-production.sh` 查看 hints |
+| **v1.1** | **暂缓** — 代码在 `src/deferred/v11/`，**未**注册 MCP 工具 |
+
+### v1.0.x 修补（1.0.2）
+
+| 项 | 处理 |
+|----|------|
+| v1.1 收拢 | `brain-*` / `context-model` → `src/deferred/v11/`（tsconfig exclude） |
+| `mem_put.kind` | `src/mem-kind.ts`（`kind:*` tag，API 仍为 1.0） |
+| 产线可观测 | `/health.production_hints`；`verify-production.sh` |
 
 ### v1.0.x 修补（1.0.1）
 
@@ -72,7 +81,7 @@ git checkout main && git merge <feature-branch> && git push origin main
 | **W3** | **完成** | TD-5：`deleted_classes` MemoryDO |
 | **W4** | 运维 | CF API secrets → `cf_api_ready` |
 | **v1.0.x** | **当前** | 加固；见上表 |
-| **v1.1** | 暂缓 | Brain/Code 算子（代码在库，未注册 MCP） |
+| **v1.1** | 暂缓 | Brain/Code 在 `src/deferred/v11/`，未注册 MCP |
 
 ### 历史里程碑
 
@@ -89,6 +98,7 @@ git checkout main && git merge <feature-branch> && git push origin main
 | 0.9.5 | MCP instructions、Agent 指南、sess 集成测、check/sync-cf-api |
 | **1.0.0** | GA：`api_version` 1.0 冻结 |
 | **1.0.1** | 限流补齐、MCP_SESSION_SECRET、文档与 api 收拢 |
+| **1.0.2** | deferred v1.1、`production_hints`、`mem-kind`、verify-production |
 
 ### 每轮收尾清单
 
@@ -127,6 +137,7 @@ git checkout main && git merge <feature-branch> && git push origin main
 | [scripts/sync-vault-secret.sh](scripts/sync-vault-secret.sh) | `VAULT_TOKEN` → 正确 Worker |
 | [scripts/sync-cf-api-secrets.sh](scripts/sync-cf-api-secrets.sh) | `CF_ACCOUNT_ID` + `CF_API_TOKEN` |
 | [scripts/check-cf-api.sh](scripts/check-cf-api.sh) | `/health` 校验 `cf_api_ready` |
+| [scripts/verify-production.sh](scripts/verify-production.sh) | 打印 `production_hints`（`VERIFY_PRODUCTION_STRICT=strict` 有 hint 则失败） |
 | [scripts/sync-mcp-session-secret.sh](scripts/sync-mcp-session-secret.sh) | 可选 MCP 会话 HMAC 密钥 |
 | [scripts/claude_worker.sh](scripts/claude_worker.sh) | restore vault → `claude` |
 | [tools/](tools/) | Python 客户端 |

@@ -9,7 +9,7 @@ import { putMemory } from "./mem-put";
 import { reindexOwner } from "./mem-reindex";
 import { gcOrphanVectors, gcOrphanVectorsIncremental } from "./mem-vector-gc";
 import { memoryStub } from "./memory-store";
-import { normalizeMemTags } from "./context-model";
+import { normalizeMemTags } from "./mem-kind";
 import { validateKey } from "./validate";
 
 export { reindexOwner, listMemOwners, reindexOwners } from "./mem-reindex";

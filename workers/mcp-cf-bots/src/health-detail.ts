@@ -64,3 +64,23 @@ export function customDomainHint(env: Env): string | null {
   const host = trimOpt(env.MCP_PUBLIC_HOST);
   return host ? `Public MCP host: https://${host.replace(/^https?:\/\//, "")}` : null;
 }
+
+/** Actionable ops hints when production features are not fully enabled. */
+export function buildProductionHints(
+  env: Env,
+  features: HealthFeatures,
+): string[] {
+  const hints: string[] = [];
+  if (!features.cf_api_ready) {
+    hints.push("./scripts/sync-cf-api-secrets.sh → features.cf_api_ready");
+  }
+  if (!features.mem_encrypt) {
+    hints.push("MEM_ENCRYPT=true + ENCRYPTION_KEY for sensitive tenant data at rest");
+  }
+  if (!trimOpt(env.MCP_SESSION_SECRET)) {
+    hints.push(
+      "./scripts/sync-mcp-session-secret.sh (optional: separate MCP session HMAC from VAULT_TOKEN)",
+    );
+  }
+  return hints;
+}

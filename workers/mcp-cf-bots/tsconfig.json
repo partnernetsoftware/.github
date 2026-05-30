@@ -11,5 +11,5 @@
     "isolatedModules": true
   },
   "include": ["src/**/*.ts", "test/**/*.ts"],
-  "exclude": ["test/integration/**"]
+  "exclude": ["test/integration/**", "src/deferred/**"]
 }

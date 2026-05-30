@@ -23,6 +23,8 @@ h=json.load(sys.stdin)
 print('health ok=', h.get('ok'), 'version=', h.get('version'))
 f=h.get('features') or {}
 print('fts=', f.get('fts'), 'cf_api_ready=', f.get('cf_api_ready'))
+for line in h.get('production_hints') or []:
+    print('hint:', line, file=sys.stderr)
 if not f.get('cf_api_ready'):
     print('WARN: cf_api_ready false — ./scripts/sync-cf-api-secrets.sh', file=sys.stderr)
 "
