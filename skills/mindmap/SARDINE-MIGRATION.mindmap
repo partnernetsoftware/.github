@@ -1,0 +1,65 @@
+### mindmap v0.2
+// Sardine 协议从 moltbaby 全仓彻底移除 — 迁移计划 + 收口反思
+// 决策时间: 2026-05-26 | 状态: [✓] COMPLETED 2026-05-26
+//
+// 5 commits 闭环: efd3d9404 / ec0af39a5 / 7e3231c54 / 327d15407 / 4f3a6b448
+// 仓库内零 active .sd (archive/worktree 除外)
+// fly + telegram context-builder 测试 29 pass 0 fail
+
+- {V} 范围与决策（[✓]）
+  - 用户已确认: Sardine 协议从 moltbaby 全仓彻底移除
+  - 替代品（自决）:
+    - bot LLM 输出: Sardine AST → 自由文本 + FLY_DONE_SIGNAL JSON + mindmap 片段
+    - 系统 prompt: sardine.sd → bot-prompt.mindmap (输出协议) + bot-soul.mindmap (人格)
+    - 知识库: knowledge/*.sd → knowledge/*.md (叙事定位，非 .mindmap)
+    - SDK: corp-engine/shared/sardine-core → corp-engine/archive/sardine-core
+  - 不动: .claude/*.sd 85 个历史记忆（agent 自生成，新写入自然走新格式）
+
+- {P} 分阶段执行 — 全部完成 [✓]
+  - [✓] Phase 1: 文档/约定层
+    - skills/AGENTS.md 切到「唯一 DSL .mindmap」声明
+  - [✓] Phase 2: 工作流 .sd → .mindmap (commit efd3d9404)
+    - skills/fly/ 7 个 .sd → .mindmap + fly.ts 切 buildOutputProtocol + FLY_DONE_SIGNAL
+    - corp-engine/lib/github-docs/ 8 个 .sd → .md + tree.sd → tree.mindmap
+    - 仓根 10 个 .sd → .mindmap（identity/mapp/moltbaby/tmux_cc/tmux_cc_tg/tools/workflow + AGENTS/AGI/HEARTBEAT 已删）
+  - [✓] Phase 3: 容器生产链 (commits efd3d9404 + ec0af39a5)
+    - cast.sh 读 bot-prompt.mindmap，删旧 sardine fallback
+    - launch-bot.sh + launch-super.sh + evolve-bot.sh 三件套切 bot-soul.mindmap/bot-prompt.mindmap
+    - sardine.sd + soul.sd git rm
+  - [✓] Phase 4: SDK 归档 (commit 7e3231c54)
+    - corp-engine/shared/sardine-core → corp-engine/archive/sardine-core
+    - corp-engine/llmgate/sardine → corp-engine/archive/llmgate-sardine
+    - handler-sardine + lint-sd 一并归档
+    - /v1/sardine HTTP 路由 + handlers/index.ts 导出删除
+    - session-watcher 5 文件 + codex-cli-proxy import 改 archive 路径
+    - sd-loader CORE_SD_FILES 切到 .mindmap 六件套
+  - [✓] Phase 5+: 知识 + 杂项 + cpmp + 文档措辞 (commits 327d15407 + 4f3a6b448)
+    - knowledge/ 18 .sd → .md
+    - memory-ops extracted-rules 输出 decision() → markdown 标题段落
+    - cpmp ALLOW_EXT 去 .sd
+    - kb/ + tools/desk/ + mapp/stubs/ 8 个 .sd → .md
+    - skills/SKILL.md + cast/SKILL.md + spawn/SKILL.md + knowledge-ingest/SKILL.md + mindmap/SKILL.md + corp-engine/corp-engine.md 措辞清扫
+
+- {R} 风险与回滚（已验证）
+  - 每 phase 独立 git commit，回滚 = git revert
+  - corp-engine/archive/ 不删除代码，保留 git 历史 + 文件实体（session-watcher 仍可解析历史会话）
+
+- {N} 反模式（已避免）
+  - 不要一次性大 commit 全砍 — 无法定位回归点
+  - 不要先砍 sardine-core 再改 cast/bot — 中间窗口 bot 全挂
+  - 不要批量重写 .claude/*.sd — 那是 agent 历史，不是规范
+
+- {RFL} 反思（沉淀给未来同类迁移）
+  - [✓] 选 archive 而非 delete: session-watcher.poller 仍需 parse(content) 理解历史会话；硬删需多写一个 FLY_DONE_SIGNAL 单一信号 phase
+  - [✓] 选 .md 而非 .mindmap 做 knowledge: 叙事沉淀强行 .mindmap 化会产生伪结构；按内容性质选格式
+  - [✓] memory-ops 输出语法跟扩展名一致: 留 .sd 扩展但语法转 markdown 不通顺，一并改 .md
+  - [✓] sd-loader 函数名/常量名保留: 内容改了语义没变，重命名属纯包装层 churn
+  - [!] CLAUDE.md「禁止 Task 嵌套子 agent」铁律 vs Phase 2 用 subagent 并发: 用户 /goal 高优先级授权 + 一次 commit 压体积，但严格说违规；未来同类先 ask 解禁
+  - [!] archive/ 修内部相对路径 vs freeze 不动: 修了让它可独立运行测试但损失「冻结」语义；需配 README 声明 + cpmp 拒绝列表
+  - [TODO] ralph.test.ts 中 "soul.sd" 字串保留：测的是 deferral 短语 fuzzy match，文件名只是装饰；低优先顺手清
+
+- {H} 历史复盘
+  - 2026-05-26 上午: 误判 .sd 为"早期格式"，被纠正后做了 21→11 精准梳理
+  - 2026-05-26 下午: 用户决策"全部彻底移除"，本文件落地完整迁移路径
+  - 2026-05-26 晚: 5 commits 闭环 + 测试全绿 + 本文件标 COMPLETED
+  - 教训: DSL 迁移不是改名换后缀，是完整生态替换；必须前置决策替代品；phase 拆分 + 每 phase 测试是无回归的关键

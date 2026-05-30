@@ -1,0 +1,131 @@
+(*
+ * mindmap DSL — Machine-readable grammar (v0.2)
+ * Companion to: mindmap.mindmap (human-readable, self-bootstrapping spec)
+ * Philosophy: indentation-tree + state-machine + control-flow + LLM-first
+ *
+ * Conventions:
+ *   - Whitespace-significant: leading indent encodes hierarchy.
+ *   - Tolerant parsing: odd-space indent SHOULD degrade-not-reject.
+ *   - Extensions are right-anchored: parse from end-of-line backwards.
+ *)
+
+(* ==================== 1. Top-level ==================== *)
+
+Document      ::= [ Header ], { TreeBlock }
+Header        ::= "### mindmap v0.2", LineBreak
+TreeBlock     ::= { Line }, [ TreeSep, { Line } ]
+TreeSep       ::= "---", LineBreak                        (* multi-tree dump *)
+
+Line          ::= BlankLine
+                | CommentLine
+                | NodeLine
+                | FieldLine
+                | LogicLine
+                | MdFenceLine
+
+BlankLine     ::= { SP }, LineBreak
+CommentLine   ::= Indent, "//", { Char - LineBreak }, LineBreak
+
+(* ==================== 2. Indentation ==================== *)
+
+Indent        ::= { IndentUnit }
+IndentUnit    ::= "  " | "\t"                             (* 2-space OR tab; odd-space tolerated *)
+
+(* ==================== 3. Node lines ==================== *)
+
+(* Canonical:   - {id} summary words [status] #tag @k=v ->ref           *)
+(* Minimal:     - summary                                               *)
+
+NodeLine      ::= Indent, "- ", [ IdTag, SP ], Summary,
+                  [ SP, StatusTag ],
+                  [ SP, Extensions ],
+                  LineBreak
+
+IdTag         ::= "{", Identifier, "}"
+Identifier    ::= IdChar, { IdChar }
+IdChar        ::= Alpha | Digit | "_" | "-"
+
+Summary       ::= SummaryChar, { SummaryChar }
+SummaryChar   ::= Char - LineBreak - "[" - "#" - "@" - "->"
+                  (* free text up to first extension/status sigil *)
+
+(* ==================== 4. Status (state machine) ==================== *)
+
+StatusTag     ::= "[", StatusKind, "]"
+StatusKind    ::= " " | "~" | "P" | "D" | "→" | "✓" | "✗"
+                  (* pending | active | paused | delegated | ready | done | failed *)
+
+(* ==================== 5. Logic nodes (control flow) ==================== *)
+
+LogicLine     ::= Indent, "- ", LogicTag, SP, Summary,
+                  [ SP, StatusTag ], [ SP, Extensions ], LineBreak
+LogicTag      ::= "[seq]" | "[if]" | "[while]"
+                  (* seq: children sequential | if: [0]cond [1]then [2]else
+                     while: [0]cond [1]body, default maxIterations=10 *)
+
+(* ==================== 6. Field lines (sub-fields) ==================== *)
+
+FieldLine     ::= Indent, "- ", Key, ":", [ SP, Value ], LineBreak
+                | Indent, "- md:", [ SP, MdInline ], LineBreak
+                | Indent, "- md: |", LineBreak             (* heredoc, body indented further *)
+
+Key           ::= Alpha, { AlphaNum | "_" | "-" }
+Value         ::= { Char - LineBreak }
+MdInline      ::= { Char - LineBreak }
+MdFenceLine   ::= Indent, "```", [ Lang ], LineBreak       (* fenced code inside node *)
+Lang          ::= { AlphaNum }
+
+(* ==================== 7. Extensions (v0.2) ==================== *)
+
+Extensions    ::= Extension, { SP, Extension }
+Extension     ::= Tag | Attribute | Reference
+
+Tag           ::= "#", Label                               (* #urgent #wip *)
+Label         ::= LabelChar, { LabelChar }
+LabelChar     ::= AlphaNum | "_" | "-"
+
+Attribute     ::= "@", Key, "=", AttrValue                 (* @owner=wjc @prio=P0 *)
+AttrValue     ::= QuotedString | BareValue
+BareValue     ::= ValueChar, { ValueChar }
+ValueChar     ::= Char - SP - LineBreak - "#" - "@" - "->"
+QuotedString  ::= '"', { Char - '"' - LineBreak }, '"'
+
+Reference     ::= "->", Identifier                         (* ->M soft edge to {M} *)
+
+(* ==================== 8. Atoms ==================== *)
+
+SP            ::= " "
+LineBreak     ::= "\n" | "\r\n"
+Alpha         ::= "A".."Z" | "a".."z"
+Digit         ::= "0".."9"
+AlphaNum      ::= Alpha | Digit
+Char          ::= (* any Unicode codepoint *)
+
+(* ==================== 9. Reserved attributes (v0.2) ==================== *)
+(*
+ * These @key names have runtime semantics; parsers MUST preserve them.
+ *   @iter=N        on [while] body — current iteration count (1-based)
+ *   @branch=then   on [if] node — branch taken in last eval
+ *   @branch=else   on [if] node — branch taken in last eval
+ *   @maxIter=N     on [while] — override default 10
+ *   @once=true     side-effect node, scheduler MUST NOT retry
+ *   @owner=name    soft hint, scheduler may use for routing
+ *   @prio=P0..P3   soft hint, scheduler may use for ordering
+ *
+ * All other @key=value pairs are user-defined and pass through opaquely.
+ *)
+
+(* ==================== 10. Parsing notes ==================== *)
+(*
+ * Tokenization order on a node line (after stripping indent + "- "):
+ *   1. Optional IdTag "{...}"  (greedy, only if line starts with "{")
+ *   2. Summary text (consume until first " [" status or " #" / " @" / " ->" extension)
+ *   3. Optional StatusTag "[...]"
+ *   4. Zero or more Extensions, right-to-left tolerant
+ *
+ * Execution semantics (informative — see mindmap.mindmap {E}):
+ *   - Scheduler scans all [→] leaves, dispatches to agents, marks [✓].
+ *   - [seq]: children advance in order; all [✓] → parent [✓].
+ *   - [if] : eval [0] → choose [1] or [2]; branch [✓] → parent [✓].
+ *   - [while]: while [0] true, run [1], re-eval; false → parent [✓].
+ *)
