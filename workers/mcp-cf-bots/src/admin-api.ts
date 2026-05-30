@@ -1,4 +1,5 @@
 import { auditLog, listAuditLog } from "./audit-log";
+import { runMemCron } from "./mem-cron";
 import {
   createUserToken,
   isAdmin,
@@ -77,6 +78,15 @@ export async function handleAdminRest(
     const limit =
       limitParam !== null ? parseInt(limitParam, 10) || 50 : undefined;
     return jsonResponse({ entries: await listAuditLog(env, limit) });
+  }
+
+  if (url.pathname === "/v1/admin/mem/cron" && request.method === "POST") {
+    const report = await runMemCron(env);
+    await auditLog(env, auth, "mem_cron", {
+      owners: report.owners.length,
+      at: report.at,
+    });
+    return jsonResponse(report);
   }
 
   return apiError(404, "Not found");

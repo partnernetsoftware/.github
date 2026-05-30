@@ -45,6 +45,30 @@ function httpCodeToApiCode(status: number): string {
   return "bad_request";
 }
 
+/** Parse JSON body; throws Error with message for handlers that return tool text. */
+export async function readJsonBody<T>(request: Request): Promise<T> {
+  try {
+    return (await request.json()) as T;
+  } catch {
+    throw new Error("Invalid JSON");
+  }
+}
+
+/** Optional JSON body (empty body → {}). */
+export async function readOptionalJsonBody<T extends Record<string, unknown>>(
+  request: Request,
+): Promise<T> {
+  const raw = await request.text();
+  if (!raw.trim()) {
+    return {} as T;
+  }
+  try {
+    return JSON.parse(raw) as T;
+  } catch {
+    throw new Error("Invalid JSON");
+  }
+}
+
 /** Constant-time string compare (mitigate timing leaks on bearer). */
 export function safeEqual(a: string, b: string): boolean {
   if (a.length !== b.length) {

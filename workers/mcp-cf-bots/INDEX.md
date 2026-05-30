@@ -8,17 +8,25 @@ HTTP MCP + REST on Cloudflare Workers：`sess_*` 会话、`mem_*` 记忆 RAG、`
 
 > **SSOT**：[mcp-cf-bots.mindmap](mcp-cf-bots.mindmap)（`active_waves`、`for_discussion`、`last_deploy`）。**每轮**：merge `main` → test → `deploy.sh` → 更新本节。
 
-### 现状（v0.9.2）— 你不用拍板，已按架构默认定好
+### 产品一览（review）
+
+| 支柱 | 能力 | 存储 |
+|------|------|------|
+| **sess_*** | 浏览器/Playwright 会话复用 | SessionStoreDO + RegistryDO |
+| **mem_*** | 分块记忆、FTS+Vectorize 混合检索、导入/过期 | MemorySqliteDO + Vectorize |
+| **auth** | 多租户 `cfb_*`、admin token、审计、按 owner 限流 | TOKENS KV |
+
+对外：`GET /health` · `POST /mcp` · `/v1/session/*` · `/v1/mem/*` · `/v1/admin/*`（仅 admin）。
+
+### 现状（v0.9.3）
 
 | 项 | 说明 |
 |----|------|
-| **版本** | `0.9.2`，线上双入口已对齐（workers.dev + `CLOUDFLARE_WORKER_DOMAIN`） |
-| **你怎么连** | `MCP_CF_BOTS_URL` = 你的自定义域（与 `CLOUDFLARE_WORKER_DOMAIN` 相同）；用户 token 用 `cfb_*` |
-| **管理** | admin 用 `wrangler secret` 的 `VAULT_TOKEN`，**不要**和用户 `cfb_*` 混在一个变量里 |
-| **加密** | 记忆默认**不**开 `MEM_ENCRYPT`（省事）；以后有合规需求再开 |
-| **下一步开发** | 先 **W2** 补测试，**W3** 删旧 MemoryDO 最后做（防丢数据） |
-
-细节见 mindmap `architecture_decisions`。
+| **版本** | `0.9.3` — 卫生/安全/抽象轮 |
+| **本轮修复** | `POST /v1/admin/mem/cron` 迁至 `admin-api`（原在 `mem-rest` 不可达）；`ownerFromHttpRequest`；`mem_delete` 限流 |
+| **门禁** | `scripts/security-check.sh` + `deploy.sh` → `verify-all-urls` |
+| **你怎么连** | `MCP_CF_BOTS_URL` = `CLOUDFLARE_WORKER_DOMAIN`；用户 `cfb_*`；admin `VAULT_TOKEN` |
+| **下一步** | **W2** hybrid 集成测 → **W3** 删 MemoryDO |
 
 ### 每轮标准流程
 
@@ -31,14 +39,14 @@ git checkout main && git merge <feature-branch> && git push origin main
 
 `deploy.sh` 以 wrangler 输出的 **workers.dev** 做 version gate；`MCP_CF_BOTS_URL` 若不同会 WARN。
 
-### 下一波（已拍板）
+### 路线图（最新）
 
 | 波次 | 状态 | 目标 |
 |------|------|------|
-| **W0** | 持续 | merge main → deploy → `verify-all-urls` |
-| **W1** | **完成** | 双入口 0.9.2、`custom_domain` in wrangler |
-| **W2** | **当前** | hybrid/Vectorize 集成测；CI 已跑 `test:integration` |
-| **W3** | 排队 | TD-5 删 MemoryDO（等 migrate 清零 + W2 够绿） |
+| **W-卫生** | **完成** | cron 路由、HTTP 抽象、security-check、delete 限流 |
+| **W0** | 持续 | merge → security-check → test → deploy → verify |
+| **W2** | **当前** | hybrid/Vectorize 集成测（FTS 已有） |
+| **W3** | blocked | TD-5 删 MemoryDO |
 
 ### 历史里程碑
 
@@ -49,7 +57,8 @@ git checkout main && git merge <feature-branch> && git push origin main
 | 0.8.x | SQLite DO、hybrid、cron、P0 migrate/GC |
 | 0.9.0 | P1–P3：FTS、过滤、限流、审计、MCP resources |
 | 0.9.1 | W2：Miniflare FTS 集成测、`auth_audit_list`、`mem_import` 限流 |
-| 0.9.2 | env 注入 custom_domain、`verify-all-urls`、`MCP_PUBLIC_HOST` |
+| 0.9.2 | custom_domain deploy、`verify-all-urls` |
+| 0.9.3 | 卫生轮：admin cron 修复、owner/JSON 复用、security-check |
 
 ### 每轮收尾清单
 
@@ -80,6 +89,7 @@ git checkout main && git merge <feature-branch> && git push origin main
 | [scripts/smoke.sh](scripts/smoke.sh) | `/health`、`/v1/me` |
 | [scripts/verify-deploy.sh](scripts/verify-deploy.sh) | 单 URL：smoke + version |
 | [scripts/verify-all-urls.sh](scripts/verify-all-urls.sh) | workers.dev + 自定义域双入口校验 |
+| [scripts/security-check.sh](scripts/security-check.sh) | 静态安全/路由检查（deploy 前置） |
 | [scripts/mem-vector-gc.sh](scripts/mem-vector-gc.sh) | 孤儿向量 GC |
 | [scripts/mem-migrate-legacy.sh](scripts/mem-migrate-legacy.sh) | 旧 MemoryDO 迁移 |
 | [scripts/issue_token.sh](scripts/issue_token.sh) | 签发 `cfb_*` |
@@ -95,6 +105,8 @@ git checkout main && git merge <feature-branch> && git push origin main
 |------|------|
 | [index.ts](src/index.ts) | 路由、cron `scheduled` |
 | [status-board.ts](src/status-board.ts) | 公开 `GET /` |
+| [owner-scope.ts](src/owner-scope.ts) | `ownerFromHttpRequest`、`ownerForTool` |
+| [http-util.ts](src/http-util.ts) | JSON 解析、`safeEqual`、API 错误 |
 | [health.ts](src/health.ts) | `/health`、`/v1/me` |
 | [health-detail.ts](src/health-detail.ts) | 扩展 features、cron_last、自定义域 hint |
 | [mcp-http.ts](src/mcp-http.ts) / [mcp-server.ts](src/mcp-server.ts) | MCP Streamable HTTP |
@@ -307,6 +319,8 @@ CLI 凭据：`tools/claude_code.py capture|restore|status`（等价 `sess_put` s
 | TD-5 | `delete-class MemoryDO` | blocked → **W3** |
 | TD-6 | FTS5 关键词 | mitigated（0.9.0） |
 | TD-7 | Miniflare DO 集成测 | mitigated（FTS 子集）→ hybrid 仍 **W2** |
-| TD-8 | 自定义 URL 漂移 | mitigated（0.9.2 custom_domain） |
+| TD-8 | 自定义 URL 漂移 | mitigated（verify-all-urls） |
+| TD-9 | admin cron 挂在 mem-rest 不可达 | mitigated（0.9.3 admin-api） |
+| TD-10 | hybrid 无集成测 | open → W2 |
 
 详情同步 [mcp-cf-bots.mindmap](mcp-cf-bots.mindmap) → `tech_debt`。

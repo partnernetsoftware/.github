@@ -1,7 +1,7 @@
 import { handleAdminRest } from "./admin-api";
 import { handleMemRest } from "./mem-rest";
-import { effectiveOwner, type AuthContext } from "./auth";
-import { readOwnerHeader } from "./config";
+import type { AuthContext } from "./auth";
+import { ownerFromHttpRequest } from "./owner-scope";
 import { apiError } from "./http-util";
 import type { SessionMeta } from "./kinds";
 import { fetchRegistryEntries, registryStub } from "./registry-client";
@@ -11,17 +11,8 @@ import { validateKey } from "./validate";
 
 const SESSION_RE = /^\/v1\/session\/([^/]+)\/([^/]+)\/?$/;
 
-export function ownerFromRequest(
-  auth: AuthContext,
-  env: Env,
-  url: URL,
-  request: Request,
-): string {
-  return effectiveOwner(auth, env, {
-    headerOwner: readOwnerHeader(request, env),
-    queryOwner: url.searchParams.get("owner"),
-  });
-}
+/** @deprecated Use ownerFromHttpRequest */
+export const ownerFromRequest = ownerFromHttpRequest;
 
 export async function touchRegistry(
   env: Env,

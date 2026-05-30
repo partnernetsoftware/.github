@@ -250,6 +250,7 @@ export async function memToolCall(
   }
 
   if (name === "mem_delete") {
+    await checkMemRateLimit(env, owner, "mem_delete");
     const getRes = await stub.fetch(
       `https://memory.internal/entry/${encodeURIComponent(key)}`,
     );

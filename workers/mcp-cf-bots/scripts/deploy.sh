@@ -10,6 +10,9 @@ SKIP_SMOKE="${SKIP_SMOKE:-0}"
 echo "==> npm ci"
 npm ci
 
+echo "==> security-check (static)"
+./scripts/security-check.sh
+
 echo "==> typecheck + test"
 npm run typecheck
 npm test
