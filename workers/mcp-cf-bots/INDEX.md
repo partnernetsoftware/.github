@@ -18,42 +18,38 @@ HTTP MCP + REST on Cloudflare Workers：`sess_*` 会话、`mem_*` 记忆 RAG、`
 
 对外：`GET /health` · `POST /mcp` · `/v1/session/*` · `/v1/mem/*` · `/v1/admin/*`（仅 admin）。
 
-### 现状（v1.1.0）
+### 现状（v1.0.1）
 
 | 项 | 说明 |
 |----|------|
-| **版本** | **`1.1.0`** — Brain/Code 算子模型；`brain_compose_context` GA |
-| **本质** | LLM = **条件生成**；本产品提供 **多维上下文（Brain）** + **可执行操作（Code）** |
-| **门禁** | `security-check` → test → integration → deploy → `verify-all-urls` |
-| **下一步** | v1.1.x：token 预算裁剪、digest cron、search 反馈闭环 |
+| **版本** | **`1.0.1`** — v1.0.x 加固（`api_version` 仍为 **1.0**） |
+| **本轮** | 全 `mem_*`/`sess_*` 限流；可选 `MCP_SESSION_SECRET` 与 admin 分离 |
+| **MCP 传输** | **仅 POST JSON-RPC**（无 SSE `GET /mcp`） |
+| **下一步** | **1.0.2**：产线 `cf_api_ready`；**1.1** 暂缓（brain 代码在库内未注册工具） |
 
-### Brain / Code 算子（对齐大模型本质）
+### v1.0.x 修补（1.0.1）
 
-| 算子 | 职责 | MCP 映射 |
-|------|------|----------|
-| **Brain** | 从存储 **选择 + 投影** 多维数据 → 模型可读 `ContextBlock[]` | `brain_compose_context`；辅助：`mem_search`、`resources/read`、`sess_meta` |
-| **Code** | **确定性** 改变外部状态（可审计、可重放） | `mem_put/get/delete`、`sess_*`、`mem_import`、admin 工具 |
+| 项 | 处理 |
+|----|------|
+| 限流空洞 | `checkOwnerRateLimit` 覆盖 mem_get、mem_list、全部 sess_*、resources |
+| Admin 与会话密钥 | `MCP_SESSION_SECRET`（`sync-mcp-session-secret.sh`），否则回退 `VAULT_TOKEN` |
+| 文档 | MCP POST-only；生产建议 `MEM_ENCRYPT=true` |
+| API | 仍 **1.0**；`mem_put.kind` 为兼容扩展（`kind:*` tag） |
 
-**上下文维**（`src/context-model.ts`）：`semantic` · `lexical` · `episodic` · `procedural` · `preference` · `task_frame` · `state` · `registry` · `meta`。
-
-| 维 | 来源 | 写入约定 |
-|----|------|----------|
-| semantic / lexical | mem 向量 / FTS | `mem_put` |
-| procedural / preference / episodic | mem + `kind:*` tag | `mem_put` + `kind` 参数 |
-| task_frame | mem key | `task/*`、`decision/*` |
-| state | 会话 | `sess_save` / `sess_meta` |
-
-**Code 操作类**（`codeOpKind`）：`read` · `search` · `write` · `delete` · `session` · `compose` · `admin`。
-
-### API（`api_version: 1.1`）
+### API 冻结（`api_version: 1.0`）
 
 | 面 | 内容 |
 |----|------|
-| **新增** | `brain_compose_context`；`mem_put.kind` |
-| **冻结** | v1.0 全部 `sess_*` / `mem_*` / admin / `mem://` |
-| **移除** | `migrate-legacy` → 410 |
+| MCP 工具 | `sess_*`、`mem_*`；admin：`auth_token_*`、`mem_reindex`、`mem_stats`、`mem_vector_gc` |
+| resources | `mem://<key>` |
+| 已移除 | `migrate-legacy` → **410**；**无** `brain_*`（至 1.1 再开） |
 
-`/health`：`api_version`、`api_stable`。破坏性变更仅 **2.0**。
+### 生产检查清单
+
+1. `./scripts/sync-vault-secret.sh` + `issue_token.sh` → Cursor `cfb_*`
+2. 建议 `./scripts/sync-mcp-session-secret.sh`（独立 MCP 会话 HMAC）
+3. 建议 `./scripts/sync-cf-api-secrets.sh` → `cf_api_ready`
+4. 敏感租户：`MEM_ENCRYPT=true` + `ENCRYPTION_KEY`
 
 ### 每轮标准流程
 
@@ -75,7 +71,8 @@ git checkout main && git merge <feature-branch> && git push origin main
 | **W2** | **完成** | DO embed + mock Vectorize hybrid 集成测 |
 | **W3** | **完成** | TD-5：`deleted_classes` MemoryDO |
 | **W4** | 运维 | CF API secrets → `cf_api_ready` |
-| **v1.1** | **进行中** | Brain compose + kind 维；见 mindmap `v1_1` |
+| **v1.0.x** | **当前** | 加固；见上表 |
+| **v1.1** | 暂缓 | Brain/Code 算子（代码在库，未注册 MCP） |
 
 ### 历史里程碑
 
@@ -91,7 +88,7 @@ git checkout main && git merge <feature-branch> && git push origin main
 | 0.9.4 | W3：删 MemoryDO（v5 migration）、移除 legacy 迁移 API |
 | 0.9.5 | MCP instructions、Agent 指南、sess 集成测、check/sync-cf-api |
 | **1.0.0** | GA：`api_version` 1.0 冻结 |
-| **1.1.0** | Brain/Code 模型、`brain_compose_context`、`mem_put.kind` |
+| **1.0.1** | 限流补齐、MCP_SESSION_SECRET、文档与 api 收拢 |
 
 ### 每轮收尾清单
 
@@ -130,6 +127,7 @@ git checkout main && git merge <feature-branch> && git push origin main
 | [scripts/sync-vault-secret.sh](scripts/sync-vault-secret.sh) | `VAULT_TOKEN` → 正确 Worker |
 | [scripts/sync-cf-api-secrets.sh](scripts/sync-cf-api-secrets.sh) | `CF_ACCOUNT_ID` + `CF_API_TOKEN` |
 | [scripts/check-cf-api.sh](scripts/check-cf-api.sh) | `/health` 校验 `cf_api_ready` |
+| [scripts/sync-mcp-session-secret.sh](scripts/sync-mcp-session-secret.sh) | 可选 MCP 会话 HMAC 密钥 |
 | [scripts/claude_worker.sh](scripts/claude_worker.sh) | restore vault → `claude` |
 | [tools/](tools/) | Python 客户端 |
 | [snippets/](snippets/) | 浏览器 Console cookie |

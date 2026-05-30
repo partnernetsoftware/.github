@@ -1,6 +1,7 @@
 import { effectiveOwner, type AuthContext } from "./auth";
 import { mcpHttpPath, readOwnerHeader, validateMcpOrigin } from "./config";
 import { handleMcpJsonRpc } from "./mcp-server";
+import { mcpSessionHmacSecret } from "./session-secret";
 
 function acceptsMcpPost(request: Request): boolean {
   const accept = request.headers.get("Accept") ?? "";
@@ -42,7 +43,7 @@ async function hmacSessionToken(secret: string, sessionUuid: string): Promise<st
 
 export async function mintSessionId(env: Env): Promise<string> {
   const uuid = crypto.randomUUID();
-  return hmacSessionToken(env.VAULT_TOKEN, uuid);
+  return hmacSessionToken(mcpSessionHmacSecret(env), uuid);
 }
 
 export async function validateSessionId(
@@ -57,7 +58,7 @@ export async function validateSessionId(
     return false;
   }
   const uuid = sessionId.slice(0, dot);
-  const expected = await hmacSessionToken(env.VAULT_TOKEN, uuid);
+  const expected = await hmacSessionToken(mcpSessionHmacSecret(env), uuid);
   return expected === sessionId;
 }
 

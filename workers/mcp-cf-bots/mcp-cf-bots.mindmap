@@ -1,64 +1,34 @@
 {
   "product": "mcp-cf-bots",
-  "ssot": "workers/mcp-cf-bots/mcp-cf-bots.mindmap",
-  "version": "1.1.0",
-  "updated_at": "2026-05-30T09:00:00Z",
-  "north_star": "数字员工 LLM 平面：Brain 算子组装多维上下文数据，Code 算子执行确定性操作",
-  "llm_model": {
-    "premise": "模型只做条件生成；能力边界 = 上下文质量 × 可执行操作闭环",
-    "brain": "选择/投影/排序 ContextBlock[] → 填入 context window",
-    "code": "工具调用改变存储与会话状态；结果可验证、可审计"
-  },
-  "context_dimensions": [
-    "semantic",
-    "lexical",
-    "episodic",
-    "procedural",
-    "preference",
-    "task_frame",
-    "state",
-    "registry",
-    "meta"
-  ],
-  "architecture_decisions": {
-    "api_version": "1.1",
-    "context_schema": "workers/mcp-cf-bots/src/context-model.ts",
-    "brain_compose": "workers/mcp-cf-bots/src/brain-compose.ts",
-    "agent_memory_boundary": "mem/sess = 租户数据；规范 = INDEX + skills",
-    "methodology_skill": "skills/mcp-cf-bots-delivery/SKILL.md"
-  },
+  "version": "1.0.1",
+  "updated_at": "2026-05-30T10:00:00Z",
+  "north_star": "跨 Agent HTTP MCP + REST：sess 会话、mem 记忆 RAG、cfb 多租户",
   "roadmap": {
-    "current_phase": "v1.1-brain-code",
-    "current_version": "1.1.0",
+    "current_phase": "v1.0.x-hardening",
+    "current_version": "1.0.1",
     "last_review": "2026-05-30",
-    "summary": "1.1.0：brain_compose_context + kind 维；抛弃「聪明感」产品话术，对齐 Brain/Code。",
-    "v1_1_next": [
-      { "id": "v11-budget", "label": "Brain token_budget 裁剪与块排序", "status": "planned" },
-      { "id": "v11-digest", "label": "Code cron 写 digest/* + Brain 读 episodic 摘要", "status": "planned" },
-      { "id": "v11-feedback", "label": "Code mem_search_feedback → 调 RRF", "status": "planned" },
-      { "id": "v11-auto-meta", "label": "Code mem_put 后 Workers AI 写 kind+summary tag", "status": "planned" }
-    ],
+    "summary": "1.0.1：全工具限流、MCP_SESSION_SECRET 分离、api 1.0 收拢；1.1 brain 暂缓对外。",
+    "v1_1_status": "deferred — src/brain-*.ts 保留，工具未注册",
     "active_waves": [
       {
-        "id": "w0-steady",
-        "label": "W0",
-        "status": "ongoing",
-        "items": [{ "id": "w0-deploy", "label": "deploy + verify", "status": "ongoing" }]
-      },
-      {
-        "id": "w4-ops",
-        "label": "W4 CF API",
-        "status": "ongoing",
-        "items": [{ "id": "w4-cf", "label": "cf_api_ready", "status": "pending" }]
+        "id": "v10x-hardening",
+        "label": "v1.0.x 加固",
+        "status": "active",
+        "items": [
+          { "id": "v101-rate", "label": "mem_get + sess_* 限流", "status": "done" },
+          { "id": "v101-session-secret", "label": "MCP_SESSION_SECRET 可选分离", "status": "done" },
+          { "id": "v101-docs", "label": "MCP POST-only / 加密 / CF API 运维说明", "status": "done" },
+          { "id": "v102-cf-api", "label": "产线 cf_api_ready", "status": "pending" }
+        ]
       }
     ],
     "milestones_done": [
-      { "version": "1.1.0", "label": "Brain/Code 模型 + brain_compose_context", "status": "done" },
-      { "version": "1.0.0", "label": "GA 三支柱 + api 1.0", "status": "done" }
+      { "version": "1.0.1", "label": "限流补齐 + session secret 分离", "status": "done" },
+      { "version": "1.0.0", "label": "GA api 1.0 冻结", "status": "done" }
     ]
   },
   "tech_debt": [
-    { "id": "TD-12", "label": "cf_api_ready false", "status": "open", "wave": "w4-ops" }
+    { "id": "TD-12", "label": "cf_api_ready false", "status": "open" }
   ],
   "doc_index": "INDEX.md"
 }

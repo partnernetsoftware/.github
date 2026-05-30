@@ -4,7 +4,7 @@ import { handleMcpJsonRpc } from "../src/mcp-server";
 
 const baseEnv = {
   MCP_SERVER_NAME: "mcp-cf-bots",
-  MCP_SERVER_VERSION: "1.1.0",
+  MCP_SERVER_VERSION: "1.0.1",
   MCP_SERVER_DESCRIPTION: "test",
   MCP_PROTOCOL_VERSION: "2024-11-05",
   MCP_HTTP_PATH: "/mcp",
@@ -18,9 +18,8 @@ describe("mcp instructions", () => {
     expect(text).toMatch(/mem_put/i);
     expect(text).toMatch(/mem_search/i);
     expect(text).toMatch(/sess_save/i);
-    expect(text).toMatch(/Do NOT store repo/i);
-    expect(text).toMatch(/Brain operator/i);
-    expect(text).toMatch(/Code operator/i);
+    expect(text).toMatch(/Store repo engineering/i);
+    expect(text).toMatch(/POST JSON-RPC/i);
   });
 
   it("initialize result includes instructions", async () => {

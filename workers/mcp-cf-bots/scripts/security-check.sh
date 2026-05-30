@@ -20,10 +20,19 @@ check "cron in admin-api" \
   'grep -q "v1/admin/mem/cron" src/admin-api.ts'
 
 check "mem_put rate limited" \
-  'grep -q "checkMemRateLimit.*mem_put" src/mem-tools.ts'
+  'grep -q "checkOwnerRateLimit.*mem_put" src/mem-tools.ts'
 
 check "mem_delete rate limited" \
-  'grep -q "checkMemRateLimit.*mem_delete" src/mem-tools.ts'
+  'grep -q "checkOwnerRateLimit.*mem_delete" src/mem-tools.ts'
+
+check "mem_get rate limited" \
+  'grep -q "checkOwnerRateLimit.*mem_get" src/mem-tools.ts'
+
+check "sess_save rate limited" \
+  'grep -q "checkOwnerRateLimit.*sess_save" src/sess-tools.ts'
+
+check "MCP session secret helper" \
+  'grep -q mcpSessionHmacSecret src/session-secret.ts'
 
 check "safeEqual for vault bearer" \
   'grep -q safeEqual src/auth.ts'

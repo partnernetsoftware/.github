@@ -1,7 +1,7 @@
 import type { AuthContext } from "./auth";
 import { isAdmin } from "./auth";
 import { ownerForTool } from "./owner-scope";
-import { checkMemRateLimit } from "./rate-limit";
+import { checkOwnerRateLimit } from "./rate-limit";
 import { deleteMemoryVectors, ragBackend } from "./mem-embed";
 import type { MemoryRecord } from "./memory-do";
 import { runHybridSearch, type MemSearchFilters } from "./mem-hybrid-search";
@@ -28,6 +28,7 @@ export async function memToolCall(
   const stub = memoryStub(env, owner);
 
   if (name === "mem_list") {
+    await checkOwnerRateLimit(env, owner, "mem_list");
     const url = new URL("https://memory.internal/entries");
     if (typeof args.tag === "string" && args.tag) {
       url.searchParams.set("tag", args.tag);
@@ -40,7 +41,7 @@ export async function memToolCall(
     if (!query) {
       throw new Error("query is required");
     }
-    await checkMemRateLimit(env, owner, "mem_search");
+    await checkOwnerRateLimit(env, owner, "mem_search");
     const topK = Math.min(Math.max(Number(args.top_k) || 5, 1), 20);
     const filters: MemSearchFilters = {};
     if (typeof args.tag === "string" && args.tag.trim()) {
@@ -61,7 +62,7 @@ export async function memToolCall(
     if (!Array.isArray(entries)) {
       throw new Error("entries array is required");
     }
-    await checkMemRateLimit(env, owner, "mem_import");
+    await checkOwnerRateLimit(env, owner, "mem_import");
     let ok = 0;
     for (const raw of entries) {
       const row = raw as Record<string, unknown>;
@@ -119,7 +120,7 @@ export async function memToolCall(
   const key = validateKey("key", String(args.key ?? ""));
 
   if (name === "mem_put") {
-    await checkMemRateLimit(env, owner, "mem_put");
+    await checkOwnerRateLimit(env, owner, "mem_put");
     const content = String(args.content ?? "").trim();
     if (!content) {
       throw new Error("content is required");
@@ -146,6 +147,7 @@ export async function memToolCall(
   }
 
   if (name === "mem_get") {
+    await checkOwnerRateLimit(env, owner, "mem_get");
     const res = await stub.fetch(
       `https://memory.internal/entry/${encodeURIComponent(key)}`,
     );
@@ -156,7 +158,7 @@ export async function memToolCall(
   }
 
   if (name === "mem_delete") {
-    await checkMemRateLimit(env, owner, "mem_delete");
+    await checkOwnerRateLimit(env, owner, "mem_delete");
     const getRes = await stub.fetch(
       `https://memory.internal/entry/${encodeURIComponent(key)}`,
     );

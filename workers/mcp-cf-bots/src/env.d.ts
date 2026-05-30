@@ -6,8 +6,10 @@ interface Env {
   MEM_VECTORS?: VectorizeIndex;
   /** Per-user API token index (hashed bearer → owner) */
   TOKENS?: KVNamespace;
-  /** Secret — MCP + REST Bearer token */
+  /** Secret — admin Bearer + REST (not MCP session HMAC when MCP_SESSION_SECRET set) */
   VAULT_TOKEN: string;
+  /** Optional — HMAC for MCP-Session-Id only (recommended in production) */
+  MCP_SESSION_SECRET?: string;
   /** Secret — optional AES key; defaults to VAULT_TOKEN when unset */
   ENCRYPTION_KEY?: string;
 

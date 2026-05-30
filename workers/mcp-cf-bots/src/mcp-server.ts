@@ -2,7 +2,7 @@ import type { AuthContext } from "./auth";
 import { mcpProtocolVersion, mcpServerInfo } from "./config";
 import { mcpServerInstructions } from "./mcp-instructions";
 import { listMemResources, readMemResource } from "./mcp-resources";
-import { brainToolCall } from "./brain-tools";
+import { checkOwnerRateLimit } from "./rate-limit";
 import { memToolCall } from "./mem-tools";
 import { sessToolCall } from "./sess-tools";
 import { resolveToolName } from "./tool-aliases";
@@ -106,6 +106,7 @@ export async function handleMcpJsonRpc(
   }
 
   if (method === "resources/list") {
+    await checkOwnerRateLimit(ctx.env, ctx.requestOwner, "mem_list");
     const resources = await listMemResources(
       ctx.env,
       ctx.auth,
@@ -127,6 +128,7 @@ export async function handleMcpJsonRpc(
         isNotification: false,
       };
     }
+    await checkOwnerRateLimit(ctx.env, ctx.requestOwner, "mem_get");
     const content = await readMemResource(
       ctx.env,
       ctx.auth,
@@ -167,14 +169,9 @@ export async function handleMcpJsonRpc(
       };
     }
     try {
-      let text: string;
-      if (name.startsWith("mem_")) {
-        text = await memToolCall(ctx.env, name, args, ctx.auth, ctx.requestOwner);
-      } else if (name.startsWith("brain_")) {
-        text = await brainToolCall(ctx.env, name, args, ctx.auth, ctx.requestOwner);
-      } else {
-        text = await sessToolCall(ctx.env, name, args, ctx.auth, ctx.requestOwner);
-      }
+      const text = name.startsWith("mem_")
+        ? await memToolCall(ctx.env, name, args, ctx.auth, ctx.requestOwner)
+        : await sessToolCall(ctx.env, name, args, ctx.auth, ctx.requestOwner);
       return {
         body: ok(requestId, {
           content: [{ type: "text", text }],

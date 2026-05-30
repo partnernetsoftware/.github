@@ -11,8 +11,8 @@ function maxOps(env: Env): number {
   return Number.isFinite(n) && n > 0 ? n : 120;
 }
 
-/** Per-owner sliding window rate limit (KV). */
-export async function checkMemRateLimit(
+/** Per-owner sliding window rate limit (KV). Used by mem_*, sess_*, and MCP reads. */
+export async function checkOwnerRateLimit(
   env: Env,
   owner: string,
   op: string,
@@ -30,3 +30,6 @@ export async function checkMemRateLimit(
   }
   await env.TOKENS.put(key, String(count + 1), { expirationTtl: WINDOW_SEC * 2 });
 }
+
+/** @deprecated Use checkOwnerRateLimit */
+export const checkMemRateLimit = checkOwnerRateLimit;

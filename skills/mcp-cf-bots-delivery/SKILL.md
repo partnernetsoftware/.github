@@ -35,8 +35,9 @@ paths:
 | 版本 | 含义 |
 |------|------|
 | **1.0.0** | GA：`api_version=1.0` 冻结；三支柱生产就绪 |
-| **1.1.x** | 数字员工记忆智能（见 mindmap `roadmap.v1_1`） |
-| **2.0.0** | 仅当破坏性 API 变更 |
+| **1.0.x** | 加固（限流、session secret、运维） |
+| **1.1.x** | 暂缓 — brain 工具未注册 |
+| **2.0.0** | 破坏性 API 变更 |
 
 ## 波次模型（0.9 → 1.0 已完成）
 
@@ -104,18 +105,14 @@ npm run typecheck && npm test && npm run test:integration
 | 浏览器登录成功 | `sess_save` |
 | 要用已登录站自动化 | `sess_load` |
 
-## Brain / Code（LLM 本质）
+## v1.0.x 运维
 
-| 算子 | 职责 | 工具 |
-|------|------|------|
-| **Brain** | 多维上下文 **选择+投影** → `ContextBlock[]` | `brain_compose_context`（先调）；`mem_search` 取原始切片 |
-| **Code** | **确定性** 读写外部状态 | `mem_*`、`sess_*`；见 `codeOpKind()` |
+```bash
+./scripts/sync-mcp-session-secret.sh   # 可选，与 VAULT_TOKEN 分离
+./scripts/sync-cf-api-secrets.sh       # Vectorize GC + 状态页
+```
 
-维定义：`src/context-model.ts`。`mem_put` 用 `kind` + `task/*` key 标注维。
-
-## v1.1 后续
-
-mindmap `v1_1_next`：token 预算、digest cron、search 反馈、put 后 auto-meta。
+MCP 仅 **POST JSON-RPC**；`GET /mcp` SSE 未实现。
 
 ## 与其它 skill
 

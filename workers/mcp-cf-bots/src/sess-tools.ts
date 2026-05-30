@@ -7,6 +7,7 @@ import { fetchRegistryEntries } from "./registry-client";
 import { metaFromArgs } from "./session-meta";
 import { sessionStub } from "./session-store";
 import { sessionPut, touchRegistry } from "./vault-api";
+import { checkOwnerRateLimit } from "./rate-limit";
 import { requireSiteProfile } from "./validate";
 
 /** MCP `sess_*` / `auth_*` admin tool handlers. */
@@ -27,6 +28,7 @@ export async function sessToolCall(
   const owner = ownerForTool(auth, env, args, requestOwner);
 
   if (name === "sess_list") {
+    await checkOwnerRateLimit(env, owner, "sess_list");
     const filters: { source?: string; tag?: string } = {};
     if (typeof args.source === "string" && args.source) {
       filters.source = args.source;
@@ -42,6 +44,7 @@ export async function sessToolCall(
   const stub = sessionStub(env, owner, site, profile);
 
   if (name === "sess_save") {
+    await checkOwnerRateLimit(env, owner, "sess_save");
     const body: Record<string, unknown> = {};
     if (args.storage_state !== undefined) {
       body.storage_state = args.storage_state;
@@ -72,6 +75,7 @@ export async function sessToolCall(
   }
 
   if (name === "sess_load") {
+    await checkOwnerRateLimit(env, owner, "sess_load");
     const res = await stub.fetch("https://vault.internal/", { method: "GET" });
     if (res.status === 410) {
       throw new Error("Session expired — re-login via Take Control and save again");
@@ -93,6 +97,7 @@ export async function sessToolCall(
   }
 
   if (name === "sess_meta") {
+    await checkOwnerRateLimit(env, owner, "sess_meta");
     const res = await stub.fetch("https://vault.internal/?meta_only=1", {
       method: "GET",
     });
@@ -100,6 +105,7 @@ export async function sessToolCall(
   }
 
   if (name === "sess_put") {
+    await checkOwnerRateLimit(env, owner, "sess_put");
     const kind = String(args.kind ?? "");
     if (!SESSION_KINDS.includes(kind as SessionKind)) {
       throw new Error(`invalid kind: ${kind}`);
@@ -114,6 +120,7 @@ export async function sessToolCall(
   }
 
   if (name === "sess_get") {
+    await checkOwnerRateLimit(env, owner, "sess_get");
     const kind = args.kind;
     const q =
       typeof kind === "string" && kind
@@ -129,6 +136,7 @@ export async function sessToolCall(
   }
 
   if (name === "sess_delete") {
+    await checkOwnerRateLimit(env, owner, "sess_delete");
     const res = await stub.fetch("https://vault.internal/", {
       method: "DELETE",
     });

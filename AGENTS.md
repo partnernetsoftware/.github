@@ -11,7 +11,7 @@
 | **squad-parallel** | [`skills/squad-parallel/`](skills/squad-parallel/)（`.cursor/skills/squad-parallel` 同步） | 并行四角色小队推进 v3.5/v4；Agent **须亲自跑** `agent-team`，勿只贴命令给用户 |
 | **nano-lisp-jit-v4-longrun** | [`skills/nano-lisp-jit-v4-longrun/`](skills/nano-lisp-jit-v4-longrun/) | v4 长程 `/loop`：state SSOT → apply → gate → cc repair；**Bun TS 可执行 skill** |
 
-**mcp-cf-bots v1.1**（Brain/Code 平面）：[`workers/mcp-cf-bots/`](workers/mcp-cf-bots/) — SSOT **[`INDEX.md`](workers/mcp-cf-bots/INDEX.md)** · **[`mcp-cf-bots-delivery`](skills/mcp-cf-bots-delivery/)**。MCP 已连接：**推理前** `brain_compose_context(task=…)` 组装多维上下文；**执行** 用 Code 算子（`mem_put`/`sess_save` 等）改状态。勿用 mem 存仓库规范。派工人：`workers/mcp-cf-bots/scripts/claude_worker.sh`。
+**mcp-cf-bots v1.0**（记忆+会话平面）：[`workers/mcp-cf-bots/`](workers/mcp-cf-bots/) — SSOT **[`INDEX.md`](workers/mcp-cf-bots/INDEX.md)** · **[`mcp-cf-bots-delivery`](skills/mcp-cf-bots-delivery/)**。MCP 已连接时主动** `mem_search`/`mem_put`、`sess_save`/`sess_load`。勿用 mem 存仓库规范。派工人：`workers/mcp-cf-bots/scripts/claude_worker.sh`。
 
 ### Codebase overview
 
