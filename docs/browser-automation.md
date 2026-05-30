@@ -35,7 +35,7 @@ Playwright 比 Python **browser-use** 更适合日常 Agent：**更快、更稳�
 
 1. **playwright**：`browser_navigate` → `https://claude.ai/code`（或先注入 cookie，见下）
 2. 你 **Take Control** 完成首次登录（或已有 vault 数据则跳过）
-3. **playwright**：导出 cookie / `storage_state`（或 Console 跑 `workers/session-vault/snippets/capture-cookies.js`）
+3. **playwright**：导出 cookie / `storage_state`（或 Console 跑 `workers/mcp-cf-bots/snippets/capture-cookies.js`）
 4. **mcp-cf-bots**：`sess_save`（site / profile / cookies）
 5. 新 Agent：**mcp-cf-bots** `sess_load` → **playwright** 打开同 URL → 已登录
 

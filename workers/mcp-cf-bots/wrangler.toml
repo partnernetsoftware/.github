@@ -1,4 +1,4 @@
-# Cloudflare Workers — mcp-cf-bots (deploy dir: workers/session-vault/)
+# Cloudflare Workers — mcp-cf-bots (deploy dir: workers/mcp-cf-bots/)
 # Override worker name: CLOUDFLARE_WORKER_NAME=... npx wrangler deploy
 name = "mcp-cf-bots"
 main = "src/index.ts"

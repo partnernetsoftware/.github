@@ -182,7 +182,7 @@ def cmd_capture_token(token: str) -> None:
     out = _vault("PUT", _session_path(), body=body, query={"owner": _owner()})
     print(json.dumps({"ok": True, "vault": out, "stored": "oauth.setup_token"}, indent=2))
     print(
-        "Token stored in session-vault only. New sessions: restore + print-env (no extra Agent Secret).",
+        "Token stored in mcp-cf-bots vault only. New sessions: restore + print-env (no extra Agent Secret).",
         file=sys.stderr,
     )
 

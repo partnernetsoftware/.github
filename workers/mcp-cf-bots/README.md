@@ -1,6 +1,6 @@
 # mcp-cf-bots
 
-Cloudflare Worker（目录 `workers/session-vault/`）+ HTTP MCP `POST $MCP_HTTP_PATH`。
+Cloudflare Worker（`workers/mcp-cf-bots/`）+ HTTP MCP `POST $MCP_HTTP_PATH`。
 
 ## 源码文件（Worker 打包）
 
@@ -61,10 +61,12 @@ Cloudflare Worker（目录 `workers/session-vault/`）+ HTTP MCP `POST $MCP_HTTP
 
 旧名 `SESSION_VAULT_*` 在 `tools/*.py` 中仍可作为回退。
 
+合并与上线步骤见 **[DEPLOY.md](./DEPLOY.md)**。
+
 ## 部署
 
 ```bash
-cd /workspace/workers/session-vault
+cd /workspace/workers/mcp-cf-bots
 npm install
 export CLOUDFLARE_API_TOKEN=... CLOUDFLARE_ACCOUNT_ID=...
 npx wrangler secret put VAULT_TOKEN

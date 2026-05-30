@@ -25,7 +25,7 @@
 ## 示例
 
 ```bash
-/workspace/tools/claude_worker.sh -p "在 workers/session-vault 加单元测试，不要改 API 行为"
+/workspace/tools/claude_worker.sh -p "在 workers/mcp-cf-bots 加单元测试，不要改 API 行为"
 ```
 
 ## 和你无关的命令
