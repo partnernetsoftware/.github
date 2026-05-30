@@ -9,6 +9,7 @@ import { putMemory } from "./mem-put";
 import { reindexOwner } from "./mem-reindex";
 import { gcOrphanVectors, gcOrphanVectorsIncremental } from "./mem-vector-gc";
 import { memoryStub } from "./memory-store";
+import { normalizeMemTags } from "./context-model";
 import { validateKey } from "./validate";
 
 export { reindexOwner, listMemOwners, reindexOwners } from "./mem-reindex";
@@ -123,7 +124,11 @@ export async function memToolCall(
     if (!content) {
       throw new Error("content is required");
     }
-    const tags = Array.isArray(args.tags) ? args.tags.map(String) : undefined;
+    const kind = typeof args.kind === "string" ? args.kind.trim() : undefined;
+    const tags = normalizeMemTags(
+      Array.isArray(args.tags) ? args.tags.map(String) : undefined,
+      kind,
+    );
     const expires_at =
       typeof args.expires_at === "string" ? args.expires_at : undefined;
     const rec = await putMemory(env, owner, key, content, { tags, expires_at });

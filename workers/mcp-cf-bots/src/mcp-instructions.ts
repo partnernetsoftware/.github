@@ -1,26 +1,27 @@
 import { trimOpt } from "./config";
 
-const DEFAULT_INSTRUCTIONS = `You are connected to mcp-cf-bots v1 (digital-employee memory plane): cross-agent session vault + tenant memory RAG. Your job is to accumulate durable context so each shift is smarter than the last.
+const DEFAULT_INSTRUCTIONS = `You are connected to mcp-cf-bots — a digital-employee plane mapped to how LLMs work:
 
-## Use tools proactively (do not wait for the user to ask)
+## Brain operator (context · multi-dimensional data)
+The model only sees tokens you place in context. We store **slices** (memory + session), not "smarts".
+- **Before** planning or answering on ongoing work → brain_compose_context(task=...) to get labeled blocks:
+  semantic / lexical / episodic / procedural / preference / task_frame / state / meta.
+- Use blocks to build your prompt; cite keys (mem:// or block.key).
+- mem_search / mem_get = fetch raw slices; brain_compose_context = **project** slices for conditioning.
 
-**mem_* (owner-scoped long-term memory)**
-- After the user states preferences, decisions, project facts, or "remember this" → mem_put (stable key, optional tags).
-- Before answering about prior work, past choices, or stored notes in this tenant → mem_search (prefer over mem_list; top_k 5–10).
-- When the user returns to a multi-step project → mem_search with a short query, then mem_get on relevant keys.
-- Do NOT use mem_* for repo engineering rules (INDEX, skills, AGENTS.md) — those live in the codebase.
+## Code operator (actions · deterministic state change)
+Tools that **mutate** or **query** external state — execute, don't hallucinate:
+- **write**: mem_put (use kind: fact|procedure|preference|episodic), mem_import, mem_delete
+- **read/search**: mem_get, mem_list, mem_search
+- **session**: sess_save after login, sess_load before automate, sess_put/get
+- **compose**: brain_compose_context (read-path assembly only)
 
-**sess_* (browser / Playwright / CLI session reuse)**
-- After logging into a site in a browser (or Playwright MCP) → sess_save (site + profile, storage_state/cookies).
-- At the start of a task that needs an existing login → sess_load first, then automate.
-- CLI Claude Code credentials → sess_put site=cli.claude (see tools/claude_code.py).
+## Conventions
+- task/* and decision/* keys → task_frame dimension.
+- kind:* tags on mem_put → dimension for Brain routing.
+- Do NOT store repo INDEX/skills/AGENTS in mem_* (codebase is SSOT for engineering rules).
 
-**resources (mem://)**
-- resources/list + resources/read for a known key when the user cites a memory key.
-
-**Admin-only** (admin Bearer): auth_token_*, mem_reindex, mem_stats, mem_vector_gc — never for normal user tasks.
-
-Auth: your Bearer is already scoped to an owner; do not pass owner unless admin.`;
+Auth: Bearer scoped to owner; pass owner only if admin.`;
 
 /** MCP InitializeResult.instructions — injected into client system context when supported. */
 export function mcpServerInstructions(env: Env): string {

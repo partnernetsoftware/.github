@@ -104,9 +104,18 @@ npm run typecheck && npm test && npm run test:integration
 | 浏览器登录成功 | `sess_save` |
 | 要用已登录站自动化 | `sess_load` |
 
-## v1.1 开做前
+## Brain / Code（LLM 本质）
 
-读 mindmap `roadmap.v1_1`；优先 **W11 写入智能**（auto-tags / kind / importance），再反思层与 `mem_recall_context`。
+| 算子 | 职责 | 工具 |
+|------|------|------|
+| **Brain** | 多维上下文 **选择+投影** → `ContextBlock[]` | `brain_compose_context`（先调）；`mem_search` 取原始切片 |
+| **Code** | **确定性** 读写外部状态 | `mem_*`、`sess_*`；见 `codeOpKind()` |
+
+维定义：`src/context-model.ts`。`mem_put` 用 `kind` + `task/*` key 标注维。
+
+## v1.1 后续
+
+mindmap `v1_1_next`：token 预算、digest cron、search 反馈、put 后 auto-meta。
 
 ## 与其它 skill
 

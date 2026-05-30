@@ -157,6 +157,10 @@ const MEM_TOOL_DEFS: ToolDef[] = [
       key: { type: "string", description: "Unique key within owner namespace" },
       content: { type: "string", description: "Text to remember" },
       tags: { type: "array", items: { type: "string" } },
+      kind: {
+        type: "string",
+        description: "Context dimension kind: fact|procedure|preference|episodic (stored as kind:* tag)",
+      },
       expires_at: { type: "string", description: "ISO8601 expiry" },
       owner: { type: "string" },
     },
@@ -216,6 +220,28 @@ const MEM_TOOL_DEFS: ToolDef[] = [
   },
 ];
 
+const BRAIN_TOOL_DEFS: ToolDef[] = [
+  {
+    name: "brain_compose_context",
+    description:
+      "Brain operator: assemble multi-dimensional context blocks (semantic/episodic/procedural/state/…) for LLM conditioning from current task — call before reasoning, not instead of code ops",
+    required: ["task"],
+    properties: {
+      task: { type: "string", description: "What the agent is doing now (drives retrieval)" },
+      top_k: { type: "number", description: "Memory hits 1-20, default 8" },
+      dimensions: {
+        type: "array",
+        items: { type: "string" },
+        description: "Subset of context dimensions to include",
+      },
+      tag: { type: "string" },
+      session_site: { type: "string", description: "Optional sess meta for state dimension" },
+      session_profile: { type: "string" },
+      owner: { type: "string" },
+    },
+  },
+];
+
 const MEM_ADMIN_TOOL_DEFS: ToolDef[] = [
   {
     name: "mem_reindex",
@@ -261,8 +287,10 @@ export function toolsForAuth(auth: AuthContext): ToolDef[] {
     auth.role === "user" ? stripOwnerArg(SESS_TOOL_DEFS) : SESS_TOOL_DEFS;
   const mem =
     auth.role === "user" ? stripOwnerArg(MEM_TOOL_DEFS) : MEM_TOOL_DEFS;
+  const brain =
+    auth.role === "user" ? stripOwnerArg(BRAIN_TOOL_DEFS) : BRAIN_TOOL_DEFS;
   if (isAdmin(auth)) {
-    return [...sess, ...mem, ...MEM_ADMIN_TOOL_DEFS, ...ADMIN_TOOL_DEFS];
+    return [...sess, ...mem, ...brain, ...MEM_ADMIN_TOOL_DEFS, ...ADMIN_TOOL_DEFS];
   }
-  return [...sess, ...mem];
+  return [...sess, ...mem, ...brain];
 }
