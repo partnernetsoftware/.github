@@ -6,9 +6,9 @@
 |---|---|
 | 采集窗口 | `260528 07:02` UTC → `260530 07:02` UTC（48h，cron 触发 `2026-05-30T07:02Z`） |
 | 本文件更新 | `260530 07:02` UTC |
-| 条目数 | 18 |
-| 新模型 / 新产品 / 新模式 | 16（新模型 6 · 新产品 7 · 新模式 3） |
-| main 合并 commit | `c696354` |
+| 条目数 | 19 |
+| 新模型 / 新产品 / 新模式 | 17（新模型 6 · 新产品 7 · 新模式 4） |
+| main 合并 commit | `f1d6d86` |
 
 ---
 
@@ -202,6 +202,17 @@ vibe-48h/
     - **SIA**（MIT）：同一反馈环内同时改写 agent harness（提示/工具/重试）与 **LoRA** 权重（`gpt-oss-120b` rank 32）。
     - Feedback-Agent 按奖励在 scaffold 编辑 vs 权重更新间选择；LawBench / TriMul / scRNA 三域验证。
     - 开源 [`github.com/hexo-ai/sia`](https://github.com/hexo-ai/sia)；代表「自改进代理」新范式。
+
+- **National cyber shield could be ready in five years**
+  - 来源：**CW**
+  - 时间：`260528 17:08`
+  - 正文：~**520** tok
+  - URL：https://www.computerweekly.com/news/366643734/National-cyber-shield-could-be-ready-in-five-years
+  - 类型：新模式
+  - 要点：
+    - GCHQ 局长 Keast-Butler 提出国家级 **agentic AI** 网盾蓝图，目标约五年内覆盖 CNI（能源、医疗、金融等）。
+    - 将自主代理用于威胁检测/响应编排，而非仅传统 SIEM 规则。
+    - 与 Bletchley 演讲一脉：AI 为「不可阻挡之力」，呼吁企业把网安紧迫度提 10 倍。
 
 ### 资本动态
 
