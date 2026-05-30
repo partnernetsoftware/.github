@@ -21,7 +21,10 @@ curl -fsS "$BASE/health" | python3 -c "
 import json,sys
 h=json.load(sys.stdin)
 print('health ok=', h.get('ok'), 'version=', h.get('version'))
-print('fts=', (h.get('features') or {}).get('fts'))
+f=h.get('features') or {}
+print('fts=', f.get('fts'), 'cf_api_ready=', f.get('cf_api_ready'))
+if not f.get('cf_api_ready'):
+    print('WARN: cf_api_ready false — ./scripts/sync-cf-api-secrets.sh', file=sys.stderr)
 "
 
 if [[ ${#TOKEN} -lt 32 ]]; then
@@ -49,4 +52,13 @@ echo "==> POST /mcp initialize HTTP $CODE"
 head -c 200 /tmp/mcp_init.json
 echo
 [[ "$CODE" == "200" ]] || exit 1
-echo "OK: MCP auth path works"
+python3 -c "
+import json
+d=json.load(open('/tmp/mcp_init.json'))
+ins=(d.get('result') or {}).get('instructions') or ''
+print('initialize.instructions length=', len(ins))
+if len(ins) < 80:
+    raise SystemExit('FAIL: missing agent instructions in initialize')
+print('instructions preview:', ins[:120].replace(chr(10), ' '))
+"
+echo "OK: MCP auth + agent instructions"

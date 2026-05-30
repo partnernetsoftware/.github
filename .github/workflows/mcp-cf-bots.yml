@@ -24,6 +24,7 @@ jobs:
           cache: npm
           cache-dependency-path: workers/mcp-cf-bots/package-lock.json
       - run: npm ci
+      - run: ./scripts/security-check.sh
       - run: npm run typecheck
       - run: npm test
       - run: npm run test:integration
