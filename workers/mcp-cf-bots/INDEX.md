@@ -18,15 +18,15 @@ HTTP MCP + REST on Cloudflare Workers：`sess_*` 会话、`mem_*` 记忆 RAG、`
 
 对外：`GET /health` · `POST /mcp` · `/v1/session/*` · `/v1/mem/*` · `/v1/admin/*`（仅 admin）。
 
-### 现状（v0.9.3）
+### 现状（v0.9.4）
 
 | 项 | 说明 |
 |----|------|
-| **版本** | `0.9.3` — 卫生/安全/抽象轮 |
-| **本轮修复** | `POST /v1/admin/mem/cron` 迁至 `admin-api`（原在 `mem-rest` 不可达）；`ownerFromHttpRequest`；`mem_delete` 限流 |
+| **版本** | `0.9.4` — W3 删除 `MemoryDO` / `MEMORY_LEGACY`（migration `v5`） |
+| **本轮** | 移除 `mem_migrate_legacy`；线上 legacy 已审计为 0 keys |
 | **门禁** | `scripts/security-check.sh` + `deploy.sh` → `verify-all-urls` |
 | **你怎么连** | `MCP_CF_BOTS_URL` = `CLOUDFLARE_WORKER_DOMAIN`；用户 `cfb_*`；admin `VAULT_TOKEN` |
-| **下一步** | **W3** 删 MemoryDO（**W2** hybrid 集成测已完成） |
+| **下一步** | 稳态运维；无阻塞大项 |
 
 ### 每轮标准流程
 
@@ -46,7 +46,7 @@ git checkout main && git merge <feature-branch> && git push origin main
 | **W-卫生** | **完成** | cron 路由、HTTP 抽象、security-check、delete 限流 |
 | **W0** | 持续 | merge → security-check → test → deploy → verify |
 | **W2** | **完成** | DO embed + mock Vectorize hybrid 集成测 |
-| **W3** | blocked | TD-5 删 MemoryDO |
+| **W3** | **完成** | TD-5：`deleted_classes` MemoryDO，移除 migrate API |
 
 ### 历史里程碑
 
@@ -59,6 +59,7 @@ git checkout main && git merge <feature-branch> && git push origin main
 | 0.9.1 | W2：Miniflare FTS 集成测、`auth_audit_list`、`mem_import` 限流 |
 | 0.9.2 | custom_domain deploy、`verify-all-urls` |
 | 0.9.3 | 卫生轮：admin cron 修复、owner/JSON 复用、security-check |
+| 0.9.4 | W3：删 MemoryDO（v5 migration）、移除 legacy 迁移 API |
 
 ### 每轮收尾清单
 
@@ -91,7 +92,6 @@ git checkout main && git merge <feature-branch> && git push origin main
 | [scripts/verify-all-urls.sh](scripts/verify-all-urls.sh) | workers.dev + 自定义域双入口校验 |
 | [scripts/security-check.sh](scripts/security-check.sh) | 静态安全/路由检查（deploy 前置） |
 | [scripts/mem-vector-gc.sh](scripts/mem-vector-gc.sh) | 孤儿向量 GC |
-| [scripts/mem-migrate-legacy.sh](scripts/mem-migrate-legacy.sh) | 旧 MemoryDO 迁移 |
 | [scripts/issue_token.sh](scripts/issue_token.sh) | 签发 `cfb_*` |
 | [scripts/diagnose-connection.sh](scripts/diagnose-connection.sh) | health + `/v1/me` + MCP initialize |
 | [scripts/sync-vault-secret.sh](scripts/sync-vault-secret.sh) | `VAULT_TOKEN` → 正确 Worker |
@@ -120,7 +120,6 @@ git checkout main && git merge <feature-branch> && git push origin main
 | [audit-log.ts](src/audit-log.ts) | 管理操作审计（KV） |
 | [mem-reindex.ts](src/mem-reindex.ts) / [mem-vector-gc.ts](src/mem-vector-gc.ts) / [mem-cron.ts](src/mem-cron.ts) | 运维 |
 | [memory-do.ts](src/memory-do.ts) | `MemorySqliteDO` |
-| [memory-do-legacy.ts](src/memory-do-legacy.ts) | 旧 `MemoryDO` stub |
 | [auth.ts](src/auth.ts) / [admin-api.ts](src/admin-api.ts) | 鉴权、token |
 | [vault-api.ts](src/vault-api.ts) / [mem-rest.ts](src/mem-rest.ts) | REST |
 
@@ -132,9 +131,9 @@ git checkout main && git merge <feature-branch> && git push origin main
 | 鉴权 | `GET /v1/me`（Bearer admin 或 `cfb_*`） |
 | MCP | `POST /mcp`（默认） |
 | 会话 REST | `/v1/session/:site/:profile`、`GET /v1/sessions` |
-| 记忆 REST | `/v1/mem`、`/v1/mem/:key`、`POST …/search|import|migrate-legacy|vector-gc|reindex` |
+| 记忆 REST | `/v1/mem`、`/v1/mem/:key`、`POST …/search|import|vector-gc|reindex` |
 | Admin | `/v1/admin/tokens`、`GET /v1/admin/audit`、`POST /v1/admin/mem/cron` |
-| MCP 工具 | `sess_*`、`mem_*`；admin：`auth_token_*`、`auth_audit_list`、`mem_migrate_legacy`、`mem_reindex`、`mem_stats`、`mem_vector_gc` |
+| MCP 工具 | `sess_*`、`mem_*`；admin：`auth_token_*`、`auth_audit_list`、`mem_reindex`、`mem_stats`、`mem_vector_gc` |
 | MCP resources | `mem://<key>`（`resources/list`、`resources/read`） |
 
 客户端环境变量：`MCP_CF_BOTS_URL`、`MCP_CF_BOTS_TOKEN`、`MCP_CF_BOTS_OWNER`（兼容 `SESSION_VAULT_*`）。
@@ -166,7 +165,7 @@ Cursor：[`/.cursor/mcp.json`](../../.cursor/mcp.json) 里 `url` = `${MCP_CF_BOT
 | `VAULT_TOKEN` | `wrangler secret put --name $CLOUDFLARE_WORKER_NAME`（与 URL 同 Worker） |
 | `TOKENS` KV | `wrangler.toml` |
 | `SESSION_STORE` / `REGISTRY` | DO + migrations |
-| `MEMORY_STORE` → `MemorySqliteDO` | migration `v4`；旧 `MemoryDO` 仅 stub |
+| `MEMORY_STORE` → `MemorySqliteDO` | migration `v4`；`v5` 已 `deleted_classes` MemoryDO |
 | `AI` + `MEM_VECTORS` | 语义检索；首次 `./scripts/setup-rag.sh` |
 | `ENCRYPTION_KEY` | 可选，默认同 `VAULT_TOKEN` |
 | `MEM_ENCRYPT` | 可选 var，DO 内 `enc:` 加密 |
@@ -229,7 +228,6 @@ API Token（Wrangler / GC）建议：Workers Scripts Edit、KV Edit、DO Edit、
 | 运维 | 命令 |
 |------|------|
 | 手动 cron | `POST /v1/admin/mem/cron` |
-| 旧 DO 迁移 | `mem_migrate_legacy` / `POST /v1/mem/migrate-legacy`（需 `MEMORY_LEGACY` 绑定） |
 | 孤儿向量 | `mem_vector_gc` / `DRY_RUN=1 ./scripts/mem-vector-gc.sh` |
 
 ---
@@ -247,7 +245,7 @@ API Token（Wrangler / GC）建议：Workers Scripts Edit、KV Edit、DO Edit、
 
 wrangler 默认：`MEM_CHUNK_CHARS=1500`，`MAX_MEM_KEYS=2000`，`MAX_MEM_BYTES=8000000`。
 
-升级自 pre-0.8 `MemoryDO`：**需重新** `mem_put` / `mem_import`（不自动迁移实例）。
+pre-0.8 独立 `MemoryDO` 类已删除（0.9.4）；同 DO 内 blob 仍由 `MemorySqliteDO` 启动时 `migrateLegacyBlob` 处理。
 
 ### MEM_ENCRYPT 决策树
 
@@ -330,11 +328,11 @@ CLI 凭据：`tools/claude_code.py capture|restore|status`（等价 `sess_put` s
 
 | ID | 项 | 状态 |
 |----|-----|------|
-| TD-1 | 旧 `MemoryDO` stub | mitigated |
-| TD-2 | pre-0.8 数据迁移 | mitigated（`mem_migrate_legacy`） |
+| TD-1 | 旧 `MemoryDO` stub | **done**（0.9.4） |
+| TD-2 | pre-0.8 数据迁移 | **done** |
 | TD-3 | Vectorize 孤儿 | mitigated（GC + cron） |
 | TD-4 | Cron 全量 list 大索引慢 | mitigated（分页 + KV 游标） |
-| TD-5 | `delete-class MemoryDO` | blocked → **W3** |
+| TD-5 | `delete-class MemoryDO` | **done**（v5 migration） |
 | TD-6 | FTS5 关键词 | mitigated（0.9.0） |
 | TD-7 | Miniflare DO 集成测 | mitigated（FTS 子集）→ hybrid 仍 **W2** |
 | TD-8 | 自定义 URL 漂移 | mitigated（verify-all-urls） |

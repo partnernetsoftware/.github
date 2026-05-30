@@ -5,7 +5,6 @@ import { checkMemRateLimit } from "./rate-limit";
 import { deleteMemoryVectors, ragBackend } from "./mem-embed";
 import type { MemoryRecord } from "./memory-do";
 import { runHybridSearch, type MemSearchFilters } from "./mem-hybrid-search";
-import { migrateLegacyOwner } from "./mem-migrate";
 import { putMemory } from "./mem-put";
 import { reindexOwner } from "./mem-reindex";
 import { gcOrphanVectors, gcOrphanVectorsIncremental } from "./mem-vector-gc";
@@ -101,22 +100,6 @@ export async function memToolCall(
         : owner;
     const res = await memoryStub(env, target).fetch("https://memory.internal/stats");
     return res.text();
-  }
-
-  if (name === "mem_migrate_legacy") {
-    if (!isAdmin(auth)) {
-      throw new Error("forbidden: admin token required");
-    }
-    const target =
-      typeof args.owner === "string" && args.owner.trim()
-        ? args.owner.trim()
-        : owner;
-    const force = args.force === true || args.force === "true";
-    const result = await migrateLegacyOwner(env, target, {
-      skip_existing: !force,
-      reindex: true,
-    });
-    return JSON.stringify(result, null, 2);
   }
 
   if (name === "mem_vector_gc") {

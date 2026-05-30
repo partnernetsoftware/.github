@@ -31,4 +31,13 @@ check "safeEqual for vault bearer" \
 check "ownerFromHttpRequest shared" \
   'grep -q ownerFromHttpRequest src/owner-scope.ts'
 
+check "MEMORY_LEGACY binding removed" \
+  '! grep -q MEMORY_LEGACY wrangler.toml'
+
+check "MemoryDO class deleted (v5 migration)" \
+  'grep -q deleted_classes wrangler.toml && grep -q MemoryDO wrangler.toml'
+
+check "migrate-legacy returns 410 only" \
+  'grep -q "migrate-legacy removed" src/mem-rest.ts'
+
 exit "$FAIL"

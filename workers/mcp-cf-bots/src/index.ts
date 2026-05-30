@@ -1,8 +1,6 @@
 export { SessionStoreDO } from "./session-do";
 export { RegistryDO } from "./registry-do";
 export { MemorySqliteDO } from "./memory-do";
-export { MemoryDO } from "./memory-do-legacy";
-
 import { authenticateRequest } from "./auth";
 import { handlePublicHealth, handleWhoAmI } from "./health";
 import { handleStatusBoard } from "./status-board";

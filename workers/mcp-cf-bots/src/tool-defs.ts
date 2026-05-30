@@ -218,16 +218,6 @@ const MEM_TOOL_DEFS: ToolDef[] = [
 
 const MEM_ADMIN_TOOL_DEFS: ToolDef[] = [
   {
-    name: "mem_migrate_legacy",
-    description:
-      "Admin: import memories from legacy MemoryDO blob into MemorySqliteDO (skip if sqlite non-empty unless force)",
-    required: [] as string[],
-    properties: {
-      owner: { type: "string" },
-      force: { type: "boolean", description: "Overwrite even when sqlite already has keys" },
-    },
-  },
-  {
     name: "mem_reindex",
     description: "Admin: rebuild Vectorize vectors from DO chunks for an owner",
     required: [] as string[],

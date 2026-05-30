@@ -16,7 +16,6 @@ export type HealthFeatures = {
   cron_reindex: boolean;
   cron_vector_gc: boolean;
   cf_api_ready: boolean;
-  memory_legacy: boolean;
 };
 
 export type HealthCronLast = {
@@ -56,7 +55,6 @@ export async function buildHealthFeatures(env: Env): Promise<{
       cron_reindex: memCronReindexEnabled(env),
       cron_vector_gc: memCronVectorGcEnabled(env) && cfVectorGcReady(env),
       cf_api_ready: cfVectorGcReady(env),
-      memory_legacy: Boolean(env.MEMORY_LEGACY),
     },
     cron_last: cronLast,
   };

@@ -2,8 +2,6 @@ interface Env {
   SESSION_STORE: DurableObjectNamespace;
   REGISTRY: DurableObjectNamespace;
   MEMORY_STORE?: DurableObjectNamespace;
-  /** Legacy MemoryDO (pre-0.8) for mem_migrate_legacy */
-  MEMORY_LEGACY?: DurableObjectNamespace;
   AI?: Ai;
   MEM_VECTORS?: VectorizeIndex;
   /** Per-user API token index (hashed bearer → owner) */

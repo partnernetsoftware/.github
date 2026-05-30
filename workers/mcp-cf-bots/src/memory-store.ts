@@ -11,16 +11,6 @@ export function memoryStub(env: Env, owner: string): DurableObjectStub {
   );
 }
 
-/** Legacy non-SQLite MemoryDO (same id name, different class). */
-export function memoryLegacyStub(env: Env, owner: string): DurableObjectStub {
-  if (!env.MEMORY_LEGACY) {
-    throw new Error("MEMORY_LEGACY binding is not configured");
-  }
-  return env.MEMORY_LEGACY.get(
-    env.MEMORY_LEGACY.idFromName(memoryDoId(owner)),
-  );
-}
-
 const VECTOR_ID_SEP = "::";
 
 /** Vectorize row id — unique per owner + memory uuid. */

@@ -197,7 +197,6 @@ function renderHtml(p: StatusPayload): string {
     ${feat("cron_reindex", p.features.cron_reindex)}
     ${feat("cron_vector_gc", p.features.cron_vector_gc)}
     ${feat("cf_api", p.features.cf_api_ready)}
-    ${feat("mem_legacy", p.features.memory_legacy)}
     ${feat("multi-tenant", p.bindings.tokens_kv)}
   </p>
   <h2>Last mem cron</h2>

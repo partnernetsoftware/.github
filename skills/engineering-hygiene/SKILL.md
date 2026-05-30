@@ -61,7 +61,7 @@ paths:
 | 路线图 | INDEX §路线图 · mindmap `roadmap` |
 | 当前版本 | `wrangler.toml` → `MCP_SERVER_VERSION` |
 | P1 | **deferred** — 见 INDEX「P1 启动条件」 |
-| 运维 | cron、`mem_migrate_legacy`、`mem_vector_gc` |
+| 运维 | cron、`mem_vector_gc`、`mem_reindex` |
 | MCP 连不上 | **勿** `mem_put` 存排障；INDEX §连不上 + `diagnose-connection.sh` / `sync-vault-secret.sh` |
 
 ## 与其它 skill 关系

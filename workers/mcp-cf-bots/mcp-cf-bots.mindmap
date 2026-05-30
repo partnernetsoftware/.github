@@ -1,8 +1,8 @@
 {
   "product": "mcp-cf-bots",
   "ssot": "workers/mcp-cf-bots/mcp-cf-bots.mindmap",
-  "version": "0.9.3",
-  "updated_at": "2026-05-30T04:05:00Z",
+  "version": "0.9.4",
+  "updated_at": "2026-05-30T05:00:00Z",
   "north_star": "跨 Agent 的 HTTP MCP + REST：sess_* 会话、mem_* 记忆 RAG、cfb_* 多租户",
   "product_review": {
     "what": "Cloudflare Worker：浏览器会话 vault + 租户记忆 RAG + MCP/REST 多入口",
@@ -12,12 +12,12 @@
       "auth": "VAULT_TOKEN admin + TOKENS KV cfb_* 用户 token + 限流 + 审计"
     },
     "interfaces": ["GET /health", "POST /mcp", "/v1/session/*", "/v1/mem/*", "/v1/admin/*"],
-    "maturity": "生产可用；W2 hybrid 集成测完成；W3 legacy 清理未开"
+    "maturity": "生产可用；W3 legacy 已删；稳态运维"
   },
   "architecture_decisions": {
     "canonical_entry": "单一 Worker；workers.dev + CLOUDFLARE_WORKER_DOMAIN（deploy 注入 custom_domain）",
     "url_for_cursor": "MCP_CF_BOTS_URL = CLOUDFLARE_WORKER_DOMAIN",
-    "priority_order": "W3 删 legacy（W2 完成）→ 稳态",
+    "priority_order": "稳态运维",
     "mem_encrypt": "默认关闭",
     "http_helpers": "ownerFromHttpRequest + readJsonBody/readOptionalJsonBody 统一 REST",
     "admin_routes": "所有 /v1/admin/* 仅 admin-api.ts",
@@ -25,9 +25,9 @@
   },
   "roadmap": {
     "current_phase": "steady-ops",
-    "current_version": "0.9.3",
+    "current_version": "0.9.4",
     "last_review": "2026-05-30",
-    "summary": "W2：DO+mock Vectorize hybrid 集成测；MCP 401 排障脚本与 AGENTS gotcha。线上 0.9.3。",
+    "summary": "W3：migration v5 删除 MemoryDO；移除 migrate API；线上 legacy 0 keys。",
     "for_discussion": [],
     "end_of_round": [
       "merge origin/main",
@@ -36,62 +36,32 @@
       "更新 INDEX + 本 mindmap"
     ],
     "last_deploy": {
-      "version": "0.9.3",
-      "note": "d0e761e W2 tests + docs; verify-all-urls OK"
+      "version": "0.9.4",
+      "note": "W3 deleted_classes MemoryDO"
     },
     "active_waves": [
       {
-        "id": "w-hygiene",
-        "label": "W-卫生/安全/抽象",
-        "status": "done",
-        "priority": 0,
-        "items": [
-          { "id": "wh-cron-route", "label": "POST /v1/admin/mem/cron → admin-api", "status": "done" },
-          { "id": "wh-owner", "label": "ownerFromHttpRequest 统一", "status": "done" },
-          { "id": "wh-json", "label": "readJsonBody / readOptionalJsonBody", "status": "done" },
-          { "id": "wh-rate-delete", "label": "mem_delete 限流", "status": "done" },
-          { "id": "wh-security-script", "label": "scripts/security-check.sh", "status": "done" }
-        ]
-      },
-      {
         "id": "w0-steady",
         "label": "W0 稳态",
-        "status": "active",
+        "status": "ongoing",
         "priority": 1,
         "items": [
           { "id": "w0-merge-deploy", "label": "merge + deploy + verify-all-urls", "status": "ongoing" }
         ]
-      },
-      {
-        "id": "w2-integration-tests",
-        "label": "W2 测试",
-        "status": "done",
-        "priority": 2,
-        "items": [
-          { "id": "w2-fts", "label": "DO FTS 集成测", "status": "done" },
-          { "id": "w2-hybrid", "label": "hybrid/Vectorize 集成测", "status": "done" }
-        ]
-      },
-      {
-        "id": "w3-legacy-cleanup",
-        "label": "W3 TD-5",
-        "status": "blocked",
-        "priority": 3,
-        "start_gates": ["W2 够绿", "migrate 清零"]
       }
     ],
     "milestones_done": [
-      { "version": "0.9.3", "label": "卫生轮：cron 路由、HTTP 抽象、security-check、mem_delete 限流", "status": "done" },
-      { "version": "0.9.2", "label": "custom_domain deploy + verify-all-urls", "status": "done" },
+      { "version": "0.9.4", "label": "W3：删 MemoryDO class + 移除 mem_migrate_legacy", "status": "done" },
+      { "version": "0.9.3", "label": "卫生轮 + MCP 401 排障 + W2 hybrid 集成测", "status": "done" },
       { "version": "0.9.0", "label": "P1–P3 FTS/限流/审计/resources", "status": "done" },
       { "version": "0.8.2", "label": "P0 migrate/GC/cron", "status": "done" }
     ]
   },
   "tech_debt": [
-    { "id": "TD-5", "label": "delete-class MemoryDO", "status": "blocked", "wave": "w3-legacy-cleanup" },
+    { "id": "TD-5", "label": "delete-class MemoryDO", "status": "done", "note": "0.9.4 v5 migration" },
     { "id": "TD-8", "label": "URL 漂移", "status": "mitigated", "note": "verify-all-urls" },
     { "id": "TD-9", "label": "admin cron 曾挂在 mem-rest 不可达", "status": "mitigated", "note": "0.9.3 admin-api" },
-    { "id": "TD-10", "label": "hybrid 无集成测", "status": "mitigated", "note": "memory-hybrid.test.ts + mem-hybrid-search.ts" }
+    { "id": "TD-10", "label": "hybrid 无集成测", "status": "mitigated", "note": "memory-hybrid.test.ts" }
   ],
   "doc_index": "INDEX.md"
 }

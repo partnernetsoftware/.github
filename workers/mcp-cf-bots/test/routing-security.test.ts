@@ -23,6 +23,16 @@ describe("admin mem cron routing", () => {
   });
 });
 
+describe("legacy migrate removed", () => {
+  it("handleMemRest returns 410 for /v1/mem/migrate-legacy", async () => {
+    const url = new URL("https://x/v1/mem/migrate-legacy");
+    const req = new Request(url.toString(), { method: "POST" });
+    const res = await handleMemRest(req, env, url, adminAuth);
+    expect(res).not.toBeNull();
+    expect(res!.status).toBe(410);
+  });
+});
+
 describe("readOptionalJsonBody", () => {
   it("returns empty object for blank body", async () => {
     const req = new Request("https://x/", { method: "POST", body: "" });

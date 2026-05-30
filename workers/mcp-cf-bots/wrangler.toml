@@ -13,7 +13,6 @@ bindings = [
   { name = "SESSION_STORE", class_name = "SessionStoreDO" },
   { name = "REGISTRY", class_name = "RegistryDO" },
   { name = "MEMORY_STORE", class_name = "MemorySqliteDO" },
-  { name = "MEMORY_LEGACY", class_name = "MemoryDO" },
 ]
 
 [[kv_namespaces]]
@@ -36,6 +35,10 @@ new_classes = ["MemoryDO"]
 tag = "v4"
 new_sqlite_classes = ["MemorySqliteDO"]
 
+[[migrations]]
+tag = "v5"
+deleted_classes = ["MemoryDO"]
+
 [ai]
 binding = "AI"
 
@@ -49,7 +52,7 @@ index_name = "mcp-cf-bots-mem"
 [vars]
 MCP_HTTP_PATH = "/mcp"
 MCP_SERVER_NAME = "mcp-cf-bots"
-MCP_SERVER_VERSION = "0.9.3"
+MCP_SERVER_VERSION = "0.9.4"
 MAX_BODY_BYTES = "2000000"
 MEM_CHUNK_CHARS = "1500"
 MAX_MEM_KEYS = "2000"

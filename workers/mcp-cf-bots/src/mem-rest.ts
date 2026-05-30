@@ -22,6 +22,13 @@ export async function handleMemRest(
     return apiError(503, "Memory store is not configured");
   }
 
+  if (url.pathname === "/v1/mem/migrate-legacy") {
+    return apiError(
+      410,
+      "migrate-legacy removed in 0.9.4 (MemoryDO deleted); use MemorySqliteDO only",
+    );
+  }
+
   const owner = ownerFromHttpRequest(auth, env, url, request);
 
   const jsonError = (e: unknown) => {
@@ -78,30 +85,6 @@ export async function handleMemRest(
         env,
         "mem_vector_gc",
         { owner: body.owner ?? owner, dry_run: body.dry_run },
-        auth,
-        owner,
-      );
-      return new Response(text, {
-        headers: { "Content-Type": "application/json" },
-      });
-    } catch (e) {
-      return jsonError(e);
-    }
-  }
-
-  if (url.pathname === "/v1/mem/migrate-legacy" && request.method === "POST") {
-    if (!isAdmin(auth)) {
-      return apiError(403, "Forbidden");
-    }
-    try {
-      const body = await readOptionalJsonBody<{
-        owner?: string;
-        force?: boolean;
-      }>(request);
-      const text = await memToolCall(
-        env,
-        "mem_migrate_legacy",
-        { owner: body.owner ?? owner, force: body.force },
         auth,
         owner,
       );
