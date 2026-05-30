@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Capture / apply browser cookies via Playwright + session-vault REST API.
+Capture / apply browser cookies via Playwright + mcp-cf-bots Worker REST API.
 
   # After login in headed browser, save (includes HttpOnly via CDP):
   python3 tools/session_vault_browser_cookies.py capture \
@@ -10,7 +10,7 @@ Capture / apply browser cookies via Playwright + session-vault REST API.
   python3 tools/session_vault_browser_cookies.py apply \
     --url https://claude.ai/code --site claude.ai --profile code
 
-Env: SESSION_VAULT_URL, SESSION_VAULT_TOKEN, optional SESSION_VAULT_OWNER
+Env: MCP_CF_BOTS_URL, MCP_CF_BOTS_TOKEN, optional MCP_CF_BOTS_OWNER (legacy SESSION_VAULT_*)
 Requires: pip install playwright && playwright install chromium
 """
 
@@ -25,27 +25,32 @@ import urllib.parse
 import urllib.request
 
 
-def _env(name: str) -> str:
-    v = os.environ.get(name, "").strip()
+def _env(primary: str, legacy: str) -> str:
+    v = (os.environ.get(primary, "") or os.environ.get(legacy, "")).strip()
     if not v:
-        raise RuntimeError(f"{name} is not set")
+        raise RuntimeError(f"{primary} is not set (legacy: {legacy})")
     return v
 
 
 def _owner() -> str:
-    return (os.environ.get("SESSION_VAULT_OWNER", "default") or "default").strip()
+    owner = (
+        os.environ.get("MCP_CF_BOTS_OWNER") or os.environ.get("SESSION_VAULT_OWNER") or ""
+    ).strip()
+    if not owner:
+        raise RuntimeError("MCP_CF_BOTS_OWNER is not set (legacy: SESSION_VAULT_OWNER)")
+    return owner
 
 
 def _vault(method: str, path: str, *, body: dict | None = None, query: dict | None = None) -> dict:
-    base = _env("SESSION_VAULT_URL").rstrip("/")
+    base = _env("MCP_CF_BOTS_URL", "SESSION_VAULT_URL").rstrip("/")
     url = f"{base}{path}"
     if query:
         url = f"{url}?{urllib.parse.urlencode(query)}"
     data = None
     headers = {
-        "Authorization": f"Bearer {_env('SESSION_VAULT_TOKEN')}",
+        "Authorization": f"Bearer {_env('MCP_CF_BOTS_TOKEN', 'SESSION_VAULT_TOKEN')}",
         "Accept": "application/json",
-        "User-Agent": "session-vault-client/1.0",
+        "User-Agent": "mcp-cf-bots-client/1.0",
     }
     if body is not None:
         data = json.dumps(body).encode("utf-8")

@@ -1,0 +1,30 @@
+# Cloudflare Workers — mcp-cf-bots (deploy dir: workers/mcp-cf-bots/)
+# Override worker name: CLOUDFLARE_WORKER_NAME=... npx wrangler deploy
+name = "mcp-cf-bots"
+main = "src/index.ts"
+compatibility_date = "2024-11-01"
+workers_dev = true
+
+[durable_objects]
+bindings = [
+  { name = "SESSION_VAULT", class_name = "SessionVaultDO" },
+  { name = "REGISTRY", class_name = "RegistryDO" },
+]
+
+[[migrations]]
+tag = "v1"
+new_classes = ["SessionVaultDO", "RegistryDO"]
+
+# Non-secret config — override per env (dashboard / wrangler vars put / CI).
+# Secrets (wrangler secret put): VAULT_TOKEN, optional ENCRYPTION_KEY
+[vars]
+MCP_HTTP_PATH = "/mcp"
+MCP_SERVER_NAME = "mcp-cf-bots"
+MCP_SERVER_VERSION = "0.4.0"
+MCP_SERVER_DESCRIPTION = "Cloudflare MCP for cross-agent bots"
+MCP_PROTOCOL_VERSION = "2024-11-05"
+OWNER_HEADER = "X-Cf-Bots-Owner"
+# Required for your deployment — set explicitly, do not rely on code defaults:
+# DEFAULT_OWNER = "cloud-agent"
+# DEFAULT_SESSION_SOURCE = "browser-use"
+# MCP_ALLOWED_ORIGINS = "https://cursor.com"

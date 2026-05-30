@@ -1,9 +1,10 @@
+import { mcpProtocolVersion, mcpServerInfo } from "./config";
 import { vaultToolCall } from "./vault-api";
 import { SESSION_KINDS } from "./kinds";
 
 const TOOL_DEFS = [
   {
-    name: "browser_session_save",
+    name: "sess_save",
     description:
       "Save browser-use / Playwright session for reuse across Cloud Agents (storage_state + optional oauth/cookies/config)",
     required: ["site", "profile"],
@@ -18,7 +19,7 @@ const TOOL_DEFS = [
       config: {
         description: "browser-use or agent config JSON (API URLs, selectors, etc.)",
       },
-      label: { type: "string", description: "Human label in session_list" },
+      label: { type: "string", description: "Human label in sess_list" },
       source: {
         type: "string",
         description: "Source tag (default browser-use)",
@@ -26,7 +27,7 @@ const TOOL_DEFS = [
       tags: {
         type: "array",
         items: { type: "string" },
-        description: "Tags for filtering session_list",
+        description: "Tags for filtering sess_list",
       },
       notes: { type: "string" },
       expires_at: { type: "string", description: "ISO8601 expiry" },
@@ -34,7 +35,7 @@ const TOOL_DEFS = [
     },
   },
   {
-    name: "browser_session_load",
+    name: "sess_load",
     description:
       "Load saved browser session for browser-use (storage_state; optional oauth/cookies/config)",
     required: ["site", "profile"],
@@ -48,7 +49,7 @@ const TOOL_DEFS = [
     },
   },
   {
-    name: "session_meta",
+    name: "sess_meta",
     description: "Read label/tags/source/expiry metadata without decrypting payloads",
     required: ["site", "profile"],
     properties: {
@@ -58,7 +59,7 @@ const TOOL_DEFS = [
     },
   },
   {
-    name: "session_put",
+    name: "sess_put",
     description: "Store a single kind: oauth, cookies, storage_state, or config",
     required: ["site", "profile", "kind", "data"],
     properties: {
@@ -75,7 +76,7 @@ const TOOL_DEFS = [
     },
   },
   {
-    name: "session_get",
+    name: "sess_get",
     description: "Read stored session fields (optional single kind)",
     required: ["site", "profile"],
     properties: {
@@ -86,7 +87,7 @@ const TOOL_DEFS = [
     },
   },
   {
-    name: "session_delete",
+    name: "sess_delete",
     description: "Delete all encrypted session data for site/profile",
     required: ["site", "profile"],
     properties: {
@@ -96,7 +97,7 @@ const TOOL_DEFS = [
     },
   },
   {
-    name: "session_list",
+    name: "sess_list",
     description: "List site/profile entries with label/source/tags",
     required: [] as string[],
     properties: {
@@ -106,13 +107,6 @@ const TOOL_DEFS = [
     },
   },
 ] as const;
-
-const SERVER_INFO = {
-  name: "session-vault-mcp",
-  version: "0.3.0",
-  description:
-    "Cross-agent OAuth / browser-use / Playwright storage vault (Cloudflare DO)",
-};
 
 type JsonRpcReq = {
   jsonrpc?: string;
@@ -137,7 +131,6 @@ export async function handleMcpJsonRpc(
   request: JsonRpcReq,
   ctx: {
     env: Env;
-    baseUrl: string;
     defaultOwner: string;
     sessionId: string | null;
     isInitialize: boolean;
@@ -152,15 +145,24 @@ export async function handleMcpJsonRpc(
   }
 
   if (method === "initialize") {
-    return {
-      body: ok(requestId, {
-        protocolVersion: "2024-11-05",
-        capabilities: { tools: {} },
-        serverInfo: SERVER_INFO,
-      }),
-      status: 200,
-      isNotification: false,
-    };
+    try {
+      return {
+        body: ok(requestId, {
+          protocolVersion: mcpProtocolVersion(ctx.env),
+          capabilities: { tools: {} },
+          serverInfo: mcpServerInfo(ctx.env),
+        }),
+        status: 200,
+        isNotification: false,
+      };
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e);
+      return {
+        body: err(requestId, -32000, message),
+        status: 500,
+        isNotification: false,
+      };
+    }
   }
 
   if (!ctx.isInitialize && !ctx.sessionId) {
@@ -201,13 +203,7 @@ export async function handleMcpJsonRpc(
       };
     }
     try {
-      const text = await vaultToolCall(
-        ctx.env,
-        ctx.baseUrl,
-        name,
-        args,
-        ctx.defaultOwner,
-      );
+      const text = await vaultToolCall(ctx.env, name, args, ctx.defaultOwner);
       return {
         body: ok(requestId, {
           content: [{ type: "text", text }],

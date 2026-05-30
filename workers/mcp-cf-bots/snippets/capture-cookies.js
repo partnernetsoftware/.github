@@ -36,7 +36,7 @@
   const text = JSON.stringify(payload, null, 2);
   if (typeof copy === "function") {
     copy(text);
-    console.log("Copied vault payload (%d cookies). Paste into session_put or MCP.", pairs.length);
+    console.log("Copied vault payload (%d cookies). Paste into sess_put or MCP.", pairs.length);
   } else {
     console.log(text);
   }

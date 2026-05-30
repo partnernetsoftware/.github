@@ -1,10 +1,9 @@
-# mcp.dataxwin.com
+# [REDACTED]
 
-Session 保险箱（OAuth / cookie / Playwright `storageState`）实现位于 monorepo 根目录：
+Cloudflare 上的 **mcp-cf-bots**（HTTP MCP + REST）。
 
 | 路径 | 说明 |
 |------|------|
-| [`workers/session-vault/`](../../workers/session-vault/) | Cloudflare Worker + Durable Objects |
-| [`products/session_vault_mcp.py`](../../products/session_vault_mcp.py) | stdio MCP（推荐） |
+| [`workers/mcp-cf-bots/`](../../workers/mcp-cf-bots/) | Worker + Durable Objects |
 
-部署与 MCP 配置见 [`workers/session-vault/README.md`](../../workers/session-vault/README.md)。
+配置与部署见 [`workers/mcp-cf-bots/README.md`](../../workers/mcp-cf-bots/README.md)、[`DEPLOY.md`](../../workers/mcp-cf-bots/DEPLOY.md)。

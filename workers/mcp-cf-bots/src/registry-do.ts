@@ -15,10 +15,7 @@ interface RegistryState {
 }
 
 export class RegistryDO implements DurableObject {
-  constructor(
-    private readonly state: DurableObjectState,
-    private readonly env: Env,
-  ) {}
+  constructor(private readonly state: DurableObjectState) {}
 
   async fetch(request: Request): Promise<Response> {
     const url = new URL(request.url);
