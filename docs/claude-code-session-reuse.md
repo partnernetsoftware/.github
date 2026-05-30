@@ -1,3 +1,3 @@
-# Claude Code 跨会话复用
+# Claude Code CLI 跨会话复用
 
-已迁至 **[`workers/mcp-cf-bots/docs/claude-code-session-reuse.md`](../workers/mcp-cf-bots/docs/claude-code-session-reuse.md)**。
+已合并至 **[`workers/mcp-cf-bots/INDEX.md#claude-工人`](../workers/mcp-cf-bots/INDEX.md)**。

@@ -51,9 +51,9 @@
     ]
   },
   "tech_debt": [
-    { "id": "TD-1", "label": "MemoryDO legacy stub", "status": "mitigated", "doc": "docs/TECH-DEBT.md" },
-    { "id": "TD-2", "label": "Pre-0.8 data re-import", "status": "open", "doc": "PRODUCTION.md" },
-    { "id": "TD-5", "label": "delete-class MemoryDO", "status": "blocked", "doc": "docs/TECH-DEBT.md" }
+    { "id": "TD-1", "label": "MemoryDO legacy stub", "status": "mitigated", "doc": "INDEX.md#技术债" },
+    { "id": "TD-2", "label": "Pre-0.8 data re-import", "status": "open", "doc": "INDEX.md#mem_-记忆-rag" },
+    { "id": "TD-5", "label": "delete-class MemoryDO", "status": "blocked", "doc": "INDEX.md#技术债" }
   ],
   "cron": {
     "schedule": "0 4 * * *",

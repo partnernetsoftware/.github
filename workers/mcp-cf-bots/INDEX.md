@@ -1,118 +1,223 @@
-# mcp-cf-bots 索引（SSOT）
+# mcp-cf-bots（SSOT）
 
-> **维护规则**：新增/移动/删除本目录下任何文件时，**先更新本文件**，再改代码。README 只保留一句话 + 链到此处。
+> **维护规则**：本目录唯一长文档即本文件；`README.md` 仅一行入口。改代码前先更新此处。思维树：[mcp-cf-bots.mindmap](mcp-cf-bots.mindmap)。
 
-HTTP MCP + REST on Cloudflare Workers：`sess_*` 会话、`mem_*` 记忆 RAG、`auth_token_*` 多租户。
+HTTP MCP + REST on Cloudflare Workers：`sess_*` 会话、`mem_*` 记忆 RAG、`auth_token_*` 多租户。当前版本见 `wrangler.toml` → `MCP_SERVER_VERSION`。
 
-## 文档
+## 仓库文件
 
-| 文件 | 用途 |
+| 路径 | 用途 |
 |------|------|
-| [README.md](README.md) | 入口摘要 |
-| [PRODUCTION.md](PRODUCTION.md) | 上线清单、绑定、冒烟 |
-| [docs/README.md](docs/README.md) | 文档子目录说明 |
-| [docs/deploy.md](docs/deploy.md) | 部署、URL、Secrets |
-| [docs/multi-user.md](docs/multi-user.md) | 用户 token `cfb_*` |
-| [docs/browser-automation.md](docs/browser-automation.md) | Playwright + MCP |
-| [docs/claude-orchestrator.md](docs/claude-orchestrator.md) | 派 Claude 工人 |
-| [docs/claude-code-session-reuse.md](docs/claude-code-session-reuse.md) | CLI 跨会话 |
-| [docs/mem-roadmap.md](docs/mem-roadmap.md) | `mem_*` API 与后续改进 |
-| [docs/TECH-DEBT.md](docs/TECH-DEBT.md) | 技术债登记 |
-| [docs/cf-services.md](docs/cf-services.md) | 需开通的 CF 服务与 Token 权限 |
-| [mcp-cf-bots.mindmap](mcp-cf-bots.mindmap) | 产品思维树图（SSOT） |
-
-## 配置与运维
-
-| 文件 | 用途 |
-|------|------|
-| [wrangler.toml](wrangler.toml) | Worker 名、DO/KV、vars |
+| [wrangler.toml](wrangler.toml) | Worker、DO/KV、cron、vars |
 | [package.json](package.json) | npm 脚本、版本 |
 | [mcp.recommended.json](mcp.recommended.json) | Cursor 远程 MCP 示例 |
 | [.dev.vars.example](.dev.vars.example) | 本地 secret 模板 |
-| [scripts/smoke.sh](scripts/smoke.sh) | 部署后 `/health`、`/v1/me` |
 | [scripts/deploy.sh](scripts/deploy.sh) | ci → typecheck → test → deploy → smoke |
-| [scripts/setup-rag.sh](scripts/setup-rag.sh) | Vectorize 索引 + deploy.sh |
-| [scripts/mem-vector-gc.sh](scripts/mem-vector-gc.sh) | 孤儿向量 GC（REST） |
-| [scripts/issue_token.sh](scripts/issue_token.sh) | admin 签发用户 token |
-| [scripts/claude_worker.sh](scripts/claude_worker.sh) | restore vault + `claude` |
+| [scripts/setup-rag.sh](scripts/setup-rag.sh) | Vectorize 索引 + deploy |
+| [scripts/smoke.sh](scripts/smoke.sh) | `/health`、`/v1/me` |
+| [scripts/mem-vector-gc.sh](scripts/mem-vector-gc.sh) | 孤儿向量 GC |
+| [scripts/issue_token.sh](scripts/issue_token.sh) | 签发 `cfb_*` |
+| [scripts/claude_worker.sh](scripts/claude_worker.sh) | restore vault → `claude` |
+| [tools/](tools/) | Python 客户端 |
+| [snippets/](snippets/) | 浏览器 Console cookie |
+| [test/unit.test.ts](test/unit.test.ts) | vitest |
 
-## 客户端（非 Worker 包）
-
-| 路径 | 用途 |
-|------|------|
-| [tools/_client.py](tools/_client.py) | 共享 REST 客户端 |
-| [tools/claude_code.py](tools/claude_code.py) | CLI 凭据 capture/restore |
-| [tools/browser_cookies.py](tools/browser_cookies.py) | Playwright cookie |
-| [snippets/capture-cookies.js](snippets/capture-cookies.js) | 浏览器 Console 导出 |
-| [snippets/apply-cookies.js](snippets/apply-cookies.js) | 浏览器 Console 注入 |
-
-## 测试
-
-| 路径 | 用途 |
-|------|------|
-| [test/unit.test.ts](test/unit.test.ts) | vitest（validate、aliases、http-util） |
-| [vitest.config.ts](vitest.config.ts) | 测试配置 |
-
-## `src/` 模块图
+## `src/` 模块
 
 | 模块 | 职责 |
 |------|------|
-| [index.ts](src/index.ts) | 路由：`/`、`/health` → 鉴权 → MCP / REST |
-| [status-board.ts](src/status-board.ts) | 公开 `GET /` 状态播报 |
-| [cf-analytics.ts](src/cf-analytics.ts) | 可选 CF GraphQL 24h 用量 |
-| [health.ts](src/health.ts) | `GET /health`、`GET /v1/me` |
-| [http-util.ts](src/http-util.ts) | JSON 响应、错误码、`safeEqual` |
-| [validate.ts](src/validate.ts) | body 上限、key/owner、`requireSiteProfile` |
-| [config.ts](src/config.ts) | Env、Origin、MCP 元信息 |
-| [auth.ts](src/auth.ts) | admin + KV 用户 token |
-| [owner-scope.ts](src/owner-scope.ts) | MCP 租户解析 |
-| [admin-api.ts](src/admin-api.ts) | REST `/v1/admin/tokens` + `auth_token_*` |
-| [mcp-http.ts](src/mcp-http.ts) | Streamable HTTP、`MCP-Session-Id` |
-| [mcp-server.ts](src/mcp-server.ts) | JSON-RPC（薄层） |
-| [tool-defs.ts](src/tool-defs.ts) | MCP 工具 schema |
-| [tool-aliases.ts](src/tool-aliases.ts) | 旧工具名 → `sess_*` |
-| [sess-tools.ts](src/sess-tools.ts) | `sess_*` 工具实现 |
-| [mem-tools.ts](src/mem-tools.ts) | `mem_*` 工具实现（分块、hybrid、import） |
-| [mem-reindex.ts](src/mem-reindex.ts) | reindex + owner 列表 |
-| [mem-vector-gc.ts](src/mem-vector-gc.ts) | Vectorize 孤儿清理（CF API） |
-| [mem-cron.ts](src/mem-cron.ts) | 定时 reindex + GC |
-| [mem-config.ts](src/mem-config.ts) | chunk 大小、配额、`MEM_ENCRYPT` |
-| [mem-chunk.ts](src/mem-chunk.ts) | 长文分块 |
-| [mem-hybrid.ts](src/mem-hybrid.ts) | RRF 混合检索 |
-| [mem-crypto.ts](src/mem-crypto.ts) | 可选 DO 静态加密 |
-| [mem-embed.ts](src/mem-embed.ts) | Workers AI embedding + Vectorize |
-| [mem-rest.ts](src/mem-rest.ts) | REST `/v1/mem` |
-| [memory-do.ts](src/memory-do.ts) | `MemorySqliteDO` SQLite chunks + 过期 alarm |
-| [memory-do-legacy.ts](src/memory-do-legacy.ts) | 旧 `MemoryDO` stub（CF 迁移兼容） |
-| [memory-store.ts](src/memory-store.ts) | Memory DO id / stub |
-| [vault-api.ts](src/vault-api.ts) | REST `/v1/session`、`/v1/sessions` |
-| [session-store.ts](src/session-store.ts) | DO id + `sessionStub` |
-| [session-meta.ts](src/session-meta.ts) | meta 字段从 args 构建 |
-| [registry-client.ts](src/registry-client.ts) | 列表 DO fetch |
-| [session-do.ts](src/session-do.ts) | `SessionStoreDO` 加密 blob |
-| [registry-do.ts](src/registry-do.ts) | 按 owner 索引 site/profile |
-| [crypto.ts](src/crypto.ts) | AES-GCM |
-| [kinds.ts](src/kinds.ts) | `storage_state` / `oauth` / … |
-| [env.d.ts](src/env.d.ts) | `Env` 类型 |
+| [index.ts](src/index.ts) | 路由、cron `scheduled` |
+| [status-board.ts](src/status-board.ts) | 公开 `GET /` |
+| [health.ts](src/health.ts) | `/health`、`/v1/me` |
+| [mcp-http.ts](src/mcp-http.ts) / [mcp-server.ts](src/mcp-server.ts) | MCP Streamable HTTP |
+| [sess-tools.ts](src/sess-tools.ts) | `sess_*` |
+| [mem-tools.ts](src/mem-tools.ts) | `mem_*` |
+| [mem-reindex.ts](src/mem-reindex.ts) / [mem-vector-gc.ts](src/mem-vector-gc.ts) / [mem-cron.ts](src/mem-cron.ts) | 运维 |
+| [memory-do.ts](src/memory-do.ts) | `MemorySqliteDO` |
+| [memory-do-legacy.ts](src/memory-do-legacy.ts) | 旧 `MemoryDO` stub |
+| [auth.ts](src/auth.ts) / [admin-api.ts](src/admin-api.ts) | 鉴权、token |
+| [vault-api.ts](src/vault-api.ts) / [mem-rest.ts](src/mem-rest.ts) | REST |
 
 ## API 速查
 
 | 类型 | 路径 / 工具 |
 |------|-------------|
-| 公开 | `GET /`（状态页）、`GET /health` |
-| 鉴权 | `GET /v1/me`，Bearer admin 或 `cfb_*` |
-| MCP | `POST {MCP_HTTP_PATH}`（默认 `/mcp`） |
-| REST 会话 | `GET/PUT/DELETE /v1/session/:site/:profile`，`GET /v1/sessions` |
-| REST admin | `GET/POST /v1/admin/tokens`，`DELETE /v1/admin/tokens/:id` |
-| MCP 工具 | `sess_*`、`mem_*`，admin：`auth_token_*`、`mem_reindex`、`mem_stats`；旧 sess 名见 [tool-aliases.ts](src/tool-aliases.ts) |
-| REST 记忆 | `GET /v1/mem`，`PUT/GET/DELETE /v1/mem/:key`，`POST /v1/mem/search|import|vector-gc|reindex`，admin：`GET /v1/mem/stats`，`POST /v1/admin/mem/cron` |
+| 公开 | `GET /`、`GET /health` |
+| 鉴权 | `GET /v1/me`（Bearer admin 或 `cfb_*`） |
+| MCP | `POST /mcp`（默认） |
+| 会话 REST | `/v1/session/:site/:profile`、`GET /v1/sessions` |
+| 记忆 REST | `/v1/mem`、`/v1/mem/:key`、`POST /v1/mem/search|import|reindex|vector-gc` |
+| Admin | `/v1/admin/tokens`、`POST /v1/admin/mem/cron` |
+| MCP 工具 | `sess_*`、`mem_*`；admin：`auth_token_*`、`mem_reindex`、`mem_stats`、`mem_vector_gc` |
 
-## 环境变量（客户端）
+客户端环境变量：`MCP_CF_BOTS_URL`、`MCP_CF_BOTS_TOKEN`、`MCP_CF_BOTS_OWNER`（兼容 `SESSION_VAULT_*`）。
 
-| 变量 | 说明 |
+---
+
+## 部署与上线
+
+### 绑定与 Secrets
+
+| Item | 说明 |
 |------|------|
-| `MCP_CF_BOTS_URL` | Worker 根 URL |
-| `MCP_CF_BOTS_TOKEN` | Bearer（admin 或 `cfb_*`） |
-| `MCP_CF_BOTS_OWNER` | 租户（用户 token 已绑定） |
+| `VAULT_TOKEN` | `wrangler secret put` — admin Bearer |
+| `TOKENS` KV | `wrangler.toml` |
+| `SESSION_STORE` / `REGISTRY` | DO + migrations |
+| `MEMORY_STORE` → `MemorySqliteDO` | migration `v4`；旧 `MemoryDO` 仅 stub |
+| `AI` + `MEM_VECTORS` | 语义检索；首次 `./scripts/setup-rag.sh` |
+| `ENCRYPTION_KEY` | 可选，默认同 `VAULT_TOKEN` |
+| `MEM_ENCRYPT` | 可选 var，DO 内 `enc:` 加密 |
+| `CF_ACCOUNT_ID` / `CF_API_TOKEN` | 可选：状态页用量、Vectorize list/GC |
 
-兼容：`SESSION_VAULT_*`。
+### 部署命令
+
+```bash
+cd workers/mcp-cf-bots
+./scripts/deploy.sh
+# 或首次开 RAG：./scripts/setup-rag.sh
+```
+
+冒烟：`MCP_CF_BOTS_URL=... MCP_CF_BOTS_TOKEN=... ./scripts/smoke.sh`
+
+Cursor MCP：仓库 [`.cursor/mcp.json`](../../.cursor/mcp.json)，`url` = `${env:MCP_CF_BOTS_URL}/mcp`。
+
+自定义域名指向同一 Worker，与 `*.workers.dev` 路由一致。
+
+CI：`.github/workflows/mcp-cf-bots.yml`（typecheck + vitest）。
+
+### 安全（0.6+）
+
+- `safeEqual` 校验 admin token
+- `MAX_BODY_BYTES`（默认 2MB）
+- key / owner / site / profile 格式校验
+- 旧 MCP 名 `session_*` → `sess_*`（aliases）
+
+---
+
+## Cloudflare 服务
+
+| 层级 | 服务 | `/health` |
+|------|------|-----------|
+| 必开 | Workers + DO + KV + `VAULT_TOKEN` | `memory: true` |
+| RAG-1 | Workers AI | `rag: true`, `do_embed` |
+| RAG-2 | + Vectorize | `rag_backend: vectorize` |
+
+```bash
+./scripts/setup-rag.sh   # 索引 mcp-cf-bots-mem，768 维
+curl -s "$MCP_CF_BOTS_URL/health"
+```
+
+API Token（Wrangler / GC）建议：Workers Scripts Edit、KV Edit、DO Edit、Vectorize Edit、Workers AI Read。
+
+未开 RAG 时 `mem_search` 退化为 DO 关键词。
+
+公开 `GET /` 状态页；可选 secrets `CF_ACCOUNT_ID`、`CF_API_TOKEN`（Analytics Read）显示 24h 用量。
+
+**Cron（0.8.1+）**：`0 4 * * *` UTC → `MEM_CRON_REINDEX` + `MEM_CRON_VECTOR_GC`（GC 需 CF API）。手动：`POST /v1/admin/mem/cron`。
+
+---
+
+## mem_* 记忆 RAG
+
+| 工具 | 说明 |
+|------|------|
+| `mem_put` / `get` / `delete` / `list` | CRUD；put 自动分块 |
+| `mem_search` | Hybrid RRF（Vectorize + 关键词） |
+| `mem_import` | 批量导入 |
+| `mem_reindex` / `mem_stats` / `mem_vector_gc` | Admin |
+
+存储：**MemorySqliteDO**（全文 chunk + 配额 + `expires_at`）+ **Vectorize**（检索加速）+ **Workers AI** embedding。
+
+wrangler 默认：`MEM_CHUNK_CHARS=1500`，`MAX_MEM_KEYS=2000`，`MAX_MEM_BYTES=8000000`。
+
+升级自 pre-0.8 `MemoryDO`：**需重新** `mem_put` / `mem_import`（不自动迁移实例）。
+
+### MEM_ENCRYPT 决策树
+
+```mermaid
+flowchart TD
+  A[需要 mem 正文落盘加密?] -->|否| B[不设置 MEM_ENCRYPT]
+  A -->|是| C{独立密钥?}
+  C -->|否| D[MEM_ENCRYPT=true，密钥=VAULT_TOKEN]
+  C -->|是| E[ENCRYPTION_KEY secret + MEM_ENCRYPT=true]
+  D --> F[mem_put 后 DO 内 enc: 前缀]
+  E --> F
+  F --> G{Vectorize?}
+  G -->|是| H[embedding 用明文；DO 仍 enc:]
+  G -->|否| I[仅 DO 加密]
+```
+
+| 场景 | 建议 |
+|------|------|
+| 开发 | 不启用 |
+| 多租户生产 | `MEM_ENCRYPT=true` |
+| 合规隔离 | 独立 `ENCRYPTION_KEY` |
+| 检索异常 | 跑 `mem_reindex` |
+
+孤儿向量：`mem_vector_gc` / `POST /v1/mem/vector-gc` / `DRY_RUN=1 ./scripts/mem-vector-gc.sh <owner>`。
+
+---
+
+## 多用户 token
+
+| 凭据 | 角色 | 能力 |
+|------|------|------|
+| `VAULT_TOKEN` | admin | 任意 owner、签发/吊销 token |
+| `cfb_*` | user | 仅绑定 owner |
+
+```bash
+./scripts/issue_token.sh alice "Alice Cursor"
+# 或 MCP auth_token_create
+```
+
+用户 MCP 只需 `Authorization: Bearer <cfb_*>`，勿再传 owner header。
+
+管理：`GET/DELETE /v1/admin/tokens` 或 `auth_token_list` / `auth_token_revoke`。
+
+---
+
+## 浏览器自动化
+
+| 层 | 工具 |
+|----|------|
+| 控浏览器 | Playwright MCP（`npx @playwright/mcp`） |
+| 跨会话登录 | mcp-cf-bots `sess_save` / `sess_load` |
+
+流程：Playwright 打开站 → 登录 → `sess_save`（cookies / `storage_state`）→ 新 Agent `sess_load` 续会话。
+
+CLI：`tools/browser_cookies.py capture|apply`；Console：`snippets/capture-cookies.js`。
+
+复杂开放式任务可用 Python browser-use（仓库未默认安装）。
+
+---
+
+## Claude 工人
+
+| 角色 | 说明 |
+|------|------|
+| 中台 | Cloud Agent 拆任务、调 vault |
+| 工人 | `claude_worker.sh -p "任务"` |
+| Vault | `cli.claude` / `claude.ai` 分 site 存凭据 |
+
+```bash
+workers/mcp-cf-bots/scripts/claude_worker.sh -p "加测试，不改 API"
+```
+
+CLI 凭据：`tools/claude_code.py capture|restore|status`（等价 `sess_put` site=`cli.claude`）。
+
+网页登录与 CLI 分开：网页用 `claude.ai` + `sess_save`；CLI 用 `cli.claude`。
+
+---
+
+## 技术债
+
+| ID | 项 | 状态 |
+|----|-----|------|
+| TD-1 | 旧 `MemoryDO` stub | mitigated |
+| TD-2 | pre-0.8 数据需 re-import | open |
+| TD-3 | Vectorize 孤儿 | mitigated（GC + cron） |
+| TD-4 | Cron 全量 list 大索引慢 | open |
+| TD-5 | `delete-class MemoryDO` | blocked |
+| TD-6 | 无真 BM25 | open |
+
+详情同步 [mcp-cf-bots.mindmap](mcp-cf-bots.mindmap) → `tech_debt`。

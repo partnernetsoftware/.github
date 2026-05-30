@@ -1,3 +1,3 @@
-# 浏览器自动化
+# Cloud Agent 浏览器方案
 
-已迁至 **[`workers/mcp-cf-bots/docs/browser-automation.md`](../workers/mcp-cf-bots/docs/browser-automation.md)**。
+已合并至 **[`workers/mcp-cf-bots/INDEX.md#浏览器自动化`](../workers/mcp-cf-bots/INDEX.md)**。

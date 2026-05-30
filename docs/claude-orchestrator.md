@@ -1,3 +1,3 @@
-# 中台 + Claude 工人
+# 中台 + Claude Code 工人
 
-已迁至 **[`workers/mcp-cf-bots/docs/claude-orchestrator.md`](../workers/mcp-cf-bots/docs/claude-orchestrator.md)**。
+已合并至 **[`workers/mcp-cf-bots/INDEX.md#claude-工人`](../workers/mcp-cf-bots/INDEX.md)**。
