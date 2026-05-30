@@ -38,10 +38,11 @@ HTTP MCP + REST on Cloudflare Workers：`sess_*` 会话、`mem_*` 记忆 RAG、`
 - [ ] 本表「当前阶段」与 `MCP_SERVER_VERSION` 一致  
 - [ ] 若发版：`./scripts/deploy.sh` + `/health` + 可选 `POST /v1/admin/mem/cron`  
 - [ ] 不新增散落 `.md`（只改 INDEX + mindmap）
+- [ ] 遵守 [`engineering-hygiene`](../../skills/engineering-hygiene/SKILL.md) 开做/做中/收尾
 
 ### 不走弯路
 
-- 工程习惯 → 仓库级 **skill**（待定），不用 `mem_*` 存规范。  
+- 工程习惯 → 仓库 [`skills/engineering-hygiene/`](../../skills/engineering-hygiene/SKILL.md)（**AGENTS.md** 默认 skill），不用 `mem_*` 存规范。  
 - 功能改动先问：是否强化 **sess / mem / auth** 三支柱？  
 - 文档：仅 **INDEX + mindmap**，README 一行入口。
 

@@ -61,11 +61,12 @@
     ],
     "anti_detour": [
       "文档只维护 INDEX.md + 本 mindmap，不新增散落 md",
-      "工程习惯走仓库 skill（待定 engineering-hygiene），不用 mem_* 存规范",
+      "工程习惯走 skills/engineering-hygiene（AGENTS.md 默认），不用 mem_* 存规范",
       "P1 deferred 时不实现 FTS/BM25/限流",
       "功能改动先对 north_star：是否服务 sess/mem/auth 三支柱"
     ],
     "end_of_round_checklist": [
+      "遵守 skills/engineering-hygiene（开做/做中/收尾）",
       "更新 roadmap.last_review / version（若发版）",
       "milestones_done 与 wrangler MCP_SERVER_VERSION 一致",
       "phases 状态与 INDEX#路线图 对齐",
