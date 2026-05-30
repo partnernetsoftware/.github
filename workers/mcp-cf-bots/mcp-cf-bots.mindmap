@@ -2,26 +2,55 @@
   "product": "mcp-cf-bots",
   "ssot": "workers/mcp-cf-bots/mcp-cf-bots.mindmap",
   "version": "0.9.1",
-  "updated_at": "2026-05-30T03:00:00Z",
+  "updated_at": "2026-05-30T03:40:00Z",
   "north_star": "跨 Agent 的 HTTP MCP + REST：sess_* 会话、mem_* 记忆 RAG、cfb_* 多租户",
   "roadmap": {
     "current_phase": "steady-ops",
     "current_version": "0.9.1",
     "last_review": "2026-05-30",
-    "summary": "P0–P3 已闭合于 v0.9.0。当前以稳态运维为主；下一波按 W1→W2→W3 顺序，不并行大改检索栈。",
+    "summary": "v0.9.1 已部署至 workers.dev 且 verify-deploy 通过。自定义入口 URL 仍可能指向旧构建；每轮须 merge main → deploy → 版本校验。",
+    "for_discussion": [
+      "是否将 MCP_CF_BOTS_URL（自定义域/路由）切到当前 Worker 版本？",
+      "是否在 Dashboard 对齐 VAULT_TOKEN 与 CI 的 MCP_CF_BOTS_TOKEN（/v1/me 401）？",
+      "W2 hybrid 集成测 vs W3 TD-5 清理，哪个优先？",
+      "是否启用 MCP_PUBLIC_HOST + 生产 MEM_ENCRYPT？"
+    ],
+    "end_of_round": [
+      "git fetch origin main && git merge origin/main（解决冲突）",
+      "npm run typecheck && npm test && npm run test:integration",
+      "./scripts/deploy.sh（verify-deploy 对 workers.dev 校验 version）",
+      "若 MCP_CF_BOTS_URL ≠ workers.dev：检查自定义路由是否仍指向旧版本",
+      "更新本 mindmap + INDEX.md 路线图",
+      "合入 main 并 push"
+    ],
+    "last_deploy": {
+      "at": "2026-05-30",
+      "version": "0.9.1",
+      "worker_name": "mcp-cf-bots",
+      "verify": {
+        "health_ok": true,
+        "version_match": true,
+        "features_fts": true,
+        "target": "workers.dev URL from wrangler deploy output"
+      },
+      "follow_ups": [
+        "Custom MCP_CF_BOTS_URL may still report older version — update CF route/custom domain",
+        "Optional: wrangler secret put VAULT_TOKEN to match CI token for /v1/me smoke"
+      ]
+    },
     "reflection": {
-      "closed": "P0 数据/ cron 可观测；P1 FTS+过滤+health；P2 限流+审计；P3 MCP resources+域文档。",
-      "carry": "TD-5 需先确认全 owner 已 migrate 再删 MemoryDO；集成测仍缺 Miniflare 层。",
-      "process": "大功能用多路 Task 按文件边界并行；共享 memory-do 由主线程集成。"
+      "closed": "P0–P3 + 0.9.1 集成测与 deploy 校验脚本。",
+      "carry": "自定义 URL 与 workers.dev 双轨；TD-5；hybrid 集成测。",
+      "process": "每轮 merge main；deploy 以 workers.dev 为准做 version gate；并行 Task 按文件拆。"
     },
     "milestones_done": [
       { "version": "0.6.x", "label": "生产化 / 鉴权 / 多租户 token", "status": "done" },
       { "version": "0.7.x", "label": "mem_* + Vectorize RAG + 公开状态页", "status": "done" },
-      { "version": "0.8.0", "label": "MemorySqliteDO + hybrid + chunk + 文档 SSOT(INDEX)", "status": "done" },
-      { "version": "0.8.1", "label": "Cron reindex/GC + deploy 脚本 + mindmap", "status": "done" },
-      { "version": "0.8.2", "label": "P0: migrate_legacy + 分页 GC + cron KV 报告", "status": "done" },
-      { "version": "0.9.0", "label": "P1+P2+P3: FTS5 + search 过滤 + /health; 限流 + 审计 + MCP resources", "status": "done" },
-      { "version": "0.9.1", "label": "W2 起步：DO/FTS 集成测、auth_audit_list、mem_import 限流、smoke fts", "status": "done" }
+      { "version": "0.8.0", "label": "MemorySqliteDO + hybrid + chunk + INDEX SSOT", "status": "done" },
+      { "version": "0.8.1", "label": "Cron + deploy 脚本 + mindmap", "status": "done" },
+      { "version": "0.8.2", "label": "P0: migrate_legacy + 分页 GC + cron KV", "status": "done" },
+      { "version": "0.9.0", "label": "P1–P3: FTS、限流、审计、MCP resources", "status": "done" },
+      { "version": "0.9.1", "label": "集成测、verify-deploy、auth_audit_list", "status": "done" }
     ],
     "completed_phases_archive": [
       { "id": "p0-stability", "label": "P0 稳态", "version": "0.8.2" },
@@ -36,107 +65,68 @@
         "status": "active",
         "priority": 0,
         "items": [
-          { "id": "w0-ci", "label": "typecheck + vitest 绿", "status": "ongoing" },
-          { "id": "w0-cron", "label": "cron 报告 KV + /health cron_last", "status": "ongoing" },
-          { "id": "w0-smoke", "label": "deploy.sh smoke /health /v1/me", "status": "ongoing" },
-          { "id": "w0-doc", "label": "INDEX + mindmap 每轮同步", "status": "ongoing" }
+          { "id": "w0-merge-main", "label": "每轮 merge origin/main", "status": "ongoing" },
+          { "id": "w0-deploy-verify", "label": "deploy.sh + verify-deploy version", "status": "ongoing" },
+          { "id": "w0-ci", "label": "unit + integration vitest", "status": "ongoing" },
+          { "id": "w0-doc", "label": "INDEX + mindmap 同步", "status": "ongoing" }
         ]
       },
       {
-        "id": "w1-ship-090",
-        "label": "W1 0.9.0 生产落地",
-        "status": "next",
+        "id": "w1-ship-091",
+        "label": "W1 0.9.1 生产一致",
+        "status": "active",
         "priority": 1,
-        "start_gates": ["PR #163 合入 main", "本地 deploy.sh 通过"],
         "items": [
-          { "id": "w1-deploy", "label": "wrangler deploy + 线上 /health 含 fts", "status": "pending" },
-          { "id": "w1-domain", "label": "可选 MCP_PUBLIC_HOST + DNS", "status": "optional" },
-          { "id": "w1-migrate", "label": "剩余 owner mem_migrate_legacy", "status": "as-needed" }
+          { "id": "w1-workers-dev", "label": "workers.dev deploy + version=0.9.1 + fts", "status": "done" },
+          { "id": "w1-merge-main", "label": "PR/分支合入 main", "status": "pending" },
+          { "id": "w1-custom-route", "label": "MCP_CF_BOTS_URL 路由指向当前 Worker", "status": "pending" },
+          { "id": "w1-vault-token", "label": "VAULT_TOKEN secret 与 CI token 对齐（/v1/me）", "status": "pending" },
+          { "id": "w1-domain", "label": "MCP_PUBLIC_HOST + DNS（可选）", "status": "optional" }
         ]
       },
       {
         "id": "w2-integration-tests",
-        "label": "W2 DO 集成测",
+        "label": "W2 测试加深",
         "status": "active",
         "priority": 2,
-        "start_gates": ["W1 已上线", "无未决 P0 事故"],
         "items": [
-          { "id": "w2-miniflare", "label": "@cloudflare/vitest-pool-workers：MemorySqliteDO FTS", "status": "done" },
-          { "id": "w2-ci", "label": "deploy.sh 默认跑 test:integration", "status": "done" },
-          { "id": "w2-hybrid", "label": "hybrid / Vectorize 集成测", "status": "pending" }
+          { "id": "w2-miniflare", "label": "MemorySqliteDO FTS 集成测", "status": "done" },
+          { "id": "w2-hybrid", "label": "hybrid / Vectorize 集成测", "status": "pending" },
+          { "id": "w2-ci-wire", "label": "GitHub Actions 跑 test:integration", "status": "pending" }
         ]
       },
       {
         "id": "w3-legacy-cleanup",
-        "label": "W3 去掉 MemoryDO（TD-5）",
+        "label": "W3 TD-5 去 MemoryDO",
         "status": "blocked",
         "priority": 3,
         "start_gates": [
-          "全生产 owner 已 SQLite + Vectorize",
-          "mem_migrate_legacy 无待办",
-          "可改 wrangler 移除 MEMORY_LEGACY binding"
+          "w1-custom-route 已指向 0.9.x",
+          "全 owner migrate 完成",
+          "可移除 MEMORY_LEGACY binding"
         ],
         "items": [
-          { "id": "w3-delete-class", "label": "delete-class MemoryDO + 迁移 tag v5", "status": "blocked" }
+          { "id": "w3-delete-class", "label": "delete-class + wrangler migration v5", "status": "blocked" }
         ]
       }
     ],
     "optional_later": [
-      { "id": "opt-encrypt", "label": "生产开启 MEM_ENCRYPT", "trigger": "合规或泄露风险" },
-      { "id": "opt-analytics", "label": "状态页 CF GraphQL 24h", "trigger": "需要用量可视化" },
-      { "id": "opt-hybrid-tune", "label": "RRF 权重 / FTS↔Vectorize 调参", "trigger": "线上误召漏召" },
-      { "id": "opt-prompts", "label": "MCP prompts 模板", "trigger": "产品要固定工作流" }
-    ],
-    "phases": [
-      {
-        "id": "p0-stability",
-        "label": "P0 稳态",
-        "status": "archived",
-        "exit_criteria": ["migrate_legacy", "cron 可观测", "Vectorize GC 可续扫"]
-      },
-      {
-        "id": "p1-retrieval",
-        "label": "P1 检索质量",
-        "status": "archived",
-        "items": [
-          { "id": "p1-fts", "label": "SQLite FTS5", "status": "done" },
-          { "id": "p1-filter", "label": "mem_search tag / 时间", "status": "done" },
-          { "id": "p1-health", "label": "/health 扩展", "status": "done" }
-        ]
-      },
-      {
-        "id": "p2-scale-security",
-        "label": "P2 规模与安全",
-        "status": "archived",
-        "items": [
-          { "id": "p2-rate", "label": "按 owner 限流", "status": "done" },
-          { "id": "p2-audit", "label": "admin 审计 KV", "status": "done" },
-          { "id": "p2-miniflare", "label": "DO+hybrid 集成测", "status": "moved", "wave": "w2-integration-tests" },
-          { "id": "p2-delete-class", "label": "TD-5 delete-class", "status": "moved", "wave": "w3-legacy-cleanup" }
-        ]
-      },
-      {
-        "id": "p3-product",
-        "label": "P3 产品化",
-        "status": "archived",
-        "items": [
-          { "id": "p3-mcp-resources", "label": "MCP resources", "status": "done" },
-          { "id": "p3-custom-domain", "label": "MCP_PUBLIC_HOST 文档", "status": "done" }
-        ]
-      }
+      { "id": "opt-encrypt", "label": "MEM_ENCRYPT 生产开启", "trigger": "合规" },
+      { "id": "opt-analytics", "label": "CF GraphQL 用量", "trigger": "要可视化" },
+      { "id": "opt-hybrid-tune", "label": "RRF / FTS 调参", "trigger": "误召漏召" },
+      { "id": "opt-prompts", "label": "MCP prompts", "trigger": "固定工作流" }
     ],
     "anti_detour": [
-      "文档只维护 INDEX.md + 本 mindmap，不新增散落 md",
-      "工程习惯走 skills/engineering-hygiene（AGENTS.md 默认），不用 mem_* 存规范",
-      "功能改动先对 north_star：是否服务 sess/mem/auth 三支柱"
+      "文档只维护 INDEX + 本 mindmap",
+      "未 verify-deploy 不算「已部署」",
+      "自定义 URL 与 workers.dev 版本不一致时先修路由再开 W3",
+      "工程习惯：skills/engineering-hygiene"
     ],
     "end_of_round_checklist": [
-      "遵守 skills/engineering-hygiene（开做/做中/收尾）",
-      "更新 roadmap.last_review / version（若发版）",
-      "milestones_done 与 wrangler MCP_SERVER_VERSION 一致",
-      "phases 状态与 INDEX#路线图 对齐",
-      "tech_debt 表同步",
-      "线上 /health 与 cron_last 抽一眼"
+      "merge origin/main",
+      "deploy.sh → VERIFY_OK version 与 wrangler.toml 一致",
+      "更新 last_deploy / active_waves / for_discussion",
+      "milestones 与 MCP_SERVER_VERSION 一致"
     ]
   },
   "tree": {
@@ -161,52 +151,45 @@
           { "id": "mem-sqlite", "label": "MemorySqliteDO + chunk", "status": "done" },
           { "id": "mem-hybrid", "label": "Hybrid RRF search", "status": "done" },
           { "id": "mem-vectorize", "label": "Vectorize 加速器", "status": "done" },
-          { "id": "mem-cron", "label": "Cron incremental reindex + paged GC + KV report", "status": "done" },
-          { "id": "mem-migrate", "label": "mem_migrate_legacy", "status": "done" },
-          { "id": "mem-encrypt", "label": "MEM_ENCRYPT 静态加密", "status": "optional" },
-          { "id": "mem-p1-fts", "label": "P1 FTS5 keyword layer", "status": "done" },
-          { "id": "mem-mcp-resources", "label": "MCP resources 记忆摘要", "status": "done" }
+          { "id": "mem-cron", "label": "Cron reindex + paged GC", "status": "done" },
+          { "id": "mem-fts", "label": "FTS5 关键词层", "status": "done" },
+          { "id": "mem-mcp-resources", "label": "MCP resources mem://", "status": "done" }
         ]
       },
       {
         "id": "auth",
         "label": "auth_token_* + admin",
-        "status": "done",
+        "status": "steady",
         "children": [
-          { "id": "auth-kv", "label": "TOKENS KV cfb_*", "status": "done" },
-          { "id": "auth-rate-limit", "label": "按 owner 限流 (KV sliding window)", "status": "done" },
-          { "id": "auth-audit", "label": "admin 操作审计 KV", "status": "done" }
+          { "id": "auth-kv", "label": "TOKENS KV", "status": "done" },
+          { "id": "auth-rate-limit", "label": "mem 限流", "status": "done" },
+          { "id": "auth-audit", "label": "审计 + auth_audit_list", "status": "done" }
         ]
       },
       {
         "id": "ops",
         "label": "运维 / 公开",
-        "status": "steady",
+        "status": "active",
         "children": [
-          { "id": "ops-health", "label": "GET /health / 状态页 + cron_last", "status": "done" },
-          { "id": "ops-deploy", "label": "scripts/deploy.sh", "status": "done" },
-          { "id": "ops-analytics", "label": "CF GraphQL 24h 用量", "status": "optional" }
+          { "id": "ops-health", "label": "/health + cron_last + fts", "status": "done" },
+          { "id": "ops-deploy", "label": "deploy + verify-deploy", "status": "done" },
+          { "id": "ops-route-drift", "label": "自定义 URL 路由漂移", "status": "open" }
         ]
       }
     ]
   },
   "tech_debt": [
-    { "id": "TD-1", "label": "MemoryDO legacy stub", "status": "mitigated", "doc": "INDEX.md#技术债" },
-    { "id": "TD-2", "label": "Pre-0.8 data migrate", "status": "mitigated", "doc": "INDEX.md#mem_-记忆-rag" },
-    { "id": "TD-3", "label": "Vectorize orphan GC", "status": "mitigated", "doc": "INDEX.md#技术债" },
-    { "id": "TD-4", "label": "Cron paged vector list", "status": "mitigated", "doc": "INDEX.md#cloudflare-服务" },
+    { "id": "TD-1", "label": "MemoryDO legacy stub", "status": "mitigated" },
+    { "id": "TD-2", "label": "Pre-0.8 migrate", "status": "mitigated" },
+    { "id": "TD-3", "label": "Vectorize orphan GC", "status": "mitigated" },
+    { "id": "TD-4", "label": "Cron paged vector list", "status": "mitigated" },
     { "id": "TD-5", "label": "delete-class MemoryDO", "status": "blocked", "wave": "w3-legacy-cleanup" },
-    { "id": "TD-6", "label": "无真 BM25 / FTS", "status": "mitigated", "note": "FTS5 in 0.9.0", "phase": "p1-retrieval" },
-    { "id": "TD-7", "label": "无 Miniflare DO 集成测", "status": "mitigated", "note": "memory-sqlite-fts integration (0.9.1)", "wave": "w2-integration-tests" }
+    { "id": "TD-6", "label": "FTS5 关键词", "status": "mitigated" },
+    { "id": "TD-7", "label": "DO 集成测", "status": "mitigated", "note": "FTS subset 0.9.1" },
+    { "id": "TD-8", "label": "自定义入口 URL 与 workers.dev 版本漂移", "status": "open", "wave": "w1-ship-091" }
   ],
   "cron": {
     "schedule": "0 4 * * *",
-    "vars": [
-      "MEM_CRON_REINDEX",
-      "MEM_CRON_VECTOR_GC",
-      "MEM_CRON_OWNER_LIMIT",
-      "MEM_CRON_GC_PAGES_PER_RUN"
-    ],
     "manual": "POST /v1/admin/mem/cron"
   },
   "doc_index": "INDEX.md"
