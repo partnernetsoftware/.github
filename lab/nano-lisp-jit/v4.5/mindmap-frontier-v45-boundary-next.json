@@ -1,0 +1,93 @@
+{
+  "ssot": "v4.5/DIFFUSE-WAVE31.md",
+  "parent_goal": "v45.v45.goal_factory_unified_continue.100",
+  "onion_ssot": "v4.5/ONION-TDD.md",
+  "updated_at": "2026-05-25T20:00:00Z",
+  "max_parallel": 4,
+  "nodes": [
+    {
+      "id": "v45-bn-gate",
+      "layer": 26,
+      "ring": "gate",
+      "onion_ring": 11,
+      "status": "done",
+      "deps": [],
+      "accept": [
+        "v45.v45.goal_factory_unified_continue.100=1"
+      ]
+    },
+    {
+      "id": "v45-bn-i64",
+      "layer": 26,
+      "ring": "boundary",
+      "onion_ring": 12,
+      "status": "done",
+      "deps": [
+        "v45-bn-gate"
+      ],
+      "parallel_slot": "W1",
+      "plan": "lisp/bootstrap/bootstrap-v45-boundary-i64.lisp"
+    },
+    {
+      "id": "v45-bn-ptr",
+      "layer": 26,
+      "ring": "boundary",
+      "onion_ring": 12,
+      "status": "done",
+      "deps": [
+        "v45-bn-gate"
+      ],
+      "parallel_slot": "W2",
+      "plan": "lisp/bootstrap/bootstrap-v45-boundary-ptr.lisp"
+    },
+    {
+      "id": "v45-bn-func",
+      "layer": 26,
+      "ring": "boundary",
+      "onion_ring": 12,
+      "status": "done",
+      "deps": [
+        "v45-bn-gate"
+      ],
+      "parallel_slot": "W3",
+      "plan": "lisp/bootstrap/bootstrap-v45-boundary-func.lisp"
+    },
+    {
+      "id": "v45-bn-negative",
+      "layer": 26,
+      "ring": "boundary",
+      "onion_ring": 12,
+      "status": "done",
+      "deps": [
+        "v45-bn-gate"
+      ],
+      "parallel_slot": "W4",
+      "plan": "lisp/bootstrap/bootstrap-v45-boundary-negative.lisp"
+    },
+    {
+      "id": "v45-bn-terminal",
+      "layer": 27,
+      "ring": "\u7ec8\u5c40",
+      "onion_ring": 12,
+      "status": "done",
+      "deps": [
+        "v45-bn-i64",
+        "v45-bn-ptr",
+        "v45-bn-func",
+        "v45-bn-negative"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-boundary-next-tree.lisp"
+    },
+    {
+      "id": "v45-bn-goal",
+      "layer": 28,
+      "ring": "DONE",
+      "onion_ring": 12,
+      "status": "done",
+      "deps": [
+        "v45-bn-terminal"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-v45-terminal-continue-100.lisp"
+    }
+  ]
+}

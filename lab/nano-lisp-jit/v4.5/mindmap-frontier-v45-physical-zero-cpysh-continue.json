@@ -1,0 +1,105 @@
+{
+  "ssot": "v4.5/DIFFUSE-WAVE52.md",
+  "parent_goal": "v45.v45.v45_terminal_complete.100",
+  "onion_ssot": "v4.5/ONION-TDD.md",
+  "updated_at": "2026-05-26T01:00:00Z",
+  "max_parallel": 4,
+  "breadth_ring": "physical-zero-cpysh-continue \u2014 v4.5 \u7269\u7406\u7eed\u63a8\uff1a\u96f6 .c/.py/.sh\uff08\u2260 \u89c4\u5212 rollup DONE\uff09",
+  "nodes": [
+    {
+      "id": "v45-pzc-gate",
+      "layer": 52,
+      "ring": "gate",
+      "onion_ring": 33,
+      "status": "done",
+      "deps": [],
+      "accept": [
+        "v45.v45.v45_terminal_complete.100=1",
+        "v45.goal.onion_tdd_tree_mindmap.100=1"
+      ]
+    },
+    {
+      "id": "v45-pzc-inventory",
+      "layer": 52,
+      "ring": "inventory",
+      "onion_ring": 33,
+      "status": "done",
+      "deps": [
+        "v45-pzc-gate"
+      ],
+      "parallel_slot": "W1",
+      "plan": "lisp/bootstrap/bootstrap-v45-physical-zero-cpysh-inventory.lisp",
+      "agent": "engineer-a"
+    },
+    {
+      "id": "v45-pzc-honest",
+      "layer": 52,
+      "ring": "\u8bda\u5b9e",
+      "onion_ring": 33,
+      "status": "done",
+      "deps": [
+        "v45-pzc-gate"
+      ],
+      "parallel_slot": "W2",
+      "plan": "lisp/bootstrap/bootstrap-v45-physical-zero-cpysh-honest-anchor.lisp",
+      "agent": "engineer-b"
+    },
+    {
+      "id": "v45-pzc-daily",
+      "layer": 52,
+      "ring": "plan",
+      "onion_ring": 33,
+      "status": "done",
+      "deps": [
+        "v45-pzc-gate"
+      ],
+      "parallel_slot": "W3",
+      "plan": "lisp/bootstrap/bootstrap-v45-converge-daily-zero-cpysh.lisp",
+      "agent": "engineer-a"
+    },
+    {
+      "id": "v45-pzc-selfhost",
+      "layer": 52,
+      "ring": "\u4ee3\u9645",
+      "onion_ring": 33,
+      "status": "done",
+      "deps": [
+        "v45-pzc-gate"
+      ],
+      "parallel_slot": "W4",
+      "plan": "lisp/bootstrap/bootstrap-v45-selfhost-zero-cpysh-matrix.lisp",
+      "agent": "engineer-b"
+    },
+    {
+      "id": "v45-pzc-terminal",
+      "layer": 53,
+      "ring": "\u7ec8\u5c40",
+      "onion_ring": 33,
+      "status": "done",
+      "deps": [
+        "v45-pzc-inventory",
+        "v45-pzc-honest",
+        "v45-pzc-daily",
+        "v45-pzc-selfhost"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-physical-zero-cpysh-continue-tree.lisp",
+      "agent": "reviewer"
+    },
+    {
+      "id": "v45-pzc-goal",
+      "layer": 54,
+      "ring": "continue",
+      "onion_ring": 33,
+      "status": "done",
+      "deps": [
+        "v45-pzc-terminal"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-v45-physical-zero-cpysh-continue-100.lisp",
+      "agent": "reviewer"
+    }
+  ],
+  "next_wave_preview": {
+    "id": "wave53-lispjit-154kb-codegen-expand",
+    "theme": "154KB 全模块 15link 扩面（v4.5 消 C 主路径）"
+  }
+}

@@ -1,0 +1,95 @@
+{
+  "ssot": "v4.5/DIFFUSE-WAVE30.md",
+  "parent_goal": "v45.goal.onion_tdd_tree_mindmap.100",
+  "onion_ssot": "v4.5/ONION-TDD.md",
+  "mindmap_ssot": "v4.5/MINDMAP-TDD-TREE.md",
+  "updated_at": "2026-05-25T18:00:00Z",
+  "max_parallel": 4,
+  "nodes": [
+    {
+      "id": "v45-gf-gate",
+      "layer": 23,
+      "ring": "gate",
+      "onion_ring": 10,
+      "status": "done",
+      "deps": [],
+      "accept": [
+        "v45.goal.onion_tdd_tree_mindmap.100=1",
+        "v45.v45.selfhost_deep_continue.100=1"
+      ]
+    },
+    {
+      "id": "v45-gf-goal-recheck",
+      "layer": 23,
+      "ring": "/goal",
+      "onion_ring": 11,
+      "status": "done",
+      "deps": [
+        "v45-gf-gate"
+      ],
+      "parallel_slot": "W1",
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-onion-tdd-tree-mindmap-100.lisp"
+    },
+    {
+      "id": "v45-gf-boundary",
+      "layer": 23,
+      "ring": "boundary",
+      "onion_ring": 11,
+      "status": "done",
+      "deps": [
+        "v45-gf-gate"
+      ],
+      "parallel_slot": "W2",
+      "plan": "lisp/bootstrap/bootstrap-v45-boundary-probe.lisp"
+    },
+    {
+      "id": "v45-gf-terminal",
+      "layer": 23,
+      "ring": "\u7ec8\u5c40",
+      "onion_ring": 11,
+      "status": "done",
+      "deps": [
+        "v45-gf-gate"
+      ],
+      "parallel_slot": "W3",
+      "plan": "lisp/bootstrap/bootstrap-v45-terminal-done.lisp"
+    },
+    {
+      "id": "v45-gf-onion",
+      "layer": 23,
+      "ring": "\u6d0b\u8471",
+      "onion_ring": 11,
+      "status": "done",
+      "deps": [
+        "v45-gf-gate"
+      ],
+      "parallel_slot": "W4",
+      "plan": "lisp/bootstrap/bootstrap-v45-onion-lisp-only.lisp"
+    },
+    {
+      "id": "v45-gf-tree",
+      "layer": 24,
+      "ring": "\u6811",
+      "onion_ring": 11,
+      "status": "done",
+      "deps": [
+        "v45-gf-goal-recheck",
+        "v45-gf-boundary",
+        "v45-gf-terminal",
+        "v45-gf-onion"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-goal-factory-unified-tree.lisp"
+    },
+    {
+      "id": "v45-gf-goal",
+      "layer": 25,
+      "ring": "DONE",
+      "onion_ring": 11,
+      "status": "done",
+      "deps": [
+        "v45-gf-tree"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-v45-goal-factory-unified-100.lisp"
+    }
+  ]
+}

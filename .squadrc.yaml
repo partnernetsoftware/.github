@@ -1,0 +1,3 @@
+# Squad — workspace root (multi-project)
+catalog: lab/nano-lisp-jit/squad/catalog.yaml
+workflows_dir: lab/nano-lisp-jit/squad/workflows

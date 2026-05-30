@@ -1,0 +1,105 @@
+{
+  "ssot": "v4.5/DIFFUSE-WAVE69.md",
+  "parent_goal": "v45.v45.lisp_selfhost_bootstrap_chain_continue.100",
+  "onion_ssot": "v4.5/ONION-TDD.md",
+  "updated_at": "2026-05-27T06:00:00Z",
+  "max_parallel": 4,
+  "breadth_ring": "run-sh-archive-honest \u2014 run.sh \u5de5\u5382\u9762\u5206\u5c42 \u00b7 \u7528\u6237 COM+plan \u4e0d\u4f9d\u8d56",
+  "nodes": [
+    {
+      "id": "v45-rshah-gate",
+      "layer": 69,
+      "ring": "gate",
+      "onion_ring": 50,
+      "status": "done",
+      "deps": [],
+      "accept": [
+        "v45.v45.lisp_selfhost_bootstrap_chain_continue.100=1",
+        "v45.converge.daily_v45_lisp_selfhost_chain=1"
+      ]
+    },
+    {
+      "id": "v45-rshah-prove",
+      "layer": 69,
+      "ring": "plan",
+      "onion_ring": 50,
+      "status": "done",
+      "deps": [
+        "v45-rshah-gate"
+      ],
+      "parallel_slot": "W1",
+      "plan": "lisp/bootstrap/bootstrap-v45-run-sh-factory-honest-prove.lisp",
+      "agent": "engineer-a"
+    },
+    {
+      "id": "v45-rshah-archive",
+      "layer": 69,
+      "ring": "\u8bda\u5b9e",
+      "onion_ring": 50,
+      "status": "done",
+      "deps": [
+        "v45-rshah-gate"
+      ],
+      "parallel_slot": "W2",
+      "plan": "lisp/bootstrap/bootstrap-v45-run-sh-archive-honest.lisp",
+      "agent": "engineer-b"
+    },
+    {
+      "id": "v45-rshah-daily",
+      "layer": 69,
+      "ring": "plan",
+      "onion_ring": 50,
+      "status": "done",
+      "deps": [
+        "v45-rshah-gate"
+      ],
+      "parallel_slot": "W3",
+      "plan": "lisp/bootstrap/bootstrap-v45-converge-daily-v45-factory-honest-terminal.lisp",
+      "agent": "engineer-a"
+    },
+    {
+      "id": "v45-rshah-selfhost",
+      "layer": 69,
+      "ring": "\u4ee3\u9645",
+      "onion_ring": 50,
+      "status": "done",
+      "deps": [
+        "v45-rshah-gate"
+      ],
+      "parallel_slot": "W4",
+      "plan": "lisp/bootstrap/bootstrap-v45-selfhost-run-sh-archive-honest-matrix.lisp",
+      "agent": "engineer-b"
+    },
+    {
+      "id": "v45-rshah-terminal",
+      "layer": 70,
+      "ring": "\u7ec8\u5c40",
+      "onion_ring": 50,
+      "status": "done",
+      "deps": [
+        "v45-rshah-prove",
+        "v45-rshah-archive",
+        "v45-rshah-daily",
+        "v45-rshah-selfhost"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-run-sh-archive-honest-tree.lisp",
+      "agent": "reviewer"
+    },
+    {
+      "id": "v45-rshah-goal",
+      "layer": 71,
+      "ring": "continue",
+      "onion_ring": 50,
+      "status": "done",
+      "deps": [
+        "v45-rshah-terminal"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-v45-run-sh-archive-honest-continue-100.lisp",
+      "agent": "reviewer"
+    }
+  ],
+  "next_wave_preview": {
+    "id": "wave70-daily-zero-archive-audit",
+    "theme": "\u6d3b\u8dc3 daily/prove plan \u96f6 archive/c \u8def\u5f84\u5ba1\u8ba1"
+  }
+}

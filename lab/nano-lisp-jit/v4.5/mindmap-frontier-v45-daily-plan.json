@@ -1,0 +1,100 @@
+{
+  "ssot": "v4.5/DIFFUSE-WAVE40.md",
+  "parent_goal": "v45.v45.runner_physical_continue.100",
+  "onion_ssot": "v4.5/ONION-TDD.md",
+  "updated_at": "2026-05-24T22:00:00Z",
+  "max_parallel": 4,
+  "nodes": [
+    {
+      "id": "v45-dp-gate",
+      "layer": 40,
+      "ring": "gate",
+      "onion_ring": 21,
+      "status": "done",
+      "deps": [],
+      "accept": [
+        "v45.v45.runner_physical_continue.100=1",
+        "v45.goal.onion_tdd_tree_mindmap.100=1"
+      ]
+    },
+    {
+      "id": "v45-dp-converge-daily",
+      "layer": 40,
+      "ring": "plan",
+      "onion_ring": 21,
+      "status": "done",
+      "deps": [
+        "v45-dp-gate"
+      ],
+      "parallel_slot": "W1",
+      "plan": "lisp/bootstrap/bootstrap-v45-converge-daily-plan.lisp",
+      "agent": "engineer-a"
+    },
+    {
+      "id": "v45-dp-entry-anchor",
+      "layer": 40,
+      "ring": "entry",
+      "onion_ring": 21,
+      "status": "done",
+      "deps": [
+        "v45-dp-gate"
+      ],
+      "parallel_slot": "W2",
+      "plan": "lisp/bootstrap/bootstrap-v45-daily-entry-anchor.lisp",
+      "agent": "engineer-b"
+    },
+    {
+      "id": "v45-dp-squad-verify",
+      "layer": 40,
+      "ring": "verify",
+      "onion_ring": 21,
+      "status": "done",
+      "deps": [
+        "v45-dp-gate"
+      ],
+      "parallel_slot": "W3",
+      "plan": "lisp/bootstrap/bootstrap-v45-squad-plan-verify.lisp",
+      "agent": "engineer-a"
+    },
+    {
+      "id": "v45-dp-selfhost-daily",
+      "layer": 40,
+      "ring": "\u4ee3\u9645",
+      "onion_ring": 21,
+      "status": "done",
+      "deps": [
+        "v45-dp-gate"
+      ],
+      "parallel_slot": "W4",
+      "plan": "lisp/bootstrap/bootstrap-v45-selfhost-daily-matrix.lisp",
+      "agent": "engineer-b"
+    },
+    {
+      "id": "v45-dp-terminal",
+      "layer": 41,
+      "ring": "\u7ec8\u5c40",
+      "onion_ring": 21,
+      "status": "done",
+      "deps": [
+        "v45-dp-converge-daily",
+        "v45-dp-entry-anchor",
+        "v45-dp-squad-verify",
+        "v45-dp-selfhost-daily"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-daily-plan-tree.lisp",
+      "agent": "reviewer"
+    },
+    {
+      "id": "v45-dp-goal",
+      "layer": 42,
+      "ring": "DONE",
+      "onion_ring": 21,
+      "status": "done",
+      "deps": [
+        "v45-dp-terminal"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-v45-daily-plan-100.lisp",
+      "agent": "reviewer"
+    }
+  ]
+}

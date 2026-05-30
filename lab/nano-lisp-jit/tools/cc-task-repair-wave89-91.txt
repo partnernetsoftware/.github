@@ -1,0 +1,3 @@
+Gate failed after v4-apply-batch.py 89 91.
+Fix lab/nano-lisp-jit until: export NANO_SLICE_COMPILER=native && bash build_nano_jit.sh && bash run.sh exits 0.
+Do not commit. Final line: CC_DONE tests.pass=N

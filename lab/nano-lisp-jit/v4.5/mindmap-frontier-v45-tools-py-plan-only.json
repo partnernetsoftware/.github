@@ -1,0 +1,105 @@
+{
+  "ssot": "v4.5/DIFFUSE-WAVE55.md",
+  "parent_goal": "v45.v45.ci_plan_only_converge_continue.100",
+  "onion_ssot": "v4.5/ONION-TDD.md",
+  "updated_at": "2026-05-26T04:00:00Z",
+  "max_parallel": 4,
+  "breadth_ring": "tools-py-plan-only \u2014 v4.5 \u6d88 py \u8f68\uff08\u7ef4\u62a4 .py \u8bda\u5b9e\u951a\u5b9a\uff09",
+  "nodes": [
+    {
+      "id": "v45-tpy-gate",
+      "layer": 55,
+      "ring": "gate",
+      "onion_ring": 36,
+      "status": "done",
+      "deps": [],
+      "accept": [
+        "v45.v45.ci_plan_only_converge_continue.100=1",
+        "v45.converge.daily_v45_complete_plan_only=1"
+      ]
+    },
+    {
+      "id": "v45-tpy-inventory",
+      "layer": 55,
+      "ring": "inventory",
+      "onion_ring": 36,
+      "status": "done",
+      "deps": [
+        "v45-tpy-gate"
+      ],
+      "parallel_slot": "W1",
+      "plan": "lisp/bootstrap/bootstrap-v45-tools-py-inventory.lisp",
+      "agent": "engineer-a"
+    },
+    {
+      "id": "v45-tpy-honest",
+      "layer": 55,
+      "ring": "\u8bda\u5b9e",
+      "onion_ring": 36,
+      "status": "done",
+      "deps": [
+        "v45-tpy-gate"
+      ],
+      "parallel_slot": "W2",
+      "plan": "lisp/bootstrap/bootstrap-v45-tools-py-honest-boundary.lisp",
+      "agent": "engineer-b"
+    },
+    {
+      "id": "v45-tpy-daily",
+      "layer": 55,
+      "ring": "plan",
+      "onion_ring": 36,
+      "status": "done",
+      "deps": [
+        "v45-tpy-gate"
+      ],
+      "parallel_slot": "W3",
+      "plan": "lisp/bootstrap/bootstrap-v45-converge-daily-v45-target.lisp",
+      "agent": "engineer-a"
+    },
+    {
+      "id": "v45-tpy-selfhost",
+      "layer": 55,
+      "ring": "\u4ee3\u9645",
+      "onion_ring": 36,
+      "status": "done",
+      "deps": [
+        "v45-tpy-gate"
+      ],
+      "parallel_slot": "W4",
+      "plan": "lisp/bootstrap/bootstrap-v45-selfhost-tools-py-plan-only-matrix.lisp",
+      "agent": "engineer-b"
+    },
+    {
+      "id": "v45-tpy-terminal",
+      "layer": 56,
+      "ring": "\u7ec8\u5c40",
+      "onion_ring": 36,
+      "status": "done",
+      "deps": [
+        "v45-tpy-inventory",
+        "v45-tpy-honest",
+        "v45-tpy-daily",
+        "v45-tpy-selfhost"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-tools-py-plan-only-tree.lisp",
+      "agent": "reviewer"
+    },
+    {
+      "id": "v45-tpy-goal",
+      "layer": 57,
+      "ring": "continue",
+      "onion_ring": 36,
+      "status": "done",
+      "deps": [
+        "v45-tpy-terminal"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-v45-tools-py-plan-only-continue-100.lisp",
+      "agent": "reviewer"
+    }
+  ],
+  "next_wave_preview": {
+    "id": "wave56-zero-cpysh-target",
+    "theme": "v4.5 \u76ee\u6807\u7b7e\u6536\u5c1d\u8bd5 \u2014 zero_cpysh \u8bda\u5b9e\u7ec8\u5c40\uff08\u4ecd\u987b C \u5220 + host \u58f3\u6e05\u96f6\uff09"
+  }
+}

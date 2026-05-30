@@ -1,0 +1,15 @@
+; Wave59 W2: tools .py archive 诚实 — active 已迁 retired/tools/ · CI .sh 仍存.
+(bootstrap
+  (file-size "lab/nano-lisp-jit/v4.5/HONEST-REMAINING.md")
+  (file-size "lab/nano-lisp-jit/v4.5/DIFFUSE-WAVE59.md")
+  (file-size "lab/nano-lisp-jit/retired/tools/mindmap-dp-v45.py")
+  (file-hash "lab/nano-lisp-jit/retired/tools/mindmap-dp-v45.py")
+  (file-size "lab/nano-lisp-jit/retired/tools/squad_cli.py")
+  (file-size "lab/nano-lisp-jit/retired/scripts/v45-wave59-tools-py-retire-converge.sh")
+  (file-size "lab/nano-lisp-jit/retired/scripts/v45-wave58-host-sh-retire-converge.sh")
+  (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.tools.py_active_deleted" "1")
+  (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.honest.tools_py_retired" "1")
+  (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.physical.zero_cpysh" "1")
+  (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.host.wave_sh_active_deleted" "1")
+  (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.runner.lispjit_c_active_deleted" "1")
+  (file-hash "lab/nano-lisp-jit/v4.5/DIFFUSE-WAVE59.md"))

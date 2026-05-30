@@ -1,0 +1,1 @@
+Worker 3 · lab/lispjit-ir/nano_bootstrap.c：onion.tdd 行后增加 `printf("aarch64.emit.onion.batch=225-252\n");`。仅改 C，build 验证。CC_DONE worker=3

@@ -1,0 +1,38 @@
+import { mcpServerInfo } from "./config";
+import { customDomainHint, buildHealthFeatures } from "./health-detail";
+import { jsonResponse } from "./http-util";
+import type { AuthContext } from "./auth";
+
+export async function handlePublicHealth(env: Env): Promise<Response> {
+  let version = "unknown";
+  try {
+    version = mcpServerInfo(env).version;
+  } catch {
+    /* vars optional for bare health */
+  }
+  const { features, cron_last } = await buildHealthFeatures(env);
+  const hint = customDomainHint(env);
+  return jsonResponse({
+    ok: true,
+    service: "mcp-cf-bots",
+    version,
+    features: {
+      ...features,
+      fts: true,
+    },
+    cron_last,
+    ...(hint ? { hint } : {}),
+  });
+}
+
+export function handleWhoAmI(auth: AuthContext): Response {
+  if (auth.role === "admin") {
+    return jsonResponse({ role: "admin" });
+  }
+  return jsonResponse({
+    role: "user",
+    owner: auth.owner,
+    token_id: auth.tokenId,
+    label: auth.label,
+  });
+}

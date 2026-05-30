@@ -1,0 +1,105 @@
+{
+  "ssot": "v4.5/DIFFUSE-WAVE49.md",
+  "parent_goal": "v45.v45.lisp_com_bootstrap_terminal_continue.100",
+  "onion_ssot": "v4.5/ONION-TDD.md",
+  "updated_at": "2026-05-25T16:00:00Z",
+  "max_parallel": 4,
+  "breadth_ring": "endgame-honest-rollup \u2014 Wave44\u201348 \u952e\u6536\u675f + \u53d1\u884c\u9762\u8bda\u5b9e\u7ec8\u5c40",
+  "nodes": [
+    {
+      "id": "v45-ehr-gate",
+      "layer": 49,
+      "ring": "gate",
+      "onion_ring": 30,
+      "status": "done",
+      "deps": [],
+      "accept": [
+        "v45.v45.lisp_com_bootstrap_terminal_continue.100=1",
+        "v45.goal.onion_tdd_tree_mindmap.100=1"
+      ]
+    },
+    {
+      "id": "v45-ehr-waves-rollup",
+      "layer": 49,
+      "ring": "rollup",
+      "onion_ring": 30,
+      "status": "done",
+      "deps": [
+        "v45-ehr-gate"
+      ],
+      "parallel_slot": "W1",
+      "plan": "lisp/bootstrap/bootstrap-v45-endgame-waves-44-48-rollup.lisp",
+      "agent": "engineer-a"
+    },
+    {
+      "id": "v45-ehr-honest-anchor",
+      "layer": 49,
+      "ring": "\u8bda\u5b9e",
+      "onion_ring": 30,
+      "status": "done",
+      "deps": [
+        "v45-ehr-gate"
+      ],
+      "parallel_slot": "W2",
+      "plan": "lisp/bootstrap/bootstrap-v45-endgame-honest-remaining-anchor.lisp",
+      "agent": "engineer-b"
+    },
+    {
+      "id": "v45-ehr-daily",
+      "layer": 49,
+      "ring": "plan",
+      "onion_ring": 30,
+      "status": "done",
+      "deps": [
+        "v45-ehr-gate"
+      ],
+      "parallel_slot": "W3",
+      "plan": "lisp/bootstrap/bootstrap-v45-converge-daily-endgame.lisp",
+      "agent": "engineer-a"
+    },
+    {
+      "id": "v45-ehr-selfhost",
+      "layer": 49,
+      "ring": "\u4ee3\u9645",
+      "onion_ring": 30,
+      "status": "done",
+      "deps": [
+        "v45-ehr-gate"
+      ],
+      "parallel_slot": "W4",
+      "plan": "lisp/bootstrap/bootstrap-v45-selfhost-endgame-honest-matrix.lisp",
+      "agent": "engineer-b"
+    },
+    {
+      "id": "v45-ehr-terminal",
+      "layer": 50,
+      "ring": "\u7ec8\u5c40",
+      "onion_ring": 30,
+      "status": "done",
+      "deps": [
+        "v45-ehr-waves-rollup",
+        "v45-ehr-honest-anchor",
+        "v45-ehr-daily",
+        "v45-ehr-selfhost"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-endgame-honest-rollup-tree.lisp",
+      "agent": "reviewer"
+    },
+    {
+      "id": "v45-ehr-goal",
+      "layer": 51,
+      "ring": "DONE",
+      "onion_ring": 30,
+      "status": "done",
+      "deps": [
+        "v45-ehr-terminal"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-v45-endgame-honest-rollup-100.lisp",
+      "agent": "reviewer"
+    }
+  ],
+  "next_wave_preview": {
+    "id": "wave50-lispjit-codegen-dedicated",
+    "theme": "154KB runner \u5168 Lisp codegen \u72ec\u7acb\u6d3b\u56fe\uff08\u4e0d\u8fdb\u53d1\u884c\u9762 rollup DONE\uff09"
+  }
+}

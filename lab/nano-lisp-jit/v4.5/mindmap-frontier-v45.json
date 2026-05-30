@@ -1,0 +1,341 @@
+{
+  "ssot": "v4.5/MINDMAP-TDD-TREE.md",
+  "onion_ssot": "v4.5/ONION-TDD.md",
+  "updated_at": "2026-05-25T09:30:00Z",
+  "max_parallel": 4,
+  "nodes": [
+    {
+      "id": "v45-onion-gate",
+      "layer": 0,
+      "ring": "\u8bc1\u636e",
+      "onion_ring": 0,
+      "status": "done",
+      "deps": [],
+      "accept": [
+        "v45.tier5.100=1",
+        "v45.scoped.100=1"
+      ]
+    },
+    {
+      "id": "v45-mindmap-verify-smoke",
+      "layer": 1,
+      "ring": "VM",
+      "onion_ring": 1,
+      "status": "done",
+      "deps": [
+        "v45-onion-gate"
+      ],
+      "accept": [
+        "run-bootstrap-v45-mindmap-verify-smoke-plan"
+      ],
+      "parallel_slot": "W1",
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-verify-smoke.lisp"
+    },
+    {
+      "id": "v45-mindmap-com-lbin",
+      "layer": 1,
+      "ring": "\u7ec4\u88c5",
+      "onion_ring": 2,
+      "status": "done",
+      "deps": [
+        "v45-onion-gate"
+      ],
+      "accept": [
+        "pack-app.payload.lbin=1"
+      ],
+      "parallel_slot": "W2",
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-com-lbin.lisp"
+    },
+    {
+      "id": "v45-mindmap-ir-exit",
+      "layer": 1,
+      "ring": "Codegen",
+      "onion_ring": 2,
+      "status": "done",
+      "deps": [
+        "v45-onion-gate"
+      ],
+      "accept": [
+        "ir-table-lisp + build-slice-lisp ir-exit"
+      ],
+      "parallel_slot": "W3",
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-ir-exit.lisp"
+    },
+    {
+      "id": "v45-mindmap-onion-ring",
+      "layer": 1,
+      "ring": "\u6d0b\u8471",
+      "onion_ring": 2,
+      "status": "done",
+      "deps": [
+        "v45-onion-gate"
+      ],
+      "accept": [
+        "v45.onion.lisp_only=1"
+      ],
+      "parallel_slot": "W4",
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-onion-ring.lisp"
+    },
+    {
+      "id": "v45-mindmap-onion-tree",
+      "layer": 2,
+      "ring": "\u6811",
+      "onion_ring": 3,
+      "status": "done",
+      "deps": [
+        "v45-mindmap-verify-smoke",
+        "v45-mindmap-com-lbin",
+        "v45-mindmap-ir-exit",
+        "v45-mindmap-onion-ring"
+      ],
+      "accept": [
+        "v45.mindmap.tree.coupled=1"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-onion-tree.lisp"
+    },
+    {
+      "id": "v45-goal-mindmap-tree",
+      "layer": 3,
+      "ring": "DONE",
+      "onion_ring": 5,
+      "status": "done",
+      "deps": [
+        "v45-mindmap-onion-tree"
+      ],
+      "accept": [
+        "v45.goal.mindmap_tree.100=1"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-mindmap-tree-100.lisp"
+    },
+    {
+      "id": "v45-mm-boot-com",
+      "layer": 4,
+      "ring": "\u81ea\u4e3e",
+      "onion_ring": 4,
+      "status": "done",
+      "deps": [
+        "v45-goal-mindmap-tree"
+      ],
+      "parallel_slot": "W1",
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-boot-com.lisp"
+    },
+    {
+      "id": "v45-mm-bare-loader",
+      "layer": 4,
+      "ring": "loader",
+      "onion_ring": 4,
+      "status": "done",
+      "deps": [
+        "v45-goal-mindmap-tree"
+      ],
+      "parallel_slot": "W2",
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-bare-loader.lisp"
+    },
+    {
+      "id": "v45-mm-verify-core-slice",
+      "layer": 4,
+      "ring": "AOT",
+      "onion_ring": 4,
+      "status": "done",
+      "deps": [
+        "v45-goal-mindmap-tree"
+      ],
+      "parallel_slot": "W3",
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-verify-core-slice.lisp"
+    },
+    {
+      "id": "v45-mm-selfhost-next",
+      "layer": 4,
+      "ring": "\u81ea\u4e3e",
+      "onion_ring": 5,
+      "status": "done",
+      "deps": [
+        "v45-goal-mindmap-tree"
+      ],
+      "parallel_slot": "W4",
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-selfhost-next.lisp"
+    },
+    {
+      "id": "v45-mm-onion-terminal",
+      "layer": 5,
+      "ring": "\u7ec8\u5c40",
+      "onion_ring": 5,
+      "status": "done",
+      "deps": [
+        "v45-mm-boot-com",
+        "v45-mm-bare-loader",
+        "v45-mm-verify-core-slice",
+        "v45-mm-selfhost-next"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-onion-terminal.lisp"
+    },
+    {
+      "id": "v45-mm-unified-tree",
+      "layer": 6,
+      "ring": "\u6811",
+      "onion_ring": 5,
+      "status": "done",
+      "deps": [
+        "v45-mm-onion-terminal"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-unified-tree.lisp"
+    },
+    {
+      "id": "v45-goal-onion-mindmap-unified",
+      "layer": 7,
+      "ring": "DONE",
+      "onion_ring": 5,
+      "status": "done",
+      "deps": [
+        "v45-mm-unified-tree"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-onion-mindmap-unified-100.lisp"
+    },
+    {
+      "id": "v45-sh-lisp-only-chain",
+      "layer": 8,
+      "ring": "\u81ea\u4e3e",
+      "onion_ring": 6,
+      "status": "done",
+      "deps": [
+        "v45-goal-onion-mindmap-unified"
+      ],
+      "parallel_slot": "W1",
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-lisp-only-chain.lisp"
+    },
+    {
+      "id": "v45-sh-next-matrix",
+      "layer": 8,
+      "ring": "\u4ee3\u9645",
+      "onion_ring": 6,
+      "status": "done",
+      "deps": [
+        "v45-goal-onion-mindmap-unified"
+      ],
+      "parallel_slot": "W2",
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-next-verify-matrix.lisp"
+    },
+    {
+      "id": "v45-sh-gen2-onion",
+      "layer": 8,
+      "ring": "\u6d0b\u8471",
+      "onion_ring": 6,
+      "status": "done",
+      "deps": [
+        "v45-goal-onion-mindmap-unified"
+      ],
+      "parallel_slot": "W3",
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-gen2-onion.lisp"
+    },
+    {
+      "id": "v45-sh-w3-regenesis",
+      "layer": 8,
+      "ring": "lisp-only",
+      "onion_ring": 6,
+      "status": "done",
+      "deps": [
+        "v45-goal-onion-mindmap-unified"
+      ],
+      "parallel_slot": "W4",
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-w3-lisp-only.lisp"
+    },
+    {
+      "id": "v45-sh-selfhost-terminal",
+      "layer": 9,
+      "ring": "\u7ec8\u5c40",
+      "onion_ring": 6,
+      "status": "done",
+      "deps": [
+        "v45-sh-lisp-only-chain",
+        "v45-sh-next-matrix",
+        "v45-sh-gen2-onion",
+        "v45-sh-w3-regenesis"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-selfhost-unified-tree.lisp"
+    },
+    {
+      "id": "v45-goal-lisp-selfhost-unified",
+      "layer": 10,
+      "ring": "DONE",
+      "onion_ring": 6,
+      "status": "done",
+      "deps": [
+        "v45-sh-selfhost-terminal"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-lisp-selfhost-unified-100.lisp"
+    },
+    {
+      "id": "v45-bd-i64",
+      "layer": 11,
+      "ring": "boundary",
+      "onion_ring": 7,
+      "status": "done",
+      "deps": [
+        "v45-goal-lisp-selfhost-unified"
+      ],
+      "parallel_slot": "W1",
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-boundary-i64.lisp"
+    },
+    {
+      "id": "v45-bd-ptr",
+      "layer": 11,
+      "ring": "boundary",
+      "onion_ring": 7,
+      "status": "done",
+      "deps": [
+        "v45-goal-lisp-selfhost-unified"
+      ],
+      "parallel_slot": "W2",
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-boundary-ptr.lisp"
+    },
+    {
+      "id": "v45-bd-func",
+      "layer": 11,
+      "ring": "boundary",
+      "onion_ring": 7,
+      "status": "done",
+      "deps": [
+        "v45-goal-lisp-selfhost-unified"
+      ],
+      "parallel_slot": "W3",
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-boundary-func.lisp"
+    },
+    {
+      "id": "v45-bd-probe",
+      "layer": 11,
+      "ring": "boundary",
+      "onion_ring": 7,
+      "status": "done",
+      "deps": [
+        "v45-goal-lisp-selfhost-unified"
+      ],
+      "parallel_slot": "W4",
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-boundary-probe.lisp"
+    },
+    {
+      "id": "v45-bd-terminal",
+      "layer": 12,
+      "ring": "\u7ec8\u5c40",
+      "onion_ring": 7,
+      "status": "done",
+      "deps": [
+        "v45-bd-i64",
+        "v45-bd-ptr",
+        "v45-bd-func",
+        "v45-bd-probe"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-boundary-terminal.lisp"
+    },
+    {
+      "id": "v45-goal-onion-tdd-tree-mindmap",
+      "layer": 13,
+      "ring": "DONE",
+      "onion_ring": 7,
+      "status": "done",
+      "deps": [
+        "v45-bd-terminal"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-onion-tdd-tree-mindmap-100.lisp"
+    }
+  ]
+}

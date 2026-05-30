@@ -1,0 +1,15 @@
+; Wave54 W4: selfhost × CI plan-only 矩阵.
+; Prefix v45-scpom- · no build-slice lispjit.c · no .sh steps.
+(bootstrap
+  (file-size "lab/nano-lisp-jit/release/v45-selfhost-next.com")
+  (file-size "lab/nano-lisp-jit/release/nano-lisp.com")
+  (build-slice-lisp "lab/nano-lisp-jit/lisp/core/nano-jit-slice-min.lisp"
+                    "lab/nano-lisp-jit/.build/v45-scpom-min-x86.elf"
+                    "x86_64")
+  (run-expect-exit "lab/nano-lisp-jit/.build/v45-scpom-min-x86.elf" 42)
+  (compile "lab/nano-lisp-jit/lisp/modules/11-ape.lisp"
+           "lab/nano-lisp-jit/.build/v45-scpom-mod11.lbin")
+  (run "lab/nano-lisp-jit/.build/v45-scpom-mod11.lbin")
+  (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.selfhost.lispjit_154kb_expand" "1")
+  (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.selfhost.plan_only_terminal_matrix" "1")
+  (file-hash "lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-converge-daily-v45-complete-plan-only.lisp"))

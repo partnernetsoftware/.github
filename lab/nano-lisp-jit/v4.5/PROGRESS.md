@@ -1,0 +1,75 @@
+# v4.5 进度（诚实口径）
+
+## 已签收 ✅（有定义、有证据，可引用）
+
+| 口径 | 键 | 说明 |
+|------|-----|------|
+| scoped 洋葱 | `v45.scoped.100=1` | `.com` + `bootstrap-v45-*.lisp` |
+| 发行面 | `v45.release.100=1` | 上列 + boundary |
+| DECISION tier0–4 | `v45.endgame.100=1` | 含 tier3 `lispjit.c` 迁 `archive/runner`、tier4 IR smoke |
+| scoped 工厂栈 | `v45.factory.100=1` | **`NANO_V45_SCOPED_ONLY=1` 时** skip v4 墙 |
+| 合卷（非物理全仓） | `v45.warehouse.100=1` | = endgame ∧ factory；**≠ 零 `.c`** |
+
+详见 [`HONEST-REMAINING.md`](HONEST-REMAINING.md)。
+
+## 未完成 ❌（禁止写成 100%）
+
+| 项 | 诚实键 |
+|----|--------|
+| 全仓零 `.c` | 发行面已 `physical.zero_c=1`；全 monorepo 见 `HONEST-REMAINING` |
+| 无 env 瘦 `run.sh` | 未达 |
+| 全量 runner Lisp codegen | 未达 |
+
+## /goal 已签收 ✅
+
+| 项 | 键 |
+|----|-----|
+| tier5 发行面 | `v45.tier5.100=1` |
+| lisp 自举 | `v45.selfhost.100=1` |
+| **总签收** | **`v45.goal.onion_tdd_tree_mindmap.100=1`** · frontier **26/26** |
+| **目标轨** | **`v45.v45.zero_cpysh_target_continue.100=1`** · 扩展活图 **22 张** |
+
+## 收敛（清洗后日常）
+
+```bash
+bash lab/nano-lisp-jit/scripts/v45-cleanup-reflect.sh
+# 或 plan-only 收敛（快）：v45-wave54-ci-plan-only-converge-converge.sh
+grep v45.v45.zero_cpysh_target_continue.100=1 \
+  lab/nano-lisp-jit/.build/v45-entry.evidence.canonical
+```
+
+## Wave
+
+| Wave | 内容 |
+|------|------|
+| 3–9 | DECISION + 工厂 scoped（见 `DIFFUSE-WAVE*.md`） |
+| **10** | [`DIFFUSE-WAVE10.md`](DIFFUSE-WAVE10.md) — 诚实剩余 + `v45-release-run.sh` |
+| **11** | [`DIFFUSE-WAVE11.md`](DIFFUSE-WAVE11.md) — tier5 四轨并发；`physical.zero_c` 仍 0 |
+| **12** | [`DIFFUSE-WAVE12.md`](DIFFUSE-WAVE12.md) — 16 TU 并行出仓；`ir` 真 `.c`=2 |
+| **13** | [`DIFFUSE-WAVE13.md`](DIFFUSE-WAVE13.md) — `ir` 门面零真 `.c` |
+| **14–15** | VM emit 四轨 + **tier5 100%** — [`DIFFUSE-WAVE15.md`](DIFFUSE-WAVE15.md) |
+| **16–17** | 洋葱×mindmap-tree — [`DIFFUSE-WAVE17.md`](DIFFUSE-WAVE17.md) |
+| 18 | `onion_mindmap.unified` — 14/14 [`DIFFUSE-WAVE18.md`](DIFFUSE-WAVE18.md) |
+| 19–20 | lisp 自举 + 20 节点 [`DIFFUSE-WAVE19.md`](DIFFUSE-WAVE19.md) [`DIFFUSE-WAVE20.md`](DIFFUSE-WAVE20.md) |
+| 21 | /goal 总签收 26/26 [`DIFFUSE-WAVE21.md`](DIFFUSE-WAVE21.md) |
+| 22 | 工厂 S4/S5 plan 零 C [`DIFFUSE-WAVE22.md`](DIFFUSE-WAVE22.md) |
+| 23 | 继续卷 代际矩阵 + v4 握手 [`DIFFUSE-WAVE23.md`](DIFFUSE-WAVE23.md) |
+| **24** | 发行面继续 core/modules 代际 [`DIFFUSE-WAVE24.md`](DIFFUSE-WAVE24.md) |
+| **25** | **codegen 探针** lisp slice 四轨 [`DIFFUSE-WAVE25.md`](DIFFUSE-WAVE25.md) |
+| **26** | **codegen 扩面** VM emit + next-lo 最小 onion [`DIFFUSE-WAVE26.md`](DIFFUSE-WAVE26.md) |
+| **27** | **codegen 耦合** 扩展活图 7/7 + gen60 握手 [`DIFFUSE-WAVE27.md`](DIFFUSE-WAVE27.md) |
+| **28** | 工厂物理续推 [`DIFFUSE-WAVE28.md`](DIFFUSE-WAVE28.md) |
+| **29** | selfhost-next 深度矩阵 [`DIFFUSE-WAVE29.md`](DIFFUSE-WAVE29.md) |
+| **30** | /goal×工厂统一 [`DIFFUSE-WAVE30.md`](DIFFUSE-WAVE30.md) |
+| **31** | 边界代际四轨 [`DIFFUSE-WAVE31.md`](DIFFUSE-WAVE31.md) |
+| **32** | 工厂终局 rollupy [`DIFFUSE-WAVE32.md`](DIFFUSE-WAVE32.md) |
+| **33** | codegen 代际深潜 [`DIFFUSE-WAVE33.md`](DIFFUSE-WAVE33.md) |
+| **34–48** | 扩展活图 15 张 · [`MINDMAP-TDD-TREE.md`](MINDMAP-TDD-TREE.md) |
+| **49** | endgame 诚实 rollup [`DIFFUSE-WAVE49.md`](DIFFUSE-WAVE49.md) |
+| **50** | 154KB codegen 独立 [`DIFFUSE-WAVE50.md`](DIFFUSE-WAVE50.md) |
+| **51** | 扩展活图 rollup [`DIFFUSE-WAVE51.md`](DIFFUSE-WAVE51.md) |
+| **52** | 物理零 cpysh 续推 [`DIFFUSE-WAVE52.md`](DIFFUSE-WAVE52.md) |
+| **53** | 154KB codegen 扩面 [`DIFFUSE-WAVE53.md`](DIFFUSE-WAVE53.md) |
+| **54** | CI plan-only [`DIFFUSE-WAVE54.md`](DIFFUSE-WAVE54.md) |
+| **55** | tools py plan-only [`DIFFUSE-WAVE55.md`](DIFFUSE-WAVE55.md) |
+| **56** | **zero_cpysh target** [`DIFFUSE-WAVE56.md`](DIFFUSE-WAVE56.md) |

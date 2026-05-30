@@ -1,0 +1,105 @@
+{
+  "ssot": "v4.5/DIFFUSE-WAVE71.md",
+  "parent_goal": "v45.v45.terminal_done",
+  "onion_ssot": "v4.5/ONION-TDD.md",
+  "updated_at": "2026-05-27T14:00:00Z",
+  "max_parallel": 4,
+  "breadth_ring": "lisp-codegen-diffuse \u2014 compose-15 plan-only \u00b7 genesis 154KB \u540c\u6b65 \u00b7 daily \u5347\u7ef4 \u00b7 APE 6 \u9762\u89c4\u5212",
+  "nodes": [
+    {
+      "id": "v45-lcd-gate",
+      "layer": 71,
+      "ring": "gate",
+      "onion_ring": 50,
+      "status": "done",
+      "deps": [],
+      "accept": [
+        "v45.v45.terminal_done=1",
+        "v45.v45.terminal_com_promoted=1"
+      ]
+    },
+    {
+      "id": "v45-lcd-compose15",
+      "layer": 71,
+      "ring": "codegen",
+      "onion_ring": 50,
+      "status": "done",
+      "deps": [
+        "v45-lcd-gate"
+      ],
+      "parallel_slot": "W1",
+      "plan": "lisp/bootstrap/bootstrap-v45-lisp-codegen-compose15-prove.lisp",
+      "agent": "engineer-a"
+    },
+    {
+      "id": "v45-lcd-genesis-sync",
+      "layer": 71,
+      "ring": "\u7269\u7406",
+      "onion_ring": 50,
+      "status": "done",
+      "deps": [
+        "v45-lcd-gate"
+      ],
+      "parallel_slot": "W2",
+      "plan": "lisp/bootstrap/bootstrap-v45-lisp-codegen-genesis-154kb-sync.lisp",
+      "agent": "engineer-b"
+    },
+    {
+      "id": "v45-lcd-daily",
+      "layer": 71,
+      "ring": "plan",
+      "onion_ring": 50,
+      "status": "done",
+      "deps": [
+        "v45-lcd-gate"
+      ],
+      "parallel_slot": "W3",
+      "plan": "lisp/bootstrap/bootstrap-v45-converge-daily-v45-lisp-codegen-diffuse.lisp",
+      "agent": "engineer-a"
+    },
+    {
+      "id": "v45-lcd-ape-plan",
+      "layer": 71,
+      "ring": "\u5e7f\u5ea6",
+      "onion_ring": 50,
+      "status": "done",
+      "deps": [
+        "v45-lcd-gate"
+      ],
+      "parallel_slot": "W4",
+      "plan": "lisp/bootstrap/bootstrap-v45-lisp-codegen-ape-six-face-plan.lisp",
+      "agent": "engineer-b"
+    },
+    {
+      "id": "v45-lcd-terminal",
+      "layer": 72,
+      "ring": "\u7ec8\u5c40",
+      "onion_ring": 50,
+      "status": "done",
+      "deps": [
+        "v45-lcd-compose15",
+        "v45-lcd-genesis-sync",
+        "v45-lcd-daily",
+        "v45-lcd-ape-plan"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-lisp-codegen-diffuse-tree.lisp",
+      "agent": "reviewer"
+    },
+    {
+      "id": "v45-lcd-goal",
+      "layer": 73,
+      "ring": "continue",
+      "onion_ring": 50,
+      "status": "done",
+      "deps": [
+        "v45-lcd-terminal"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-v45-lisp-codegen-diffuse-continue-100.lisp",
+      "agent": "reviewer"
+    }
+  ],
+  "next_wave_preview": {
+    "id": "wave72-lisp-runner-com-promote",
+    "theme": "compose-15link slice pack \u2192 release/nano-lisp.com \u4ee3\u9645 promote"
+  }
+}

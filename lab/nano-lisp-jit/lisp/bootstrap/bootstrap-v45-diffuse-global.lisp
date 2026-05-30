@@ -1,0 +1,18 @@
+; v4.5 wave1 track-B: global diffuse anchors (all SSOT + plan index, 无 .sh).
+(bootstrap
+  (file-size "lab/nano-lisp-jit/v4.5/DECISION.md")
+  (file-size "lab/nano-lisp-jit/v4.5/ONION-TDD.md")
+  (file-size "lab/nano-lisp-jit/v4.5/PROGRESS.md")
+  (file-size "lab/nano-lisp-jit/v4.5/EVAL.md")
+  (file-size "lab/nano-lisp-jit/v4.5/REFLECTION.md")
+  (file-size "lab/nano-lisp-jit/v4.5/PARALLEL.md")
+  (file-size "lab/nano-lisp-jit/v4.5/PRODUCT-FEEDBACK.md")
+  (file-size "lab/nano-lisp-jit/v4.5/CLEANUP.md")
+  (file-size "lab/nano-lisp-jit/STRUCTURE.md")
+  (file-size "lab/nano-lisp-jit/lisp/boundary/README.md")
+  (file-size "lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-onion-tdd.lisp")
+  (file-size "lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-boundary-i64.lisp")
+  (file-size "lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-boundary-ptr.lisp")
+  (file-size "lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-boundary-func.lisp")
+  (file-size "lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-boundary-rodata.lisp")
+  (file-hash "lab/nano-lisp-jit/.build/nano-jit/nano-jit.com"))

@@ -1,0 +1,94 @@
+{
+  "ssot": "v4.5/DIFFUSE-WAVE37.md",
+  "parent_goal": "v45.v45.plan_converge_continue.100",
+  "onion_ssot": "v4.5/ONION-TDD.md",
+  "updated_at": "2026-05-24T12:00:00Z",
+  "max_parallel": 4,
+  "nodes": [
+    {
+      "id": "v45-zs-gate",
+      "layer": 37,
+      "ring": "gate",
+      "onion_ring": 18,
+      "status": "done",
+      "deps": [],
+      "accept": [
+        "v45.v45.plan_converge_continue.100=1",
+        "v45.goal.onion_tdd_tree_mindmap.100=1"
+      ]
+    },
+    {
+      "id": "v45-zs-squad-plan",
+      "layer": 37,
+      "ring": "plan",
+      "onion_ring": 18,
+      "status": "done",
+      "deps": [
+        "v45-zs-gate"
+      ],
+      "parallel_slot": "W1",
+      "plan": "lisp/bootstrap/bootstrap-v45-converge-squad-plan.lisp"
+    },
+    {
+      "id": "v45-zs-com-canonical",
+      "layer": 37,
+      "ring": "com",
+      "onion_ring": 18,
+      "status": "done",
+      "deps": [
+        "v45-zs-gate"
+      ],
+      "parallel_slot": "W2",
+      "plan": "lisp/bootstrap/bootstrap-v45-nano-lisp-com-canonical.lisp"
+    },
+    {
+      "id": "v45-zs-verify-matrix",
+      "layer": 37,
+      "ring": "verify",
+      "onion_ring": 18,
+      "status": "done",
+      "deps": [
+        "v45-zs-gate"
+      ],
+      "parallel_slot": "W3",
+      "plan": "lisp/bootstrap/bootstrap-v45-verify-matrix-plan.lisp"
+    },
+    {
+      "id": "v45-zs-selfhost-matrix",
+      "layer": 37,
+      "ring": "\u4ee3\u9645",
+      "onion_ring": 18,
+      "status": "done",
+      "deps": [
+        "v45-zs-gate"
+      ],
+      "parallel_slot": "W4",
+      "plan": "lisp/bootstrap/bootstrap-v45-selfhost-lisp-com-matrix.lisp"
+    },
+    {
+      "id": "v45-zs-terminal",
+      "layer": 38,
+      "ring": "\u7ec8\u5c40",
+      "onion_ring": 18,
+      "status": "done",
+      "deps": [
+        "v45-zs-squad-plan",
+        "v45-zs-com-canonical",
+        "v45-zs-verify-matrix",
+        "v45-zs-selfhost-matrix"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-zero-sh-tree.lisp"
+    },
+    {
+      "id": "v45-zs-goal",
+      "layer": 39,
+      "ring": "DONE",
+      "onion_ring": 18,
+      "status": "done",
+      "deps": [
+        "v45-zs-terminal"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-v45-zero-sh-continue-100.lisp"
+    }
+  ]
+}

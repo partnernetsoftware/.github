@@ -1,0 +1,41 @@
+# 工程兵 A|B · 微工作流
+role: [A, B]
+name: 工程兵
+inputs:
+  - .squad/state.json  # assignments.<role>
+steps:
+  - id: pull-order
+    action: cli
+    cmd: "squad status --role A"
+    fail_if: "no assignment in_progress or pending"
+  - id: claim
+    action: cli
+    cmd: "squad claim <ROLE> <task_id>"
+    note: "写 state 锁，防双兵同文件"
+  - id: execute-onion
+    action: manual
+    checklist:
+      - "样例 / native run.sh case"
+      - "bootstrap plan"
+      - "build 矩阵（若 touch build_nano_jit.sh）"
+    touch_guard: "catalog.tasks.<id>.touch_paths"
+  - id: verify
+    action: cli
+    cmd: "squad verify"
+    note: "跑 run.sh + 可选 build，解析 pass/fail"
+  - id: done
+    action: cli
+    cmd: "squad done <ROLE> --commit <hash> --run-pass <n>"
+  - id: worker-loop
+    action: cli
+    cmd: "squad worker-tick <ROLE>"
+    note: "while action≠idle|halt：claim→work→verify→done；失败 squad fail"
+  - id: handoff
+    action: cli
+    cmd: "squad signal supervisor running --reason handoff"
+outputs:
+  - git commit
+  - .squad/state.json
+forbidden:
+  - "未 claim 改 touch_paths"
+  - "未 verify 标 done"

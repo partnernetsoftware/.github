@@ -1,0 +1,100 @@
+{
+  "ssot": "v4.5/DIFFUSE-WAVE41.md",
+  "parent_goal": "v45.v45.daily_plan_continue.100",
+  "onion_ssot": "v4.5/ONION-TDD.md",
+  "updated_at": "2026-05-24T23:00:00Z",
+  "max_parallel": 4,
+  "nodes": [
+    {
+      "id": "v45-cm-gate",
+      "layer": 41,
+      "ring": "gate",
+      "onion_ring": 22,
+      "status": "done",
+      "deps": [],
+      "accept": [
+        "v45.v45.daily_plan_continue.100=1",
+        "v45.goal.onion_tdd_tree_mindmap.100=1"
+      ]
+    },
+    {
+      "id": "v45-cm-modules-07-12",
+      "layer": 41,
+      "ring": "Codegen",
+      "onion_ring": 22,
+      "status": "done",
+      "deps": [
+        "v45-cm-gate"
+      ],
+      "parallel_slot": "W1",
+      "plan": "lisp/bootstrap/bootstrap-v45-runner-modules-07-12-full.lisp",
+      "agent": "engineer-a"
+    },
+    {
+      "id": "v45-cm-compose-3link",
+      "layer": 41,
+      "ring": "Codegen",
+      "onion_ring": 22,
+      "status": "done",
+      "deps": [
+        "v45-cm-gate"
+      ],
+      "parallel_slot": "W2",
+      "plan": "lisp/bootstrap/bootstrap-v45-compose-link-3chain.lisp",
+      "agent": "engineer-b"
+    },
+    {
+      "id": "v45-cm-compose-5probe",
+      "layer": 41,
+      "ring": "Codegen",
+      "onion_ring": 22,
+      "status": "done",
+      "deps": [
+        "v45-cm-gate"
+      ],
+      "parallel_slot": "W3",
+      "plan": "lisp/bootstrap/bootstrap-v45-compose-link-5probe.lisp",
+      "agent": "engineer-a"
+    },
+    {
+      "id": "v45-cm-selfhost-compose",
+      "layer": 41,
+      "ring": "\u4ee3\u9645",
+      "onion_ring": 22,
+      "status": "done",
+      "deps": [
+        "v45-cm-gate"
+      ],
+      "parallel_slot": "W4",
+      "plan": "lisp/bootstrap/bootstrap-v45-selfhost-compose-matrix.lisp",
+      "agent": "engineer-b"
+    },
+    {
+      "id": "v45-cm-terminal",
+      "layer": 42,
+      "ring": "\u7ec8\u5c40",
+      "onion_ring": 22,
+      "status": "done",
+      "deps": [
+        "v45-cm-modules-07-12",
+        "v45-cm-compose-3link",
+        "v45-cm-compose-5probe",
+        "v45-cm-selfhost-compose"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-compose-modules-tree.lisp",
+      "agent": "reviewer"
+    },
+    {
+      "id": "v45-cm-goal",
+      "layer": 43,
+      "ring": "DONE",
+      "onion_ring": 22,
+      "status": "done",
+      "deps": [
+        "v45-cm-terminal"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-v45-compose-modules-100.lisp",
+      "agent": "reviewer"
+    }
+  ]
+}

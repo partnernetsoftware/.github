@@ -1,0 +1,94 @@
+{
+  "ssot": "v4.5/DIFFUSE-WAVE33.md",
+  "parent_goal": "v45.v45.factory_rollup_continue.100",
+  "onion_ssot": "v4.5/ONION-TDD.md",
+  "updated_at": "2026-05-26T00:00:00Z",
+  "max_parallel": 4,
+  "nodes": [
+    {
+      "id": "v45-cd-gate",
+      "layer": 32,
+      "ring": "gate",
+      "onion_ring": 13,
+      "status": "done",
+      "deps": [],
+      "accept": [
+        "v45.v45.factory_rollup_continue.100=1",
+        "v45.codegen.lisp_slices=9"
+      ]
+    },
+    {
+      "id": "v45-cd-slice-min",
+      "layer": 32,
+      "ring": "Codegen",
+      "onion_ring": 14,
+      "status": "done",
+      "deps": [
+        "v45-cd-gate"
+      ],
+      "parallel_slot": "W1",
+      "plan": "lisp/bootstrap/bootstrap-v45-codegen-lisp-slice-min.lisp"
+    },
+    {
+      "id": "v45-cd-vm-ctrl",
+      "layer": 32,
+      "ring": "Codegen",
+      "onion_ring": 14,
+      "status": "done",
+      "deps": [
+        "v45-cd-gate"
+      ],
+      "parallel_slot": "W2",
+      "plan": "lisp/bootstrap/bootstrap-v45-codegen-lisp-vm-ctrl.lisp"
+    },
+    {
+      "id": "v45-cd-ir-table",
+      "layer": 32,
+      "ring": "Codegen",
+      "onion_ring": 14,
+      "status": "done",
+      "deps": [
+        "v45-cd-gate"
+      ],
+      "parallel_slot": "W3",
+      "plan": "lisp/bootstrap/bootstrap-v45-codegen-lisp-ir-table.lisp"
+    },
+    {
+      "id": "v45-cd-vm-arith",
+      "layer": 32,
+      "ring": "Codegen",
+      "onion_ring": 14,
+      "status": "done",
+      "deps": [
+        "v45-cd-gate"
+      ],
+      "parallel_slot": "W4",
+      "plan": "lisp/bootstrap/bootstrap-v45-codegen-lisp-vm-arith.lisp"
+    },
+    {
+      "id": "v45-cd-terminal",
+      "layer": 33,
+      "ring": "\u7ec8\u5c40",
+      "onion_ring": 14,
+      "status": "done",
+      "deps": [
+        "v45-cd-slice-min",
+        "v45-cd-vm-ctrl",
+        "v45-cd-ir-table",
+        "v45-cd-vm-arith"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-codegen-deep-tree.lisp"
+    },
+    {
+      "id": "v45-cd-goal",
+      "layer": 34,
+      "ring": "DONE",
+      "onion_ring": 14,
+      "status": "done",
+      "deps": [
+        "v45-cd-terminal"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-v45-codegen-deep-continue-100.lisp"
+    }
+  ]
+}

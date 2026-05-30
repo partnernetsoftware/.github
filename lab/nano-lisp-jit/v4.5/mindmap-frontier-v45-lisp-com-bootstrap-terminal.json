@@ -1,0 +1,105 @@
+{
+  "ssot": "v4.5/DIFFUSE-WAVE48.md",
+  "parent_goal": "v45.v45.zero_host_sh_terminal_continue.100",
+  "onion_ssot": "v4.5/ONION-TDD.md",
+  "updated_at": "2026-05-25T14:00:00Z",
+  "max_parallel": 4,
+  "breadth_ring": "lisp-com-bootstrap-terminal \u2014 nano-lisp.com \u81ea\u4e3e\u7ec8\u5c40 + \u5de5\u5382\u7269\u7406\u8bda\u5b9e\u5377\u95ed\u5408",
+  "nodes": [
+    {
+      "id": "v45-lcbt-gate",
+      "layer": 48,
+      "ring": "gate",
+      "onion_ring": 29,
+      "status": "done",
+      "deps": [],
+      "accept": [
+        "v45.v45.zero_host_sh_terminal_continue.100=1",
+        "v45.goal.onion_tdd_tree_mindmap.100=1"
+      ]
+    },
+    {
+      "id": "v45-lcbt-bootstrap",
+      "layer": 48,
+      "ring": "Codegen",
+      "onion_ring": 29,
+      "status": "done",
+      "deps": [
+        "v45-lcbt-gate"
+      ],
+      "parallel_slot": "W1",
+      "plan": "lisp/bootstrap/bootstrap-v45-nano-lisp-com-bootstrap-terminal.lisp",
+      "agent": "engineer-a"
+    },
+    {
+      "id": "v45-lcbt-factory-closure",
+      "layer": 48,
+      "ring": "\u8bda\u5b9e",
+      "onion_ring": 29,
+      "status": "done",
+      "deps": [
+        "v45-lcbt-gate"
+      ],
+      "parallel_slot": "W2",
+      "plan": "lisp/bootstrap/bootstrap-v45-factory-physical-honest-closure.lisp",
+      "agent": "engineer-b"
+    },
+    {
+      "id": "v45-lcbt-daily",
+      "layer": 48,
+      "ring": "plan",
+      "onion_ring": 29,
+      "status": "done",
+      "deps": [
+        "v45-lcbt-gate"
+      ],
+      "parallel_slot": "W3",
+      "plan": "lisp/bootstrap/bootstrap-v45-converge-daily-lisp-com-terminal.lisp",
+      "agent": "engineer-a"
+    },
+    {
+      "id": "v45-lcbt-selfhost",
+      "layer": 48,
+      "ring": "\u4ee3\u9645",
+      "onion_ring": 29,
+      "status": "done",
+      "deps": [
+        "v45-lcbt-gate"
+      ],
+      "parallel_slot": "W4",
+      "plan": "lisp/bootstrap/bootstrap-v45-selfhost-lisp-com-bootstrap-matrix.lisp",
+      "agent": "engineer-b"
+    },
+    {
+      "id": "v45-lcbt-terminal",
+      "layer": 49,
+      "ring": "\u7ec8\u5c40",
+      "onion_ring": 29,
+      "status": "done",
+      "deps": [
+        "v45-lcbt-bootstrap",
+        "v45-lcbt-factory-closure",
+        "v45-lcbt-daily",
+        "v45-lcbt-selfhost"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-lisp-com-bootstrap-terminal-tree.lisp",
+      "agent": "reviewer"
+    },
+    {
+      "id": "v45-lcbt-goal",
+      "layer": 50,
+      "ring": "DONE",
+      "onion_ring": 29,
+      "status": "done",
+      "deps": [
+        "v45-lcbt-terminal"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-v45-lisp-com-bootstrap-terminal-100.lisp",
+      "agent": "reviewer"
+    }
+  ],
+  "next_wave_preview": {
+    "id": "wave49-endgame-honest-rollup",
+    "theme": "\u53d1\u884c\u9762\u7ec8\u5c40\u5377\u95ed\u5408 + 154KB codegen \u4ecd\u72ec\u7acb\u5f00\u5377\uff08\u4e0d\u6df7\u79f0 DONE\uff09"
+  }
+}

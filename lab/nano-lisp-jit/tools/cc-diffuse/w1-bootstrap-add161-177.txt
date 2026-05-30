@@ -1,0 +1,7 @@
+Worker 1/5 · bootstrap add161–177（勿 commit）
+
+**lab/lispjit-ir/nano_bootstrap.c** — add-160 链后追加 add-161 … add-177。
+
+验证：build_nano_jit.sh only。
+
+最后一行：`CC_DONE worker=1`

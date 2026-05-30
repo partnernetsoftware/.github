@@ -1,0 +1,638 @@
+{
+  "ssot": "v4/MINDMAP.md",
+  "updated_at": "2026-05-25T00:30:00Z",
+  "max_parallel": 4,
+  "nodes": [
+    {
+      "id": "gate-baseline",
+      "layer": 0,
+      "ring": "证据",
+      "goal_dim": "Plan",
+      "status": "done",
+      "deps": [],
+      "accept": ["run.sh exit 0", "v4-complete-scoped"]
+    },
+    {
+      "id": "terminal-ldr",
+      "layer": 1,
+      "ring": "loader",
+      "goal_dim": "构建",
+      "status": "done",
+      "deps": ["gate-baseline"],
+      "accept": ["run-ape.payload.load=1", "inspect-ape.universal.loader=v2-payload-table"],
+      "parallel_slot": "W1"
+    },
+    {
+      "id": "terminal-pack",
+      "layer": 1,
+      "ring": "pack",
+      "goal_dim": "构建",
+      "status": "done",
+      "deps": ["gate-baseline"],
+      "accept": ["terminal-bfs.com", "ape-v2 dual slice hash distinct"],
+      "parallel_slot": "W2"
+    },
+    {
+      "id": "terminal-jit",
+      "layer": 1,
+      "ring": "JIT",
+      "goal_dim": "Codegen",
+      "status": "done",
+      "deps": ["gate-baseline"],
+      "accept": ["terminal-bfs-arithmetic.lbin"],
+      "parallel_slot": "W3"
+    },
+    {
+      "id": "terminal-aot",
+      "layer": 1,
+      "ring": "AOT",
+      "goal_dim": "Codegen",
+      "status": "done",
+      "deps": ["gate-baseline"],
+      "accept": ["terminal-bfs-add7.elf"],
+      "parallel_slot": "W4"
+    },
+    {
+      "id": "terminal-com",
+      "layer": 1,
+      "ring": "组装",
+      "goal_dim": "构建",
+      "status": "done",
+      "deps": ["terminal-ldr", "terminal-jit", "terminal-pack"],
+      "accept": ["bootstrap-v4-terminal-com-diffusion-plan"]
+    },
+    {
+      "id": "terminal-boot",
+      "layer": 1,
+      "ring": "自举",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["gate-baseline"],
+      "accept": ["gen1 plan anchor"]
+    },
+    {
+      "id": "com-lbin-in-ape",
+      "layer": 2,
+      "ring": "组装",
+      "goal_dim": "构建",
+      "status": "done",
+      "deps": ["terminal-com", "terminal-jit", "terminal-pack"],
+      "accept": ["pack-app.payload.lbin=1", "mindmap-com-app.com"],
+      "parallel_slot": "W1"
+    },
+    {
+      "id": "boot-selfpack-com",
+      "layer": 2,
+      "ring": "自举",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["terminal-boot", "terminal-com"],
+      "accept": ["nano-jit.com file-hash in plan"],
+      "parallel_slot": "W2"
+    },
+    {
+      "id": "codegen-ir-emit",
+      "layer": 2,
+      "ring": "Codegen",
+      "goal_dim": "Codegen",
+      "status": "done",
+      "deps": ["gate-baseline"],
+      "accept": ["aarch64.emit.profile=ir-exit-v1", "ir-table-lisp + exit-emit"],
+      "parallel_slot": "W3"
+    },
+    {
+      "id": "runner-squad-dispatch",
+      "layer": 2,
+      "ring": "编排",
+      "goal_dim": "Runner",
+      "status": "done",
+      "deps": ["gate-baseline"],
+      "accept": ["squad-dispatch.ok=1", "bootstrap squad-dispatch step"],
+      "parallel_slot": "W4"
+    },
+    {
+      "id": "loader-bare-default",
+      "layer": 3,
+      "ring": "loader",
+      "goal_dim": "构建",
+      "status": "done",
+      "deps": ["com-lbin-in-ape", "terminal-ldr"],
+      "accept": ["pack-ape-bare.mode=bare", "mindmap-bare.com"],
+      "parallel_slot": "W1"
+    },
+    {
+      "id": "terminal-edge-milestone",
+      "layer": 3,
+      "ring": "终局",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["com-lbin-in-ape", "boot-selfpack-com", "terminal-com", "terminal-ldr"],
+      "accept": ["terminal.edge.ok=1", "terminal-edge-app.com", "nano-jit.com hash in edge plan"],
+      "parallel_slot": "W2"
+    },
+    {
+      "id": "zero-host-bootstrap",
+      "layer": 4,
+      "ring": "自举",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["terminal-edge-milestone", "codegen-ir-emit", "runner-squad-dispatch", "loader-bare-default"],
+      "accept": ["nano-jit.com run-bootstrap-plan gen2", "zero.host.bootstrap.ok=1", "seed.com hash != next.com"]
+    },
+    {
+      "id": "zero-host-gen3-via-gen2-com",
+      "layer": 5,
+      "ring": "自举",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-bootstrap"],
+      "accept": ["zero.host.gen3.ok=1", "build-slice-lisp+nano-cc", "zero-host-gen3-nano-jit.com"]
+    },
+    {
+      "id": "zero-host-gen5-via-gen3-com",
+      "layer": 6,
+      "ring": "自举",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen3-via-gen2-com"],
+      "accept": ["zero.host.gen5.ok=1", "dual-arch build-slice-lisp pack", "zero-host-gen5-nano-jit.com"]
+    },
+    {
+      "id": "zero-host-gen6-full-jit",
+      "layer": 7,
+      "ring": "自举",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen5-via-gen3-com"],
+      "accept": ["zero.host.gen6.ok=1", "gen6.com runs gen5 plan", "full lispjit .com >100KB"]
+    },
+    {
+      "id": "zero-host-gen7-via-gen6-com",
+      "layer": 8,
+      "ring": "自举",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen6-full-jit"],
+      "accept": ["zero.host.gen7.ok=1", "gen6.com runner"]
+    },
+    {
+      "id": "zero-host-gen8-via-gen7-com",
+      "layer": 9,
+      "ring": "自举",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen7-via-gen6-com"],
+      "accept": ["zero.host.gen8.ok=1", "gen7.com runner"]
+    },
+    {
+      "id": "zero-host-gen9-via-gen7-com",
+      "layer": 10,
+      "ring": "自举",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen8-via-gen7-com"],
+      "accept": ["zero.host.gen9.ok=1"]
+    },
+    {
+      "id": "zero-host-gen10-terminal-edge",
+      "layer": 11,
+      "ring": "终局",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen9-via-gen7-com", "terminal-edge-milestone"],
+      "accept": ["zero.host.gen10.ok=1", "pack-app.payload.lbin=1 on gen9 runner"]
+    },
+    {
+      "id": "zero-host-chain-scoped-complete",
+      "layer": 12,
+      "ring": "自举",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen10-terminal-edge"],
+      "accept": ["zero.host.chain.complete=1", "gen2..gen10 artifacts"]
+    },
+    {
+      "id": "zero-host-no-genesis-pack",
+      "layer": 13,
+      "ring": "pack",
+      "goal_dim": "构建",
+      "status": "done",
+      "deps": ["zero-host-chain-scoped-complete"],
+      "accept": ["zero.host.no_genesis_pack=1", "gen11 lisp dual-arch pack"]
+    },
+    {
+      "id": "zero-host-nano-cc-codegen",
+      "layer": 14,
+      "ring": "Codegen",
+      "goal_dim": "Codegen",
+      "status": "done",
+      "deps": ["zero-host-no-genesis-pack"],
+      "accept": ["zero.host.nano_cc_codegen=1", "build-slice.compiler=nano-cc"]
+    },
+    {
+      "id": "zero-host-lisp-route-build",
+      "layer": 15,
+      "ring": "Codegen",
+      "goal_dim": "Codegen",
+      "status": "done",
+      "deps": ["zero-host-nano-cc-codegen"],
+      "accept": ["zero.host.lisp_route=1", "build-slice.route=lisp-by-extension"]
+    },
+    {
+      "id": "zero-host-gen14-repack",
+      "layer": 16,
+      "ring": "pack",
+      "goal_dim": "构建",
+      "status": "done",
+      "deps": ["zero-host-lisp-route-build"],
+      "accept": ["zero.host.repack_no_lispjit=1"]
+    },
+    {
+      "id": "zero-host-gen15-genesis-pin",
+      "layer": 17,
+      "ring": "自举",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen14-repack"],
+      "accept": ["zero.host.lispjit_genesis_pin=1", "no stage0-bridge"]
+    },
+    {
+      "id": "zero-host-gen16-nested-runner",
+      "layer": 18,
+      "ring": "自举",
+      "goal_dim": "Runner",
+      "status": "done",
+      "deps": ["zero-host-gen15-genesis-pin"],
+      "accept": ["zero.host.nested_com_runner=1", "gen15.com runs gen16"]
+    },
+    {
+      "id": "zero-host-gen17-selfhost-reuse",
+      "layer": 19,
+      "ring": "自举",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen16-nested-runner"],
+      "accept": ["zero.host.selfhost_reuse=1", "build-slice.role=selfhost-reuse"]
+    },
+    {
+      "id": "zero-host-gen18-ir-table-com",
+      "layer": 20,
+      "ring": "Codegen",
+      "goal_dim": "Codegen",
+      "status": "done",
+      "deps": ["zero-host-gen17-selfhost-reuse", "codegen-ir-emit"],
+      "accept": ["zero.host.ir_table_on_com=1", "aarch64.emit.profile=ir-exit-v1"]
+    },
+    {
+      "id": "zero-host-gen19-regenesis-reuse",
+      "layer": 21,
+      "ring": "自举",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen18-ir-table-com"],
+      "accept": ["nano-jit.com selfhost-reuse", "zero-host-gen19-nano-jit.com"]
+    },
+    {
+      "id": "zero-host-gen20-reuse-on-com",
+      "layer": 22,
+      "ring": "自举",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen19-regenesis-reuse"],
+      "accept": ["zero.host.reuse_on_com=1", "gen19.com runner"]
+    },
+    {
+      "id": "zero-host-gen21-terminal-regenesis",
+      "layer": 23,
+      "ring": "终局",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen20-reuse-on-com", "terminal-edge-milestone"],
+      "accept": ["zero.host.terminal_on_gen20_com=1", "pack-app on gen20.com"]
+    },
+    {
+      "id": "zero-host-northstar-scoped-100",
+      "layer": 24,
+      "ring": "终局",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen21-terminal-regenesis"],
+      "accept": ["zero.host.chain.complete=1", "g2-g21"]
+    },
+    {
+      "id": "zero-host-gen22-lisp-only-com",
+      "layer": 25,
+      "ring": "Codegen",
+      "goal_dim": "Codegen",
+      "status": "done",
+      "deps": ["zero-host-northstar-scoped-100"],
+      "accept": ["zero.host.lisp_only_com=1", "plan has no lispjit.c"]
+    },
+    {
+      "id": "northstar-scoped-done",
+      "layer": 26,
+      "ring": "终局",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen22-lisp-only-com"],
+      "accept": ["zero.host.northstar_scoped_done=1"]
+    },
+    {
+      "id": "zero-host-gen23-lispjit-from-lisp",
+      "layer": 27,
+      "ring": "Codegen",
+      "goal_dim": "Codegen",
+      "status": "done",
+      "deps": ["northstar-scoped-done"],
+      "accept": ["zero.host.lispjit_from_lisp=1", "build-slice.role=lispjit-from-lisp"]
+    },
+    {
+      "id": "zero-host-gen24-lispjit-from-lisp-via-com",
+      "layer": 28,
+      "ring": "Codegen",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen23-lispjit-from-lisp"],
+      "accept": ["zero.host.lispjit_from_lisp_on_com=1", "zero.host.lispjit_from_lisp_regenesis=1"]
+    },
+    {
+      "id": "zero-host-gen26-lispjit-from-lisp-on-com-runner",
+      "layer": 29,
+      "ring": "Codegen",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen24-lispjit-from-lisp-via-com"],
+      "accept": ["zero.host.lispjit_from_lisp_on_com_runner=1"]
+    },
+    {
+      "id": "zero-host-gen27-lispjit-terminal",
+      "layer": 30,
+      "ring": "终局",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen26-lispjit-from-lisp-on-com-runner"],
+      "accept": ["zero.host.lispjit_from_lisp_terminal=1"]
+    },
+    {
+      "id": "zero-host-gen28-lispjit-linked-tu",
+      "layer": 31,
+      "ring": "Codegen",
+      "goal_dim": "Codegen",
+      "status": "done",
+      "deps": ["zero-host-gen27-lispjit-terminal"],
+      "accept": ["zero.host.lispjit_from_lisp_linked_tu=1"]
+    },
+    {
+      "id": "zero-host-gen29-lispjit-chain",
+      "layer": 32,
+      "ring": "自举",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen28-lispjit-linked-tu"],
+      "accept": ["zero.host.lispjit_from_lisp_chain=1"]
+    },
+    {
+      "id": "zero-host-gen30-lispjit-full-com",
+      "layer": 33,
+      "ring": "自举",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen29-lispjit-chain"],
+      "accept": ["zero.host.lispjit_from_lisp_on_full_com=1"]
+    },
+    {
+      "id": "zero-host-gen31-lispjit-partial-northstar",
+      "layer": 34,
+      "ring": "终局",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen30-lispjit-full-com"],
+      "accept": ["zero.host.lispjit_from_lisp_partial_northstar=1"]
+    },
+    {
+      "id": "zero-host-gen32-lispjit-terminal-full-com",
+      "layer": 35,
+      "ring": "终局",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen31-lispjit-partial-northstar"],
+      "accept": ["zero.host.lispjit_from_lisp_terminal_on_full_com=1"]
+    },
+    {
+      "id": "zero-host-gen33-lispjit-ir-exit-v1",
+      "layer": 36,
+      "ring": "Codegen",
+      "goal_dim": "Codegen",
+      "status": "done",
+      "deps": ["zero-host-gen32-lispjit-terminal-full-com"],
+      "accept": ["zero.host.lispjit_from_lisp_ir_exit_v1=1"]
+    },
+    {
+      "id": "lispjit-from-lisp-track-gates",
+      "layer": 37,
+      "ring": "证据",
+      "goal_dim": "Plan",
+      "status": "done",
+      "deps": ["zero-host-gen33-lispjit-ir-exit-v1"],
+      "accept": ["zero.host.lispjit_from_lisp_track_gates=1"]
+    },
+    {
+      "id": "zero-host-gen34-lispjit-multi-func-aot",
+      "layer": 38,
+      "ring": "Codegen",
+      "goal_dim": "Codegen",
+      "status": "done",
+      "deps": ["lispjit-from-lisp-track-gates"],
+      "accept": ["zero.host.lispjit_from_lisp_multi_func=1"]
+    },
+    {
+      "id": "zero-host-gen35-lispjit-multi-func-full-com",
+      "layer": 39,
+      "ring": "Codegen",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen34-lispjit-multi-func-aot"],
+      "accept": ["zero.host.lispjit_from_lisp_multi_func_on_full_com=1"]
+    },
+    {
+      "id": "zero-host-gen36-lispjit-multi-func-cf",
+      "layer": 40,
+      "ring": "Codegen",
+      "goal_dim": "Codegen",
+      "status": "done",
+      "deps": ["zero-host-gen35-lispjit-multi-func-full-com"],
+      "accept": ["zero.host.lispjit_from_lisp_multi_func_cf=1"]
+    },
+    {
+      "id": "zero-host-gen37-lispjit-multi-func-cf-full-com",
+      "layer": 41,
+      "ring": "Codegen",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen36-lispjit-multi-func-cf"],
+      "accept": ["zero.host.lispjit_from_lisp_multi_func_cf_on_full_com=1"]
+    },
+    {
+      "id": "zero-host-gen38-lispjit-mfc-chain",
+      "layer": 42,
+      "ring": "自举",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen37-lispjit-multi-func-cf-full-com"],
+      "accept": ["zero.host.lispjit_from_lisp_mfc_chain=1"]
+    },
+    {
+      "id": "zero-host-gen39-lispjit-compose-3link",
+      "layer": 43,
+      "ring": "Codegen",
+      "goal_dim": "Codegen",
+      "status": "done",
+      "deps": ["zero-host-gen38-lispjit-mfc-chain"],
+      "accept": ["zero.host.lispjit_from_lisp_compose_3link=1"]
+    },
+    {
+      "id": "zero-host-gen40-lispjit-compose-full-com",
+      "layer": 44,
+      "ring": "自举",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen39-lispjit-compose-3link"],
+      "accept": ["zero.host.lispjit_from_lisp_compose_on_full_com=1"]
+    },
+    {
+      "id": "zero-host-gen41-lispjit-mod-runtime",
+      "layer": 45,
+      "ring": "Codegen",
+      "goal_dim": "Codegen",
+      "status": "done",
+      "deps": ["zero-host-gen40-lispjit-compose-full-com"],
+      "accept": ["zero.host.lispjit_from_lisp_mod_runtime=1"]
+    },
+    {
+      "id": "zero-host-gen41b-lispjit-mod-compile",
+      "layer": 46,
+      "ring": "Codegen",
+      "goal_dim": "Codegen",
+      "status": "done",
+      "deps": ["zero-host-gen41-lispjit-mod-runtime"],
+      "accept": ["zero.host.lispjit_from_lisp_mod_compile=1"]
+    },
+    {
+      "id": "zero-host-gen42-lispjit-compose-5link",
+      "layer": 47,
+      "ring": "Codegen",
+      "goal_dim": "Codegen",
+      "status": "done",
+      "deps": ["zero-host-gen41b-lispjit-mod-compile"],
+      "accept": ["zero.host.lispjit_from_lisp_compose_5link=1"]
+    },
+    {
+      "id": "zero-host-gen43-lispjit-compose-5link-full-com",
+      "layer": 48,
+      "ring": "自举",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen42-lispjit-compose-5link"],
+      "accept": ["zero.host.lispjit_from_lisp_compose_5link_on_full_com=1"]
+    },
+    {
+      "id": "lispjit-from-lisp-track-complete",
+      "layer": 49,
+      "ring": "终局",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen43-lispjit-compose-5link-full-com"],
+      "accept": ["zero.host.lispjit_from_lisp_track_complete=1"]
+    },
+    {
+      "id": "zero-host-gen45-lispjit-full-slice",
+      "layer": 50,
+      "ring": "终局",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["lispjit-from-lisp-track-complete"],
+      "accept": ["zero.host.lispjit_from_lisp_full_slice=1", "build-slice.role=lispjit-from-lisp-full"]
+    },
+    {
+      "id": "zero-host-gen46-lispjit-full-on-com",
+      "layer": 51,
+      "ring": "自举",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen45-lispjit-full-slice"],
+      "accept": ["zero.host.lispjit_from_lisp_full_on_com=1"]
+    },
+    {
+      "id": "zero-host-gen47-lispjit-full-on-full-com",
+      "layer": 52,
+      "ring": "自举",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen46-lispjit-full-on-com"],
+      "accept": ["zero.host.lispjit_from_lisp_full_on_full_com=1"]
+    },
+    {
+      "id": "lispjit-from-lisp-full-complete",
+      "layer": 53,
+      "ring": "终局",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen47-lispjit-full-on-full-com"],
+      "accept": ["zero.host.lispjit_from_lisp_full_complete=1"]
+    },
+    {
+      "id": "zero-host-gen49-lispjit-semantic-codegen",
+      "layer": 54,
+      "ring": "终局",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["lispjit-from-lisp-full-complete"],
+      "accept": ["zero.host.lispjit_from_lisp_semantic_codegen=1", "build-slice.lispjit_codegen=1"]
+    },
+    {
+      "id": "zero-host-gen50-lispjit-semantic-on-com",
+      "layer": 55,
+      "ring": "自举",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen49-lispjit-semantic-codegen"],
+      "accept": ["zero.host.lispjit_from_lisp_semantic_on_com=1"]
+    },
+    {
+      "id": "zero-host-gen52-lispjit-semantic-track",
+      "layer": 56,
+      "ring": "终局",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen50-lispjit-semantic-on-com"],
+      "accept": ["zero.host.lispjit_from_lisp_semantic_track=1"]
+    },
+    {
+      "id": "zero-host-gen53-lispjit-semantic-full",
+      "layer": 57,
+      "ring": "终局",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen52-lispjit-semantic-track"],
+      "accept": ["zero.host.lispjit_from_lisp_semantic_full=1", "build-slice-lisp.link.objects=15"]
+    },
+    {
+      "id": "zero-host-gen56-lispjit-semantic-full-track",
+      "layer": 58,
+      "ring": "终局",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen53-lispjit-semantic-full"],
+      "accept": ["zero.host.lispjit_from_lisp_semantic_full_track=1"]
+    },
+    {
+      "id": "lispjit-from-lisp-DONE",
+      "layer": 60,
+      "ring": "终局",
+      "goal_dim": "自举",
+      "status": "done",
+      "deps": ["zero-host-gen56-lispjit-semantic-full-track"],
+      "accept": ["zero.host.lispjit_from_lisp_DONE=1", "build-slice.role=lispjit-from-lisp-done"]
+    }
+  ]
+}

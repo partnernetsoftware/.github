@@ -1,0 +1,105 @@
+{
+  "ssot": "v4.5/DIFFUSE-WAVE63.md",
+  "parent_goal": "v45.v45.nano_lisp_com_host_only_continue.100",
+  "onion_ssot": "v4.5/ONION-TDD.md",
+  "updated_at": "2026-05-27T00:00:00Z",
+  "max_parallel": 4,
+  "breadth_ring": "nano-lisp-com-native-bootstrap \u2014 nano-lisp.com \u539f\u751f bootstrap \u00b7 \u9000 host \u79cd\u5b50",
+  "nodes": [
+    {
+      "id": "v45-nlcn-gate",
+      "layer": 63,
+      "ring": "gate",
+      "onion_ring": 44,
+      "status": "done",
+      "deps": [],
+      "accept": [
+        "v45.v45.nano_lisp_com_host_only_continue.100=1",
+        "v45.host.com_nano_lisp_only=1"
+      ]
+    },
+    {
+      "id": "v45-nlcn-native",
+      "layer": 63,
+      "ring": "bootstrap",
+      "onion_ring": 44,
+      "status": "done",
+      "deps": [
+        "v45-nlcn-gate"
+      ],
+      "parallel_slot": "W1",
+      "plan": "lisp/bootstrap/bootstrap-v45-nano-lisp-com-native-bootstrap-prove.lisp",
+      "agent": "engineer-a"
+    },
+    {
+      "id": "v45-nlcn-archive",
+      "layer": 63,
+      "ring": "\u8bda\u5b9e",
+      "onion_ring": 44,
+      "status": "done",
+      "deps": [
+        "v45-nlcn-gate"
+      ],
+      "parallel_slot": "W2",
+      "plan": "lisp/bootstrap/bootstrap-v45-nano-lisp-host-archive-honest.lisp",
+      "agent": "engineer-b"
+    },
+    {
+      "id": "v45-nlcn-daily",
+      "layer": 63,
+      "ring": "plan",
+      "onion_ring": 44,
+      "status": "done",
+      "deps": [
+        "v45-nlcn-gate"
+      ],
+      "parallel_slot": "W3",
+      "plan": "lisp/bootstrap/bootstrap-v45-converge-daily-v45-nano-lisp-com-native.lisp",
+      "agent": "engineer-a"
+    },
+    {
+      "id": "v45-nlcn-selfhost",
+      "layer": 63,
+      "ring": "\u4ee3\u9645",
+      "onion_ring": 44,
+      "status": "done",
+      "deps": [
+        "v45-nlcn-gate"
+      ],
+      "parallel_slot": "W4",
+      "plan": "lisp/bootstrap/bootstrap-v45-selfhost-nano-lisp-com-native-matrix.lisp",
+      "agent": "engineer-b"
+    },
+    {
+      "id": "v45-nlcn-terminal",
+      "layer": 64,
+      "ring": "\u7ec8\u5c40",
+      "onion_ring": 44,
+      "status": "done",
+      "deps": [
+        "v45-nlcn-native",
+        "v45-nlcn-archive",
+        "v45-nlcn-daily",
+        "v45-nlcn-selfhost"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-nano-lisp-com-native-bootstrap-tree.lisp",
+      "agent": "reviewer"
+    },
+    {
+      "id": "v45-nlcn-goal",
+      "layer": 65,
+      "ring": "continue",
+      "onion_ring": 44,
+      "status": "done",
+      "deps": [
+        "v45-nlcn-terminal"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-v45-nano-lisp-com-native-bootstrap-continue-100.lisp",
+      "agent": "reviewer"
+    }
+  ],
+  "next_wave_preview": {
+    "id": "wave64-archive-c-factory-retire",
+    "theme": "archive/c \u5de5\u5382 C \u7269\u7406\u9000\u4ed3 \u00b7 \u5168 monorepo \u8bda\u5b9e"
+  }
+}

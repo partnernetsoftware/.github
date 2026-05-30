@@ -1,0 +1,1072 @@
+# v4.5 scoped 100% — onion TDD via *.lisp + nano-jit.com
+apiVersion: squad/v2
+project:
+  root: ..
+  state_db: .squad/state-v45.db
+  state_file: .squad/state-v45.json
+locking:
+  backend: sqlite
+roles:
+  reviewer: { kind: meta, workflow: reviewer }
+  commander: { kind: orchestrator, workflow: commander }
+  engineer-a: { kind: worker, workflow: worker }
+  engineer-b: { kind: worker, workflow: worker }
+dispatch:
+  assign_to: [engineer-a, engineer-b]
+  max_per_wave: 2
+supervisor:
+  team_mode: true
+  auto_exec: false
+  auto_done: false
+  timeout_sec: 3600
+  poll_interval_sec: 10
+  max_waves: 20
+signoff:
+  id: v45-scoped-100
+  require_terminal: false
+  gates:
+    - id: v45-decision-doc
+      check: artifact
+      path_glob: "v4.5/DECISION.md"
+    - id: v45-onion-tdd-doc
+      check: artifact
+      path_glob: "v4.5/ONION-TDD.md"
+    - id: v45-progress-doc
+      check: artifact
+      path_glob: "v4.5/PROGRESS.md"
+    - id: v45-eval-doc
+      check: artifact
+      path_glob: "v4.5/EVAL.md"
+    - id: v45-reflection-doc
+      check: artifact
+      path_glob: "v4.5/REFLECTION.md"
+    - id: v45-structure-doc
+      check: artifact
+      path_glob: "STRUCTURE.md"
+    - id: v45-onion-tdd-plan
+      check: artifact
+      path_glob: "lisp/bootstrap/bootstrap-v45-onion-tdd.lisp"
+      plan_must_not_match: '\\.c'
+    - id: v45-terminal-done-plan
+      check: artifact
+      path_glob: "lisp/bootstrap/bootstrap-v45-terminal-done.lisp"
+    - id: v45-boundary-readme
+      check: artifact
+      path_glob: "lisp/boundary/README.md"
+    - id: v45-boundary-negative-plan
+      check: artifact
+      path_glob: "lisp/bootstrap/bootstrap-v45-boundary-negative.lisp"
+      plan_must_not_match: '\\.c'
+    - id: v45-product-feedback-doc
+      check: artifact
+      path_glob: "v4.5/PRODUCT-FEEDBACK.md"
+    - id: v45-boundary-feedback-plan
+      check: artifact
+      path_glob: "lisp/bootstrap/bootstrap-v45-boundary-feedback.lisp"
+      plan_must_not_match: '\\.c'
+    - id: v45-boundary-probes
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.boundary.probes
+      min_pass: 13
+    - id: v45-product-feedback
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.product.feedback
+      min_pass: 1
+    - id: v45-scoped-100
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.scoped.100
+      min_pass: 1
+    - id: v45-onion-lisp-only
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.onion.lisp_only
+      min_pass: 1
+    - id: v45-build-no-host-cc
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.build.no_host_cc
+      min_pass: 1
+    - id: v45-cleanup-ok
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.cleanup.ok
+      min_pass: 1
+    - id: v45-parallel-doc
+      check: artifact
+      path_glob: "v4.5/PARALLEL.md"
+    - id: v45-wave1-diffuse
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.wave1.diffuse
+      min_pass: 1
+    - id: v45-wave1-parallel
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.wave1.parallel
+      min_pass: 4
+    - id: v45-wave1-rollup
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.wave1.rollup
+      min_pass: 1
+    - id: v45-selfhost-doc
+      check: artifact
+      path_glob: "v4.5/SELFHOST.md"
+    - id: v45-selfhost-chain-plan
+      check: artifact
+      path_glob: "lisp/bootstrap/bootstrap-v45-selfhost-chain.lisp"
+      plan_must_not_match: '\\.c'
+    - id: v45-selfhost-lisp-slice
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.selfhost.lisp_slice
+      min_pass: 1
+    - id: v45-selfhost-regenesis
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.selfhost.regenesis
+      min_pass: 1
+    - id: v45-selfhost-chain
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.selfhost.chain
+      min_pass: 1
+    - id: v45-diffuse-wave2-doc
+      check: artifact
+      path_glob: "v4.5/DIFFUSE-WAVE2.md"
+    - id: v45-concurrent-impl-doc
+      check: artifact
+      path_glob: "v4.5/CONCURRENT-IMPL.md"
+    - id: v45-wave2-diffuse
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.wave2.diffuse
+      min_pass: 1
+    - id: v45-selfhost-modules-full
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.selfhost.modules_full
+      min_pass: 1
+    - id: v45-selfhost-next-com
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.selfhost.next_com
+      min_pass: 1
+    - id: v45-wave2-rollup
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.wave2.rollup
+      min_pass: 1
+    - id: v45-scoped-ci-run
+      check: results
+      file: ".build/v45-scoped-results.txt"
+      results_key: tests.pass
+      min_pass: 2
+    - id: v45-onion-lisp-only-plan
+      check: artifact
+      path_glob: "lisp/bootstrap/bootstrap-v45-onion-lisp-only.lisp"
+      plan_must_not_match: 'lispjit\\.c'
+    - id: v45-onion-lisp-only-plan-ev
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.onion.lisp_only_plan
+      min_pass: 1
+    - id: v45-wave5-diffuse-doc
+      check: artifact
+      path_glob: "v4.5/DIFFUSE-WAVE5.md"
+    - id: v45-wave5-diffuse
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.wave5.diffuse
+      min_pass: 1
+    - id: v45-wave6-diffuse-doc
+      check: artifact
+      path_glob: "v4.5/DIFFUSE-WAVE6.md"
+    - id: v45-wave6-diffuse
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.wave6.diffuse
+      min_pass: 1
+    - id: v45-onion-primary-lisp-only
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.onion.primary_lisp_only
+      min_pass: 1
+    - id: v45-w3-minimal-probe
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.w3_com.minimal_probe
+      min_pass: 1
+    - id: v45-factory-slim
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.factory.slim
+      min_pass: 1
+    - id: v45-release-100
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.release.100
+      min_pass: 1
+    - id: v45-endgame-100
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.endgame.100
+      min_pass: 1
+    - id: v45-runner-no-c-src
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.runner.no_c_src
+      min_pass: 1
+    - id: v45-codegen-vm-emit
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.codegen.vm_emit
+      min_pass: 1
+    - id: v45-tier3-no-c-src-plan
+      check: artifact
+      path_glob: "lisp/bootstrap/bootstrap-v45-tier3-no-c-src.lisp"
+    - id: v45-tier4-vm-emit-plan
+      check: artifact
+      path_glob: "lisp/bootstrap/bootstrap-v45-tier4-vm-emit.lisp"
+      plan_must_not_match: '\\.c'
+    - id: v45-wave8-diffuse-doc
+      check: artifact
+      path_glob: "v4.5/DIFFUSE-WAVE8.md"
+    - id: v45-endgame-100-plan
+      check: artifact
+      path_glob: "lisp/bootstrap/bootstrap-v45-endgame-100.lisp"
+      plan_must_not_match: '\\.c'
+    - id: v45-factory-v4-skipped
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.factory.v4_skipped
+      min_pass: 1
+    - id: v45-wave7-diffuse-doc
+      check: artifact
+      path_glob: "v4.5/DIFFUSE-WAVE7.md"
+    - id: v45-warehouse-100
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.warehouse.100
+      min_pass: 1
+    - id: v45-factory-100-ev
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.factory.100
+      min_pass: 1
+    - id: v45-wave9-diffuse-doc
+      check: artifact
+      path_glob: "v4.5/DIFFUSE-WAVE9.md"
+    - id: v45-honest-remaining-doc
+      check: artifact
+      path_glob: "v4.5/HONEST-REMAINING.md"
+    - id: v45-honest-tier5-closed
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.honest.tier5.open
+      min_pass: 0
+    - id: v45-wave10-diffuse-doc
+      check: artifact
+      path_glob: "v4.5/DIFFUSE-WAVE10.md"
+    - id: v45-wave11-diffuse-doc
+      check: artifact
+      path_glob: "v4.5/DIFFUSE-WAVE11.md"
+    - id: v45-physical-inventory-doc
+      check: artifact
+      path_glob: "v4.5/PHYSICAL-INVENTORY.md"
+    - id: v45-wave11-parallel
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.wave11.parallel
+      min_pass: 4
+    - id: v45-tier5-runsh-default
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.tier5.runsh_default
+      min_pass: 1
+    - id: v45-tier5-archive-symlinks
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.tier5.archive_symlinks
+      min_pass: 2
+    - id: v45-wave12-diffuse-doc
+      check: artifact
+      path_glob: "v4.5/DIFFUSE-WAVE12.md"
+    - id: v45-wave12-parallel
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.wave12.parallel
+      min_pass: 4
+    - id: v45-tier5-nano-tu-archived
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.tier5.nano_tu_archived
+      min_pass: 16
+    - id: v45-wave13-diffuse-doc
+      check: artifact
+      path_glob: "v4.5/DIFFUSE-WAVE13.md"
+    - id: v45-ir-facade-zero-real
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.tier5.ir_facade_zero_real
+      min_pass: 1
+    - id: v45-lispjit-ir-zero-c
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.physical.lispjit_ir_c_files
+      min_pass: 0
+    - id: v45-tier5-100
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.tier5.100
+      min_pass: 1
+    - id: v45-physical-zero-c
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.physical.zero_c
+      min_pass: 1
+    - id: v45-tier5-vm-emit-broad
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.tier5.vm_emit_broad
+      min_pass: 1
+    - id: v45-wave15-diffuse-doc
+      check: artifact
+      path_glob: "v4.5/DIFFUSE-WAVE15.md"
+    - id: v45-mindmap-tdd-tree-doc
+      check: artifact
+      path_glob: "v4.5/MINDMAP-TDD-TREE.md"
+    - id: v45-mindmap-frontier-v45
+      check: artifact
+      path_glob: "v4.5/mindmap-frontier-v45.json"
+    - id: v45-goal-mindmap-tree-100
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.goal.mindmap_tree.100
+      min_pass: 1
+    - id: v45-mindmap-tree-coupled
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.mindmap.tree.coupled
+      min_pass: 1
+    - id: v45-mindmap-parallel
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.mindmap.parallel
+      min_pass: 4
+    - id: v45-goal-onion-mindmap-unified
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.goal.onion_mindmap.unified.100
+      min_pass: 1
+    - id: v45-mindmap-nodes-done
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.mindmap.nodes_done
+      min_pass: 14
+    - id: v45-wave18-diffuse-doc
+      check: artifact
+      path_glob: "v4.5/DIFFUSE-WAVE18.md"
+    - id: v45-wave7-diffuse
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.wave7.diffuse
+      min_pass: 1
+    - id: v45-wave3-diffuse-doc
+      check: artifact
+      path_glob: "v4.5/DIFFUSE-WAVE3.md"
+    - id: v45-lisp-only-regenesis
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.lisp_only.regenesis
+      min_pass: 1
+    - id: v45-factory-converge
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.factory.converge
+      min_pass: 1
+    - id: v45-wave3-plans
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.wave3.plans
+      min_pass: 25
+    - id: v45-wave4-diffuse-doc
+      check: artifact
+      path_glob: "v4.5/DIFFUSE-WAVE4.md"
+    - id: v45-wave4-diffuse
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.wave4.diffuse
+      min_pass: 1
+    - id: v45-tier3-runner-archived
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.tier3.runner_archived
+      min_pass: 1
+    - id: v45-selfhost-next-onion
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.selfhost.next_onion
+      min_pass: 1
+    - id: v45-selfhost-100
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.selfhost.100
+      min_pass: 1
+    - id: v45-selfhost-next-verify-matrix
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.selfhost.next_verify_matrix
+      min_pass: 1
+    - id: v45-selfhost-lisp-only-chain
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.selfhost.lisp_only_chain
+      min_pass: 1
+    - id: v45-squad-plan-no-sh
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.squad.plan_no_sh
+      min_pass: 1
+    - id: v45-goal-lisp-selfhost-unified
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.goal.lisp_selfhost.unified.100
+      min_pass: 1
+    - id: v45-goal-onion-tdd-tree-mindmap
+      check: results
+      file: ".build/v45-entry.evidence"
+      results_key: v45.goal.onion_tdd_tree_mindmap.100
+      min_pass: 1
+
+tasks:
+  wave1-v45-track-a-fine-i64:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "lisp/bootstrap/bootstrap-v45-boundary-i64.lisp"
+      - "lisp/boundary/add-i64-chain.lisp"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v45-boundary-i64-plan"
+  wave1-v45-track-a-fine-ptr:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "lisp/bootstrap/bootstrap-v45-boundary-ptr.lisp"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v45-boundary-ptr-plan"
+  wave1-v45-track-a-fine-func:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "lisp/bootstrap/bootstrap-v45-boundary-func.lisp"
+      - "lisp/boundary/func-block-vm-gap.lisp"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v45-boundary-func-plan"
+  wave1-v45-track-a-fine-rodata:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "lisp/bootstrap/bootstrap-v45-boundary-rodata.lisp"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v45-boundary-rodata-plan"
+  wave1-v45-track-b-diffuse:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "lisp/bootstrap/bootstrap-v45-diffuse-global.lisp"
+      - "v4.5/PARALLEL.md"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v45-diffuse-global-plan"
+      - "run-bootstrap-v45-wave1-diffuse-tick-plan"
+  wave1-v45-track-c-parallel:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "lisp/bootstrap/bootstrap-v45-onion-parallel-matrix.lisp"
+      - "scripts/v45-com-verify.sh"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v45-onion-parallel-matrix-plan"
+      - "run-bootstrap-v45-wave1-parallel-tick-plan"
+      - "run-bootstrap-v45-wave1-parallel-fine-plan"
+  wave1-v45-track-d-assess:
+    assign_role: reviewer
+    priority: P0
+    touch_paths:
+      - "v4.5/EVAL.md"
+      - "v4.5/REFLECTION.md"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v45-wave1-assess-tick-plan"
+  wave1-v45-R:
+    assign_role: reviewer
+    priority: meta
+    depends:
+      - wave1-v45-track-a-fine-i64
+      - wave1-v45-track-a-fine-ptr
+      - wave1-v45-track-a-fine-func
+      - wave1-v45-track-a-fine-rodata
+      - wave1-v45-track-b-diffuse
+      - wave1-v45-track-c-parallel
+      - wave1-v45-track-d-assess
+    accept:
+      - "run-bootstrap-v45-wave1-rollup-plan"
+      - "v45-com-verify done"
+
+  wave2-v45-track-a-selfhost-full:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "lisp/bootstrap/bootstrap-v45-selfhost-modules-full.lisp"
+      - "lisp/bootstrap/bootstrap-v45-selfhost-next-com-verify.lisp"
+      - "v4.5/SELFHOST.md"
+    accept:
+      - "run-bootstrap-v45-selfhost-modules-full-plan"
+  wave2-v45-track-b-factory-matrix:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "lisp/bootstrap/bootstrap-v45-factory-matrix.lisp"
+      - "lisp/bootstrap/bootstrap-v45-wave2-diffuse-global.lisp"
+      - "v4.5/DIFFUSE-WAVE2.md"
+      - "v4.5/CONCURRENT-IMPL.md"
+    accept:
+      - "run-bootstrap-v45-factory-matrix-plan"
+      - "run-bootstrap-v45-wave2-diffuse-global-plan"
+  wave2-v45-track-c-converge:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "scripts/v45-wave2-converge.sh"
+      - "scripts/v45-com-verify.sh"
+      - "run.sh"
+    accept:
+      - "run-bootstrap-v45-wave2-converge-script-plan"
+  wave2-v45-track-d-assess:
+    assign_role: reviewer
+    priority: P0
+    touch_paths:
+      - "v4.5/EVAL.md"
+      - "v4.5/REFLECTION.md"
+      - "v4.5/PARALLEL.md"
+    accept:
+      - "run-bootstrap-v45-wave2-assess-tick-plan"
+  wave2-v45-R:
+    assign_role: reviewer
+    priority: meta
+    depends:
+      - wave2-v45-track-a-selfhost-full
+      - wave2-v45-track-b-factory-matrix
+      - wave2-v45-track-c-converge
+      - wave2-v45-track-d-assess
+    accept:
+      - "run-bootstrap-v45-wave2-rollup-plan"
+      - "v45-wave2-converge done"
+  wave4-v45-track-a-tier3:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "archive/c/runner/README.md"
+      - "lisp/bootstrap/bootstrap-v45-wave4-tier3-anchor.lisp"
+    accept:
+      - "run-bootstrap-v45-wave4-tier3-anchor-plan"
+  wave4-v45-track-b-next-onion:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "scripts/v45-wave4-converge.sh"
+    accept:
+      - "v45-wave4-converge next_com onion"
+  wave4-v45-track-c-squad:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "lisp/bootstrap/bootstrap-v45-wave4-squad-plan.lisp"
+    accept:
+      - "run-bootstrap-v45-wave4-squad-plan-plan"
+  wave4-v45-track-d-assess:
+    assign_role: reviewer
+    priority: P0
+    touch_paths:
+      - "v4.5/DIFFUSE-WAVE4.md"
+      - "v4.5/EVAL.md"
+      - "v4.5/REFLECTION.md"
+    accept:
+      - "run-bootstrap-v45-wave4-rollup-plan"
+  wave4-v45-R:
+    assign_role: reviewer
+    priority: meta
+    depends:
+      - wave4-v45-track-a-tier3
+      - wave4-v45-track-b-next-onion
+      - wave4-v45-track-c-squad
+      - wave4-v45-track-d-assess
+    accept:
+      - "run-bootstrap-v45-wave4-converge-plan"
+      - "v45-wave4-converge done"
+  wave5-v45-track-a-onion-lisp:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "lisp/bootstrap/bootstrap-v45-onion-lisp-only.lisp"
+    accept:
+      - "run-bootstrap-v45-onion-lisp-only-plan"
+  wave5-v45-track-b-scoped-ci:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "scripts/v45-scoped-ci.sh"
+      - ".build/v45-scoped-results.txt"
+    accept:
+      - "v45-scoped-ci tests.pass=2"
+  wave5-v45-track-c-w3-matrix:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "lisp/bootstrap/bootstrap-v45-wave5-w3-com-matrix.lisp"
+    accept:
+      - "run-bootstrap-v45-wave5-w3-com-matrix-plan"
+  wave5-v45-track-d-assess:
+    assign_role: reviewer
+    priority: P0
+    touch_paths:
+      - "v4.5/DIFFUSE-WAVE5.md"
+    accept:
+      - "run-bootstrap-v45-wave5-rollup-plan"
+  wave5-v45-R:
+    assign_role: reviewer
+    priority: meta
+    depends:
+      - wave5-v45-track-a-onion-lisp
+      - wave5-v45-track-b-scoped-ci
+      - wave5-v45-track-c-w3-matrix
+      - wave5-v45-track-d-assess
+    accept:
+      - "run-bootstrap-v45-wave5-converge-plan"
+      - "v45-wave5-converge done"
+  wave6-v45-track-a-onion-primary:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "lisp/bootstrap/bootstrap-v45-wave6-onion-primary.lisp"
+      - "v4.5/ONION-TDD.md"
+    accept:
+      - "run-bootstrap-v45-wave6-onion-primary-plan"
+  wave6-v45-track-b-factory-slim:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "scripts/v45-factory-slim.sh"
+    accept:
+      - "NANO_V45_SCOPED_ONLY factory slim"
+  wave6-v45-track-c-w3-probe:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "lisp/bootstrap/bootstrap-v45-wave6-w3-minimal-probe.lisp"
+    accept:
+      - "run-bootstrap-v45-wave6-w3-minimal-probe-plan"
+  wave6-v45-track-d-assess:
+    assign_role: reviewer
+    priority: P0
+    touch_paths:
+      - "v4.5/DIFFUSE-WAVE6.md"
+    accept:
+      - "run-bootstrap-v45-wave6-rollup-plan"
+  wave6-v45-R:
+    assign_role: reviewer
+    priority: meta
+    depends:
+      - wave6-v45-track-a-onion-primary
+      - wave6-v45-track-b-factory-slim
+      - wave6-v45-track-c-w3-probe
+      - wave6-v45-track-d-assess
+    accept:
+      - "run-bootstrap-v45-wave6-converge-plan"
+      - "v45-wave6-converge done"
+  wave7-v45-track-a-endgame:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "lisp/bootstrap/bootstrap-v45-endgame-100.lisp"
+      - "lisp/bootstrap/bootstrap-v45-terminal-done.lisp"
+    accept:
+      - "run-bootstrap-v45-endgame-100-plan"
+      - "v45.release.100=1"
+  wave7-v45-track-b-factory-skip:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "skip_registry.sh"
+    accept:
+      - "NANO_V45_SCOPED_ONLY skips v4 run_case"
+  wave7-v45-track-c-release-audit:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "lisp/bootstrap/bootstrap-v45-wave7-release-audit.lisp"
+    accept:
+      - "run-bootstrap-v45-wave7-release-audit-plan"
+  wave7-v45-track-d-assess:
+    assign_role: reviewer
+    priority: P0
+    touch_paths:
+      - "v4.5/DIFFUSE-WAVE7.md"
+      - "v4.5/PROGRESS.md"
+    accept:
+      - "run-bootstrap-v45-wave7-rollup-plan"
+  wave7-v45-R:
+    assign_role: reviewer
+    priority: meta
+    depends:
+      - wave7-v45-track-a-endgame
+      - wave7-v45-track-b-factory-skip
+      - wave7-v45-track-c-release-audit
+      - wave7-v45-track-d-assess
+    accept:
+      - "run-bootstrap-v45-wave7-converge-plan"
+      - "v45-wave7-converge done"
+  wave11-v45-track-a-runsh-default:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "run.sh"
+      - "lisp/bootstrap/bootstrap-v45-wave11-runsh-default.lisp"
+    accept:
+      - "v45.tier5.runsh_default=1"
+  wave11-v45-track-b-bootstrap-archive:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "archive/c/runner/nano_bootstrap.c"
+      - "archive/c/runner/README.md"
+      - "lisp/bootstrap/bootstrap-v45-wave11-tier5-bootstrap-anchor.lisp"
+    accept:
+      - "v45.tier5.archive_symlinks=2"
+  wave11-v45-track-c-physical-inventory:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "v4.5/PHYSICAL-INVENTORY.md"
+      - "lisp/bootstrap/bootstrap-v45-wave11-physical-inventory.lisp"
+    accept:
+      - "run-bootstrap-v45-wave11-physical-inventory-plan"
+  wave11-v45-track-d-vm-emit-matrix:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "lisp/bootstrap/bootstrap-v45-wave11-vm-emit-matrix.lisp"
+    accept:
+      - "run-bootstrap-v45-wave11-vm-emit-matrix-plan"
+  wave11-v45-R:
+    assign_role: reviewer
+    priority: meta
+    depends:
+      - wave11-v45-track-a-runsh-default
+      - wave11-v45-track-b-bootstrap-archive
+      - wave11-v45-track-c-physical-inventory
+      - wave11-v45-track-d-vm-emit-matrix
+    accept:
+      - "run-bootstrap-v45-wave11-tier5-converge-plan"
+      - "v45-wave11-tier5-converge done"
+  wave12-v45-track-a-util:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "archive/c/runner/nano_abi.c"
+      - "archive/c/runner/nano_util.c"
+      - "archive/c/runner/nano_manifest.c"
+      - "archive/c/runner/nano_main.c"
+    accept:
+      - "run-bootstrap-v45-wave12-track-a-anchor-plan"
+  wave12-v45-track-b-parse:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "archive/c/runner/nano_lisp_parse.c"
+      - "archive/c/runner/nano_blob_vm.c"
+    accept:
+      - "run-bootstrap-v45-wave12-track-b-anchor-plan"
+  wave12-v45-track-c-elf:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "archive/c/runner/nano_elf64.c"
+      - "archive/c/runner/nano_cc.c"
+    accept:
+      - "run-bootstrap-v45-wave12-track-c-anchor-plan"
+  wave12-v45-track-d-cli:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "archive/c/runner/nano_ape.c"
+      - "archive/c/runner/nano_run_cli.c"
+    accept:
+      - "run-bootstrap-v45-wave12-track-d-anchor-plan"
+  wave12-v45-R:
+    assign_role: reviewer
+    priority: meta
+    depends:
+      - wave12-v45-track-a-util
+      - wave12-v45-track-b-parse
+      - wave12-v45-track-c-elf
+      - wave12-v45-track-d-cli
+    accept:
+      - "run-bootstrap-v45-wave12-tier5-converge-plan"
+      - "v45-wave12-tier5-converge done"
+  wave13-v45-track-a-ape:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "archive/c/runner/ape_v2.c"
+    accept:
+      - "run-bootstrap-v45-wave13-ape-anchor-plan"
+  wave13-v45-track-b-irjit:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "archive/c/runner/irjit.c"
+    accept:
+      - "run-bootstrap-v45-wave13-irjit-anchor-plan"
+  wave13-v45-track-c-onion:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "lisp/bootstrap/bootstrap-v45-wave13-onion-after-archive.lisp"
+    accept:
+      - "run-bootstrap-v45-wave13-onion-after-archive-plan"
+  wave13-v45-track-d-physical:
+    assign_role: reviewer
+    priority: P0
+    touch_paths:
+      - "v4.5/PHYSICAL-INVENTORY.md"
+    accept:
+      - "run-bootstrap-v45-wave13-physical-rollup-plan"
+  wave13-v45-R:
+    assign_role: reviewer
+    priority: meta
+    depends:
+      - wave13-v45-track-a-ape
+      - wave13-v45-track-b-irjit
+      - wave13-v45-track-c-onion
+      - wave13-v45-track-d-physical
+    accept:
+      - "run-bootstrap-v45-wave13-tier5-converge-plan"
+      - "v45-wave13-tier5-converge done"
+
+  wave19-v45-track-a-lisp-chain:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "lisp/bootstrap/bootstrap-v45-selfhost-lisp-only-chain.lisp"
+      - "v4.5/SELFHOST.md"
+    accept:
+      - "run-bootstrap-v45-selfhost-lisp-only-chain-plan"
+  wave19-v45-track-b-next-matrix:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "scripts/v45-wave19-selfhost-converge.sh"
+      - "v4.5/DIFFUSE-WAVE19.md"
+    accept:
+      - "run-bootstrap-v45-wave19-selfhost-converge-plan"
+  wave19-v45-track-c-goal:
+    assign_role: reviewer
+    priority: P0
+    touch_paths:
+      - "lisp/bootstrap/bootstrap-v45-goal-selfhost-100.lisp"
+      - "v4.5/EVAL.md"
+    accept:
+      - "run-bootstrap-v45-goal-selfhost-100-plan"
+  wave19-v45-R:
+    assign_role: reviewer
+    priority: meta
+    depends:
+      - wave19-v45-track-a-lisp-chain
+      - wave19-v45-track-b-next-matrix
+      - wave19-v45-track-c-goal
+    accept:
+      - "run-bootstrap-v45-wave19-selfhost-converge-plan"
+      - "v45.selfhost.100=1 in v45-entry.evidence"
+
+  wave82-v45-track-a-bulk-modules:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "lisp/modules-expand/14-bulk-core-expand.lisp"
+      - "lisp/modules-expand/15-bulk-extra-expand.lisp"
+      - "lisp/modules-expand/16-bulk-vm-expand.lisp"
+      - "tools/gen-bulk-expand.py"
+      - "archive/c/runner/nano_bootstrap.c"
+    accept:
+      - "v45.goal.l4_bulk_scale_modules=1"
+  wave82-v45-track-b-converge:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "retired/scripts/v45-l4-bulk-scale-converge.sh"
+      - "v4.5/mindmap-frontier-v45-l4-bulk-scale.json"
+    accept:
+      - "run-bootstrap-v45-l4-bulk-scale-converge-plan"
+  wave82-v45-track-c-probe:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "lisp/bootstrap/bootstrap-v45-probe-compose15-bulk-scale-pure-link.lisp"
+    accept:
+      - "run-bootstrap-v45-probe-compose15-bulk-scale-pure-link-plan"
+  wave82-v45-R:
+    assign_role: reviewer
+    priority: meta
+    depends:
+      - wave82-v45-track-a-bulk-modules
+      - wave82-v45-track-b-converge
+      - wave82-v45-track-c-probe
+    accept:
+      - "v45-l4-bulk-scale-converge done"
+
+  wave83-v45-track-a-bulk-all-slots:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "lisp/modules-expand/17-bulk-boot-expand.lisp"
+      - "lisp/modules-expand/18-bulk-aot-expand.lisp"
+      - "lisp/modules-expand/19-bulk-elf-expand.lisp"
+      - "lisp/modules-expand/20-bulk-abi-expand.lisp"
+      - "lisp/modules-expand/21-bulk-manifest-expand.lisp"
+      - "lisp/modules-expand/22-bulk-run-expand.lisp"
+      - "lisp/modules-expand/23-bulk-pack-expand.lisp"
+      - "lisp/modules-expand/24-bulk-ape-expand.lisp"
+      - "lisp/modules-expand/25-bulk-parse-expand.lisp"
+      - "tools/gen-bulk-expand.py"
+      - "archive/c/runner/nano_bootstrap.c"
+    accept:
+      - "v45.goal.l4_8k_milestone_modules=1"
+  wave83-v45-track-b-8k-converge:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "retired/scripts/v45-l4-8k-milestone-converge.sh"
+      - "v4.5/mindmap-frontier-v45-l4-8k-milestone.json"
+    accept:
+      - "run-bootstrap-v45-l4-8k-milestone-converge-plan"
+  wave83-v45-R:
+    assign_role: reviewer
+    priority: meta
+    depends:
+      - wave83-v45-track-a-bulk-all-slots
+      - wave83-v45-track-b-8k-converge
+    accept:
+      - "v45-l4-8k-milestone-converge done"
+
+  wave85-v45-track-a-bulk-n370:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "lisp/modules-expand/13-bulk-text-expand.lisp"
+      - "lisp/modules-expand/14-bulk-core-expand.lisp"
+      - "lisp/modules-expand/15-bulk-extra-expand.lisp"
+      - "lisp/modules-expand/16-bulk-vm-expand.lisp"
+      - "lisp/modules-expand/17-bulk-boot-expand.lisp"
+      - "lisp/modules-expand/18-bulk-aot-expand.lisp"
+      - "lisp/modules-expand/19-bulk-elf-expand.lisp"
+      - "lisp/modules-expand/20-bulk-abi-expand.lisp"
+      - "lisp/modules-expand/21-bulk-manifest-expand.lisp"
+      - "lisp/modules-expand/22-bulk-run-expand.lisp"
+      - "lisp/modules-expand/23-bulk-pack-expand.lisp"
+      - "lisp/modules-expand/24-bulk-ape-expand.lisp"
+      - "lisp/modules-expand/25-bulk-parse-expand.lisp"
+      - "lisp/modules-expand/26-bulk-main-expand.lisp"
+      - "lisp/modules-expand/27-bulk-callee-expand.lisp"
+      - "tools/gen-bulk-expand.py"
+      - "archive/c/runner/nano_bootstrap.c"
+    accept:
+      - "v45.goal.l4_64k_milestone_modules=1"
+  wave85-v45-track-b-64k-converge:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "retired/scripts/v45-l4-64k-milestone-converge.sh"
+      - "v4.5/mindmap-frontier-v45-l4-64k-milestone.json"
+    accept:
+      - "run-bootstrap-v45-l4-64k-milestone-converge-plan"
+  wave85-v45-R:
+    assign_role: reviewer
+    priority: meta
+    depends:
+      - wave85-v45-track-a-bulk-n370
+      - wave85-v45-track-b-64k-converge
+    accept:
+      - "v45-l4-64k-milestone-converge done"
+
+  wave87-v45-track-a-pack:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "lisp/bootstrap/bootstrap-v45-goal-compose15-154k-com-pack.lisp"
+      - "genesis/nano-jit.x86_64"
+    accept:
+      - "run-bootstrap-v45-goal-compose15-154k-com-pack-plan"
+  wave87-v45-track-b-promote:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "retired/scripts/v45-wave87-compose15-regenesis-promote-converge.sh"
+      - "v4.5/mindmap-frontier-v45-compose15-regenesis-promote.json"
+      - "release/nano-lisp.com"
+    accept:
+      - "v45-wave87-compose15-regenesis-promote-converge done"
+  wave87-v45-R:
+    assign_role: reviewer
+    priority: meta
+    depends:
+      - wave87-v45-track-a-pack
+      - wave87-v45-track-b-promote
+    accept:
+      - "v45.goal.compose15_regenesis_promote_continue.100=1"
+
+  wave88-v45-track-a-strict:
+    assign_role: engineer-a
+    priority: P0
+    touch_paths:
+      - "lisp/bootstrap/bootstrap-v45-goal-nano-jit-com-strict-done.lisp"
+    accept:
+      - "v45.goal.nano_jit_com.strict_done=1"
+  wave88-v45-track-b-terminal:
+    assign_role: engineer-b
+    priority: P0
+    touch_paths:
+      - "retired/scripts/v45-wave88-terminal-strict-done-converge.sh"
+      - "v4.5/mindmap-frontier-v45-terminal-strict-done.json"
+    accept:
+      - "v45-wave88-terminal-strict-done-converge done"
+  wave88-v45-R:
+    assign_role: reviewer
+    priority: meta
+    depends:
+      - wave88-v45-track-a-strict
+      - wave88-v45-track-b-terminal
+    accept:
+      - "v45.goal.nano_jit_com.strict_done=1"
+
+verify:
+  commands:
+    - script: retired/scripts/v45-wave69-run-sh-archive-honest-converge.sh
+      cwd: .
+      fail_on_nonzero: true
+
+sync:
+  board:
+    file: v4.5/SQUAD.md
+    template: board
+    begin: "<!-- SQUAD_STATE_BEGIN -->"
+    end: "<!-- SQUAD_STATE_END -->"

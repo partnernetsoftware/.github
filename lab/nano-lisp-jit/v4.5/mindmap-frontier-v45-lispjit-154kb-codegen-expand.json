@@ -1,0 +1,105 @@
+{
+  "ssot": "v4.5/DIFFUSE-WAVE53.md",
+  "parent_goal": "v45.v45.physical_zero_cpysh_continue.100",
+  "onion_ssot": "v4.5/ONION-TDD.md",
+  "updated_at": "2026-05-26T02:00:00Z",
+  "max_parallel": 4,
+  "breadth_ring": "lispjit-154kb-codegen-expand \u2014 v4.5 \u6d88 C \u4e3b\u8def\u5f84\uff0815link \u5168\u6a21\u5757\u6269\u9762\uff09",
+  "nodes": [
+    {
+      "id": "v45-l15e-gate",
+      "layer": 53,
+      "ring": "gate",
+      "onion_ring": 34,
+      "status": "done",
+      "deps": [],
+      "accept": [
+        "v45.v45.physical_zero_cpysh_continue.100=1",
+        "v45.codegen.lispjit_154kb_probe=1"
+      ]
+    },
+    {
+      "id": "v45-l15e-expand",
+      "layer": 53,
+      "ring": "codegen",
+      "onion_ring": 34,
+      "status": "done",
+      "deps": [
+        "v45-l15e-gate"
+      ],
+      "parallel_slot": "W1",
+      "plan": "lisp/bootstrap/bootstrap-v45-runner-lispjit-154kb-codegen-expand.lisp",
+      "agent": "engineer-a"
+    },
+    {
+      "id": "v45-l15e-honest",
+      "layer": 53,
+      "ring": "\u8bda\u5b9e",
+      "onion_ring": 34,
+      "status": "done",
+      "deps": [
+        "v45-l15e-gate"
+      ],
+      "parallel_slot": "W2",
+      "plan": "lisp/bootstrap/bootstrap-v45-lispjit-archive-progress-honest.lisp",
+      "agent": "engineer-b"
+    },
+    {
+      "id": "v45-l15e-daily",
+      "layer": 53,
+      "ring": "plan",
+      "onion_ring": 34,
+      "status": "done",
+      "deps": [
+        "v45-l15e-gate"
+      ],
+      "parallel_slot": "W3",
+      "plan": "lisp/bootstrap/bootstrap-v45-converge-daily-v45-physical.lisp",
+      "agent": "engineer-a"
+    },
+    {
+      "id": "v45-l15e-selfhost",
+      "layer": 53,
+      "ring": "\u4ee3\u9645",
+      "onion_ring": 34,
+      "status": "done",
+      "deps": [
+        "v45-l15e-gate"
+      ],
+      "parallel_slot": "W4",
+      "plan": "lisp/bootstrap/bootstrap-v45-selfhost-lispjit-154kb-expand-matrix.lisp",
+      "agent": "engineer-b"
+    },
+    {
+      "id": "v45-l15e-terminal",
+      "layer": 54,
+      "ring": "\u7ec8\u5c40",
+      "onion_ring": 34,
+      "status": "done",
+      "deps": [
+        "v45-l15e-expand",
+        "v45-l15e-honest",
+        "v45-l15e-daily",
+        "v45-l15e-selfhost"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-lispjit-154kb-codegen-expand-tree.lisp",
+      "agent": "reviewer"
+    },
+    {
+      "id": "v45-l15e-goal",
+      "layer": 55,
+      "ring": "continue",
+      "onion_ring": 34,
+      "status": "done",
+      "deps": [
+        "v45-l15e-terminal"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-v45-lispjit-154kb-codegen-continue-100.lisp",
+      "agent": "reviewer"
+    }
+  ],
+  "next_wave_preview": {
+    "id": "wave54-ci-plan-only-converge",
+    "theme": "外层 CI 收敛 plan-only 化（.sh 退 host 壳）"
+  }
+}

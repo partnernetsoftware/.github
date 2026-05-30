@@ -1,0 +1,17 @@
+Implement v4 wave83-85 batch for lab/nano-lisp-jit (onion TDD, ≤4 tracks per wave).
+
+1. Add WAVES 83-85 to tools/gen-v4-wave-batch.py (same structure as 80-82):
+   - 83 reflection-resume-deep a=61: b_track=reflection (wave63-mindmap-tick or samples/bootstrap-v4-wave63-mindmap-tick.lisp, v4/REFLECTION.md, archive/v4/slices/SLICE63.md), c_track=resume (wave72-resume-tick, bootstrap-v4-squad-resume-tick.lisp, SLICE72.md)
+   - 84 lisp-only-terminal a=62: b_track=lisponly (wave64-lisponly-tick, v4/LISP-ONLY.md, SLICE64.md), c_track=terminal (wave67-terminal-tick, bootstrap-v4-terminal-build-evidence.lisp, SLICE58.md)
+   - 85 codegen-emit-milestone a=63: b_track=codegen (wave61-codegen-tick, v4-ir-table-v1.lisp, SLICE61.md), c_track=emit (wave65-emit-tick, bootstrap-v4-codegen-kickoff.lisp, SLICE41.md)
+
+2. Run: python3 lab/nano-lisp-jit/tools/gen-v4-wave-batch.py 83 85
+
+3. Update v4/EVAL.md (section wave83-85 with 六维 table), v4/PROGRESS.md (small bumps), archive/v4/factory-docs/LONG-RUN-TODO.md (mark wave83-85 done, pointer wave86, tests.pass), v4/REFLECTION.md one line, v4/MINDMAP.md one line if appropriate.
+
+4. Run: export NANO_SLICE_COMPILER=native && bash lab/nano-lisp-jit/build_nano_jit.sh && bash lab/nano-lisp-jit/run.sh
+   Fix failures if any.
+
+5. Do not git commit.
+
+Final line MUST be exactly: CC_DONE tests.pass=N

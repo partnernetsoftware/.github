@@ -1,0 +1,105 @@
+{
+  "ssot": "v4.5/DIFFUSE-WAVE57.md",
+  "parent_goal": "v45.v45.zero_cpysh_target_continue.100",
+  "onion_ssot": "v4.5/ONION-TDD.md",
+  "updated_at": "2026-05-26T06:00:00Z",
+  "max_parallel": 4,
+  "breadth_ring": "lispjit-c-delete \u2014 archive \u7269\u7406\u8fc1\u51fa + Lisp \u5168\u66ff\u4ee3\u8bc1\u660e",
+  "nodes": [
+    {
+      "id": "v45-lcd-gate",
+      "layer": 57,
+      "ring": "gate",
+      "onion_ring": 38,
+      "status": "done",
+      "deps": [],
+      "accept": [
+        "v45.v45.zero_cpysh_target_continue.100=1",
+        "v45.codegen.lispjit_154kb_expand=1"
+      ]
+    },
+    {
+      "id": "v45-lcd-replace",
+      "layer": 57,
+      "ring": "codegen",
+      "onion_ring": 38,
+      "status": "done",
+      "deps": [
+        "v45-lcd-gate"
+      ],
+      "parallel_slot": "W1",
+      "plan": "lisp/bootstrap/bootstrap-v45-runner-lispjit-c-lisp-replacement-prove.lisp",
+      "agent": "engineer-a"
+    },
+    {
+      "id": "v45-lcd-archive",
+      "layer": 57,
+      "ring": "\u8bda\u5b9e",
+      "onion_ring": 38,
+      "status": "done",
+      "deps": [
+        "v45-lcd-gate"
+      ],
+      "parallel_slot": "W2",
+      "plan": "lisp/bootstrap/bootstrap-v45-lispjit-c-archive-honest.lisp",
+      "agent": "engineer-b"
+    },
+    {
+      "id": "v45-lcd-daily",
+      "layer": 57,
+      "ring": "plan",
+      "onion_ring": 38,
+      "status": "done",
+      "deps": [
+        "v45-lcd-gate"
+      ],
+      "parallel_slot": "W3",
+      "plan": "lisp/bootstrap/bootstrap-v45-converge-daily-v45-zero-c.lisp",
+      "agent": "engineer-a"
+    },
+    {
+      "id": "v45-lcd-selfhost",
+      "layer": 57,
+      "ring": "\u4ee3\u9645",
+      "onion_ring": 38,
+      "status": "done",
+      "deps": [
+        "v45-lcd-gate"
+      ],
+      "parallel_slot": "W4",
+      "plan": "lisp/bootstrap/bootstrap-v45-selfhost-lispjit-c-delete-matrix.lisp",
+      "agent": "engineer-b"
+    },
+    {
+      "id": "v45-lcd-terminal",
+      "layer": 58,
+      "ring": "\u7ec8\u5c40",
+      "onion_ring": 38,
+      "status": "done",
+      "deps": [
+        "v45-lcd-replace",
+        "v45-lcd-archive",
+        "v45-lcd-daily",
+        "v45-lcd-selfhost"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-lispjit-c-delete-tree.lisp",
+      "agent": "reviewer"
+    },
+    {
+      "id": "v45-lcd-goal",
+      "layer": 59,
+      "ring": "continue",
+      "onion_ring": 38,
+      "status": "done",
+      "deps": [
+        "v45-lcd-terminal"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-v45-lispjit-c-delete-continue-100.lisp",
+      "agent": "reviewer"
+    }
+  ],
+  "next_wave_preview": {
+    "id": "wave58-host-sh-retire",
+    "theme": "host scripts/v45-*.sh \u9000 retired \u00b7 plan-only \u5916\u5c42\u7ec8\u5c40"
+  }
+}

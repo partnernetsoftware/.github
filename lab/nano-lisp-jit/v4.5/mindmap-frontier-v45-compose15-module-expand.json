@@ -1,0 +1,93 @@
+{
+  "ssot": "v4.5/DIFFUSE-WAVE80.md",
+  "parent_goal": "mindmap-goal-nano-jit-com.json",
+  "updated_at": "2026-05-29T03:00:00Z",
+  "max_parallel": 4,
+  "breadth_ring": "compose15-module-expand \u2014 L4 \u6a21\u5757 stub \u6269\u9762 \u00b7 \u96f6 hybrid",
+  "nodes": [
+    {
+      "id": "v45-c15me80-gate",
+      "layer": 80,
+      "ring": "gate",
+      "status": "done",
+      "deps": [],
+      "accept": [
+        "v45.goal.com_integrity_sync_continue.100=1"
+      ]
+    },
+    {
+      "id": "v45-c15me80-expand",
+      "layer": 80,
+      "ring": "codegen",
+      "status": "done",
+      "deps": [
+        "v45-c15me80-gate"
+      ],
+      "parallel_slot": "W1",
+      "plan": "lisp/bootstrap/bootstrap-v45-probe-compose15-expand-pure-link.lisp"
+    },
+    {
+      "id": "v45-c15me80-gap",
+      "layer": 80,
+      "ring": "\u8bda\u5b9e",
+      "status": "done",
+      "deps": [
+        "v45-c15me80-gate"
+      ],
+      "parallel_slot": "W2",
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-compose15-module-expand-gap-audit.lisp"
+    },
+    {
+      "id": "v45-c15me80-prove",
+      "layer": 80,
+      "ring": "\u81ea\u4e3e",
+      "status": "done",
+      "deps": [
+        "v45-c15me80-gate"
+      ],
+      "parallel_slot": "W3",
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-compose15-module-expand-prove.lisp"
+    },
+    {
+      "id": "v45-c15me80-daily",
+      "layer": 80,
+      "ring": "plan",
+      "status": "done",
+      "deps": [
+        "v45-c15me80-gate"
+      ],
+      "parallel_slot": "W4",
+      "plan": "lisp/bootstrap/bootstrap-v45-converge-daily-v45-compose15-module-expand.lisp"
+    },
+    {
+      "id": "v45-c15me80-terminal",
+      "layer": 81,
+      "ring": "\u7ec8\u5c40",
+      "status": "done",
+      "deps": [
+        "v45-c15me80-expand",
+        "v45-c15me80-gap",
+        "v45-c15me80-prove",
+        "v45-c15me80-daily"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-compose15-module-expand-tree.lisp"
+    },
+    {
+      "id": "v45-c15me80-goal",
+      "layer": 82,
+      "ring": "continue",
+      "status": "done",
+      "deps": [
+        "v45-c15me80-terminal"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-v45-compose15-module-expand-continue-100.lisp",
+      "accept": [
+        "v45.goal.compose15_module_expand_continue.100=1"
+      ]
+    }
+  ],
+  "next_wave_preview": {
+    "id": "wave81-compose15-codegen-deep",
+    "theme": "\u7ee7\u7eed\u6269\u9762\u81f3 linked>16KB \u00b7 \u903c\u8fd1 154KB \u7eaf lisp"
+  }
+}

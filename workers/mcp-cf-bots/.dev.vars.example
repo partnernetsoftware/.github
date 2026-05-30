@@ -1,0 +1,4 @@
+# Copy to .dev.vars for `wrangler dev` (never commit .dev.vars)
+VAULT_TOKEN=dev-token-change-me
+DEFAULT_OWNER=local-dev
+DEFAULT_SESSION_SOURCE=browser-use

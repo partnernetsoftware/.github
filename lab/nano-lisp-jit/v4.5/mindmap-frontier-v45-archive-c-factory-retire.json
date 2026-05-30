@@ -1,0 +1,105 @@
+{
+  "ssot": "v4.5/DIFFUSE-WAVE64.md",
+  "parent_goal": "v45.v45.nano_lisp_com_native_bootstrap_continue.100",
+  "onion_ssot": "v4.5/ONION-TDD.md",
+  "updated_at": "2026-05-27T01:00:00Z",
+  "max_parallel": 4,
+  "breadth_ring": "archive-c-factory-retire \u2014 runner C \u7269\u7406\u9000\u4ed3 \u00b7 \u7528\u6237 plan \u96f6 archive/c",
+  "nodes": [
+    {
+      "id": "v45-acfr-gate",
+      "layer": 64,
+      "ring": "gate",
+      "onion_ring": 45,
+      "status": "done",
+      "deps": [],
+      "accept": [
+        "v45.v45.nano_lisp_com_native_bootstrap_continue.100=1",
+        "v45.nano_lisp_com.native_bootstrap=1"
+      ]
+    },
+    {
+      "id": "v45-acfr-retire",
+      "layer": 64,
+      "ring": "physical",
+      "onion_ring": 45,
+      "status": "done",
+      "deps": [
+        "v45-acfr-gate"
+      ],
+      "parallel_slot": "W1",
+      "plan": "lisp/bootstrap/bootstrap-v45-archive-c-factory-retire-prove.lisp",
+      "agent": "engineer-a"
+    },
+    {
+      "id": "v45-acfr-archive",
+      "layer": 64,
+      "ring": "\u8bda\u5b9e",
+      "onion_ring": 45,
+      "status": "done",
+      "deps": [
+        "v45-acfr-gate"
+      ],
+      "parallel_slot": "W2",
+      "plan": "lisp/bootstrap/bootstrap-v45-archive-c-factory-honest-retire.lisp",
+      "agent": "engineer-b"
+    },
+    {
+      "id": "v45-acfr-daily",
+      "layer": 64,
+      "ring": "plan",
+      "onion_ring": 45,
+      "status": "done",
+      "deps": [
+        "v45-acfr-gate"
+      ],
+      "parallel_slot": "W3",
+      "plan": "lisp/bootstrap/bootstrap-v45-converge-daily-v45-lisp-only-factory.lisp",
+      "agent": "engineer-a"
+    },
+    {
+      "id": "v45-acfr-selfhost",
+      "layer": 64,
+      "ring": "\u4ee3\u9645",
+      "onion_ring": 45,
+      "status": "done",
+      "deps": [
+        "v45-acfr-gate"
+      ],
+      "parallel_slot": "W4",
+      "plan": "lisp/bootstrap/bootstrap-v45-selfhost-archive-c-factory-retire-matrix.lisp",
+      "agent": "engineer-b"
+    },
+    {
+      "id": "v45-acfr-terminal",
+      "layer": 65,
+      "ring": "\u7ec8\u5c40",
+      "onion_ring": 45,
+      "status": "done",
+      "deps": [
+        "v45-acfr-retire",
+        "v45-acfr-archive",
+        "v45-acfr-daily",
+        "v45-acfr-selfhost"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-archive-c-factory-retire-tree.lisp",
+      "agent": "reviewer"
+    },
+    {
+      "id": "v45-acfr-goal",
+      "layer": 66,
+      "ring": "continue",
+      "onion_ring": 45,
+      "status": "done",
+      "deps": [
+        "v45-acfr-terminal"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-v45-archive-c-factory-retire-continue-100.lisp",
+      "agent": "reviewer"
+    }
+  ],
+  "next_wave_preview": {
+    "id": "wave65-ci-sh-final-retire",
+    "theme": "CI \u5de5\u5177 .sh \u7ec8\u5c40\u9000 retired \u00b7 \u7528\u6237\u8def\u5f84\u7eaf plan"
+  }
+}

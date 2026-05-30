@@ -1,0 +1,94 @@
+{
+  "ssot": "v4.5/DIFFUSE-WAVE28.md",
+  "parent_goal": "v45.v45.codegen_coupled.100",
+  "onion_ssot": "v4.5/ONION-TDD.md",
+  "updated_at": "2026-05-25T14:00:00Z",
+  "max_parallel": 4,
+  "nodes": [
+    {
+      "id": "v45-fp-gate",
+      "layer": 17,
+      "ring": "gate",
+      "onion_ring": 8,
+      "status": "done",
+      "deps": [],
+      "accept": [
+        "v45.v45.codegen_coupled.100=1",
+        "v45.goal.onion_tdd_tree_mindmap.100=1"
+      ]
+    },
+    {
+      "id": "v45-fp-slice-dual",
+      "layer": 17,
+      "ring": "Codegen",
+      "onion_ring": 9,
+      "status": "done",
+      "deps": [
+        "v45-fp-gate"
+      ],
+      "parallel_slot": "W1",
+      "plan": "lisp/bootstrap/bootstrap-v45-codegen-lisp-slice-dual-arch.lisp"
+    },
+    {
+      "id": "v45-fp-ir-broad",
+      "layer": 17,
+      "ring": "Codegen",
+      "onion_ring": 9,
+      "status": "done",
+      "deps": [
+        "v45-fp-gate"
+      ],
+      "parallel_slot": "W2",
+      "plan": "lisp/bootstrap/bootstrap-v45-codegen-lisp-ir-table-broad.lisp"
+    },
+    {
+      "id": "v45-fp-next-full",
+      "layer": 17,
+      "ring": "\u4ee3\u9645",
+      "onion_ring": 9,
+      "status": "done",
+      "deps": [
+        "v45-fp-gate"
+      ],
+      "parallel_slot": "W3",
+      "plan": "lisp/bootstrap/bootstrap-v45-factory-selfhost-next-matrix.lisp"
+    },
+    {
+      "id": "v45-fp-runsh",
+      "layer": 17,
+      "ring": "\u53d1\u884c",
+      "onion_ring": 9,
+      "status": "done",
+      "deps": [
+        "v45-fp-gate"
+      ],
+      "parallel_slot": "W4",
+      "plan": "lisp/bootstrap/bootstrap-v45-runsh-factory-continue-anchor.lisp"
+    },
+    {
+      "id": "v45-fp-terminal",
+      "layer": 18,
+      "ring": "\u7ec8\u5c40",
+      "onion_ring": 9,
+      "status": "done",
+      "deps": [
+        "v45-fp-slice-dual",
+        "v45-fp-ir-broad",
+        "v45-fp-next-full",
+        "v45-fp-runsh"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-factory-coupled-tree.lisp"
+    },
+    {
+      "id": "v45-fp-goal",
+      "layer": 19,
+      "ring": "DONE",
+      "onion_ring": 9,
+      "status": "done",
+      "deps": [
+        "v45-fp-terminal"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-v45-factory-physical-continue-100.lisp"
+    }
+  ]
+}

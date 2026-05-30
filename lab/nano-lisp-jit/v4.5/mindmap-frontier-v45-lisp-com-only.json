@@ -1,0 +1,94 @@
+{
+  "ssot": "v4.5/DIFFUSE-WAVE35.md",
+  "parent_goal": "v45.v45.runner_codegen_continue.100",
+  "onion_ssot": "v4.5/ONION-TDD.md",
+  "updated_at": "2026-05-26T18:00:00Z",
+  "max_parallel": 4,
+  "nodes": [
+    {
+      "id": "v45-lco-gate",
+      "layer": 35,
+      "ring": "gate",
+      "onion_ring": 16,
+      "status": "done",
+      "deps": [],
+      "accept": [
+        "v45.v45.runner_codegen_continue.100=1",
+        "v45.goal.onion_tdd_tree_mindmap.100=1"
+      ]
+    },
+    {
+      "id": "v45-lco-converge-lisp",
+      "layer": 35,
+      "ring": "plan",
+      "onion_ring": 16,
+      "status": "done",
+      "deps": [
+        "v45-lco-gate"
+      ],
+      "parallel_slot": "W1",
+      "plan": "lisp/bootstrap/bootstrap-v45-converge-lisp-only.lisp"
+    },
+    {
+      "id": "v45-lco-onion-default",
+      "layer": 35,
+      "ring": "\u6d0b\u8471",
+      "onion_ring": 16,
+      "status": "done",
+      "deps": [
+        "v45-lco-gate"
+      ],
+      "parallel_slot": "W2",
+      "plan": "lisp/bootstrap/bootstrap-v45-onion-lisp-only.lisp"
+    },
+    {
+      "id": "v45-lco-com-name",
+      "layer": 35,
+      "ring": "com",
+      "onion_ring": 16,
+      "status": "done",
+      "deps": [
+        "v45-lco-gate"
+      ],
+      "parallel_slot": "W3",
+      "plan": "lisp/bootstrap/bootstrap-v45-nano-lisp-com-output.lisp"
+    },
+    {
+      "id": "v45-lco-next-verify",
+      "layer": 35,
+      "ring": "\u4ee3\u9645",
+      "onion_ring": 16,
+      "status": "done",
+      "deps": [
+        "v45-lco-gate"
+      ],
+      "parallel_slot": "W4",
+      "plan": "lisp/bootstrap/bootstrap-v45-selfhost-next-lisp-only-verify.lisp"
+    },
+    {
+      "id": "v45-lco-terminal",
+      "layer": 36,
+      "ring": "\u7ec8\u5c40",
+      "onion_ring": 16,
+      "status": "done",
+      "deps": [
+        "v45-lco-converge-lisp",
+        "v45-lco-onion-default",
+        "v45-lco-com-name",
+        "v45-lco-next-verify"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-lisp-com-only-tree.lisp"
+    },
+    {
+      "id": "v45-lco-goal",
+      "layer": 37,
+      "ring": "DONE",
+      "onion_ring": 16,
+      "status": "done",
+      "deps": [
+        "v45-lco-terminal"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-v45-lisp-com-only-100.lisp"
+    }
+  ]
+}

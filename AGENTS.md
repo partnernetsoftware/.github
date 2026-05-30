@@ -2,6 +2,16 @@
 
 ## Cursor Cloud specific instructions
 
+### Agent skills（仓库根）
+
+| 技能 | 路径 | 何时用 |
+|------|------|--------|
+| **engineering-hygiene** | [`skills/engineering-hygiene/`](skills/engineering-hygiene/) | **默认**：改代码/文档/重构每轮 — SSOT、复用、收尾刷新路线图；清洁/抽象/复用/不走弯路 |
+| **squad-parallel** | [`skills/squad-parallel/`](skills/squad-parallel/)（`.cursor/skills/squad-parallel` 同步） | 并行四角色小队推进 v3.5/v4；Agent **须亲自跑** `agent-team`，勿只贴命令给用户 |
+| **nano-lisp-jit-v4-longrun** | [`skills/nano-lisp-jit-v4-longrun/`](skills/nano-lisp-jit-v4-longrun/) | v4 长程 `/loop`：state SSOT → apply → gate → cc repair；**Bun TS 可执行 skill** |
+
+**mcp-cf-bots**（CF Worker + HTTP MCP）：[`workers/mcp-cf-bots/`](workers/mcp-cf-bots/) — 文档 SSOT **[`INDEX.md`](workers/mcp-cf-bots/INDEX.md)**（改此目录必先更新）。`sess_*`、`mem_*`、`cfb_*`；派工人：`workers/mcp-cf-bots/scripts/claude_worker.sh`。
+
 ### Codebase overview
 
 Multi-product personal codebase:

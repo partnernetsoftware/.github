@@ -1,0 +1,1 @@
+Worker 3 · lab/lispjit-ir/nano_bootstrap.c：在 onion.tdd 行后增加 printf：aarch64.emit.cli.worker=cursor-agent。仅改 C，build 验证。AGENT_DONE worker=3

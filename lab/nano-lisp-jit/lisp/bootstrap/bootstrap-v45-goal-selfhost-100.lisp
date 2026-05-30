@@ -1,0 +1,18 @@
+; /goal 自举终局：S5+T3 + 代际矩阵 + lisp-only 链签收.
+(bootstrap
+  (file-size "lab/nano-lisp-jit/v4.5/SELFHOST.md")
+  (file-size "lab/nano-lisp-jit/release/v45-selfhost-next.com")
+  (file-size "lab/nano-lisp-jit/.build/v45-w3-lisp-only.com")
+  (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.selfhost.gen2_distinct" "1")
+  (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.selfhost.lisp_slice" "1")
+  (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.selfhost.modules" "1")
+  (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.selfhost.regenesis" "1")
+  (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.selfhost.chain" "1")
+  (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.selfhost.next_com" "1")
+  (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.selfhost.next_onion" "1")
+  (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.selfhost.next_verify_matrix" "1")
+  (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.lisp_only.regenesis" "1")
+  (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.selfhost.lisp_only_chain" "1")
+  (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.runner.no_c_src" "1")
+  (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.selfhost.100" "1")
+  (file-hash "lab/nano-lisp-jit/.build/v45-entry.evidence"))

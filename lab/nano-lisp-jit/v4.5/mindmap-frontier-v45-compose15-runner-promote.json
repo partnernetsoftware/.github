@@ -1,0 +1,105 @@
+{
+  "ssot": "v4.5/DIFFUSE-WAVE72.md",
+  "parent_goal": "v45.v45.lisp_codegen_diffuse_continue.100",
+  "onion_ssot": "v4.5/ONION-TDD.md",
+  "updated_at": "2026-05-27T15:00:00Z",
+  "max_parallel": 4,
+  "breadth_ring": "compose15-runner-promote \u2014 plan-only 15link \u00b7 pack probe \u00b7 daily \u00b7 COM promote",
+  "nodes": [
+    {
+      "id": "v45-c15rp-gate",
+      "layer": 72,
+      "ring": "gate",
+      "onion_ring": 50,
+      "status": "done",
+      "deps": [],
+      "accept": [
+        "v45.v45.lisp_codegen_diffuse_continue.100=1",
+        "v45.v45.terminal_done=1"
+      ]
+    },
+    {
+      "id": "v45-c15rp-runner",
+      "layer": 72,
+      "ring": "codegen",
+      "onion_ring": 50,
+      "status": "done",
+      "deps": [
+        "v45-c15rp-gate"
+      ],
+      "parallel_slot": "W1",
+      "plan": "lisp/bootstrap/bootstrap-v45-lisp-codegen-compose15-runner-prove.lisp",
+      "agent": "engineer-a"
+    },
+    {
+      "id": "v45-c15rp-pack",
+      "layer": 72,
+      "ring": "\u7269\u7406",
+      "onion_ring": 50,
+      "status": "done",
+      "deps": [
+        "v45-c15rp-gate"
+      ],
+      "parallel_slot": "W2",
+      "plan": "lisp/bootstrap/bootstrap-v45-lisp-codegen-compose15-pack-probe.lisp",
+      "agent": "engineer-b"
+    },
+    {
+      "id": "v45-c15rp-daily",
+      "layer": 72,
+      "ring": "plan",
+      "onion_ring": 50,
+      "status": "done",
+      "deps": [
+        "v45-c15rp-gate"
+      ],
+      "parallel_slot": "W3",
+      "plan": "lisp/bootstrap/bootstrap-v45-converge-daily-v45-compose15-runner-promote.lisp",
+      "agent": "engineer-a"
+    },
+    {
+      "id": "v45-c15rp-promote",
+      "layer": 72,
+      "ring": "\u7ec8\u5c40",
+      "onion_ring": 50,
+      "status": "done",
+      "deps": [
+        "v45-c15rp-gate"
+      ],
+      "parallel_slot": "W4",
+      "plan": "lisp/bootstrap/bootstrap-v45-lisp-codegen-com-promote-honest.lisp",
+      "agent": "engineer-b"
+    },
+    {
+      "id": "v45-c15rp-terminal",
+      "layer": 73,
+      "ring": "\u7ec8\u5c40",
+      "onion_ring": 50,
+      "status": "done",
+      "deps": [
+        "v45-c15rp-runner",
+        "v45-c15rp-pack",
+        "v45-c15rp-daily",
+        "v45-c15rp-promote"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-compose15-runner-promote-tree.lisp",
+      "agent": "reviewer"
+    },
+    {
+      "id": "v45-c15rp-goal",
+      "layer": 74,
+      "ring": "continue",
+      "onion_ring": 50,
+      "status": "done",
+      "deps": [
+        "v45-c15rp-terminal"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-v45-compose15-runner-promote-continue-100.lisp",
+      "agent": "reviewer"
+    }
+  ],
+  "next_wave_preview": {
+    "id": "wave73-ape-six-face-linux-expand",
+    "theme": "6 \u9762 APE os_id 2/3 \u89c4\u5212\u843d\u5730 \u00b7 compose15 full runner 154KB"
+  }
+}

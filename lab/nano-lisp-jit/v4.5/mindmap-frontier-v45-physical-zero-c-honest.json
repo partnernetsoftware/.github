@@ -1,0 +1,105 @@
+{
+  "ssot": "v4.5/DIFFUSE-WAVE45.md",
+  "parent_goal": "v45.v45.nano_lisp_com_terminal_continue.100",
+  "onion_ssot": "v4.5/ONION-TDD.md",
+  "updated_at": "2026-05-25T08:00:00Z",
+  "max_parallel": 4,
+  "breadth_ring": "physical-zero-c-honest \u2014 154KB runner codegen \u6df1\u63a2 + archive \u8bda\u5b9e\u5377",
+  "nodes": [
+    {
+      "id": "v45-pzch-gate",
+      "layer": 45,
+      "ring": "gate",
+      "onion_ring": 26,
+      "status": "done",
+      "deps": [],
+      "accept": [
+        "v45.v45.nano_lisp_com_terminal_continue.100=1",
+        "v45.goal.onion_tdd_tree_mindmap.100=1"
+      ]
+    },
+    {
+      "id": "v45-pzch-codegen-deep",
+      "layer": 45,
+      "ring": "Codegen",
+      "onion_ring": 26,
+      "status": "done",
+      "deps": [
+        "v45-pzch-gate"
+      ],
+      "parallel_slot": "W1",
+      "plan": "lisp/bootstrap/bootstrap-v45-runner-lispjit-codegen-deep.lisp",
+      "agent": "engineer-a"
+    },
+    {
+      "id": "v45-pzch-archive-inventory",
+      "layer": 45,
+      "ring": "\u8bda\u5b9e",
+      "onion_ring": 26,
+      "status": "done",
+      "deps": [
+        "v45-pzch-gate"
+      ],
+      "parallel_slot": "W2",
+      "plan": "lisp/bootstrap/bootstrap-v45-archive-runner-honest-inventory.lisp",
+      "agent": "engineer-b"
+    },
+    {
+      "id": "v45-pzch-daily-physical",
+      "layer": 45,
+      "ring": "plan",
+      "onion_ring": 26,
+      "status": "done",
+      "deps": [
+        "v45-pzch-gate"
+      ],
+      "parallel_slot": "W3",
+      "plan": "lisp/bootstrap/bootstrap-v45-converge-daily-physical-honest.lisp",
+      "agent": "engineer-a"
+    },
+    {
+      "id": "v45-pzch-selfhost-codegen",
+      "layer": 45,
+      "ring": "\u4ee3\u9645",
+      "onion_ring": 26,
+      "status": "done",
+      "deps": [
+        "v45-pzch-gate"
+      ],
+      "parallel_slot": "W4",
+      "plan": "lisp/bootstrap/bootstrap-v45-selfhost-codegen-154kb-matrix.lisp",
+      "agent": "engineer-b"
+    },
+    {
+      "id": "v45-pzch-terminal",
+      "layer": 46,
+      "ring": "\u7ec8\u5c40",
+      "onion_ring": 26,
+      "status": "done",
+      "deps": [
+        "v45-pzch-codegen-deep",
+        "v45-pzch-archive-inventory",
+        "v45-pzch-daily-physical",
+        "v45-pzch-selfhost-codegen"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-physical-zero-c-honest-tree.lisp",
+      "agent": "reviewer"
+    },
+    {
+      "id": "v45-pzch-goal",
+      "layer": 47,
+      "ring": "DONE",
+      "onion_ring": 26,
+      "status": "done",
+      "deps": [
+        "v45-pzch-terminal"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-v45-physical-zero-c-honest-100.lisp",
+      "agent": "reviewer"
+    }
+  ],
+  "next_wave_preview": {
+    "id": "wave46-runner-codegen-terminal",
+    "theme": "154KB \u5168\u91cf Lisp codegen \u6df1\u94fe + host \u7f16\u6392 plan-only"
+  }
+}

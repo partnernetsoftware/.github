@@ -1,0 +1,105 @@
+{
+  "ssot": "v4.5/DIFFUSE-WAVE46.md",
+  "parent_goal": "v45.v45.physical_zero_c_honest_continue.100",
+  "onion_ssot": "v4.5/ONION-TDD.md",
+  "updated_at": "2026-05-25T10:00:00Z",
+  "max_parallel": 4,
+  "breadth_ring": "runner-codegen-terminal \u2014 15link \u5168\u94fe + host \u7f16\u6392 plan-only \u6df1\u94fe",
+  "nodes": [
+    {
+      "id": "v45-rct-gate",
+      "layer": 46,
+      "ring": "gate",
+      "onion_ring": 27,
+      "status": "done",
+      "deps": [],
+      "accept": [
+        "v45.v45.physical_zero_c_honest_continue.100=1",
+        "v45.goal.onion_tdd_tree_mindmap.100=1"
+      ]
+    },
+    {
+      "id": "v45-rct-codegen-full",
+      "layer": 46,
+      "ring": "Codegen",
+      "onion_ring": 27,
+      "status": "done",
+      "deps": [
+        "v45-rct-gate"
+      ],
+      "parallel_slot": "W1",
+      "plan": "lisp/bootstrap/bootstrap-v45-runner-codegen-full-chain.lisp",
+      "agent": "engineer-a"
+    },
+    {
+      "id": "v45-rct-host-plan",
+      "layer": 46,
+      "ring": "plan",
+      "onion_ring": 27,
+      "status": "done",
+      "deps": [
+        "v45-rct-gate"
+      ],
+      "parallel_slot": "W2",
+      "plan": "lisp/bootstrap/bootstrap-v45-host-orchestrator-plan-only-deep.lisp",
+      "agent": "engineer-b"
+    },
+    {
+      "id": "v45-rct-daily-terminal",
+      "layer": 46,
+      "ring": "plan",
+      "onion_ring": 27,
+      "status": "done",
+      "deps": [
+        "v45-rct-gate"
+      ],
+      "parallel_slot": "W3",
+      "plan": "lisp/bootstrap/bootstrap-v45-converge-daily-codegen-terminal.lisp",
+      "agent": "engineer-a"
+    },
+    {
+      "id": "v45-rct-selfhost-terminal",
+      "layer": 46,
+      "ring": "\u4ee3\u9645",
+      "onion_ring": 27,
+      "status": "done",
+      "deps": [
+        "v45-rct-gate"
+      ],
+      "parallel_slot": "W4",
+      "plan": "lisp/bootstrap/bootstrap-v45-selfhost-codegen-terminal-matrix.lisp",
+      "agent": "engineer-b"
+    },
+    {
+      "id": "v45-rct-terminal",
+      "layer": 47,
+      "ring": "\u7ec8\u5c40",
+      "onion_ring": 27,
+      "status": "done",
+      "deps": [
+        "v45-rct-codegen-full",
+        "v45-rct-host-plan",
+        "v45-rct-daily-terminal",
+        "v45-rct-selfhost-terminal"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-runner-codegen-terminal-tree.lisp",
+      "agent": "reviewer"
+    },
+    {
+      "id": "v45-rct-goal",
+      "layer": 48,
+      "ring": "DONE",
+      "onion_ring": 27,
+      "status": "done",
+      "deps": [
+        "v45-rct-terminal"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-v45-runner-codegen-terminal-100.lisp",
+      "agent": "reviewer"
+    }
+  ],
+  "next_wave_preview": {
+    "id": "wave47-zero-host-sh-terminal",
+    "theme": "host \u5916\u5c42 .sh \u9000\u5c45 CI + plan \u5185\u5168\u6536\u655b\u7ec8\u5c40"
+  }
+}

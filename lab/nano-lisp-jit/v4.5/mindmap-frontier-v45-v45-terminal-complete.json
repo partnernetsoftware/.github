@@ -1,0 +1,106 @@
+{
+  "ssot": "v4.5/DIFFUSE-WAVE51.md",
+  "parent_goal": "v45.v45.lispjit_codegen_dedicated_continue.100",
+  "onion_ssot": "v4.5/ONION-TDD.md",
+  "updated_at": "2026-05-25T20:00:00Z",
+  "max_parallel": 4,
+  "breadth_ring": "v45-terminal-complete \u2014 v4.5 \u6269\u5c55\u6d3b\u56fe\u5168\u94fe + \u53d1\u884c\u9762\u7ec8\u5c40 DONE",
+  "nodes": [
+    {
+      "id": "v45-vtc-gate",
+      "layer": 51,
+      "ring": "gate",
+      "onion_ring": 32,
+      "status": "done",
+      "deps": [],
+      "accept": [
+        "v45.v45.lispjit_codegen_dedicated_continue.100=1",
+        "v45.v45.endgame_honest_rollup_continue.100=1",
+        "v45.goal.onion_tdd_tree_mindmap.100=1"
+      ]
+    },
+    {
+      "id": "v45-vtc-extension-rollup",
+      "layer": 51,
+      "ring": "rollup",
+      "onion_ring": 32,
+      "status": "done",
+      "deps": [
+        "v45-vtc-gate"
+      ],
+      "parallel_slot": "W1",
+      "plan": "lisp/bootstrap/bootstrap-v45-v45-extension-waves-rollup-all.lisp",
+      "agent": "engineer-a"
+    },
+    {
+      "id": "v45-vtc-product",
+      "layer": 51,
+      "ring": "plan",
+      "onion_ring": 32,
+      "status": "done",
+      "deps": [
+        "v45-vtc-gate"
+      ],
+      "parallel_slot": "W2",
+      "plan": "lisp/bootstrap/bootstrap-v45-nano-lisp-com-product-canonical.lisp",
+      "agent": "engineer-b"
+    },
+    {
+      "id": "v45-vtc-daily",
+      "layer": 51,
+      "ring": "plan",
+      "onion_ring": 32,
+      "status": "done",
+      "deps": [
+        "v45-vtc-gate"
+      ],
+      "parallel_slot": "W3",
+      "plan": "lisp/bootstrap/bootstrap-v45-converge-daily-v45-complete.lisp",
+      "agent": "engineer-a"
+    },
+    {
+      "id": "v45-vtc-selfhost",
+      "layer": 51,
+      "ring": "\u4ee3\u9645",
+      "onion_ring": 32,
+      "status": "done",
+      "deps": [
+        "v45-vtc-gate"
+      ],
+      "parallel_slot": "W4",
+      "plan": "lisp/bootstrap/bootstrap-v45-selfhost-v45-terminal-matrix.lisp",
+      "agent": "engineer-b"
+    },
+    {
+      "id": "v45-vtc-terminal",
+      "layer": 52,
+      "ring": "\u7ec8\u5c40",
+      "onion_ring": 32,
+      "status": "done",
+      "deps": [
+        "v45-vtc-extension-rollup",
+        "v45-vtc-product",
+        "v45-vtc-daily",
+        "v45-vtc-selfhost"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-v45-terminal-complete-tree.lisp",
+      "agent": "reviewer"
+    },
+    {
+      "id": "v45-vtc-goal",
+      "layer": 53,
+      "ring": "DONE",
+      "onion_ring": 32,
+      "status": "done",
+      "deps": [
+        "v45-vtc-terminal"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-v45-v45-terminal-complete-100.lisp",
+      "agent": "reviewer"
+    }
+  ],
+  "next_wave_preview": {
+    "id": "wave52-physical-zero-cpysh-continue",
+    "theme": "v4.5 物理续推：零 .c/.py/.sh（Wave51 仅为扩展 rollup，≠ 目标达成）"
+  }
+}

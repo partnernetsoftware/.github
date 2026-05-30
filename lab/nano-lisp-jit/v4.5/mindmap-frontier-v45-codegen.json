@@ -1,0 +1,93 @@
+{
+  "ssot": "v4.5/DIFFUSE-WAVE27.md",
+  "parent_goal": "v45.goal.onion_tdd_tree_mindmap.100",
+  "onion_ssot": "v4.5/ONION-TDD.md",
+  "updated_at": "2026-05-25T12:00:00Z",
+  "max_parallel": 4,
+  "nodes": [
+    {
+      "id": "v45-cg-gate",
+      "layer": 14,
+      "ring": "gate",
+      "onion_ring": 7,
+      "status": "done",
+      "deps": [],
+      "accept": [
+        "v45.goal.onion_tdd_tree_mindmap.100=1"
+      ]
+    },
+    {
+      "id": "v45-cg-vm-ctrl",
+      "layer": 14,
+      "ring": "Codegen",
+      "onion_ring": 8,
+      "status": "done",
+      "deps": [
+        "v45-cg-gate"
+      ],
+      "parallel_slot": "W1",
+      "plan": "lisp/bootstrap/bootstrap-v45-codegen-lisp-vm-ctrl.lisp"
+    },
+    {
+      "id": "v45-cg-vm-multi",
+      "layer": 14,
+      "ring": "Codegen",
+      "onion_ring": 8,
+      "status": "done",
+      "deps": [
+        "v45-cg-gate"
+      ],
+      "parallel_slot": "W2",
+      "plan": "lisp/bootstrap/bootstrap-v45-codegen-lisp-vm-multi.lisp"
+    },
+    {
+      "id": "v45-cg-chain-lo",
+      "layer": 14,
+      "ring": "\u4ee3\u9645",
+      "onion_ring": 8,
+      "status": "done",
+      "deps": [
+        "v45-cg-gate"
+      ],
+      "parallel_slot": "W3",
+      "plan": "lisp/bootstrap/bootstrap-v45-onion-chain-lo-minimal.lisp"
+    },
+    {
+      "id": "v45-cg-gen60",
+      "layer": 14,
+      "ring": "handoff",
+      "onion_ring": 8,
+      "status": "done",
+      "deps": [
+        "v45-cg-gate"
+      ],
+      "parallel_slot": "W4",
+      "plan": "lisp/bootstrap/bootstrap-v45-codegen-lisp-gen60-handshake.lisp"
+    },
+    {
+      "id": "v45-cg-terminal",
+      "layer": 15,
+      "ring": "\u7ec8\u5c40",
+      "onion_ring": 8,
+      "status": "done",
+      "deps": [
+        "v45-cg-vm-ctrl",
+        "v45-cg-vm-multi",
+        "v45-cg-chain-lo",
+        "v45-cg-gen60"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-codegen-coupled-tree.lisp"
+    },
+    {
+      "id": "v45-cg-goal",
+      "layer": 16,
+      "ring": "DONE",
+      "onion_ring": 8,
+      "status": "done",
+      "deps": [
+        "v45-cg-terminal"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-v45-codegen-coupled-100.lisp"
+    }
+  ]
+}

@@ -1,0 +1,1 @@
+Worker 1 · lab/lispjit-ir/nano_bootstrap.c：在 add-205 链后扩展 strstr 到 add-206 … add-219（与 gen 211–224 的 expect 对齐）。仅改 C，build 验证。结束时输出 AGENT_DONE worker=1

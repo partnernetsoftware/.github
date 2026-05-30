@@ -1,0 +1,90 @@
+{
+  "ssot": "v4.5/DIFFUSE-WAVE77.md",
+  "parent_goal": "mindmap-goal-nano-jit-com.json",
+  "updated_at": "2026-05-27T20:00:00Z",
+  "max_parallel": 4,
+  "breadth_ring": "release-promote-compile-com \u2014 zero-pin COM promote \u00b7 compose15 hybrid \u00b7 \u77e9\u9635",
+  "nodes": [
+    {
+      "id": "v45-rpc77-gate",
+      "layer": 77,
+      "ring": "gate",
+      "status": "done",
+      "deps": [],
+      "accept": [
+        "v45.goal.zero_genesis_pin_continue.100=1"
+      ]
+    },
+    {
+      "id": "v45-rpc77-promote",
+      "layer": 77,
+      "ring": "release",
+      "status": "done",
+      "deps": [
+        "v45-rpc77-gate"
+      ],
+      "parallel_slot": "W1",
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-release-promote-compile-prove.lisp"
+    },
+    {
+      "id": "v45-rpc77-hybrid",
+      "layer": 77,
+      "ring": "codegen",
+      "status": "done",
+      "deps": [
+        "v45-rpc77-gate"
+      ],
+      "parallel_slot": "W2",
+      "plan": "lisp/bootstrap/bootstrap-v45-probe-compose15-hybrid-fallback.lisp"
+    },
+    {
+      "id": "v45-rpc77-pack",
+      "layer": 77,
+      "ring": "\u81ea\u4e3e",
+      "status": "done",
+      "deps": [
+        "v45-rpc77-gate"
+      ],
+      "parallel_slot": "W3",
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-zero-pin-com-release-promote.lisp"
+    },
+    {
+      "id": "v45-rpc77-daily",
+      "layer": 77,
+      "ring": "plan",
+      "status": "done",
+      "deps": [
+        "v45-rpc77-gate"
+      ],
+      "parallel_slot": "W4",
+      "plan": "lisp/bootstrap/bootstrap-v45-converge-daily-v45-release-promote-compile-com.lisp"
+    },
+    {
+      "id": "v45-rpc77-terminal",
+      "layer": 78,
+      "ring": "\u7ec8\u5c40",
+      "status": "done",
+      "deps": [
+        "v45-rpc77-promote",
+        "v45-rpc77-hybrid",
+        "v45-rpc77-pack",
+        "v45-rpc77-daily"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-release-promote-compile-com-tree.lisp"
+    },
+    {
+      "id": "v45-rpc77-goal",
+      "layer": 79,
+      "ring": "continue",
+      "status": "done",
+      "deps": [
+        "v45-rpc77-terminal"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-v45-release-promote-compile-com-continue-100.lisp"
+    }
+  ],
+  "next_wave_preview": {
+    "id": "wave78-compose15-full-codegen",
+    "theme": "\u7eaf lisp 158KB \u00b7 \u96f6 host cc fallback"
+  }
+}

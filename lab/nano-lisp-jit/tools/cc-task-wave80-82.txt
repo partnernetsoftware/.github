@@ -1,0 +1,14 @@
+Implement v4 wave80-82 batch for lab/nano-lisp-jit.
+
+1. Add WAVES 80-82 to tools/gen-v4-wave-batch.py (same structure as 77-79):
+   - 80 ir-table-scout-deep a=58: b_track=irtable (wave56-irtable, wave68-irtable, v4-ir-table-v1.lisp), c_track=hostreduce (wave32-diffusion, wave70-hostreduce-tick, SLICE32.md)
+   - 81 emit-manifest-chain a=59: b_track=emit (wave65-emit, codegen-kickoff, SLICE41), c_track=manifest (v4-plan-manifest-v1, wave48-manifest-tick, SLICE48)
+   - 82 four-track-autonomous a=60: b_track=fourtrack (wave57-fourtrack, wave73-fourtrack, SLICE57), c_track=contract (plan-contract-tick, wave71-contract, SLICE34)
+
+2. Run: python3 lab/nano-lisp-jit/tools/gen-v4-wave-batch.py 80 82
+
+3. Update v4/EVAL.md section wave80-82, PROGRESS.md, LONG-RUN-TODO.md (wave80-82 done, next 83), REFLECTION.md one line.
+
+4. Run: export NANO_SLICE_COMPILER=native && bash lab/nano-lisp-jit/build_nano_jit.sh && bash lab/nano-lisp-jit/run.sh
+
+5. Do not git commit. Final line must be: CC_DONE tests.pass=N

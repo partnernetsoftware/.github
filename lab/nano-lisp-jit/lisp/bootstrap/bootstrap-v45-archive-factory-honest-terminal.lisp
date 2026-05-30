@@ -1,0 +1,15 @@
+; Wave61 W2: archive/c 工厂诚实终局 — active 零 cpysh · 工厂 C 仅在 archive/retired.
+(bootstrap
+  (file-size "lab/nano-lisp-jit/v4.5/HONEST-REMAINING.md")
+  (file-size "lab/nano-lisp-jit/v4.5/DIFFUSE-WAVE61.md")
+  (file-size "lab/nano-lisp-jit/retired/lispjit.c.archived")
+  (file-size "lab/nano-lisp-jit/archive/c/runner/README.md")
+  (file-size "lab/nano-lisp-jit/archive/c/factory/misc/lisp-tu-main.lisp")
+  (file-size "lab/nano-lisp-jit/retired/tools/mindmap-dp-v45.py")
+  (file-size "lab/nano-lisp-jit/retired/scripts/v45-wave59-tools-py-retire-converge.sh")
+  (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.physical.zero_cpysh" "1")
+  (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.honest.lispjit_c_retired" "1")
+  (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.honest.archive_factory_c" "1")
+  (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.honest.archive_factory_terminal" "1")
+  (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.honest.ci_utility_sh" "1")
+  (file-hash "lab/nano-lisp-jit/v4.5/DIFFUSE-WAVE61.md"))

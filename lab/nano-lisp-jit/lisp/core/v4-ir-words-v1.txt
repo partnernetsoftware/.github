@@ -1,0 +1,5 @@
+# v4 slice-16: add-exit-v1 fixed words (plan contract; host emit still reads C table)
+# format: name u32hex
+add_x0_x1 0x8b010000
+movz_x8_svc 0xd2800000
+svc0 0xd4000001
