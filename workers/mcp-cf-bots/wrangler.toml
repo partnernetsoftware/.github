@@ -24,7 +24,7 @@ MCP_SERVER_VERSION = "0.4.0"
 MCP_SERVER_DESCRIPTION = "Cloudflare MCP for cross-agent bots"
 MCP_PROTOCOL_VERSION = "2024-11-05"
 OWNER_HEADER = "X-Cf-Bots-Owner"
-# Required for your deployment — set explicitly, do not rely on code defaults:
-# DEFAULT_OWNER = "cloud-agent"
-# DEFAULT_SESSION_SOURCE = "browser-use"
+# Override per tenant (or set in Dashboard):
+DEFAULT_OWNER = "cloud-agent"
+DEFAULT_SESSION_SOURCE = "browser-use"
 # MCP_ALLOWED_ORIGINS = "https://cursor.com"
