@@ -12,6 +12,7 @@ import {
   vaultId,
   vaultPut,
 } from "./vault-api";
+import { validateKey } from "./validate";
 
 function resolveToolOwner(
   auth: AuthContext,
@@ -76,11 +77,13 @@ export async function vaultToolCall(
     return res.text();
   }
 
-  const site = String(args.site ?? "");
-  const profile = String(args.profile ?? "");
-  if (!site || !profile) {
+  const siteRaw = String(args.site ?? "");
+  const profileRaw = String(args.profile ?? "");
+  if (!siteRaw || !profileRaw) {
     throw new Error("site and profile are required");
   }
+  const site = validateKey("site", siteRaw);
+  const profile = validateKey("profile", profileRaw);
 
   const id = env.SESSION_STORE.idFromName(vaultId(owner, site, profile));
   const stub = env.SESSION_STORE.get(id);

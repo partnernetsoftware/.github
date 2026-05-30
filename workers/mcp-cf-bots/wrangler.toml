@@ -28,7 +28,8 @@ renamed_classes = [{ from = "SessionVaultDO", to = "SessionStoreDO" }]
 [vars]
 MCP_HTTP_PATH = "/mcp"
 MCP_SERVER_NAME = "mcp-cf-bots"
-MCP_SERVER_VERSION = "0.5.0"
+MCP_SERVER_VERSION = "0.6.0"
+MAX_BODY_BYTES = "2000000"
 MCP_SERVER_DESCRIPTION = "Cloudflare MCP for cross-agent bots"
 MCP_PROTOCOL_VERSION = "2024-11-05"
 OWNER_HEADER = "X-Cf-Bots-Owner"

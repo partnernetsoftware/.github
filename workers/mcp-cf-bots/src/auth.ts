@@ -1,6 +1,8 @@
 /** Per-user API tokens (KV) + admin bearer (VAULT_TOKEN secret). */
 
 import { trimOpt } from "./config";
+import { safeEqual } from "./http-util";
+import { validateOwnerId } from "./validate";
 
 export type AuthContext =
   | { role: "admin" }
@@ -77,7 +79,7 @@ export async function authenticateRequest(
   if (!bearer) {
     return null;
   }
-  if (bearer === env.VAULT_TOKEN) {
+  if (env.VAULT_TOKEN && safeEqual(bearer, env.VAULT_TOKEN)) {
     return { role: "admin" };
   }
   if (!env.TOKENS) {
@@ -161,10 +163,7 @@ export async function createUserToken(
   if (!env.TOKENS) {
     throw new Error("TOKENS KV binding is not configured");
   }
-  const o = owner.trim();
-  if (!o) {
-    throw new Error("owner is required");
-  }
+  const o = validateOwnerId(owner);
   const id = crypto.randomUUID();
   const token = generateRawToken();
   const created_at = new Date().toISOString();

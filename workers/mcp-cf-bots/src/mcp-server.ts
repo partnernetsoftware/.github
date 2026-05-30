@@ -2,6 +2,7 @@ import { isAdmin, type AuthContext } from "./auth";
 import { mcpProtocolVersion, mcpServerInfo } from "./config";
 import { vaultToolCall } from "./sess-tools";
 import { SESSION_KINDS } from "./kinds";
+import { resolveToolName } from "./tool-aliases";
 
 type ToolDef = {
   name: string;
@@ -200,11 +201,21 @@ export async function handleMcpJsonRpc(
 
   if (method === "initialize") {
     try {
+      const serverInfo = mcpServerInfo(ctx.env);
       return {
         body: ok(requestId, {
           protocolVersion: mcpProtocolVersion(ctx.env),
           capabilities: { tools: {} },
-          serverInfo: mcpServerInfo(ctx.env),
+          serverInfo: {
+            ...serverInfo,
+            auth:
+              ctx.auth.role === "admin"
+                ? { role: "admin" as const }
+                : {
+                    role: "user" as const,
+                    owner: ctx.auth.owner,
+                  },
+          },
         }),
         status: 200,
         isNotification: false,
@@ -248,7 +259,7 @@ export async function handleMcpJsonRpc(
   }
 
   if (method === "tools/call") {
-    const name = String(params.name ?? "");
+    const name = resolveToolName(String(params.name ?? ""));
     const args = (params.arguments ?? {}) as Record<string, unknown>;
     const known = toolDefs.some((t) => t.name === name);
     if (!known) {

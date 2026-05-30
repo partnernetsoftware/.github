@@ -3,6 +3,7 @@ import { effectiveOwner, type AuthContext } from "./auth";
 import { readOwnerHeader } from "./config";
 import type { SessionMeta } from "./kinds";
 import { registryEntryFromMeta } from "./registry-do";
+import { validateKey } from "./validate";
 
 const SESSION_RE = /^\/v1\/session\/([^/]+)\/([^/]+)\/?$/;
 
@@ -113,7 +114,9 @@ export async function handleVaultRest(
     return Response.json({ error: "Not found" }, { status: 404 });
   }
 
-  const [, site, profile] = match;
+  const [, siteRaw, profileRaw] = match;
+  const site = validateKey("site", siteRaw);
+  const profile = validateKey("profile", profileRaw);
   const owner = ownerFromRequest(auth, env, url, request);
   const id = env.SESSION_STORE.idFromName(vaultId(owner, site, profile));
   const stub = env.SESSION_STORE.get(id);

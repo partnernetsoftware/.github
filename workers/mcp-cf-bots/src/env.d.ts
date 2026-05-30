@@ -23,4 +23,6 @@ interface Env {
   MCP_ALLOWED_ORIGINS?: string;
   /** Primary owner header (legacy X-Session-Vault-Owner always checked) */
   OWNER_HEADER?: string;
+  /** Max request body bytes (Content-Length check); default 2_000_000 */
+  MAX_BODY_BYTES?: string;
 }

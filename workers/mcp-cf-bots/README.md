@@ -9,7 +9,11 @@ Cloudflare 上的 **HTTP MCP + REST**：跨 Agent 会话（`sess_*`）、多用�
 ```
 workers/mcp-cf-bots/
 ├── src/                    # Worker（wrangler 打包）
-│   ├── index.ts            # 入口：鉴权 → MCP / REST
+│   ├── index.ts            # 入口：/health、鉴权 → MCP / REST
+│   ├── health.ts           # GET /health、/v1/me
+│   ├── http-util.ts        # JSON 错误、安全头、safeEqual
+│   ├── validate.ts         # body 上限、key/owner 校验
+│   ├── tool-aliases.ts     # 旧 MCP 工具名 → sess_*
 │   ├── auth.ts             # admin + 用户 token（KV）
 │   ├── admin-api.ts        # /v1/admin/tokens
 │   ├── config.ts           # Env / Origin / MCP 元信息
@@ -72,6 +76,12 @@ npx wrangler deploy --name mcp-cf-bots
 | `MCP_CF_BOTS_OWNER` | 租户 id（admin 可覆盖；用户 token 已绑定） |
 
 兼容旧名：`SESSION_VAULT_*`。
+
+## 运维
+
+- 上线清单：[PRODUCTION.md](PRODUCTION.md)
+- 冒烟：`MCP_CF_BOTS_URL=... MCP_CF_BOTS_TOKEN=... ./scripts/smoke.sh`
+- 公开探活：`GET /health`；鉴权身份：`GET /v1/me`
 
 ## MCP
 

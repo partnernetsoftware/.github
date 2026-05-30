@@ -10,7 +10,7 @@
 | Secret | `VAULT_TOKEN`（已与仓库 Cloud Agent `SESSION_VAULT_TOKEN` 同步） |
 | Vars | `DEFAULT_OWNER=cloud-agent`，`DEFAULT_SESSION_SOURCE=browser-use` |
 
-Smoke test（2026-05-30）：REST 200 + MCP `initialize` 200。
+Smoke test：`./scripts/smoke.sh`（`GET /health`、可选 `GET /v1/me`）；MCP `initialize` 应返回 `serverInfo.auth`。
 
 ## 你无需本地操作
 
