@@ -1,4 +1,6 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import { memResourceUri, parseMemResourceUri } from "../src/mcp-resources";
+import { checkMemRateLimit } from "../src/rate-limit";
 import { safeEqual } from "../src/http-util";
 import { splitMemoryContent } from "../src/mem-chunk";
 import { mergeHybridResults } from "../src/mem-hybrid";
@@ -169,5 +171,38 @@ describe("validate site/profile", () => {
     });
     expect(site).toBe("github.com");
     expect(profile).toBe("default");
+  });
+});
+
+describe("mem resource URIs", () => {
+  it("builds and parses mem:// URIs", () => {
+    const key = "notes/my file";
+    const uri = memResourceUri(key);
+    expect(uri).toBe("mem://notes%2Fmy%20file");
+    expect(parseMemResourceUri(uri)).toBe(key);
+  });
+
+  it("rejects invalid URIs", () => {
+    expect(parseMemResourceUri("http://example.com")).toBeNull();
+    expect(parseMemResourceUri("mem://")).toBeNull();
+    expect(parseMemResourceUri("mem://a/b")).toBeNull();
+  });
+});
+
+describe("checkMemRateLimit", () => {
+  it("throws when over limit", async () => {
+    const kv = {
+      get: vi.fn(async () => "3"),
+      put: vi.fn(async () => undefined),
+    };
+    const env = {
+      TOKENS: kv as unknown as KVNamespace,
+      MEM_RATE_LIMIT_PER_MIN: "3",
+    } as Env;
+
+    await expect(checkMemRateLimit(env, "alice", "mem_search")).rejects.toThrow(
+      /rate limit exceeded for mem_search \(3\/min\)/,
+    );
+    expect(kv.put).not.toHaveBeenCalled();
   });
 });
