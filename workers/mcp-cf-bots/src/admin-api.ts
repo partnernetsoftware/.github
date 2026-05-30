@@ -131,5 +131,13 @@ export async function adminToolCall(
     }
     return JSON.stringify({ ok, revoked: ok });
   }
+  if (name === "auth_audit_list") {
+    const limit =
+      typeof args.limit === "number" && args.limit > 0
+        ? Math.floor(args.limit)
+        : 50;
+    const entries = await listAuditLog(env, limit);
+    return JSON.stringify({ entries }, null, 2);
+  }
   throw new Error(`Unknown admin tool: ${name}`);
 }

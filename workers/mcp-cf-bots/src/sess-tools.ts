@@ -9,7 +9,7 @@ import { sessionStub } from "./session-store";
 import { sessionPut, touchRegistry } from "./vault-api";
 import { requireSiteProfile } from "./validate";
 
-/** MCP `sess_*` / `auth_token_*` tool handlers. */
+/** MCP `sess_*` / `auth_*` admin tool handlers. */
 export async function sessToolCall(
   env: Env,
   name: string,
@@ -17,7 +17,7 @@ export async function sessToolCall(
   auth: AuthContext,
   requestOwner: string,
 ): Promise<string> {
-  if (name.startsWith("auth_token_")) {
+  if (name.startsWith("auth_")) {
     if (!isAdmin(auth)) {
       throw new Error("forbidden: admin token required");
     }

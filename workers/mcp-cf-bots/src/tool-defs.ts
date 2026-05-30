@@ -34,6 +34,14 @@ const ADMIN_TOOL_DEFS: ToolDef[] = [
       token_id: { type: "string" },
     },
   },
+  {
+    name: "auth_audit_list",
+    description: "Admin: list recent auth audit log entries (metadata only)",
+    required: [],
+    properties: {
+      limit: { type: "number", description: "Max entries to return, default 50" },
+    },
+  },
 ];
 
 const SESS_TOOL_DEFS: ToolDef[] = [
