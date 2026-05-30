@@ -1,113 +1,82 @@
 # mcp-cf-bots
 
-Cloudflare Worker（`workers/mcp-cf-bots/`）+ HTTP MCP `POST $MCP_HTTP_PATH`。
+Cloudflare 上的 **HTTP MCP + REST**：跨 Agent 会话（`sess_*`）、多用户 token（`auth_token_*`）、后续 `mem_*`。
 
-## 源码文件（Worker 打包）
+**本目录为唯一 SSOT**（Worker 源码、脚本、文档、片段）。
 
-| 文件 | 必需 | 作用 |
-|------|------|------|
-| `src/index.ts` | ✓ | 入口：鉴权、MCP / REST 路由 |
-| `src/config.ts` | ✓ | 从 `Env` 读配置（无 TS 硬编码默认值） |
-| `src/mcp-http.ts` | ✓ | Streamable HTTP MCP |
-| `src/mcp-server.ts` | ✓ | `sess_*` 工具 + JSON-RPC |
-| `src/vault-api.ts` | ✓ | REST + 工具实现 |
-| `src/session-vault-do.ts` | ✓ | 会话 DO（加密） |
-| `src/registry-do.ts` | ✓ | 索引 DO |
-| `src/crypto.ts` | ✓ | AES-GCM |
-| `src/kinds.ts` | ✓ | 类型 / `SESSION_KINDS` |
-| `src/env.d.ts` | ✓ | `Env` 类型 |
+## 目录树
 
-**不进入 Worker 包**（可选）：
+```
+workers/mcp-cf-bots/
+├── src/                    # Worker（wrangler 打包）
+│   ├── index.ts            # 入口：鉴权 → MCP / REST
+│   ├── auth.ts             # admin + 用户 token（KV）
+│   ├── admin-api.ts        # /v1/admin/tokens
+│   ├── config.ts           # Env / Origin / MCP 元信息
+│   ├── mcp-http.ts         # Streamable HTTP MCP
+│   ├── mcp-server.ts       # sess_* / auth_* 工具
+│   ├── vault-api.ts        # REST /v1/session + 工具实现
+│   ├── session-vault-do.ts # 加密存储 DO
+│   ├── registry-do.ts      # 列表索引 DO
+│   ├── crypto.ts           # AES-GCM
+│   ├── kinds.ts            # oauth / cookies / storage_state / config
+│   └── env.d.ts
+├── tools/                  # Python REST 客户端（非 MCP）
+│   ├── claude_code.py      # CLI 凭据 capture/restore
+│   └── browser_cookies.py  # Playwright cookie
+├── scripts/                # Shell
+│   ├── claude_worker.sh    # restore + claude
+│   └── issue_token.sh      # admin 签发用户 token
+├── snippets/               # 浏览器 Console（不进 Worker 包）
+│   ├── capture-cookies.js
+│   └── apply-cookies.js
+├── docs/
+│   ├── deploy.md           # 部署与线上 URL
+│   ├── multi-user.md       # 多用户 token
+│   ├── browser-automation.md
+│   ├── claude-orchestrator.md
+│   └── claude-code-session-reuse.md
+├── mcp.recommended.json    # Cursor 远程 MCP 示例
+├── wrangler.toml
+├── package.json
+└── .dev.vars.example
+```
 
-| 文件 | 说明 |
-|------|------|
-| `snippets/*.js` | 浏览器 Console 抓/恢复 cookie，人工用 |
-| `.dev.vars.example` | 本地 `wrangler dev` 模板 |
-
-已删除：`products/*_mcp.py|ts`（stdio 客户端不需要）。
-
-## 环境变量
-
-### Secrets（`wrangler secret put`）
-
-| 名 | 说明 |
-|----|------|
-| `VAULT_TOKEN` | REST / MCP `Authorization: Bearer` |
-| `ENCRYPTION_KEY` | 可选；未设则用 `VAULT_TOKEN` 派生 AES 密钥 |
-
-### Vars（`wrangler.toml` `[vars]` 或 Dashboard）
-
-| 名 | 必需 | 说明 |
-|----|------|------|
-| `MCP_HTTP_PATH` | ✓ | MCP 路径，默认 `/mcp` |
-| `MCP_SERVER_NAME` | ✓ | `initialize` 里的服务名 |
-| `MCP_SERVER_VERSION` | ✓ | 版本 |
-| `MCP_SERVER_DESCRIPTION` | ✓ | 描述 |
-| `MCP_PROTOCOL_VERSION` | ✓ | 如 `2024-11-05` |
-| `OWNER_HEADER` | ✓ | 主 owner 头，默认 `X-Cf-Bots-Owner` |
-| `DEFAULT_OWNER` | 生产建议 ✓ | 无 header/`?owner=`/工具参数时的租户 |
-| `DEFAULT_SESSION_SOURCE` | 生产建议 ✓ | `sess_save` 未传 `source` 时写入 |
-| `MCP_ALLOWED_ORIGINS` | 可选 | 逗号分隔 Origin 白名单；未设则 https + Cursor IDE + localhost |
-
-本地开发：复制 `.dev.vars.example` → `.dev.vars`。
-
-### Cursor / 工具侧（非 Worker）
-
-| 名 | 说明 |
-|----|------|
-| `MCP_CF_BOTS_URL` | Worker 根 URL |
-| `MCP_CF_BOTS_TOKEN` | 同 `VAULT_TOKEN` |
-| `MCP_CF_BOTS_OWNER` | 与 `DEFAULT_OWNER` 对齐 |
-
-旧名 `SESSION_VAULT_*` 在 `tools/*.py` 中仍可作为回退。
-
-合并与上线步骤见 **[DEPLOY.md](./DEPLOY.md)**。
-
-## 部署
+## 快速开始
 
 ```bash
-cd /workspace/workers/mcp-cf-bots
-npm install
-export CLOUDFLARE_API_TOKEN=... CLOUDFLARE_ACCOUNT_ID=...
-npx wrangler secret put VAULT_TOKEN
-npx wrangler vars put DEFAULT_OWNER cloud-agent
-npx wrangler vars put DEFAULT_SESSION_SOURCE browser-use
+cd workers/mcp-cf-bots
+npm ci
 npx wrangler deploy --name mcp-cf-bots
 ```
 
-## Cursor MCP
+详见 [docs/deploy.md](docs/deploy.md)、[docs/multi-user.md](docs/multi-user.md)。
 
-```json
-{
-  "mcpServers": {
-    "mcp-cf-bots": {
-      "url": "https://<host>/mcp",
-      "headers": {
-        "Authorization": "Bearer ${env:MCP_CF_BOTS_TOKEN}",
-        "X-Cf-Bots-Owner": "${env:MCP_CF_BOTS_OWNER}"
-      }
-    }
-  }
-}
-```
+## 常用命令
 
-`url` 路径须与 Worker 上 `MCP_HTTP_PATH` 一致。
-
-## REST
-
-| 方法 | 路径 |
+| 用途 | 命令 |
 |------|------|
-| PUT/GET/DELETE | `/v1/session/{site}/{profile}` |
-| GET | `/v1/sessions` |
+| 派 Claude 工人 | `workers/mcp-cf-bots/scripts/claude_worker.sh -p "..."` |
+| 存 CLI 登录态 | `python3 workers/mcp-cf-bots/tools/claude_code.py capture` |
+| 签发用户 token | `workers/mcp-cf-bots/scripts/issue_token.sh <owner> [label]` |
+| 浏览器 cookie | `python3 workers/mcp-cf-bots/tools/browser_cookies.py capture ...` |
 
-Owner：`?owner=`、owner 请求头、或 `DEFAULT_OWNER`。
+## 环境变量
 
-## MCP 工具
+| 变量 | 说明 |
+|------|------|
+| `MCP_CF_BOTS_URL` | Worker 根 URL（无尾 `/`） |
+| `MCP_CF_BOTS_TOKEN` | admin `VAULT_TOKEN` 或用户 `cfb_…` |
+| `MCP_CF_BOTS_OWNER` | 租户 id（admin 可覆盖；用户 token 已绑定） |
 
-`sess_save` | `sess_load` | `sess_meta` | `sess_put` | `sess_get` | `sess_delete` | `sess_list`
+兼容旧名：`SESSION_VAULT_*`。
 
-## 辅助 REST 脚本（非 MCP）
+## MCP
 
-- `tools/session_vault_claude_code.py`
-- `tools/session_vault_browser_cookies.py`
-- `tools/claude_worker.sh`
+- 端点：`$MCP_CF_BOTS_URL/mcp`
+- 工具：`sess_save` / `sess_load` / `sess_put` / …；admin 另有 `auth_token_*`
+- 配置示例：[mcp.recommended.json](mcp.recommended.json)
+
+## 仓库根路径兼容
+
+`tools/session_vault_*.py`、`tools/claude_worker.sh` 等为 **弃用 shim**，请改用本目录。

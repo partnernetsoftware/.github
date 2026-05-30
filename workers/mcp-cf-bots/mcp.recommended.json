@@ -1,5 +1,4 @@
 {
-  "_note": "Canonical copy: workers/mcp-cf-bots/mcp.recommended.json",
   "mcpServers": {
     "playwright": {
       "command": "npx",

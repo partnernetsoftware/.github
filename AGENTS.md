@@ -9,8 +9,8 @@
 | **squad-parallel** | [`skills/squad-parallel/`](skills/squad-parallel/)（`.cursor/skills/squad-parallel` 同步） | 并行四角色小队推进 v3.5/v4；Agent **须亲自跑** `agent-team`，勿只贴命令给用户 |
 | **nano-lisp-jit-v4-longrun** | [`skills/nano-lisp-jit-v4-longrun/`](skills/nano-lisp-jit-v4-longrun/) | v4 长程 `/loop`：state SSOT → apply → gate → cc repair；**Bun TS 可执行 skill** |
 
-浏览器 + 跨会话登录：见 [`docs/browser-automation.md`](docs/browser-automation.md)。  
-**中台派 Claude 工人**：见 [`docs/claude-orchestrator.md`](docs/claude-orchestrator.md)，入口 `tools/claude_worker.sh`（自动 restore vault → `claude`）。
+**mcp-cf-bots**（CF Worker + HTTP MCP）：[`workers/mcp-cf-bots/`](workers/mcp-cf-bots/) — 会话 `sess_*`、多用户 token、脚本与文档均在此目录。  
+浏览器 / CLI 跨会话：见 [`workers/mcp-cf-bots/docs/`](workers/mcp-cf-bots/docs/)。派工人：`workers/mcp-cf-bots/scripts/claude_worker.sh`。
 
 ### Codebase overview
 

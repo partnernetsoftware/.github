@@ -15,7 +15,7 @@
 export MCP_CF_BOTS_URL=https://mcp-cf-bots.kcc668.workers.dev
 export MCP_CF_BOTS_TOKEN="$SESSION_VAULT_TOKEN"   # admin secret
 
-./tools/mcp_cf_bots_issue_token.sh alice "Alice Cursor"
+./workers/mcp-cf-bots/scripts/issue_token.sh alice "Alice Cursor"
 # 响应里的 token 只显示一次，交给用户
 ```
 

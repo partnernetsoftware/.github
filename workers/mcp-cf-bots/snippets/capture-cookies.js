@@ -3,7 +3,7 @@
  * Copies a vault-ready JSON payload to clipboard.
  *
  * Note: document.cookie omits HttpOnly cookies. For full auth on many sites,
- * prefer tools/session_vault_browser_cookies.py capture (Playwright CDP).
+ * prefer workers/mcp-cf-bots/tools/browser_cookies.py capture (Playwright CDP).
  */
 (function captureCookiesForVault() {
   const site = location.hostname.replace(/^www\./, "");
