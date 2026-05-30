@@ -6,30 +6,26 @@
 |------|-----|--------|
 | **中台** | Cursor Cloud Agent | 拆任务、调 vault、启动/监控 `claude`、汇总结果 |
 | **工人** | Claude Code CLI | 写代码、跑命令、改仓库 |
-| **保险箱** | session-vault MCP | 存工人登录态（你只登录一次） |
+| **保险箱** | **mcp-cf-bots** MCP | 存工人登录态（你只登录一次） |
 
 你不应手动跑 `capture` / `restore`；中台在每个新会话自动做完再派活。
 
 ## 中台标准流程
 
 1. **首次**（你 Take Control 登录一次 `claude` 后告诉中台「已登录」）  
-   → 中台：`python3 tools/session_vault_claude_code.py capture`（或 MCP `session_put`）
+   → 中台：`python3 tools/session_vault_claude_code.py capture`（或 MCP `sess_put`）
 
 2. **每次派活**  
    → 中台：`tools/claude_worker.sh -p "具体任务"`  
    → 内部：`restore` ← vault → `claude` 执行
 
 3. **跨会话**  
-   Secrets 只需 `SESSION_VAULT_URL` + `SESSION_VAULT_TOKEN`；工人凭据只在 vault。
+   Secrets 只需 `MCP_CF_BOTS_URL` + `MCP_CF_BOTS_TOKEN`；工人凭据只在 vault。
 
 ## 示例
 
 ```bash
-# 中台派工人改代码
 /workspace/tools/claude_worker.sh -p "在 workers/session-vault 加单元测试，不要改 API 行为"
-
-# 中台派工人续跑某方向
-/workspace/tools/claude_worker.sh -p "继续上一个 PR 的方向，先 git status"
 ```
 
 ## 和你无关的命令
@@ -39,4 +35,4 @@
 
 ## 浏览器 / 网页登录
 
-网页（claude.ai）与 CLI 工人分开：网页 cookie 用 `browser_session_save`；CLI 用 `cli.claude` vault 键。
+网页（claude.ai）与 CLI 工人分开：网页 cookie 用 `sess_save`；CLI 用 `cli.claude` vault 键。

@@ -121,7 +121,9 @@ export async function handleMcpHttp(
     );
   }
 
-  const headerOwner = request.headers.get("X-Session-Vault-Owner")?.trim();
+  const headerOwner =
+    request.headers.get("X-Cf-Bots-Owner")?.trim() ||
+    request.headers.get("X-Session-Vault-Owner")?.trim();
   const defaultOwner =
     headerOwner || env.DEFAULT_OWNER?.trim() || "default";
 

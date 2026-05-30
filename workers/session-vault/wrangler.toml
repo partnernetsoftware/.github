@@ -1,6 +1,6 @@
 # Cloudflare Workers runtime only — wrangler bundles src/ for the edge (not Bun).
-# Override name: CLOUDFLARE_WORKER_NAME=session-vault npx wrangler deploy
-name = "session-vault"
+# Override name: CLOUDFLARE_WORKER_NAME=mcp-cf-bots npx wrangler deploy
+name = "mcp-cf-bots"
 main = "src/index.ts"
 compatibility_date = "2024-11-01"
 workers_dev = true

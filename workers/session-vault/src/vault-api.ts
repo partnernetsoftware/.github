@@ -164,7 +164,7 @@ async function vaultPut(
   return res;
 }
 
-/** MCP tool handlers — same semantics as products/session_vault_mcp.py */
+/** MCP tool handlers — same semantics as products/mcp_cf_bots_mcp.py */
 export async function vaultToolCall(
   env: Env,
   _baseUrl: string,
@@ -174,7 +174,7 @@ export async function vaultToolCall(
 ): Promise<string> {
   const owner = resolveOwner(args, defaultOwner);
 
-  if (name === "session_list") {
+  if (name === "sess_list") {
     const regUrl = new URL("https://registry.internal/entries");
     if (typeof args.source === "string" && args.source) {
       regUrl.searchParams.set("source", args.source);
@@ -197,7 +197,7 @@ export async function vaultToolCall(
   const id = env.SESSION_VAULT.idFromName(vaultId(owner, site, profile));
   const stub = env.SESSION_VAULT.get(id);
 
-  if (name === "browser_session_save") {
+  if (name === "sess_save") {
     const body: Record<string, unknown> = {};
     if (args.storage_state !== undefined) {
       body.storage_state = args.storage_state;
@@ -227,7 +227,7 @@ export async function vaultToolCall(
     return res.text();
   }
 
-  if (name === "browser_session_load") {
+  if (name === "sess_load") {
     const kinds: string[] = [];
     if (args.include_oauth === true) {
       kinds.push("oauth");
@@ -262,14 +262,14 @@ export async function vaultToolCall(
     return text;
   }
 
-  if (name === "session_meta") {
+  if (name === "sess_meta") {
     const res = await stub.fetch("https://vault.internal/?meta_only=1", {
       method: "GET",
     });
     return res.text();
   }
 
-  if (name === "session_put") {
+  if (name === "sess_put") {
     const kind = String(args.kind ?? "");
     if (!SESSION_KINDS.includes(kind as SessionKind)) {
       throw new Error(`invalid kind: ${kind}`);
@@ -283,7 +283,7 @@ export async function vaultToolCall(
     return res.text();
   }
 
-  if (name === "session_get") {
+  if (name === "sess_get") {
     const kind = args.kind;
     const q =
       typeof kind === "string" && kind
@@ -298,7 +298,7 @@ export async function vaultToolCall(
     return res.text();
   }
 
-  if (name === "session_delete") {
+  if (name === "sess_delete") {
     const res = await stub.fetch("https://vault.internal/", {
       method: "DELETE",
     });

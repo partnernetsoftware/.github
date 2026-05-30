@@ -3,7 +3,7 @@ import { SESSION_KINDS } from "./kinds";
 
 const TOOL_DEFS = [
   {
-    name: "browser_session_save",
+    name: "sess_save",
     description:
       "Save browser-use / Playwright session for reuse across Cloud Agents (storage_state + optional oauth/cookies/config)",
     required: ["site", "profile"],
@@ -18,7 +18,7 @@ const TOOL_DEFS = [
       config: {
         description: "browser-use or agent config JSON (API URLs, selectors, etc.)",
       },
-      label: { type: "string", description: "Human label in session_list" },
+      label: { type: "string", description: "Human label in sess_list" },
       source: {
         type: "string",
         description: "Source tag (default browser-use)",
@@ -26,7 +26,7 @@ const TOOL_DEFS = [
       tags: {
         type: "array",
         items: { type: "string" },
-        description: "Tags for filtering session_list",
+        description: "Tags for filtering sess_list",
       },
       notes: { type: "string" },
       expires_at: { type: "string", description: "ISO8601 expiry" },
@@ -34,7 +34,7 @@ const TOOL_DEFS = [
     },
   },
   {
-    name: "browser_session_load",
+    name: "sess_load",
     description:
       "Load saved browser session for browser-use (storage_state; optional oauth/cookies/config)",
     required: ["site", "profile"],
@@ -48,7 +48,7 @@ const TOOL_DEFS = [
     },
   },
   {
-    name: "session_meta",
+    name: "sess_meta",
     description: "Read label/tags/source/expiry metadata without decrypting payloads",
     required: ["site", "profile"],
     properties: {
@@ -58,7 +58,7 @@ const TOOL_DEFS = [
     },
   },
   {
-    name: "session_put",
+    name: "sess_put",
     description: "Store a single kind: oauth, cookies, storage_state, or config",
     required: ["site", "profile", "kind", "data"],
     properties: {
@@ -75,7 +75,7 @@ const TOOL_DEFS = [
     },
   },
   {
-    name: "session_get",
+    name: "sess_get",
     description: "Read stored session fields (optional single kind)",
     required: ["site", "profile"],
     properties: {
@@ -86,7 +86,7 @@ const TOOL_DEFS = [
     },
   },
   {
-    name: "session_delete",
+    name: "sess_delete",
     description: "Delete all encrypted session data for site/profile",
     required: ["site", "profile"],
     properties: {
@@ -96,7 +96,7 @@ const TOOL_DEFS = [
     },
   },
   {
-    name: "session_list",
+    name: "sess_list",
     description: "List site/profile entries with label/source/tags",
     required: [] as string[],
     properties: {
@@ -108,10 +108,10 @@ const TOOL_DEFS = [
 ] as const;
 
 const SERVER_INFO = {
-  name: "session-vault-mcp",
-  version: "0.3.0",
+  name: "mcp-cf-bots",
+  version: "0.4.0",
   description:
-    "Cross-agent OAuth / browser-use / Playwright storage vault (Cloudflare DO)",
+    "Cloudflare MCP for cross-agent bots (sessions; memory planned)",
 };
 
 type JsonRpcReq = {

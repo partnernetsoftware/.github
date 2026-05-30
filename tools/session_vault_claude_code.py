@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
-Persist Claude Code CLI auth across Cloud Agent sessions via session-vault (no new MCP).
+Persist Claude Code CLI auth across Cloud Agent sessions via mcp-cf-bots Worker (no extra MCP).
 
-SSOT = session-vault only (SESSION_VAULT_URL + SESSION_VAULT_TOKEN).
+SSOT = mcp-cf-bots (MCP_CF_BOTS_URL + MCP_CF_BOTS_TOKEN; legacy SESSION_VAULT_*).
 Do NOT require CLAUDE_CODE_OAUTH_TOKEN in Cloud Agent Secrets.
 
 After one interactive login, capture -> vault. Each new session: restore <- vault.
 
   # One-time (after claude login or setup-token):
-  export SESSION_VAULT_URL SESSION_VAULT_TOKEN SESSION_VAULT_OWNER=cloud-agent
+  export MCP_CF_BOTS_URL MCP_CF_BOTS_TOKEN MCP_CF_BOTS_OWNER=cloud-agent
   python3 tools/session_vault_claude_code.py capture
 
   # Every new Cloud Agent / shell:
@@ -41,31 +41,35 @@ SETTINGS = CLAUDE_DIR / "settings.json"
 CLAUDE_JSON = Path.home() / ".claude.json"
 
 
-def _env(name: str) -> str:
-    v = os.environ.get(name, "").strip()
+def _env(primary: str, legacy: str) -> str:
+    v = (os.environ.get(primary, "") or os.environ.get(legacy, "")).strip()
     if not v:
         raise RuntimeError(
-            f"{name} is not set. "
-            "In Cloud Agent: add to Secrets (same as session-vault MCP). "
-            "Locally: export SESSION_VAULT_URL SESSION_VAULT_TOKEN"
+            f"{primary} is not set (legacy: {legacy}). "
+            "In Cloud Agent: add to Secrets (same as mcp-cf-bots MCP). "
+            "Locally: export MCP_CF_BOTS_URL MCP_CF_BOTS_TOKEN"
         )
     return v
 
 
 def _owner() -> str:
-    return (os.environ.get("SESSION_VAULT_OWNER", "cloud-agent") or "cloud-agent").strip()
+    return (
+        os.environ.get("MCP_CF_BOTS_OWNER")
+        or os.environ.get("SESSION_VAULT_OWNER")
+        or "cloud-agent"
+    ).strip()
 
 
 def _vault(method: str, path: str, *, body: Optional[dict] = None, query: Optional[dict] = None) -> dict:
-    base = _env("SESSION_VAULT_URL").rstrip("/")
+    base = _env("MCP_CF_BOTS_URL", "SESSION_VAULT_URL").rstrip("/")
     url = f"{base}{path}"
     if query:
         url = f"{url}?{urllib.parse.urlencode(query)}"
     data = None
     headers = {
-        "Authorization": f"Bearer {_env('SESSION_VAULT_TOKEN')}",
+        "Authorization": f"Bearer {_env('MCP_CF_BOTS_TOKEN', 'SESSION_VAULT_TOKEN')}",
         "Accept": "application/json",
-        "User-Agent": "session-vault-client/1.0",
+        "User-Agent": "mcp-cf-bots-client/1.0",
     }
     if body is not None:
         data = json.dumps(body).encode("utf-8")
@@ -241,7 +245,7 @@ def cmd_status() -> None:
 
 
 def main() -> None:
-    ap = argparse.ArgumentParser(description="Claude Code CLI ↔ session-vault")
+    ap = argparse.ArgumentParser(description="Claude Code CLI ↔ mcp-cf-bots")
     sub = ap.add_subparsers(dest="cmd", required=True)
     sub.add_parser("capture", help="Save ~/.claude credentials bundle to vault")
     t = sub.add_parser("capture-token", help="Store claude setup-token in vault oauth")

@@ -1,13 +1,15 @@
 #!/usr/bin/env bash
-# Orchestrator calls this: restore CLI auth from session-vault, then run Claude Code as worker.
-# Requires SESSION_VAULT_URL + SESSION_VAULT_TOKEN (same as session-vault MCP).
+# Orchestrator calls this: restore CLI auth from mcp-cf-bots Worker, then run Claude Code as worker.
+# Requires MCP_CF_BOTS_URL + MCP_CF_BOTS_TOKEN (legacy SESSION_VAULT_*).
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-export SESSION_VAULT_OWNER="${SESSION_VAULT_OWNER:-cloud-agent}"
+export MCP_CF_BOTS_OWNER="${MCP_CF_BOTS_OWNER:-${SESSION_VAULT_OWNER:-cloud-agent}}"
+export MCP_CF_BOTS_URL="${MCP_CF_BOTS_URL:-${SESSION_VAULT_URL:-}}"
+export MCP_CF_BOTS_TOKEN="${MCP_CF_BOTS_TOKEN:-${SESSION_VAULT_TOKEN:-}}"
 
-if [[ -z "${SESSION_VAULT_URL:-}" || -z "${SESSION_VAULT_TOKEN:-}" ]]; then
-  echo "claude_worker: SESSION_VAULT_URL and SESSION_VAULT_TOKEN must be set (Cloud Agent Secrets)" >&2
+if [[ -z "${MCP_CF_BOTS_URL:-}" || -z "${MCP_CF_BOTS_TOKEN:-}" ]]; then
+  echo "claude_worker: MCP_CF_BOTS_URL and MCP_CF_BOTS_TOKEN must be set (Cloud Agent Secrets)" >&2
   exit 1
 fi
 
