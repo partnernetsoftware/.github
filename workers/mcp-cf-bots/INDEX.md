@@ -49,7 +49,7 @@ HTTP MCP + REST on Cloudflare Workers：`sess_*` 会话、`mem_*` 记忆 RAG、`
 | 会话 REST | `/v1/session/:site/:profile`、`GET /v1/sessions` |
 | 记忆 REST | `/v1/mem`、`/v1/mem/:key`、`POST /v1/mem/search|import|reindex|vector-gc` |
 | Admin | `/v1/admin/tokens`、`POST /v1/admin/mem/cron` |
-| MCP 工具 | `sess_*`、`mem_*`；admin：`auth_token_*`、`mem_reindex`、`mem_stats`、`mem_vector_gc` |
+| MCP 工具 | `sess_*`、`mem_*`；admin：`auth_token_*`、`mem_migrate_legacy`、`mem_reindex`、`mem_stats`、`mem_vector_gc` |
 
 客户端环境变量：`MCP_CF_BOTS_URL`、`MCP_CF_BOTS_TOKEN`、`MCP_CF_BOTS_OWNER`（兼容 `SESSION_VAULT_*`）。
 
