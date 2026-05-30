@@ -1,8 +1,11 @@
 import { handleAdminRest } from "./admin-api";
 import { effectiveOwner, type AuthContext } from "./auth";
 import { readOwnerHeader } from "./config";
+import { apiError } from "./http-util";
 import type { SessionMeta } from "./kinds";
+import { fetchRegistryEntries, registryStub } from "./registry-client";
 import { registryEntryFromMeta } from "./registry-do";
+import { sessionStub } from "./session-store";
 import { validateKey } from "./validate";
 
 const SESSION_RE = /^\/v1\/session\/([^/]+)\/([^/]+)\/?$/;
@@ -19,14 +22,6 @@ export function ownerFromRequest(
   });
 }
 
-export function vaultId(owner: string, site: string, profile: string): string {
-  return `vault/${owner}/${site}/${profile}`;
-}
-
-export function registryId(owner: string): string {
-  return `registry/${owner}`;
-}
-
 export async function touchRegistry(
   env: Env,
   owner: string,
@@ -35,8 +30,7 @@ export async function touchRegistry(
   action: "upsert" | "remove",
   meta?: SessionMeta,
 ): Promise<void> {
-  const id = env.REGISTRY.idFromName(registryId(owner));
-  const stub = env.REGISTRY.get(id);
+  const stub = registryStub(env, owner);
   const path = action === "upsert" ? "/upsert" : "/remove";
   const body =
     action === "upsert"
@@ -57,15 +51,14 @@ export async function touchRegistry(
   });
 }
 
-export async function vaultPut(
+export async function sessionPut(
   env: Env,
   owner: string,
   site: string,
   profile: string,
   body: Record<string, unknown>,
 ): Promise<Response> {
-  const id = env.SESSION_STORE.idFromName(vaultId(owner, site, profile));
-  const stub = env.SESSION_STORE.get(id);
+  const stub = sessionStub(env, owner, site, profile);
   const res = await stub.fetch("https://vault.internal/", {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
@@ -95,31 +88,21 @@ export async function handleVaultRest(
 
   if (request.method === "GET" && url.pathname === "/v1/sessions") {
     const owner = ownerFromRequest(auth, env, url, request);
-    const id = env.REGISTRY.idFromName(registryId(owner));
-    const stub = env.REGISTRY.get(id);
-    const regUrl = new URL("https://registry.internal/entries");
-    const source = url.searchParams.get("source");
-    const tag = url.searchParams.get("tag");
-    if (source) {
-      regUrl.searchParams.set("source", source);
-    }
-    if (tag) {
-      regUrl.searchParams.set("tag", tag);
-    }
-    return stub.fetch(regUrl.toString());
+    const source = url.searchParams.get("source") ?? undefined;
+    const tag = url.searchParams.get("tag") ?? undefined;
+    return fetchRegistryEntries(env, owner, { source, tag });
   }
 
   const match = url.pathname.match(SESSION_RE);
   if (!match) {
-    return Response.json({ error: "Not found" }, { status: 404 });
+    return apiError(404, "Not found");
   }
 
   const [, siteRaw, profileRaw] = match;
   const site = validateKey("site", siteRaw);
   const profile = validateKey("profile", profileRaw);
   const owner = ownerFromRequest(auth, env, url, request);
-  const id = env.SESSION_STORE.idFromName(vaultId(owner, site, profile));
-  const stub = env.SESSION_STORE.get(id);
+  const stub = sessionStub(env, owner, site, profile);
 
   const doUrl = new URL(request.url);
   doUrl.pathname = "/";
@@ -151,3 +134,5 @@ export async function handleVaultRest(
 
   return response;
 }
+
+export { registryId, sessionStoreId } from "./session-store";

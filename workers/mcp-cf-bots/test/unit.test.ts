@@ -6,6 +6,7 @@ import {
   validateKey,
   validateOwnerId,
   assertBodySize,
+  requireSiteProfile,
 } from "../src/validate";
 
 describe("safeEqual", () => {
@@ -55,5 +56,14 @@ describe("validate", () => {
   it("rejects oversized Content-Length", () => {
     expect(() => assertBodySize("2000", env)).toThrow(/too large/);
     expect(() => assertBodySize(null, env)).not.toThrow();
+  });
+
+  it("parses site/profile from args", () => {
+    const { site, profile } = requireSiteProfile({
+      site: "github.com",
+      profile: "default",
+    });
+    expect(site).toBe("github.com");
+    expect(profile).toBe("default");
   });
 });

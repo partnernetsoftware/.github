@@ -29,6 +29,20 @@ export function validateKey(name: string, value: string): string {
   return v;
 }
 
+export function requireSiteProfile(
+  args: Record<string, unknown>,
+): { site: string; profile: string } {
+  const siteRaw = String(args.site ?? "");
+  const profileRaw = String(args.profile ?? "");
+  if (!siteRaw || !profileRaw) {
+    throw new Error("site and profile are required");
+  }
+  return {
+    site: validateKey("site", siteRaw),
+    profile: validateKey("profile", profileRaw),
+  };
+}
+
 export function validateOwnerId(owner: string): string {
   const v = owner.trim();
   if (!v || v.length > 64 || !/^[a-zA-Z0-9][a-zA-Z0-9._-]*$/.test(v)) {

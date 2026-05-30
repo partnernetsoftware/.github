@@ -5,6 +5,7 @@ import {
   revokeUserToken,
   type AuthContext,
 } from "./auth";
+import { apiError, jsonResponse } from "./http-util";
 
 const TOKEN_ID_RE = /^\/v1\/admin\/tokens\/([^/]+)\/?$/;
 
@@ -18,14 +19,14 @@ export async function handleAdminRest(
     return null;
   }
   if (!isAdmin(auth)) {
-    return Response.json({ error: "Forbidden" }, { status: 403 });
+    return apiError(403, "Forbidden");
   }
 
   if (url.pathname === "/v1/admin/tokens") {
     if (request.method === "GET") {
       const owner = url.searchParams.get("owner") ?? undefined;
       const tokens = await listUserTokens(env, owner);
-      return Response.json({
+      return jsonResponse({
         tokens: tokens.map((t) => ({
           id: t.id,
           owner: t.owner,
@@ -39,14 +40,14 @@ export async function handleAdminRest(
       try {
         body = (await request.json()) as { owner?: string; label?: string };
       } catch {
-        return Response.json({ error: "Invalid JSON" }, { status: 400 });
+        return apiError(400, "Invalid JSON");
       }
       const owner = String(body.owner ?? "").trim();
       if (!owner) {
-        return Response.json({ error: "owner is required" }, { status: 400 });
+        return apiError(400, "owner is required");
       }
       const created = await createUserToken(env, owner, body.label);
-      return Response.json({
+      return jsonResponse({
         id: created.id,
         owner: created.owner,
         label: created.label,
@@ -63,12 +64,12 @@ export async function handleAdminRest(
     const id = delMatch[1]!;
     const ok = await revokeUserToken(env, id);
     if (!ok) {
-      return Response.json({ error: "Not found" }, { status: 404 });
+      return apiError(404, "Not found");
     }
-    return Response.json({ ok: true });
+    return jsonResponse({ ok: true });
   }
 
-  return Response.json({ error: "Not found" }, { status: 404 });
+  return apiError(404, "Not found");
 }
 
 export async function adminToolCall(

@@ -1,53 +1,16 @@
 import { adminToolCall } from "./admin-api";
-import {
-  effectiveOwner,
-  isAdmin,
-  type AuthContext,
-} from "./auth";
+import { isAdmin, type AuthContext } from "./auth";
 import { defaultSessionSource } from "./config";
-import { SESSION_KINDS, type SessionKind, type SessionMeta } from "./kinds";
-import {
-  registryId,
-  touchRegistry,
-  vaultId,
-  vaultPut,
-} from "./vault-api";
-import { validateKey } from "./validate";
+import { SESSION_KINDS, type SessionKind } from "./kinds";
+import { ownerForTool } from "./owner-scope";
+import { fetchRegistryEntries } from "./registry-client";
+import { metaFromArgs } from "./session-meta";
+import { sessionStub } from "./session-store";
+import { sessionPut, touchRegistry } from "./vault-api";
+import { requireSiteProfile } from "./validate";
 
-function resolveToolOwner(
-  auth: AuthContext,
-  env: Env,
-  args: Record<string, unknown>,
-  requestOwner: string,
-): string {
-  return effectiveOwner(auth, env, {
-    argOwner: String(args.owner ?? "").trim() || null,
-    headerOwner: requestOwner,
-  });
-}
-
-function buildMetaFromArgs(args: Record<string, unknown>): Partial<SessionMeta> {
-  const meta: Partial<SessionMeta> = {};
-  if (typeof args.expires_at === "string" && args.expires_at) {
-    meta.expires_at = args.expires_at;
-  }
-  if (typeof args.label === "string" && args.label) {
-    meta.label = args.label;
-  }
-  if (typeof args.source === "string" && args.source) {
-    meta.source = args.source;
-  }
-  if (typeof args.notes === "string" && args.notes) {
-    meta.notes = args.notes;
-  }
-  if (Array.isArray(args.tags)) {
-    meta.tags = args.tags.map(String);
-  }
-  return meta;
-}
-
-/** MCP `sess_*` tool handlers. */
-export async function vaultToolCall(
+/** MCP `sess_*` / `auth_token_*` tool handlers. */
+export async function sessToolCall(
   env: Env,
   name: string,
   args: Record<string, unknown>,
@@ -61,32 +24,22 @@ export async function vaultToolCall(
     return adminToolCall(env, name, args);
   }
 
-  const owner = resolveToolOwner(auth, env, args, requestOwner);
+  const owner = ownerForTool(auth, env, args, requestOwner);
 
   if (name === "sess_list") {
-    const regUrl = new URL("https://registry.internal/entries");
+    const filters: { source?: string; tag?: string } = {};
     if (typeof args.source === "string" && args.source) {
-      regUrl.searchParams.set("source", args.source);
+      filters.source = args.source;
     }
     if (typeof args.tag === "string" && args.tag) {
-      regUrl.searchParams.set("tag", args.tag);
+      filters.tag = args.tag;
     }
-    const res = await env.REGISTRY.get(
-      env.REGISTRY.idFromName(registryId(owner)),
-    ).fetch(regUrl.toString());
+    const res = await fetchRegistryEntries(env, owner, filters);
     return res.text();
   }
 
-  const siteRaw = String(args.site ?? "");
-  const profileRaw = String(args.profile ?? "");
-  if (!siteRaw || !profileRaw) {
-    throw new Error("site and profile are required");
-  }
-  const site = validateKey("site", siteRaw);
-  const profile = validateKey("profile", profileRaw);
-
-  const id = env.SESSION_STORE.idFromName(vaultId(owner, site, profile));
-  const stub = env.SESSION_STORE.get(id);
+  const { site, profile } = requireSiteProfile(args);
+  const stub = sessionStub(env, owner, site, profile);
 
   if (name === "sess_save") {
     const body: Record<string, unknown> = {};
@@ -102,7 +55,7 @@ export async function vaultToolCall(
     if (args.config !== undefined) {
       body.config = args.config;
     }
-    const meta = buildMetaFromArgs(args);
+    const meta = metaFromArgs(args);
     if (!meta.source) {
       meta.source = defaultSessionSource(env);
     }
@@ -114,7 +67,7 @@ export async function vaultToolCall(
         "provide at least one of storage_state, oauth, cookies, config",
       );
     }
-    const res = await vaultPut(env, owner, site, profile, body);
+    const res = await sessionPut(env, owner, site, profile, body);
     return res.text();
   }
 
@@ -152,11 +105,11 @@ export async function vaultToolCall(
       throw new Error(`invalid kind: ${kind}`);
     }
     const body: Record<string, unknown> = { [kind]: args.data };
-    const meta = buildMetaFromArgs(args);
+    const meta = metaFromArgs(args);
     if (Object.keys(meta).length > 0) {
       body.meta = meta;
     }
-    const res = await vaultPut(env, owner, site, profile, body);
+    const res = await sessionPut(env, owner, site, profile, body);
     return res.text();
   }
 

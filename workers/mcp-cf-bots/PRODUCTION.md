@@ -1,5 +1,7 @@
 # mcp-cf-bots — production checklist
 
+完整目录索引：[INDEX.md](INDEX.md)
+
 ## Required bindings & secrets
 
 | Item | Wrangler / Dashboard |
