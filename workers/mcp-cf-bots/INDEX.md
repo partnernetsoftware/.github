@@ -2,7 +2,7 @@
 
 > **维护规则**：新增/移动/删除本目录下任何文件时，**先更新本文件**，再改代码。README 只保留一句话 + 链到此处。
 
-HTTP MCP + REST on Cloudflare Workers：`sess_*` 会话、`auth_token_*` 多租户；下一阶段 [`mem_*`](docs/mem-roadmap.md)。
+HTTP MCP + REST on Cloudflare Workers：`sess_*` 会话、`mem_*` 记忆 RAG、`auth_token_*` 多租户。
 
 ## 文档
 
@@ -16,7 +16,8 @@ HTTP MCP + REST on Cloudflare Workers：`sess_*` 会话、`auth_token_*` 多租�
 | [docs/browser-automation.md](docs/browser-automation.md) | Playwright + MCP |
 | [docs/claude-orchestrator.md](docs/claude-orchestrator.md) | 派 Claude 工人 |
 | [docs/claude-code-session-reuse.md](docs/claude-code-session-reuse.md) | CLI 跨会话 |
-| [docs/mem-roadmap.md](docs/mem-roadmap.md) | **规划** `mem_*` RAG（未实现） |
+| [docs/mem-roadmap.md](docs/mem-roadmap.md) | `mem_*` API 与后续改进 |
+| [docs/cf-services.md](docs/cf-services.md) | 需开通的 CF 服务与 Token 权限 |
 
 ## 配置与运维
 
@@ -27,6 +28,7 @@ HTTP MCP + REST on Cloudflare Workers：`sess_*` 会话、`auth_token_*` 多租�
 | [mcp.recommended.json](mcp.recommended.json) | Cursor 远程 MCP 示例 |
 | [.dev.vars.example](.dev.vars.example) | 本地 secret 模板 |
 | [scripts/smoke.sh](scripts/smoke.sh) | 部署后 `/health`、`/v1/me` |
+| [scripts/setup-rag.sh](scripts/setup-rag.sh) | Vectorize 索引 + 部署（语义检索） |
 | [scripts/issue_token.sh](scripts/issue_token.sh) | admin 签发用户 token |
 | [scripts/claude_worker.sh](scripts/claude_worker.sh) | restore vault + `claude` |
 
@@ -64,6 +66,11 @@ HTTP MCP + REST on Cloudflare Workers：`sess_*` 会话、`auth_token_*` 多租�
 | [tool-defs.ts](src/tool-defs.ts) | MCP 工具 schema |
 | [tool-aliases.ts](src/tool-aliases.ts) | 旧工具名 → `sess_*` |
 | [sess-tools.ts](src/sess-tools.ts) | `sess_*` 工具实现 |
+| [mem-tools.ts](src/mem-tools.ts) | `mem_*` 工具实现 |
+| [mem-embed.ts](src/mem-embed.ts) | Workers AI embedding + Vectorize |
+| [mem-rest.ts](src/mem-rest.ts) | REST `/v1/mem` |
+| [memory-do.ts](src/memory-do.ts) | `MemoryDO` 按 owner 存全文 |
+| [memory-store.ts](src/memory-store.ts) | Memory DO id / stub |
 | [vault-api.ts](src/vault-api.ts) | REST `/v1/session`、`/v1/sessions` |
 | [session-store.ts](src/session-store.ts) | DO id + `sessionStub` |
 | [session-meta.ts](src/session-meta.ts) | meta 字段从 args 构建 |
@@ -83,7 +90,8 @@ HTTP MCP + REST on Cloudflare Workers：`sess_*` 会话、`auth_token_*` 多租�
 | MCP | `POST {MCP_HTTP_PATH}`（默认 `/mcp`） |
 | REST 会话 | `GET/PUT/DELETE /v1/session/:site/:profile`，`GET /v1/sessions` |
 | REST admin | `GET/POST /v1/admin/tokens`，`DELETE /v1/admin/tokens/:id` |
-| MCP 工具 | `sess_*`，admin：`auth_token_*`；旧名见 [tool-aliases.ts](src/tool-aliases.ts) |
+| MCP 工具 | `sess_*`、`mem_*`，admin：`auth_token_*`；旧 sess 名见 [tool-aliases.ts](src/tool-aliases.ts) |
+| REST 记忆 | `GET /v1/mem`，`PUT/GET/DELETE /v1/mem/:key`，`POST /v1/mem/search` |
 
 ## 环境变量（客户端）
 

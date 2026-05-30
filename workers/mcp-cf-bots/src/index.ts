@@ -1,5 +1,6 @@
 export { SessionStoreDO } from "./session-do";
 export { RegistryDO } from "./registry-do";
+export { MemoryDO } from "./memory-do";
 
 import { authenticateRequest } from "./auth";
 import { handlePublicHealth, handleWhoAmI } from "./health";

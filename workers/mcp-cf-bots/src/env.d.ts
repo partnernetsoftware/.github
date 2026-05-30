@@ -1,6 +1,9 @@
 interface Env {
   SESSION_STORE: DurableObjectNamespace;
   REGISTRY: DurableObjectNamespace;
+  MEMORY_STORE?: DurableObjectNamespace;
+  AI?: Ai;
+  MEM_VECTORS?: VectorizeIndex;
   /** Per-user API token index (hashed bearer → owner) */
   TOKENS?: KVNamespace;
   /** Secret — MCP + REST Bearer token */

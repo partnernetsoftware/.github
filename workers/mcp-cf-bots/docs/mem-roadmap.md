@@ -1,41 +1,32 @@
-# mem_* 记忆 RAG（规划）
+# mem_* 记忆 RAG
 
-> **状态：未实现**。开工前以 [INDEX.md](../INDEX.md) 为准登记新模块。
+> **状态：已实现（v0.7.0）**。索引见 [INDEX.md](../INDEX.md)。
 
-## 目标
+## MCP 工具
 
-在现有 `sess_*`（浏览器/CLI 凭据）之上，为 Agent 提供**可检索的长期记忆**：
+| 工具 | 说明 |
+|------|------|
+| `mem_put` | 写入 `key` + `content`（可选 `tags`） |
+| `mem_get` | 按 key 读取全文 |
+| `mem_delete` | 删除 |
+| `mem_list` | 列表（可选 `tag` 过滤） |
+| `mem_search` | 语义检索（Vectorize+AI）或关键词回退 |
 
-- `mem_put` / `mem_get` — 结构化条目（事实、偏好、任务上下文）
-- `mem_search` — 语义检索（RAG），返回相关片段 + 引用 id
-- `mem_list` / `mem_delete` — 按 owner 命名空间管理
+## REST
 
-与 `sess_*` 相同的多租户模型：`owner` 由 Bearer（admin 或 `cfb_*`）隔离。
+| 方法 | 路径 |
+|------|------|
+| GET | `/v1/mem` |
+| GET/PUT/DELETE | `/v1/mem/:key` |
+| POST | `/v1/mem/search` body `{ "query", "top_k" }` |
 
-## 拟议架构（草案）
+## Cloudflare 绑定
 
-```
-MCP tools (mem_*)
-    → mem-tools.ts          # 与 sess-tools 对称
-    → memory-do.ts          # 或 Vectorize + KV 元数据
-    → embed-client.ts       # Workers AI / 外部 embedding API
-```
+见 [cf-services.md](cf-services.md)。
 
-存储选型（待决）：
+## 后续可改进
 
-| 方案 | 优点 | 风险 |
-|------|------|------|
-| DO + 本地向量 | 与现有模式一致 | DO 存储上限、检索性能 |
-| Vectorize | 原生 ANN | 绑定与成本 |
-| R2 + 批处理索引 | 便宜大容量 | 延迟、实现复杂 |
-
-## 依赖
-
-- [INDEX.md](../INDEX.md) 模块表已稳定
-- `sess_*` / `auth_*` 测试与 CI 绿
-- 本文件在实现时改为「已实现」并链接 API 说明
-
-## 非目标（首版）
-
-- 替代 `sess_*` 的加密会话存储
-- 全库自动爬取 / 任意文件 ingest（可后续迭代）
+- 分块 ingest（长文自动 chunk + 多向量）
+- 过期时间 `expires_at` 与定时清理
+- Hybrid 检索（BM25 + 向量）
+- `mem_import` 批量导入

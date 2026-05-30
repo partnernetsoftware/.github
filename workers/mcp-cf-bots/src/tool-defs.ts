@@ -139,20 +139,76 @@ const SESS_TOOL_DEFS: ToolDef[] = [
   },
 ];
 
+const MEM_TOOL_DEFS: ToolDef[] = [
+  {
+    name: "mem_put",
+    description: "Store a memory entry (facts, preferences, task context) for RAG retrieval",
+    required: ["key", "content"],
+    properties: {
+      key: { type: "string", description: "Unique key within owner namespace" },
+      content: { type: "string", description: "Text to remember" },
+      tags: { type: "array", items: { type: "string" } },
+      owner: { type: "string" },
+    },
+  },
+  {
+    name: "mem_get",
+    description: "Load a memory entry by key",
+    required: ["key"],
+    properties: {
+      key: { type: "string" },
+      owner: { type: "string" },
+    },
+  },
+  {
+    name: "mem_delete",
+    description: "Delete a memory entry by key",
+    required: ["key"],
+    properties: {
+      key: { type: "string" },
+      owner: { type: "string" },
+    },
+  },
+  {
+    name: "mem_list",
+    description: "List memory keys with short previews",
+    required: [] as string[],
+    properties: {
+      tag: { type: "string" },
+      owner: { type: "string" },
+    },
+  },
+  {
+    name: "mem_search",
+    description:
+      "Semantic (vector) or keyword search over stored memories; returns ranked snippets",
+    required: ["query"],
+    properties: {
+      query: { type: "string" },
+      top_k: { type: "number", description: "Max results 1-20, default 5" },
+      owner: { type: "string" },
+    },
+  },
+];
+
+function stripOwnerArg(tools: ToolDef[]): ToolDef[] {
+  return tools.map((t) => {
+    const { owner: _o, ...properties } = t.properties as Record<string, unknown> & {
+      owner?: unknown;
+    };
+    const required = t.required.filter((r) => r !== "owner");
+    return { ...t, properties, required };
+  });
+}
+
 /** MCP tools visible for this auth role (user tokens omit `owner` arg). */
 export function toolsForAuth(auth: AuthContext): ToolDef[] {
-  const sess = SESS_TOOL_DEFS.map((t) => {
-    if (auth.role === "user") {
-      const { owner: _o, ...properties } = t.properties as Record<string, unknown> & {
-        owner?: unknown;
-      };
-      const required = t.required.filter((r) => r !== "owner");
-      return { ...t, properties, required };
-    }
-    return t;
-  });
+  const sess =
+    auth.role === "user" ? stripOwnerArg(SESS_TOOL_DEFS) : SESS_TOOL_DEFS;
+  const mem =
+    auth.role === "user" ? stripOwnerArg(MEM_TOOL_DEFS) : MEM_TOOL_DEFS;
   if (isAdmin(auth)) {
-    return [...sess, ...ADMIN_TOOL_DEFS];
+    return [...sess, ...mem, ...ADMIN_TOOL_DEFS];
   }
-  return sess;
+  return [...sess, ...mem];
 }

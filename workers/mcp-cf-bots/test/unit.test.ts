@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { safeEqual } from "../src/http-util";
+import { ragEnabled } from "../src/mem-embed";
+import { memoryVectorId } from "../src/memory-store";
 import { resolveToolName, TOOL_ALIASES } from "../src/tool-aliases";
+import { toolsForAuth } from "../src/tool-defs";
 import {
   maxBodyBytes,
   validateKey,
@@ -58,6 +61,31 @@ describe("validate", () => {
     expect(() => assertBodySize(null, env)).not.toThrow();
   });
 
+  it("lists mem tools for user auth", () => {
+    const tools = toolsForAuth({ role: "user", owner: "alice", tokenId: "x" });
+    const names = tools.map((t) => t.name);
+    expect(names).toContain("mem_put");
+    expect(names).not.toContain("auth_token_create");
+    for (const t of tools.filter((x) => x.name.startsWith("mem_"))) {
+      expect(t.properties).not.toHaveProperty("owner");
+    }
+  });
+});
+
+describe("memory", () => {
+  it("builds stable vector ids", () => {
+    expect(memoryVectorId("cloud-agent", "uuid-1")).toBe("cloud-agent::uuid-1");
+  });
+
+  it("detects rag bindings", () => {
+    expect(ragEnabled({} as Env)).toBe(false);
+    expect(
+      ragEnabled({ AI: {} as Ai, MEM_VECTORS: {} as VectorizeIndex } as Env),
+    ).toBe(true);
+  });
+});
+
+describe("validate site/profile", () => {
   it("parses site/profile from args", () => {
     const { site, profile } = requireSiteProfile({
       site: "github.com",

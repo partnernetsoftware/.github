@@ -1,5 +1,6 @@
 import type { AuthContext } from "./auth";
 import { mcpProtocolVersion, mcpServerInfo } from "./config";
+import { memToolCall } from "./mem-tools";
 import { sessToolCall } from "./sess-tools";
 import { resolveToolName } from "./tool-aliases";
 import { toolsForAuth } from "./tool-defs";
@@ -112,13 +113,21 @@ export async function handleMcpJsonRpc(
       };
     }
     try {
-      const text = await sessToolCall(
-        ctx.env,
-        name,
-        args,
-        ctx.auth,
-        ctx.requestOwner,
-      );
+      const text = name.startsWith("mem_")
+        ? await memToolCall(
+            ctx.env,
+            name,
+            args,
+            ctx.auth,
+            ctx.requestOwner,
+          )
+        : await sessToolCall(
+            ctx.env,
+            name,
+            args,
+            ctx.auth,
+            ctx.requestOwner,
+          );
       return {
         body: ok(requestId, {
           content: [{ type: "text", text }],

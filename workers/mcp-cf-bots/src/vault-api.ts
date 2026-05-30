@@ -1,4 +1,5 @@
 import { handleAdminRest } from "./admin-api";
+import { handleMemRest } from "./mem-rest";
 import { effectiveOwner, type AuthContext } from "./auth";
 import { readOwnerHeader } from "./config";
 import { apiError } from "./http-util";
@@ -84,6 +85,11 @@ export async function handleVaultRest(
   const admin = await handleAdminRest(request, env, url, auth);
   if (admin) {
     return admin;
+  }
+
+  const mem = await handleMemRest(request, env, url, auth);
+  if (mem) {
+    return mem;
   }
 
   if (request.method === "GET" && url.pathname === "/v1/sessions") {
