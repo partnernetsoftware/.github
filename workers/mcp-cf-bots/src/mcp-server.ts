@@ -1,5 +1,6 @@
 import type { AuthContext } from "./auth";
 import { mcpProtocolVersion, mcpServerInfo } from "./config";
+import { listMemResources, readMemResource } from "./mcp-resources";
 import { memToolCall } from "./mem-tools";
 import { sessToolCall } from "./sess-tools";
 import { resolveToolName } from "./tool-aliases";
@@ -48,7 +49,7 @@ export async function handleMcpJsonRpc(
       return {
         body: ok(requestId, {
           protocolVersion: mcpProtocolVersion(ctx.env),
-          capabilities: { tools: {} },
+          capabilities: { tools: {}, resources: {} },
           serverInfo: {
             ...serverInfo,
             auth:
@@ -95,6 +96,56 @@ export async function handleMcpJsonRpc(
             required: [...t.required],
           },
         })),
+      }),
+      status: 200,
+      isNotification: false,
+    };
+  }
+
+  if (method === "resources/list") {
+    const resources = await listMemResources(
+      ctx.env,
+      ctx.auth,
+      ctx.requestOwner,
+    );
+    return {
+      body: ok(requestId, { resources }),
+      status: 200,
+      isNotification: false,
+    };
+  }
+
+  if (method === "resources/read") {
+    const uri = params.uri;
+    if (typeof uri !== "string" || !uri) {
+      return {
+        body: err(requestId, -32602, "Missing required parameter: uri"),
+        status: 200,
+        isNotification: false,
+      };
+    }
+    const content = await readMemResource(
+      ctx.env,
+      ctx.auth,
+      ctx.requestOwner,
+      uri,
+    );
+    if (!content) {
+      return {
+        body: err(requestId, -32602, `Resource not found: ${uri}`),
+        status: 200,
+        isNotification: false,
+      };
+    }
+    return {
+      body: ok(requestId, {
+        contents: [
+          {
+            uri: content.uri,
+            mimeType: content.mimeType,
+            text: content.text,
+          },
+        ],
       }),
       status: 200,
       isNotification: false,
