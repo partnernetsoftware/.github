@@ -4,11 +4,11 @@
 
 | 项 | 值 |
 |---|---|
-| 采集窗口 | `260528 06:04` UTC → `260530 06:04` UTC（48h，cron 触发 `2026-05-30T06:04Z`） |
-| 本文件更新 | `260530 06:04` UTC |
-| 条目数 | 13 |
-| 新模型 / 新产品 / 新模式 | 11（新模型 3 · 新产品 5 · 新模式 3） |
-| main 合并 commit | `1b31cd1` |
+| 采集窗口 | `260528 07:02` UTC → `260530 07:02` UTC（48h，cron 触发 `2026-05-30T07:02Z`） |
+| 本文件更新 | `260530 07:02` UTC |
+| 条目数 | 18 |
+| 新模型 / 新产品 / 新模式 | 16（新模型 6 · 新产品 7 · 新模式 3） |
+| main 合并 commit | `pending` |
 
 ---
 
@@ -55,6 +55,39 @@ vibe-48h/
   - 要点：
     - Apache-2.0；30B MoE（约 3B 激活）；DSA 稀疏注意力；256K 上下文。
     - 原生 Code / Tool / Search Agent 能力；推荐与广告场景已量产部署。
+
+- **Gemini 3.5: frontier intelligence with action**
+  - 来源：**Google**
+  - 时间：`260529`
+  - 正文：~**780** tok
+  - URL：https://blog.google/innovation-and-ai/models-and-research/gemini-models/gemini-omni-3-5-videos/
+  - 类型：新模型
+  - 要点：
+    - **Gemini 3.5 Flash** 全球成为 Gemini App 与 Search AI Mode 默认模型；面向 agent/编码的长程任务。
+    - GA 渠道：Antigravity、Gemini API / AI Studio、Android Studio、Gemini Enterprise；3.5 Pro 预告下月推出。
+    - 与 Antigravity harness 联动，可编排协作子代理处理大规模工作流。
+
+- **Catch up on 12 major I/O 2026 moments — Gemini Omni**
+  - 来源：**Google**
+  - 时间：`260528`
+  - 正文：~**920** tok
+  - URL：https://blog.google/innovation-and-ai/technology/ai/io-2026-keynote-moment-videos/
+  - 类型：新模型
+  - 要点：
+    - **Gemini Omni Flash**：图文音视频多模态输入生成/编辑视频；Plus/Pro/Ultra 全球 Gemini App 与 Flow。
+    - YouTube Shorts / Create 免费接入；数周内向开发者与企业 API 开放。
+    - Omni 系列定位「任意输入创造任意输出」，首版聚焦视频生成与对话式剪辑。
+
+- **LFM2.5-8B-A1B: Personal Assistant On Your Laptop**
+  - 来源：**Liquid**
+  - 时间：`260528`
+  - 正文：~**1400** tok
+  - URL：https://www.liquid.ai/blog/lfm2-5-8b-a1b
+  - 类型：新模型
+  - 要点：
+    - 8.3B MoE / 1.5B 激活；128K 上下文；LFM 开放权重许可；38T token 预训练 + 大规模 RL。
+    - reasoning-only；IFEval 91.84、Tau² Telecom 88.07；端侧 ~253 tok/s（M5 Max）。
+    - 日支持 llama.cpp / MLX / vLLM / SGLang；配套 LocalCowork 桌面 agent 演示。
 
 ### 新产品
 
@@ -113,16 +146,27 @@ vibe-48h/
     - `.cursor/environment.json` 定义依赖与构建；企业可自托管 K8s worker。
     - 与本地 Agent 并行，适合 cron / PR 自动化长任务。
 
-- **Introducing Workspace MCP: agentic financial workflows**
-  - 来源：**OpenBB**
-  - 时间：`260526`
+- **Gemini Spark rolls out to Google AI Ultra in the US**
+  - 来源：**9to5G**
+  - 时间：`260529`
   - 正文：~**720** tok
-  - URL：https://openbb.co/blog/introducing-workspace-mcp/
+  - URL：https://9to5google.com/2026/05/29/gemini-spark-ultra-us/
   - 类型：新产品
   - 要点：
-    - 开源 [`github.com/OpenBB-finance/workspace-mcp`](https://github.com/OpenBB-finance/workspace-mcp)；本地 sidecar + Workspace **MCP Companion**。
-    - 代理可查询许可数据、生成可复用 **widget/仪表盘/多 tab 应用**（非只读问答）。
-    - 继承 Workspace 权限、凭证保险库与数据 lineage；对接 Claude Code / Codex 等 MCP 客户端。
+    - 24/7 云端个人代理；Gemini Web「Spark」标签页，移动端 Beta；Ultra 美国用户可用。
+    - **Task / Schedule / Skill** 三组件；Workspace + Connected Apps；默认关闭 Gmail 等需显式授权。
+    - 并发最多 15 任务；基于 Gemini 3.5 + Antigravity；今夏扩展本地文件与「代付款」能力。
+
+- **Meta testing AI subscription services, cheapest plan at $7.99 a month**
+  - 来源：**CNBC**
+  - 时间：`260527`
+  - 正文：~**480** tok
+  - URL：https://www.cnbc.com/2026/05/27/meta-testing-ai-subscription-services-cheapest-plan-at-7point99-a-month.html
+  - 类型：新产品
+  - 要点：
+    - **Meta One** 品牌：Meta One Plus **$7.99**/月、Premium **$19.99**/月（更高算力与生成配额）。
+    - 6 月起在新加坡、危地马拉、玻利维亚测试；免费 Meta AI 仍保留。
+    - 同步 Instagram/Facebook/WhatsApp **Plus** 订阅（约 $3–4/月）及企业/创作者分层方案。
 
 ### 新模式
 
@@ -135,7 +179,7 @@ vibe-48h/
   - 要点：
     - 批判纯 **Vibe Coding** 缺乏确定性与可审计性。
     - 主张 **Spec-Driven Development**：规格 → 计划 → 原子任务 → 实现/验证闭环。
-    - 与「一句话出整库」的 agent  hype 对照，强调工程可维护性。
+    - 与「一句话出整库」的 agent hype 对照，强调工程可维护性。
 
 - **Vibe Coding for Enterprise: A 2026 Practitioner's Guide**
   - 来源：**Tembo**
@@ -148,16 +192,16 @@ vibe-48h/
     - Karpathy「vibe」梗 → 需预算线与合规护栏才能进生产。
     - 将 AI 辅助编码纳入现有 SDLC，而非绕过 code review。
 
-- **National cyber shield could be ready in five years**
-  - 来源：**CW**
-  - 时间：`260528 17:08`
-  - 正文：~**520** tok
-  - URL：https://www.computerweekly.com/news/366643734/National-cyber-shield-could-be-ready-in-five-years
+- **Hexo Labs Open-Sources SIA: Self-Improving Agent**
+  - 来源：**MTP**
+  - 时间：`260529`
+  - 正文：~**980** tok
+  - URL：https://www.marktechpost.com/2026/05/29/hexo-labs-open-sources-sia-a-self-improving-agent-that-updates-both-the-harness-and-the-model-weights/
   - 类型：新模式
   - 要点：
-    - GCHQ 局长 Keast-Butler 提出国家级 **agentic AI** 网盾蓝图，目标约五年内覆盖 CNI（能源、医疗、金融等）。
-    - 将自主代理用于威胁检测/响应编排，而非仅传统 SIEM 规则。
-    - 与 Bletchley 演讲一脉：AI 为「不可阻挡之力」，呼吁企业把网安紧迫度提 10 倍。
+    - **SIA**（MIT）：同一反馈环内同时改写 agent harness（提示/工具/重试）与 **LoRA** 权重（`gpt-oss-120b` rank 32）。
+    - Feedback-Agent 按奖励在 scaffold 编辑 vs 权重更新间选择；LawBench / TriMul / scRNA 三域验证。
+    - 开源 [`github.com/hexo-ai/sia`](https://github.com/hexo-ai/sia)；代表「自改进代理」新范式。
 
 ### 资本动态
 
