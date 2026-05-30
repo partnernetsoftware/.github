@@ -35,6 +35,7 @@ EOF
   fi
 fi
 
-echo "==> deploy worker"
-npx wrangler deploy --name mcp-cf-bots
+echo "==> deploy worker (typecheck + test + deploy)"
+SKIP_SMOKE=1 ./scripts/deploy.sh
 echo "Done. curl \$MCP_CF_BOTS_URL/health → rag_backend should be vectorize"
+echo "Optional: DRY_RUN=1 ./scripts/mem-vector-gc.sh <owner>"

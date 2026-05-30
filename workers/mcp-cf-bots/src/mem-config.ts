@@ -29,3 +29,28 @@ export function memEncryptAtRest(env: Env): boolean {
   const v = trimOpt(env.MEM_ENCRYPT)?.toLowerCase();
   return v === "1" || v === "true" || v === "yes";
 }
+
+export function vectorizeIndexName(env: Env): string {
+  return trimOpt(env.MEM_VECTORIZE_INDEX) ?? "mcp-cf-bots-mem";
+}
+
+function flagOn(raw: string | undefined): boolean {
+  const v = trimOpt(raw)?.toLowerCase();
+  return v === "1" || v === "true" || v === "yes";
+}
+
+export function memCronReindexEnabled(env: Env): boolean {
+  return flagOn(env.MEM_CRON_REINDEX);
+}
+
+export function memCronVectorGcEnabled(env: Env): boolean {
+  return flagOn(env.MEM_CRON_VECTOR_GC);
+}
+
+export function memCronOwnerLimit(env: Env): number {
+  return intOpt(env.MEM_CRON_OWNER_LIMIT, 32);
+}
+
+export function cfVectorGcReady(env: Env): boolean {
+  return Boolean(trimOpt(env.CF_ACCOUNT_ID) && trimOpt(env.CF_API_TOKEN));
+}

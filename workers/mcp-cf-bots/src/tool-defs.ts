@@ -222,6 +222,16 @@ const MEM_ADMIN_TOOL_DEFS: ToolDef[] = [
       owner: { type: "string" },
     },
   },
+  {
+    name: "mem_vector_gc",
+    description:
+      "Admin: delete Vectorize vectors with no matching DO chunk (needs CF API token)",
+    required: [] as string[],
+    properties: {
+      owner: { type: "string" },
+      dry_run: { type: "boolean", description: "Report orphans only, do not delete" },
+    },
+  },
 ];
 
 function stripOwnerArg(tools: ToolDef[]): ToolDef[] {

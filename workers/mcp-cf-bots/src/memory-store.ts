@@ -11,7 +11,19 @@ export function memoryStub(env: Env, owner: string): DurableObjectStub {
   );
 }
 
+const VECTOR_ID_SEP = "::";
+
 /** Vectorize row id — unique per owner + memory uuid. */
 export function memoryVectorId(owner: string, memId: string): string {
-  return `${owner}::${memId}`;
+  return `${owner}${VECTOR_ID_SEP}${memId}`;
+}
+
+export function parseMemoryVectorId(
+  vectorId: string,
+): { owner: string; chunkId: string } | null {
+  const i = vectorId.indexOf(VECTOR_ID_SEP);
+  if (i <= 0) {
+    return null;
+  }
+  return { owner: vectorId.slice(0, i), chunkId: vectorId.slice(i + VECTOR_ID_SEP.length) };
 }

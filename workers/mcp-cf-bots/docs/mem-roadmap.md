@@ -1,6 +1,6 @@
 # mem_* 记忆 RAG
 
-> **状态：v0.8.0（P0/P1）**。索引见 [INDEX.md](../INDEX.md)。
+> **状态：v0.8.1（P0/P1 + 运维）**。索引见 [INDEX.md](../INDEX.md)、思维树 [mcp-cf-bots.mindmap](../mcp-cf-bots.mindmap)。
 
 ## MCP 工具
 
@@ -14,6 +14,7 @@
 | `mem_import` | 批量导入 `[{ key, content, tags?, expires_at? }]` |
 | `mem_reindex` | **Admin**：从 DO 导出 chunk 重建 Vectorize |
 | `mem_stats` | **Admin**：DO 内 keys/chunks/bytes |
+| `mem_vector_gc` | **Admin**：删 Vectorize 孤儿向量（`dry_run` 可选） |
 
 ## REST
 
@@ -25,6 +26,8 @@
 | POST | `/v1/mem/import` body `{ "entries": [...] }` |
 | GET | `/v1/mem/stats?owner=`（admin） |
 | POST | `/v1/mem/reindex` body `{ "owner"? }`（admin） |
+| POST | `/v1/mem/vector-gc` body `{ "owner"?,"dry_run"? }`（admin） |
+| POST | `/v1/admin/mem/cron`（admin，等同 cron tick） |
 
 ## 存储架构
 

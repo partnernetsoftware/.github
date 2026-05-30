@@ -1,0 +1,64 @@
+{
+  "product": "mcp-cf-bots",
+  "ssot": "workers/mcp-cf-bots/mcp-cf-bots.mindmap",
+  "version": "0.8.1",
+  "updated_at": "2026-05-30T00:00:00Z",
+  "north_star": "跨 Agent 的 HTTP MCP + REST：sess_* 会话、mem_* 记忆 RAG、cfb_* 多租户",
+  "tree": {
+    "id": "root",
+    "label": "mcp-cf-bots",
+    "status": "active",
+    "children": [
+      {
+        "id": "sess",
+        "label": "sess_* 会话",
+        "status": "done",
+        "children": [
+          { "id": "sess-do", "label": "SessionStoreDO + AES", "status": "done" },
+          { "id": "sess-registry", "label": "RegistryDO 列表", "status": "done" }
+        ]
+      },
+      {
+        "id": "mem",
+        "label": "mem_* 记忆 RAG",
+        "status": "active",
+        "children": [
+          { "id": "mem-sqlite", "label": "MemorySqliteDO + chunk", "status": "done" },
+          { "id": "mem-hybrid", "label": "Hybrid RRF search", "status": "done" },
+          { "id": "mem-vectorize", "label": "Vectorize 加速器", "status": "done" },
+          { "id": "mem-cron", "label": "Cron reindex + vector GC", "status": "done" },
+          { "id": "mem-encrypt", "label": "MEM_ENCRYPT 静态加密", "status": "optional" }
+        ]
+      },
+      {
+        "id": "auth",
+        "label": "auth_token_* + admin",
+        "status": "done",
+        "children": [
+          { "id": "auth-kv", "label": "TOKENS KV cfb_*", "status": "done" }
+        ]
+      },
+      {
+        "id": "ops",
+        "label": "运维 / 公开",
+        "status": "active",
+        "children": [
+          { "id": "ops-health", "label": "GET /health / 状态页", "status": "done" },
+          { "id": "ops-deploy", "label": "scripts/deploy.sh", "status": "done" },
+          { "id": "ops-analytics", "label": "CF GraphQL 24h 用量", "status": "optional" }
+        ]
+      }
+    ]
+  },
+  "tech_debt": [
+    { "id": "TD-1", "label": "MemoryDO legacy stub", "status": "mitigated", "doc": "docs/TECH-DEBT.md" },
+    { "id": "TD-2", "label": "Pre-0.8 data re-import", "status": "open", "doc": "PRODUCTION.md" },
+    { "id": "TD-5", "label": "delete-class MemoryDO", "status": "blocked", "doc": "docs/TECH-DEBT.md" }
+  ],
+  "cron": {
+    "schedule": "0 4 * * *",
+    "vars": ["MEM_CRON_REINDEX", "MEM_CRON_VECTOR_GC", "MEM_CRON_OWNER_LIMIT"],
+    "manual": "POST /v1/admin/mem/cron"
+  },
+  "doc_index": "INDEX.md"
+}

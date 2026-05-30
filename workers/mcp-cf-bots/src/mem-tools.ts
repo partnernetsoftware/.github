@@ -13,9 +13,15 @@ import {
   upsertMemoryVectors,
 } from "./mem-embed";
 import { mergeHybridResults, type SearchHit } from "./mem-hybrid";
+import { reindexOwner } from "./mem-reindex";
+import { gcOrphanVectors } from "./mem-vector-gc";
 import type { MemoryRecord } from "./memory-do";
 import { memoryStub } from "./memory-store";
 import { validateKey } from "./validate";
+
+export { reindexOwner, listMemOwners, reindexOwners } from "./mem-reindex";
+export { gcOrphanVectors, gcOrphanVectorsAllOwners } from "./mem-vector-gc";
+export { runMemCron } from "./mem-cron";
 
 type PutResult = MemoryRecord & { replaced_chunk_ids?: string[] };
 
@@ -175,34 +181,6 @@ async function hybridSearch(
   return { matches: [], mode: "hybrid" };
 }
 
-async function reindexOwner(env: Env, owner: string): Promise<{ upserted: number }> {
-  const stub = memoryStub(env, owner);
-  const res = await stub.fetch("https://memory.internal/export");
-  if (!res.ok) {
-    throw new Error(await res.text());
-  }
-  const { chunks } = (await res.json()) as {
-    chunks: Array<{ id: string; key: string; chunk_index: number; content: string }>;
-  };
-  if (!env.MEM_VECTORS || !semanticRagEnabled(env)) {
-    return { upserted: 0 };
-  }
-  const { maybeDecryptContent } = await import("./mem-crypto");
-  const items: Array<{ chunkId: string; key: string; content: string; chunkIndex: number }> =
-    [];
-  for (const c of chunks) {
-    const plain = await maybeDecryptContent(env, c.content);
-    items.push({
-      chunkId: c.id,
-      key: c.key,
-      content: plain,
-      chunkIndex: c.chunk_index,
-    });
-  }
-  await upsertMemoryVectors(env, owner, items);
-  return { upserted: items.length };
-}
-
 /** MCP `mem_*` tool handlers. */
 export async function memToolCall(
   env: Env,
@@ -276,6 +254,19 @@ export async function memToolCall(
         : owner;
     const res = await memoryStub(env, target).fetch("https://memory.internal/stats");
     return res.text();
+  }
+
+  if (name === "mem_vector_gc") {
+    if (!isAdmin(auth)) {
+      throw new Error("forbidden: admin token required");
+    }
+    const target =
+      typeof args.owner === "string" && args.owner.trim()
+        ? args.owner.trim()
+        : owner;
+    const dryRun = args.dry_run === true || args.dry_run === "true";
+    const result = await gcOrphanVectors(env, target, { dryRun });
+    return JSON.stringify(result, null, 2);
   }
 
   const key = validateKey("key", String(args.key ?? ""));

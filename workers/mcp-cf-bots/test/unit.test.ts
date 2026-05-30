@@ -3,7 +3,12 @@ import { safeEqual } from "../src/http-util";
 import { splitMemoryContent } from "../src/mem-chunk";
 import { mergeHybridResults } from "../src/mem-hybrid";
 import { ragBackend, semanticRagEnabled } from "../src/mem-embed";
-import { memoryVectorId } from "../src/memory-store";
+import {
+  memCronReindexEnabled,
+  memCronVectorGcEnabled,
+  memEncryptAtRest,
+} from "../src/mem-config";
+import { memoryVectorId, parseMemoryVectorId } from "../src/memory-store";
 import { resolveToolName, TOOL_ALIASES } from "../src/tool-aliases";
 import { toolsForAuth } from "../src/tool-defs";
 import {
@@ -124,6 +129,20 @@ describe("mem hybrid", () => {
 describe("memory", () => {
   it("builds stable vector ids", () => {
     expect(memoryVectorId("cloud-agent", "uuid-1")).toBe("cloud-agent::uuid-1");
+  });
+
+  it("parses vector ids", () => {
+    expect(parseMemoryVectorId("alice::chunk-1")).toEqual({
+      owner: "alice",
+      chunkId: "chunk-1",
+    });
+    expect(parseMemoryVectorId("bad")).toBeNull();
+  });
+
+  it("reads mem cron and encrypt flags", () => {
+    expect(memEncryptAtRest({ MEM_ENCRYPT: "true" } as Env)).toBe(true);
+    expect(memCronReindexEnabled({ MEM_CRON_REINDEX: "1" } as Env)).toBe(true);
+    expect(memCronVectorGcEnabled({} as Env)).toBe(false);
   });
 
   it("detects rag backends", () => {

@@ -10,8 +10,21 @@ import { apiError } from "./http-util";
 import { handleVaultRest } from "./vault-api";
 import { handleMcpHttp, isMcpHttpRequest } from "./mcp-http";
 import { assertBodySize } from "./validate";
+import { runMemCron } from "./mem-cron";
 
 export default {
+  async scheduled(
+    _controller: ScheduledController,
+    env: Env,
+    ctx: ExecutionContext,
+  ): Promise<void> {
+    ctx.waitUntil(
+      runMemCron(env).then((report) => {
+        console.log(JSON.stringify({ event: "mem_cron", ...report }));
+      }),
+    );
+  },
+
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
 

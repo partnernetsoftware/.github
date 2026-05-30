@@ -44,4 +44,14 @@ interface Env {
   MAX_MEM_CHUNK_BYTES?: string;
   /** Encrypt memory content at rest in DO (1/true/yes) */
   MEM_ENCRYPT?: string;
+  /** Vectorize index name for REST list/GC (default mcp-cf-bots-mem) */
+  MEM_VECTORIZE_INDEX?: string;
+  /** Cron: nightly mem_reindex per owner (1/true/yes) */
+  MEM_CRON_REINDEX?: string;
+  /** Cron: orphan Vectorize GC (needs CF_ACCOUNT_ID + CF_API_TOKEN) */
+  MEM_CRON_VECTOR_GC?: string;
+  /** Extra owners for cron (comma-separated) */
+  MEM_CRON_OWNERS?: string;
+  /** Max owners processed per cron tick (default 32) */
+  MEM_CRON_OWNER_LIMIT?: string;
 }

@@ -67,3 +67,9 @@ DO/KV/Vectorize **存储占用**不在 GraphQL 此接口内，见 Dashboard → 
 curl -s "$MCP_CF_BOTS_URL/health"
 # features.memory=true, features.rag=true 为满血
 ```
+
+## 运维 cron（0.8.1+）
+
+- Worker cron：`0 4 * * *`（UTC）→ `mem_reindex` + 孤儿 Vectorize GC
+- 需 secrets：`CF_ACCOUNT_ID`、`CF_API_TOKEN`（GC 时 Vectorize Edit）
+- 手动：`POST /v1/admin/mem/cron` 或 `./scripts/mem-vector-gc.sh <owner>`

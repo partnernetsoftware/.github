@@ -17,7 +17,9 @@ HTTP MCP + REST on Cloudflare Workers：`sess_*` 会话、`mem_*` 记忆 RAG、`
 | [docs/claude-orchestrator.md](docs/claude-orchestrator.md) | 派 Claude 工人 |
 | [docs/claude-code-session-reuse.md](docs/claude-code-session-reuse.md) | CLI 跨会话 |
 | [docs/mem-roadmap.md](docs/mem-roadmap.md) | `mem_*` API 与后续改进 |
+| [docs/TECH-DEBT.md](docs/TECH-DEBT.md) | 技术债登记 |
 | [docs/cf-services.md](docs/cf-services.md) | 需开通的 CF 服务与 Token 权限 |
+| [mcp-cf-bots.mindmap](mcp-cf-bots.mindmap) | 产品思维树图（SSOT） |
 
 ## 配置与运维
 
@@ -28,7 +30,9 @@ HTTP MCP + REST on Cloudflare Workers：`sess_*` 会话、`mem_*` 记忆 RAG、`
 | [mcp.recommended.json](mcp.recommended.json) | Cursor 远程 MCP 示例 |
 | [.dev.vars.example](.dev.vars.example) | 本地 secret 模板 |
 | [scripts/smoke.sh](scripts/smoke.sh) | 部署后 `/health`、`/v1/me` |
-| [scripts/setup-rag.sh](scripts/setup-rag.sh) | Vectorize 索引 + 部署（语义检索） |
+| [scripts/deploy.sh](scripts/deploy.sh) | ci → typecheck → test → deploy → smoke |
+| [scripts/setup-rag.sh](scripts/setup-rag.sh) | Vectorize 索引 + deploy.sh |
+| [scripts/mem-vector-gc.sh](scripts/mem-vector-gc.sh) | 孤儿向量 GC（REST） |
 | [scripts/issue_token.sh](scripts/issue_token.sh) | admin 签发用户 token |
 | [scripts/claude_worker.sh](scripts/claude_worker.sh) | restore vault + `claude` |
 
@@ -69,6 +73,9 @@ HTTP MCP + REST on Cloudflare Workers：`sess_*` 会话、`mem_*` 记忆 RAG、`
 | [tool-aliases.ts](src/tool-aliases.ts) | 旧工具名 → `sess_*` |
 | [sess-tools.ts](src/sess-tools.ts) | `sess_*` 工具实现 |
 | [mem-tools.ts](src/mem-tools.ts) | `mem_*` 工具实现（分块、hybrid、import） |
+| [mem-reindex.ts](src/mem-reindex.ts) | reindex + owner 列表 |
+| [mem-vector-gc.ts](src/mem-vector-gc.ts) | Vectorize 孤儿清理（CF API） |
+| [mem-cron.ts](src/mem-cron.ts) | 定时 reindex + GC |
 | [mem-config.ts](src/mem-config.ts) | chunk 大小、配额、`MEM_ENCRYPT` |
 | [mem-chunk.ts](src/mem-chunk.ts) | 长文分块 |
 | [mem-hybrid.ts](src/mem-hybrid.ts) | RRF 混合检索 |
@@ -98,7 +105,7 @@ HTTP MCP + REST on Cloudflare Workers：`sess_*` 会话、`mem_*` 记忆 RAG、`
 | REST 会话 | `GET/PUT/DELETE /v1/session/:site/:profile`，`GET /v1/sessions` |
 | REST admin | `GET/POST /v1/admin/tokens`，`DELETE /v1/admin/tokens/:id` |
 | MCP 工具 | `sess_*`、`mem_*`，admin：`auth_token_*`、`mem_reindex`、`mem_stats`；旧 sess 名见 [tool-aliases.ts](src/tool-aliases.ts) |
-| REST 记忆 | `GET /v1/mem`，`PUT/GET/DELETE /v1/mem/:key`，`POST /v1/mem/search|import`，admin：`GET /v1/mem/stats`，`POST /v1/mem/reindex` |
+| REST 记忆 | `GET /v1/mem`，`PUT/GET/DELETE /v1/mem/:key`，`POST /v1/mem/search|import|vector-gc|reindex`，admin：`GET /v1/mem/stats`，`POST /v1/admin/mem/cron` |
 
 ## 环境变量（客户端）
 

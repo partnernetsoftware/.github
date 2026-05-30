@@ -1,7 +1,9 @@
 import { effectiveOwner, isAdmin, type AuthContext } from "./auth";
 import { readOwnerHeader } from "./config";
 import { apiError } from "./http-util";
+import { runMemCron } from "./mem-cron";
 import { memToolCall } from "./mem-tools";
+import { jsonResponse } from "./http-util";
 import { validateKey } from "./validate";
 
 const MEM_KEY_RE = /^\/v1\/mem\/([^/]+)\/?$/;
@@ -66,6 +68,39 @@ export async function handleMemRest(
     return new Response(text, {
       headers: { "Content-Type": "application/json" },
     });
+  }
+
+  if (url.pathname === "/v1/mem/vector-gc" && request.method === "POST") {
+    if (!isAdmin(auth)) {
+      return apiError(403, "Forbidden");
+    }
+    let body: { owner?: string; dry_run?: boolean } = {};
+    try {
+      const raw = await request.text();
+      if (raw.trim()) {
+        body = JSON.parse(raw) as { owner?: string; dry_run?: boolean };
+      }
+    } catch {
+      return apiError(400, "Invalid JSON");
+    }
+    const text = await memToolCall(
+      env,
+      "mem_vector_gc",
+      { owner: body.owner ?? owner, dry_run: body.dry_run },
+      auth,
+      owner,
+    );
+    return new Response(text, {
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  if (url.pathname === "/v1/admin/mem/cron" && request.method === "POST") {
+    if (!isAdmin(auth)) {
+      return apiError(403, "Forbidden");
+    }
+    const report = await runMemCron(env);
+    return jsonResponse(report);
   }
 
   if (url.pathname === "/v1/mem/reindex" && request.method === "POST") {
