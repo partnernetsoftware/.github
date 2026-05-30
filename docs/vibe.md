@@ -187,7 +187,7 @@ vibe-48h/
 
 ## 维护说明
 
-- **Automation 提示词 SSOT**：[`docs/vibe-cron-prompt.md`](vibe-cron-prompt.md)（含「合并到 `origin/main`」必做步骤，避免只在 feature 分支收尾）。
+- **Automation 提示词 SSOT**：[`docs/vibe-cron-prompt.md`](vibe-cron-prompt.md)（P0：**新模型 / 新产品 / 新模式**；含合并到 `origin/main` 步骤）。
 - **upsert 规则**：新 cron 轮次在对应分类下追加/更新条目；超 48h 的叶子可移至文末 `## 归档`（尚未启用）。
 - **去重**：同一官方事件（如 Anthropic 5/28 融资+模型）保留多源时，以 **Anthropic 官方** 为 SSOT，媒体稿仅补独家细节。
 - **token 列**：为正文可读篇幅估算，非 API `usage` 计费值。
