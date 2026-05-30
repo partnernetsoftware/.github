@@ -4,6 +4,7 @@ export { MemoryDO } from "./memory-do";
 
 import { authenticateRequest } from "./auth";
 import { handlePublicHealth, handleWhoAmI } from "./health";
+import { handleStatusBoard } from "./status-board";
 import { apiError } from "./http-util";
 import { handleVaultRest } from "./vault-api";
 import { handleMcpHttp, isMcpHttpRequest } from "./mcp-http";
@@ -12,6 +13,18 @@ import { assertBodySize } from "./validate";
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
+
+    if (
+      (url.pathname === "/" || url.pathname === "") &&
+      (request.method === "GET" || request.method === "HEAD")
+    ) {
+      if (request.method === "HEAD") {
+        return new Response(null, {
+          headers: { "Cache-Control": "public, max-age=60" },
+        });
+      }
+      return handleStatusBoard(request, env);
+    }
 
     if (url.pathname === "/health" && request.method === "GET") {
       return handlePublicHealth(env);

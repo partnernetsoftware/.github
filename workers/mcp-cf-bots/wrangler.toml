@@ -40,7 +40,7 @@ new_classes = ["MemoryDO"]
 [vars]
 MCP_HTTP_PATH = "/mcp"
 MCP_SERVER_NAME = "mcp-cf-bots"
-MCP_SERVER_VERSION = "0.7.0"
+MCP_SERVER_VERSION = "0.7.1"
 MAX_BODY_BYTES = "2000000"
 MCP_SERVER_DESCRIPTION = "Cloudflare MCP for cross-agent bots"
 MCP_PROTOCOL_VERSION = "2024-11-05"

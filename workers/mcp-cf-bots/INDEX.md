@@ -53,7 +53,9 @@ HTTP MCP + REST on Cloudflare Workers：`sess_*` 会话、`mem_*` 记忆 RAG、`
 
 | 模块 | 职责 |
 |------|------|
-| [index.ts](src/index.ts) | 路由：`/health` → 鉴权 → MCP / REST |
+| [index.ts](src/index.ts) | 路由：`/`、`/health` → 鉴权 → MCP / REST |
+| [status-board.ts](src/status-board.ts) | 公开 `GET /` 状态播报 |
+| [cf-analytics.ts](src/cf-analytics.ts) | 可选 CF GraphQL 24h 用量 |
 | [health.ts](src/health.ts) | `GET /health`、`GET /v1/me` |
 | [http-util.ts](src/http-util.ts) | JSON 响应、错误码、`safeEqual` |
 | [validate.ts](src/validate.ts) | body 上限、key/owner、`requireSiteProfile` |
@@ -85,7 +87,7 @@ HTTP MCP + REST on Cloudflare Workers：`sess_*` 会话、`mem_*` 记忆 RAG、`
 
 | 类型 | 路径 / 工具 |
 |------|-------------|
-| 公开 | `GET /health` |
+| 公开 | `GET /`（状态页）、`GET /health` |
 | 鉴权 | `GET /v1/me`，Bearer admin 或 `cfb_*` |
 | MCP | `POST {MCP_HTTP_PATH}`（默认 `/mcp`） |
 | REST 会话 | `GET/PUT/DELETE /v1/session/:site/:profile`，`GET /v1/sessions` |

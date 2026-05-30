@@ -43,6 +43,19 @@ Wrangler 部署 / 建索引需要 token 含：
 
 `/health` 显示 `"rag": false`；`mem_search` 自动退化为 **关键词匹配**（仍可用，精度较低）。
 
+## 公开状态页 `/`
+
+无需鉴权。HTML 播报；`/?format=json` 为 JSON。
+
+可选 secrets（24h Worker 请求量 / CPU，缓存 5 分钟）：
+
+```bash
+npx wrangler secret put CF_ACCOUNT_ID --name mcp-cf-bots   # Cloudflare 账号 ID
+npx wrangler secret put CF_API_TOKEN --name mcp-cf-bots    # Analytics Read
+```
+
+DO/KV/Vectorize **存储占用**不在 GraphQL 此接口内，见 Dashboard → Workers → 对应服务。
+
 ## 验证
 
 ```bash

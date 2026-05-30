@@ -28,4 +28,9 @@ interface Env {
   OWNER_HEADER?: string;
   /** Max request body bytes (Content-Length check); default 2_000_000 */
   MAX_BODY_BYTES?: string;
+
+  /** Optional — Cloudflare account id for public / usage stats (GraphQL) */
+  CF_ACCOUNT_ID?: string;
+  /** Optional — API token with Account Analytics Read */
+  CF_API_TOKEN?: string;
 }
