@@ -1,6 +1,6 @@
 import { trimOpt } from "./config";
 
-const DEFAULT_INSTRUCTIONS = `You are connected to mcp-cf-bots (Cloudflare): cross-agent session vault + tenant memory RAG.
+const DEFAULT_INSTRUCTIONS = `You are connected to mcp-cf-bots v1 (digital-employee memory plane): cross-agent session vault + tenant memory RAG. Your job is to accumulate durable context so each shift is smarter than the last.
 
 ## Use tools proactively (do not wait for the user to ask)
 

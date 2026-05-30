@@ -29,7 +29,11 @@ if [[ -z "$REMOTE" ]]; then
   exit 1
 fi
 
-echo "==> remote version: $REMOTE"
+API="$(python3 -c "import json; print(json.load(open('$HEALTH_JSON')).get('api_version',''))" 2>/dev/null || true)"
+echo "==> remote version: $REMOTE api_version=${API:-?}"
+if [[ -n "$API" && "$API" != "1.0" ]]; then
+  echo "WARN: unexpected api_version=$API (expected 1.0)" >&2
+fi
 if [[ "$REMOTE" != "$EXPECTED" ]]; then
   echo "FAIL: version mismatch (remote=$REMOTE expected=$EXPECTED)" >&2
   exit 1

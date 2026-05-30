@@ -18,15 +18,43 @@ HTTP MCP + REST on Cloudflare Workers：`sess_*` 会话、`mem_*` 记忆 RAG、`
 
 对外：`GET /health` · `POST /mcp` · `/v1/session/*` · `/v1/mem/*` · `/v1/admin/*`（仅 admin）。
 
-### 现状（v0.9.4）
+### 现状（v1.0.0）
 
 | 项 | 说明 |
 |----|------|
-| **版本** | `0.9.5` — MCP `instructions` + Agent 使用指南 + sess 集成测 |
-| **本轮** | `initialize.instructions`；CF API 脚本；路线图 W4 可观测 |
-| **门禁** | `scripts/security-check.sh` + `deploy.sh` → `verify-all-urls` |
-| **你怎么连** | `MCP_CF_BOTS_URL` = `CLOUDFLARE_WORKER_DOMAIN`；用户 `cfb_*`；admin `VAULT_TOKEN` |
-| **下一步** | W4：产线 `cf_api_ready`；可选 1.0 定义 |
+| **版本** | **`1.0.0`** — API 冻结 `api_version: 1.0`；数字员工记忆平面 GA |
+| **愿景** | 让跨会话 Agent **越用越聪明**（记忆 + 会话复用）；v1.1 起加强自动沉淀与反思 |
+| **门禁** | `security-check` → test → integration → deploy → `verify-all-urls` |
+| **你怎么连** | `MCP_CF_BOTS_URL` + `cfb_*`；见 § Agent（MCP） |
+| **下一步** | **v1.1.x** 设计已写入 mindmap → 实现 W11 记忆智能 |
+| **运维** | W4：`sync-cf-api-secrets.sh`（`cf_api_ready`） |
+
+### v1.0.0 API 冻结（破坏性变更仅 major）
+
+| 面 | 冻结内容 |
+|----|----------|
+| HTTP | `GET /health`、`POST /mcp`、`/v1/session/*`、`/v1/mem/*`、`/v1/admin/*` |
+| MCP 工具 | `sess_*`、`mem_*`；admin：`auth_token_*`、`auth_audit_list`、`mem_reindex`、`mem_stats`、`mem_vector_gc` |
+| MCP resources | `mem://<key>` |
+| 已移除 | `mem_migrate_legacy` → `POST /v1/mem/migrate-legacy` 固定 **410** |
+| 兼容 | `session_*` 别名仍解析；`MEMORY_LEGACY` / `MemoryDO` 已删 |
+
+`/health` 含 `api_version: "1.0"`、`api_stable: true`（与 `MCP_SERVER_VERSION` 部署号可不同）。
+
+### v1.1.x 方向（数字员工 · 超越单次对话）
+
+> 详表见 [mcp-cf-bots.mindmap](mcp-cf-bots.mindmap) `roadmap.v1_1`。原则：**自动沉淀 > 手动 mem_put**；**反思摘要 > 裸 chunk 堆叠**。
+
+| 主题 | 目标 | 拟交付 |
+|------|------|--------|
+| **记忆智能** | 写入时自动 tag/摘要/重要度 | `mem_put` 后台 AI 元数据；`kind: fact\|procedure\|preference` |
+| **反思层** | 班次结束生成 owner 简报 | cron `mem_reflect`；MCP `mem_digest` |
+| **主动检索** | 开任务前自动 recall | MCP prompt `shift-handoff`；可选 `mem_recall_suggested` |
+| **协作 handoff** | 多 Agent 同一 owner 无缝交接 | 规范 key 前缀 `task/`、`decision/`；resources 列表按 tag |
+| **质量闭环** | 检索结果反馈 → 调权重 | `mem_search_feedback`；RRF 权重可学习（后期） |
+| **可观测** | 知道员工「记住了什么」 | status 页 per-owner 记忆统计；digest 历史 |
+
+**非目标（v1.1 不做）**：跨 owner 知识合并、替代代码仓库 SSOT、全自动无监督写库（须保留 Agent 确认门）。
 
 ### 每轮标准流程
 
@@ -47,7 +75,8 @@ git checkout main && git merge <feature-branch> && git push origin main
 | **W0** | 持续 | merge → security-check → test → deploy → verify |
 | **W2** | **完成** | DO embed + mock Vectorize hybrid 集成测 |
 | **W3** | **完成** | TD-5：`deleted_classes` MemoryDO |
-| **W4** | **当前** | CF API secrets → `cf_api_ready` / cron Vectorize GC |
+| **W4** | 运维 | CF API secrets → `cf_api_ready` |
+| **v1.1** | **设计→实现** | 数字员工记忆智能（见上表） |
 
 ### 历史里程碑
 
@@ -62,6 +91,7 @@ git checkout main && git merge <feature-branch> && git push origin main
 | 0.9.3 | 卫生轮：admin cron 修复、owner/JSON 复用、security-check |
 | 0.9.4 | W3：删 MemoryDO（v5 migration）、移除 legacy 迁移 API |
 | 0.9.5 | MCP instructions、Agent 指南、sess 集成测、check/sync-cf-api |
+| **1.0.0** | **GA**：`api_version` 冻结、方法学 skill、三支柱生产就绪 |
 
 ### 每轮收尾清单
 

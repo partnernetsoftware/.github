@@ -30,10 +30,18 @@ paths:
 | **删类前审计** | `POST /v1/mem/migrate-legacy` 看 `legacy_keys: 0` 再 `deleted_classes` | 直接删 DO binding |
 | **双入口验收** | workers.dev + 自定义域同版本 | 只验一个 URL |
 
-## 波次模型（历史 → 当前）
+## 版本线
+
+| 版本 | 含义 |
+|------|------|
+| **1.0.0** | GA：`api_version=1.0` 冻结；三支柱生产就绪 |
+| **1.1.x** | 数字员工记忆智能（见 mindmap `roadmap.v1_1`） |
+| **2.0.0** | 仅当破坏性 API 变更 |
+
+## 波次模型（0.9 → 1.0 已完成）
 
 ```
-W-卫生 → W2(集成测) → W3(删 legacy DO) → 0.9.5(MCP instructions) → W4(CF API 可观测) → W0(稳态, 持续)
+W-卫生 → W2 → W3 → 0.9.5(MCP instructions) → 1.0.0(GA) → v1.1 设计/实现
 ```
 
 | 波次 | 验收标准 |
@@ -96,9 +104,9 @@ npm run typecheck && npm test && npm run test:integration
 | 浏览器登录成功 | `sess_save` |
 | 要用已登录站自动化 | `sess_load` |
 
-## 1.0 讨论项（不自动做）
+## v1.1 开做前
 
-见 mindmap `for_discussion`：API 冻结、加密默认、`migrate-legacy` 410 保留期等——需产品拍板后再开波次。
+读 mindmap `roadmap.v1_1`；优先 **W11 写入智能**（auto-tags / kind / importance），再反思层与 `mem_recall_context`。
 
 ## 与其它 skill
 

@@ -1,73 +1,109 @@
 {
   "product": "mcp-cf-bots",
   "ssot": "workers/mcp-cf-bots/mcp-cf-bots.mindmap",
-  "version": "0.9.5",
-  "updated_at": "2026-05-30T06:00:00Z",
-  "north_star": "跨 Agent 的 HTTP MCP + REST：sess_* 会话、mem_* 记忆 RAG、cfb_* 多租户",
+  "version": "1.0.0",
+  "updated_at": "2026-05-30T08:00:00Z",
+  "north_star": "数字员工（Digital Employee）的跨 Agent 记忆与会话平面：越用越聪明，力求超越单次真人对话的连续性与记忆力",
   "product_review": {
-    "what": "Cloudflare Worker：浏览器会话 vault + 租户记忆 RAG + MCP/REST 多入口",
+    "what": "HTTP MCP + REST：sess 登录复用、mem RAG 租户记忆、cfb 多租户鉴权",
     "pillars": {
-      "sess": "SessionStoreDO + RegistryDO，AES 可选",
-      "mem": "MemorySqliteDO + FTS + Vectorize hybrid + cron 运维",
-      "auth": "VAULT_TOKEN admin + TOKENS KV cfb_* 用户 token + 限流 + 审计"
+      "sess": "登录态与凭据复用 — 减少重复劳动",
+      "mem": "长期记忆 + 混合检索 — 累积组织知识",
+      "auth": "租户隔离 + 审计 — 安全协作"
     },
-    "interfaces": ["GET /health", "POST /mcp", "/v1/session/*", "/v1/mem/*", "/v1/admin/*"],
-    "maturity": "生产可用；Agent MCP instructions；W4 可观测进行中"
+    "maturity": "v1.0.0 GA；v1.1 记忆智能设计中",
+    "human_surpass_hypothesis": "真人优势在即时创意；数字员工优势在无限 recall、零遗忘交接、24/7 一致执行 — v1.1 强化自动沉淀与反思缩小差距"
   },
   "architecture_decisions": {
-    "canonical_entry": "单一 Worker；workers.dev + CLOUDFLARE_WORKER_DOMAIN",
-    "url_for_cursor": "MCP_CF_BOTS_URL = CLOUDFLARE_WORKER_DOMAIN",
-    "agent_memory": "mem_* 存用户事实；规范在 INDEX/skills，不 mem_put",
-    "mcp_instructions": "initialize.instructions + tool descriptions（src/mcp-instructions.ts）",
-    "deploy_gate": "security-check.sh → test → deploy → verify-all-urls"
+    "api_freeze": "MCP_API_VERSION=1.0；破坏性变更仅 2.0",
+    "agent_memory_boundary": "mem_* = 用户/任务事实；规范 = INDEX + skills",
+    "mcp_instructions": "initialize.instructions 强制 proactive mem/sess",
+    "deploy_gate": "security-check → test → integration → deploy → verify-all-urls",
+    "methodology_skill": "skills/mcp-cf-bots-delivery/SKILL.md"
   },
   "roadmap": {
-    "current_phase": "w4-observability",
-    "current_version": "0.9.5",
+    "current_phase": "v1.1-design",
+    "current_version": "1.0.0",
     "last_review": "2026-05-30",
-    "summary": "MCP Agent 主动使用指南；sess 集成测；W4 CF API secrets 脚本。",
-    "for_discussion": [
-      {
-        "id": "disc-1.0",
-        "label": "1.0 门槛：API 冻结、加密默认、删除 410 路由保留期"
-      }
+    "summary": "1.0.0 GA 发布；v1.1 数字员工记忆智能路线已定。",
+    "for_discussion": [],
+    "last_deploy": { "version": "1.0.0", "note": "api_version 1.0" },
+    "v1_0_criteria_done": [
+      "api_version + api_stable on /health",
+      "integration tests: FTS + hybrid + sess",
+      "MemoryDO deleted (v5 migration)",
+      "MCP instructions + Agent INDEX guide",
+      "security-check in CI",
+      "migrate-legacy 410 stable"
     ],
-    "ops_playbook": [
-      "MCP 401 → diagnose-connection.sh + sync-vault-secret.sh + issue_token.sh",
-      "cf_api_ready false → sync-cf-api-secrets.sh + check-cf-api.sh"
-    ],
-    "last_deploy": { "version": "0.9.5", "note": "deploy+verify OK; cf_api_ready pending secrets" },
-    "methodology_skill": "skills/mcp-cf-bots-delivery/SKILL.md",
     "active_waves": [
       {
         "id": "w0-steady",
         "label": "W0 稳态",
         "status": "ongoing",
         "priority": 0,
-        "items": [{ "id": "w0-deploy", "label": "deploy + verify-all-urls", "status": "ongoing" }]
+        "items": [{ "id": "w0-deploy", "label": "deploy + verify", "status": "ongoing" }]
       },
       {
-        "id": "w4-observability",
-        "label": "W4 可观测 / CF API",
-        "status": "active",
+        "id": "w4-ops",
+        "label": "W4 运维",
+        "status": "ongoing",
         "priority": 1,
         "items": [
-          { "id": "w4-cf-secrets", "label": "sync-cf-api-secrets + cf_api_ready", "status": "ongoing" },
-          { "id": "w4-cron-gc", "label": "cron_vector_gc 产线变 true", "status": "pending" }
+          { "id": "w4-cf-api", "label": "cf_api_ready + cron_vector_gc", "status": "pending" }
         ]
       }
     ],
+    "v1_1": {
+      "theme": "数字员工 · 记忆智能",
+      "target_version": "1.1.0",
+      "waves": [
+        {
+          "id": "w11-meta",
+          "label": "W11 写入智能",
+          "priority": 1,
+          "items": [
+            { "id": "w11-auto-tags", "label": "mem_put 后 AI 自动 tags + 一行摘要", "status": "planned" },
+            { "id": "w11-kind", "label": "mem kind: fact|procedure|preference|handoff", "status": "planned" },
+            { "id": "w11-importance", "label": "importance 0-1 影响检索权重", "status": "planned" }
+          ]
+        },
+        {
+          "id": "w11-reflect",
+          "label": "W11 反思层",
+          "priority": 2,
+          "items": [
+            { "id": "w11-digest-cron", "label": "cron 日 digest per owner → mem key digest/YYYY-MM-DD", "status": "planned" },
+            { "id": "w11-mem-digest", "label": "MCP mem_digest + mem_shift_handoff prompt", "status": "planned" }
+          ]
+        },
+        {
+          "id": "w11-proactive",
+          "label": "W11 主动 recall",
+          "priority": 3,
+          "items": [
+            { "id": "w11-recall-tool", "label": "mem_recall_context(task_description) 打包 top memories", "status": "planned" },
+            { "id": "w11-handoff-keys", "label": "约定 key 命名 task/* decision/*", "status": "planned" }
+          ]
+        },
+        {
+          "id": "w11-quality",
+          "label": "W11 质量闭环",
+          "priority": 4,
+          "items": [
+            { "id": "w11-feedback", "label": "mem_search_feedback(hit_id, useful)", "status": "planned" },
+            { "id": "w11-status-mem", "label": "status 页 owner 记忆概览", "status": "planned" }
+          ]
+        }
+      ]
+    },
     "milestones_done": [
-      { "version": "0.9.5", "label": "MCP instructions + Agent 指南 + sess 集成测", "status": "done" },
-      { "version": "0.9.4", "label": "W3 删 MemoryDO", "status": "done" },
-      { "version": "0.9.3", "label": "卫生 + W2 hybrid 测 + MCP 401 排障", "status": "done" }
+      { "version": "1.0.0", "label": "GA API freeze + 数字员工记忆平面", "status": "done" },
+      { "version": "0.9.x", "label": "卫生/测试/legacy 删除/MCP 引导", "status": "done" }
     ]
   },
   "tech_debt": [
-    { "id": "TD-11", "label": "INDEX/mindmap 漂移", "status": "mitigated", "note": "收尾清单" },
-    { "id": "TD-12", "label": "cf_api_ready 产线 false", "status": "open", "wave": "w4-observability" },
-    { "id": "TD-10", "label": "hybrid 无集成测", "status": "mitigated" },
-    { "id": "TD-5", "label": "delete-class MemoryDO", "status": "done" }
+    { "id": "TD-12", "label": "cf_api_ready 产线 false", "status": "open", "wave": "w4-ops" }
   ],
   "doc_index": "INDEX.md"
 }

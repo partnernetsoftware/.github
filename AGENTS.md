@@ -11,7 +11,7 @@
 | **squad-parallel** | [`skills/squad-parallel/`](skills/squad-parallel/)（`.cursor/skills/squad-parallel` 同步） | 并行四角色小队推进 v3.5/v4；Agent **须亲自跑** `agent-team`，勿只贴命令给用户 |
 | **nano-lisp-jit-v4-longrun** | [`skills/nano-lisp-jit-v4-longrun/`](skills/nano-lisp-jit-v4-longrun/) | v4 长程 `/loop`：state SSOT → apply → gate → cc repair；**Bun TS 可执行 skill** |
 
-**mcp-cf-bots**（CF Worker + HTTP MCP）：[`workers/mcp-cf-bots/`](workers/mcp-cf-bots/) — SSOT **[`INDEX.md`](workers/mcp-cf-bots/INDEX.md)**。**已配置 MCP 时 Agent 应主动用**：`mem_put` / `mem_search` 存取用户事实与项目上下文；浏览器登录后用 `sess_save`，续任务先 `sess_load`（详见 INDEX § Agent（MCP）与服务端 `initialize.instructions`）。勿用 `mem_*` 存仓库规范。派工人：`workers/mcp-cf-bots/scripts/claude_worker.sh`。
+**mcp-cf-bots v1.0**（数字员工记忆平面）：[`workers/mcp-cf-bots/`](workers/mcp-cf-bots/) — SSOT **[`INDEX.md`](workers/mcp-cf-bots/INDEX.md)** · 方法学 **[`mcp-cf-bots-delivery`](skills/mcp-cf-bots-delivery/)**。MCP 已连接时 **主动** `mem_put`/`mem_search` 积累跨会话智力；浏览器任务用 `sess_save`/`sess_load`。目标：Agent 班次交接后比真人更连贯。v1.1 将加自动摘要/反思（见 INDEX § v1.1）。派工人：`workers/mcp-cf-bots/scripts/claude_worker.sh`。
 
 ### Codebase overview
 

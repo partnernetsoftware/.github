@@ -20,6 +20,8 @@ interface Env {
   MCP_HTTP_PATH?: string;
   MCP_SERVER_NAME?: string;
   MCP_SERVER_VERSION?: string;
+  /** Frozen REST/MCP tool surface (semver major for API, independent of deploy version). */
+  MCP_API_VERSION?: string;
   MCP_SERVER_DESCRIPTION?: string;
   MCP_PROTOCOL_VERSION?: string;
   /** Optional override for MCP initialize `instructions` (agent tool-use guide). */

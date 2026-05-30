@@ -1,4 +1,4 @@
-import { mcpServerInfo } from "./config";
+import { mcpServerInfo, trimOpt } from "./config";
 import { customDomainHint, buildHealthFeatures } from "./health-detail";
 import { jsonResponse } from "./http-util";
 import type { AuthContext } from "./auth";
@@ -12,10 +12,13 @@ export async function handlePublicHealth(env: Env): Promise<Response> {
   }
   const { features, cron_last } = await buildHealthFeatures(env);
   const hint = customDomainHint(env);
+  const apiVersion = trimOpt(env.MCP_API_VERSION) ?? "1.0";
   return jsonResponse({
     ok: true,
     service: "mcp-cf-bots",
     version,
+    api_version: apiVersion,
+    api_stable: true,
     features: {
       ...features,
       fts: true,
