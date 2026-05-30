@@ -14,6 +14,9 @@ BASE_URL="${BASE_URL%/}"
 echo "==> GET $BASE_URL/health"
 curl -fsS "$BASE_URL/health" | tee /tmp/mcp-cf-bots-health.json
 grep -q '"ok":true' /tmp/mcp-cf-bots-health.json
+if grep -q '"memory":true' /tmp/mcp-cf-bots-health.json 2>/dev/null; then
+  echo "    memory: enabled"
+fi
 
 if [[ -n "$TOKEN" ]]; then
   echo "==> GET $BASE_URL/v1/me"

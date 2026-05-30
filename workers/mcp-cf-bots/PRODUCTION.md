@@ -9,7 +9,10 @@
 | `VAULT_TOKEN` | `wrangler secret put VAULT_TOKEN` (admin Bearer) |
 | `TOKENS` KV | `[[kv_namespaces]]` in `wrangler.toml` |
 | `SESSION_STORE` / `REGISTRY` DO | durable object bindings + migrations applied |
+| `MEMORY_STORE` → `MemorySqliteDO` | migration `v4` (`new_sqlite_classes`); legacy `MemoryDO` stub only |
+| `AI` + `MEM_VECTORS` | semantic `mem_search` (`rag_backend: vectorize`); run `./scripts/setup-rag.sh` once |
 | Optional `ENCRYPTION_KEY` | separate AES key; defaults to `VAULT_TOKEN` |
+| Optional `MEM_ENCRYPT=true` | encrypt memory chunk bodies at rest in DO |
 
 Run `assertProdEnv` expectations before go-live: all of the above must exist on the target Worker.
 
@@ -57,6 +60,12 @@ Issue per-user tokens (admin only):
 ```
 
 Users get `sess_*` scoped to their `owner`; admin retains `auth_token_*` and cross-tenant access via `owner` arg/header.
+
+## Memory (0.8+)
+
+- After upgrading from pre-0.8 `MemoryDO`, **re-import** memories (`mem_put` / `mem_import`); old DO instances are not auto-migrated.
+- Admin: `mem_reindex` rebuilds Vectorize from DO chunks; `mem_stats` for quota visibility.
+- Vars: `MEM_CHUNK_CHARS`, `MAX_MEM_KEYS`, `MAX_MEM_BYTES` in `wrangler.toml`.
 
 ## Custom domain
 

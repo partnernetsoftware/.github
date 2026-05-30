@@ -7,7 +7,7 @@
 | 服务 | 用途 | 你怎么开 |
 |------|------|----------|
 | **Workers** | 跑 `mcp-cf-bots` | 已有 |
-| **Durable Objects** | `MEMORY_STORE` 按 owner 存记忆 | 随 Worker 部署；wrangler 迁移 `v3` |
+| **Durable Objects** | `MEMORY_STORE` → `MemorySqliteDO` | 迁移 `v4`（`new_sqlite_classes`）；旧 `MemoryDO` 仅 stub |
 | **Workers KV** | 用户 token `TOKENS` | 已有 |
 | **Secrets** | `VAULT_TOKEN` | 已有 |
 
@@ -17,8 +17,8 @@
 
 | 层级 | 服务 | `/health` 显示 | 说明 |
 |------|------|----------------|------|
-| 1 | **Workers AI** | `rag: true`, `rag_backend: do_embed` | 已默认部署；embedding 存 MemoryDO，适合中小规模 |
-| 2 | **+ Vectorize** | `rag_backend: vectorize` | 加速器；大规模检索更快 |
+| 1 | **Workers AI** | `rag: true`, `rag_backend: do_embed` | embedding 可存 DO chunk；无 Vectorize 时 `mem_search` 用 DO 向量 |
+| 2 | **+ Vectorize** | `rag_backend: vectorize` | 推荐；与 DO 关键词 **hybrid RRF**；按 chunk 索引 |
 
 **启用 Vectorize（加速器）** — API Token 需含 **Vectorize Edit** + **Workers Scripts Edit**：
 

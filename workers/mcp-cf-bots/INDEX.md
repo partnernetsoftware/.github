@@ -76,6 +76,7 @@ HTTP MCP + REST on Cloudflare Workers：`sess_*` 会话、`mem_*` 记忆 RAG、`
 | [mem-embed.ts](src/mem-embed.ts) | Workers AI embedding + Vectorize |
 | [mem-rest.ts](src/mem-rest.ts) | REST `/v1/mem` |
 | [memory-do.ts](src/memory-do.ts) | `MemorySqliteDO` SQLite chunks + 过期 alarm |
+| [memory-do-legacy.ts](src/memory-do-legacy.ts) | 旧 `MemoryDO` stub（CF 迁移兼容） |
 | [memory-store.ts](src/memory-store.ts) | Memory DO id / stub |
 | [vault-api.ts](src/vault-api.ts) | REST `/v1/session`、`/v1/sessions` |
 | [session-store.ts](src/session-store.ts) | DO id + `sessionStub` |
