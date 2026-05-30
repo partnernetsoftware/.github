@@ -76,7 +76,8 @@ function cosine(a: number[], b: number[]): number {
   return denom > 0 ? dot / denom : 0;
 }
 
-export class MemoryDO implements DurableObject {
+/** SQLite-backed memory store (requires `new_sqlite_classes` migration). */
+export class MemorySqliteDO implements DurableObject {
   private schemaReady: Promise<void>;
 
   constructor(

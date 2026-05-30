@@ -44,4 +44,4 @@
 
 ## Cloudflare 绑定
 
-见 [cf-services.md](cf-services.md)。部署后旧 JSON blob 会在 DO 首次访问时自动迁移到 SQLite。
+见 [cf-services.md](cf-services.md)。部署需 wrangler migration `v4`（`MemorySqliteDO` / `new_sqlite_classes`）。旧 `MemoryDO`（非 SQLite）实例不会自动迁移；可用 `mem_import` 或 `mem_reindex` 前重新 `mem_put`。同 owner 下旧 JSON blob 会在新 DO 首次访问时从 `memories` 键迁移。
