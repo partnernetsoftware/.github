@@ -8,14 +8,17 @@ HTTP MCP + REST on Cloudflare Workers：`sess_*` 会话、`mem_*` 记忆 RAG、`
 
 > **SSOT**：[mcp-cf-bots.mindmap](mcp-cf-bots.mindmap)（`active_waves`、`for_discussion`、`last_deploy`）。**每轮**：merge `main` → test → `deploy.sh` → 更新本节。
 
-### 现状（v0.9.1）
+### 现状（v0.9.2）— 你不用拍板，已按架构默认定好
 
-| 项 | 值 |
-|----|-----|
-| **版本** | `0.9.1`（`wrangler.toml` → `MCP_SERVER_VERSION`） |
-| **阶段** | **W0 稳态** + **W1 生产一致**（workers.dev 已 `VERIFY_OK`） |
-| **校验** | `verify-deploy.sh`：`version` 与 wrangler 一致；memory 时 `features.fts=true` |
-| **风险** | `MCP_CF_BOTS_URL` 自定义路由可能仍为旧版 → **TD-8** |
+| 项 | 说明 |
+|----|------|
+| **版本** | `0.9.2`，线上双入口已对齐（workers.dev + `CLOUDFLARE_WORKER_DOMAIN`） |
+| **你怎么连** | `MCP_CF_BOTS_URL` = 你的自定义域（与 `CLOUDFLARE_WORKER_DOMAIN` 相同）；用户 token 用 `cfb_*` |
+| **管理** | admin 用 `wrangler secret` 的 `VAULT_TOKEN`，**不要**和用户 `cfb_*` 混在一个变量里 |
+| **加密** | 记忆默认**不**开 `MEM_ENCRYPT`（省事）；以后有合规需求再开 |
+| **下一步开发** | 先 **W2** 补测试，**W3** 删旧 MemoryDO 最后做（防丢数据） |
+
+细节见 mindmap `architecture_decisions`。
 
 ### 每轮标准流程
 
@@ -28,16 +31,14 @@ git checkout main && git merge <feature-branch> && git push origin main
 
 `deploy.sh` 以 wrangler 输出的 **workers.dev** 做 version gate；`MCP_CF_BOTS_URL` 若不同会 WARN。
 
-### 下一波（供讨论）
+### 下一波（已拍板）
 
 | 波次 | 状态 | 目标 |
 |------|------|------|
-| **W0** | 进行中 | merge main、CI、文档 |
-| **W1** | 进行中 | workers.dev **done**；合 main、**TD-8** 路由对齐、`VAULT_TOKEN`↔CI token |
-| **W2** | 进行中 | FTS 集成测 done；hybrid 集成测、CI 挂 integration |
-| **W3** | blocked | TD-5 删 MemoryDO（gate：W1 + migrate） |
-
-**讨论点**：自定义域何时切 0.9.1？W2 vs W3 优先级？`MEM_ENCRYPT` / `MCP_PUBLIC_HOST`？
+| **W0** | 持续 | merge main → deploy → `verify-all-urls` |
+| **W1** | **完成** | 双入口 0.9.2、`custom_domain` in wrangler |
+| **W2** | **当前** | hybrid/Vectorize 集成测；CI 已跑 `test:integration` |
+| **W3** | 排队 | TD-5 删 MemoryDO（等 migrate 清零 + W2 够绿） |
 
 ### 历史里程碑
 
@@ -47,7 +48,8 @@ git checkout main && git merge <feature-branch> && git push origin main
 | 0.7+ | `mem_*`、Vectorize、公开状态页 |
 | 0.8.x | SQLite DO、hybrid、cron、P0 migrate/GC |
 | 0.9.0 | P1–P3：FTS、过滤、限流、审计、MCP resources |
-| 0.9.1 | W2：Miniflare FTS 集成测、`auth_audit_list`、`mem_import` 限流、smoke 校验 fts |
+| 0.9.1 | W2：Miniflare FTS 集成测、`auth_audit_list`、`mem_import` 限流 |
+| 0.9.2 | env 注入 custom_domain、`verify-all-urls`、`MCP_PUBLIC_HOST` |
 
 ### 每轮收尾清单
 
@@ -76,7 +78,8 @@ git checkout main && git merge <feature-branch> && git push origin main
 | [scripts/deploy.sh](scripts/deploy.sh) | ci → typecheck → test → deploy → smoke |
 | [scripts/setup-rag.sh](scripts/setup-rag.sh) | Vectorize 索引 + deploy |
 | [scripts/smoke.sh](scripts/smoke.sh) | `/health`、`/v1/me` |
-| [scripts/verify-deploy.sh](scripts/verify-deploy.sh) | smoke + **version** 与 wrangler 一致 |
+| [scripts/verify-deploy.sh](scripts/verify-deploy.sh) | 单 URL：smoke + version |
+| [scripts/verify-all-urls.sh](scripts/verify-all-urls.sh) | workers.dev + 自定义域双入口校验 |
 | [scripts/mem-vector-gc.sh](scripts/mem-vector-gc.sh) | 孤儿向量 GC |
 | [scripts/mem-migrate-legacy.sh](scripts/mem-migrate-legacy.sh) | 旧 MemoryDO 迁移 |
 | [scripts/issue_token.sh](scripts/issue_token.sh) | 签发 `cfb_*` |
@@ -304,6 +307,6 @@ CLI 凭据：`tools/claude_code.py capture|restore|status`（等价 `sess_put` s
 | TD-5 | `delete-class MemoryDO` | blocked → **W3** |
 | TD-6 | FTS5 关键词 | mitigated（0.9.0） |
 | TD-7 | Miniflare DO 集成测 | mitigated（FTS 子集）→ hybrid 仍 **W2** |
-| TD-8 | 自定义 `MCP_CF_BOTS_URL` 与 workers.dev 版本漂移 | open → **W1** |
+| TD-8 | 自定义 URL 漂移 | mitigated（0.9.2 custom_domain） |
 
 详情同步 [mcp-cf-bots.mindmap](mcp-cf-bots.mindmap) → `tech_debt`。

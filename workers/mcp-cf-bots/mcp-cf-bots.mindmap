@@ -1,20 +1,24 @@
 {
   "product": "mcp-cf-bots",
   "ssot": "workers/mcp-cf-bots/mcp-cf-bots.mindmap",
-  "version": "0.9.1",
-  "updated_at": "2026-05-30T03:40:00Z",
+  "version": "0.9.2",
+  "updated_at": "2026-05-30T04:00:00Z",
   "north_star": "跨 Agent 的 HTTP MCP + REST：sess_* 会话、mem_* 记忆 RAG、cfb_* 多租户",
+  "architecture_decisions": {
+    "canonical_entry": "单一 Worker；workers.dev + CLOUDFLARE_WORKER_DOMAIN（deploy 时 custom_domain）同版本",
+    "url_for_cursor": "MCP_CF_BOTS_URL = CLOUDFLARE_WORKER_DOMAIN（https，无尾斜杠）",
+    "priority_order": "W2 测试加深 → 稳态运维 → W3 删 legacy（最后，防数据事故）",
+    "mem_encrypt": "默认关闭；多租户敏感记忆再按 owner 开启（避免无谓复杂度）",
+    "mcp_public_host": "deploy 从 CLOUDFLARE_WORKER_DOMAIN 注入 MCP_PUBLIC_HOST（/health hint）",
+    "secrets": "VAULT_TOKEN=admin；用户用 cfb_*（MCP_CF_BOTS_TOKEN 勿与 admin 混用）",
+    "deploy_gate": "deploy.sh → verify-all-urls（双入口 version+fts 一致）"
+  },
   "roadmap": {
     "current_phase": "steady-ops",
-    "current_version": "0.9.1",
+    "current_version": "0.9.2",
     "last_review": "2026-05-30",
-    "summary": "v0.9.1 已部署至 workers.dev 且 verify-deploy 通过。自定义入口 URL 仍可能指向旧构建；每轮须 merge main → deploy → 版本校验。",
-    "for_discussion": [
-      "是否将 MCP_CF_BOTS_URL（自定义域/路由）切到当前 Worker 版本？",
-      "是否在 Dashboard 对齐 VAULT_TOKEN 与 CI 的 MCP_CF_BOTS_TOKEN（/v1/me 401）？",
-      "W2 hybrid 集成测 vs W3 TD-5 清理，哪个优先？",
-      "是否启用 MCP_PUBLIC_HOST + 生产 MEM_ENCRYPT？"
-    ],
+    "summary": "架构拍板已锁定；0.9.2 双入口已 verify。下一重点：W2 hybrid 集成测；W3 暂缓至无 migrate 欠账。",
+    "for_discussion": [],
     "end_of_round": [
       "git fetch origin main && git merge origin/main（解决冲突）",
       "npm run typecheck && npm test && npm run test:integration",
@@ -25,17 +29,18 @@
     ],
     "last_deploy": {
       "at": "2026-05-30",
-      "version": "0.9.1",
+      "version": "0.9.2",
       "worker_name": "mcp-cf-bots",
       "verify": {
         "health_ok": true,
         "version_match": true,
         "features_fts": true,
-        "target": "workers.dev URL from wrangler deploy output"
+        "targets": ["workers.dev", "CLOUDFLARE_WORKER_DOMAIN"],
+        "script": "verify-all-urls.sh"
       },
       "follow_ups": [
-        "Custom MCP_CF_BOTS_URL may still report older version — update CF route/custom domain",
-        "Optional: wrangler secret put VAULT_TOKEN to match CI token for /v1/me smoke"
+        "Smoke /v1/me：用 admin VAULT_TOKEN，勿用 cfb_* 用户 token",
+        "启用 Vectorize GC：配置 CF_ACCOUNT_ID + CF_API_TOKEN（cron_vector_gc）"
       ]
     },
     "reflection": {
@@ -50,7 +55,8 @@
       { "version": "0.8.1", "label": "Cron + deploy 脚本 + mindmap", "status": "done" },
       { "version": "0.8.2", "label": "P0: migrate_legacy + 分页 GC + cron KV", "status": "done" },
       { "version": "0.9.0", "label": "P1–P3: FTS、限流、审计、MCP resources", "status": "done" },
-      { "version": "0.9.1", "label": "集成测、verify-deploy、auth_audit_list", "status": "done" }
+      { "version": "0.9.1", "label": "集成测、verify-deploy、auth_audit_list", "status": "done" },
+      { "version": "0.9.2", "label": "custom_domain + verify-all-urls + MCP_PUBLIC_HOST", "status": "done" }
     ],
     "completed_phases_archive": [
       { "id": "p0-stability", "label": "P0 稳态", "version": "0.8.2" },
@@ -72,16 +78,14 @@
         ]
       },
       {
-        "id": "w1-ship-091",
-        "label": "W1 0.9.1 生产一致",
-        "status": "active",
+        "id": "w1-ship",
+        "label": "W1 生产一致",
+        "status": "done",
         "priority": 1,
         "items": [
-          { "id": "w1-workers-dev", "label": "workers.dev deploy + version=0.9.1 + fts", "status": "done" },
-          { "id": "w1-merge-main", "label": "PR/分支合入 main", "status": "pending" },
-          { "id": "w1-custom-route", "label": "MCP_CF_BOTS_URL 路由指向当前 Worker", "status": "pending" },
-          { "id": "w1-vault-token", "label": "VAULT_TOKEN secret 与 CI token 对齐（/v1/me）", "status": "pending" },
-          { "id": "w1-domain", "label": "MCP_PUBLIC_HOST + DNS（可选）", "status": "optional" }
+          { "id": "w1-workers-dev", "label": "workers.dev verify", "status": "done" },
+          { "id": "w1-custom-domain", "label": "deploy custom_domain from env", "status": "done" },
+          { "id": "w1-merge-main", "label": "合入 main", "status": "done" }
         ]
       },
       {
@@ -173,7 +177,7 @@
         "children": [
           { "id": "ops-health", "label": "/health + cron_last + fts", "status": "done" },
           { "id": "ops-deploy", "label": "deploy + verify-deploy", "status": "done" },
-          { "id": "ops-route-drift", "label": "自定义 URL 路由漂移", "status": "open" }
+          { "id": "ops-route-drift", "label": "自定义 URL 路由漂移", "status": "done" }
         ]
       }
     ]
@@ -186,7 +190,7 @@
     { "id": "TD-5", "label": "delete-class MemoryDO", "status": "blocked", "wave": "w3-legacy-cleanup" },
     { "id": "TD-6", "label": "FTS5 关键词", "status": "mitigated" },
     { "id": "TD-7", "label": "DO 集成测", "status": "mitigated", "note": "FTS subset 0.9.1" },
-    { "id": "TD-8", "label": "自定义入口 URL 与 workers.dev 版本漂移", "status": "open", "wave": "w1-ship-091" }
+    { "id": "TD-8", "label": "自定义入口 URL 漂移", "status": "mitigated", "note": "wrangler custom_domain 0.9.2" }
   ],
   "cron": {
     "schedule": "0 4 * * *",
