@@ -17,7 +17,7 @@
   "architecture_decisions": {
     "canonical_entry": "单一 Worker；workers.dev + CLOUDFLARE_WORKER_DOMAIN（deploy 注入 custom_domain）",
     "url_for_cursor": "MCP_CF_BOTS_URL = CLOUDFLARE_WORKER_DOMAIN",
-    "priority_order": "W-hygiene → W2 测试 → 稳态 → W3 删 legacy",
+    "priority_order": "W3 删 legacy（W2 完成）→ 稳态",
     "mem_encrypt": "默认关闭",
     "http_helpers": "ownerFromHttpRequest + readJsonBody/readOptionalJsonBody 统一 REST",
     "admin_routes": "所有 /v1/admin/* 仅 admin-api.ts",
@@ -37,7 +37,7 @@
     ],
     "last_deploy": {
       "version": "0.9.3",
-      "note": "见 deploy 日志 verify-all-urls"
+      "note": "d0e761e W2 tests + docs; verify-all-urls OK"
     },
     "active_waves": [
       {
