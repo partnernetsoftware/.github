@@ -42,7 +42,7 @@ paths:
 | **最小 diff** | 只改达成目标所需文件；不顺手「整理」无关代码 |
 | **抽象** | 第三处重复 → 提取共享模块；命名与邻接文件一致 |
 | **联系上下文** | 每轮回复开头心里对齐：路线图阶段、TD 状态、是否偏离 north_star |
-| **mcp-cf-bots** | `mem-put` / `mem-cron` 等已分层；新能力放对应 `mem-*.ts`，勿堆进 `mem-tools.ts` |
+| **mcp-cf-bots** | 必读 [mcp-cf-bots-delivery](../mcp-cf-bots-delivery/SKILL.md)；`mem-*.ts` 分层，勿堆 `mem-tools.ts` |
 
 ## 收尾（Close）
 
@@ -70,6 +70,7 @@ paths:
 |-------|------|
 | **squad-parallel** | 并行 wave 时 **叠加** 本 skill；squad 管角色，本 skill 管 diff/SSOT |
 | **nano-lisp-jit-v4-longrun** | longrun 管 state/gate；本 skill 管仓库卫生与文档 SSOT |
+| **mcp-cf-bots-delivery** | 本产品波次/门禁/MCP 运维；与 hygiene 叠加 |
 
 ## 禁止
 

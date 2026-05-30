@@ -7,6 +7,7 @@
 | 技能 | 路径 | 何时用 |
 |------|------|--------|
 | **engineering-hygiene** | [`skills/engineering-hygiene/`](skills/engineering-hygiene/) | **默认**：改代码/文档/重构每轮 — SSOT、复用、收尾刷新路线图；清洁/抽象/复用/不走弯路 |
+| **mcp-cf-bots-delivery** | [`skills/mcp-cf-bots-delivery/`](skills/mcp-cf-bots-delivery/)（`.cursor/skills/mcp-cf-bots-delivery` 同步） | 改/部署 **mcp-cf-bots**：波次路线图、门禁链、MCP 主动用 mem/sess、401/CF API 运维剧本 |
 | **squad-parallel** | [`skills/squad-parallel/`](skills/squad-parallel/)（`.cursor/skills/squad-parallel` 同步） | 并行四角色小队推进 v3.5/v4；Agent **须亲自跑** `agent-team`，勿只贴命令给用户 |
 | **nano-lisp-jit-v4-longrun** | [`skills/nano-lisp-jit-v4-longrun/`](skills/nano-lisp-jit-v4-longrun/) | v4 长程 `/loop`：state SSOT → apply → gate → cc repair；**Bun TS 可执行 skill** |
 

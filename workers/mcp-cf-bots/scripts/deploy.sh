@@ -61,6 +61,11 @@ if [[ "$SKIP_SMOKE" != "1" ]]; then
     export MCP_CF_BOTS_CUSTOM_URL="${CUSTOM_URL:-}"
     echo "==> verify-all-urls (workers.dev + custom if set)"
     MCP_CF_BOTS_URL="$VERIFY_URL" ./scripts/verify-all-urls.sh
+    if [[ "${SKIP_CF_API_CHECK:-0}" != "1" ]]; then
+      echo "==> check-cf-api (W4; SKIP_CF_API_CHECK=1 to skip)"
+      MCP_CF_BOTS_URL="$VERIFY_URL" ./scripts/check-cf-api.sh \
+        || echo "WARN: cf_api_ready false — run ./scripts/sync-cf-api-secrets.sh (see skills/mcp-cf-bots-delivery)" >&2
+    fi
   fi
 fi
 

@@ -36,7 +36,8 @@
       "MCP 401 → diagnose-connection.sh + sync-vault-secret.sh + issue_token.sh",
       "cf_api_ready false → sync-cf-api-secrets.sh + check-cf-api.sh"
     ],
-    "last_deploy": { "version": "0.9.5", "note": "pending" },
+    "last_deploy": { "version": "0.9.5", "note": "deploy+verify OK; cf_api_ready pending secrets" },
+    "methodology_skill": "skills/mcp-cf-bots-delivery/SKILL.md",
     "active_waves": [
       {
         "id": "w0-steady",

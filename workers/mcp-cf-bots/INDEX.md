@@ -73,7 +73,8 @@ git checkout main && git merge <feature-branch> && git push origin main
 
 ### 不走弯路
 
-- 工程习惯 → 仓库 [`skills/engineering-hygiene/`](../../skills/engineering-hygiene/SKILL.md)（**AGENTS.md** 默认 skill），不用 `mem_*` 存规范。  
+- 交付方法学 → [`skills/mcp-cf-bots-delivery/`](../../skills/mcp-cf-bots-delivery/SKILL.md)（波次、门禁、MCP 运维剧本）。  
+- 工程习惯 → [`skills/engineering-hygiene/`](../../skills/engineering-hygiene/SKILL.md)（**AGENTS.md** 默认），不用 `mem_*` 存规范。  
 - 功能改动先问：是否强化 **sess / mem / auth** 三支柱？  
 - 文档：仅 **INDEX + mindmap**，README 一行入口。
 

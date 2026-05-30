@@ -2,3 +2,6 @@
 VAULT_TOKEN=dev-token-change-me
 DEFAULT_OWNER=local-dev
 DEFAULT_SESSION_SOURCE=browser-use
+# Optional W4: Vectorize list/GC + status page analytics
+# CF_ACCOUNT_ID=
+# CF_API_TOKEN=
