@@ -19,6 +19,7 @@ if [[ -z "$EXPECTED" ]]; then
 fi
 
 echo "==> expected version: $EXPECTED"
+sleep 2
 ./scripts/smoke.sh
 
 HEALTH_JSON="/tmp/mcp-cf-bots-health.json"
