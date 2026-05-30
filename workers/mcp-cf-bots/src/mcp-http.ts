@@ -1,9 +1,5 @@
-import {
-  mcpHttpPath,
-  readOwnerHeader,
-  resolveOwner,
-  validateMcpOrigin,
-} from "./config";
+import { effectiveOwner, type AuthContext } from "./auth";
+import { mcpHttpPath, readOwnerHeader, validateMcpOrigin } from "./config";
 import { handleMcpJsonRpc } from "./mcp-server";
 
 function acceptsMcpPost(request: Request): boolean {
@@ -102,6 +98,7 @@ export async function handleMcpHttp(
   request: Request,
   env: Env,
   url: URL,
+  auth: AuthContext,
 ): Promise<Response> {
   if (!validateMcpOrigin(request, env)) {
     return Response.json(
@@ -110,14 +107,17 @@ export async function handleMcpHttp(
     );
   }
 
-  let defaultOwner: string;
+  let requestOwner: string;
   try {
-    defaultOwner = resolveOwner(env, { headerOwner: readOwnerHeader(request, env) });
+    requestOwner = effectiveOwner(auth, env, {
+      headerOwner: readOwnerHeader(request, env),
+    });
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
+    const code = message.includes("forbidden") ? -32003 : -32000;
     return Response.json(
-      { jsonrpc: "2.0", error: { code: -32000, message } },
-      { status: 400 },
+      { jsonrpc: "2.0", error: { code, message } },
+      { status: message.includes("forbidden") ? 403 : 400 },
     );
   }
 
@@ -162,31 +162,44 @@ export async function handleMcpHttp(
     ? await validateSessionId(env, sessionHeader)
     : false;
 
-  const result = await handleMcpJsonRpc(body, {
-    env,
-    defaultOwner,
-    sessionId: sessionValid ? sessionHeader : null,
-    isInitialize,
-  });
+  try {
+    const result = await handleMcpJsonRpc(body, {
+      env,
+      auth,
+      requestOwner,
+      sessionId: sessionValid ? sessionHeader : null,
+      isInitialize,
+    });
 
-  if (result.isNotification) {
-    return new Response(null, { status: result.status });
+    if (result.isNotification) {
+      return new Response(null, { status: result.status });
+    }
+
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+      "Cache-Control": "no-cache",
+    };
+
+    if (isInitialize && result.status === 200) {
+      const newSession = await mintSessionId(env);
+      headers["MCP-Session-Id"] = newSession;
+    } else if (sessionValid && sessionHeader) {
+      headers["MCP-Session-Id"] = sessionHeader;
+    }
+
+    return new Response(JSON.stringify(result.body), {
+      status: result.status,
+      headers,
+    });
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
+    return Response.json(
+      {
+        jsonrpc: "2.0",
+        id: (body as { id?: unknown }).id ?? null,
+        error: { code: -32000, message },
+      },
+      { status: message.includes("forbidden") ? 403 : 400 },
+    );
   }
-
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-    "Cache-Control": "no-cache",
-  };
-
-  if (isInitialize && result.status === 200) {
-    const newSession = await mintSessionId(env);
-    headers["MCP-Session-Id"] = newSession;
-  } else if (sessionValid && sessionHeader) {
-    headers["MCP-Session-Id"] = sessionHeader;
-  }
-
-  return new Response(JSON.stringify(result.body), {
-    status: result.status,
-    headers,
-  });
 }

@@ -1,13 +1,54 @@
+import { isAdmin, type AuthContext } from "./auth";
 import { mcpProtocolVersion, mcpServerInfo } from "./config";
 import { vaultToolCall } from "./vault-api";
 import { SESSION_KINDS } from "./kinds";
 
-const TOOL_DEFS = [
+type ToolDef = {
+  name: string;
+  description: string;
+  required: readonly string[];
+  properties: Record<string, unknown>;
+  userVisible: boolean;
+};
+
+const ADMIN_TOOL_DEFS: ToolDef[] = [
+  {
+    name: "auth_token_create",
+    description: "Admin: issue a per-user Bearer token scoped to one owner namespace",
+    required: ["owner"],
+    userVisible: false,
+    properties: {
+      owner: { type: "string", description: "Tenant / user id (vault namespace)" },
+      label: { type: "string", description: "Optional note (e.g. alice-cursor)" },
+    },
+  },
+  {
+    name: "auth_token_list",
+    description: "Admin: list issued user tokens (metadata only, not secret values)",
+    required: [],
+    userVisible: false,
+    properties: {
+      owner: { type: "string", description: "Filter by owner" },
+    },
+  },
+  {
+    name: "auth_token_revoke",
+    description: "Admin: revoke a user token by id",
+    required: ["token_id"],
+    userVisible: false,
+    properties: {
+      token_id: { type: "string" },
+    },
+  },
+];
+
+const SESS_TOOL_DEFS: ToolDef[] = [
   {
     name: "sess_save",
     description:
       "Save browser-use / Playwright session for reuse across Cloud Agents (storage_state + optional oauth/cookies/config)",
     required: ["site", "profile"],
+    userVisible: true,
     properties: {
       site: { type: "string", description: "Site key (e.g. github.com)" },
       profile: { type: "string", description: "Profile name (e.g. default)" },
@@ -39,6 +80,7 @@ const TOOL_DEFS = [
     description:
       "Load saved browser session for browser-use (storage_state; optional oauth/cookies/config)",
     required: ["site", "profile"],
+    userVisible: true,
     properties: {
       site: { type: "string" },
       profile: { type: "string" },
@@ -52,6 +94,7 @@ const TOOL_DEFS = [
     name: "sess_meta",
     description: "Read label/tags/source/expiry metadata without decrypting payloads",
     required: ["site", "profile"],
+    userVisible: true,
     properties: {
       site: { type: "string" },
       profile: { type: "string" },
@@ -62,6 +105,7 @@ const TOOL_DEFS = [
     name: "sess_put",
     description: "Store a single kind: oauth, cookies, storage_state, or config",
     required: ["site", "profile", "kind", "data"],
+    userVisible: true,
     properties: {
       site: { type: "string", description: "Site key (e.g. claude.ai)" },
       profile: { type: "string", description: "Profile name" },
@@ -79,6 +123,7 @@ const TOOL_DEFS = [
     name: "sess_get",
     description: "Read stored session fields (optional single kind)",
     required: ["site", "profile"],
+    userVisible: true,
     properties: {
       site: { type: "string" },
       profile: { type: "string" },
@@ -90,6 +135,7 @@ const TOOL_DEFS = [
     name: "sess_delete",
     description: "Delete all encrypted session data for site/profile",
     required: ["site", "profile"],
+    userVisible: true,
     properties: {
       site: { type: "string" },
       profile: { type: "string" },
@@ -100,13 +146,31 @@ const TOOL_DEFS = [
     name: "sess_list",
     description: "List site/profile entries with label/source/tags",
     required: [] as string[],
+    userVisible: true,
     properties: {
       owner: { type: "string" },
       source: { type: "string", description: "Filter by meta.source" },
       tag: { type: "string", description: "Filter entries containing tag" },
     },
   },
-] as const;
+];
+
+function toolsForAuth(auth: AuthContext): ToolDef[] {
+  const sess = SESS_TOOL_DEFS.map((t) => {
+    if (auth.role === "user") {
+      const { owner: _o, ...properties } = t.properties as Record<string, unknown> & {
+        owner?: unknown;
+      };
+      const required = t.required.filter((r) => r !== "owner");
+      return { ...t, properties, required };
+    }
+    return t;
+  });
+  if (isAdmin(auth)) {
+    return [...sess, ...ADMIN_TOOL_DEFS];
+  }
+  return sess;
+}
 
 type JsonRpcReq = {
   jsonrpc?: string;
@@ -131,7 +195,8 @@ export async function handleMcpJsonRpc(
   request: JsonRpcReq,
   ctx: {
     env: Env;
-    defaultOwner: string;
+    auth: AuthContext;
+    requestOwner: string;
     sessionId: string | null;
     isInitialize: boolean;
   },
@@ -173,10 +238,12 @@ export async function handleMcpJsonRpc(
     };
   }
 
+  const toolDefs = toolsForAuth(ctx.auth);
+
   if (method === "tools/list") {
     return {
       body: ok(requestId, {
-        tools: TOOL_DEFS.map((t) => ({
+        tools: toolDefs.map((t) => ({
           name: t.name,
           description: t.description,
           inputSchema: {
@@ -194,7 +261,7 @@ export async function handleMcpJsonRpc(
   if (method === "tools/call") {
     const name = String(params.name ?? "");
     const args = (params.arguments ?? {}) as Record<string, unknown>;
-    const known = TOOL_DEFS.some((t) => t.name === name);
+    const known = toolDefs.some((t) => t.name === name);
     if (!known) {
       return {
         body: err(requestId, -32602, `Unknown tool: ${name}`),
@@ -203,7 +270,13 @@ export async function handleMcpJsonRpc(
       };
     }
     try {
-      const text = await vaultToolCall(ctx.env, name, args, ctx.defaultOwner);
+      const text = await vaultToolCall(
+        ctx.env,
+        name,
+        args,
+        ctx.auth,
+        ctx.requestOwner,
+      );
       return {
         body: ok(requestId, {
           content: [{ type: "text", text }],

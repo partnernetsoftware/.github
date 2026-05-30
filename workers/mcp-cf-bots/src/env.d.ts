@@ -1,6 +1,8 @@
 interface Env {
   SESSION_VAULT: DurableObjectNamespace;
   REGISTRY: DurableObjectNamespace;
+  /** Per-user API token index (hashed bearer → owner) */
+  TOKENS?: KVNamespace;
   /** Secret — MCP + REST Bearer token */
   VAULT_TOKEN: string;
   /** Secret — optional AES key; defaults to VAULT_TOKEN when unset */

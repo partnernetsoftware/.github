@@ -1,8 +1,10 @@
+import { handleAdminRest, adminToolCall } from "./admin-api";
 import {
-  defaultSessionSource,
-  readOwnerHeader,
-  resolveOwner,
-} from "./config";
+  effectiveOwner,
+  isAdmin,
+  type AuthContext,
+} from "./auth";
+import { defaultSessionSource, readOwnerHeader } from "./config";
 import {
   SESSION_KINDS,
   type SessionKind,
@@ -13,11 +15,12 @@ import { registryEntryFromMeta } from "./registry-do";
 const SESSION_RE = /^\/v1\/session\/([^/]+)\/([^/]+)\/?$/;
 
 export function ownerFromRequest(
+  auth: AuthContext,
   env: Env,
   url: URL,
   request: Request,
 ): string {
-  return resolveOwner(env, {
+  return effectiveOwner(auth, env, {
     headerOwner: readOwnerHeader(request, env),
     queryOwner: url.searchParams.get("owner"),
   });
@@ -65,9 +68,15 @@ export async function handleVaultRest(
   request: Request,
   env: Env,
   url: URL,
+  auth: AuthContext,
 ): Promise<Response> {
+  const admin = await handleAdminRest(request, env, url, auth);
+  if (admin) {
+    return admin;
+  }
+
   if (request.method === "GET" && url.pathname === "/v1/sessions") {
-    const owner = ownerFromRequest(env, url, request);
+    const owner = ownerFromRequest(auth, env, url, request);
     const id = env.REGISTRY.idFromName(registryId(owner));
     const stub = env.REGISTRY.get(id);
     const regUrl = new URL("https://registry.internal/entries");
@@ -88,7 +97,7 @@ export async function handleVaultRest(
   }
 
   const [, site, profile] = match;
-  const owner = ownerFromRequest(env, url, request);
+  const owner = ownerFromRequest(auth, env, url, request);
   const id = env.SESSION_VAULT.idFromName(vaultId(owner, site, profile));
   const stub = env.SESSION_VAULT.get(id);
 
@@ -124,11 +133,15 @@ export async function handleVaultRest(
 }
 
 function resolveToolOwner(
+  auth: AuthContext,
+  env: Env,
   args: Record<string, unknown>,
-  defaultOwner: string,
+  requestOwner: string,
 ): string {
-  const argOwner = String(args.owner ?? "").trim();
-  return argOwner || defaultOwner;
+  return effectiveOwner(auth, env, {
+    argOwner: String(args.owner ?? "").trim() || null,
+    headerOwner: requestOwner,
+  });
 }
 
 function buildMetaFromArgs(args: Record<string, unknown>): Partial<SessionMeta> {
@@ -181,9 +194,17 @@ export async function vaultToolCall(
   env: Env,
   name: string,
   args: Record<string, unknown>,
-  defaultOwner: string,
+  auth: AuthContext,
+  requestOwner: string,
 ): Promise<string> {
-  const owner = resolveToolOwner(args, defaultOwner);
+  if (name.startsWith("auth_token_")) {
+    if (!isAdmin(auth)) {
+      throw new Error("forbidden: admin token required");
+    }
+    return adminToolCall(env, name, args);
+  }
+
+  const owner = resolveToolOwner(auth, env, args, requestOwner);
 
   if (name === "sess_list") {
     const regUrl = new URL("https://registry.internal/entries");
