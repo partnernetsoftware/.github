@@ -1,6 +1,7 @@
 import type { AuthContext } from "./auth";
 import { isAdmin } from "./auth";
 import { ownerForTool } from "./owner-scope";
+import { checkMemRateLimit } from "./rate-limit";
 import {
   deleteMemoryVectors,
   embedText,
@@ -22,12 +23,19 @@ export { reindexOwner, listMemOwners, reindexOwners } from "./mem-reindex";
 export { gcOrphanVectors, gcOrphanVectorsAllOwners } from "./mem-vector-gc";
 export { runMemCron } from "./mem-cron";
 
+type MemSearchFilters = {
+  tag?: string;
+  updated_after?: string;
+  updated_before?: string;
+};
+
 async function hybridSearch(
   env: Env,
   stub: DurableObjectStub,
   owner: string,
   query: string,
   topK: number,
+  filters?: MemSearchFilters,
 ): Promise<{ matches: SearchHit[]; mode: string }> {
   const vectorHits: SearchHit[] = [];
   const keywordHits: SearchHit[] = [];
@@ -61,7 +69,7 @@ async function hybridSearch(
   const kwRes = await stub.fetch("https://memory.internal/search", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ query, top_k: topK }),
+    body: JSON.stringify({ query, top_k: topK, ...filters }),
   });
   if (kwRes.ok) {
     const kw = (await kwRes.json()) as { matches: SearchHit[] };
@@ -114,8 +122,19 @@ export async function memToolCall(
     if (!query) {
       throw new Error("query is required");
     }
+    await checkMemRateLimit(env, owner, "mem_search");
     const topK = Math.min(Math.max(Number(args.top_k) || 5, 1), 20);
-    const { matches, mode } = await hybridSearch(env, stub, owner, query, topK);
+    const filters: MemSearchFilters = {};
+    if (typeof args.tag === "string" && args.tag.trim()) {
+      filters.tag = args.tag.trim();
+    }
+    if (typeof args.updated_after === "string" && args.updated_after.trim()) {
+      filters.updated_after = args.updated_after.trim();
+    }
+    if (typeof args.updated_before === "string" && args.updated_before.trim()) {
+      filters.updated_before = args.updated_before.trim();
+    }
+    const { matches, mode } = await hybridSearch(env, stub, owner, query, topK, filters);
     return JSON.stringify({ matches, mode }, null, 2);
   }
 
@@ -197,6 +216,7 @@ export async function memToolCall(
   const key = validateKey("key", String(args.key ?? ""));
 
   if (name === "mem_put") {
+    await checkMemRateLimit(env, owner, "mem_put");
     const content = String(args.content ?? "").trim();
     if (!content) {
       throw new Error("content is required");

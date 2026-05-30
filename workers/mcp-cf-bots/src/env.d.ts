@@ -26,6 +26,7 @@ interface Env {
   MCP_PROTOCOL_VERSION?: string;
   /** Comma-separated Origin allowlist; empty = https + cursor IDE + localhost */
   MCP_ALLOWED_ORIGINS?: string;
+  MCP_PUBLIC_HOST?: string;
   /** Primary owner header (legacy X-Session-Vault-Owner always checked) */
   OWNER_HEADER?: string;
   /** Max request body bytes (Content-Length check); default 2_000_000 */
@@ -44,6 +45,8 @@ interface Env {
   MAX_MEM_BYTES?: string;
   /** Max single put body chars (default 32_000) */
   MAX_MEM_CHUNK_BYTES?: string;
+  /** Memory API requests per owner per minute (default 120) */
+  MEM_RATE_LIMIT_PER_MIN?: string;
   /** Encrypt memory content at rest in DO (1/true/yes) */
   MEM_ENCRYPT?: string;
   /** Vectorize index name for REST list/GC (default mcp-cf-bots-mem) */

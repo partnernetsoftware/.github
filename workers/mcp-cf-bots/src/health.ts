@@ -1,24 +1,27 @@
 import { mcpServerInfo } from "./config";
+import { customDomainHint, buildHealthFeatures } from "./health-detail";
 import { jsonResponse } from "./http-util";
 import type { AuthContext } from "./auth";
-import { ragBackend, semanticRagEnabled } from "./mem-embed";
 
-export function handlePublicHealth(env: Env): Response {
+export async function handlePublicHealth(env: Env): Promise<Response> {
   let version = "unknown";
   try {
     version = mcpServerInfo(env).version;
   } catch {
     /* vars optional for bare health */
   }
+  const { features, cron_last } = await buildHealthFeatures(env);
+  const hint = customDomainHint(env);
   return jsonResponse({
     ok: true,
     service: "mcp-cf-bots",
     version,
     features: {
-      memory: Boolean(env.MEMORY_STORE),
-      rag: semanticRagEnabled(env),
-      rag_backend: ragBackend(env),
+      ...features,
+      fts: true,
     },
+    cron_last,
+    ...(hint ? { hint } : {}),
   });
 }
 

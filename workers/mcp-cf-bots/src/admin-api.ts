@@ -1,3 +1,4 @@
+import { auditLog, listAuditLog } from "./audit-log";
 import {
   createUserToken,
   isAdmin,
@@ -47,6 +48,7 @@ export async function handleAdminRest(
         return apiError(400, "owner is required");
       }
       const created = await createUserToken(env, owner, body.label);
+      await auditLog(env, auth, "token_create", { owner, id: created.id });
       return jsonResponse({
         id: created.id,
         owner: created.owner,
@@ -66,7 +68,15 @@ export async function handleAdminRest(
     if (!ok) {
       return apiError(404, "Not found");
     }
+    await auditLog(env, auth, "token_revoke", { token_id: id });
     return jsonResponse({ ok: true });
+  }
+
+  if (url.pathname === "/v1/admin/audit" && request.method === "GET") {
+    const limitParam = url.searchParams.get("limit");
+    const limit =
+      limitParam !== null ? parseInt(limitParam, 10) || 50 : undefined;
+    return jsonResponse({ entries: await listAuditLog(env, limit) });
   }
 
   return apiError(404, "Not found");
@@ -85,6 +95,10 @@ export async function adminToolCall(
     const label =
       typeof args.label === "string" ? args.label : undefined;
     const created = await createUserToken(env, owner, label);
+    await auditLog(env, { role: "admin" }, "token_create", {
+      owner,
+      id: created.id,
+    });
     return JSON.stringify(
       {
         id: created.id,
@@ -112,6 +126,9 @@ export async function adminToolCall(
       throw new Error("token_id is required");
     }
     const ok = await revokeUserToken(env, id);
+    if (ok) {
+      await auditLog(env, { role: "admin" }, "token_revoke", { token_id: id });
+    }
     return JSON.stringify({ ok, revoked: ok });
   }
   throw new Error(`Unknown admin tool: ${name}`);

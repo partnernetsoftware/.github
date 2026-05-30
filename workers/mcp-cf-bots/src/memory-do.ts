@@ -1,4 +1,10 @@
 import { maybeDecryptContent, maybeEncryptContent } from "./mem-crypto";
+import {
+  ftsIndexChunk,
+  ftsRemoveKey,
+  ftsSearch,
+  initFtsSchema,
+} from "./mem-fts";
 
 export interface MemoryRecord {
   id: string;
@@ -114,7 +120,31 @@ export class MemorySqliteDO implements DurableObject {
     this.sql(
       `CREATE INDEX IF NOT EXISTS idx_mem_expires ON mem_chunks(expires_at)`,
     );
+    initFtsSchema((query, ...bindings) => {
+      this.sql(query, ...bindings);
+    });
     await this.migrateLegacyBlob();
+    await this.rebuildFtsIndex();
+  }
+
+  private async rebuildFtsIndex(): Promise<void> {
+    const rows = this.sql<ChunkRow>(`SELECT * FROM mem_chunks ORDER BY mem_key, chunk_index`);
+    this.sql(`DELETE FROM mem_fts`);
+    for (const row of rows) {
+      const plain = await maybeDecryptContent(this.env, row.content);
+      ftsIndexChunk(
+        (query, ...bindings) => {
+          this.sql(query, ...bindings);
+        },
+        {
+          chunkId: row.id,
+          memKey: row.mem_key,
+          body: plain,
+          tags: row.tags,
+          updatedAt: row.updated_at,
+        },
+      );
+    }
   }
 
   private async migrateLegacyBlob(): Promise<void> {
@@ -320,6 +350,9 @@ export class MemorySqliteDO implements DurableObject {
       }
 
       const oldIds = this.rowsForKey(key).map((r) => r.id);
+      ftsRemoveKey((query, ...bindings) => {
+        this.sql(query, ...bindings);
+      }, key);
       this.sql(`DELETE FROM mem_chunks WHERE mem_key = ?`, key);
 
       const now = new Date().toISOString();
@@ -338,6 +371,7 @@ export class MemorySqliteDO implements DurableObject {
         }
         const enc = await maybeEncryptContent(this.env, content);
         const chunkId = i === 0 ? memId : crypto.randomUUID();
+        const tagsJson = i === 0 ? tagsToJson(tags) : null;
         this.sql(
           `INSERT INTO mem_chunks
            (id, mem_key, chunk_index, content, tags, created_at, updated_at, expires_at, embedding)
@@ -346,11 +380,23 @@ export class MemorySqliteDO implements DurableObject {
           key,
           i,
           enc,
-          i === 0 ? tagsToJson(tags) : null,
+          tagsJson,
           now,
           now,
           expires_at,
           embeddingToJson(chunk.embedding),
+        );
+        ftsIndexChunk(
+          (query, ...bindings) => {
+            this.sql(query, ...bindings);
+          },
+          {
+            chunkId,
+            memKey: key,
+            body: content,
+            tags: tagsJson,
+            updatedAt: now,
+          },
         );
       }
 
@@ -369,6 +415,9 @@ export class MemorySqliteDO implements DurableObject {
         return Response.json({ error: "not found" }, { status: 404 });
       }
       const ids = rows.map((r) => r.id);
+      ftsRemoveKey((query, ...bindings) => {
+        this.sql(query, ...bindings);
+      }, key);
       this.sql(`DELETE FROM mem_chunks WHERE mem_key = ?`, key);
       return Response.json({ ok: true, key, deleted_chunk_ids: ids });
     }
@@ -413,18 +462,59 @@ export class MemorySqliteDO implements DurableObject {
     }
 
     if (request.method === "POST" && url.pathname === "/search") {
-      let body: { query?: string; top_k?: number };
+      let body: {
+        query?: string;
+        top_k?: number;
+        tag?: string;
+        updated_after?: string;
+        updated_before?: string;
+      };
       try {
-        body = (await request.json()) as { query?: string; top_k?: number };
+        body = (await request.json()) as typeof body;
       } catch {
         return Response.json({ error: "invalid json" }, { status: 400 });
       }
-      const query = String(body.query ?? "").trim().toLowerCase();
+      const query = String(body.query ?? "").trim();
       if (!query) {
         return Response.json({ error: "query is required" }, { status: 400 });
       }
       const topK = Math.min(Math.max(Number(body.top_k) || 5, 1), 20);
-      const like = `%${query.replace(/%/g, "")}%`;
+      const tag =
+        typeof body.tag === "string" && body.tag.trim() ? body.tag.trim() : undefined;
+      const updated_after =
+        typeof body.updated_after === "string" && body.updated_after.trim()
+          ? body.updated_after.trim()
+          : undefined;
+      const updated_before =
+        typeof body.updated_before === "string" && body.updated_before.trim()
+          ? body.updated_before.trim()
+          : undefined;
+
+      const ftsHits = ftsSearch(
+        (sql, ...bindings) => this.sql(sql, ...bindings),
+        { query, topK, tag, updated_after, updated_before },
+      );
+      if (ftsHits.length > 0) {
+        const matches = [];
+        for (const hit of ftsHits.slice(0, topK)) {
+          const row = this.sql<ChunkRow>(`SELECT * FROM mem_chunks WHERE id = ?`, hit.chunk_id)[0];
+          if (!row) {
+            continue;
+          }
+          matches.push({
+            id: row.id,
+            key: row.mem_key,
+            score: hit.score,
+            content: await maybeDecryptContent(this.env, row.content),
+            tags: parseTags(row.tags),
+            updated_at: row.updated_at,
+          });
+        }
+        return Response.json({ matches, mode: "fts" });
+      }
+
+      const qLower = query.toLowerCase();
+      const like = `%${qLower.replace(/%/g, "")}%`;
       const rows = this.sql<ChunkRow>(
         `SELECT * FROM mem_chunks
          WHERE LOWER(mem_key) LIKE ? OR LOWER(content) LIKE ?
@@ -433,8 +523,18 @@ export class MemorySqliteDO implements DurableObject {
         like,
         topK * 3,
       );
+      let filtered = rows;
+      if (tag) {
+        filtered = filtered.filter((r) => parseTags(r.tags)?.includes(tag));
+      }
+      if (updated_after) {
+        filtered = filtered.filter((r) => r.updated_at >= updated_after);
+      }
+      if (updated_before) {
+        filtered = filtered.filter((r) => r.updated_at <= updated_before);
+      }
       const matches = [];
-      for (const row of rows.slice(0, topK)) {
+      for (const row of filtered.slice(0, topK)) {
         matches.push({
           id: row.id,
           key: row.mem_key,

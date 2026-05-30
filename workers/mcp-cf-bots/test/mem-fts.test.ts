@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi, type MockInstance } from "vitest";
 import { escapeFtsQuery, ftsSearch } from "../src/mem-fts";
 
 describe("escapeFtsQuery", () => {
@@ -26,9 +26,15 @@ describe("ftsSearch", () => {
   });
 
   it("passes escaped match and clamps topK to the sql query fn", () => {
-    const query = vi.fn(() => [
+    const queryFn: MockInstance<
+      (sql: string, ...bindings: unknown[]) => Array<Record<string, unknown>>
+    > = vi.fn((_sql: string, ..._bindings: unknown[]) => [
       { chunk_id: "c1", mem_key: "k1", score: -0.5 },
     ]);
+    const query = queryFn as unknown as <T extends Record<string, unknown>>(
+      sql: string,
+      ...bindings: unknown[]
+    ) => T[];
     const hits = ftsSearch(query, {
       query: "hello world",
       topK: 100,
@@ -37,11 +43,11 @@ describe("ftsSearch", () => {
     });
 
     expect(hits).toEqual([{ chunk_id: "c1", mem_key: "k1", score: -0.5 }]);
-    expect(query).toHaveBeenCalledOnce();
-    const [sql, match, tagLike] = query.mock.calls[0]!;
+    expect(queryFn).toHaveBeenCalledOnce();
+    const [sql, match, tagLike] = queryFn.mock.calls[0]!;
     expect(sql).toContain("mem_fts MATCH");
     expect(match).toBe('"hello" "world"');
     expect(tagLike).toBe('%"tag1"%');
-    expect(query.mock.calls[0]!.at(-1)).toBe(60);
+    expect(queryFn.mock.calls[0]!.at(-1)).toBe(60);
   });
 });
