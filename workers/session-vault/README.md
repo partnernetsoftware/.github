@@ -1,27 +1,27 @@
 # mcp-cf-bots
 
-部署目录仍为 `workers/session-vault/`（历史路径）。产品名 **mcp-cf-bots**：放在 Cloudflare 上的 MCP 版机器人服务（跨 Agent 会话、后续记忆）。
+部署目录仍为 `workers/session-vault/`（历史路径）。**Cloudflare 上的 HTTP MCP**：跨 Agent 会话保险箱（后续 `mem_*` 记忆）。
 
-## 技术栈分工
+## 技术栈
 
-| 组件 | 运行时 | 说明 |
-|------|--------|------|
-| **Worker + DO** | [Cloudflare Workers](https://developers.cloudflare.com/workers/) | 仅 Web 标准 API，**wrangler** 部署 |
-| **MCP 客户端** | **Python**（推荐）或 Bun TS | `products/mcp_cf_bots_mcp.py` |
+| 组件 | 说明 |
+|------|------|
+| **Worker + DO** | MCP `POST /mcp` + REST `/v1/session/...` |
+| **Cursor** | 远程 HTTP MCP，无需本地 Python/Bun stdio 客户端 |
 
-- **存储**：Worker + Durable Object（AES-GCM）
+- **存储**：Durable Object + AES-GCM
 - **DO 命名**：`vault/{owner}/{site}/{profile}`
 
 ## 架构
 
 ```mermaid
 flowchart LR
-  Agent[Cursor Cloud Agent] --> MCP[mcp_cf_bots_mcp.py]
-  MCP -->|Bearer VAULT_TOKEN| Worker[CF Worker mcp-cf-bots]
+  Agent[Cursor Cloud Agent] -->|HTTP MCP| Worker[mcp-cf-bots Worker]
   Worker --> VaultDO[SessionVaultDO]
   Worker --> RegDO[RegistryDO]
-  TakeControl[Take Control 首次登录] -->|sess_put| MCP
 ```
+
+辅助脚本（非 MCP，直调 REST）：`tools/session_vault_claude_code.py`、`tools/session_vault_browser_cookies.py`。
 
 ## REST API
 
@@ -45,8 +45,6 @@ npx wrangler deploy --name "$CLOUDFLARE_WORKER_NAME"
 openssl rand -base64 32 | npx wrangler secret put VAULT_TOKEN
 ```
 
-Smoke test（环境变量可用新名或旧名）：
-
 ```bash
 export MCP_CF_BOTS_URL="https://<your-worker>.workers.dev"
 export MCP_CF_BOTS_TOKEN="<vault-token>"
@@ -57,9 +55,7 @@ curl -sS -X PUT "$MCP_CF_BOTS_URL/v1/session/example.com/default" \
   -d '{"storage_state":{"cookies":[],"origins":[]}}'
 ```
 
-## Cursor / Claude MCP 配置
-
-### 远程 HTTP MCP（推荐）
+## Cursor MCP 配置（唯一推荐方式）
 
 `POST /mcp`（根路径 `POST /` 在带 MCP Accept 头时同等可用）。
 
@@ -77,31 +73,20 @@ curl -sS -X PUT "$MCP_CF_BOTS_URL/v1/session/example.com/default" \
 }
 ```
 
-兼容旧头：`X-Session-Vault-Owner` 仍可用。
-
-### 本地 stdio MCP（可选）
-
-```bash
-export MCP_CF_BOTS_URL="https://<your-worker>.workers.dev"
-export MCP_CF_BOTS_TOKEN="<vault-token>"
-
-claude mcp add mcp-cf-bots python3 /workspace/products/mcp_cf_bots_mcp.py server
-```
-
 Cloud Agent Secrets：`MCP_CF_BOTS_URL`、`MCP_CF_BOTS_TOKEN`、可选 `MCP_CF_BOTS_OWNER`。  
-旧名 `SESSION_VAULT_*` 在客户端仍可作为回退。
+兼容旧名：`SESSION_VAULT_*`、HTTP 头 `X-Session-Vault-Owner`。
 
 ### MCP 工具（`sess_*`）
 
 | Tool | 说明 |
 |------|------|
 | `sess_save` | 一次写入 `storage_state` / `oauth` / `cookies` / `config` + meta |
-| `sess_load` | 读出 browser-use 会话（默认仅 `storage_state`） |
+| `sess_load` | 读出 browser-use 会话 |
 | `sess_meta` | 只读元数据 |
 | `sess_put` | 单 kind 写入 |
-| `sess_get` | 读取（可选 `kind`） |
-| `sess_delete` | 删除 site/profile |
-| `sess_list` | 列表（owner / source / tag 过滤） |
+| `sess_get` | 读取 |
+| `sess_delete` | 删除 |
+| `sess_list` | 列表 |
 
 ### 迁移（v0.3 → v0.4）
 
@@ -109,27 +94,22 @@ Cloud Agent Secrets：`MCP_CF_BOTS_URL`、`MCP_CF_BOTS_TOKEN`、可选 `MCP_CF_B
 |----------|----------|
 | `browser_session_save` | `sess_save` |
 | `browser_session_load` | `sess_load` |
-| `session_meta` | `sess_meta` |
-| `session_put` | `sess_put` |
-| `session_get` | `sess_get` |
-| `session_delete` | `sess_delete` |
-| `session_list` | `sess_list` |
+| `session_*` | `sess_*` |
 
-MCP 服务 id：`session-vault` → **`mcp-cf-bots`**。  
-入口脚本：`session_vault_mcp.py` → **`mcp_cf_bots_mcp.py`**（旧路径仍可用，会打 deprecation 提示）。
+MCP id：`session-vault` → **`mcp-cf-bots`**。已移除 `products/*_mcp.py|ts` 本地 stdio 客户端。
 
-## 跨 Agent 复用示例
+## 跨 Agent 示例
 
-1. Agent A：`sess_save(site="github.com", profile="default", storage_state={...}, owner="team")`
-2. Agent B：`sess_load(site="github.com", profile="default", owner="team")`
-3. 发现：`sess_list(owner="team")` 或 `sess_meta(...)`
+1. `sess_save(site="github.com", profile="default", storage_state={...})`
+2. 新实例：`sess_load(...)`
+3. `sess_list(owner="team")`
 
 ## 安全
 
-- `CLOUDFLARE_API_TOKEN` 仅用于 deploy，不得写入 MCP
-- DO 内 payload AES-GCM 加密
+- `CLOUDFLARE_API_TOKEN` 仅用于 deploy
+- DO payload AES-GCM 加密
 
 ## 后续
 
-- `mem_*` 工具：跨 Agent 工作记忆（同 MCP、新 DO）
+- `mem_*`：工作记忆（同 Worker、新 DO）
 - R2 offload 超大 `storage_state`

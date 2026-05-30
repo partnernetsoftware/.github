@@ -164,7 +164,7 @@ async function vaultPut(
   return res;
 }
 
-/** MCP tool handlers — same semantics as products/mcp_cf_bots_mcp.py */
+/** MCP tool handlers (HTTP MCP on Worker; see mcp-server.ts) */
 export async function vaultToolCall(
   env: Env,
   _baseUrl: string,
