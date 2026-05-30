@@ -143,6 +143,7 @@ export async function memToolCall(
     if (!Array.isArray(entries)) {
       throw new Error("entries array is required");
     }
+    await checkMemRateLimit(env, owner, "mem_import");
     let ok = 0;
     for (const raw of entries) {
       const row = raw as Record<string, unknown>;
