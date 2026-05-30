@@ -576,3 +576,8 @@ Wave34–69 产生 **36+ 张**扩展活图与大量 `*.continue.100` 键；听�
 
 - **154KB pack → genesis pin → release promote**：compose15 bulk-scale x86 slice 写入 genesis，`build_nano_jit.sh` 无 REGENESIS 重建 COM，矩阵并行跑通即签收。
 - **下一刀**：bulk stub 换真实语义模块；`strict_done` 全 lisp plan-only regenesis 终局。
+
+## Wave88 反思
+
+- **strict_done 终局**：terminal-com-promote 全矩阵 + container audit + genesis slice 155648 与 release COM 对齐。
+- **nano-jit.com 里程碑**：`/goal` strict_done_requires 全绿；后续维护 bulk→语义模块替换与 run.sh 回归。
