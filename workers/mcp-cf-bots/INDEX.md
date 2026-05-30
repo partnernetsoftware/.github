@@ -137,6 +137,22 @@ git checkout main && git merge <feature-branch> && git push origin main
 
 客户端环境变量：`MCP_CF_BOTS_URL`、`MCP_CF_BOTS_TOKEN`、`MCP_CF_BOTS_OWNER`（兼容 `SESSION_VAULT_*`）。
 
+### 连不上 / MCP 401（排查）
+
+| 现象 | 原因 | 处理 |
+|------|------|------|
+| `/health` 200，但 `/mcp` 401 | `MCP_CF_BOTS_TOKEN` 无效或过短（占位符） | 用 **`cfb_*` 用户 token**，不是随便写的字符串 |
+| admin 也 401 | `VAULT_TOKEN` secret 打在**别的 Worker** 上 | `CLOUDFLARE_WORKER_NAME` 须与 URL 路由一致 |
+
+```bash
+cd workers/mcp-cf-bots
+./scripts/diagnose-connection.sh          # 看 health + /v1/me + initialize
+./scripts/sync-vault-secret.sh            # 把 VAULT_TOKEN 写到正确 Worker
+./scripts/issue_token.sh cloud-agent      # 签发 cfb_* → 填入 Cursor MCP_CF_BOTS_TOKEN
+```
+
+Cursor：[`/.cursor/mcp.json`](../../.cursor/mcp.json) 里 `url` = `${MCP_CF_BOTS_URL}/mcp`，`Authorization: Bearer ${MCP_CF_BOTS_TOKEN}`。
+
 ---
 
 ## 部署与上线
@@ -145,7 +161,7 @@ git checkout main && git merge <feature-branch> && git push origin main
 
 | Item | 说明 |
 |------|------|
-| `VAULT_TOKEN` | `wrangler secret put` — admin Bearer |
+| `VAULT_TOKEN` | `wrangler secret put --name $CLOUDFLARE_WORKER_NAME`（与 URL 同 Worker） |
 | `TOKENS` KV | `wrangler.toml` |
 | `SESSION_STORE` / `REGISTRY` | DO + migrations |
 | `MEMORY_STORE` → `MemorySqliteDO` | migration `v4`；旧 `MemoryDO` 仅 stub |

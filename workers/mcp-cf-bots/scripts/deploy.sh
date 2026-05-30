@@ -4,8 +4,13 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
+# Must match the Worker your MCP_CF_BOTS_URL routes to (often != wrangler.toml name).
 WORKER_NAME="${CLOUDFLARE_WORKER_NAME:-mcp-cf-bots}"
 SKIP_SMOKE="${SKIP_SMOKE:-0}"
+
+wrangler_name() {
+  npx wrangler "$@" --name "$WORKER_NAME"
+}
 
 echo "==> npm ci"
 npm ci
@@ -37,7 +42,7 @@ else
   DEPLOY_VARS=()
 fi
 echo "==> wrangler deploy --name $WORKER_NAME (version ${VERSION:-unknown})"
-npx wrangler deploy --name "$WORKER_NAME" -c "$WRANGLER_CFG" "${DEPLOY_VARS[@]}" 2>&1 | tee "$DEPLOY_LOG"
+wrangler_name deploy -c "$WRANGLER_CFG" "${DEPLOY_VARS[@]}" 2>&1 | tee "$DEPLOY_LOG"
 WORKERS_DEV_URL="$(grep -oE 'https://[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+\.workers\.dev' "$DEPLOY_LOG" | tail -1 || true)"
 
 if [[ "$SKIP_SMOKE" != "1" ]]; then
