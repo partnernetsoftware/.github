@@ -2,12 +2,81 @@
   "product": "mcp-cf-bots",
   "ssot": "workers/mcp-cf-bots/mcp-cf-bots.mindmap",
   "version": "0.8.2",
-  "updated_at": "2026-05-30T00:00:00Z",
+  "updated_at": "2026-05-30T02:30:00Z",
   "north_star": "跨 Agent 的 HTTP MCP + REST：sess_* 会话、mem_* 记忆 RAG、cfb_* 多租户",
+  "roadmap": {
+    "current_phase": "steady-ops",
+    "current_version": "0.8.2",
+    "last_review": "2026-05-30",
+    "summary": "P0 已清；产品进入稳态运维。P1 暂缓，启动前须对照本路线图 gate。",
+    "milestones_done": [
+      { "version": "0.6.x", "label": "生产化 / 鉴权 / 多租户 token", "status": "done" },
+      { "version": "0.7.x", "label": "mem_* + Vectorize RAG + 公开状态页", "status": "done" },
+      { "version": "0.8.0", "label": "MemorySqliteDO + hybrid + chunk + 文档 SSOT(INDEX)", "status": "done" },
+      { "version": "0.8.1", "label": "Cron reindex/GC + deploy 脚本 + mindmap", "status": "done" },
+      { "version": "0.8.2", "label": "P0: migrate_legacy + 分页 GC + cron KV 报告", "status": "done" }
+    ],
+    "phases": [
+      {
+        "id": "p0-stability",
+        "label": "P0 稳态",
+        "status": "done",
+        "exit_criteria": ["migrate_legacy", "cron 可观测", "Vectorize GC 可续扫"]
+      },
+      {
+        "id": "p1-retrieval",
+        "label": "P1 检索质量",
+        "status": "deferred",
+        "start_gates": [
+          "用户明确要做 P1",
+          "或线上 mem_search 误召/漏召成为瓶颈"
+        ],
+        "items": [
+          { "id": "p1-fts", "label": "SQLite FTS5 / 更好关键词层", "priority": 1 },
+          { "id": "p1-filter", "label": "mem_search 按 tag / 时间过滤", "priority": 2 },
+          { "id": "p1-health", "label": "/health 扩展 mem/cron 标志", "priority": 3 }
+        ],
+        "not_now": "未满足 start_gates 前不开工，避免与稳态运维并行改检索栈"
+      },
+      {
+        "id": "p2-scale-security",
+        "label": "P2 规模与安全",
+        "status": "backlog",
+        "items": [
+          { "id": "p2-rate", "label": "按 owner 限流" },
+          { "id": "p2-audit", "label": "admin 操作审计 KV" },
+          { "id": "p2-miniflare", "label": "DO+hybrid 集成测" },
+          { "id": "p2-delete-class", "label": "TD-5 delete-class MemoryDO", "depends": "TD-5" }
+        ]
+      },
+      {
+        "id": "p3-product",
+        "label": "P3 产品化",
+        "status": "backlog",
+        "items": [
+          { "id": "p3-mcp-resources", "label": "MCP resources 暴露记忆摘要" },
+          { "id": "p3-custom-domain", "label": "自定义域运维文档固化" }
+        ]
+      }
+    ],
+    "anti_detour": [
+      "文档只维护 INDEX.md + 本 mindmap，不新增散落 md",
+      "工程习惯走仓库 skill（待定 engineering-hygiene），不用 mem_* 存规范",
+      "P1 deferred 时不实现 FTS/BM25/限流",
+      "功能改动先对 north_star：是否服务 sess/mem/auth 三支柱"
+    ],
+    "end_of_round_checklist": [
+      "更新 roadmap.last_review / version（若发版）",
+      "milestones_done 与 wrangler MCP_SERVER_VERSION 一致",
+      "phases 状态与 INDEX#路线图 对齐",
+      "tech_debt 表同步",
+      "线上 /health 与 cron_last 抽一眼"
+    ]
+  },
   "tree": {
     "id": "root",
     "label": "mcp-cf-bots",
-    "status": "active",
+    "status": "steady",
     "children": [
       {
         "id": "sess",
@@ -21,14 +90,15 @@
       {
         "id": "mem",
         "label": "mem_* 记忆 RAG",
-        "status": "active",
+        "status": "steady",
         "children": [
           { "id": "mem-sqlite", "label": "MemorySqliteDO + chunk", "status": "done" },
           { "id": "mem-hybrid", "label": "Hybrid RRF search", "status": "done" },
           { "id": "mem-vectorize", "label": "Vectorize 加速器", "status": "done" },
           { "id": "mem-cron", "label": "Cron incremental reindex + paged GC + KV report", "status": "done" },
           { "id": "mem-migrate", "label": "mem_migrate_legacy", "status": "done" },
-          { "id": "mem-encrypt", "label": "MEM_ENCRYPT 静态加密", "status": "optional" }
+          { "id": "mem-encrypt", "label": "MEM_ENCRYPT 静态加密", "status": "optional" },
+          { "id": "mem-p1-fts", "label": "P1 FTS/BM25", "status": "deferred" }
         ]
       },
       {
@@ -42,9 +112,9 @@
       {
         "id": "ops",
         "label": "运维 / 公开",
-        "status": "active",
+        "status": "steady",
         "children": [
-          { "id": "ops-health", "label": "GET /health / 状态页", "status": "done" },
+          { "id": "ops-health", "label": "GET /health / 状态页 + cron_last", "status": "done" },
           { "id": "ops-deploy", "label": "scripts/deploy.sh", "status": "done" },
           { "id": "ops-analytics", "label": "CF GraphQL 24h 用量", "status": "optional" }
         ]
@@ -53,14 +123,20 @@
   },
   "tech_debt": [
     { "id": "TD-1", "label": "MemoryDO legacy stub", "status": "mitigated", "doc": "INDEX.md#技术债" },
-    { "id": "TD-2", "label": "Pre-0.8 data re-import", "status": "mitigated", "doc": "INDEX.md#mem_-记忆-rag" },
+    { "id": "TD-2", "label": "Pre-0.8 data migrate", "status": "mitigated", "doc": "INDEX.md#mem_-记忆-rag" },
     { "id": "TD-3", "label": "Vectorize orphan GC", "status": "mitigated", "doc": "INDEX.md#技术债" },
     { "id": "TD-4", "label": "Cron paged vector list", "status": "mitigated", "doc": "INDEX.md#cloudflare-服务" },
-    { "id": "TD-5", "label": "delete-class MemoryDO", "status": "blocked", "doc": "INDEX.md#技术债" }
+    { "id": "TD-5", "label": "delete-class MemoryDO", "status": "blocked", "phase": "p2-scale-security" },
+    { "id": "TD-6", "label": "无真 BM25 / FTS", "status": "open", "phase": "p1-retrieval" }
   ],
   "cron": {
     "schedule": "0 4 * * *",
-    "vars": ["MEM_CRON_REINDEX", "MEM_CRON_VECTOR_GC", "MEM_CRON_OWNER_LIMIT"],
+    "vars": [
+      "MEM_CRON_REINDEX",
+      "MEM_CRON_VECTOR_GC",
+      "MEM_CRON_OWNER_LIMIT",
+      "MEM_CRON_GC_PAGES_PER_RUN"
+    ],
     "manual": "POST /v1/admin/mem/cron"
   },
   "doc_index": "INDEX.md"

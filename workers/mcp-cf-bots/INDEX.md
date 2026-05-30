@@ -4,6 +4,49 @@
 
 HTTP MCP + REST on Cloudflare Workers：`sess_*` 会话、`mem_*` 记忆 RAG、`auth_token_*` 多租户。当前版本见 `wrangler.toml` → `MCP_SERVER_VERSION`。
 
+## 路线图
+
+> **SSOT 思维树**：[mcp-cf-bots.mindmap](mcp-cf-bots.mindmap)（含 `roadmap` 节点）。**每轮收尾必刷新**本节与 mindmap，避免走弯路。
+
+| 阶段 | 状态 | 说明 |
+|------|------|------|
+| **P0 稳态** | **已完成** | v0.8.2：SQLite mem、hybrid、migrate_legacy、分页 GC、cron 报告 |
+| **稳态运维** | **当前** | 保 CI 绿、cron 跑通、按需 migrate/GC；不大改检索栈 |
+| **P1 检索质量** | **暂缓** | FTS5/BM25、search 过滤、health 标志 — 见下方启动条件 |
+| **P2 规模/安全** |  backlog | 限流、审计、集成测、delete-class MemoryDO |
+| **P3 产品化** | backlog | MCP resources、自定义域固化 |
+
+### 已完成里程碑
+
+| 版本 | 交付 |
+|------|------|
+| 0.6+ | 生产清单、鉴权、多租户 `cfb_*` |
+| 0.7+ | `mem_*`、Vectorize、公开 `/` 状态页 |
+| 0.8.0 | MemorySqliteDO、分块、hybrid、INDEX 单文档 |
+| 0.8.1 | Cron、deploy 脚本、mindmap |
+| 0.8.2 | P0：legacy 迁移、增量 reindex、分页 Vectorize GC、KV `cron_last` |
+
+### P1 启动条件（未满足前不做）
+
+1. 你明确说「做 P1」或检索质量成为线上瓶颈。  
+2. 不在同一轮混做「大重构 + 新检索算法 + 新 MCP 工具」。  
+3. 开工顺序建议：**FTS5（TD-6）→ search 过滤 → /health 运维标志**。
+
+### 每轮收尾清单
+
+- [ ] `mcp-cf-bots.mindmap` → `roadmap.last_review`、阶段状态、`tech_debt`  
+- [ ] 本表「当前阶段」与 `MCP_SERVER_VERSION` 一致  
+- [ ] 若发版：`./scripts/deploy.sh` + `/health` + 可选 `POST /v1/admin/mem/cron`  
+- [ ] 不新增散落 `.md`（只改 INDEX + mindmap）
+
+### 不走弯路
+
+- 工程习惯 → 仓库级 **skill**（待定），不用 `mem_*` 存规范。  
+- 功能改动先问：是否强化 **sess / mem / auth** 三支柱？  
+- 文档：仅 **INDEX + mindmap**，README 一行入口。
+
+---
+
 ## 仓库文件
 
 | 路径 | 用途 |
@@ -47,7 +90,7 @@ HTTP MCP + REST on Cloudflare Workers：`sess_*` 会话、`mem_*` 记忆 RAG、`
 | 鉴权 | `GET /v1/me`（Bearer admin 或 `cfb_*`） |
 | MCP | `POST /mcp`（默认） |
 | 会话 REST | `/v1/session/:site/:profile`、`GET /v1/sessions` |
-| 记忆 REST | `/v1/mem`、`/v1/mem/:key`、`POST /v1/mem/search|import|reindex|vector-gc` |
+| 记忆 REST | `/v1/mem`、`/v1/mem/:key`、`POST …/search|import|migrate-legacy|vector-gc|reindex` |
 | Admin | `/v1/admin/tokens`、`POST /v1/admin/mem/cron` |
 | MCP 工具 | `sess_*`、`mem_*`；admin：`auth_token_*`、`mem_migrate_legacy`、`mem_reindex`、`mem_stats`、`mem_vector_gc` |
 
