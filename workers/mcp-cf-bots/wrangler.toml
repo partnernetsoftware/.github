@@ -32,9 +32,9 @@ new_classes = ["MemoryDO"]
 binding = "AI"
 
 # Vectorize accelerator — run ./scripts/setup-rag.sh (needs index + Vectorize Edit token)
-# [[vectorize]]
-# binding = "MEM_VECTORS"
-# index_name = "mcp-cf-bots-mem"
+[[vectorize]]
+binding = "MEM_VECTORS"
+index_name = "mcp-cf-bots-mem"
 
 # Non-secret config — override per env (dashboard / wrangler vars put / CI).
 # Secrets (wrangler secret put): VAULT_TOKEN, optional ENCRYPTION_KEY
