@@ -1713,6 +1713,44 @@ static int parse_bootstrap_plan(const char *src, BootstrapPlan *plan) {
         free(head);
         return 0;
       }
+    } else if (strcmp(head, "read-file") == 0) {
+      char *arg0 = parse_string(&p);
+      int ok = arg0 && eat(&p, ')') &&
+               bootstrap_add_step(plan, BOOTSTRAP_STEP_READ_FILE, arg0, NULL, NULL, NULL);
+      if (!ok) {
+        free(arg0);
+        free(head);
+        return 0;
+      }
+    } else if (strcmp(head, "spawn-wait") == 0) {
+      char *arg0 = parse_atom(&p);
+      char *arg1 = parse_string(&p);
+      char **extra_args = NULL;
+      size_t extra_arg_count = 0;
+      size_t extra_arg_cap = 0;
+      int ok = arg0 && arg1;
+      while (ok) {
+        skip_ws(&p);
+        if (*p == ')') break;
+        char *arg = parse_string(&p);
+        if (!arg || !bootstrap_push_string_arg(&extra_args, &extra_arg_count,
+                                               &extra_arg_cap, arg)) {
+          free(arg);
+          ok = 0;
+          break;
+        }
+      }
+      ok = ok && eat(&p, ')') &&
+           bootstrap_add_step_extra(plan, BOOTSTRAP_STEP_SPAWN_WAIT,
+                                    arg0, arg1, NULL, NULL,
+                                    extra_args, extra_arg_count);
+      if (!ok) {
+        free(arg0);
+        free(arg1);
+        bootstrap_free_string_array(extra_args, extra_arg_count);
+        free(head);
+        return 0;
+      }
     } else if (strcmp(head, "hash") == 0 || strcmp(head, "dump") == 0 ||
                strcmp(head, "file-size") == 0 || strcmp(head, "file-hash") == 0 ||
                strcmp(head, "gen-libc-resolve") == 0 ||
@@ -1961,6 +1999,13 @@ static int cmd_run_bootstrap_plan(const char *plan_path) {
     } else if (step->kind == BOOTSTRAP_STEP_FILE_HASH) {
       printf("bootstrap-step.%zu=file-hash\n", i);
       rc = cmd_file_hash(step->arg0);
+    } else if (step->kind == BOOTSTRAP_STEP_READ_FILE) {
+      printf("bootstrap-step.%zu=read-file\n", i);
+      rc = cmd_read_file(step->arg0);
+    } else if (step->kind == BOOTSTRAP_STEP_SPAWN_WAIT) {
+      printf("bootstrap-step.%zu=spawn-wait\n", i);
+      rc = run_spawn_wait_expect_exit(step->arg0, step->arg1,
+                                      step->extra_args, step->extra_arg_count);
     } else if (step->kind == BOOTSTRAP_STEP_GEN_LIBC_RESOLVE) {
       printf("bootstrap-step.%zu=gen-libc-resolve\n", i);
       rc = cmd_gen_libc_resolve(NULL, step->arg0);

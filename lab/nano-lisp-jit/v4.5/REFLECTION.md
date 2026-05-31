@@ -587,3 +587,9 @@ Wave34–69 产生 **36+ 张**扩展活图与大量 `*.continue.100` 键；听�
 - **proc dogfooding**：`bootstrap-v45-proc-smoke.lisp` 用 `emit-elf64-exit` + `run-expect-exit` + `/bin/true` 验证 plan 级子进程链；制品 I/O 暂用 `file-size`/`file-hash`。
 - **缺口**：plan 尚无具名 `read-file`/`spawn-wait(argv)`；Wave90 补引擎原语 + 工厂 rebuild。
 - **下一刀**：bulk stub → 真实 `lispjit.c` 语义 codegen；release slice 与 genesis 同源 repack。
+
+## Wave90 反思
+
+- **引擎原语**：`read-file`（bytes+hash）· `spawn-wait expected exe [argv...]`（execvp）入 bootstrap + CLI。
+- **验收路径**：factory `cc` rebuild `.build/nano-jit/nano-jit.x86_64`；release COM promote 留 Wave91。
+- **下一刀**：cosmocc promote + bulk→语义 codegen。

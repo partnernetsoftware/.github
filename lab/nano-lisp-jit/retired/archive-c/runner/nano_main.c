@@ -27,6 +27,8 @@ static void usage(const char *argv0) {
   fprintf(stderr, "  %s hash program.%s\n", argv0, BLOB_EXT);
   fprintf(stderr, "  %s file-size path\n", argv0);
   fprintf(stderr, "  %s file-hash path\n", argv0);
+  fprintf(stderr, "  %s read-file path\n", argv0);
+  fprintf(stderr, "  %s spawn-wait expected executable [arg...]\n", argv0);
   fprintf(stderr, "  %s gen-libc-resolve [libc.so] output.%s\n", argv0, SOURCE_EXT);
   fprintf(stderr, "  %s compare left.%s right.%s\n", argv0, BLOB_EXT, BLOB_EXT);
   fprintf(stderr, "  %s resolve [--quiet] program.%s\n", argv0, BLOB_EXT);
@@ -129,6 +131,13 @@ int main(int argc, char **argv) {
   }
   if (argc >= 2 && strcmp(argv[1], "file-hash") == 0 && argc == 3) {
     return cmd_file_hash(argv[2]);
+  }
+  if (argc >= 2 && strcmp(argv[1], "read-file") == 0 && argc == 3) {
+    return cmd_read_file(argv[2]);
+  }
+  if (argc >= 2 && strcmp(argv[1], "spawn-wait") == 0 && argc >= 4) {
+    return run_spawn_wait_expect_exit(argv[2], argv[3], argc > 4 ? &argv[4] : NULL,
+                                      argc > 4 ? (size_t)(argc - 4) : 0);
   }
   if (argc >= 2 && strcmp(argv[1], "gen-libc-resolve") == 0) {
     if (argc == 3) return cmd_gen_libc_resolve(NULL, argv[2]);
