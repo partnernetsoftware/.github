@@ -598,3 +598,13 @@ Wave34–69 产生 **36+ 张**扩展活图与大量 `*.continue.100` 键；听�
 
 - **release COM promote**：native regenesis 326K APE · manifest pin · proc-io/strict-done 矩阵在 release 上全绿。
 - **下一刀**：bulk stub → 真实 `lispjit.c` 语义 codegen；genesis/release slice 同源。
+
+## Wave92 反思 — 「回到 .c」分层
+
+| 轨道 | 内容 | 是否回退 |
+|------|------|----------|
+| **bootstrap runner** | Wave90–91：`nano_run_cli.c` 增 `read-file`/`spawn-wait` | OS 编排边界，**非** codegen |
+| **release COM** | Wave91：native regenesis promote | runner 二进制更新，**非** lisp 模块 |
+| **lisp/modules** | Wave92：semantic pure link 探针 | **主线** · 零新增 C |
+
+**诚实对照**：`compose-15link` semantic 与 `bulk-scale` 产出 **同 ELF**（155648B · hash 一致）— 说明 modules 仍 stub；真分化需 Wave93+ 扩模块语义。

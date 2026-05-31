@@ -108,6 +108,14 @@
           "primitive": "read-file, spawn-wait, run-expect-exit",
           "factory_slice": "cc rebuild"
         }
+      },
+      "E_bootstrap_boundary": {
+        "goal": "runner C \u4ec5 OS \u539f\u8bed\uff1bcodegen \u8d70 lisp/modules",
+        "status": "active",
+        "facts": {
+          "wave90_91": "read-file/spawn-wait",
+          "wave92": "zero_new_c"
+        }
       }
     },
     "parallel_micro": {
@@ -1055,9 +1063,49 @@
       ],
       "verified": 1,
       "blocker": null
+    },
+    {
+      "round": 21,
+      "ts": "2026-05-30T00:00:00Z",
+      "read_mindmap": "wave92 lisp-codegen-resume \u2014 \u627f\u8ba4 Wave90-91 bootstrap C \u8fb9\u754c \u00b7 \u56de\u5f52 *.lisp \u63a8\u8fdb",
+      "plan": [
+        "T0: \u5206\u5c42 \u2014 runner C(OS \u539f\u8bed) vs lisp/modules(codegen) vs bulk(\u4f53\u79ef)",
+        "T1: compose-15link semantic pure probe",
+        "T2: bulk-scale \u5bf9\u7167 + compare 155648B",
+        "T3: goal-lisp-codegen-resume \u00b7 \u96f6\u65b0\u589e C"
+      ],
+      "attempts": [
+        {
+          "id": "T1-semantic",
+          "status": "ok"
+        },
+        {
+          "id": "T2-parity",
+          "status": "ok",
+          "detail": "semantic vs bulk ELF identical @155648 \u2014 \u6a21\u5757\u4ecd stub \u7ea7"
+        },
+        {
+          "id": "T3-resume",
+          "status": "ok"
+        }
+      ],
+      "results": {
+        "converge_fail": 0,
+        "semantic_probe": 1,
+        "bulk_parity": 1
+      },
+      "self_critique": "Wave90-91 \u6539\u7684\u662f bootstrap runner C(read-file/spawn-wait)\uff0c\u4e0d\u662f\u56de\u9000 lispjit codegen\u3002Wave92 \u96f6 C diff\uff1bsemantic/bulk \u63a2\u9488\u540c hash \u8bf4\u660e modules \u4ecd stub\uff1b\u4e0b\u4e00\u5200\uff1amodules \u771f\u8bed\u4e49\u5206\u5316 bulk\u3002",
+      "git_ops": [],
+      "evidence_keys": [
+        "v45.goal.lisp_codegen_resume=1",
+        "v45.goal.semantic_bulk_parity=1",
+        "v45.honest.no_new_c_wave92=1"
+      ],
+      "verified": 1,
+      "blocker": null
     }
   ],
-  "active_frontier": "mindmap-frontier-v45-proc-io-release-promote.json",
+  "active_frontier": "mindmap-frontier-v45-lisp-codegen-resume.json",
   "waves_done": [
     "wave71-lisp-codegen-diffuse",
     "wave72-compose15-runner-promote",
@@ -1079,6 +1127,7 @@
     "wave88-terminal-strict-done",
     "wave89-proc-smoke",
     "wave90-proc-io",
-    "wave91-proc-io-release-promote"
+    "wave91-proc-io-release-promote",
+    "wave92-lisp-codegen-resume"
   ]
 }
