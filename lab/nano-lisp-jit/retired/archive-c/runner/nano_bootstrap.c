@@ -1067,7 +1067,8 @@ static int lispjit_from_lisp_build_compose_15link(const char *out_path, const ch
     printf("build-slice-lisp.compose15_expand=1\n");
   for (i = 0; i < (size_t)mod_count; ++i) {
     const char *src = mods[i].path;
-    const char *expand = compose15_expand_path_for_tag(mods[i].tag);
+    const char *expand =
+        compose15_use_expand_modules() ? compose15_expand_path_for_tag(mods[i].tag) : NULL;
     if (expand) src = expand;
     snprintf(obj_paths[i], sizeof(obj_paths[i]), "%s.lispjit-compose15-%s.o", out_path, mods[i].tag);
     rc = cmd_compile_elf64_obj_code(src, obj_paths[i], mods[i].sym);

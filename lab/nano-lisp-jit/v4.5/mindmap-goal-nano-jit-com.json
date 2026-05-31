@@ -74,7 +74,9 @@
         "compose15_expand_code_bytes": "1239",
         "ssot_metric": "link.code.bytes",
         "compose15_code_bytes": "154559",
-        "compose15_154k_pack_x86_bytes": "155648"
+        "compose15_154k_pack_x86_bytes": "155648",
+        "compose15_semantic_code_bytes": "489",
+        "semantic_bulk_diverge": true
       }
     }
   },
@@ -1103,9 +1105,42 @@
       ],
       "verified": 1,
       "blocker": null
+    },
+    {
+      "round": 22,
+      "ts": "2026-05-30T00:00:00Z",
+      "read_mindmap": "wave93 semantic diverge \u2014 compose15 expand \u95e8\u63a7 bugfix \u00b7 modules \u771f\u8def\u5f84",
+      "plan": [
+        "T1: fix nano_bootstrap.c \u2014 expand \u4ec5 bulk profile \u542f\u7528",
+        "T2: lisp-tu-main / 04-vm / 09-run \u8bed\u4e49\u94fe",
+        "T3: semantic code_bytes=489 vs bulk 154559 \u00b7 hash \u5206\u5316",
+        "T4: release rebuild + proc_io \u77e9\u9635"
+      ],
+      "attempts": [
+        {
+          "id": "T1-gate-fix",
+          "status": "ok"
+        },
+        {
+          "id": "T2-diverge",
+          "status": "ok",
+          "detail": "sem=900858bb1042d739 bulk=c8688f39f2a6141a"
+        }
+      ],
+      "results": {
+        "converge_fail": 0,
+        "semantic_hash": "900858bb1042d739",
+        "bulk_hash": "c8688f39f2a6141a",
+        "diverge": 1
+      },
+      "self_critique": "Wave92 \u540c hash \u6839\u56e0\uff1acompose15 \u672a\u95e8\u63a7 expand\uff0csemantic \u8bef\u8d70 bulk\u3002\u4fee\u590d\u540e semantic=489B code \u00b7 bulk=154559B\uff1b\u53cc\u8f68\u660e\u786e\u3002",
+      "verified": 1,
+      "evidence_keys": [
+        "v45.goal.semantic_bulk_diverge=1"
+      ]
     }
   ],
-  "active_frontier": "mindmap-frontier-v45-lisp-codegen-resume.json",
+  "active_frontier": "mindmap-frontier-v45-semantic-diverge.json",
   "waves_done": [
     "wave71-lisp-codegen-diffuse",
     "wave72-compose15-runner-promote",
@@ -1128,6 +1163,7 @@
     "wave89-proc-smoke",
     "wave90-proc-io",
     "wave91-proc-io-release-promote",
-    "wave92-lisp-codegen-resume"
+    "wave92-lisp-codegen-resume",
+    "wave93-semantic-diverge"
   ]
 }
