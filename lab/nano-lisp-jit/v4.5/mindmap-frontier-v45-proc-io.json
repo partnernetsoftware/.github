@@ -4,46 +4,62 @@
   "onion_ssot": "v4.5/ONION-TDD.md",
   "updated_at": "2026-05-30T00:00:00Z",
   "max_parallel": 4,
-  "breadth_ring": "proc-io — read-file + spawn-wait(argv) · factory slice rebuild",
+  "breadth_ring": "proc-io \u2014 read-file + spawn-wait(argv) \u00b7 factory slice rebuild",
   "nodes": [
     {
       "id": "v45-w90-gate",
       "layer": 90,
       "ring": "gate",
       "onion_ring": 52,
-      "status": "todo",
+      "status": "done",
       "deps": [],
-      "accept": ["v45.goal.proc_smoke=1"]
+      "accept": [
+        "v45.goal.proc_smoke=1"
+      ]
     },
     {
       "id": "v45-w90-engine",
       "layer": 90,
       "ring": "engine",
       "onion_ring": 52,
-      "status": "todo",
-      "deps": ["v45-w90-gate"],
+      "status": "done",
+      "deps": [
+        "v45-w90-gate"
+      ],
       "plan": "retired/archive-c/runner/nano_bootstrap.c",
-      "accept": ["read-file.ok=1", "spawn-wait.ok=1"]
+      "accept": [
+        "read-file.ok=1",
+        "spawn-wait.ok=1"
+      ]
     },
     {
       "id": "v45-w90-proc-io",
       "layer": 90,
       "ring": "dogfood",
       "onion_ring": 52,
-      "status": "todo",
-      "deps": ["v45-w90-engine"],
+      "status": "done",
+      "deps": [
+        "v45-w90-engine"
+      ],
       "plan": "lisp/bootstrap/bootstrap-v45-proc-io.lisp",
-      "accept": ["v45.goal.proc_io=1"]
+      "accept": [
+        "v45.goal.proc_io=1"
+      ]
     },
     {
       "id": "v45-w90-journal",
       "layer": 90,
       "ring": "journal",
       "onion_ring": 52,
-      "status": "todo",
-      "deps": ["v45-w90-proc-io"],
+      "status": "done",
+      "deps": [
+        "v45-w90-proc-io"
+      ],
       "plan": "retired/scripts/v45-wave90-proc-io-converge.sh",
-      "accept": ["journal[-1].verified=true", "v45.wave90.diffuse=1"]
+      "accept": [
+        "journal[-1].verified=true",
+        "v45.wave90.diffuse=1"
+      ]
     }
   ]
 }

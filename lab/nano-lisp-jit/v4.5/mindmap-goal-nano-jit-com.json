@@ -105,8 +105,8 @@
         "goal": "plan \u7ea7\u5b50\u8fdb\u7a0b + \u5236\u54c1 I/O dogfooding",
         "status": "active",
         "current": {
-          "primitive": "run-expect-exit",
-          "backlog": "read-file, spawn-wait argv"
+          "primitive": "read-file, spawn-wait, run-expect-exit",
+          "factory_slice": "cc rebuild"
         }
       }
     },
@@ -973,9 +973,48 @@
       ],
       "verified": 1,
       "blocker": null
+    },
+    {
+      "round": 19,
+      "ts": "2026-05-30T00:00:00Z",
+      "read_mindmap": "wave90 proc-io \u2014 read-file + spawn-wait(argv) \u00b7 factory cc rebuild",
+      "plan": [
+        "T1: gate wave89 proc_smoke",
+        "T2: cc rebuild nano-jit.x86_64 with read-file/spawn-wait",
+        "T3: bootstrap-v45-proc-io.lisp + goal-proc-io",
+        "T4: proc_io_continue.100 \u00b7 frontier 4/4"
+      ],
+      "attempts": [
+        {
+          "id": "T1-gate",
+          "status": "ok"
+        },
+        {
+          "id": "T2-factory",
+          "status": "ok"
+        },
+        {
+          "id": "T3-proc-io",
+          "status": "ok"
+        }
+      ],
+      "results": {
+        "converge_fail": 0,
+        "proc_io": 1,
+        "proc_smoke": 1,
+        "frontier": "4/4"
+      },
+      "self_critique": "Wave90\uff1abootstrap read-file/spawn-wait \u843d\u5730\uff1bfactory cc slice \u9a8c\u6536\u3002release COM \u5f85 cosmocc promote\uff1b\u4e0b\u4e00\u5200 bulk\u2192\u8bed\u4e49 codegen\u3002",
+      "git_ops": [],
+      "evidence_keys": [
+        "v45.goal.proc_io=1",
+        "v45.goal.proc_io_continue.100=1"
+      ],
+      "verified": 1,
+      "blocker": null
     }
   ],
-  "active_frontier": "mindmap-frontier-v45-proc-smoke.json",
+  "active_frontier": "mindmap-frontier-v45-proc-io.json",
   "waves_done": [
     "wave71-lisp-codegen-diffuse",
     "wave72-compose15-runner-promote",
@@ -995,6 +1034,7 @@
     "l4-154k-push",
     "wave87-compose15-regenesis-promote",
     "wave88-terminal-strict-done",
-    "wave89-proc-smoke"
+    "wave89-proc-smoke",
+    "wave90-proc-io"
   ]
 }
