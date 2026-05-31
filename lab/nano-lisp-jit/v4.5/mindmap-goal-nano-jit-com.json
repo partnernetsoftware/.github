@@ -100,6 +100,14 @@
       "C_honest_gate": {
         "goal": "continue.100 \u2260 strict_done until L4 pass",
         "status": "always_on"
+      },
+      "D_proc_dogfood": {
+        "goal": "plan \u7ea7\u5b50\u8fdb\u7a0b + \u5236\u54c1 I/O dogfooding",
+        "status": "active",
+        "current": {
+          "primitive": "run-expect-exit",
+          "backlog": "read-file, spawn-wait argv"
+        }
       }
     },
     "parallel_micro": {
@@ -926,9 +934,48 @@
       ],
       "verified": 1,
       "blocker": null
+    },
+    {
+      "round": 18,
+      "ts": "2026-05-30T00:00:00Z",
+      "read_mindmap": "wave89 proc-smoke \u2014 plan \u7ea7 fork/exec dogfooding \u00b7 file-size/hash \u5236\u54c1\u63a2\u6d4b",
+      "plan": [
+        "T1: gate wave88 strict_done if needed",
+        "T2: bootstrap-v45-proc-smoke.lisp \u2014 emit ELF + run-expect-exit + /bin/true",
+        "T3: bootstrap-v45-goal-proc-smoke.lisp \u2014 inspect-ape + evidence proc_smoke",
+        "T4: frontier 4/4 \u00b7 proc_smoke_continue.100"
+      ],
+      "attempts": [
+        {
+          "id": "T1-gate",
+          "status": "ok"
+        },
+        {
+          "id": "T2-proc-smoke",
+          "status": "ok"
+        },
+        {
+          "id": "T3-goal",
+          "status": "ok"
+        }
+      ],
+      "results": {
+        "converge_fail": 0,
+        "proc_smoke": 1,
+        "strict_done": 1,
+        "frontier": "4/4"
+      },
+      "self_critique": "Wave89\uff1a\u7528 run-expect-exit \u5728 plan \u5185\u7f16\u6392\u5b50\u8fdb\u7a0b\uff1bfile-size/hash \u8bfb release \u5236\u54c1\u3002\u4e0b\u4e00\u5200\uff1abootstrap read-file \u539f\u8bed + argv spawn-wait\uff1bbulk\u2192\u8bed\u4e49 codegen\u3002",
+      "git_ops": [],
+      "evidence_keys": [
+        "v45.goal.proc_smoke=1",
+        "v45.goal.proc_smoke_continue.100=1"
+      ],
+      "verified": 1,
+      "blocker": null
     }
   ],
-  "active_frontier": "mindmap-frontier-v45-terminal-strict-done.json",
+  "active_frontier": "mindmap-frontier-v45-proc-smoke.json",
   "waves_done": [
     "wave71-lisp-codegen-diffuse",
     "wave72-compose15-runner-promote",
@@ -947,6 +994,7 @@
     "l4-64k-milestone",
     "l4-154k-push",
     "wave87-compose15-regenesis-promote",
-    "wave88-terminal-strict-done"
+    "wave88-terminal-strict-done",
+    "wave89-proc-smoke"
   ]
 }

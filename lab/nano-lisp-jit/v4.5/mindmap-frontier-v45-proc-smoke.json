@@ -4,14 +4,14 @@
   "onion_ssot": "v4.5/ONION-TDD.md",
   "updated_at": "2026-05-30T00:00:00Z",
   "max_parallel": 4,
-  "breadth_ring": "proc-smoke — plan 级子进程 dogfooding · OS/I/O 探针",
+  "breadth_ring": "proc-smoke \u2014 plan \u7ea7\u5b50\u8fdb\u7a0b dogfooding \u00b7 OS/I/O \u63a2\u9488",
   "nodes": [
     {
       "id": "v45-w89-gate",
       "layer": 89,
       "ring": "gate",
       "onion_ring": 51,
-      "status": "todo",
+      "status": "done",
       "deps": [],
       "accept": [
         "v45.goal.nano_jit_com.strict_done=1"
@@ -22,8 +22,10 @@
       "layer": 89,
       "ring": "dogfood",
       "onion_ring": 51,
-      "status": "todo",
-      "deps": ["v45-w89-gate"],
+      "status": "done",
+      "deps": [
+        "v45-w89-gate"
+      ],
       "plan": "lisp/bootstrap/bootstrap-v45-proc-smoke.lisp",
       "accept": [
         "run-expect-exit.ok=1",
@@ -35,8 +37,10 @@
       "layer": 89,
       "ring": "goal",
       "onion_ring": 51,
-      "status": "todo",
-      "deps": ["v45-w89-proc-smoke"],
+      "status": "done",
+      "deps": [
+        "v45-w89-proc-smoke"
+      ],
       "plan": "lisp/bootstrap/bootstrap-v45-goal-proc-smoke.lisp",
       "accept": [
         "v45.goal.proc_smoke=1",
@@ -48,8 +52,10 @@
       "layer": 89,
       "ring": "journal",
       "onion_ring": 51,
-      "status": "todo",
-      "deps": ["v45-w89-goal"],
+      "status": "done",
+      "deps": [
+        "v45-w89-goal"
+      ],
       "plan": "retired/scripts/v45-wave89-proc-smoke-converge.sh",
       "accept": [
         "journal[-1].verified=true",
