@@ -7,6 +7,7 @@
 
 | 层 | 现状 | 建议 |
 |----|------|------|
+| **OS / proc（Wave89）** | `run-expect-exit` = fork+execv+waitpid；plan 无 `read-file`/`spawn-wait` 具名原语 | P0 `read-file`；P1 `spawn-wait` 带 argv |
 | VM `.lbin` | 算术/比较/ptr/u8/u16/多函数 call 稳定 | 补齐 func 内 CF |
 | VM 类型检查 | 部分 ill-typed 源可 `compile` 通过 | 与 AOT 对齐拒错 |
 | AOT `.elf` | 多函数 + func 内 block/branch OK | 保持 parity 目标 |
@@ -25,8 +26,11 @@
 | B07 | `load-u16-rodata` / `store-u16-mutate` | ✅ | — | rodata 变宽读写 | 文档化 mutability |
 | B08 | `NANO_SELFHOST_REUSE_*` 环境 | compare 漂移 | — | 非样例；运维 | 文档 + 默认 genesis |
 | B09 | `v45-w3-lisp-only.com` | exit 42 only | — | **非**完整 runner；`run-bootstrap-plan` 不可用 | 产品区分 slice 探针 vs `nano-jit.com` |
+| B10 | proc-smoke plan | ✅ fork 链 | — | 仅无 argv 的 `execv`；制品读靠 file-size/hash | `read-file` + `spawn-wait` |
 
 ## 推荐引擎优先级
+
+0. **P0（Wave90+）** — bootstrap `read-file`（读 evidence/manifest 字节）；`spawn-wait` 支持 argv（`execvp`）
 
 1. **P0** — VM 实现 func 内 `block`/`branch`（闭合 B01，与 AOT parity）  
 2. **P1** — VM `compile` 类型检查对齐 AOT（B02/B03）  

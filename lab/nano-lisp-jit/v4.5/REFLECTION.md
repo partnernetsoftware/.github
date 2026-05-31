@@ -581,3 +581,9 @@ Wave34–69 产生 **36+ 张**扩展活图与大量 `*.continue.100` 键；听�
 
 - **strict_done 终局**：terminal-com-promote 全矩阵 + container audit + genesis slice 155648 与 release COM 对齐。
 - **nano-jit.com 里程碑**：`/goal` strict_done_requires 全绿；后续维护 bulk→语义模块替换与 run.sh 回归。
+
+## Wave89 反思
+
+- **proc dogfooding**：`bootstrap-v45-proc-smoke.lisp` 用 `emit-elf64-exit` + `run-expect-exit` + `/bin/true` 验证 plan 级子进程链；制品 I/O 暂用 `file-size`/`file-hash`。
+- **缺口**：plan 尚无具名 `read-file`/`spawn-wait(argv)`；Wave90 补引擎原语 + 工厂 rebuild。
+- **下一刀**：bulk stub → 真实 `lispjit.c` 语义 codegen；release slice 与 genesis 同源 repack。
