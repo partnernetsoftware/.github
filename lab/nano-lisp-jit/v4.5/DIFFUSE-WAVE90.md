@@ -16,3 +16,9 @@ bash lab/nano-lisp-jit/retired/scripts/v45-wave90-proc-io-converge.sh
 **说明**：release `nano-lisp.com` 待 cosmocc promote 后携带新原语；Wave90 用 factory cc slice 验收。
 
 **下一波 preview**：wave91 — release COM promote + bulk→语义 codegen
+
+## Wave91 反思
+
+- **release promote**：`NANO_SLICE_COMPILER=native` + `NANO_REGENESIS=1` 重建 ~326K COM，矩阵全绿后 promote 至 `release/nano-lisp.com`。
+- **用户面**：release COM 现可直接跑 `read-file`/`spawn-wait` plan，不再依赖 factory cc slice。
+- **双轨**：genesis 154KB bulk pack 未同步；L4 语义层下一刀。

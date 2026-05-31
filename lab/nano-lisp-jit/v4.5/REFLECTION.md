@@ -593,3 +593,8 @@ Wave34–69 产生 **36+ 张**扩展活图与大量 `*.continue.100` 键；听�
 - **引擎原语**：`read-file`（bytes+hash）· `spawn-wait expected exe [argv...]`（execvp）入 bootstrap + CLI。
 - **验收路径**：factory `cc` rebuild `.build/nano-jit/nano-jit.x86_64`；release COM promote 留 Wave91。
 - **下一刀**：cosmocc promote + bulk→语义 codegen。
+
+## Wave91 反思
+
+- **release COM promote**：native regenesis 326K APE · manifest pin · proc-io/strict-done 矩阵在 release 上全绿。
+- **下一刀**：bulk stub → 真实 `lispjit.c` 语义 codegen；genesis/release slice 同源。

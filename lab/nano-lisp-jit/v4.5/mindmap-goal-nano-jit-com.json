@@ -24,7 +24,7 @@
         "slice_bytes=155648"
       ],
       "facts": {
-        "com_bytes": 326329,
+        "com_bytes": 326345,
         "payload_offset": 1281,
         "slice_bytes": 155648,
         "slice_hash": "82ba753bedecd4cc",
@@ -1012,9 +1012,52 @@
       ],
       "verified": 1,
       "blocker": null
+    },
+    {
+      "round": 20,
+      "ts": "2026-05-30T00:00:00Z",
+      "read_mindmap": "wave91 proc-io-release-promote \u2014 native regenesis \u00b7 release COM \u00b7 matrix",
+      "plan": [
+        "T1: gate wave90 proc_io",
+        "T2: NANO_SLICE_COMPILER=native NANO_REGENESIS=1 build_nano_jit.sh",
+        "T3: promote release + manifest pin",
+        "T4: parallel proc-io/strict-done/verify on release COM"
+      ],
+      "attempts": [
+        {
+          "id": "T1-gate",
+          "status": "ok"
+        },
+        {
+          "id": "T2-build",
+          "status": "ok",
+          "detail": "com_bytes=326345"
+        },
+        {
+          "id": "T3-promote",
+          "status": "ok"
+        },
+        {
+          "id": "T4-matrix",
+          "status": "ok"
+        }
+      ],
+      "results": {
+        "converge_fail": 0,
+        "proc_io_release": 1,
+        "com_bytes": "326345"
+      },
+      "self_critique": "Wave91\uff1arelease COM \u643a\u5e26 read-file/spawn-wait\uff1b326K APE \u77e9\u9635\u5168\u7eff\u3002genesis 154KB bulk slice \u4ecd\u53cc\u8f68\uff1b\u4e0b\u4e00\u5200\u8bed\u4e49 codegen\u3002",
+      "git_ops": [],
+      "evidence_keys": [
+        "v45.goal.proc_io_release=1",
+        "v45.goal.proc_io_release_promote=1"
+      ],
+      "verified": 1,
+      "blocker": null
     }
   ],
-  "active_frontier": "mindmap-frontier-v45-proc-io.json",
+  "active_frontier": "mindmap-frontier-v45-proc-io-release-promote.json",
   "waves_done": [
     "wave71-lisp-codegen-diffuse",
     "wave72-compose15-runner-promote",
@@ -1035,6 +1078,7 @@
     "wave87-compose15-regenesis-promote",
     "wave88-terminal-strict-done",
     "wave89-proc-smoke",
-    "wave90-proc-io"
+    "wave90-proc-io",
+    "wave91-proc-io-release-promote"
   ]
 }
