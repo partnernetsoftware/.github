@@ -1,0 +1,16 @@
+{
+  "ssot": "v4.5/DIFFUSE-WAVE102.md",
+  "parent_goal": "mindmap-goal-nano-jit-com.json",
+  "updated_at": "2026-06-02T00:00:00Z",
+  "max_parallel": 4,
+  "breadth_ring": "APE 6-face expand — Linux 2/2 honest · cross-os 0/4 gap",
+  "nodes": [
+    {"id": "v45-w102-gate", "status": "todo", "accept": ["v45.goal.factory_zero_c_honest_milestone=1"]},
+    {"id": "v45-w102-inspect", "status": "todo", "deps": ["v45-w102-gate"],
+     "accept": ["inspect-ape.slice_count=2", "inspect-ape.slice.*.os_id=1"]},
+    {"id": "v45-w102-milestone", "status": "todo", "deps": ["v45-w102-inspect"],
+     "accept": ["v45.goal.ape_six_face_expand_milestone=1"]},
+    {"id": "v45-w102-journal", "status": "todo", "deps": ["v45-w102-milestone"],
+     "accept": ["journal[-1].verified=true"]}
+  ]
+}

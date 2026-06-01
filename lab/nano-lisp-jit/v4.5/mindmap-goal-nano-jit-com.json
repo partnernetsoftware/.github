@@ -134,6 +134,13 @@
           "wave101_archive_runner_c": "20",
           "factory_zero_c_honest": "True"
         }
+      },
+      "L1_container": {
+        "facts": {
+          "wave102_ape_linux_faces": "2",
+          "wave102_ape_missing_faces": "4",
+          "ape_six_face_expand": "True"
+        }
       }
     },
     "parallel_micro": {
@@ -1292,9 +1299,27 @@
       },
       "verified": 1,
       "self_critique": "lisp \u96f6 C(0) \u00b7 archive runner 20 \u6587\u4ef6 \u00b7 \u4e0d\u6df7\u79f0 monorepo zero_c DONE\u3002"
+    },
+    {
+      "round": 31,
+      "ts": "2026-06-02T00:00:00Z",
+      "read_mindmap": "wave102 APE 6-face expand \u2014 Linux 2/2 \u00b7 cross-os 0/4 honest",
+      "plan": [
+        "T1: inspect-ape release COM slice_count=2 os_id=1",
+        "T2: ape-six-face-gap + container audit",
+        "T3: expand milestone \u00b7 os_id 2/3 roadmap"
+      ],
+      "results": {
+        "slice_count": "2",
+        "linux_faces": "2",
+        "missing_faces": "4",
+        "converge_fail": 0
+      },
+      "verified": 1,
+      "self_critique": "Linux 2/2 \u9762\u7eff \u00b7 cross-os 4 \u9762\u7f3a\u5931 \u00b7 \u4e0d\u6df7\u79f0 6/6 DONE\u3002"
     }
   ],
-  "active_frontier": "mindmap-frontier-v45-factory-zero-c-honest.json",
+  "active_frontier": "mindmap-frontier-v45-ape-six-face-expand.json",
   "waves_done": [
     "wave71-lisp-codegen-diffuse",
     "wave72-compose15-runner-promote",
@@ -1326,6 +1351,7 @@
     "wave98-semantic-full-15slot",
     "wave99-semantic-unified",
     "wave100-l4-semantic-terminal",
-    "wave101-factory-zero-c-honest"
+    "wave101-factory-zero-c-honest",
+    "wave102-ape-six-face-expand"
   ]
 }
