@@ -132,7 +132,9 @@
           "wave92": "zero_new_c",
           "wave101_lisp_tree_c": "0",
           "wave101_archive_runner_c": "20",
-          "factory_zero_c_honest": "True"
+          "factory_zero_c_honest": "True",
+          "wave105_factory_lo_bytes": "9533",
+          "factory_build_lisp_only": "True"
         }
       },
       "L1_container": {
@@ -1359,9 +1361,25 @@
       },
       "verified": 1,
       "self_critique": "6-row \u5168\u8868 \u00b7 runtime Linux 2/6 \u00b7 Windows os_id=3 \u00d72 placeholder\u3002"
+    },
+    {
+      "round": 34,
+      "ts": "2026-06-05T00:00:00Z",
+      "read_mindmap": "wave105 factory build lisp-only \u2014 plan regenesis \u00b7 C seed honest",
+      "plan": [
+        "T1: build_nano_jit_lisp_only.sh wrapper",
+        "T2: factory-build-lisp-only-regenesis plan",
+        "T3: semantic-unified smoke + factory closure"
+      ],
+      "results": {
+        "factory_lo_bytes": 9533,
+        "converge_fail": 0
+      },
+      "verified": 1,
+      "self_critique": "plan regenesis OK(9533B) \u00b7 build_nano_jit C \u79cd\u5b50\u4ecd\u5728 \u00b7 \u975e\u5de5\u5382 zero C DONE\u3002"
     }
   ],
-  "active_frontier": "mindmap-frontier-v45-ape-six-face-probe.json",
+  "active_frontier": "mindmap-frontier-v45-factory-build-lisp-only.json",
   "waves_done": [
     "wave71-lisp-codegen-diffuse",
     "wave72-compose15-runner-promote",
@@ -1396,6 +1414,7 @@
     "wave101-factory-zero-c-honest",
     "wave102-ape-six-face-expand",
     "wave103-ape-macos-slice-probe",
-    "wave104-ape-six-face-probe"
+    "wave104-ape-six-face-probe",
+    "wave105-factory-build-lisp-only"
   ]
 }

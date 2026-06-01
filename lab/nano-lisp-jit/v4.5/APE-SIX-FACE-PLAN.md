@@ -11,4 +11,4 @@
 
 **当前**：release COM **Linux 2/2 runtime** · 6-row probe 表 **6/6 inspect** · runtime **2/6**  
 **Wave104**：全表 os_id 1/2/3 · `ape_six_face_probe_milestone=1`  
-**下一刀**：真实 Mach-O/PE slice · build_nano_jit 工厂 lisp-only 路径
+**下一刀**：Mach-O/PE 真实 slice · 工厂 C 种子退仓路径

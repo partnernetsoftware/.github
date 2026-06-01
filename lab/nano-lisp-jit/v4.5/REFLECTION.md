@@ -674,7 +674,13 @@ Wave34–69 产生 **36+ 张**扩展活图与大量 `*.continue.100` 键；听�
 
 - **APE 6 面全表探针**：6-row · os_id 1/2/3 · Linux runtime 2/6。
 - **分层**：`inspect-ape` 全表 6/6 · cross-os 均为 placeholder · 不混称 runtime DONE。
-- **下一刀**：真实 Mach-O/PE slice · 工厂 build lisp-only 路径。
+- **下一刀**：build_nano_jit 工厂 lisp-only 路径。
+
+## Wave105 反思
+
+- **factory build lisp-only**：`build_nano_jit_lisp_only.sh` · plan `build-slice-lisp` regenesis。
+- **分层**：regenesis plan 零 lispjit.c · `build_nano_jit.sh` C 种子仍在 · 非工厂 zero C DONE。
+- **下一刀**：Mach-O/PE 真实 slice · 工厂 C 种子退仓。
 
 ## Wave100 反思
 
