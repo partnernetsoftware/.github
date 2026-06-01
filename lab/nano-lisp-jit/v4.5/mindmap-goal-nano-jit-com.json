@@ -60,7 +60,7 @@
     },
     "L4_semantic_codegen": {
       "label": "\u7eaf lisp 158KB codegen",
-      "status": "pass",
+      "status": "terminal",
       "checks": [
         "compose15_pure_link.bytes>=154000",
         "zero host cc fallback"
@@ -85,7 +85,9 @@
         "compose15_semantic_full_code_bytes": "489",
         "semantic_15slot_real_modules": "True",
         "compose15_semantic_unified_code_bytes": "154017",
-        "semantic_unified_milestone": "True"
+        "semantic_unified_milestone": "True",
+        "l4_semantic_terminal": "1",
+        "semantic_matrix_profiles": "7"
       }
     }
   },
@@ -99,9 +101,11 @@
         "current": {
           "stub": 445,
           "expand": 1239,
-          "hybrid": 158392
+          "hybrid": 158392,
+          "semantic_unified": 154017,
+          "bulk": 154559
         },
-        "status": "active"
+        "status": "terminal"
       },
       "B_release_guard": {
         "goal": "manifest pin + bootstrap-host \u77e9\u9635\u5e38\u7eff",
@@ -1250,9 +1254,27 @@
       },
       "verified": 1,
       "self_critique": "semantic-unified 154017B \u00b7 154K main + 14 \u69fd\u771f\u6a21\u5757\u5408\u4e00\u3002"
+    },
+    {
+      "round": 29,
+      "ts": "2026-06-01T00:00:00Z",
+      "read_mindmap": "wave100 L4 semantic terminal \u2014 7-profile matrix \u00b7 codegen track done",
+      "plan": [
+        "T1: 8K\u2192unified + bulk \u77e9\u9635",
+        "T2: goal-l4-semantic-terminal-done",
+        "T3: L4 status=terminal \u00b7 genesis 155648 preserved"
+      ],
+      "results": {
+        "unified_bytes": "154017",
+        "bulk_bytes": "154559",
+        "matrix_fail": 0,
+        "converge_fail": 0
+      },
+      "verified": 1,
+      "self_critique": "L4 semantic \u8f68\u7ec8\u5c40\uff1a\u9636\u68af+full+unified \u77e9\u9635\u7eff\uff1bstrict_done \u5df2\u4e8e Wave88 \u7b7e\u3002"
     }
   ],
-  "active_frontier": "mindmap-frontier-v45-semantic-unified.json",
+  "active_frontier": "mindmap-frontier-v45-l4-semantic-terminal.json",
   "waves_done": [
     "wave71-lisp-codegen-diffuse",
     "wave72-compose15-runner-promote",
@@ -1282,6 +1304,7 @@
     "wave96-semantic-64k",
     "wave97-semantic-154k",
     "wave98-semantic-full-15slot",
-    "wave99-semantic-unified"
+    "wave99-semantic-unified",
+    "wave100-l4-semantic-terminal"
   ]
 }

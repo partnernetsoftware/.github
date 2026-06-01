@@ -651,3 +651,9 @@ Wave34–69 产生 **36+ 张**扩展活图与大量 `*.continue.100` 键；听�
 - **semantic-unified**：`tu-main-154k` + `sem-*` ×14 · profile `compose-15link-semantic-unified`。
 - **合一**：154K 体积轨 + 真语义 14 槽；hash ≠ semantic-full(489B)。
 - **下一刀**：L4 semantic 终局签收 · 工厂零 C 卷。
+
+## Wave100 反思
+
+- **L4 semantic terminal**：7-profile 矩阵（8K→unified + bulk）全绿 · `l4_semantic_codegen_terminal=1`。
+- **与 strict_done 分层**：Wave88 签用户 COM；Wave100 签 semantic 深化轨终局。
+- **下一刀**：工厂零 C 卷 · physical-zero-c honest。
