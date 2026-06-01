@@ -142,7 +142,11 @@
           "ape_six_face_expand": "True",
           "wave103_ape_probe_slices": "4",
           "wave103_macos_osid2_rows": "2",
-          "ape_macos_slice_probe": "True"
+          "ape_macos_slice_probe": "True",
+          "wave104_ape_probe_slices": "6",
+          "wave104_windows_osid3_rows": "2",
+          "ape_six_face_probe": "True",
+          "ape_six_face_runtime": "2"
         }
       }
     },
@@ -1337,9 +1341,27 @@
       },
       "verified": 1,
       "self_critique": "4-row probe \u00b7 macOS os_id=2 \u00d72 placeholder \u00b7 \u975e Mach-O runtime\u3002"
+    },
+    {
+      "round": 33,
+      "ts": "2026-06-04T00:00:00Z",
+      "read_mindmap": "wave104 APE six-face full table \u2014 6-row os_id 1/2/3 probe",
+      "plan": [
+        "T1: gen-ape-six-face-probe.py 6-row bare",
+        "T2: inspect-ape Windows os_id=3 \u00b7 full table",
+        "T3: six-face probe milestone \u00b7 runtime 2/6 honest"
+      ],
+      "results": {
+        "slice_count": "6",
+        "windows_rows": "2",
+        "runtime_faces": "2",
+        "converge_fail": 0
+      },
+      "verified": 1,
+      "self_critique": "6-row \u5168\u8868 \u00b7 runtime Linux 2/6 \u00b7 Windows os_id=3 \u00d72 placeholder\u3002"
     }
   ],
-  "active_frontier": "mindmap-frontier-v45-ape-macos-slice-probe.json",
+  "active_frontier": "mindmap-frontier-v45-ape-six-face-probe.json",
   "waves_done": [
     "wave71-lisp-codegen-diffuse",
     "wave72-compose15-runner-promote",
@@ -1373,6 +1395,7 @@
     "wave100-l4-semantic-terminal",
     "wave101-factory-zero-c-honest",
     "wave102-ape-six-face-expand",
-    "wave103-ape-macos-slice-probe"
+    "wave103-ape-macos-slice-probe",
+    "wave104-ape-six-face-probe"
   ]
 }

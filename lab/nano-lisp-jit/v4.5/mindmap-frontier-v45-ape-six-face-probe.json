@@ -1,0 +1,16 @@
+{
+  "ssot": "v4.5/DIFFUSE-WAVE104.md",
+  "parent_goal": "mindmap-goal-nano-jit-com.json",
+  "updated_at": "2026-06-04T00:00:00Z",
+  "max_parallel": 4,
+  "breadth_ring": "APE six-face full table probe — 6-row os_id 1/2/3 · runtime 2/6",
+  "nodes": [
+    {"id": "v45-w104-gate", "status": "todo", "accept": ["v45.goal.ape_macos_slice_probe_milestone=1"]},
+    {"id": "v45-w104-probe", "status": "todo", "deps": ["v45-w104-gate"],
+     "accept": ["inspect-ape.slice_count=6", "v45.probe.ape_windows_osid3=1"]},
+    {"id": "v45-w104-milestone", "status": "todo", "deps": ["v45-w104-probe"],
+     "accept": ["v45.goal.ape_six_face_probe_milestone=1"]},
+    {"id": "v45-w104-journal", "status": "todo", "deps": ["v45-w104-milestone"],
+     "accept": ["journal[-1].verified=true"]}
+  ]
+}

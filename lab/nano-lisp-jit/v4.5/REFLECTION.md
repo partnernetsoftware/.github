@@ -668,7 +668,13 @@ Wave34–69 产生 **36+ 张**扩展活图与大量 `*.continue.100` 键；听�
 
 - **macOS os_id=2 探针**：4-row APE v2 · Linux ELF + macOS placeholder（size=0）。
 - **分层**：`inspect-ape` 识别 os_id=2 · **非** Mach-O runtime · run-ape 仍选 Linux。
-- **下一刀**：真实 Mach-O slice · 工厂 build lisp-only 路径。
+- **下一刀**：Windows os_id=3 探针 · 6 面全表。
+
+## Wave104 反思
+
+- **APE 6 面全表探针**：6-row · os_id 1/2/3 · Linux runtime 2/6。
+- **分层**：`inspect-ape` 全表 6/6 · cross-os 均为 placeholder · 不混称 runtime DONE。
+- **下一刀**：真实 Mach-O/PE slice · 工厂 build lisp-only 路径。
 
 ## Wave100 反思
 
