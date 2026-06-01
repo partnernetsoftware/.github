@@ -14,14 +14,14 @@ use std::process::{Command, ExitCode};
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 fn usage() -> &'static str {
-    "nano-jit (Rust) — portable .lbin VM, multi-target CLI\n\
+    "nano-jit (Rust) — .lisp source compiles to .lbin bytecode; VM runs .lbin only\n\
 Usage:\n\
-  nano-jit run <file.lbin>\n\
+  nano-jit compile <in.lisp> <out.lbin>   # source -> bytecode (like javac)\n\
+  nano-jit run <file.lbin>                # execute bytecode (like java)\n\
   nano-jit dump <file.lbin>\n\
   nano-jit hash <file.lbin>\n\
   nano-jit resolve-quiet <file.lbin>\n\
   nano-jit inspect-ape <file.com>\n\
-  nano-jit compile <in.lisp> <out.lbin>   # native Rust compiler (legacy fallback)\n\
   nano-jit version\n\
 Env:\n\
   NANO_JIT_LEGACY  force legacy COM compile when set\n"

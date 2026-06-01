@@ -2,6 +2,16 @@
 
 **目标**：`nano-jit.com` 多架构 compile + run `.lisp` / `.lbin`，逐步替换 C runner。
 
+## 产物模型
+
+```
+.lisp  ──compile──▶  .lbin  ──run──▶  exit code
+ 源（S-expr）         字节码（LBIN01）    VM 执行
+```
+
+类比 Java：`.lisp` ≈ `.java`，`.lbin` ≈ `.class`。运行时只需 `.lbin`，不依赖源文件。
+`compile` 与 `run` 是两条独立命令；Rust 重构分别对应 **编译器前端** 与 **VM 后端**。
+
 ## 现状（2026-06）
 
 | 组件 | C (`lispjit.c`) | Rust (`nano-jit-rs`) |

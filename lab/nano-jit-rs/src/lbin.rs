@@ -1,4 +1,5 @@
-//! `.lbin` wire format — compatible with C runner `LBIN01`.
+//! `.lbin` bytecode wire format (LBIN01) — compiled output of `.lisp`, analogous to `.class`.
+//! Produced by `compile`, consumed by the VM (`run`). Compatible with C runner layout.
 
 pub const HEADER_SIZE: usize = 32;
 pub const IMPORT_SIZE: usize = 16;
