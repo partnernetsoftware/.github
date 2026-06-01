@@ -129,7 +129,10 @@
         "status": "active",
         "facts": {
           "wave90_91": "read-file/spawn-wait",
-          "wave92": "zero_new_c"
+          "wave92": "zero_new_c",
+          "wave101_lisp_tree_c": "0",
+          "wave101_archive_runner_c": "20",
+          "factory_zero_c_honest": "True"
         }
       }
     },
@@ -1272,9 +1275,26 @@
       },
       "verified": 1,
       "self_critique": "L4 semantic \u8f68\u7ec8\u5c40\uff1a\u9636\u68af+full+unified \u77e9\u9635\u7eff\uff1bstrict_done \u5df2\u4e8e Wave88 \u7b7e\u3002"
+    },
+    {
+      "round": 30,
+      "ts": "2026-06-01T00:00:00Z",
+      "read_mindmap": "wave101 factory zero-C honest \u2014 lisp 0 .c \u00b7 archive runner scoped",
+      "plan": [
+        "T1: count lisp/ vs archive/c/runner .c",
+        "T2: archive-runner + factory-closure \u8bda\u5b9e\u5377",
+        "T3: semantic-unified smoke on release COM"
+      ],
+      "results": {
+        "lisp_c": "0",
+        "archive_runner_c": "20",
+        "converge_fail": 0
+      },
+      "verified": 1,
+      "self_critique": "lisp \u96f6 C(0) \u00b7 archive runner 20 \u6587\u4ef6 \u00b7 \u4e0d\u6df7\u79f0 monorepo zero_c DONE\u3002"
     }
   ],
-  "active_frontier": "mindmap-frontier-v45-l4-semantic-terminal.json",
+  "active_frontier": "mindmap-frontier-v45-factory-zero-c-honest.json",
   "waves_done": [
     "wave71-lisp-codegen-diffuse",
     "wave72-compose15-runner-promote",
@@ -1305,6 +1325,7 @@
     "wave97-semantic-154k",
     "wave98-semantic-full-15slot",
     "wave99-semantic-unified",
-    "wave100-l4-semantic-terminal"
+    "wave100-l4-semantic-terminal",
+    "wave101-factory-zero-c-honest"
   ]
 }

@@ -652,6 +652,12 @@ Wave34–69 产生 **36+ 张**扩展活图与大量 `*.continue.100` 键；听�
 - **合一**：154K 体积轨 + 真语义 14 槽；hash ≠ semantic-full(489B)。
 - **下一刀**：L4 semantic 终局签收 · 工厂零 C 卷。
 
+## Wave101 反思
+
+- **factory zero-C honest**：`lisp/` 零 `.c` · archive runner **20** 文件透明计数。
+- **分层**：`physical.zero_c=1`（发行面树）≠ monorepo zero C · `factory_c_remains_scoped=1`。
+- **下一刀**：APE 6 面 · 工厂 build lisp-only 路径。
+
 ## Wave100 反思
 
 - **L4 semantic terminal**：7-profile 矩阵（8K→unified + bulk）全绿 · `l4_semantic_codegen_terminal=1`。
