@@ -631,4 +631,10 @@ Wave34–69 产生 **36+ 张**扩展活图与大量 `*.continue.100` 键；听�
 
 - **semantic 64K**：`tu-main-64k.lisp`（5680 func）+ profile `compose-15link-semantic-64k` → code_bytes=**64066**。
 - **多轨回归**：8K / 32K / bulk 154559 并存。
-- **下一刀**：semantic 154K（对齐 bulk 体积 SSOT，真语义替换 stub）。
+- **下一刀**：15 槽真语义模块替换 stub（非生成体）。
+
+## Wave97 反思
+
+- **semantic 154K**：`tu-main-154k.lisp`（13920 func）+ `compose-15link-semantic-154k` → code_bytes=**154706**（bulk 154559 对齐）。
+- **阶梯闭合**：8K→32K→64K→154K 全轨 regression 通过。
+- **下一刀**：15 槽 `lisp/modules` 真语义替换生成体 stub。

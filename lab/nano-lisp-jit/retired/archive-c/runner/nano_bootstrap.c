@@ -733,6 +733,7 @@ static const char *lispjit_from_lisp_profile_path(void) {
       lispjit_from_lisp_profile_named("compose-15link-semantic") ||
       lispjit_from_lisp_profile_named("compose-15link-semantic-32k") ||
       lispjit_from_lisp_profile_named("compose-15link-semantic-64k") ||
+      lispjit_from_lisp_profile_named("compose-15link-semantic-154k") ||
       lispjit_from_lisp_profile_named("semantic-full"))
     return "lab/nano-lisp-jit/lisp/core/lisp-tu-main.lisp";
   if (p) return p;
@@ -995,10 +996,13 @@ static int compose15_use_expand_modules(void) {
 static int compose15_use_semantic_expand_modules(void) {
   return lispjit_from_lisp_profile_named("compose-15link-semantic") ||
          lispjit_from_lisp_profile_named("compose-15link-semantic-32k") ||
-         lispjit_from_lisp_profile_named("compose-15link-semantic-64k");
+         lispjit_from_lisp_profile_named("compose-15link-semantic-64k") ||
+         lispjit_from_lisp_profile_named("compose-15link-semantic-154k");
 }
 
 static const char *compose15_semantic_main_expand_path(void) {
+  if (lispjit_from_lisp_profile_named("compose-15link-semantic-154k"))
+    return "lab/nano-lisp-jit/lisp/modules-semantic/tu-main-154k.lisp";
   if (lispjit_from_lisp_profile_named("compose-15link-semantic-64k"))
     return "lab/nano-lisp-jit/lisp/modules-semantic/tu-main-64k.lisp";
   if (lispjit_from_lisp_profile_named("compose-15link-semantic-32k"))
@@ -1246,6 +1250,8 @@ static int build_slice_via_lispjit_from_lisp(const char *src_path, const char *o
   if (profile_env && strcmp(profile_env, "compose-15link-semantic-32k") == 0)
     return lispjit_from_lisp_build_compose_15link(out_path, arch);
   if (profile_env && strcmp(profile_env, "compose-15link-semantic-64k") == 0)
+    return lispjit_from_lisp_build_compose_15link(out_path, arch);
+  if (profile_env && strcmp(profile_env, "compose-15link-semantic-154k") == 0)
     return lispjit_from_lisp_build_compose_15link(out_path, arch);
   if (profile_env && strcmp(profile_env, "semantic-full") == 0)
     return lispjit_from_lisp_build_compose_15link(out_path, arch);

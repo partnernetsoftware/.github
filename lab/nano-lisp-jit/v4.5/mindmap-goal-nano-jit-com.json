@@ -79,7 +79,9 @@
         "semantic_bulk_diverge": true,
         "compose15_semantic_8k_code_bytes": "9286",
         "compose15_semantic_32k_code_bytes": "32001",
-        "compose15_semantic_64k_code_bytes": "64066"
+        "compose15_semantic_64k_code_bytes": "64066",
+        "compose15_semantic_154k_code_bytes": "154706",
+        "semantic_154k_bulk_aligned": "True"
       }
     }
   },
@@ -1192,9 +1194,27 @@
       },
       "verified": 1,
       "self_critique": "semantic 64K \u8f68 64066B code \u00b7 8K/32K/bulk \u591a\u8f68\u56de\u5f52\u901a\u8fc7\u3002"
+    },
+    {
+      "round": 26,
+      "ts": "2026-05-30T00:00:00Z",
+      "read_mindmap": "wave97 semantic 154K \u2014 tu-main-154k \u00b7 align bulk SSOT",
+      "plan": [
+        "T1: gen-semantic-compose15.py tu-main-154k (13920 func)",
+        "T2: profile compose-15link-semantic-154k \u00b7 code_bytes>=154000",
+        "T3: 8K/32K/64K \u56de\u5f52 + bulk 154559"
+      ],
+      "results": {
+        "code_bytes": "154706",
+        "bulk_bytes": "154559",
+        "threshold": 154000,
+        "converge_fail": 0
+      },
+      "verified": 1,
+      "self_critique": "semantic 154K \u8f68 154706B \u00b7 bulk 154559B \u00b7 \u9636\u68af\u95ed\u5408\u3002"
     }
   ],
-  "active_frontier": "mindmap-frontier-v45-semantic-64k.json",
+  "active_frontier": "mindmap-frontier-v45-semantic-154k.json",
   "waves_done": [
     "wave71-lisp-codegen-diffuse",
     "wave72-compose15-runner-promote",
@@ -1221,6 +1241,7 @@
     "wave93-semantic-diverge",
     "wave94-semantic-8k",
     "wave95-semantic-32k",
-    "wave96-semantic-64k"
+    "wave96-semantic-64k",
+    "wave97-semantic-154k"
   ]
 }
