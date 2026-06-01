@@ -28,7 +28,7 @@ Shell stub (optional v1 `# nano.manifest.*` for stub/`run-ape`), then payload re
 | Off | Size | Field |
 |-----|------|-------|
 | 0 | 1 | `arch_id`: **1**=x86_64, **2**=aarch64 |
-| 1 | 1 | `os_id`: **1**=linux |
+| 1 | 1 | `os_id`: **1**=linux · **2**=macOS (planned) · **3**=Windows (planned) |
 | 2 | 2 | reserved (0) |
 | 4 | 8 | `offset` u64 |
 | 12 | 8 | `size` u64 |
