@@ -664,6 +664,12 @@ Wave34–69 产生 **36+ 张**扩展活图与大量 `*.continue.100` 键；听�
 - **分层**：Linux **2/2** ✅ · cross-os **0/4** 缺失透明 · 不混称 6/6 DONE。
 - **下一刀**：os_id 2 macOS slice 探针 · 工厂 build lisp-only 路径。
 
+## Wave103 反思
+
+- **macOS os_id=2 探针**：4-row APE v2 · Linux ELF + macOS placeholder（size=0）。
+- **分层**：`inspect-ape` 识别 os_id=2 · **非** Mach-O runtime · run-ape 仍选 Linux。
+- **下一刀**：真实 Mach-O slice · 工厂 build lisp-only 路径。
+
 ## Wave100 反思
 
 - **L4 semantic terminal**：7-profile 矩阵（8K→unified + bulk）全绿 · `l4_semantic_codegen_terminal=1`。

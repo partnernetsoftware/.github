@@ -87,8 +87,11 @@ int parse_nano_ape_v2_at_offset(const unsigned char *data, size_t n, size_t offs
 
 static int known_arch_os(uint8_t arch_id, uint8_t os_id) {
   if (arch_id != NANO_APE_V2_ARCH_X86_64 && arch_id != NANO_APE_V2_ARCH_AARCH64) return 0;
-  if (os_id != 0 && os_id != NANO_APE_V2_OS_LINUX) return 0;
-  return 1;
+  if (os_id == 0) return 1;
+  if (os_id == NANO_APE_V2_OS_LINUX || os_id == NANO_APE_V2_OS_MACOS ||
+      os_id == NANO_APE_V2_OS_WINDOWS)
+    return 1;
+  return 0;
 }
 
 int validate_nano_ape_v2_slices(const NanoApeV2Image *img, const unsigned char *data, size_t n,
@@ -106,12 +109,19 @@ int validate_nano_ape_v2_slices(const NanoApeV2Image *img, const unsigned char *
       return 4;
     }
     size_t abs_off = payload_base + (size_t)r->offset;
-    if (r->offset > n - payload_base || r->size > n - abs_off) {
+    if (r->offset > n - payload_base) {
       fprintf(stderr, "%s=bad_offset arch_id=%u off=%llu size=%llu base=%zu file=%zu\n", prefix,
               r->arch_id, (unsigned long long)r->offset, (unsigned long long)r->size, payload_base,
               n);
       return 4;
     }
+    if (r->size > n - abs_off) {
+      fprintf(stderr, "%s=bad_offset arch_id=%u off=%llu size=%llu base=%zu file=%zu\n", prefix,
+              r->arch_id, (unsigned long long)r->offset, (unsigned long long)r->size, payload_base,
+              n);
+      return 4;
+    }
+    if (r->size == 0) continue; /* Wave103+: macOS/Windows probe placeholder row */
     if (!is_elf_fn || !is_elf_fn(data + abs_off, (size_t)r->size)) {
       fprintf(stderr, "%s=bad_slice_elf arch_id=%u\n", prefix, r->arch_id);
       return 4;
@@ -192,7 +202,9 @@ int nano_ape_v2_slice_for_arch(const NanoApeV2Image *img, const char *force_arch
   if (!want_arch) return 126;
 #endif
   for (uint16_t i = 0; i < img->slice_count; ++i) {
-    if (img->slices[i].arch_id == want_arch) {
+    if (img->slices[i].arch_id == want_arch &&
+        (img->slices[i].os_id == 0 || img->slices[i].os_id == NANO_APE_V2_OS_LINUX) &&
+        img->slices[i].size > 0) {
       *row = &img->slices[i];
       *arch_name = want_arch == NANO_APE_V2_ARCH_X86_64 ? "x86_64" : "aarch64";
       return 0;

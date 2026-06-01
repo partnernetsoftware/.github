@@ -1,0 +1,16 @@
+{
+  "ssot": "v4.5/DIFFUSE-WAVE103.md",
+  "parent_goal": "mindmap-goal-nano-jit-com.json",
+  "updated_at": "2026-06-03T00:00:00Z",
+  "max_parallel": 4,
+  "breadth_ring": "macOS os_id=2 slice probe — 4-row APE table · placeholder honest",
+  "nodes": [
+    {"id": "v45-w103-gate", "status": "todo", "accept": ["v45.goal.ape_six_face_expand_milestone=1"]},
+    {"id": "v45-w103-probe", "status": "todo", "deps": ["v45-w103-gate"],
+     "accept": ["v45.probe.ape_macos_osid2=1", "inspect-ape.slice_count=4"]},
+    {"id": "v45-w103-milestone", "status": "todo", "deps": ["v45-w103-probe"],
+     "accept": ["v45.goal.ape_macos_slice_probe_milestone=1"]},
+    {"id": "v45-w103-journal", "status": "todo", "deps": ["v45-w103-milestone"],
+     "accept": ["journal[-1].verified=true"]}
+  ]
+}

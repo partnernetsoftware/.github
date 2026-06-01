@@ -36,6 +36,8 @@ Shell stub (optional v1 `# nano.manifest.*` for stub/`run-ape`), then payload re
 
 Rows SHOULD be sorted by `(arch_id, os_id)`. Default pack: two rows (x86_64/linux, aarch64/linux).
 
+**Wave103 probe rows**: macOS (`os_id=2`) may appear with `size=0` and `hash=0` as table placeholders; `inspect-ape` accepts them but `run-ape` still selects Linux ELF slices only.
+
 ## `inspect-ape` detection
 
 1. Locate `payload_start` (marker line+1, or scan stub tail for v2 magic at line start in mode B).
