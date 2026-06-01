@@ -76,7 +76,8 @@
         "compose15_code_bytes": "154559",
         "compose15_154k_pack_x86_bytes": "155648",
         "compose15_semantic_code_bytes": "489",
-        "semantic_bulk_diverge": true
+        "semantic_bulk_diverge": true,
+        "compose15_semantic_8k_code_bytes": "9286"
       }
     }
   },
@@ -1138,9 +1139,26 @@
       "evidence_keys": [
         "v45.goal.semantic_bulk_diverge=1"
       ]
+    },
+    {
+      "round": 23,
+      "ts": "2026-05-30T00:00:00Z",
+      "read_mindmap": "wave94 semantic 8K \u2014 modules-semantic tu-main-8k \u00b7 compose-15link-semantic",
+      "plan": [
+        "T1: gen-semantic-compose15.py \u2192 lisp/modules-semantic",
+        "T2: profile compose-15link-semantic \u00b7 code_bytes>=8000",
+        "T3: bulk 154559 \u53cc\u8f68\u4fdd\u7559"
+      ],
+      "results": {
+        "code_bytes": "9286",
+        "threshold": 8000,
+        "converge_fail": 0
+      },
+      "verified": 1,
+      "self_critique": "semantic \u8f68 9286B code\uff08modules-semantic\uff09\u00b7 bulk \u8f68 154559B \u5e76\u5b58\u3002"
     }
   ],
-  "active_frontier": "mindmap-frontier-v45-semantic-diverge.json",
+  "active_frontier": "mindmap-frontier-v45-semantic-8k.json",
   "waves_done": [
     "wave71-lisp-codegen-diffuse",
     "wave72-compose15-runner-promote",
@@ -1164,6 +1182,7 @@
     "wave90-proc-io",
     "wave91-proc-io-release-promote",
     "wave92-lisp-codegen-resume",
-    "wave93-semantic-diverge"
+    "wave93-semantic-diverge",
+    "wave94-semantic-8k"
   ]
 }

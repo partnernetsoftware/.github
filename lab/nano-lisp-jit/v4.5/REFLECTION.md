@@ -614,3 +614,9 @@ Wave34–69 产生 **36+ 张**扩展活图与大量 `*.continue.100` 键；听�
 - **根因**：`compose15_expand_path_for_tag` 未门控 → semantic 误走 bulk（Wave92 同 hash 假象）。
 - **修复**：仅 `bulk-scale`/`expand` profile 启用 expand；`lisp/modules` 真路径 code_bytes=**489**。
 - **双轨**：体积 metric（154K bulk）vs 语义 metric（489 semantic）并存；下一刀 semantic 阶梯扩面。
+
+## Wave94 反思
+
+- **semantic 8K**：`lisp/modules-semantic/tu-main-8k.lisp`（700 func）+ profile `compose-15link-semantic` → code_bytes=**9286**。
+- **非 bulk**：semantic 轨用 `modules-semantic/`，bulk 仍 `modules-expand/`；双轨并存。
+- **下一刀**：semantic 32K 阶梯（调 `-n` / 多槽扩面）。

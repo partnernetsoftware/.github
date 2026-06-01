@@ -730,6 +730,7 @@ static const char *lispjit_from_lisp_profile_path(void) {
   if (lispjit_from_lisp_profile_named("compose-15link") ||
       lispjit_from_lisp_profile_named("compose-15link-expand") ||
       lispjit_from_lisp_profile_named("compose-15link-bulk-scale") ||
+      lispjit_from_lisp_profile_named("compose-15link-semantic") ||
       lispjit_from_lisp_profile_named("semantic-full"))
     return "lab/nano-lisp-jit/lisp/core/lisp-tu-main.lisp";
   if (p) return p;
@@ -989,6 +990,21 @@ static int compose15_use_expand_modules(void) {
          lispjit_from_lisp_profile_named("compose-15link-bulk-scale");
 }
 
+static int compose15_use_semantic_expand_modules(void) {
+  return lispjit_from_lisp_profile_named("compose-15link-semantic");
+}
+
+static const char *compose15_semantic_expand_path_for_tag(const char *tag) {
+  if (!tag) return NULL;
+  if (strcmp(tag, "main") == 0)
+    return "lab/nano-lisp-jit/lisp/modules-semantic/tu-main-8k.lisp";
+  if (strcmp(tag, "mf") == 0)
+    return "lab/nano-lisp-jit/lisp/modules-semantic/mf-semantic-40.lisp";
+  if (strcmp(tag, "core") == 0)
+    return "lab/nano-lisp-jit/lisp/modules-semantic/core-semantic-40.lisp";
+  return NULL;
+}
+
 static const char *compose15_expand_path_for_tag(const char *tag) {
   if (!tag) return NULL;
   if (strcmp(tag, "main") == 0)
@@ -1065,11 +1081,17 @@ static int lispjit_from_lisp_build_compose_15link(const char *out_path, const ch
   }
   if (compose15_use_expand_modules())
     printf("build-slice-lisp.compose15_expand=1\n");
+  if (compose15_use_semantic_expand_modules())
+    printf("build-slice-lisp.compose15_semantic_expand=1\n");
   for (i = 0; i < (size_t)mod_count; ++i) {
     const char *src = mods[i].path;
+    const char *semantic =
+        compose15_use_semantic_expand_modules() ? compose15_semantic_expand_path_for_tag(mods[i].tag)
+                                                : NULL;
     const char *expand =
         compose15_use_expand_modules() ? compose15_expand_path_for_tag(mods[i].tag) : NULL;
-    if (expand) src = expand;
+    if (semantic) src = semantic;
+    else if (expand) src = expand;
     snprintf(obj_paths[i], sizeof(obj_paths[i]), "%s.lispjit-compose15-%s.o", out_path, mods[i].tag);
     rc = cmd_compile_elf64_obj_code(src, obj_paths[i], mods[i].sym);
     if (rc != 0) return rc;
@@ -1206,6 +1228,8 @@ static int build_slice_via_lispjit_from_lisp(const char *src_path, const char *o
   if (profile_env && strcmp(profile_env, "compose-15link-expand") == 0)
     return lispjit_from_lisp_build_compose_15link(out_path, arch);
   if (profile_env && strcmp(profile_env, "compose-15link-bulk-scale") == 0)
+    return lispjit_from_lisp_build_compose_15link(out_path, arch);
+  if (profile_env && strcmp(profile_env, "compose-15link-semantic") == 0)
     return lispjit_from_lisp_build_compose_15link(out_path, arch);
   if (profile_env && strcmp(profile_env, "semantic-full") == 0)
     return lispjit_from_lisp_build_compose_15link(out_path, arch);
