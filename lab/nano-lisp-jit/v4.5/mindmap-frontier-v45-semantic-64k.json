@@ -1,0 +1,16 @@
+{
+  "ssot": "v4.5/DIFFUSE-WAVE96.md",
+  "parent_goal": "mindmap-goal-nano-jit-com.json",
+  "updated_at": "2026-05-30T00:00:00Z",
+  "max_parallel": 4,
+  "breadth_ring": "semantic 64K — modules-semantic · compose-15link-semantic-64k",
+  "nodes": [
+    {"id": "v45-w96-gate", "status": "todo", "accept": ["v45.goal.semantic_32k_milestone=1"]},
+    {"id": "v45-w96-gen", "status": "todo", "deps": ["v45-w96-gate"],
+     "plan": "tools/gen-semantic-compose15.py --slot tu-main-64k"},
+    {"id": "v45-w96-64k", "status": "todo", "deps": ["v45-w96-gen"],
+     "accept": ["v45.goal.semantic_64k_milestone=1", "code_bytes>=64000"]},
+    {"id": "v45-w96-journal", "status": "todo", "deps": ["v45-w96-64k"],
+     "accept": ["journal[-1].verified=true"]}
+  ]
+}
