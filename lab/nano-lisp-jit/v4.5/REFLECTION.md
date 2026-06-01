@@ -620,3 +620,9 @@ Wave34–69 产生 **36+ 张**扩展活图与大量 `*.continue.100` 键；听�
 - **semantic 8K**：`lisp/modules-semantic/tu-main-8k.lisp`（700 func）+ profile `compose-15link-semantic` → code_bytes=**9286**。
 - **非 bulk**：semantic 轨用 `modules-semantic/`，bulk 仍 `modules-expand/`；双轨并存。
 - **下一刀**：semantic 32K 阶梯（调 `-n` / 多槽扩面）。
+
+## Wave95 反思
+
+- **semantic 32K**：`tu-main-32k.lisp`（2765 func）+ profile `compose-15link-semantic-32k` → code_bytes=**32001**。
+- **三轨**：8K(9286) / 32K(32001) / bulk(154559) 并存；genesis pin 155648B 保留。
+- **下一刀**：semantic 64K 阶梯。
