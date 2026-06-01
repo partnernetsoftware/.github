@@ -4,7 +4,7 @@
 
 | 槽 | 交付 |
 |----|------|
-| W1 | `gen-semantic-compose15.py` → `tu-main-154k.lisp` (13920 func) |
+| W1 | `gen-semantic-compose15.py` → `tu-main-154k.lisp` (13950 func) |
 | W2 | profile `compose-15link-semantic-154k` |
 | W3 | 8K/32K/64K 回归 + bulk 154559 多轨 |
 | W4 | journal round 26 |

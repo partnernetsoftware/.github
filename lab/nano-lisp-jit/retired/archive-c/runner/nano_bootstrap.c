@@ -734,6 +734,7 @@ static const char *lispjit_from_lisp_profile_path(void) {
       lispjit_from_lisp_profile_named("compose-15link-semantic-32k") ||
       lispjit_from_lisp_profile_named("compose-15link-semantic-64k") ||
       lispjit_from_lisp_profile_named("compose-15link-semantic-154k") ||
+      lispjit_from_lisp_profile_named("compose-15link-semantic-unified") ||
       lispjit_from_lisp_profile_named("compose-15link-semantic-full") ||
       lispjit_from_lisp_profile_named("semantic-full"))
     return "lab/nano-lisp-jit/lisp/core/lisp-tu-main.lisp";
@@ -994,6 +995,10 @@ static int compose15_use_expand_modules(void) {
          lispjit_from_lisp_profile_named("compose-15link-bulk-scale");
 }
 
+static int compose15_use_semantic_unified(void) {
+  return lispjit_from_lisp_profile_named("compose-15link-semantic-unified");
+}
+
 static int compose15_use_semantic_full_15slot(void) {
   return lispjit_from_lisp_profile_named("compose-15link-semantic-full");
 }
@@ -1003,6 +1008,7 @@ static int compose15_use_semantic_expand_modules(void) {
          lispjit_from_lisp_profile_named("compose-15link-semantic-32k") ||
          lispjit_from_lisp_profile_named("compose-15link-semantic-64k") ||
          lispjit_from_lisp_profile_named("compose-15link-semantic-154k") ||
+         compose15_use_semantic_unified() ||
          compose15_use_semantic_full_15slot();
 }
 
@@ -1042,7 +1048,8 @@ static const char *compose15_semantic_full_path_for_tag(const char *tag) {
 }
 
 static const char *compose15_semantic_main_expand_path(void) {
-  if (lispjit_from_lisp_profile_named("compose-15link-semantic-154k"))
+  if (lispjit_from_lisp_profile_named("compose-15link-semantic-154k") ||
+      lispjit_from_lisp_profile_named("compose-15link-semantic-unified"))
     return "lab/nano-lisp-jit/lisp/modules-semantic/tu-main-154k.lisp";
   if (lispjit_from_lisp_profile_named("compose-15link-semantic-64k"))
     return "lab/nano-lisp-jit/lisp/modules-semantic/tu-main-64k.lisp";
@@ -1053,6 +1060,11 @@ static const char *compose15_semantic_main_expand_path(void) {
 
 static const char *compose15_semantic_expand_path_for_tag(const char *tag) {
   if (!tag) return NULL;
+  if (compose15_use_semantic_unified()) {
+    if (strcmp(tag, "main") == 0)
+      return compose15_semantic_main_expand_path();
+    return compose15_semantic_full_path_for_tag(tag);
+  }
   if (compose15_use_semantic_full_15slot())
     return compose15_semantic_full_path_for_tag(tag);
   if (strcmp(tag, "main") == 0)
@@ -1144,6 +1156,8 @@ static int lispjit_from_lisp_build_compose_15link(const char *out_path, const ch
     printf("build-slice-lisp.compose15_semantic_expand=1\n");
   if (compose15_use_semantic_full_15slot())
     printf("build-slice-lisp.compose15_semantic_full_15slot=1\n");
+  if (compose15_use_semantic_unified())
+    printf("build-slice-lisp.compose15_semantic_unified=1\n");
   for (i = 0; i < (size_t)mod_count; ++i) {
     const char *src = mods[i].path;
     const char *semantic =
@@ -1298,6 +1312,8 @@ static int build_slice_via_lispjit_from_lisp(const char *src_path, const char *o
     return lispjit_from_lisp_build_compose_15link(out_path, arch);
   if (profile_env && strcmp(profile_env, "compose-15link-semantic-154k") == 0)
     return lispjit_from_lisp_build_compose_15link(out_path, arch);
+  if (profile_env && strcmp(profile_env, "compose-15link-semantic-unified") == 0)
+    return lispjit_from_lisp_build_compose_15link(out_path, arch);
   if (profile_env && strcmp(profile_env, "compose-15link-semantic-full") == 0)
     return lispjit_from_lisp_build_compose_15link(out_path, arch);
   if (profile_env && strcmp(profile_env, "semantic-full") == 0)
@@ -1342,6 +1358,7 @@ static int build_slice_via_lispjit_from_lisp(const char *src_path, const char *o
   } else if (lispjit_from_lisp_profile_named("compose-15link") ||
              lispjit_from_lisp_profile_named("compose-15link-expand") ||
              lispjit_from_lisp_profile_named("compose-15link-bulk-scale") ||
+             lispjit_from_lisp_profile_named("compose-15link-semantic-unified") ||
              lispjit_from_lisp_profile_named("compose-15link-semantic-full") ||
              lispjit_from_lisp_profile_named("semantic-full")) {
     printf("build-slice.lispjit_proxy=semantic-full\n");

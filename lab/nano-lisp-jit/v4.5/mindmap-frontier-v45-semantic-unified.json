@@ -1,0 +1,14 @@
+{
+  "ssot": "v4.5/DIFFUSE-WAVE99.md",
+  "parent_goal": "mindmap-goal-nano-jit-com.json",
+  "updated_at": "2026-06-01T00:00:00Z",
+  "max_parallel": 4,
+  "breadth_ring": "semantic-unified — tu-main-154k + sem-* ×14",
+  "nodes": [
+    {"id": "v45-w99-gate", "status": "todo", "accept": ["v45.goal.semantic_15slot_real_modules=1"]},
+    {"id": "v45-w99-unified", "status": "todo", "deps": ["v45-w99-gate"],
+     "accept": ["v45.goal.semantic_unified_milestone=1", "code_bytes>=154000"]},
+    {"id": "v45-w99-journal", "status": "todo", "deps": ["v45-w99-unified"],
+     "accept": ["journal[-1].verified=true"]}
+  ]
+}

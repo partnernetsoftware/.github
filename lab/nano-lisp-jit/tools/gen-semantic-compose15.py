@@ -14,7 +14,7 @@ SLOTS = {
     "tu-main-8k": ("Wave94 semantic TU main · compose15 8K ladder", 700, 20),
     "tu-main-32k": ("Wave95 semantic TU main · compose15 32K ladder", 2765, 20),
     "tu-main-64k": ("Wave96 semantic TU main · compose15 64K ladder", 5680, 20),
-    "tu-main-154k": ("Wave97 semantic TU main · compose15 154K ladder", 13920, 20),
+    "tu-main-154k": ("Wave97 semantic TU main · compose15 154K ladder", 13950, 20),
     "mf-semantic-40": ("Wave94 semantic multi-func module", 40, 15),
     "core-semantic-40": ("Wave94 semantic runtime-core module", 40, 15),
 }

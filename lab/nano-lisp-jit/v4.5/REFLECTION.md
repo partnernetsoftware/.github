@@ -645,3 +645,9 @@ Wave34–69 产生 **36+ 张**扩展活图与大量 `*.continue.100` 键；听�
 - **profile** `compose-15link-semantic-full`：全 15 槽走 modules-semantic，hash ≠ bulk。
 - **双轨并存**：154K 生成体阶梯保留；full 轨用真模块（~489B code）。
 - **下一刀**：真模块 + 154K main 合一 profile。
+
+## Wave99 反思
+
+- **semantic-unified**：`tu-main-154k` + `sem-*` ×14 · profile `compose-15link-semantic-unified`。
+- **合一**：154K 体积轨 + 真语义 14 槽；hash ≠ semantic-full(489B)。
+- **下一刀**：L4 semantic 终局签收 · 工厂零 C 卷。

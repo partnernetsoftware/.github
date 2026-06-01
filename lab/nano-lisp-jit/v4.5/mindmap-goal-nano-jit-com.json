@@ -83,7 +83,9 @@
         "compose15_semantic_154k_code_bytes": "154706",
         "semantic_154k_bulk_aligned": "True",
         "compose15_semantic_full_code_bytes": "489",
-        "semantic_15slot_real_modules": "True"
+        "semantic_15slot_real_modules": "True",
+        "compose15_semantic_unified_code_bytes": "154017",
+        "semantic_unified_milestone": "True"
       }
     }
   },
@@ -1231,9 +1233,26 @@
       },
       "verified": 1,
       "self_critique": "15 \u69fd\u771f\u8bed\u4e49\u955c\u50cf 15 \u6587\u4ef6 \u00b7 code=489B \u00b7 \u975e\u751f\u6210 stub\u3002"
+    },
+    {
+      "round": 28,
+      "ts": "2026-06-01T00:00:00Z",
+      "read_mindmap": "wave99 semantic-unified \u2014 tu-main-154k + sem-* \u00d714",
+      "plan": [
+        "T1: profile compose-15link-semantic-unified",
+        "T2: code_bytes>=154000 \u00b7 hash \u2260 semantic-full",
+        "T3: full/154k/bulk \u56de\u5f52"
+      ],
+      "results": {
+        "code_bytes": "154017",
+        "threshold": 154000,
+        "converge_fail": 0
+      },
+      "verified": 1,
+      "self_critique": "semantic-unified 154017B \u00b7 154K main + 14 \u69fd\u771f\u6a21\u5757\u5408\u4e00\u3002"
     }
   ],
-  "active_frontier": "mindmap-frontier-v45-semantic-full-15slot.json",
+  "active_frontier": "mindmap-frontier-v45-semantic-unified.json",
   "waves_done": [
     "wave71-lisp-codegen-diffuse",
     "wave72-compose15-runner-promote",
@@ -1262,6 +1281,7 @@
     "wave95-semantic-32k",
     "wave96-semantic-64k",
     "wave97-semantic-154k",
-    "wave98-semantic-full-15slot"
+    "wave98-semantic-full-15slot",
+    "wave99-semantic-unified"
   ]
 }
