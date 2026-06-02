@@ -23,4 +23,9 @@ cmp -s "$TMP/rs.ape" "$TMP/com.ape" || {
 "$RS" inspect-ape "$TMP/rs.ape" | grep -q 'inspect-ape.ok=1'
 "$RS" pack-ape "$TMP/rs.com" "$X86" "$ARM" >/dev/null
 "$RS" inspect-ape "$TMP/rs.com" | grep -q 'inspect-ape.ok=1'
+log=$("$RS" run-ape "$TMP/rs.com" 2>&1 || true)
+echo "$log" | grep -q 'run-ape.loader=memfd'
+log=$("$RS" run-ape "$TMP/rs.ape" 2>&1 || true)
+echo "$log" | grep -q 'run-ape.loader=memfd'
+"$RS" run-ape-expect-exit "$TMP/rs.com" 2 2>&1 | grep -q 'run-ape-expect-exit.ok=1'
 echo "nano-jit-rs-ape-smoke=ok"

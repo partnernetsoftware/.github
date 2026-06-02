@@ -39,12 +39,13 @@ $RS run /tmp/strlen.lbin
 | `dump` / `hash` / `resolve-quiet` | bytecode introspection | ✅ |
 | `inspect-ape` | COM container probe | ✅ |
 | `pack-ape` / `pack-ape-bare` | dual-ELF → APE v2 | ✅ byte parity vs C |
+| `run-ape` / `run-ape-expect-exit` | execute COM slice | ✅ v2 memfd |
 
 ## Migration phases
 
 1. **Done** — VM + CLI on x86_64/aarch64 Linux
 2. **Done (2b)** — bootstrap-smoke 8 程序 compile hash 与 C COM 一致
-3. **Next** — `run-ape` + AOT multi-arch
-4. **Last** — replace `release/nano-lisp.com` (Rust self-host bootstrap)
+3. **Done (4a)** — pack-ape + run-ape v2 (memfd)
+4. **Next** — AOT multi-arch + replace `release/nano-lisp.com`
 
 See `lab/nano-lisp-jit/v4.5/RUST-MIGRATION.md`.

@@ -24,6 +24,8 @@ Usage:\n\
   nano-jit inspect-ape <file.com>\n\
   nano-jit pack-ape <out.com> <x86.elf> <aarch64.elf>\n\
   nano-jit pack-ape-bare <out.ape> <x86.elf> <aarch64.elf>\n\
+  nano-jit run-ape <file.com> [x86_64|aarch64]\n\
+  nano-jit run-ape-expect-exit <file.com> <exit> [arch]\n\
   nano-jit version\n\
 Env:\n\
   NANO_JIT_LEGACY       force legacy COM compile when set\n\
@@ -53,6 +55,16 @@ fn main() -> ExitCode {
         }
         "pack-ape-bare" if args.len() == 5 => {
             ape::pack_ape_bare(Path::new(&args[2]), Path::new(&args[3]), Path::new(&args[4]))
+        }
+        "run-ape" if args.len() == 3 => ape::run_ape(Path::new(&args[2]), None),
+        "run-ape" if args.len() == 4 => {
+            ape::run_ape(Path::new(&args[2]), Some(args[3].as_str()))
+        }
+        "run-ape-expect-exit" if args.len() == 4 => {
+            ape::run_ape_expect_exit(Path::new(&args[2]), &args[3], None)
+        }
+        "run-ape-expect-exit" if args.len() == 5 => {
+            ape::run_ape_expect_exit(Path::new(&args[2]), &args[3], Some(args[4].as_str()))
         }
         "compile" if args.len() == 4 => cmd_compile(Path::new(&args[2]), Path::new(&args[3])),
         _ => {

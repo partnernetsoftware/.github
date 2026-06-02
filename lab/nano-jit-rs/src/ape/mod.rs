@@ -1,10 +1,13 @@
-//! APE v2 — inspect + pack (port of C `nano_ape.c` / `ape_v2.c`).
+//! APE v2 — inspect + pack + run (port of C `nano_ape.c` / `ape_v2.c`).
 
 mod inspect;
 mod pack;
+mod run;
+mod v2;
 
 pub use inspect::inspect_ape;
 pub use pack::{pack_ape, pack_ape_bare};
+pub use run::{run_ape, run_ape_expect_exit};
 
 pub const V2_MAGIC: [u8; 8] = [0x7f, b'N', b'A', b'N', b'O', b'a', b'p', b'e'];
 pub const MARKER: &[u8] = b"__NANO_APE_PAYLOAD_BELOW__\n";
@@ -21,12 +24,18 @@ pub fn header_bytes(slice_count: u16) -> usize {
 }
 
 pub fn find_payload_start(data: &[u8]) -> Option<usize> {
+    // Mode A: shell stub + marker line
     if let Some(idx) = data.windows(MARKER.len()).position(|w| w == MARKER) {
         let ps = idx + MARKER.len();
         if data[ps..].starts_with(&V2_MAGIC) {
             return Some(ps);
         }
     }
+    // Mode B: bare container — v2 header at offset 0
+    if data.starts_with(&V2_MAGIC) {
+        return Some(0);
+    }
+    // Fallback: last line-aligned v2 magic (stub tail without marker match)
     let mut last = None;
     let mut i = 0;
     while i + V2_MAGIC.len() <= data.len() {
@@ -42,7 +51,7 @@ pub fn is_elf(data: &[u8]) -> bool {
     data.len() >= 4 && data[..4] == [0x7f, b'E', b'L', b'F']
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct SliceRow {
     pub arch_id: u8,
     pub os_id: u8,
