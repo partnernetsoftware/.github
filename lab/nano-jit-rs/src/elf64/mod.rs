@@ -1,9 +1,15 @@
 //! Minimal ELF64 ET_EXEC emitter — port of `nano_elf64.c` RX / multi-section layout.
 
+mod link;
+mod obj;
+
 use std::fs;
 use std::io;
 use std::os::unix::fs::PermissionsExt;
 use std::path::Path;
+
+pub use link::{link_exe, link_exe_from_obj};
+pub use obj::{emit_obj_file, ObjRela, ObjSymbol};
 
 const EHDR_SIZE: usize = 64;
 const PHDR_SIZE: usize = 56;

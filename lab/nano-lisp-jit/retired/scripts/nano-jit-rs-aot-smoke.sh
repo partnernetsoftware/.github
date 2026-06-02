@@ -43,6 +43,15 @@ run_case arithmetic 42
 run_case control-flow 1
 run_case arithmetic-bad 125
 
+MF="$TMP/multi-func.elf"
+"$RS" compile-elf64-exe "$CORE/multi-func.lisp" "$MF" nano_main >/dev/null
+log=$("$RS" run-expect-exit "$MF" 43 2>&1) || true
+echo "$log" | grep -q 'run-expect-exit.ok=1' || {
+  echo "nano-jit-rs-aot-smoke=fail multi-func"
+  echo "$log"
+  exit 1
+}
+
 # compile-elf64-code one-shot
 CE="$TMP/compile-arith.elf"
 "$RS" compile-elf64-code "$CORE/arithmetic.lisp" "$CE" >/dev/null

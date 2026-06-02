@@ -1,7 +1,8 @@
 mod emit;
-mod parse;
+pub mod parse;
 
 pub use emit::CompileError;
+pub use parse::{parse_module, InstrDef, Module, SrcForm};
 use std::path::Path;
 
 pub fn compile_source(src: &str) -> Result<Vec<u8>, CompileError> {

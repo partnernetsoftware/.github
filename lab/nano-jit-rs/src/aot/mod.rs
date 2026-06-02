@@ -1,6 +1,8 @@
+mod multi;
 mod pure_eval;
 mod x86;
 
+use crate::compile::parse_module;
 use crate::lbin::parse_blob;
 use std::path::Path;
 
@@ -68,7 +70,7 @@ pub fn cmd_aot_elf64_code(blob_path: &Path, out_path: &Path) -> i32 {
             return 1;
         }
     };
-    match x86::compile_pure_to_elf_exit(&blob, out_path) {
+    match x86::compile_pure_to_elf_via_link(&blob, out_path, "nano_main") {
         Ok(code_bytes) => {
             println!("link.output={}", out_path.display());
             println!("link.objects=1");
@@ -91,7 +93,7 @@ pub fn cmd_compile_elf64_code(lisp_path: &Path, out_path: &Path) -> i32 {
                     return 1;
                 }
             };
-            match x86::compile_pure_to_elf_exit(&blob, out_path) {
+            match x86::compile_pure_to_elf_via_link(&blob, out_path, "nano_main") {
                 Ok(_) => {
                     println!("compile.elf64.output={}", out_path.display());
                     println!("compile.elf64.symbol=nano_main");
@@ -108,6 +110,104 @@ pub fn cmd_compile_elf64_code(lisp_path: &Path, out_path: &Path) -> i32 {
             eprintln!("{e}");
             eprintln!("compile-elf64-code=compile_fail");
             1
+        }
+    }
+}
+
+pub fn cmd_compile_elf64_exe(lisp_path: &Path, out_path: &Path, entry_symbol: &str) -> i32 {
+    let src = match std::fs::read_to_string(lisp_path) {
+        Ok(s) => s,
+        Err(_) => {
+            eprintln!("compile-elf64-exe=compile_fail");
+            return 1;
+        }
+    };
+    let module = match parse_module(&src) {
+        Ok(m) => m,
+        Err(e) => {
+            eprintln!("{e}");
+            eprintln!("compile-elf64-exe=compile_fail");
+            return 1;
+        }
+    };
+    if module.funcs.is_empty() {
+        match crate::compile::compile_to_blob(lisp_path) {
+            Ok(data) => {
+                let blob = match parse_blob(&data) {
+                    Ok(b) => b,
+                    Err(_) => {
+                        eprintln!("compile-elf64-exe=compile_fail");
+                        return 1;
+                    }
+                };
+                let sym = if entry_symbol.is_empty() {
+                    "nano_main"
+                } else {
+                    entry_symbol
+                };
+                match x86::compile_pure_to_elf_via_link(&blob, out_path, sym) {
+                    Ok(_) => {
+                        println!("compile.elf64.exe.output={}", out_path.display());
+                        println!("compile.elf64.exe.symbol={sym}");
+                        println!("compile.elf64.exe.mode=multi-func");
+                        0
+                    }
+                    Err(2) => {
+                        eprintln!("compile-elf64-exe=unsupported_source");
+                        2
+                    }
+                    Err(e) => e,
+                }
+            }
+            Err(e) => {
+                eprintln!("{e}");
+                eprintln!("compile-elf64-exe=compile_fail");
+                1
+            }
+        }
+    } else {
+        match multi::compile_module_to_elf64_exe(&module, out_path, entry_symbol) {
+            Ok(_) => {
+                println!("compile.elf64.exe.output={}", out_path.display());
+                println!("compile.elf64.exe.symbol={entry_symbol}");
+                println!("compile.elf64.exe.mode=multi-func");
+                0
+            }
+            Err(crate::compile::CompileError::LowerFail { .. }) => {
+                eprintln!("compile-elf64-exe=unsupported_source");
+                2
+            }
+            Err(e) => {
+                eprintln!("{e}");
+                eprintln!("compile-elf64-exe=compile_fail");
+                1
+            }
+        }
+    }
+}
+
+pub fn cmd_link_elf64_exe(out_path: &Path, entry: &str, obj_paths: &[&Path]) -> i32 {
+    if entry.is_empty() || obj_paths.is_empty() {
+        eprintln!("link-elf64-exe=bad_args");
+        return 1;
+    }
+    match crate::elf64::link_exe(out_path, entry, obj_paths) {
+        Ok(code_bytes) => {
+            println!("link.output={}", out_path.display());
+            println!("link.objects={}", obj_paths.len());
+            println!("link.code.bytes={code_bytes}");
+            0
+        }
+        Err(e) => {
+            eprintln!("{e}");
+            let msg = e.to_string();
+            if msg.contains("entry_missing") {
+                3
+            } else if msg.contains("parse_fail") {
+                2
+            } else {
+                4
+            }
         }
     }
 }

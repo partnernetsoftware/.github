@@ -616,6 +616,53 @@ fn compile_pure_blob_to_x86(
     true
 }
 
+pub fn compile_pure_to_elf64_obj(b: &Blob, obj_path: &Path, symbol: &str) -> Result<Vec<u8>, i32> {
+    let mut code = CodeBuf::new();
+    let mut rodata = CodeBuf::new();
+    let mut data = CodeBuf::new();
+    if !compile_pure_blob_to_x86(b, false, &mut code, &mut rodata, &mut data) {
+        return Err(2);
+    }
+    if !rodata.data.is_empty() || !data.data.is_empty() {
+        // rodata/data objects need section relocs — fall back to direct exec emit for now
+        if !compile_pure_blob_to_x86(b, true, &mut code, &mut rodata, &mut data) {
+            return Err(2);
+        }
+        return Err(2);
+    }
+    let sym = crate::elf64::ObjSymbol {
+        name: symbol.to_string(),
+        info: 0x12,
+        shndx: 1,
+        value: 0,
+        size: code.len() as u64,
+    };
+    crate::elf64::emit_obj_file(obj_path, &code.data, &[sym], &[]).map_err(|_| 3)?;
+    Ok(code.data)
+}
+
+pub fn compile_pure_to_elf_via_link(b: &Blob, path: &Path, symbol: &str) -> Result<usize, i32> {
+    let tmp = std::env::temp_dir().join(format!(
+        "nano-jit-rs-{}.o",
+        std::process::id()
+    ));
+    let _code = match compile_pure_to_elf64_obj(b, &tmp, symbol) {
+        Ok(c) => c,
+        Err(2) => {
+            // blobs with rodata/data: direct exec (exit_style) still correct
+            return compile_pure_to_elf_exit(b, path);
+        }
+        Err(e) => return Err(e),
+    };
+    let n = crate::elf64::link_exe_from_obj(path, symbol, &tmp)
+        .map_err(|_| {
+            eprintln!("aot-elf64-code=write_fail path={}", path.display());
+            3
+        })?;
+    let _ = std::fs::remove_file(&tmp);
+    Ok(n)
+}
+
 pub fn compile_pure_to_elf_exit(b: &Blob, path: &Path) -> Result<usize, i32> {
     let mut code = CodeBuf::new();
     let mut rodata = CodeBuf::new();

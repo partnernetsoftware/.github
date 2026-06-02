@@ -49,7 +49,7 @@ $RS run /tmp/strlen.lbin
 1. **Done** — VM + CLI on x86_64/aarch64 Linux
 2. **Done (2b)** — bootstrap-smoke 8 程序 compile hash 与 C COM 一致
 3. **Done (4a)** — pack-ape + run-ape v2 (memfd)
-4. **Done (3a-c)** — x86 AOT: emit / constexpr exit / pure blob codegen
-5. **Next** — link-elf64-exe + multi-func + replace `release/nano-lisp.com`
+4. **Done (3d)** — link-elf64-exe + compile-elf64-exe (multi-func exit 43)
+5. **Next** — const-ptr rodata obj · replace `release/nano-lisp.com`
 
 See `lab/nano-lisp-jit/v4.5/RUST-MIGRATION.md`.

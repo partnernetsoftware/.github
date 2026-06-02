@@ -33,6 +33,8 @@ Usage:\n\
   nano-jit aot-elf64-exit <file.lbin> <out.elf>\n\
   nano-jit aot-elf64-code <file.lbin> <out.elf>\n\
   nano-jit compile-elf64-code <in.lisp> <out.elf>\n\
+  nano-jit compile-elf64-exe <in.lisp> <out.elf> <entry_symbol>\n\
+  nano-jit link-elf64-exe <out.elf> <entry_symbol> <obj.o>...\n\
   nano-jit run-expect-exit <executable> <expected_exit>\n\
   nano-jit version\n\
 Env:\n\
@@ -86,6 +88,15 @@ fn main() -> ExitCode {
         }
         "compile-elf64-code" if args.len() == 4 => {
             aot::cmd_compile_elf64_code(Path::new(&args[2]), Path::new(&args[3]))
+        }
+        "compile-elf64-exe" if args.len() == 5 => {
+            aot::cmd_compile_elf64_exe(Path::new(&args[2]), Path::new(&args[3]), &args[4])
+        }
+        "link-elf64-exe" if args.len() >= 5 => {
+            let out = Path::new(&args[2]);
+            let entry = &args[3];
+            let objs: Vec<&Path> = args[4..].iter().map(|s| Path::new(s.as_str())).collect();
+            aot::cmd_link_elf64_exe(out, entry, &objs)
         }
         "run-expect-exit" if args.len() == 4 => {
             run::run_expect_exit(Path::new(&args[2]), &args[3])
