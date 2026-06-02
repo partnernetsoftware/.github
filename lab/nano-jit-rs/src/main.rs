@@ -22,9 +22,12 @@ Usage:\n\
   nano-jit hash <file.lbin>\n\
   nano-jit resolve-quiet <file.lbin>\n\
   nano-jit inspect-ape <file.com>\n\
+  nano-jit pack-ape <out.com> <x86.elf> <aarch64.elf>\n\
+  nano-jit pack-ape-bare <out.ape> <x86.elf> <aarch64.elf>\n\
   nano-jit version\n\
 Env:\n\
-  NANO_JIT_LEGACY  force legacy COM compile when set\n"
+  NANO_JIT_LEGACY       force legacy COM compile when set\n\
+  NANO_PACK_APE_MODE    stub (default) | bare\n"
 }
 
 fn main() -> ExitCode {
@@ -45,6 +48,12 @@ fn main() -> ExitCode {
         "hash" if args.len() == 3 => cmd_hash(Path::new(&args[2])),
         "resolve-quiet" if args.len() == 3 => cmd_resolve(Path::new(&args[2]), true),
         "inspect-ape" if args.len() == 3 => ape::inspect_ape(Path::new(&args[2])),
+        "pack-ape" if args.len() == 5 => {
+            ape::pack_ape(Path::new(&args[2]), Path::new(&args[3]), Path::new(&args[4]))
+        }
+        "pack-ape-bare" if args.len() == 5 => {
+            ape::pack_ape_bare(Path::new(&args[2]), Path::new(&args[3]), Path::new(&args[4]))
+        }
         "compile" if args.len() == 4 => cmd_compile(Path::new(&args[2]), Path::new(&args[3])),
         _ => {
             eprint!("{}", usage());

@@ -1,43 +1,44 @@
 # nano-jit.com Rust 迁移
 
-**目标**：`nano-jit.com` 多架构 compile + run `.lisp` / `.lbin`，逐步替换 C runner。
+**目标**：商用级 `nano-jit.com` — 多架构 compile + run `.lisp` / `.lbin`，最终替换 C runner。
 
 ## 产物模型
 
 ```
 .lisp  ──compile──▶  .lbin  ──run──▶  exit code
  源（S-expr）         字节码（LBIN01）    VM 执行
+
+ELF slices ──pack-ape──▶  .com  ──run-ape──▶  native exec
 ```
 
-类比 Java：`.lisp` ≈ `.java`，`.lbin` ≈ `.class`。运行时只需 `.lbin`，不依赖源文件。
-`compile` 与 `run` 是两条独立命令；Rust 重构分别对应 **编译器前端** 与 **VM 后端**。
+类比 Java：`.lisp` ≈ `.java`，`.lbin` ≈ `.class`。
 
 ## 现状（2026-06）
 
-| 组件 | C (`lispjit.c`) | Rust (`nano-jit-rs`) |
-|------|-----------------|----------------------|
-| `.lbin` VM run | ✅ | ✅ Phase 1 |
-| `.lisp` compile | ✅ | ✅ Phase 2b (bootstrap-smoke core) |
-| x86_64 AOT | ✅ | ❌ Phase 3 |
-| aarch64 codegen | stub | ❌ Phase 3 |
-| APE pack/inspect | ✅ | inspect ✅ / pack ❌ |
-| 6-face COM | Linux 2/2 | 待 Phase 4 |
+| 组件 | C | Rust | 进度 |
+|------|---|------|------|
+| `.lbin` VM run | ✅ | ✅ | 100% |
+| `.lisp` → `.lbin` compile | ✅ | ✅ 21/21 `lisp/core` module | 95%（ir-table 另 DSL） |
+| `pack-ape` / `pack-ape-bare` | ✅ | ✅ 与 C 字节一致 | 80%（stub+bare） |
+| `inspect-ape` | ✅ | ✅ | 100% |
+| `run-ape` | ✅ | ❌ | 0% |
+| x86_64 / aarch64 CLI 二进制 | ✅ | ✅ cross-build | 90% |
+| x86_64 AOT codegen | ✅ | ❌ | 0% |
+| 6-face COM 替换 release | ✅ | ❌ | 0% |
 
-## 仓库布局
+## 验收脚本（产品门禁）
 
+```bash
+bash lab/nano-lisp-jit/build_nano_jit_rs.sh
+bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-smoke.sh          # bootstrap 8 + run
+bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-compile-parity.sh # 21 module hash
+bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-ape-smoke.sh      # pack-ape parity
+cd lab/nano-jit-rs && cargo test
 ```
-lab/nano-jit-rs/          # Rust crate (SSOT for new runner)
-lab/nano-lisp-jit/.build/nano-jit-rs/nano-jit   # release binary
-lab/lispjit-ir/nano_types.h  # wire format SSOT (shared)
-```
 
-## 停止 Wave 证据链
+## 下一里程碑（商用 SOTA）
 
-Rust 重构期间优先 **cargo test + smoke**，不再开 Wave106+ 记账卷。
-
-## 验收（MVP → 产品）
-
-1. `nano-jit run` 与 C COM 对同一 `.lbin` exit 0
-2. `cargo build --target aarch64-unknown-linux-gnu` 产出可运行二进制
-3. Rust `compile` 产出与 C COM 字节级一致（bootstrap-smoke 8 程序）✅
-4. `pack-ape` + dual slice 无 C 种子
+1. **run-ape** — memfd + slice 选择（Linux）
+2. **AOT** — x86_64/aarch64 ELF codegen（Cranelift 或 port C emitter）
+3. **release 替换** — Rust COM 自举 bootstrap-smoke 全链
+4. **类型检查** — VM compile 拒 ill-typed（对齐 AOT，见 PRODUCT-FEEDBACK B02/B03）

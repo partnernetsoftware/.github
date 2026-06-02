@@ -1,12 +1,10 @@
-//! APE v2 inspect — subset of C `inspect-ape`.
+//! APE v2 inspect — port of C `inspect-ape`.
 
-use crate::lbin::{rd32, fnv1a64};
+use super::{find_payload_start, V2_MAGIC};
+use crate::lbin::{fnv1a64, rd32};
 use std::fs;
 use std::io::{self, Write};
 use std::path::Path;
-
-const V2_MAGIC: [u8; 8] = [0x7f, b'N', b'A', b'N', b'O', b'a', b'p', b'e'];
-const MARKER: &[u8] = b"__NANO_APE_PAYLOAD_BELOW__\n";
 
 pub fn inspect_ape(path: &Path) -> i32 {
     let data = match fs::read(path) {
@@ -32,8 +30,10 @@ pub fn inspect_ape(path: &Path) -> i32 {
         let _ = writeln!(io::stderr(), "inspect-ape=bad_version");
         return 3;
     }
-    let slice_count = u16::from_le_bytes(data[payload_start + 12..payload_start + 14].try_into().unwrap());
-    let header_bytes = u16::from_le_bytes(data[payload_start + 14..payload_start + 16].try_into().unwrap());
+    let slice_count =
+        u16::from_le_bytes(data[payload_start + 12..payload_start + 14].try_into().unwrap());
+    let header_bytes =
+        u16::from_le_bytes(data[payload_start + 14..payload_start + 16].try_into().unwrap());
     let expected_hdr = 16 + slice_count as usize * 28;
     if header_bytes as usize != expected_hdr {
         let _ = writeln!(io::stderr(), "inspect-ape=bad_header_bytes");
@@ -56,7 +56,6 @@ pub fn inspect_ape(path: &Path) -> i32 {
         let size = u64::from_le_bytes(data[row + 12..row + 20].try_into().unwrap());
         let hash = u64::from_le_bytes(data[row + 20..row + 28].try_into().unwrap());
         if size == 0 {
-            // probe placeholder row
             println!("inspect-ape.slice.{i}.arch_id={arch_id}");
             println!("inspect-ape.slice.{i}.os_id={os_id}");
             println!("inspect-ape.slice.{i}.offset={offset}");
@@ -92,22 +91,4 @@ pub fn inspect_ape(path: &Path) -> i32 {
     println!("inspect-ape.universal.loader=v2-payload-table");
     println!("inspect-ape.ok=1");
     0
-}
-
-fn find_payload_start(data: &[u8]) -> Option<usize> {
-    if let Some(idx) = data.windows(MARKER.len()).position(|w| w == MARKER) {
-        let ps = idx + MARKER.len();
-        if data[ps..].starts_with(&V2_MAGIC) {
-            return Some(ps);
-        }
-    }
-    let mut last = None;
-    let mut i = 0;
-    while i + V2_MAGIC.len() <= data.len() {
-        if (i == 0 || data[i - 1] == b'\n') && data[i..i + V2_MAGIC.len()] == V2_MAGIC {
-            last = Some(i);
-        }
-        i += 1;
-    }
-    last
 }
