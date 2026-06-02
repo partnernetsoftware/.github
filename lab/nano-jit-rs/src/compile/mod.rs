@@ -25,19 +25,29 @@ mod tests {
     use super::*;
     use crate::lbin::fnv1a64;
 
-    #[test]
-    fn arithmetic_hash_matches_c_com() {
-        let src = include_str!("../../../nano-lisp-jit/lisp/core/arithmetic.lisp");
-        let blob = compile_source(src).expect("compile arithmetic");
-        assert_eq!(blob.len(), 80);
-        assert_eq!(fnv1a64(&blob), 0x75f41532f506a13f);
+    fn assert_hash(lisp_path: &str, expected_hash: u64, expected_len: usize) {
+        let src = std::fs::read_to_string(lisp_path).expect("read lisp");
+        let blob = compile_source(&src).expect("compile");
+        assert_eq!(blob.len(), expected_len, "{lisp_path} len");
+        assert_eq!(fnv1a64(&blob), expected_hash, "{lisp_path} hash");
     }
 
     #[test]
-    fn strlen_hash_matches_c_com() {
-        let src = include_str!("../../../nano-lisp-jit/lisp/core/strlen.lisp");
-        let blob = compile_source(src).expect("compile strlen");
-        assert_eq!(blob.len(), 116);
-        assert_eq!(fnv1a64(&blob), 0x4f3170c08f7fcd9c);
+    fn bootstrap_smoke_hashes_match_c_com() {
+        let root = concat!(env!("CARGO_MANIFEST_DIR"), "/../nano-lisp-jit/lisp/core/");
+        let cases: &[(&str, u64, usize)] = &[
+            ("arithmetic.lisp", 0x75f41532f506a13f, 80),
+            ("arithmetic-i64.lisp", 0x138a59218f2fe963, 368),
+            ("control-flow.lisp", 0x90bca2e8bbbd6968, 764),
+            ("strlen.lisp", 0x4f3170c08f7fcd9c, 116),
+            ("typed-values.lisp", 0xc464394db1145451, 752),
+            ("ptr-values.lisp", 0x40bba0b9cb5248ff, 368),
+            ("const-ptr-load-u8.lisp", 0xba265e2700d093f5, 425),
+            ("libc-smoke.lisp", 0xb6fa78a006774f64, 406),
+        ];
+        for (file, hash, len) in cases {
+            let path = format!("{root}{file}");
+            assert_hash(&path, *hash, *len);
+        }
     }
 }

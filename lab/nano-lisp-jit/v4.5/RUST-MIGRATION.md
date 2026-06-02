@@ -17,7 +17,7 @@
 | 组件 | C (`lispjit.c`) | Rust (`nano-jit-rs`) |
 |------|-----------------|----------------------|
 | `.lbin` VM run | ✅ | ✅ Phase 1 |
-| `.lisp` compile | ✅ | ✅ Phase 2a (arithmetic/strlen) |
+| `.lisp` compile | ✅ | ✅ Phase 2b (bootstrap-smoke core) |
 | x86_64 AOT | ✅ | ❌ Phase 3 |
 | aarch64 codegen | stub | ❌ Phase 3 |
 | APE pack/inspect | ✅ | inspect ✅ / pack ❌ |
@@ -39,5 +39,5 @@ Rust 重构期间优先 **cargo test + smoke**，不再开 Wave106+ 记账卷。
 
 1. `nano-jit run` 与 C COM 对同一 `.lbin` exit 0
 2. `cargo build --target aarch64-unknown-linux-gnu` 产出可运行二进制
-3. Rust `compile` 替代 legacy bridge
+3. Rust `compile` 产出与 C COM 字节级一致（bootstrap-smoke 8 程序）✅
 4. `pack-ape` + dual slice 无 C 种子

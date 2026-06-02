@@ -34,7 +34,7 @@ $RS run /tmp/strlen.lbin
 
 | Command | Role | Status |
 |---------|------|--------|
-| `compile` `.lisp` → `.lbin` | compiler frontend | ✅ Phase 2a (arithmetic/strlen) |
+| `compile` `.lisp` → `.lbin` | compiler frontend | ✅ Phase 2b (bootstrap-smoke) |
 | `run` `.lbin` | VM backend | ✅ |
 | `dump` / `hash` / `resolve-quiet` | bytecode introspection | ✅ |
 | `inspect-ape` | COM container probe | ✅ v2 subset |
@@ -42,8 +42,8 @@ $RS run /tmp/strlen.lbin
 ## Migration phases
 
 1. **Done** — VM + CLI on x86_64/aarch64 Linux
-2. **Done (2a)** — Rust `.lisp` → `.lbin` for core smokes; expand to bootstrap-smoke (2b)
-3. **Next** — AOT multi-arch (Cranelift / object crate)
+2. **Done (2b)** — bootstrap-smoke 8 程序 compile hash 与 C COM 一致
+3. **Next** — func-call / multi-func + AOT multi-arch (Cranelift)
 4. **Last** — APE pack/run-ape, replace `release/nano-lisp.com`
 
 See `lab/nano-lisp-jit/v4.5/RUST-MIGRATION.md`.
