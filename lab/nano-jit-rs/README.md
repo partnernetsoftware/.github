@@ -40,12 +40,16 @@ $RS run /tmp/strlen.lbin
 | `inspect-ape` | COM container probe | ✅ |
 | `pack-ape` / `pack-ape-bare` | dual-ELF → APE v2 | ✅ byte parity vs C |
 | `run-ape` / `run-ape-expect-exit` | execute COM slice | ✅ v2 memfd |
+| `emit-elf64-exit` / `aot-elf64-exit` | constexpr / stub ELF | ✅ |
+| `aot-elf64-code` / `compile-elf64-code` | pure blob x86 AOT | ✅ |
+| `run-expect-exit` | fork/exec/wait test harness | ✅ |
 
 ## Migration phases
 
 1. **Done** — VM + CLI on x86_64/aarch64 Linux
 2. **Done (2b)** — bootstrap-smoke 8 程序 compile hash 与 C COM 一致
 3. **Done (4a)** — pack-ape + run-ape v2 (memfd)
-4. **Next** — AOT multi-arch + replace `release/nano-lisp.com`
+4. **Done (3a-c)** — x86 AOT: emit / constexpr exit / pure blob codegen
+5. **Next** — link-elf64-exe + multi-func + replace `release/nano-lisp.com`
 
 See `lab/nano-lisp-jit/v4.5/RUST-MIGRATION.md`.

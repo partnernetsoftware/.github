@@ -10,14 +10,18 @@ pub fn compile_source(src: &str) -> Result<Vec<u8>, CompileError> {
 }
 
 pub fn compile_path(lisp: &Path, lbin: &Path) -> Result<(), CompileError> {
-    let src = std::fs::read_to_string(lisp).map_err(|_| CompileError::ReadFail {
-        path: lisp.display().to_string(),
-    })?;
-    let blob = compile_source(&src)?;
+    let blob = compile_to_blob(lisp)?;
     std::fs::write(lbin, &blob).map_err(|_| CompileError::WriteFail {
         path: lbin.display().to_string(),
     })?;
     Ok(())
+}
+
+pub fn compile_to_blob(lisp: &Path) -> Result<Vec<u8>, CompileError> {
+    let src = std::fs::read_to_string(lisp).map_err(|_| CompileError::ReadFail {
+        path: lisp.display().to_string(),
+    })?;
+    compile_source(&src)
 }
 
 #[cfg(test)]

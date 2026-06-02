@@ -1,7 +1,10 @@
 mod ape;
+mod aot;
 mod compile;
+mod elf64;
 mod ffi;
 mod lbin;
+mod run;
 mod value;
 mod vm;
 
@@ -26,6 +29,11 @@ Usage:\n\
   nano-jit pack-ape-bare <out.ape> <x86.elf> <aarch64.elf>\n\
   nano-jit run-ape <file.com> [x86_64|aarch64]\n\
   nano-jit run-ape-expect-exit <file.com> <exit> [arch]\n\
+  nano-jit emit-elf64-exit <out.elf> <exit_code>\n\
+  nano-jit aot-elf64-exit <file.lbin> <out.elf>\n\
+  nano-jit aot-elf64-code <file.lbin> <out.elf>\n\
+  nano-jit compile-elf64-code <in.lisp> <out.elf>\n\
+  nano-jit run-expect-exit <executable> <expected_exit>\n\
   nano-jit version\n\
 Env:\n\
   NANO_JIT_LEGACY       force legacy COM compile when set\n\
@@ -67,6 +75,21 @@ fn main() -> ExitCode {
             ape::run_ape_expect_exit(Path::new(&args[2]), &args[3], Some(args[4].as_str()))
         }
         "compile" if args.len() == 4 => cmd_compile(Path::new(&args[2]), Path::new(&args[3])),
+        "emit-elf64-exit" if args.len() == 4 => {
+            aot::cmd_emit_elf64_exit(Path::new(&args[2]), &args[3])
+        }
+        "aot-elf64-exit" if args.len() == 4 => {
+            aot::cmd_aot_elf64_exit(Path::new(&args[2]), Path::new(&args[3]))
+        }
+        "aot-elf64-code" if args.len() == 4 => {
+            aot::cmd_aot_elf64_code(Path::new(&args[2]), Path::new(&args[3]))
+        }
+        "compile-elf64-code" if args.len() == 4 => {
+            aot::cmd_compile_elf64_code(Path::new(&args[2]), Path::new(&args[3]))
+        }
+        "run-expect-exit" if args.len() == 4 => {
+            run::run_expect_exit(Path::new(&args[2]), &args[3])
+        }
         _ => {
             eprint!("{}", usage());
             1
