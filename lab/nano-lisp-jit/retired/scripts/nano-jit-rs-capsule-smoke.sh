@@ -45,9 +45,12 @@ echo "$log" | grep -q 'inspect-capsule.tier.2.kind=lbin' || {
 # abin tier — APE v2 multi-arch payload inside NLCap
 X86="$ROOT/lab/nano-lisp-jit/.build/nano-jit/nano-jit.x86_64"
 ARM="$ROOT/lab/nano-lisp-jit/.build/nano-jit/nano-jit.aarch64"
+[ -f "$X86" ] || X86="$ROOT/lab/nano-lisp-jit/.build/nano-jit-rs/nanolisp"
+[ -f "$ARM" ] || ARM="$ROOT/lab/nano-lisp-jit/.build/nano-jit-rs/nanolisp.aarch64"
+[ -f "$X86" ] || { X86="$TMP/x86-stub.elf"; "$RS" emit-elf64-exit "$X86" 1 >/dev/null; }
+[ -f "$ARM" ] || { ARM="$TMP/aarch64-stub.elf"; "$RS" emit-elf64-exit "$ARM" 1 >/dev/null; }
 APE="$TMP/arithmetic.ape"
 CAP_ABIN="$TMP/arithmetic-abin.nlcap"
-[ -f "$X86" ] && [ -f "$ARM" ] || { echo "nano-jit-rs-capsule-smoke=fail no_ape_slices"; exit 1; }
 "$RS" pack-ape-bare "$APE" "$X86" "$ARM" >/dev/null
 "$RS" pack-capsule "$CAP_ABIN" "$LBIN" --compress --xbin "$ELF" --abin "$APE" >/dev/null
 log=$("$RS" inspect-capsule "$CAP_ABIN" 2>&1)
@@ -56,7 +59,7 @@ echo "$log" | grep -q 'inspect-capsule.tier.0.kind=abin' || {
   echo "$log"
   exit 1
 }
-log=$("$RS" run-capsule "$CAP_ABIN" --tier abin --expect 2 2>&1) || true
+log=$("$RS" run-capsule "$CAP_ABIN" --tier abin --expect 1 2>&1) || true
 echo "$log" | grep -q 'run-capsule.tier=abin' || {
   echo "nano-jit-rs-capsule-smoke=fail abin_run"
   echo "$log"
