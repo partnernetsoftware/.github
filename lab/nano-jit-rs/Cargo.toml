@@ -12,6 +12,7 @@ path = "src/main.rs"
 [dependencies]
 libloading = "0.8"
 libc = "0.2"
+zstd = "0.13"
 
 [profile.release]
 lto = true

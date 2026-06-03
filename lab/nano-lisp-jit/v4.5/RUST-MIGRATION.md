@@ -38,6 +38,8 @@ ELF slices ──pack-ape──▶  .com  ──run-ape──▶  native exec
 | `compile-elf64-exe` | ✅ | ✅ multi-func + control-flow exit 43 | 85% |
 | `compile-elf64-obj-code` / `aot-elf64-obj-code` | ✅ | ✅ obj+link 分步 | 90% |
 | lisp-tu 两 TU link | ✅ | ✅ exit 42 + 92B parity | 90% |
+| compose-5link 五 TU | ✅ | ✅ exit 42 + code parity | 85% |
+| NLCap v0 `.nlcap` | ❌ | ✅ pack/inspect/run T0+T1+T2 | 80% |
 | `run-expect-exit` | ✅ | ✅ | 100% |
 | 6-face COM 替换 release | ✅ | ❌ | 0% |
 
@@ -50,13 +52,15 @@ bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-compile-parity.sh # 21 module
 bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-ape-smoke.sh      # pack-ape parity
 bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-aot-smoke.sh      # AOT ELF + run-expect-exit
 bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-lisp-tu-link-smoke.sh  # two-TU link exit 42
+bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-compose5-smoke.sh   # compose-5link exit 42
+bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-capsule-smoke.sh    # NLCap v0 multi-tier
 bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-gate.sh          # all of the above + cargo test
 cd lab/nano-jit-rs && cargo test
 ```
 
 ## 下一里程碑（商用 SOTA）
 
-1. **run-ape** — memfd + slice 选择 ✅ · v1 manifest 待补
-2. **AOT** — x86_64 obj+link ✅ · multi-func CF ✅ · obj-only CLI ✅ · aarch64 待补
+1. **NLCap** — v0 T0/T1/T2 ✅ · `.abin` APE tier + runtime probe 待补
+2. **AOT** — x86_64 obj+link ✅ · multi-func CF ✅ · obj-only CLI ✅ · compose-5 ✅ · compose-15 待补
 3. **release 替换** — Rust COM 自举 bootstrap-smoke 全链（下一步：compose-15 模块链）
 4. **类型检查** — VM compile 拒 ill-typed（对齐 AOT，见 PRODUCT-FEEDBACK B02/B03）

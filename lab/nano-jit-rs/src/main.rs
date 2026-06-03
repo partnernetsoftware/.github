@@ -1,6 +1,7 @@
 mod ape;
 mod aot;
 mod brand;
+mod capsule;
 mod compile;
 mod elf64;
 mod ffi;
@@ -39,6 +40,9 @@ Usage:\n\
   {bin} compile-elf64-obj-code <in.lisp> <out.o> <symbol>\n\
   {bin} compile-elf64-exe <in.lisp> <out.elf> <entry_symbol>\n\
   {bin} link-elf64-exe <out.elf> <entry_symbol> <obj.o>...\n\
+  {bin} pack-capsule <out.nlcap> <in.lisp|in.lbin> [--compress] [--xbin <elf>]\n\
+  {bin} inspect-capsule <file.nlcap>\n\
+  {bin} run-capsule <file.nlcap> [--tier auto|lbin|sbin|xbin] [--expect <code>]\n\
   {bin} run-expect-exit <executable> <expected_exit>\n\
   {bin} version\n\
 Env:\n\
@@ -116,6 +120,11 @@ fn main() -> ExitCode {
         "run-expect-exit" if args.len() == 4 => {
             run::run_expect_exit(Path::new(&args[2]), &args[3])
         }
+        "inspect-capsule" if args.len() == 3 => {
+            capsule::inspect_capsule(Path::new(&args[2]))
+        }
+        "pack-capsule" if args.len() >= 4 => cmd_pack_capsule(&args),
+        "run-capsule" if args.len() >= 3 => cmd_run_capsule(&args),
         _ => {
             eprint!("{}", usage());
             1
@@ -255,6 +264,74 @@ fn cmd_compile_legacy_with(com: PathBuf, lisp: &Path, lbin: &Path) -> i32 {
             1
         }
     }
+}
+
+fn cmd_pack_capsule(args: &[String]) -> i32 {
+    if args.len() < 4 {
+        eprint!("{}", usage());
+        return 1;
+    }
+    let out = Path::new(&args[2]);
+    let input = Path::new(&args[3]);
+    let mut compress = false;
+    let mut xbin: Option<&Path> = None;
+    let mut i = 4;
+    while i < args.len() {
+        match args[i].as_str() {
+            "--compress" => compress = true,
+            "--xbin" => {
+                i += 1;
+                if i >= args.len() {
+                    eprintln!("pack-capsule=missing_xbin");
+                    return 1;
+                }
+                xbin = Some(Path::new(&args[i]));
+            }
+            other => {
+                eprintln!("pack-capsule=unknown_flag {other}");
+                return 1;
+            }
+        }
+        i += 1;
+    }
+    capsule::cmd_pack_capsule(out, input, xbin, compress)
+}
+
+fn cmd_run_capsule(args: &[String]) -> i32 {
+    if args.len() < 3 {
+        eprint!("{}", usage());
+        return 1;
+    }
+    let path = Path::new(&args[2]);
+    let mut tier = "auto";
+    let mut expect: Option<&str> = None;
+    let mut i = 3;
+    while i < args.len() {
+        match args[i].as_str() {
+            "--tier" => {
+                i += 1;
+                if i >= args.len() {
+                    eprintln!("run-capsule=missing_tier");
+                    return 1;
+                }
+                tier = &args[i];
+            }
+            "--expect" => {
+                i += 1;
+                if i >= args.len() {
+                    eprintln!("run-capsule=missing_expect");
+                    return 1;
+                }
+                expect = Some(&args[i]);
+            }
+            other => {
+                eprintln!("run-capsule=unknown_flag {other}");
+                return 1;
+            }
+        }
+        i += 1;
+    }
+    capsule::cmd_run_capsule(path, tier, expect)
 }
 
 #[cfg(test)]
