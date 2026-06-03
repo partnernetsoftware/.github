@@ -104,4 +104,29 @@ com_data=$("$COM" aot-elf64-code "$TMP/const-ptr.lbin" "$TMP/const-ptr-com.elf" 
   exit 1
 }
 
+# obj-only compile + link (multi-func-control-flow)
+MFC_OBJ="$TMP/multi-func-control-flow.o"
+MFC_LINK="$TMP/multi-func-control-flow-linked.elf"
+"$RS" compile-elf64-obj-code "$CORE/multi-func-control-flow.lisp" "$MFC_OBJ" nano_main >/dev/null
+"$RS" link-elf64-exe "$MFC_LINK" nano_main "$MFC_OBJ" >/dev/null
+log=$("$RS" run-expect-exit "$MFC_LINK" 43 2>&1) || true
+echo "$log" | grep -q 'run-expect-exit.ok=1' || {
+  echo "nano-jit-rs-aot-smoke=fail obj-link-mfc"
+  echo "$log"
+  exit 1
+}
+
+# aot-elf64-obj-code + link (arithmetic pure blob)
+"$RS" compile "$CORE/arithmetic.lisp" "$TMP/arithmetic-obj.lbin" >/dev/null
+ARITH_OBJ="$TMP/arithmetic.o"
+"$RS" aot-elf64-obj-code "$TMP/arithmetic-obj.lbin" "$ARITH_OBJ" nano_main >/dev/null
+ARITH_LINK="$TMP/arithmetic-linked.elf"
+"$RS" link-elf64-exe "$ARITH_LINK" nano_main "$ARITH_OBJ" >/dev/null
+log=$("$RS" run-expect-exit "$ARITH_LINK" 42 2>&1) || true
+echo "$log" | grep -q 'run-expect-exit.ok=1' || {
+  echo "nano-jit-rs-aot-smoke=fail obj-link-arithmetic"
+  echo "$log"
+  exit 1
+}
+
 echo "nano-jit-rs-aot-smoke=ok"

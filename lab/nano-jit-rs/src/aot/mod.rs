@@ -93,6 +93,121 @@ pub fn cmd_aot_elf64_code(blob_path: &Path, out_path: &Path) -> i32 {
     }
 }
 
+pub fn cmd_aot_elf64_obj_code(blob_path: &Path, out_path: &Path, symbol: &str) -> i32 {
+    if symbol.is_empty() {
+        eprintln!("aot-elf64-obj-code=bad_symbol");
+        return 1;
+    }
+    let data = match std::fs::read(blob_path) {
+        Ok(d) => d,
+        Err(_) => {
+            eprintln!("blob=parse_fail path={}", blob_path.display());
+            return 1;
+        }
+    };
+    let blob = match parse_blob(&data) {
+        Ok(b) => b,
+        Err(_) => {
+            eprintln!("blob=parse_fail path={}", blob_path.display());
+            return 1;
+        }
+    };
+    match x86::compile_pure_to_elf64_obj(&blob, out_path, symbol) {
+        Ok(code) => {
+            println!("aot.obj.code.output={}", out_path.display());
+            println!("aot.obj.code.symbol={symbol}");
+            println!("aot.obj.code.bytes={}", code.len());
+            0
+        }
+        Err(2) => {
+            eprintln!("aot-elf64-obj-code=unsupported_blob");
+            2
+        }
+        Err(3) => {
+            eprintln!("aot-elf64-obj-code=write_fail path={}", out_path.display());
+            3
+        }
+        Err(e) => e,
+    }
+}
+
+pub fn cmd_compile_elf64_obj_code(lisp_path: &Path, out_path: &Path, symbol: &str) -> i32 {
+    if symbol.is_empty() {
+        eprintln!("compile-elf64-obj-code=bad_symbol");
+        return 1;
+    }
+    let src = match std::fs::read_to_string(lisp_path) {
+        Ok(s) => s,
+        Err(_) => {
+            eprintln!("compile-elf64-obj-code=compile_fail");
+            return 1;
+        }
+    };
+    let module = match parse_module(&src) {
+        Ok(m) => m,
+        Err(e) => {
+            eprintln!("{e}");
+            eprintln!("compile-elf64-obj-code=compile_fail");
+            return 1;
+        }
+    };
+    if module.funcs.is_empty() {
+        match crate::compile::compile_to_blob(lisp_path) {
+            Ok(data) => {
+                let blob = match parse_blob(&data) {
+                    Ok(b) => b,
+                    Err(_) => {
+                        eprintln!("compile-elf64-obj-code=compile_fail");
+                        return 1;
+                    }
+                };
+                match x86::compile_pure_to_elf64_obj(&blob, out_path, symbol) {
+                    Ok(code) => {
+                        println!("compile.obj.code.output={}", out_path.display());
+                        println!("compile.obj.code.symbol={symbol}");
+                        println!("compile.obj.code.mode=pure-blob");
+                        println!("compile.obj.code.bytes={}", code.len());
+                        0
+                    }
+                    Err(2) => {
+                        eprintln!("compile-elf64-obj-code=unsupported_source");
+                        2
+                    }
+                    Err(3) => {
+                        eprintln!("compile-elf64-obj-code=write_fail path={}", out_path.display());
+                        3
+                    }
+                    Err(e) => e,
+                }
+            }
+            Err(e) => {
+                eprintln!("{e}");
+                eprintln!("compile-elf64-obj-code=compile_fail");
+                1
+            }
+        }
+    } else {
+        match multi::compile_module_to_elf64_obj(&module, out_path, symbol) {
+            Ok(code_bytes) => {
+                println!("compile.obj.code.output={}", out_path.display());
+                println!("compile.obj.code.symbol={symbol}");
+                println!("compile.obj.code.mode=multi-func");
+                println!("compile.obj.code.bytes={code_bytes}");
+                0
+            }
+            Err(crate::compile::CompileError::LowerFail { .. }) => {
+                eprintln!("compile-elf64-obj-code=unsupported_source");
+                2
+            }
+            Err(e) => {
+                eprintln!("{e}");
+                eprintln!("compile-elf64-obj-code=compile_fail");
+                1
+            }
+        }
+    }
+}
+
 pub fn cmd_compile_elf64_code(lisp_path: &Path, out_path: &Path) -> i32 {
     match crate::compile::compile_to_blob(lisp_path) {
         Ok(data) => {

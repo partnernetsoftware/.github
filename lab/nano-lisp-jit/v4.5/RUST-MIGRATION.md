@@ -36,6 +36,7 @@ ELF slices ──pack-ape──▶  .com  ──run-ape──▶  native exec
 | x86_64 AOT codegen | ✅ | ✅ obj+link + rodata/data + multi-func CF | 90% |
 | `link-elf64-exe` | ✅ | ✅ | 100% |
 | `compile-elf64-exe` | ✅ | ✅ multi-func + control-flow exit 43 | 85% |
+| `compile-elf64-obj-code` / `aot-elf64-obj-code` | ✅ | ✅ obj+link 分步 | 85% |
 | `run-expect-exit` | ✅ | ✅ | 100% |
 | 6-face COM 替换 release | ✅ | ❌ | 0% |
 
@@ -53,6 +54,6 @@ cd lab/nano-jit-rs && cargo test
 ## 下一里程碑（商用 SOTA）
 
 1. **run-ape** — memfd + slice 选择 ✅ · v1 manifest 待补
-2. **AOT** — x86_64 obj+link ✅ · multi-func ✅ · aarch64 待补
-3. **release 替换** — Rust COM 自举 bootstrap-smoke 全链
+2. **AOT** — x86_64 obj+link ✅ · multi-func CF ✅ · obj-only CLI ✅ · aarch64 待补
+3. **release 替换** — Rust COM 自举 bootstrap-smoke 全链（下一步：lisp-tu link smoke）
 4. **类型检查** — VM compile 拒 ill-typed（对齐 AOT，见 PRODUCT-FEEDBACK B02/B03）

@@ -34,7 +34,9 @@ Usage:\n\
   {bin} emit-elf64-exit <out.elf> <exit_code>\n\
   {bin} aot-elf64-exit <file.lbin> <out.elf>\n\
   {bin} aot-elf64-code <file.lbin> <out.elf>\n\
+  {bin} aot-elf64-obj-code <file.lbin> <out.o> <symbol>\n\
   {bin} compile-elf64-code <in.lisp> <out.elf>\n\
+  {bin} compile-elf64-obj-code <in.lisp> <out.o> <symbol>\n\
   {bin} compile-elf64-exe <in.lisp> <out.elf> <entry_symbol>\n\
   {bin} link-elf64-exe <out.elf> <entry_symbol> <obj.o>...\n\
   {bin} run-expect-exit <executable> <expected_exit>\n\
@@ -93,8 +95,14 @@ fn main() -> ExitCode {
         "aot-elf64-code" if args.len() == 4 => {
             aot::cmd_aot_elf64_code(Path::new(&args[2]), Path::new(&args[3]))
         }
+        "aot-elf64-obj-code" if args.len() == 5 => {
+            aot::cmd_aot_elf64_obj_code(Path::new(&args[2]), Path::new(&args[3]), &args[4])
+        }
         "compile-elf64-code" if args.len() == 4 => {
             aot::cmd_compile_elf64_code(Path::new(&args[2]), Path::new(&args[3]))
+        }
+        "compile-elf64-obj-code" if args.len() == 5 => {
+            aot::cmd_compile_elf64_obj_code(Path::new(&args[2]), Path::new(&args[3]), &args[4])
         }
         "compile-elf64-exe" if args.len() == 5 => {
             aot::cmd_compile_elf64_exe(Path::new(&args[2]), Path::new(&args[3]), &args[4])

@@ -438,11 +438,38 @@ fn patch_branches(code: &mut CodeBuf, branch_patches: &[BranchPatch], pc_offs: &
     Ok(())
 }
 
+pub fn compile_module_to_elf64_obj(
+    m: &Module,
+    out_path: &Path,
+    entry_symbol: &str,
+) -> Result<usize, CompileError> {
+    let (text, syms, relas) = build_module_elf64_obj(m, entry_symbol)?;
+    emit_obj_file(out_path, &text.data, &syms, &relas).map_err(|_| CompileError::WriteFail {
+        path: out_path.display().to_string(),
+    })?;
+    Ok(text.len())
+}
+
 pub fn compile_module_to_elf64_exe(
     m: &Module,
     out_path: &Path,
     entry_symbol: &str,
 ) -> Result<usize, CompileError> {
+    let tmp = std::env::temp_dir().join(format!("nano-jit-rs-mf-{}.o", std::process::id()));
+    let code_bytes = compile_module_to_elf64_obj(m, &tmp, entry_symbol)?;
+    let link = link_exe_from_obj(out_path, entry_symbol, &tmp).map_err(|_| {
+        CompileError::WriteFail {
+            path: out_path.display().to_string(),
+        }
+    })?;
+    let _ = std::fs::remove_file(&tmp);
+    Ok(link.code_bytes.max(code_bytes))
+}
+
+fn build_module_elf64_obj(
+    m: &Module,
+    entry_symbol: &str,
+) -> Result<(CodeBuf, Vec<ObjSymbol>, Vec<ObjRela>), CompileError> {
     if entry_symbol.is_empty() {
         return Err(CompileError::LowerFail {
             reason: "bad_entry_symbol",
@@ -574,15 +601,5 @@ pub fn compile_module_to_elf64_exe(
         });
     }
 
-    let tmp = std::env::temp_dir().join(format!("nano-jit-rs-mf-{}.o", std::process::id()));
-    emit_obj_file(&tmp, &text.data, &syms, &relas).map_err(|_| CompileError::WriteFail {
-        path: tmp.display().to_string(),
-    })?;
-    let link = link_exe_from_obj(out_path, entry_symbol, &tmp).map_err(|_| {
-        CompileError::WriteFail {
-            path: out_path.display().to_string(),
-        }
-    })?;
-    let _ = std::fs::remove_file(&tmp);
-    Ok(link.code_bytes)
+    Ok((text, syms, relas))
 }
