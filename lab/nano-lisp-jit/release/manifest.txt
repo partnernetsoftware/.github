@@ -5,8 +5,8 @@ nano-lisp.com.fnv1a64=a1904c09aebbf58d
 v45-selfhost-next.com.bytes=334537
 v45-selfhost-next.com.fnv1a64=a1904c09aebbf58d
 
-nanolisp.com.bytes=2730037
-nanolisp.com.fnv1a64=59ba018539329bc5
+nanolisp.com.bytes=2820149
+nanolisp.com.fnv1a64=1081816cd67eee3c
 nanolisp.com.engine=rust
-nanolisp.ape.bytes=2728760
-nanolisp.ape.fnv1a64=abc36ad60dddc51f
+nanolisp.ape.bytes=2818872
+nanolisp.ape.fnv1a64=4f90c6cd81163de9

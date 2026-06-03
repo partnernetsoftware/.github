@@ -1,5 +1,6 @@
 mod ape;
 mod aot;
+mod bootstrap;
 mod brand;
 mod capsule;
 mod compile;
@@ -43,6 +44,7 @@ Usage:\n\
   {bin} pack-capsule <out.nlcap> <in.lisp|in.lbin> [--compress] [--xbin <elf>] [--abin <ape>]\n\
   {bin} inspect-capsule <file.nlcap>\n\
   {bin} run-capsule <file.nlcap> [--tier auto|lbin|sbin|xbin|abin] [--expect <code>]\n\
+  {bin} run-bootstrap-plan <plan.lisp>\n\
   {bin} run-expect-exit <executable> <expected_exit>\n\
   {bin} version\n\
 Env:\n\
@@ -125,6 +127,9 @@ fn main() -> ExitCode {
         }
         "pack-capsule" if args.len() >= 4 => cmd_pack_capsule(&args),
         "run-capsule" if args.len() >= 3 => cmd_run_capsule(&args),
+        "run-bootstrap-plan" if args.len() == 3 => {
+            bootstrap::run_bootstrap_plan(Path::new(&args[2]))
+        }
         _ => {
             eprint!("{}", usage());
             1
