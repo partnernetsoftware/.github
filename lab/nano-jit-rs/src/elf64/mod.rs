@@ -8,8 +8,8 @@ use std::io;
 use std::os::unix::fs::PermissionsExt;
 use std::path::Path;
 
-pub use link::{link_exe, link_exe_from_obj};
-pub use obj::{emit_obj_file, ObjRela, ObjSymbol};
+pub use link::{link_exe, link_exe_from_obj, LinkResult};
+pub use obj::{emit_obj_file, emit_obj_text_data_section, ObjRela, ObjSymbol};
 
 const EHDR_SIZE: usize = 64;
 const PHDR_SIZE: usize = 56;

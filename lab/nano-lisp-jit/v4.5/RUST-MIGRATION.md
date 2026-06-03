@@ -1,6 +1,16 @@
-# nano-jit.com Rust 迁移
+# nanolisp.com Rust 迁移
 
-**目标**：商用级 `nano-jit.com` — 多架构 compile + run `.lisp` / `.lbin`，最终替换 C runner。
+**目标**：商用级 **nanolisp.com** Lisp 运行时 — 多架构 compile + run `.lisp` / `.lbin`，最终替换 C runner。内部 JIT / FFI / AOT 不进产品名。
+
+## 品牌 rename（进行中）
+
+| 对外 | 内部 crate / 路径 |
+|------|------------------|
+| 产品 `nanolisp.com` | `lab/nano-jit-rs/`（crate 名暂保留 `nano-jit-rs`） |
+| CLI 二进制 `nanolisp` | `src/brand.rs` |
+| 兼容 symlink `nano-jit` | build 脚本自动创建 |
+
+`version` 输出主行：`nanolisp.com=0.1.0`；保留 `nano-jit-rs=` 供 CI 过渡。
 
 ## 产物模型
 
@@ -23,7 +33,7 @@ ELF slices ──pack-ape──▶  .com  ──run-ape──▶  native exec
 | `inspect-ape` | ✅ | ✅ | 100% |
 | `run-ape` | ✅ | ✅ v2 memfd（bare+stub） | 85% |
 | x86_64 / aarch64 CLI 二进制 | ✅ | ✅ cross-build | 90% |
-| x86_64 AOT codegen | ✅ | ✅ obj+link + multi-func | 80% |
+| x86_64 AOT codegen | ✅ | ✅ obj+link + rodata/data + multi-func | 85% |
 | `link-elf64-exe` | ✅ | ✅ | 100% |
 | `compile-elf64-exe` | ✅ | ✅ multi-func exit 43 | 70% |
 | `run-expect-exit` | ✅ | ✅ | 100% |

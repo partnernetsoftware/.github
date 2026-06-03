@@ -2,11 +2,11 @@
 name = "nano-jit-rs"
 version = "0.1.0"
 edition = "2021"
-description = "Rust rewrite of nano-jit.com — portable .lbin VM, multi-target CLI"
+description = "nanolisp.com — portable Lisp .lbin VM, multi-target CLI (Rust)"
 license = "MIT"
 
 [[bin]]
-name = "nano-jit"
+name = "nanolisp"
 path = "src/main.rs"
 
 [dependencies]

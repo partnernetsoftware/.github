@@ -205,11 +205,11 @@ pub fn compile_module_to_elf64_exe(
     emit_obj_file(&tmp, &text.data, &syms, &relas).map_err(|_| CompileError::WriteFail {
         path: tmp.display().to_string(),
     })?;
-    let code_bytes = link_exe_from_obj(out_path, entry_symbol, &tmp).map_err(|_| {
+    let link = link_exe_from_obj(out_path, entry_symbol, &tmp).map_err(|_| {
         CompileError::WriteFail {
             path: out_path.display().to_string(),
         }
     })?;
     let _ = std::fs::remove_file(&tmp);
-    Ok(code_bytes)
+    Ok(link.code_bytes)
 }
