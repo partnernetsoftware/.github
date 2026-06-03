@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# nanolisp compose-15 semantic ladder smoke — 8k|32k profile → exit 42 + code parity vs C COM.
-# Usage: nano-jit-rs-compose-semantic-smoke.sh <8|32>
+# nanolisp compose-15 semantic ladder smoke — 8|32|64|154 profile → exit 42 + code parity vs C COM.
+# Usage: nano-jit-rs-compose-semantic-smoke.sh <8|32|64|154>
 set -euo pipefail
 LADDER="${1:-}"
 case "$LADDER" in
-  8|32) ;;
+  8|32|64|154) ;;
   *)
-    echo "nano-jit-rs-compose-semantic-smoke=fail bad_ladder ladder=$LADDER (use 8|32)"
+    echo "nano-jit-rs-compose-semantic-smoke=fail bad_ladder ladder=$LADDER (use 8|32|64|154)"
     exit 1
     ;;
 esac
@@ -22,13 +22,28 @@ bash "$ROOT/lab/nano-lisp-jit/build_nano_jit_rs.sh" >/dev/null
 [ -x "$RS" ] || { echo "nano-jit-rs-compose-semantic-${LADDER}k-smoke=fail no_binary"; exit 1; }
 [ -x "$COM" ] || { echo "nano-jit-rs-compose-semantic-${LADDER}k-smoke=fail no_legacy_com"; exit 1; }
 
-if [ "$LADDER" = "8" ]; then
-  THRESHOLD="${NANO_SEMANTIC_CODE_BYTES_THRESHOLD:-8000}"
-  MAIN="$SEM/tu-main-8k.lisp"
-else
-  THRESHOLD="${NANO_SEMANTIC_32K_CODE_BYTES_THRESHOLD:-32000}"
-  MAIN="$SEM/tu-main-32k.lisp"
-fi
+case "$LADDER" in
+  8)
+    THRESHOLD="${NANO_SEMANTIC_CODE_BYTES_THRESHOLD:-8000}"
+    MAIN="$SEM/tu-main-8k.lisp"
+    EXPECT="${NANO_SEMANTIC_8K_CODE_BYTES_EXPECT:-}"
+    ;;
+  32)
+    THRESHOLD="${NANO_SEMANTIC_32K_CODE_BYTES_THRESHOLD:-32000}"
+    MAIN="$SEM/tu-main-32k.lisp"
+    EXPECT="${NANO_SEMANTIC_32K_CODE_BYTES_EXPECT:-32001}"
+    ;;
+  64)
+    THRESHOLD="${NANO_SEMANTIC_64K_CODE_BYTES_THRESHOLD:-64000}"
+    MAIN="$SEM/tu-main-64k.lisp"
+    EXPECT="${NANO_SEMANTIC_64K_CODE_BYTES_EXPECT:-64066}"
+    ;;
+  154)
+    THRESHOLD="${NANO_SEMANTIC_154K_CODE_BYTES_THRESHOLD:-154000}"
+    MAIN="$SEM/tu-main-154k.lisp"
+    EXPECT="${NANO_SEMANTIC_154K_CODE_BYTES_EXPECT:-155036}"
+    ;;
+esac
 
 TMP="$ROOT/lab/nano-lisp-jit/.build/nano-jit-rs-compose-semantic-${LADDER}k-smoke"
 mkdir -p "$TMP"
@@ -82,5 +97,9 @@ com_bytes=$("$COM" link-elf64-exe "$TMP/semantic-${LADDER}k-com.elf" nano_tu_mai
   echo "nano-jit-rs-compose-semantic-${LADDER}k-smoke=fail below_threshold bytes=$rs_bytes threshold=$THRESHOLD"
   exit 1
 }
+if [ -n "$EXPECT" ] && [ "$rs_bytes" != "$EXPECT" ]; then
+  echo "nano-jit-rs-compose-semantic-${LADDER}k-smoke=fail expected_bytes rs=$rs_bytes expected=$EXPECT"
+  exit 1
+fi
 
 echo "nano-jit-rs-compose-semantic-${LADDER}k-smoke=ok link.code.bytes=$rs_bytes threshold=$THRESHOLD"

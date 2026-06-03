@@ -42,11 +42,13 @@ ELF slices ──pack-ape──▶  .com  ──run-ape──▶  native exec
 | compose-8link 八 TU | ✅ | ✅ exit 42 + code parity | 85% |
 | compose-15link semantic-8k | ✅ | ✅ 9286B parity · exit 42 | 90% |
 | compose-15link semantic-32k | ✅ | ✅ 32001B parity · exit 42 | 90% |
+| compose-15link semantic-64k | ✅ | ✅ 64066B parity · exit 42 | 90% |
+| compose-15link semantic-154k | ✅ | ✅ 155036B parity · exit 42 | 90% |
 | compose-15link bulk-scale | ✅ | ✅ 154559B parity · exit 42 | 90% |
-| Rust release APE pack | ❌ | ✅ nanolisp x86+aarch64 → .ape memfd | 75% |
+| Rust release APE pack | ❌ | ✅ + `release/nanolisp.com` promote | 85% |
 | NLCap v0 `.nlcap` | ❌ | ✅ T0/T1/T2/T3 + arch-aware auto | 90% |
 | `run-expect-exit` | ✅ | ✅ | 100% |
-| 6-face COM 替换 release | ✅ | 🔄 bulk+APE 路径 Rust 已验证 | 25% |
+| 6-face COM 替换 release | ✅ | 🔄 `nanolisp.com` Rust 候选进仓 | 40% |
 
 ## 验收脚本（产品门禁）
 
@@ -62,8 +64,11 @@ bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-compose-link-smoke.sh 8   # c
 bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-compose-link-smoke.sh 15  # compose-15link
 bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-compose-semantic-8k-smoke.sh  # semantic 8K
 bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-compose-semantic-smoke.sh 32  # semantic 32K
+bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-compose-semantic-smoke.sh 64  # semantic 64K
+bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-compose-semantic-smoke.sh 154 # semantic 154K
 bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-compose-bulk-smoke.sh   # bulk 154559B
 bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-release-pack-smoke.sh   # Rust nanolisp → APE
+bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-release-promote-smoke.sh # release/nanolisp.com pin
 bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-capsule-smoke.sh    # NLCap v0 multi-tier + abin
 bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-gate.sh          # all of the above + cargo test
 cd lab/nano-jit-rs && cargo test
@@ -71,7 +76,7 @@ cd lab/nano-jit-rs && cargo test
 
 ## 下一里程碑（商用 SOTA）
 
-1. **release 替换** — bulk 154559B ✅ · promote Rust build 进 `release/` 待补
-2. **semantic 阶梯** — 8K/32K ✅ · 64K/154K 待补
+1. **release 替换** — `release/nanolisp.com` Rust promote ✅ · C COM bootstrap 能力对齐待补
+2. **semantic 阶梯** — 8K–154K ✅ · unified sem×15 待补
 3. **AOT** — x86_64 ✅ · aarch64 codegen 待补
 4. **类型检查** — VM compile 拒 ill-typed（B02/B03）
