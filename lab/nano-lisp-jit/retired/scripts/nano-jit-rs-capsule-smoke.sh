@@ -42,7 +42,40 @@ echo "$log" | grep -q 'inspect-capsule.tier.2.kind=lbin' || {
   exit 1
 }
 
-# auto → xbin native path
+# abin tier — APE v2 multi-arch payload inside NLCap
+X86="$ROOT/lab/nano-lisp-jit/.build/nano-jit/nano-jit.x86_64"
+ARM="$ROOT/lab/nano-lisp-jit/.build/nano-jit/nano-jit.aarch64"
+APE="$TMP/arithmetic.ape"
+CAP_ABIN="$TMP/arithmetic-abin.nlcap"
+[ -f "$X86" ] && [ -f "$ARM" ] || { echo "nano-jit-rs-capsule-smoke=fail no_ape_slices"; exit 1; }
+"$RS" pack-ape-bare "$APE" "$X86" "$ARM" >/dev/null
+"$RS" pack-capsule "$CAP_ABIN" "$LBIN" --compress --xbin "$ELF" --abin "$APE" >/dev/null
+log=$("$RS" inspect-capsule "$CAP_ABIN" 2>&1)
+echo "$log" | grep -q 'inspect-capsule.tier.0.kind=abin' || {
+  echo "nano-jit-rs-capsule-smoke=fail abin_tier"
+  echo "$log"
+  exit 1
+}
+log=$("$RS" run-capsule "$CAP_ABIN" --tier abin --expect 2 2>&1) || true
+echo "$log" | grep -q 'run-capsule.tier=abin' || {
+  echo "nano-jit-rs-capsule-smoke=fail abin_run"
+  echo "$log"
+  exit 1
+}
+echo "$log" | grep -q 'run-capsule.ok=1' || {
+  echo "nano-jit-rs-capsule-smoke=fail abin_ok"
+  echo "$log"
+  exit 1
+}
+# auto prefers abin (priority 90) over xbin (100)
+log=$("$RS" run-capsule "$CAP_ABIN" --expect 2 2>&1) || true
+echo "$log" | grep -q 'run-capsule.tier=abin' || {
+  echo "nano-jit-rs-capsule-smoke=fail auto_abin"
+  echo "$log"
+  exit 1
+}
+
+# xbin-only capsule (no abin)
 log=$("$RS" run-capsule "$CAP" --expect 42 2>&1) || true
 echo "$log" | grep -q 'run-capsule.tier=xbin' || {
   echo "nano-jit-rs-capsule-smoke=fail auto_xbin"

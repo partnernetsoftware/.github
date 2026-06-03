@@ -1,7 +1,8 @@
 //! NLCap v0 — multi-tier adaptive container (`.nlcap`).
 //!
-//! Tiers: `.lbin` (T0 raw VM bytecode), `.sbin` (T1 zstd), `.xbin` (T2 ELF64 slice).
+//! Tiers: `.lbin` (T0 raw VM bytecode), `.sbin` (T1 zstd), `.xbin` (T2 ELF64 slice), `.abin` (T3 APE v2).
 
+use crate::ape;
 use crate::compile;
 use crate::lbin::{fnv1a64, parse_blob, MAGIC_LBIN};
 use crate::run;
@@ -17,6 +18,7 @@ pub const TIER_ENTRY_SIZE: usize = 32;
 pub const TIER_LBIN: u32 = 1;
 pub const TIER_SBIN: u32 = 2;
 pub const TIER_XBIN: u32 = 3;
+pub const TIER_ABIN: u32 = 4;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct TierEntry {
@@ -57,6 +59,7 @@ pub fn tier_kind_name(kind: u32) -> &'static str {
         TIER_LBIN => "lbin",
         TIER_SBIN => "sbin",
         TIER_XBIN => "xbin",
+        TIER_ABIN => "abin",
         _ => "unknown",
     }
 }
@@ -100,6 +103,7 @@ pub fn pack_capsule(
     lbin: &[u8],
     compress: bool,
     xbin: Option<&[u8]>,
+    abin: Option<&[u8]>,
 ) -> Result<Capsule, i32> {
     if lbin.len() >= 8 && &lbin[..8] != MAGIC_LBIN {
         eprintln!("pack-capsule=bad_lbin_magic");
@@ -120,6 +124,13 @@ pub fn pack_capsule(
             return Err(1);
         }
         tiers.push((TIER_XBIN, 100, elf.to_vec()));
+    }
+    if let Some(ape) = abin {
+        if ape::find_payload_start(ape).is_none() {
+            eprintln!("pack-capsule=abin_not_ape");
+            return Err(1);
+        }
+        tiers.push((TIER_ABIN, 90, ape.to_vec()));
     }
     tiers.sort_by_key(|(_, pri, _)| *pri);
 
@@ -218,6 +229,14 @@ fn pick_tier<'a>(cap: &'a Capsule, mode: &str) -> Result<&'a TierEntry, i32> {
                 eprintln!("run-capsule=no_xbin_tier");
                 1
             }),
+        "abin" => cap
+            .tiers
+            .iter()
+            .find(|t| t.kind == TIER_ABIN)
+            .ok_or_else(|| {
+                eprintln!("run-capsule=no_abin_tier");
+                1
+            }),
         "auto" | "" => cap
             .tiers
             .iter()
@@ -282,14 +301,35 @@ pub fn run_capsule(path: &Path, tier_mode: &str, expect: Option<u64>) -> i32 {
     println!("run-capsule.path={}", path.display());
     println!("run-capsule.tier={}", tier_kind_name(tier.kind));
 
-    if tier.kind == TIER_XBIN {
-        let elf = match tier_payload(&cap, tier) {
+    if tier.kind == TIER_XBIN || tier.kind == TIER_ABIN {
+        let blob = match tier_payload(&cap, tier) {
             Some(p) => p,
             None => {
-                eprintln!("run-capsule=xbin_truncated");
+                eprintln!("run-capsule=native_truncated");
                 return 1;
             }
         };
+        if tier.kind == TIER_ABIN {
+            let tmp_ape = std::env::temp_dir().join(format!(
+                "nanolisp-abin-{}",
+                std::process::id()
+            ));
+            if fs::write(&tmp_ape, blob).is_err() {
+                eprintln!("run-capsule=temp_write_fail");
+                return 3;
+            }
+            let rc = if let Some(code) = expect {
+                ape::run_ape_expect_exit(&tmp_ape, &code.to_string(), None)
+            } else {
+                ape::run_ape(&tmp_ape, None)
+            };
+            let _ = fs::remove_file(&tmp_ape);
+            if rc == 0 {
+                println!("run-capsule.ok=1");
+            }
+            return rc;
+        }
+        let elf = blob;
         let tmp = std::env::temp_dir().join(format!(
             "nanolisp-xbin-{}",
             std::process::id()
@@ -366,6 +406,7 @@ pub fn cmd_pack_capsule(
     out_path: &Path,
     input: &Path,
     xbin_path: Option<&Path>,
+    abin_path: Option<&Path>,
     compress: bool,
 ) -> i32 {
     let lbin = match resolve_lbin_input(input) {
@@ -383,7 +424,18 @@ pub fn cmd_pack_capsule(
     } else {
         None
     };
-    let cap = match pack_capsule(out_path, &lbin, compress, xbin.as_deref()) {
+    let abin = if let Some(p) = abin_path {
+        match fs::read(p) {
+            Ok(d) => Some(d),
+            Err(_) => {
+                eprintln!("pack-capsule=abin_read_fail path={}", p.display());
+                return 1;
+            }
+        }
+    } else {
+        None
+    };
+    let cap = match pack_capsule(out_path, &lbin, compress, xbin.as_deref(), abin.as_deref()) {
         Ok(c) => c,
         Err(e) => return e,
     };
@@ -399,6 +451,9 @@ pub fn cmd_pack_capsule(
     }
     if let Some(t) = cap.tiers.iter().find(|t| t.kind == TIER_XBIN) {
         println!("pack-capsule.xbin.bytes={}", t.size);
+    }
+    if let Some(t) = cap.tiers.iter().find(|t| t.kind == TIER_ABIN) {
+        println!("pack-capsule.abin.bytes={}", t.size);
     }
     0
 }
@@ -431,7 +486,7 @@ mod tests {
             "nanolisp-cap-test-{}.nlcap",
             std::process::id()
         ));
-        let cap = pack_capsule(&tmp, &fake, true, None).expect("pack");
+        let cap = pack_capsule(&tmp, &fake, true, None, None).expect("pack");
         assert!(cap.tiers.len() >= 2);
         let parsed = parse_capsule(&cap.data).expect("parse");
         assert_eq!(parsed.tiers.len(), cap.tiers.len());

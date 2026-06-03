@@ -40,9 +40,9 @@ Usage:\n\
   {bin} compile-elf64-obj-code <in.lisp> <out.o> <symbol>\n\
   {bin} compile-elf64-exe <in.lisp> <out.elf> <entry_symbol>\n\
   {bin} link-elf64-exe <out.elf> <entry_symbol> <obj.o>...\n\
-  {bin} pack-capsule <out.nlcap> <in.lisp|in.lbin> [--compress] [--xbin <elf>]\n\
+  {bin} pack-capsule <out.nlcap> <in.lisp|in.lbin> [--compress] [--xbin <elf>] [--abin <ape>]\n\
   {bin} inspect-capsule <file.nlcap>\n\
-  {bin} run-capsule <file.nlcap> [--tier auto|lbin|sbin|xbin] [--expect <code>]\n\
+  {bin} run-capsule <file.nlcap> [--tier auto|lbin|sbin|xbin|abin] [--expect <code>]\n\
   {bin} run-expect-exit <executable> <expected_exit>\n\
   {bin} version\n\
 Env:\n\
@@ -275,6 +275,7 @@ fn cmd_pack_capsule(args: &[String]) -> i32 {
     let input = Path::new(&args[3]);
     let mut compress = false;
     let mut xbin: Option<&Path> = None;
+    let mut abin: Option<&Path> = None;
     let mut i = 4;
     while i < args.len() {
         match args[i].as_str() {
@@ -287,6 +288,14 @@ fn cmd_pack_capsule(args: &[String]) -> i32 {
                 }
                 xbin = Some(Path::new(&args[i]));
             }
+            "--abin" => {
+                i += 1;
+                if i >= args.len() {
+                    eprintln!("pack-capsule=missing_abin");
+                    return 1;
+                }
+                abin = Some(Path::new(&args[i]));
+            }
             other => {
                 eprintln!("pack-capsule=unknown_flag {other}");
                 return 1;
@@ -294,7 +303,7 @@ fn cmd_pack_capsule(args: &[String]) -> i32 {
         }
         i += 1;
     }
-    capsule::cmd_pack_capsule(out, input, xbin, compress)
+    capsule::cmd_pack_capsule(out, input, xbin, abin, compress)
 }
 
 fn cmd_run_capsule(args: &[String]) -> i32 {
