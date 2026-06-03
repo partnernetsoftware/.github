@@ -231,6 +231,9 @@ fn cmd_compile(lisp: &Path, lbin: &Path) -> i32 {
         }
         Err(e) => {
             eprintln!("{e}");
+            if let compile::CompileError::UnsupportedSource { .. } = e {
+                return 2;
+            }
             if let Some(com) = legacy_com() {
                 eprintln!("compile.fallback=legacy");
                 return cmd_compile_legacy_with(com, lisp, lbin);

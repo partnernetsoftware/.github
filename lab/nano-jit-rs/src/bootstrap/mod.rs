@@ -1,11 +1,18 @@
-//! Bootstrap plan DSL — minimal `run-bootstrap-plan` for compose-link probes.
+//! Bootstrap plan DSL — `run-bootstrap-plan` for compose-link, APE pack, proc I/O.
 
 use std::fs;
 use std::path::{Path, PathBuf};
 
+use crate::compile::CompileError;
+
 #[derive(Debug, Clone)]
 pub(crate) enum Step {
     CompileObjCode {
+        lisp: PathBuf,
+        out: PathBuf,
+        symbol: String,
+    },
+    CompileElf64Exe {
         lisp: PathBuf,
         out: PathBuf,
         symbol: String,
@@ -26,11 +33,60 @@ pub(crate) enum Step {
         exe: PathBuf,
         exit: String,
     },
+    RunApeExpectExit {
+        path: PathBuf,
+        exit: String,
+        arch: Option<String>,
+    },
     FileSize {
         path: PathBuf,
     },
     FileHash {
         path: PathBuf,
+    },
+    Hash {
+        path: PathBuf,
+    },
+    PackApe {
+        out: PathBuf,
+        x86: PathBuf,
+        arm: PathBuf,
+    },
+    PackApeBare {
+        out: PathBuf,
+        x86: PathBuf,
+        arm: PathBuf,
+    },
+    InspectApe {
+        path: PathBuf,
+    },
+    RunApe {
+        path: PathBuf,
+        arch: Option<String>,
+    },
+    EmitElf64Exit {
+        out: PathBuf,
+        exit: String,
+    },
+    ReadFile {
+        path: PathBuf,
+    },
+    SpawnWait {
+        expected: String,
+        path: PathBuf,
+        args: Vec<String>,
+    },
+    ResultsMin {
+        path: PathBuf,
+        key: String,
+        min: String,
+    },
+    CompileExpectExit {
+        expected: String,
+        mode: String,
+        src: PathBuf,
+        out: PathBuf,
+        extra: Vec<String>,
     },
 }
 
@@ -113,6 +169,22 @@ impl<'a> Parser<'a> {
         }
     }
 
+    fn parse_remaining_strings(&mut self) -> Vec<String> {
+        let mut out = Vec::new();
+        loop {
+            self.skip_ws();
+            if self.peek() == Some(')') {
+                break;
+            }
+            if let Some(s) = self.parse_atom() {
+                out.push(s);
+            } else {
+                break;
+            }
+        }
+        out
+    }
+
     fn parse_step(&mut self) -> Option<Step> {
         if !self.expect('(') {
             return None;
@@ -124,6 +196,12 @@ impl<'a> Parser<'a> {
                 let out = PathBuf::from(self.parse_atom()?);
                 let symbol = self.parse_atom()?;
                 Step::CompileObjCode { lisp, out, symbol }
+            }
+            "compile-elf64-exe" => {
+                let lisp = PathBuf::from(self.parse_atom()?);
+                let out = PathBuf::from(self.parse_atom()?);
+                let symbol = self.parse_atom()?;
+                Step::CompileElf64Exe { lisp, out, symbol }
             }
             "compile" => {
                 let lisp = PathBuf::from(self.parse_atom()?);
@@ -150,12 +228,88 @@ impl<'a> Parser<'a> {
                 exe: PathBuf::from(self.parse_atom()?),
                 exit: self.parse_atom()?,
             },
+            "run-ape-expect-exit" => {
+                let path = PathBuf::from(self.parse_atom()?);
+                let exit = self.parse_atom()?;
+                self.skip_ws();
+                let arch = if self.peek() != Some(')') {
+                    Some(self.parse_atom()?)
+                } else {
+                    None
+                };
+                Step::RunApeExpectExit { path, exit, arch }
+            }
             "file-size" => Step::FileSize {
                 path: PathBuf::from(self.parse_atom()?),
             },
             "file-hash" => Step::FileHash {
                 path: PathBuf::from(self.parse_atom()?),
             },
+            "hash" => Step::Hash {
+                path: PathBuf::from(self.parse_atom()?),
+            },
+            "pack-ape" => {
+                let out = PathBuf::from(self.parse_atom()?);
+                let x86 = PathBuf::from(self.parse_atom()?);
+                let arm = PathBuf::from(self.parse_atom()?);
+                Step::PackApe { out, x86, arm }
+            }
+            "pack-ape-bare" => {
+                let out = PathBuf::from(self.parse_atom()?);
+                let x86 = PathBuf::from(self.parse_atom()?);
+                let arm = PathBuf::from(self.parse_atom()?);
+                Step::PackApeBare { out, x86, arm }
+            }
+            "inspect-ape" => Step::InspectApe {
+                path: PathBuf::from(self.parse_atom()?),
+            },
+            "run-ape" => {
+                let path = PathBuf::from(self.parse_atom()?);
+                self.skip_ws();
+                let arch = if self.peek() != Some(')') {
+                    Some(self.parse_atom()?)
+                } else {
+                    None
+                };
+                Step::RunApe { path, arch }
+            }
+            "emit-elf64-exit" => Step::EmitElf64Exit {
+                out: PathBuf::from(self.parse_atom()?),
+                exit: self.parse_atom()?,
+            },
+            "read-file" => Step::ReadFile {
+                path: PathBuf::from(self.parse_atom()?),
+            },
+            "spawn-wait" => {
+                let expected = self.parse_atom()?;
+                let path = PathBuf::from(self.parse_atom()?);
+                let args = self.parse_remaining_strings();
+                Step::SpawnWait {
+                    expected,
+                    path,
+                    args,
+                }
+            }
+            "results-min" => {
+                let path = PathBuf::from(self.parse_atom()?);
+                let key = self.parse_atom()?;
+                let min = self.parse_atom()?;
+                Step::ResultsMin { path, key, min }
+            }
+            "compile-expect-exit" => {
+                let expected = self.parse_atom()?;
+                let mode = self.parse_atom()?;
+                let src = PathBuf::from(self.parse_atom()?);
+                let out = PathBuf::from(self.parse_atom()?);
+                let extra = self.parse_remaining_strings();
+                Step::CompileExpectExit {
+                    expected,
+                    mode,
+                    src,
+                    out,
+                    extra,
+                }
+            }
             _ => return None,
         };
         if !self.expect(')') {
@@ -203,6 +357,86 @@ fn ensure_parent(path: &Path) -> i32 {
     0
 }
 
+fn compile_rc(lisp: &Path, lbin: &Path) -> i32 {
+    if ensure_parent(lbin) != 0 {
+        return ensure_parent(lbin);
+    }
+    match crate::compile::compile_path(lisp, lbin) {
+        Ok(()) => {
+            println!("compile.engine=rust");
+            println!("compile.output={}", lbin.display());
+            0
+        }
+        Err(e @ CompileError::UnsupportedSource { .. }) => {
+            eprintln!("{e}");
+            2
+        }
+        Err(e) => {
+            eprintln!("{e}");
+            1
+        }
+    }
+}
+
+fn run_compile_subcommand(mode: &str, src: &Path, out: &Path, extra: &[String]) -> i32 {
+    match mode {
+        "compile" => compile_rc(src, out),
+        "compile-elf64-obj-code" => {
+            if extra.len() != 1 {
+                return 1;
+            }
+            if ensure_parent(out) != 0 {
+                return ensure_parent(out);
+            }
+            crate::aot::cmd_compile_elf64_obj_code(src, out, &extra[0])
+        }
+        "compile-elf64-exe" => {
+            if extra.len() != 1 {
+                return 1;
+            }
+            if ensure_parent(out) != 0 {
+                return ensure_parent(out);
+            }
+            crate::aot::cmd_compile_elf64_exe(src, out, &extra[0])
+        }
+        "compile-elf64-code" => {
+            if !extra.is_empty() {
+                return 1;
+            }
+            if ensure_parent(out) != 0 {
+                return ensure_parent(out);
+            }
+            crate::aot::cmd_compile_elf64_code(src, out)
+        }
+        _ => 1,
+    }
+}
+
+fn check_compile_expect_exit(
+    expected_s: &str,
+    mode: &str,
+    src: &Path,
+    out: &Path,
+    extra: &[String],
+    label: &str,
+) -> i32 {
+    let expected: u64 = match expected_s.parse() {
+        Ok(v) if v <= 255 => v,
+        _ => {
+            eprintln!("{label}=bad_expected");
+            return 2;
+        }
+    };
+    let rc = run_compile_subcommand(mode, src, out, extra);
+    if rc as u64 != expected {
+        eprintln!("{label}=unexpected expected={expected} actual={rc}");
+        return 2;
+    }
+    println!("{label}.mode={mode}");
+    println!("{label}.ok={expected}");
+    0
+}
+
 pub fn run_bootstrap_plan(path: &Path) -> i32 {
     let src = match fs::read_to_string(path) {
         Ok(s) => s,
@@ -226,19 +460,16 @@ pub fn run_bootstrap_plan(path: &Path) -> i32 {
                     e => e,
                 }
             }
+            Step::CompileElf64Exe { lisp, out, symbol } => {
+                println!("bootstrap-step.{i}=compile-elf64-exe");
+                match ensure_parent(out) {
+                    0 => crate::aot::cmd_compile_elf64_exe(lisp, out, symbol),
+                    e => e,
+                }
+            }
             Step::Compile { lisp, lbin } => {
                 println!("bootstrap-step.{i}=compile");
-                if ensure_parent(lbin) != 0 {
-                    ensure_parent(lbin)
-                } else {
-                    match crate::compile::compile_path(lisp, lbin) {
-                        Ok(()) => 0,
-                        Err(e) => {
-                            eprintln!("{e}");
-                            1
-                        }
-                    }
-                }
+                compile_rc(lisp, lbin)
             }
             Step::Run { lbin } => {
                 println!("bootstrap-step.{i}=run");
@@ -272,6 +503,10 @@ pub fn run_bootstrap_plan(path: &Path) -> i32 {
                 println!("bootstrap-step.{i}=run-expect-exit");
                 crate::run::run_expect_exit(exe, exit)
             }
+            Step::RunApeExpectExit { path, exit, arch } => {
+                println!("bootstrap-step.{i}=run-ape-expect-exit");
+                crate::ape::run_ape_expect_exit(path, exit, arch.as_deref())
+            }
             Step::FileSize { path } => {
                 println!("bootstrap-step.{i}=file-size");
                 match fs::metadata(path) {
@@ -301,6 +536,77 @@ pub fn run_bootstrap_plan(path: &Path) -> i32 {
                     }
                 }
             }
+            Step::Hash { path } => {
+                println!("bootstrap-step.{i}=hash");
+                match fs::read(path) {
+                    Ok(data) => {
+                        println!("{:016x}", crate::lbin::fnv1a64(&data));
+                        0
+                    }
+                    Err(_) => {
+                        eprintln!("hash=fail path={}", path.display());
+                        1
+                    }
+                }
+            }
+            Step::PackApe { out, x86, arm } => {
+                println!("bootstrap-step.{i}=pack-ape");
+                match ensure_parent(out) {
+                    0 => crate::ape::pack_ape(out, x86, arm),
+                    e => e,
+                }
+            }
+            Step::PackApeBare { out, x86, arm } => {
+                println!("bootstrap-step.{i}=pack-ape-bare");
+                match ensure_parent(out) {
+                    0 => crate::ape::pack_ape_bare(out, x86, arm),
+                    e => e,
+                }
+            }
+            Step::InspectApe { path } => {
+                println!("bootstrap-step.{i}=inspect-ape");
+                crate::ape::inspect_ape(path)
+            }
+            Step::RunApe { path, arch } => {
+                println!("bootstrap-step.{i}=run-ape");
+                crate::ape::run_ape(path, arch.as_deref())
+            }
+            Step::EmitElf64Exit { out, exit } => {
+                println!("bootstrap-step.{i}=emit-elf64-exit");
+                match ensure_parent(out) {
+                    0 => crate::aot::cmd_emit_elf64_exit(out, exit),
+                    e => e,
+                }
+            }
+            Step::ReadFile { path } => {
+                println!("bootstrap-step.{i}=read-file");
+                crate::run::read_file(path)
+            }
+            Step::SpawnWait { expected, path, args } => {
+                println!("bootstrap-step.{i}=spawn-wait");
+                crate::run::spawn_wait(expected, path, args)
+            }
+            Step::ResultsMin { path, key, min } => {
+                println!("bootstrap-step.{i}=results-min");
+                crate::run::results_min(path, key, min)
+            }
+            Step::CompileExpectExit {
+                expected,
+                mode,
+                src,
+                out,
+                extra,
+            } => {
+                println!("bootstrap-step.{i}=compile-expect-exit");
+                check_compile_expect_exit(
+                    expected,
+                    mode,
+                    src,
+                    out,
+                    extra,
+                    "bootstrap-compile-expect-exit",
+                )
+            }
         };
         if rc != 0 {
             eprintln!("bootstrap-plan=step_fail index={i} rc={rc}");
@@ -323,5 +629,31 @@ mod tests {
 "#;
         let steps = parse_bootstrap_plan(src).unwrap();
         assert_eq!(steps.len(), 1);
+    }
+
+    #[test]
+    fn parse_pack_ape_plan() {
+        let src = r#"
+(bootstrap
+  (pack-ape "out.com" "x86.elf" "arm.elf")
+  (inspect-ape "out.com"))
+"#;
+        let steps = parse_bootstrap_plan(src).unwrap();
+        assert_eq!(steps.len(), 2);
+    }
+
+    #[test]
+    fn parse_spawn_wait_plan() {
+        let src = r#"
+(bootstrap
+  (spawn-wait 7 "/bin/sh" "-c" "exit 7"))
+"#;
+        let steps = parse_bootstrap_plan(src).unwrap();
+        assert_eq!(steps.len(), 1);
+        if let Step::SpawnWait { args, .. } = &steps[0] {
+            assert_eq!(args, &["-c".to_string(), "exit 7".to_string()]);
+        } else {
+            panic!("expected spawn-wait");
+        }
     }
 }

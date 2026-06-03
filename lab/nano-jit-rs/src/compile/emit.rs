@@ -17,6 +17,7 @@ pub enum CompileError {
     ReadFail { path: String },
     WriteFail { path: String },
     LowerFail { reason: &'static str },
+    UnsupportedSource { reason: &'static str },
 }
 
 impl std::fmt::Display for CompileError {
@@ -26,6 +27,9 @@ impl std::fmt::Display for CompileError {
             CompileError::ReadFail { path } => write!(f, "compile=read_fail path={path}"),
             CompileError::WriteFail { path } => write!(f, "compile=write_fail path={path}"),
             CompileError::LowerFail { reason } => write!(f, "compile=lower_fail reason={reason}"),
+            CompileError::UnsupportedSource { reason } => {
+                write!(f, "compile=unsupported_source reason={reason}")
+            }
         }
     }
 }

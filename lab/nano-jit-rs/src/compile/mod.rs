@@ -1,5 +1,6 @@
 mod emit;
 pub mod parse;
+mod validate;
 
 pub use emit::CompileError;
 pub use parse::{parse_module, InstrDef, Module, SrcForm};
@@ -7,6 +8,7 @@ use std::path::Path;
 
 pub fn compile_source(src: &str) -> Result<Vec<u8>, CompileError> {
     let module = parse::parse_module(src)?;
+    validate::validate_vm_module(&module)?;
     emit::compile_module(&module)
 }
 
