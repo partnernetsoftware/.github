@@ -177,7 +177,8 @@ pub fn cmd_compile_elf64_exe(lisp_path: &Path, out_path: &Path, entry_symbol: &s
         }
     } else {
         match multi::compile_module_to_elf64_exe(&module, out_path, entry_symbol) {
-            Ok(_) => {
+            Ok(code_bytes) => {
+                println!("link.code.bytes={code_bytes}");
                 println!("compile.elf64.exe.output={}", out_path.display());
                 println!("compile.elf64.exe.symbol={entry_symbol}");
                 println!("compile.elf64.exe.mode=multi-func");

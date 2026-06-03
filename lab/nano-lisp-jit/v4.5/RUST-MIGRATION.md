@@ -33,9 +33,9 @@ ELF slices ──pack-ape──▶  .com  ──run-ape──▶  native exec
 | `inspect-ape` | ✅ | ✅ | 100% |
 | `run-ape` | ✅ | ✅ v2 memfd（bare+stub） | 85% |
 | x86_64 / aarch64 CLI 二进制 | ✅ | ✅ cross-build | 90% |
-| x86_64 AOT codegen | ✅ | ✅ obj+link + rodata/data + multi-func | 85% |
+| x86_64 AOT codegen | ✅ | ✅ obj+link + rodata/data + multi-func CF | 90% |
 | `link-elf64-exe` | ✅ | ✅ | 100% |
-| `compile-elf64-exe` | ✅ | ✅ multi-func exit 43 | 70% |
+| `compile-elf64-exe` | ✅ | ✅ multi-func + control-flow exit 43 | 85% |
 | `run-expect-exit` | ✅ | ✅ | 100% |
 | 6-face COM 替换 release | ✅ | ❌ | 0% |
 

@@ -52,6 +52,30 @@ echo "$log" | grep -q 'run-expect-exit.ok=1' || {
   exit 1
 }
 
+MFC="$TMP/multi-func-control-flow.elf"
+"$RS" compile-elf64-exe "$CORE/multi-func-control-flow.lisp" "$MFC" nano_main >/dev/null
+log=$("$RS" run-expect-exit "$MFC" 43 2>&1) || true
+echo "$log" | grep -q 'run-expect-exit.ok=1' || {
+  echo "nano-jit-rs-aot-smoke=fail multi-func-control-flow"
+  echo "$log"
+  exit 1
+}
+rs_mfc=$("$RS" compile-elf64-exe "$CORE/multi-func-control-flow.lisp" "$TMP/mfc2.elf" nano_main 2>&1 | sed -n 's/^link.code.bytes=//p')
+com_mfc=$("$COM" compile-elf64-exe "$CORE/multi-func-control-flow.lisp" "$TMP/mfc-com.elf" nano_main 2>&1 | sed -n 's/^link.code.bytes=//p')
+[ "$rs_mfc" = "$com_mfc" ] || {
+  echo "nano-jit-rs-aot-smoke=fail mfc_code_bytes rs=$rs_mfc com=$com_mfc"
+  exit 1
+}
+
+RO="$TMP/rodata-readonly.elf"
+"$RS" compile-elf64-exe "$CORE/rodata-readonly.lisp" "$RO" nano_main >/dev/null
+log=$("$RS" run-expect-exit "$RO" 0 2>&1) || true
+echo "$log" | grep -q 'run-expect-exit.ok=1' || {
+  echo "nano-jit-rs-aot-smoke=fail rodata-readonly"
+  echo "$log"
+  exit 1
+}
+
 # compile-elf64-code one-shot
 CE="$TMP/compile-arith.elf"
 "$RS" compile-elf64-code "$CORE/arithmetic.lisp" "$CE" >/dev/null
