@@ -203,6 +203,17 @@ fn load_lbin_from_capsule(cap: &Capsule, tier: &TierEntry) -> Result<Vec<u8>, i3
     }
 }
 
+fn auto_tier_priority(tier: &TierEntry) -> u32 {
+    let base = tier.priority;
+    #[cfg(any(target_arch = "x86_64", target_arch = "aarch64"))]
+    {
+        if tier.kind == TIER_XBIN {
+            return base.saturating_sub(15);
+        }
+    }
+    base
+}
+
 fn pick_tier<'a>(cap: &'a Capsule, mode: &str) -> Result<&'a TierEntry, i32> {
     match mode {
         "lbin" => cap
@@ -240,7 +251,7 @@ fn pick_tier<'a>(cap: &'a Capsule, mode: &str) -> Result<&'a TierEntry, i32> {
         "auto" | "" => cap
             .tiers
             .iter()
-            .min_by_key(|t| t.priority)
+            .min_by_key(|t| auto_tier_priority(t))
             .ok_or_else(|| {
                 eprintln!("run-capsule=no_tiers");
                 1

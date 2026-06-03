@@ -67,10 +67,10 @@ echo "$log" | grep -q 'run-capsule.ok=1' || {
   echo "$log"
   exit 1
 }
-# auto prefers abin (priority 90) over xbin (100)
-log=$("$RS" run-capsule "$CAP_ABIN" --expect 2 2>&1) || true
-echo "$log" | grep -q 'run-capsule.tier=abin' || {
-  echo "nano-jit-rs-capsule-smoke=fail auto_abin"
+# auto on native arch prefers xbin (effective 85) over abin (90)
+log=$("$RS" run-capsule "$CAP_ABIN" --expect 42 2>&1) || true
+echo "$log" | grep -q 'run-capsule.tier=xbin' || {
+  echo "nano-jit-rs-capsule-smoke=fail auto_xbin_over_abin"
   echo "$log"
   exit 1
 }

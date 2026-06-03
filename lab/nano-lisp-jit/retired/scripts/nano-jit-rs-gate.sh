@@ -13,6 +13,8 @@ bash "$ROOT/lab/nano-lisp-jit/retired/scripts/nano-jit-rs-lisp-tu-link-smoke.sh"
 bash "$ROOT/lab/nano-lisp-jit/retired/scripts/nano-jit-rs-compose5-smoke.sh"
 bash "$ROOT/lab/nano-lisp-jit/retired/scripts/nano-jit-rs-compose-link-smoke.sh" 8
 bash "$ROOT/lab/nano-lisp-jit/retired/scripts/nano-jit-rs-compose-link-smoke.sh" 15
+bash "$ROOT/lab/nano-lisp-jit/retired/scripts/nano-jit-rs-compose-semantic-8k-smoke.sh"
+bash "$ROOT/lab/nano-lisp-jit/retired/scripts/nano-jit-rs-release-pack-smoke.sh"
 bash "$ROOT/lab/nano-lisp-jit/retired/scripts/nano-jit-rs-capsule-smoke.sh"
 (cd "$ROOT/lab/nano-jit-rs" && cargo test)
 echo "nanolisp.gate=ok"
