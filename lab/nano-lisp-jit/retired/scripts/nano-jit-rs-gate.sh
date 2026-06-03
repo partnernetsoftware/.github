@@ -14,6 +14,8 @@ bash "$ROOT/lab/nano-lisp-jit/retired/scripts/nano-jit-rs-compose5-smoke.sh"
 bash "$ROOT/lab/nano-lisp-jit/retired/scripts/nano-jit-rs-compose-link-smoke.sh" 8
 bash "$ROOT/lab/nano-lisp-jit/retired/scripts/nano-jit-rs-compose-link-smoke.sh" 15
 bash "$ROOT/lab/nano-lisp-jit/retired/scripts/nano-jit-rs-compose-semantic-8k-smoke.sh"
+bash "$ROOT/lab/nano-lisp-jit/retired/scripts/nano-jit-rs-compose-semantic-smoke.sh" 32
+bash "$ROOT/lab/nano-lisp-jit/retired/scripts/nano-jit-rs-compose-bulk-smoke.sh"
 bash "$ROOT/lab/nano-lisp-jit/retired/scripts/nano-jit-rs-release-pack-smoke.sh"
 bash "$ROOT/lab/nano-lisp-jit/retired/scripts/nano-jit-rs-capsule-smoke.sh"
 (cd "$ROOT/lab/nano-jit-rs" && cargo test)
