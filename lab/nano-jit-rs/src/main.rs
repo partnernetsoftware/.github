@@ -1,5 +1,6 @@
 mod ape;
 mod aot;
+mod brand;
 mod compile;
 mod elf64;
 mod ffi;
@@ -16,30 +17,35 @@ use std::process::{Command, ExitCode};
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
-fn usage() -> &'static str {
-    "nano-jit (Rust) — .lisp source compiles to .lbin bytecode; VM runs .lbin only\n\
+fn usage() -> String {
+    format!(
+        "{} ({}) — .lisp source compiles to .lbin bytecode; VM runs .lbin only\n\
 Usage:\n\
-  nano-jit compile <in.lisp> <out.lbin>   # source -> bytecode (like javac)\n\
-  nano-jit run <file.lbin>                # execute bytecode (like java)\n\
-  nano-jit dump <file.lbin>\n\
-  nano-jit hash <file.lbin>\n\
-  nano-jit resolve-quiet <file.lbin>\n\
-  nano-jit inspect-ape <file.com>\n\
-  nano-jit pack-ape <out.com> <x86.elf> <aarch64.elf>\n\
-  nano-jit pack-ape-bare <out.ape> <x86.elf> <aarch64.elf>\n\
-  nano-jit run-ape <file.com> [x86_64|aarch64]\n\
-  nano-jit run-ape-expect-exit <file.com> <exit> [arch]\n\
-  nano-jit emit-elf64-exit <out.elf> <exit_code>\n\
-  nano-jit aot-elf64-exit <file.lbin> <out.elf>\n\
-  nano-jit aot-elf64-code <file.lbin> <out.elf>\n\
-  nano-jit compile-elf64-code <in.lisp> <out.elf>\n\
-  nano-jit compile-elf64-exe <in.lisp> <out.elf> <entry_symbol>\n\
-  nano-jit link-elf64-exe <out.elf> <entry_symbol> <obj.o>...\n\
-  nano-jit run-expect-exit <executable> <expected_exit>\n\
-  nano-jit version\n\
+  {bin} compile <in.lisp> <out.lbin>   # source -> bytecode (like javac)\n\
+  {bin} run <file.lbin>                # execute bytecode (like java)\n\
+  {bin} dump <file.lbin>\n\
+  {bin} hash <file.lbin>\n\
+  {bin} resolve-quiet <file.lbin>\n\
+  {bin} inspect-ape <file.com>\n\
+  {bin} pack-ape <out.com> <x86.elf> <aarch64.elf>\n\
+  {bin} pack-ape-bare <out.ape> <x86.elf> <aarch64.elf>\n\
+  {bin} run-ape <file.com> [x86_64|aarch64]\n\
+  {bin} run-ape-expect-exit <file.com> <exit> [arch]\n\
+  {bin} emit-elf64-exit <out.elf> <exit_code>\n\
+  {bin} aot-elf64-exit <file.lbin> <out.elf>\n\
+  {bin} aot-elf64-code <file.lbin> <out.elf>\n\
+  {bin} compile-elf64-code <in.lisp> <out.elf>\n\
+  {bin} compile-elf64-exe <in.lisp> <out.elf> <entry_symbol>\n\
+  {bin} link-elf64-exe <out.elf> <entry_symbol> <obj.o>...\n\
+  {bin} run-expect-exit <executable> <expected_exit>\n\
+  {bin} version\n\
 Env:\n\
   NANO_JIT_LEGACY       force legacy COM compile when set\n\
-  NANO_PACK_APE_MODE    stub (default) | bare\n"
+  NANO_PACK_APE_MODE    stub (default) | bare\n",
+        brand::PRODUCT,
+        brand::PRODUCT_TITLE,
+        bin = brand::BINARY_NAME,
+    )
 }
 
 fn main() -> ExitCode {
@@ -50,9 +56,10 @@ fn main() -> ExitCode {
     }
     let rc = match args[1].as_str() {
         "version" | "--version" | "-V" => {
-            println!("nano-jit-rs={VERSION}");
-            println!("nano-jit.arch={}", std::env::consts::ARCH);
-            println!("nano-jit.os={}", std::env::consts::OS);
+            println!("{}", brand::version_line(VERSION));
+            println!("{}", brand::arch_line(std::env::consts::ARCH));
+            println!("{}", brand::os_line(std::env::consts::OS));
+            println!("{}={}", brand::CRATE_NAME, VERSION);
             0
         }
         "run" if args.len() == 3 => cmd_run(Path::new(&args[2])),

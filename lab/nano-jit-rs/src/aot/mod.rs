@@ -55,6 +55,16 @@ pub fn cmd_aot_elf64_exit(blob_path: &Path, out_path: &Path) -> i32 {
     }
 }
 
+fn print_link_stats(result: &crate::elf64::LinkResult) {
+    println!("link.code.bytes={}", result.code_bytes);
+    if result.rodata_bytes > 0 {
+        println!("link.rodata.bytes={}", result.rodata_bytes);
+    }
+    if result.data_bytes > 0 {
+        println!("link.data.bytes={}", result.data_bytes);
+    }
+}
+
 pub fn cmd_aot_elf64_code(blob_path: &Path, out_path: &Path) -> i32 {
     let data = match std::fs::read(blob_path) {
         Ok(d) => d,
@@ -71,10 +81,10 @@ pub fn cmd_aot_elf64_code(blob_path: &Path, out_path: &Path) -> i32 {
         }
     };
     match x86::compile_pure_to_elf_via_link(&blob, out_path, "nano_main") {
-        Ok(code_bytes) => {
+        Ok(link) => {
             println!("link.output={}", out_path.display());
             println!("link.objects=1");
-            println!("link.code.bytes={code_bytes}");
+            print_link_stats(&link);
             println!("aot.code.output={}", out_path.display());
             println!("aot.code.symbol=nano_main");
             0
@@ -192,10 +202,10 @@ pub fn cmd_link_elf64_exe(out_path: &Path, entry: &str, obj_paths: &[&Path]) -> 
         return 1;
     }
     match crate::elf64::link_exe(out_path, entry, obj_paths) {
-        Ok(code_bytes) => {
+        Ok(link) => {
             println!("link.output={}", out_path.display());
             println!("link.objects={}", obj_paths.len());
-            println!("link.code.bytes={code_bytes}");
+            print_link_stats(&link);
             0
         }
         Err(e) => {

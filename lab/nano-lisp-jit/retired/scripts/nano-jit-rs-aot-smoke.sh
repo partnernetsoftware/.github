@@ -2,7 +2,7 @@
 # nano-jit-rs AOT smoke — emit/aot ELF64 + run-expect-exit vs C COM reference.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../../../.." && pwd)"
-RS="$ROOT/lab/nano-lisp-jit/.build/nano-jit-rs/nano-jit"
+RS="$ROOT/lab/nano-lisp-jit/.build/nano-jit-rs/nanolisp"
 COM="$ROOT/lab/nano-lisp-jit/release/nano-lisp.com"
 CORE="$ROOT/lab/nano-lisp-jit/lisp/core"
 cd "$ROOT"
@@ -66,6 +66,17 @@ rs_bytes=$("$RS" aot-elf64-code "$TMP/arithmetic.lbin" "$TMP/arithmetic-rs2.elf"
 com_bytes=$("$COM" aot-elf64-code "$TMP/arithmetic.lbin" "$COM_ELF" 2>&1 | sed -n 's/^link.code.bytes=//p')
 [ "$rs_bytes" = "$com_bytes" ] || {
   echo "nano-jit-rs-aot-smoke=fail code_bytes rs=$rs_bytes com=$com_bytes"
+  exit 1
+}
+
+run_case const-ptr-load-u8 1
+
+# const-ptr obj+link parity: .data section size vs C COM
+"$RS" compile "$CORE/const-ptr-load-u8.lisp" "$TMP/const-ptr.lbin" >/dev/null
+rs_data=$("$RS" aot-elf64-code "$TMP/const-ptr.lbin" "$TMP/const-ptr-rs.elf" 2>&1 | sed -n 's/^link.data.bytes=//p')
+com_data=$("$COM" aot-elf64-code "$TMP/const-ptr.lbin" "$TMP/const-ptr-com.elf" 2>&1 | sed -n 's/^link.data.bytes=//p')
+[ "$rs_data" = "$com_data" ] || {
+  echo "nano-jit-rs-aot-smoke=fail data_bytes rs=$rs_data com=$com_data"
   exit 1
 }
 

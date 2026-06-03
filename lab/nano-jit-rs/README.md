@@ -1,4 +1,6 @@
-# nano-jit-rs — Rust rewrite of nano-jit.com
+# nanolisp.com — Rust Lisp runtime (`nano-jit-rs` crate)
+
+User-facing product: **nanolisp.com**. CLI binary: `nanolisp` (symlink `nano-jit` for legacy scripts).
 
 `.lisp` compiles to portable `.lbin` bytecode (LBIN01 wire format) — same role as
 `.java` → `.class`. Runtime execution only needs the `.lbin`; source is not required.
@@ -9,7 +11,7 @@ Rust crate splits **compiler** (`compile`) and **VM** (`run` / `dump` / …).
 
 ```bash
 bash lab/nano-lisp-jit/build_nano_jit_rs.sh
-# → lab/nano-lisp-jit/.build/nano-jit-rs/nano-jit
+# → lab/nano-lisp-jit/.build/nano-jit-rs/nanolisp
 ```
 
 Cross-compile aarch64 (once target installed):
@@ -22,7 +24,7 @@ bash lab/nano-lisp-jit/build_nano_jit_rs.sh
 ## Smoke
 
 ```bash
-RS=lab/nano-lisp-jit/.build/nano-jit-rs/nano-jit
+RS=lab/nano-lisp-jit/.build/nano-jit-rs/nanolisp
 $RS compile lab/nano-lisp-jit/lisp/core/arithmetic.lisp /tmp/arithmetic.lbin
 $RS run /tmp/arithmetic.lbin
 

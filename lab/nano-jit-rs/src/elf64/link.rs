@@ -212,7 +212,13 @@ fn find_sym(syms: &[LinkSym], name: &str) -> Option<u64> {
     syms.iter().find(|s| s.name == name).map(|s| s.value)
 }
 
-pub fn link_exe(path: &Path, entry_name: &str, obj_paths: &[&Path]) -> io::Result<usize> {
+pub struct LinkResult {
+    pub code_bytes: usize,
+    pub rodata_bytes: usize,
+    pub data_bytes: usize,
+}
+
+pub fn link_exe(path: &Path, entry_name: &str, obj_paths: &[&Path]) -> io::Result<LinkResult> {
     let mut objs = Vec::new();
     for p in obj_paths {
         objs.push(parse_elf_obj(std::fs::read(p)?)?);
@@ -359,7 +365,11 @@ pub fn link_exe(path: &Path, entry_name: &str, obj_paths: &[&Path]) -> io::Resul
     }
 
     emit_exec_sections(path, &code, &rodata, &data_buf)?;
-    Ok(code.len())
+    Ok(LinkResult {
+        code_bytes: code.len(),
+        rodata_bytes: rodata.len(),
+        data_bytes: data_buf.len(),
+    })
 }
 
 fn apply_sec_rela(
@@ -411,7 +421,7 @@ fn apply_sec_rela(
     Ok(())
 }
 
-pub fn link_exe_from_obj(path: &Path, entry: &str, obj: &Path) -> io::Result<usize> {
+pub fn link_exe_from_obj(path: &Path, entry: &str, obj: &Path) -> io::Result<LinkResult> {
     link_exe(path, entry, &[obj])
 }
 

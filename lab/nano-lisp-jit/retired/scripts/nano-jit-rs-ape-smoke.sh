@@ -2,7 +2,7 @@
 # pack-ape-bare parity — Rust vs legacy COM byte-identical container.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../../../.." && pwd)"
-RS="$ROOT/lab/nano-lisp-jit/.build/nano-jit-rs/nano-jit"
+RS="$ROOT/lab/nano-lisp-jit/.build/nano-jit-rs/nanolisp"
 COM="$ROOT/lab/nano-lisp-jit/release/nano-lisp.com"
 X86="$ROOT/lab/nano-lisp-jit/.build/nano-jit/nano-jit.x86_64"
 ARM="$ROOT/lab/nano-lisp-jit/.build/nano-jit/nano-jit.aarch64"

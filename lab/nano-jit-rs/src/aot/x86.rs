@@ -80,6 +80,7 @@ fn compile_pure_blob_to_x86(
     code: &mut CodeBuf,
     rodata: &mut CodeBuf,
     data_sec: &mut CodeBuf,
+    data_relas: Option<&mut Vec<elf64::ObjRela>>,
 ) -> bool {
     let mut last_kind = LastKind::None;
     let mut saw_ret = false;
@@ -599,16 +600,27 @@ fn compile_pure_blob_to_x86(
     }
 
     if !data_patches.is_empty() {
-        let layout = elf64::layout_for_codegen(code.len(), rodata.len(), data_sec.len());
-        for patch in &data_patches {
-            let target = if patch.sec == 2 {
-                layout.data_va + patch.sec_off as u64
-            } else {
-                layout.rodata_va + patch.sec_off as u64
-            };
-            let rip_next = layout.text_va + patch.patch_off as u64 + 4;
-            if !elf64::patch_pc32(&mut code.data, patch.patch_off as usize, target, rip_next) {
-                return false;
+        if let Some(relas) = data_relas {
+            for patch in &data_patches {
+                relas.push(elf64::ObjRela {
+                    offset: patch.patch_off as u64,
+                    sym_idx: 1,
+                    r#type: 1,
+                    addend: patch.sec_off as i64,
+                });
+            }
+        } else {
+            let layout = elf64::layout_for_codegen(code.len(), rodata.len(), data_sec.len());
+            for patch in &data_patches {
+                let target = if patch.sec == 2 {
+                    layout.data_va + patch.sec_off as u64
+                } else {
+                    layout.rodata_va + patch.sec_off as u64
+                };
+                let rip_next = layout.text_va + patch.patch_off as u64 + 4;
+                if !elf64::patch_pc32(&mut code.data, patch.patch_off as usize, target, rip_next) {
+                    return false;
+                }
             }
         }
     }
@@ -620,15 +632,24 @@ pub fn compile_pure_to_elf64_obj(b: &Blob, obj_path: &Path, symbol: &str) -> Res
     let mut code = CodeBuf::new();
     let mut rodata = CodeBuf::new();
     let mut data = CodeBuf::new();
-    if !compile_pure_blob_to_x86(b, false, &mut code, &mut rodata, &mut data) {
+    let mut data_relas = Vec::new();
+    if !compile_pure_blob_to_x86(
+        b,
+        false,
+        &mut code,
+        &mut rodata,
+        &mut data,
+        Some(&mut data_relas),
+    ) {
         return Err(2);
     }
     if !rodata.data.is_empty() || !data.data.is_empty() {
-        // rodata/data objects need section relocs — fall back to direct exec emit for now
-        if !compile_pure_blob_to_x86(b, true, &mut code, &mut rodata, &mut data) {
-            return Err(2);
-        }
-        return Err(2);
+        let use_data = !data.data.is_empty();
+        let sec_name = if use_data { ".data" } else { ".rodata" };
+        let sec = if use_data { &data.data } else { &rodata.data };
+        elf64::emit_obj_text_data_section(obj_path, symbol, &code.data, sec_name, sec, &data_relas)
+            .map_err(|_| 3)?;
+        return Ok(code.data);
     }
     let sym = crate::elf64::ObjSymbol {
         name: symbol.to_string(),
@@ -641,33 +662,26 @@ pub fn compile_pure_to_elf64_obj(b: &Blob, obj_path: &Path, symbol: &str) -> Res
     Ok(code.data)
 }
 
-pub fn compile_pure_to_elf_via_link(b: &Blob, path: &Path, symbol: &str) -> Result<usize, i32> {
+pub fn compile_pure_to_elf_via_link(b: &Blob, path: &Path, symbol: &str) -> Result<crate::elf64::LinkResult, i32> {
     let tmp = std::env::temp_dir().join(format!(
         "nano-jit-rs-{}.o",
         std::process::id()
     ));
-    let _code = match compile_pure_to_elf64_obj(b, &tmp, symbol) {
-        Ok(c) => c,
-        Err(2) => {
-            // blobs with rodata/data: direct exec (exit_style) still correct
-            return compile_pure_to_elf_exit(b, path);
-        }
-        Err(e) => return Err(e),
-    };
-    let n = crate::elf64::link_exe_from_obj(path, symbol, &tmp)
+    let _code = compile_pure_to_elf64_obj(b, &tmp, symbol)?;
+    let link = crate::elf64::link_exe_from_obj(path, symbol, &tmp)
         .map_err(|_| {
             eprintln!("aot-elf64-code=write_fail path={}", path.display());
             3
         })?;
     let _ = std::fs::remove_file(&tmp);
-    Ok(n)
+    Ok(link)
 }
 
 pub fn compile_pure_to_elf_exit(b: &Blob, path: &Path) -> Result<usize, i32> {
     let mut code = CodeBuf::new();
     let mut rodata = CodeBuf::new();
     let mut data = CodeBuf::new();
-    if !compile_pure_blob_to_x86(b, true, &mut code, &mut rodata, &mut data) {
+    if !compile_pure_blob_to_x86(b, true, &mut code, &mut rodata, &mut data, None) {
         eprintln!("aot-elf64-code=unsupported_blob");
         return Err(2);
     }

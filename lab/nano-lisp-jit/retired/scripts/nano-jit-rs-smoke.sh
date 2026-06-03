@@ -2,7 +2,7 @@
 # nano-jit-rs smoke — Rust compile .lisp -> .lbin, run bytecode, hash parity vs C COM.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../../../.." && pwd)"
-RS="$ROOT/lab/nano-lisp-jit/.build/nano-jit-rs/nano-jit"
+RS="$ROOT/lab/nano-lisp-jit/.build/nano-jit-rs/nanolisp"
 COM="$ROOT/lab/nano-lisp-jit/release/nano-lisp.com"
 CORE="$ROOT/lab/nano-lisp-jit/lisp/core"
 cd "$ROOT"
