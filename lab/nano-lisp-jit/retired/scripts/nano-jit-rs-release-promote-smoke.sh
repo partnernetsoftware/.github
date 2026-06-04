@@ -43,14 +43,14 @@ echo "$log" | grep -q 'inspect-ape.ok=1' || {
   exit 1
 }
 
-log=$("$RS" run-ape-expect-exit "$COM" 1 2>&1) || true
+log=$("$RS" run-ape-expect-exit "$COM" 0 2>&1) || true
 echo "$log" | grep -q 'run-ape-expect-exit.ok=1' || {
   echo "nano-jit-rs-release-promote-smoke=fail run_com"
   echo "$log"
   exit 1
 }
 
-log=$("$RS" run-ape-expect-exit "$APE" 1 2>&1) || true
+log=$("$RS" run-ape-expect-exit "$APE" 0 2>&1) || true
 echo "$log" | grep -q 'run-ape-expect-exit.ok=1' || {
   echo "nano-jit-rs-release-promote-smoke=fail run_ape"
   echo "$log"

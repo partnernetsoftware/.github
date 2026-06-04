@@ -35,6 +35,7 @@ bash "$ROOT/lab/nano-lisp-jit/retired/scripts/nano-jit-rs-release-promote-smoke.
 bash "$ROOT/lab/nano-lisp-jit/retired/scripts/nano-jit-rs-release-slim-smoke.sh"
 bash "$ROOT/lab/nano-lisp-jit/retired/scripts/nano-jit-rs-shell-v0-smoke.sh"
 bash "$ROOT/lab/nano-lisp-jit/retired/scripts/nano-jit-rs-shell-script-smoke.sh"
+bash "$ROOT/lab/nano-lisp-jit/retired/scripts/nano-jit-rs-shell-noarg-smoke.sh"
 bash "$ROOT/lab/nano-lisp-jit/retired/scripts/nano-jit-rs-capsule-smoke.sh"
 (cd "$ROOT/lab/nano-jit-rs" && cargo test)
 echo "nanolisp.gate=ok"

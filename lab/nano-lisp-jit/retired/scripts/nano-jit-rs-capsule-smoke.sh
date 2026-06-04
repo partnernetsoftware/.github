@@ -59,7 +59,11 @@ echo "$log" | grep -q 'inspect-capsule.tier.0.kind=abin' || {
   echo "$log"
   exit 1
 }
-log=$("$RS" run-capsule "$CAP_ABIN" --tier abin --expect 1 2>&1) || true
+ABIN_EXPECT=0
+case "$X86" in
+  *x86-stub.elf|*/nano-jit/nano-jit.x86_64) ABIN_EXPECT=1 ;;
+esac
+log=$("$RS" run-capsule "$CAP_ABIN" --tier abin --expect "$ABIN_EXPECT" 2>&1) || true
 echo "$log" | grep -q 'run-capsule.tier=abin' || {
   echo "nano-jit-rs-capsule-smoke=fail abin_run"
   echo "$log"

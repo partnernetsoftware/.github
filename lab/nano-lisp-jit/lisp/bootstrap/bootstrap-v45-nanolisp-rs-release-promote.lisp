@@ -9,7 +9,7 @@
                  "lab/nano-lisp-jit/.build/nano-jit-rs/nanolisp"
                  "lab/nano-lisp-jit/.build/nano-jit-rs/nanolisp.aarch64")
   (inspect-ape "lab/nano-lisp-jit/.build/nanolisp-rs-promote.com")
-  (run-ape-expect-exit "lab/nano-lisp-jit/.build/nanolisp-rs-promote.com" 1)
-  (run-ape-expect-exit "lab/nano-lisp-jit/.build/nanolisp-rs-promote.ape" 1)
+  (run-ape-expect-exit "lab/nano-lisp-jit/.build/nanolisp-rs-promote.com" 0)
+  (run-ape-expect-exit "lab/nano-lisp-jit/.build/nanolisp-rs-promote.ape" 0)
   (file-size "lab/nano-lisp-jit/.build/nanolisp-rs-promote.com")
   (file-hash "lab/nano-lisp-jit/.build/nanolisp-rs-promote.com"))

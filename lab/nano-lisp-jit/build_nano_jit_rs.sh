@@ -8,7 +8,18 @@ mkdir -p "$OUT_DIR"
 
 echo "nanolisp.build=begin"
 (cd "$RS_DIR" && cargo build --release)
-install -m 755 "$RS_DIR/target/release/nanolisp" "$OUT_DIR/nanolisp"
+(install -m 755 "$RS_DIR/target/release/nanolisp" "$OUT_DIR/nanolisp")
+# Refresh embedded shell.lbin when source changes (Phase 3 no-arg dispatch).
+EMBED_SRC="$ROOT/lab/nano-lisp-jit/lisp/shell/shell-script.lisp"
+EMBED_BIN="$RS_DIR/embed/shell-script.lbin"
+if [ -f "$EMBED_BIN" ] && [ -f "$EMBED_SRC" ]; then
+  if [ "$EMBED_SRC" -nt "$EMBED_BIN" ]; then
+    "$OUT_DIR/nanolisp" compile "$EMBED_SRC" "$EMBED_BIN" >/dev/null
+    echo "nanolisp.embed=refresh shell-script.lbin"
+    (cd "$RS_DIR" && cargo build --release)
+    install -m 755 "$RS_DIR/target/release/nanolisp" "$OUT_DIR/nanolisp"
+  fi
+fi
 ln -sf nanolisp "$OUT_DIR/nano-jit"
 "$OUT_DIR/nanolisp" version
 

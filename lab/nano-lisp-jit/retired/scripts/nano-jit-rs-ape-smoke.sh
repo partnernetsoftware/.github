@@ -49,5 +49,9 @@ log=$("$RS" run-ape "$TMP/rs.com" 2>&1 || true)
 echo "$log" | grep -q 'run-ape.loader=memfd'
 log=$("$RS" run-ape "$TMP/rs.ape" 2>&1 || true)
 echo "$log" | grep -q 'run-ape.loader=memfd'
-"$RS" run-ape-expect-exit "$TMP/rs.com" 1 2>&1 | grep -q 'run-ape-expect-exit.ok=1'
+EXPECT_EXIT=0
+if [ "$STUB_SLICES" -eq 1 ] || [ "$LEGACY_SLICES" -eq 1 ]; then
+  EXPECT_EXIT=1
+fi
+"$RS" run-ape-expect-exit "$TMP/rs.com" "$EXPECT_EXIT" 2>&1 | grep -q 'run-ape-expect-exit.ok=1'
 echo "nano-jit-rs-ape-smoke=ok legacy_slices=$LEGACY_SLICES stub_slices=$STUB_SLICES"
