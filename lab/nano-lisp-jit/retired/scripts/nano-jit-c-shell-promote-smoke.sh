@@ -1,8 +1,12 @@
 #!/usr/bin/env bash
 # C release shell promote prep smoke — cosmocc honest skip; never rewrite manifest without rebuild.
 # Standalone (not in nano-jit-c-gate.sh by default). Optional: NANO_C_SHELL_PROMOTE_BUILD=1 for full factory.
+# Optional: NANO_BOOTSTRAP_COSMOCC=1 runs bootstrap-cosmocc.sh first (third_party/cosmocc symlink or download).
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../../../.." && pwd)"
+if [ "${NANO_BOOTSTRAP_COSMOCC:-0}" = 1 ]; then
+  bash "$ROOT/lab/nano-lisp-jit/retired/scripts/bootstrap-cosmocc.sh" || true
+fi
 LAB="$ROOT/lab/nano-lisp-jit"
 RETIRED="$LAB/retired"
 RUNNER_SRC="$RETIRED/archive-c/runner"
