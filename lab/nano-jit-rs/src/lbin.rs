@@ -55,12 +55,14 @@ pub const OP_STORE_U16: u8 = 40;
 pub const OP_STORE_U32: u8 = 41;
 pub const OP_CALL_FUNC: u8 = 42;
 pub const OP_LOAD_ARG_I64: u8 = 43;
+pub const OP_CALL_IMPORT_CONST_IMM: u8 = 44;
 
 pub const SIG_U64_PTR: u32 = 1;
 pub const SIG_I32_PTR: u32 = 2;
 pub const SIG_I32_PTR_PTR: u32 = 3;
 pub const SIG_I32_VOID: u32 = 4;
 pub const SIG_I32_I32: u32 = 5;
+pub const SIG_I32_PTR_I32: u32 = 6;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum BlobFormat {
@@ -253,6 +255,7 @@ pub fn sig_name(sig: u32) -> &'static str {
         SIG_I32_PTR_PTR => "i32(ptr,ptr)",
         SIG_I32_VOID => "i32()",
         SIG_I32_I32 => "i32(i32)",
+        SIG_I32_PTR_I32 => "i32(ptr,i32)",
         _ => "unknown",
     }
 }

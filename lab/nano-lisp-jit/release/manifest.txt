@@ -6,10 +6,10 @@ v45-selfhost-next.com.bytes=334537
 v45-selfhost-next.com.fnv1a64=a1904c09aebbf58d
 
 nanolisp.com.bytes=2992181
-nanolisp.com.fnv1a64=a59740a262881edf
+nanolisp.com.fnv1a64=71d5782cb6ec82a4
 nanolisp.com.engine=rust
 nanolisp.ape.bytes=2990904
-nanolisp.ape.fnv1a64=61e19855797a433d
+nanolisp.ape.fnv1a64=c5d87e4403a79914
 nanolisp-slim.com.bytes=161083
 nanolisp-slim.com.fnv1a64=5eb073c0beb1b9f1
 nanolisp-slim.com.engine=rust-genesis-pin

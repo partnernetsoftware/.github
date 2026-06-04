@@ -21,8 +21,17 @@
               "lab/nano-lisp-jit/.build/v45-shell-ci-fresh.lbin")
   (spawn-wait 0 "lab/nano-lisp-jit/.build/nano-jit-rs/nanolisp")
   (spawn-wait 0 "lab/nano-lisp-jit/.build/nano-jit-rs/nanolisp" "shell")
+
+  ; Phase 5: VM read-line REPL
+  (compile "lab/nano-lisp-jit/lisp/shell/shell-readline-smoke.lisp"
+           "lab/nano-lisp-jit/.build/v45-shell-ci-readline.lbin")
   (spawn-wait 0 "/bin/sh" "-c"
-    "printf '%s\\n' 'echo nanolisp-shell-repl-echo' exit | lab/nano-lisp-jit/.build/nano-jit-rs/nanolisp shell-repl")
+    "printf 'piped-line\\n' | lab/nano-lisp-jit/.build/nano-jit-rs/nanolisp run lab/nano-lisp-jit/.build/v45-shell-ci-readline.lbin")
+  (compile "lab/nano-lisp-jit/lisp/shell/shell-repl.lisp"
+           "lab/nano-lisp-jit/.build/v45-shell-ci-repl.lbin")
+  (spawn-wait 0 "/bin/sh" "-c"
+    "printf '%s\\n' 'echo nanolisp-shell-ci-repl' exit | lab/nano-lisp-jit/.build/nano-jit-rs/nanolisp shell-repl")
+
   (pack-ape-bare "lab/nano-lisp-jit/.build/v45-shell-ci.ape"
                  "lab/nano-lisp-jit/.build/nano-jit-rs/nanolisp"
                  "lab/nano-lisp-jit/.build/nano-jit-rs/nanolisp.aarch64")

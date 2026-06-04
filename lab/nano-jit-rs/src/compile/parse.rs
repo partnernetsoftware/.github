@@ -207,6 +207,7 @@ impl<'a> Parser<'a> {
             "i32(ptr,ptr)" => Some(crate::lbin::SIG_I32_PTR_PTR),
             "i32()" => Some(crate::lbin::SIG_I32_VOID),
             "i32(i32)" => Some(crate::lbin::SIG_I32_I32),
+            "i32(ptr,i32)" => Some(crate::lbin::SIG_I32_PTR_I32),
             _ => None,
         }
     }

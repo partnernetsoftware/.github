@@ -56,7 +56,7 @@ Usage:\n\
   {bin} read-file <path>\n\
   {bin} spawn-wait <expected> <executable> [arg...]\n\
   {bin} shell                  # compile+run shell-script.lisp (Phase 1)\n\
-  {bin} shell-repl             # minimal stdin REPL via /bin/sh -c\n\
+  {bin} shell-repl             # VM read-line REPL (.lbin loop)\n\
   {bin} shell-ci               # run unified shell ladder bootstrap plan\n\
   {bin}                        # no args → run embedded shell.lbin\n\
   {bin} version\n\
@@ -427,39 +427,27 @@ fn cmd_shell() -> i32 {
     cmd_run(lbin)
 }
 
-fn cmd_shell_repl() -> i32 {
-    use std::io::{self, BufRead, Write};
+const SHELL_REPL_LISP: &str = "lab/nano-lisp-jit/lisp/shell/shell-repl.lisp";
+const SHELL_REPL_LBIN: &str = "lab/nano-lisp-jit/.build/nanolisp-shell-repl.lbin";
 
-    println!("nanolisp-shell-repl=begin");
-    let stdin = io::stdin();
-    let mut stdout = io::stdout();
-    for line in stdin.lock().lines() {
-        let line = match line {
-            Ok(l) => l,
-            Err(_) => break,
-        };
-        let trimmed = line.trim();
-        if trimmed.is_empty() {
-            continue;
-        }
-        if trimmed == "exit" || trimmed == "quit" {
-            break;
-        }
-        let _ = write!(stdout, "shell> {trimmed}\n");
-        let _ = stdout.flush();
-        let status = match Command::new("/bin/sh").arg("-c").arg(trimmed).status() {
-            Ok(s) => s,
-            Err(e) => {
-                eprintln!("shell-repl=exec_fail err={e}");
-                continue;
-            }
-        };
-        if let Some(code) = status.code() {
-            println!("shell-repl.exit={code}");
-        }
+fn cmd_shell_repl() -> i32 {
+    let lisp = Path::new(SHELL_REPL_LISP);
+    let lbin = Path::new(SHELL_REPL_LBIN);
+    if !lisp.is_file() {
+        eprintln!("shell-repl=missing_script path={}", lisp.display());
+        return 1;
     }
-    println!("nanolisp-shell-repl=ok");
-    0
+    if let Some(parent) = lbin.parent() {
+        let _ = fs::create_dir_all(parent);
+    }
+    let rc = cmd_compile(lisp, lbin);
+    if rc != 0 {
+        return rc;
+    }
+    println!("shell-repl.mode=vm-lbin");
+    println!("shell-repl.lisp={}", lisp.display());
+    println!("shell-repl.lbin={}", lbin.display());
+    cmd_run(lbin)
 }
 
 #[cfg(test)]
