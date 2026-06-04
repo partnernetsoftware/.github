@@ -2,13 +2,13 @@ use super::parse::{InstrDef, Module, SrcForm};
 use crate::lbin::{
     CONST_STRING, HEADER_SIZE, MAGIC_LBIN, OP_ADD_I64, OP_ADD_PTR, OP_ADD_U64,
     OP_AND_BOOL, OP_BRANCH_BOOL, OP_CALL_FUNC, OP_CALL_IMPORT_CONST, OP_CALL_IMPORT_CONST2,
-    OP_CALL_IMPORT_IMM, OP_CALL_IMPORT_VOID, OP_CONST_BOOL, OP_CONST_I64, OP_CONST_PTR,
-    OP_CONST_U64, OP_EQ_I64, OP_EXPECT_BOOL, OP_EXPECT_I64, OP_EXPECT_PTR, OP_EXPECT_U64,
+    OP_CALL_IMPORT_CONST_IMM, OP_CALL_IMPORT_IMM, OP_CALL_IMPORT_VOID, OP_CONST_BOOL, OP_CONST_I64,
+    OP_CONST_PTR, OP_CONST_U64, OP_EQ_I64, OP_EXPECT_BOOL, OP_EXPECT_I64, OP_EXPECT_PTR, OP_EXPECT_U64,
     OP_GE_I64, OP_GT_I64, OP_IS_NONNULL_PTR, OP_IS_NULL_PTR, OP_LE_I64, OP_LOAD_ARG_I64,
     OP_LOAD_U16, OP_LOAD_U32, OP_LOAD_U8, OP_LT_I64, OP_MUL_I64, OP_NE_I64, OP_NOT_BOOL,
     OP_NULL_PTR, OP_OR_BOOL, OP_PTR_TO_U64, OP_RESOLVE_IMPORT, OP_RET_LAST, OP_STORE_U16,
     OP_STORE_U32, OP_STORE_U8, OP_SUB_I64, OP_SUB_PTR, OP_U64_TO_PTR, SIG_I32_I32, SIG_I32_PTR,
-    SIG_I32_PTR_PTR, SIG_I32_VOID, SIG_U64_PTR,
+    SIG_I32_PTR_I32, SIG_I32_PTR_PTR, SIG_I32_VOID, SIG_U64_PTR,
 };
 
 #[derive(Debug)]
@@ -258,6 +258,24 @@ fn lower_instrs(
                     })? as u32;
                     let packed = pack_const_pair(i0, i1)?;
                     emit_instr(out, OP_CALL_IMPORT_CONST2, import_idx, packed);
+                } else if sig == SIG_I32_PTR_I32 {
+                    let c0 = ins.const_name.as_deref().ok_or(CompileError::LowerFail {
+                        reason: "missing_const",
+                    })?;
+                    let imm_atom = ins.const2_name.as_deref().ok_or(CompileError::LowerFail {
+                        reason: "missing_imm",
+                    })?;
+                    let i0 = find_const(m, c0).ok_or(CompileError::LowerFail {
+                        reason: "unknown_const",
+                    })? as u32;
+                    let imm: i32 = imm_atom
+                        .parse()
+                        .map_err(|_| CompileError::LowerFail { reason: "bad_i32_imm" })?;
+                    if imm < 0 || imm > 0xffff {
+                        return Err(CompileError::LowerFail { reason: "bad_i32_imm" });
+                    }
+                    let packed = i0 | ((imm as u32) << 16);
+                    emit_instr(out, OP_CALL_IMPORT_CONST_IMM, import_idx, packed);
                 } else {
                     return Err(CompileError::LowerFail {
                         reason: "unsupported_sig",

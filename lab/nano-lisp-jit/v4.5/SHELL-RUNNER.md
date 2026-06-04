@@ -30,7 +30,7 @@ $RS run /tmp/s.lbin
 
 ```bash
 $RS shell              # compile+run shell-script.lisp
-$RS shell-repl         # stdin REPL (host readline + sh -c)
+$RS shell-repl         # VM read-line REPL (.lbin loop)
 ```
 
 **Smoke**: `bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-shell-script-smoke.sh`
@@ -48,7 +48,17 @@ $RS shell                  # dev: compile+run fresh shell-script.lisp
 
 **Smoke**: `bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-shell-noarg-smoke.sh`
 
-## Phase 4 — shell CI plan (current)
+## Phase 5 — VM read-line (current)
+
+**`nano:read-line`** — `i32(ptr,i32)` FFI shim; **`shell-repl.lisp`** REPL loop in VM.
+
+```bash
+$RS shell-repl         # compile+run shell-repl.lisp (stdin → read-line → system)
+```
+
+**Smoke**: `bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-shell-repl-vm-smoke.sh`
+
+## Phase 4 — shell CI plan
 
 **`lisp/bootstrap/bootstrap-v45-shell-ci.lisp`** — unified Phase 0–3 gate as bootstrap plan only.
 
@@ -67,7 +77,7 @@ Legacy per-phase smokes remain under `retired/scripts/nano-jit-rs-shell-*-smoke.
 |-------|-------------|--------|
 | 0 | `shell-v0-system.lisp` + smoke + CLI parity | ✅ |
 | 1 | `shell-script.lisp` + `nanolisp shell` | ✅ |
-| 2 | `shell-repl` — stdin REPL via `/bin/sh -c` | ✅ (host readline; VM fgets pending) |
+| 2 | `shell-repl` — VM read-line REPL (`nano:read-line`) | ✅ |
 | 3 | `$COM` no-arg → built-in `shell.lbin` | ✅ |
 | 4 | wave/ci scripts → shell plans only | ✅ |
 

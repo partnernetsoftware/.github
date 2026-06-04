@@ -1,11 +1,34 @@
 //! Dynamic library FFI — mirrors C runner import resolution.
 
-use crate::lbin::{sig_name, Blob, SIG_I32_I32, SIG_I32_PTR, SIG_I32_PTR_PTR, SIG_I32_VOID, SIG_U64_PTR};
+use crate::lbin::{sig_name, Blob, SIG_I32_I32, SIG_I32_PTR, SIG_I32_PTR_I32, SIG_I32_PTR_PTR, SIG_I32_VOID, SIG_U64_PTR};
 use crate::value::Value;
 use libloading::{Library, Symbol};
 use std::collections::HashMap;
 use std::ffi::CString;
-use std::io::{self, Write};
+use std::io::{self, BufRead, Write};
+
+unsafe extern "C" fn nano_readline_shim(buf: *mut u8, size: i32) -> i32 {
+    if buf.is_null() || size < 2 {
+        return 0;
+    }
+    let mut stdout = io::stdout();
+    let _ = write!(stdout, "shell> ");
+    let _ = stdout.flush();
+    let stdin = io::stdin();
+    let mut line = String::new();
+    match stdin.lock().read_line(&mut line) {
+        Ok(0) => 0,
+        Ok(_) => {
+            let trimmed = line.trim_end_matches(['\n', '\r']);
+            let cap = (size - 1).max(0) as usize;
+            let n = trimmed.len().min(cap);
+            std::ptr::copy_nonoverlapping(trimmed.as_ptr(), buf, n);
+            *buf.add(n) = 0;
+            1
+        }
+        Err(_) => 0,
+    }
+}
 
 pub struct RuntimeImport {
     pub lib: String,
@@ -18,6 +41,7 @@ pub struct RuntimeImport {
     i32_ptr_ptr: Option<Symbol<'static, unsafe extern "C" fn(*const u8, *const u8) -> i32>>,
     i32_void: Option<Symbol<'static, unsafe extern "C" fn() -> i32>>,
     i32_i32: Option<Symbol<'static, unsafe extern "C" fn(i32) -> i32>>,
+    i32_ptr_i32: Option<Symbol<'static, unsafe extern "C" fn(*mut u8, i32) -> i32>>,
 }
 
 impl RuntimeImport {
@@ -26,6 +50,9 @@ impl RuntimeImport {
         let lib = blob.string_at(crate::lbin::rd32(row, 0)).ok_or(13)?;
         let sym = blob.string_at(crate::lbin::rd32(row, 4)).ok_or(13)?;
         let sig = crate::lbin::rd32(row, 8);
+        if lib == "nano" {
+            return Self::resolve_nano(lib, sym, sig);
+        }
         let lib_name = open_library_name(lib);
         let library = unsafe { Library::new(&lib_name) }.map_err(|_| {
             let _ = writeln!(io::stderr(), "ffi.open=fail lib={lib}");
@@ -42,9 +69,34 @@ impl RuntimeImport {
             i32_ptr_ptr: None,
             i32_void: None,
             i32_i32: None,
+            i32_ptr_i32: None,
         };
         ri.bind_symbol(sym)?;
         Ok(ri)
+    }
+
+    fn resolve_nano(lib: &str, sym: &str, sig: u32) -> Result<Self, i32> {
+        if sym != "read-line" || sig != SIG_I32_PTR_I32 {
+            let _ = writeln!(io::stderr(), "ffi.nano=unsupported {lib}:{sym}");
+            return Err(15);
+        }
+        let library = unsafe { Library::new(open_library_name("libc")) }.map_err(|_| {
+            let _ = writeln!(io::stderr(), "ffi.open=fail lib=nano-shim");
+            14
+        })?;
+        Ok(Self {
+            lib: lib.to_string(),
+            sym: sym.to_string(),
+            sig,
+            fn_addr: nano_readline_shim as *const () as usize,
+            _library: library,
+            u64_ptr: None,
+            i32_ptr: None,
+            i32_ptr_ptr: None,
+            i32_void: None,
+            i32_i32: None,
+            i32_ptr_i32: None,
+        })
     }
 
     fn bind_symbol(&mut self, sym: &str) -> Result<(), i32> {
@@ -84,6 +136,12 @@ impl RuntimeImport {
                         self._library.get(sym_bytes).map_err(|_| 15)?;
                     self.fn_addr = *s as *const () as usize;
                     self.i32_i32 = Some(std::mem::transmute(s));
+                }
+                SIG_I32_PTR_I32 => {
+                    let s: Symbol<unsafe extern "C" fn(*mut u8, i32) -> i32> =
+                        self._library.get(sym_bytes).map_err(|_| 15)?;
+                    self.fn_addr = *s as *const () as usize;
+                    self.i32_ptr_i32 = Some(std::mem::transmute(s));
                 }
                 _ => {
                     let _ = writeln!(
@@ -160,6 +218,31 @@ impl RuntimeImport {
         unsafe {
             let f = self.i32_i32.as_ref().ok_or(17)?;
             Ok(Value::i64(i64::from(f(arg))))
+        }
+    }
+
+    pub fn call_ptr_i32(&self, buf: &str, size: i32) -> Result<Value, i32> {
+        if self.sig != SIG_I32_PTR_I32 {
+            let _ = writeln!(
+                io::stderr(),
+                "signature.arg_mismatch={}",
+                sig_name(self.sig)
+            );
+            return Err(17);
+        }
+        if self.lib == "nano" && self.sym == "read-line" {
+            unsafe {
+                let p = buf.as_ptr() as *mut u8;
+                Ok(Value::i64(i64::from(nano_readline_shim(p, size))))
+            }
+        } else {
+            unsafe {
+                let f = self.i32_ptr_i32.as_ref().ok_or(17)?;
+                Ok(Value::i64(i64::from(f(
+                    buf.as_ptr() as *mut u8,
+                    size,
+                ))))
+            }
         }
     }
 }

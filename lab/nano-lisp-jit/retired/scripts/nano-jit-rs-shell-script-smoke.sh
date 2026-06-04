@@ -35,6 +35,6 @@ exit
 EOF
 ) || true
 echo "$log" | grep -q 'nanolisp-shell-repl-echo' || { echo "nano-jit-rs-shell-script-smoke=fail repl"; echo "$log"; exit 1; }
-echo "$log" | grep -q 'nanolisp-shell-repl=ok' || { echo "nano-jit-rs-shell-script-smoke=fail repl_ok"; echo "$log"; exit 1; }
+echo "$log" | grep -q 'shell-repl.mode=vm-lbin' || { echo "nano-jit-rs-shell-script-smoke=fail repl_ok"; echo "$log"; exit 1; }
 
 echo "nano-jit-rs-shell-script-smoke=ok"
