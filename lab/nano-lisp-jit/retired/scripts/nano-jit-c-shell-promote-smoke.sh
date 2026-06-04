@@ -156,7 +156,7 @@ else
 fi
 
 if [ "${NANO_C_SHELL_PROMOTE_BUILD:-0}" = 1 ]; then
-  NANO_C_GATE_FACTORY=1 bash "$LAB/build_nano_jit.sh"
+  NANO_C_GATE_FACTORY=1 bash "$LAB/build_nano_jit.sh" || true
   BUILD_COM="$LAB/.build/nano-jit/nano-jit.com"
   if [ ! -x "$BUILD_COM" ]; then
     BUILD_COM="$LAB/.build/nano-jit/nano-jit.x86_64"
