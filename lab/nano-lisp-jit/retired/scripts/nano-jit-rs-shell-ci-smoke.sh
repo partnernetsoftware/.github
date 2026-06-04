@@ -32,6 +32,7 @@ echo "$log" | grep -q 'run-ape-expect-exit.ok=1' || {
   echo "$log"
   exit 1
 }
+# step1 from RS phase-1 run and C COM run (phase 7b) when present in plan output
 echo "$log" | grep -q 'nanolisp-shell-script-step1' || {
   echo "nano-jit-rs-shell-ci-smoke=fail script_run"
   echo "$log"
@@ -65,7 +66,32 @@ if [ -x "$COM" ]; then
     echo "$log"
     exit 1
   }
+
+  # shellcheck source=nanolisp-c-release-shell-probe.sh
+  . "$ROOT/lab/nano-lisp-jit/retired/scripts/nanolisp-c-release-shell-probe.sh"
+  nanolisp_c_release_shell_probe_apply >/dev/null
+
+  log=$("$COM" 2>&1) || rc=$?
+  rc=${rc:-0}
+  if [ "${NANO_C_RELEASE_HAS_SHELL}" = 1 ]; then
+    echo "$log" | grep -q 'shell.mode=' || {
+      echo "nano-jit-rs-shell-ci-smoke=fail c_com_shell_mode"
+      echo "$log"
+      exit 1
+    }
+  else
+    if [ "$rc" -ne 2 ]; then
+      echo "nano-jit-rs-shell-ci-smoke=fail c_com_exit expected=2 actual=$rc"
+      echo "$log"
+      exit 1
+    fi
+    echo "$log" | grep -q 'usage:' || {
+      echo "nano-jit-rs-shell-ci-smoke=fail c_com_usage"
+      echo "$log"
+      exit 1
+    }
+  fi
 fi
 
 steps=$(echo "$ci_log" | sed -n 's/^bootstrap-plan.steps=//p' | head -1)
-echo "nano-jit-rs-shell-ci-smoke=ok steps=${steps:-22}"
+echo "nano-jit-rs-shell-ci-smoke=ok steps=${steps:-28}"
