@@ -71,12 +71,12 @@ lab/nano-lisp-jit/release/nano-lisp.com inspect-ape lab/nano-lisp-jit/release/na
 lab/nano-lisp-jit/release/nanolisp.com version
 ```
 
-| **Shell runner** | compile/run `shell-v0` via C COM | Ph **0–6** merged on Rust (REPL, embed, shell-ci, dual) | C **no-arg** embed pending (Ph **7**) — see [`SHELL-REFLECTION.md`](SHELL-REFLECTION.md) |
+| **Shell runner** | compile/run `shell-v0` via C COM; **c-gate** shell-noarg smoke | Ph **0–7** Rust (fgets, dual in rs-gate); nested dual-gate | C **release** no-arg embed pending (7b **source** wired) — [`SHELL-REFLECTION.md`](SHELL-REFLECTION.md) |
 
 ## Related docs
 
 - [`SHELL-RUNNER.md`](SHELL-RUNNER.md) — shell.lisp practice ladder · embed `.com` plan
-- [`SHELL-REFLECTION.md`](SHELL-REFLECTION.md) — Ph 0–6 retrospective · dual-track GAP · ~82% rubric
+- [`SHELL-REFLECTION.md`](SHELL-REFLECTION.md) — Ph 0–7 retrospective · dual-track GAP · ~88% rubric
 - [`../release/README.md`](../release/README.md) — artifact table + manifest link
 - [`OVERALL-PROGRESS.md`](OVERALL-PROGRESS.md) — quantified % assessment · dual gate
 - [`RUST-MIGRATION.md`](RUST-MIGRATION.md) — component parity matrix & smoke index
