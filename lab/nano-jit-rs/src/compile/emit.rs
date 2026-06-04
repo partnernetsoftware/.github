@@ -2,13 +2,13 @@ use super::parse::{InstrDef, Module, SrcForm};
 use crate::lbin::{
     CONST_STRING, HEADER_SIZE, MAGIC_LBIN, OP_ADD_I64, OP_ADD_PTR, OP_ADD_U64,
     OP_AND_BOOL, OP_BRANCH_BOOL, OP_CALL_FUNC, OP_CALL_IMPORT_CONST, OP_CALL_IMPORT_CONST2,
-    OP_CALL_IMPORT_CONST_IMM, OP_CALL_IMPORT_IMM, OP_CALL_IMPORT_VOID, OP_CONST_BOOL, OP_CONST_I64,
+    OP_CALL_IMPORT_CONST_IMM, OP_CALL_IMPORT_CONST_IMM_PTR, OP_CALL_IMPORT_IMM, OP_CALL_IMPORT_VOID, OP_CONST_BOOL, OP_CONST_I64,
     OP_CONST_PTR, OP_CONST_U64, OP_EQ_I64, OP_EXPECT_BOOL, OP_EXPECT_I64, OP_EXPECT_PTR, OP_EXPECT_U64,
     OP_GE_I64, OP_GT_I64, OP_IS_NONNULL_PTR, OP_IS_NULL_PTR, OP_LE_I64, OP_LOAD_ARG_I64,
     OP_LOAD_U16, OP_LOAD_U32, OP_LOAD_U8, OP_LT_I64, OP_MUL_I64, OP_NE_I64, OP_NOT_BOOL,
     OP_NULL_PTR, OP_OR_BOOL, OP_PTR_TO_U64, OP_RESOLVE_IMPORT, OP_RET_LAST, OP_STORE_U16,
-    OP_STORE_U32, OP_STORE_U8, OP_SUB_I64, OP_SUB_PTR, OP_U64_TO_PTR, SIG_I32_I32, SIG_I32_PTR,
-    SIG_I32_PTR_I32, SIG_I32_PTR_PTR, SIG_I32_VOID, SIG_U64_PTR,
+    OP_STORE_U32, OP_STORE_U8, OP_SUB_I64, OP_SUB_PTR, OP_U64_TO_PTR, SIG_ADDR, SIG_I32_I32,
+    SIG_I32_PTR, SIG_I32_PTR_I32, SIG_I32_PTR_PTR, SIG_I32_VOID, SIG_PTR_PTR_I32_PTR, SIG_U64_PTR,
 };
 
 #[derive(Debug)]
@@ -211,7 +211,10 @@ fn lower_instrs(
                 let sig = m.imports[import_idx].sig;
                 let import_idx = import_idx as u32;
                 if sig == SIG_I32_VOID {
-                    if ins.const_name.is_some() || ins.const2_name.is_some() {
+                    if ins.const_name.is_some()
+                        || ins.const2_name.is_some()
+                        || ins.ptr_import_name.is_some()
+                    {
                         return Err(CompileError::LowerFail {
                             reason: "void_call_extra_args",
                         });
@@ -221,7 +224,7 @@ fn lower_instrs(
                     let atom = ins.const_name.as_deref().ok_or(CompileError::LowerFail {
                         reason: "missing_imm",
                     })?;
-                    if ins.const2_name.is_some() {
+                    if ins.const2_name.is_some() || ins.ptr_import_name.is_some() {
                         return Err(CompileError::LowerFail {
                             reason: "imm_call_extra_args",
                         });
@@ -234,7 +237,7 @@ fn lower_instrs(
                     let const_name = ins.const_name.as_deref().ok_or(CompileError::LowerFail {
                         reason: "missing_const",
                     })?;
-                    if ins.const2_name.is_some() {
+                    if ins.const2_name.is_some() || ins.ptr_import_name.is_some() {
                         return Err(CompileError::LowerFail {
                             reason: "single_const_expected",
                         });
@@ -259,6 +262,11 @@ fn lower_instrs(
                     let packed = pack_const_pair(i0, i1)?;
                     emit_instr(out, OP_CALL_IMPORT_CONST2, import_idx, packed);
                 } else if sig == SIG_I32_PTR_I32 {
+                    if ins.ptr_import_name.is_some() {
+                        return Err(CompileError::LowerFail {
+                            reason: "ptr_import_unexpected",
+                        });
+                    }
                     let c0 = ins.const_name.as_deref().ok_or(CompileError::LowerFail {
                         reason: "missing_const",
                     })?;
@@ -276,6 +284,36 @@ fn lower_instrs(
                     }
                     let packed = i0 | ((imm as u32) << 16);
                     emit_instr(out, OP_CALL_IMPORT_CONST_IMM, import_idx, packed);
+                } else if sig == SIG_PTR_PTR_I32_PTR {
+                    let c0 = ins.const_name.as_deref().ok_or(CompileError::LowerFail {
+                        reason: "missing_const",
+                    })?;
+                    let imm_atom = ins.const2_name.as_deref().ok_or(CompileError::LowerFail {
+                        reason: "missing_imm",
+                    })?;
+                    let stream = ins.ptr_import_name.as_deref().ok_or(CompileError::LowerFail {
+                        reason: "missing_ptr_import",
+                    })?;
+                    let i0 = find_const(m, c0).ok_or(CompileError::LowerFail {
+                        reason: "unknown_const",
+                    })? as u32;
+                    let stream_idx = find_import(m, stream).ok_or(CompileError::LowerFail {
+                        reason: "unknown_ptr_import",
+                    })? as u32;
+                    if m.imports[stream_idx as usize].sig != SIG_ADDR {
+                        return Err(CompileError::LowerFail {
+                            reason: "ptr_import_not_addr",
+                        });
+                    }
+                    let imm: i32 = imm_atom
+                        .parse()
+                        .map_err(|_| CompileError::LowerFail { reason: "bad_i32_imm" })?;
+                    if i0 > 0xffff || stream_idx > 0xffff || imm < 0 || imm > 0xffff {
+                        return Err(CompileError::LowerFail { reason: "bad_i32_imm" });
+                    }
+                    let arg0 = import_idx | (stream_idx << 16);
+                    let arg1 = i0 | ((imm as u32) << 16);
+                    emit_instr(out, OP_CALL_IMPORT_CONST_IMM_PTR, arg0, arg1);
                 } else {
                     return Err(CompileError::LowerFail {
                         reason: "unsupported_sig",

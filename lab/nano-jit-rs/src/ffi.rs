@@ -1,6 +1,6 @@
 //! Dynamic library FFI — mirrors C runner import resolution.
 
-use crate::lbin::{sig_name, Blob, SIG_ADDR, SIG_I32_I32, SIG_I32_PTR, SIG_I32_PTR_I32, SIG_I32_PTR_PTR, SIG_I32_VOID, SIG_U64_PTR};
+use crate::lbin::{sig_name, Blob, SIG_ADDR, SIG_I32_I32, SIG_I32_PTR, SIG_I32_PTR_I32, SIG_I32_PTR_PTR, SIG_I32_VOID, SIG_PTR_PTR_I32_PTR, SIG_U64_PTR};
 use crate::value::Value;
 use libloading::{Library, Symbol};
 use std::collections::HashMap;
@@ -42,6 +42,9 @@ pub struct RuntimeImport {
     i32_void: Option<Symbol<'static, unsafe extern "C" fn() -> i32>>,
     i32_i32: Option<Symbol<'static, unsafe extern "C" fn(i32) -> i32>>,
     i32_ptr_i32: Option<Symbol<'static, unsafe extern "C" fn(*mut u8, i32) -> i32>>,
+    ptr_ptr_i32_ptr: Option<
+        Symbol<'static, unsafe extern "C" fn(*mut u8, i32, *mut u8) -> *mut u8>,
+    >,
 }
 
 impl RuntimeImport {
@@ -73,6 +76,7 @@ impl RuntimeImport {
             i32_void: None,
             i32_i32: None,
             i32_ptr_i32: None,
+            ptr_ptr_i32_ptr: None,
         };
         ri.bind_symbol(sym)?;
         Ok(ri)
@@ -99,6 +103,7 @@ impl RuntimeImport {
             i32_void: None,
             i32_i32: None,
             i32_ptr_i32: None,
+            ptr_ptr_i32_ptr: None,
         })
     }
 
@@ -111,7 +116,7 @@ impl RuntimeImport {
                     let _ = writeln!(io::stderr(), "ffi.symbol=fail symbol={sym}");
                     15
                 })?;
-            *symbol as usize
+            *(*symbol) as usize
         };
         Ok(Self {
             lib: lib.to_string(),
@@ -125,6 +130,7 @@ impl RuntimeImport {
             i32_void: None,
             i32_i32: None,
             i32_ptr_i32: None,
+            ptr_ptr_i32_ptr: None,
         })
     }
 
@@ -171,6 +177,12 @@ impl RuntimeImport {
                         self._library.get(sym_bytes).map_err(|_| 15)?;
                     self.fn_addr = *s as *const () as usize;
                     self.i32_ptr_i32 = Some(std::mem::transmute(s));
+                }
+                SIG_PTR_PTR_I32_PTR => {
+                    let s: Symbol<unsafe extern "C" fn(*mut u8, i32, *mut u8) -> *mut u8> =
+                        self._library.get(sym_bytes).map_err(|_| 15)?;
+                    self.fn_addr = *s as *const () as usize;
+                    self.ptr_ptr_i32_ptr = Some(std::mem::transmute(s));
                 }
                 _ => {
                     let _ = writeln!(
@@ -274,6 +286,22 @@ impl RuntimeImport {
             }
         }
     }
+
+    pub fn call_ptr_i32_ptr(&self, buf: &str, size: i32, stream: usize) -> Result<Value, i32> {
+        if self.sig != SIG_PTR_PTR_I32_PTR {
+            let _ = writeln!(
+                io::stderr(),
+                "signature.arg_mismatch={}",
+                sig_name(self.sig)
+            );
+            return Err(17);
+        }
+        unsafe {
+            let f = self.ptr_ptr_i32_ptr.as_ref().ok_or(17)?;
+            let p = f(buf.as_ptr() as *mut u8, size, stream as *mut u8);
+            Ok(Value::ptr(p))
+        }
+    }
 }
 
 fn open_library_name(name: &str) -> String {
@@ -310,4 +338,22 @@ pub fn resolve_all(blob: &Blob, quiet: bool) -> Result<(), i32> {
     println!("resolve.imports={}", blob.import_count);
     println!("resolve.ok={}", blob.import_count);
     Ok(())
+}
+
+#[cfg(test)]
+mod fgets_tests {
+    use libloading::{Library, Symbol};
+    use std::ffi::CString;
+
+    #[test]
+    fn stdin_addr_is_file_ptr() {
+        let lib = unsafe { Library::new("libc.so.6").unwrap() };
+        let cname = CString::new("stdin").unwrap();
+        let symbol: Symbol<*const *const std::ffi::c_void> =
+            unsafe { lib.get(cname.as_bytes_with_nul()).unwrap() };
+        let var_addr = unsafe { *symbol as usize };
+        let file_ptr = unsafe { *(*symbol) as usize };
+        assert_ne!(var_addr, file_ptr);
+        assert_ne!(file_ptr, 0);
+    }
 }

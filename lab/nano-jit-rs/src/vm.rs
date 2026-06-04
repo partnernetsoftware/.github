@@ -3,7 +3,8 @@
 use crate::ffi::RuntimeImport;
 use crate::lbin::{
     rd32, Blob, OP_ADD_I64, OP_ADD_PTR, OP_ADD_U64, OP_AND_BOOL, OP_BRANCH_BOOL, OP_CALL_FUNC,
-    OP_CALL_IMPORT_CONST, OP_CALL_IMPORT_CONST2, OP_CALL_IMPORT_CONST_IMM, OP_CALL_IMPORT_IMM,
+    OP_CALL_IMPORT_CONST, OP_CALL_IMPORT_CONST2, OP_CALL_IMPORT_CONST_IMM,
+    OP_CALL_IMPORT_CONST_IMM_PTR, OP_CALL_IMPORT_IMM,
     OP_CALL_IMPORT_VOID, OP_CONST_BOOL, OP_CONST_I64, OP_CONST_PTR, OP_CONST_U64, OP_EQ_I64, OP_EXPECT_BOOL,
     OP_EXPECT_I64, OP_EXPECT_PTR, OP_EXPECT_U64, OP_GE_I64, OP_GT_I64, OP_IS_NONNULL_PTR,
     OP_IS_NULL_PTR, OP_LE_I64, OP_LOAD_ARG_I64, OP_LOAD_U16, OP_LOAD_U32, OP_LOAD_U8, OP_LT_I64,
@@ -350,9 +351,15 @@ pub fn execute(blob: &Blob) -> i32 {
             OP_CALL_IMPORT_CONST
             | OP_CALL_IMPORT_CONST2
             | OP_CALL_IMPORT_CONST_IMM
+            | OP_CALL_IMPORT_CONST_IMM_PTR
             | OP_CALL_IMPORT_VOID
             | OP_CALL_IMPORT_IMM => {
-                let ri = match RuntimeImport::resolve(blob, arg0) {
+                let import_idx = if op == OP_CALL_IMPORT_CONST_IMM_PTR {
+                    arg0 & 0xffff
+                } else {
+                    arg0
+                };
+                let ri = match RuntimeImport::resolve(blob, import_idx) {
                     Ok(r) => r,
                     Err(e) => return e,
                 };
@@ -385,6 +392,20 @@ pub fn execute(blob: &Blob) -> i32 {
                             None => return 13,
                         };
                         ri.call_ptr_i32(s, imm)
+                    }
+                    OP_CALL_IMPORT_CONST_IMM_PTR => {
+                        let stream_idx = arg0 >> 16;
+                        let c0 = arg1 & 0xffff;
+                        let imm = (arg1 >> 16) as i32;
+                        let s = match blob.const_string_ref(c0) {
+                            Some(v) => v,
+                            None => return 13,
+                        };
+                        let stream = match RuntimeImport::resolve(blob, stream_idx) {
+                            Ok(r) => r,
+                            Err(e) => return e,
+                        };
+                        ri.call_ptr_i32_ptr(s, imm, stream.fn_addr)
                     }
                     OP_CALL_IMPORT_VOID => ri.call0(),
                     OP_CALL_IMPORT_IMM => ri.call_i32(arg1 as i32),
