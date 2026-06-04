@@ -14,7 +14,8 @@ pub use obj::{emit_obj_file, emit_obj_text_data_section, ObjRela, ObjSymbol};
 const EHDR_SIZE: usize = 64;
 const PHDR_SIZE: usize = 56;
 const EXEC_BASE: u64 = 0x400_000;
-const MACHINE_X86_64: u16 = 62;
+pub(crate) const MACHINE_X86_64: u16 = 62;
+const MACHINE_AARCH64: u16 = 183;
 
 #[derive(Default, Clone, Copy)]
 pub struct ExecLayout {
@@ -117,11 +118,12 @@ pub fn emit_exec_sections(
     code: &[u8],
     rodata: &[u8],
     data: &[u8],
+    machine: u16,
 ) -> io::Result<(usize, u64)> {
     let (layout, file_n) = exec_layout(code.len(), rodata.len(), data.len());
     let nph = 1 + (rodata.len() > 0) as u16 + (data.len() > 0) as u16;
     let mut out = vec![0u8; file_n];
-    wr_ehdr_exec(&mut out, layout.text_va, EHDR_SIZE as u64, nph, MACHINE_X86_64);
+    wr_ehdr_exec(&mut out, layout.text_va, EHDR_SIZE as u64, nph, machine);
 
     let mut ph = EHDR_SIZE;
     let text_off = (layout.text_va - EXEC_BASE) as usize;
@@ -167,7 +169,11 @@ pub fn emit_exec_sections(
 }
 
 pub fn emit_exec_rx(path: &Path, code: &[u8]) -> io::Result<(usize, u64)> {
-    emit_exec_sections(path, code, &[], &[])
+    emit_exec_sections(path, code, &[], &[], MACHINE_X86_64)
+}
+
+pub fn emit_exec_rx_aarch64(path: &Path, code: &[u8]) -> io::Result<(usize, u64)> {
+    emit_exec_sections(path, code, &[], &[], MACHINE_AARCH64)
 }
 
 pub fn emit_exit(path: &Path, exit_code: u8) -> io::Result<(usize, u64)> {
@@ -179,6 +185,32 @@ pub fn emit_exit(path: &Path, exit_code: u8) -> io::Result<(usize, u64)> {
     code[10] = 0x0f;
     code[11] = 0x05;
     emit_exec_rx(path, &code)
+}
+
+pub fn emit_aarch64_exit(path: &Path, exit_code: u8) -> io::Result<(usize, u64)> {
+    let mov_x8 = 0xd2800000u32 | (93u32 << 5) | 8;
+    let mov_x0 = 0xd2800000u32 | ((exit_code as u32) << 5);
+    let svc0 = 0xd4000001u32;
+    let mut code = [0u8; 12];
+    wr32(&mut code, 0, mov_x8);
+    wr32(&mut code, 4, mov_x0);
+    wr32(&mut code, 8, svc0);
+    emit_exec_rx_aarch64(path, &code)
+}
+
+pub fn emit_aarch64_add_exit(path: &Path, a: i32, b: i32) -> io::Result<(usize, u64)> {
+    let movz_x0 = 0xd2800000u32 | ((a as u32 & 0xffff) << 5);
+    let movz_x1 = 0xd2800000u32 | 1 | ((b as u32 & 0xffff) << 5);
+    let add_x0_x1 = 0x8b010000u32;
+    let movz_x8 = 0xd2800000u32 | (93u32 << 5) | 8;
+    let svc0 = 0xd4000001u32;
+    let mut code = [0u8; 20];
+    wr32(&mut code, 0, movz_x0);
+    wr32(&mut code, 4, movz_x1);
+    wr32(&mut code, 8, add_x0_x1);
+    wr32(&mut code, 12, movz_x8);
+    wr32(&mut code, 16, svc0);
+    emit_exec_rx_aarch64(path, &code)
 }
 
 pub fn layout_for_codegen(code_len: usize, rodata_len: usize, data_len: usize) -> ExecLayout {
@@ -204,6 +236,19 @@ mod tests {
             let dir = std::env::temp_dir();
             let p = dir.join("nano-jit-rs-elf64-test.elf");
             let r = emit_exit(&p, 42).unwrap();
+            let _ = fs::remove_file(&p);
+            r
+        };
+        assert_eq!(logical, 132);
+        assert_eq!(entry, 0x400_078);
+    }
+
+    #[test]
+    fn aarch64_exit_stub_layout() {
+        let (logical, entry) = {
+            let dir = std::env::temp_dir();
+            let p = dir.join("nano-jit-rs-aarch64-test.elf");
+            let r = emit_aarch64_exit(&p, 42).unwrap();
             let _ = fs::remove_file(&p);
             r
         };

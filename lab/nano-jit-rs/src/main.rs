@@ -2,6 +2,7 @@ mod ape;
 mod aot;
 mod bootstrap;
 mod brand;
+mod build_slice;
 mod capsule;
 mod compile;
 mod elf64;
@@ -34,6 +35,7 @@ Usage:\n\
   {bin} run-ape <file.com> [x86_64|aarch64]\n\
   {bin} run-ape-expect-exit <file.com> <exit> [arch]\n\
   {bin} emit-elf64-exit <out.elf> <exit_code>\n\
+  {bin} emit-aarch64-exit <out.elf> <exit_code>\n\
   {bin} aot-elf64-exit <file.lbin> <out.elf>\n\
   {bin} aot-elf64-code <file.lbin> <out.elf>\n\
   {bin} aot-elf64-obj-code <file.lbin> <out.o> <symbol>\n\
@@ -94,6 +96,9 @@ fn main() -> ExitCode {
         "compile" if args.len() == 4 => cmd_compile(Path::new(&args[2]), Path::new(&args[3])),
         "emit-elf64-exit" if args.len() == 4 => {
             aot::cmd_emit_elf64_exit(Path::new(&args[2]), &args[3])
+        }
+        "emit-aarch64-exit" if args.len() == 4 => {
+            aot::cmd_emit_aarch64_exit(Path::new(&args[2]), &args[3])
         }
         "aot-elf64-exit" if args.len() == 4 => {
             aot::cmd_aot_elf64_exit(Path::new(&args[2]), Path::new(&args[3]))

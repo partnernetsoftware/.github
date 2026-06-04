@@ -685,7 +685,7 @@ pub fn compile_pure_to_elf_exit(b: &Blob, path: &Path) -> Result<usize, i32> {
         eprintln!("aot-elf64-code=unsupported_blob");
         return Err(2);
     }
-    elf64::emit_exec_sections(path, &code.data, &rodata.data, &data.data).map_err(|_| {
+    elf64::emit_exec_sections(path, &code.data, &rodata.data, &data.data, 62).map_err(|_| {
         eprintln!("aot-elf64-code=write_fail path={}", path.display());
         3
     })?;

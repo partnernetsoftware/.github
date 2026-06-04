@@ -29,6 +29,29 @@ pub fn cmd_emit_elf64_exit(out_path: &Path, exit_s: &str) -> i32 {
     }
 }
 
+pub fn cmd_emit_aarch64_exit(out_path: &Path, exit_s: &str) -> i32 {
+    let code: u64 = match exit_s.parse() {
+        Ok(v) if v <= 255 => v,
+        _ => {
+            eprintln!("emit-aarch64-exit=bad_exit_code");
+            return 1;
+        }
+    };
+    match crate::elf64::emit_aarch64_exit(out_path, code as u8) {
+        Ok((logical, entry)) => {
+            println!("elf64.output={}", out_path.display());
+            println!("elf64.bytes={logical}");
+            println!("elf64.entry=0x{entry:x}");
+            println!("aarch64.emit.profile=exit-stub");
+            0
+        }
+        Err(_) => {
+            eprintln!("emit-aarch64-exit=write_fail path={}", out_path.display());
+            2
+        }
+    }
+}
+
 pub fn cmd_aot_elf64_exit(blob_path: &Path, out_path: &Path) -> i32 {
     let data = match std::fs::read(blob_path) {
         Ok(d) => d,

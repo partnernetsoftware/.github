@@ -46,7 +46,7 @@ ELF slices ──pack-ape──▶  .com  ──run-ape──▶  native exec
 | compose-15link semantic-154k | ✅ | ✅ 155036B parity · exit 42 | 90% |
 | compose-15link semantic-unified | ✅ | ✅ 154017B sem×15 · exit 42 | 90% |
 | compose-15link bulk-scale | ✅ | ✅ 154559B parity · exit 42 | 90% |
-| `run-bootstrap-plan` | ✅ | ✅ compose/APE/proc/boundary | 95% |
+| `run-bootstrap-plan` | ✅ | ✅ compose/APE/proc/build-slice-lisp | 98% |
 | Rust release APE pack | ❌ | ✅ + `release/nanolisp.com` promote | 85% |
 | NLCap v0 `.nlcap` | ❌ | ✅ T0/T1/T2/T3 + arch-aware auto | 90% |
 | `run-expect-exit` | ✅ | ✅ | 100% |
@@ -74,6 +74,7 @@ bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-bootstrap-15chain-smoke.sh # 
 bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-bootstrap-release-promote-smoke.sh # pack-ape plan
 bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-bootstrap-proc-io-smoke.sh # read-file/spawn-wait
 bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-bootstrap-boundary-negative-smoke.sh # type reject
+bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-bootstrap-build-slice-lisp-smoke.sh # factory regenesis
 bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-release-pack-smoke.sh   # Rust nanolisp → APE
 bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-release-promote-smoke.sh # release/nanolisp.com pin
 bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-capsule-smoke.sh    # NLCap v0 multi-tier + abin
@@ -83,7 +84,7 @@ cd lab/nano-jit-rs && cargo test
 
 ## 下一里程碑（商用 SOTA）
 
-1. **release 替换** — bootstrap-plan pack/proc/boundary ✅ · build-slice 待补
+1. **release 替换** — bootstrap-plan pack/proc/boundary/build-slice-lisp ✅ · compose-15link build-slice 待补
 2. **semantic 阶梯** — 8K–154K + unified ✅
-3. **AOT** — x86_64 ✅ · aarch64 codegen 待补
+3. **AOT** — x86_64 ✅ · aarch64 exit-stub ✅ · aarch64 VM/AOT codegen 待补
 4. **类型检查** — VM load-arg/call-arity reject ✅ · 更多边界待补

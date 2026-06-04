@@ -88,6 +88,16 @@ pub(crate) enum Step {
         out: PathBuf,
         extra: Vec<String>,
     },
+    BuildSliceLisp {
+        src: PathBuf,
+        out: PathBuf,
+        arch: String,
+    },
+    BuildSlice {
+        src: PathBuf,
+        out: PathBuf,
+        arch: String,
+    },
 }
 
 struct Parser<'a> {
@@ -309,6 +319,18 @@ impl<'a> Parser<'a> {
                     out,
                     extra,
                 }
+            }
+            "build-slice-lisp" => {
+                let src = PathBuf::from(self.parse_atom()?);
+                let out = PathBuf::from(self.parse_atom()?);
+                let arch = self.parse_atom()?;
+                Step::BuildSliceLisp { src, out, arch }
+            }
+            "build-slice" => {
+                let src = PathBuf::from(self.parse_atom()?);
+                let out = PathBuf::from(self.parse_atom()?);
+                let arch = self.parse_atom()?;
+                Step::BuildSlice { src, out, arch }
             }
             _ => return None,
         };
@@ -606,6 +628,14 @@ pub fn run_bootstrap_plan(path: &Path) -> i32 {
                     extra,
                     "bootstrap-compile-expect-exit",
                 )
+            }
+            Step::BuildSliceLisp { src, out, arch } => {
+                println!("bootstrap-step.{i}=build-slice-lisp");
+                crate::build_slice::cmd_build_slice_lisp(src, out, arch)
+            }
+            Step::BuildSlice { src, out, arch } => {
+                println!("bootstrap-step.{i}=build-slice");
+                crate::build_slice::cmd_build_slice(src, out, arch)
             }
         };
         if rc != 0 {
