@@ -23,7 +23,7 @@ Also pinned: `v45-selfhost-next.com` (334 537 B, same hash as `nano-lisp.com` 
 
 | Track | Code | Notes |
 |-------|------|-------|
-| **C** | [`retired/archive-c/runner/`](../retired/archive-c/runner/) — `lispjit.c`, `nano_main.c`, `ape_v2.c`, … | Factory waves under `retired/archive-c/factory/`. No active `archive/c/` tree in repo; history lives in `archive-c`. |
+| **C** | [`retired/archive-c/runner/`](../retired/archive-c/runner/) — `lispjit.c`, `nano_shell_cli.c`, … | Factory under `retired/archive-c/factory/`. [`archive/c/`](../archive/c/) is README-only stub; **7b embed path** `archive/c/embed/shell-script.lbin` wired in source but **not on disk** — next slice after cosmocc promote. |
 | **Rust** | [`lab/nano-jit-rs/`](../../nano-jit-rs/) | Crate name `nano-jit-rs`; binary `nanolisp`. Build: `lab/nano-lisp-jit/build_nano_jit_rs.sh` → `.build/nano-jit-rs/`. |
 
 Shared Lisp/bootstrap: `lab/nano-lisp-jit/lisp/`.
@@ -71,12 +71,12 @@ lab/nano-lisp-jit/release/nano-lisp.com inspect-ape lab/nano-lisp-jit/release/na
 lab/nano-lisp-jit/release/nanolisp.com version
 ```
 
-| **Shell runner** | compile/run `shell-v0` via C COM; **c-gate** shell-noarg smoke | Ph **0–7** Rust (fgets, dual in rs-gate); nested dual-gate | C **release** no-arg embed pending (7b **source** wired) — [`SHELL-REFLECTION.md`](SHELL-REFLECTION.md) |
+| **Shell runner** | compile/run `shell-v0` via C COM; **c-gate** shell-noarg smoke | Ph **0–7** + **7 alt** repl-fgets; dual-gate audit markers | C **release** embed + `archive/c/embed/` pending — [`SHELL-REFLECTION.md`](SHELL-REFLECTION.md#wave-2-reflection-2026-06-04) |
 
 ## Related docs
 
 - [`SHELL-RUNNER.md`](SHELL-RUNNER.md) — shell.lisp practice ladder · embed `.com` plan
-- [`SHELL-REFLECTION.md`](SHELL-REFLECTION.md) — Ph 0–7 retrospective · dual-track GAP · ~88% rubric
+- [`SHELL-REFLECTION.md`](SHELL-REFLECTION.md) — Ph 0–7 retrospective · Wave 2 reflection · ~89% rubric
 - [`../release/README.md`](../release/README.md) — artifact table + manifest link
 - [`OVERALL-PROGRESS.md`](OVERALL-PROGRESS.md) — quantified % assessment · dual gate
 - [`RUST-MIGRATION.md`](RUST-MIGRATION.md) — component parity matrix & smoke index

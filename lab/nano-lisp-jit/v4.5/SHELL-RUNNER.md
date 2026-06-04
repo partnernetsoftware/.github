@@ -13,6 +13,7 @@
 | `.lbin` VM | `libc:system` / `strlen` / … | ✅ | ✅ |
 | `.lbin` addr | `libc:stdin` addr resolve | ✅ (pin) | ✅ |
 | `.lbin` fgets | `libc:fgets` + stdin addr | ⬜ | ✅ Phase 7 |
+| `.lbin` fgets REPL | `shell-repl-fgets.lisp` loop | ⬜ | ✅ Phase 7 alt |
 | no-arg dispatch | `$COM` → embedded shell | ❌ release · ✅ source | ✅ Phase 3 |
 
 ## Phase 0 (baseline)
@@ -75,6 +76,17 @@ $COM                       # C release: usage exit 2 until cosmocc promote
 
 **GAP**: C COM parity for fgets opcode not ported.
 
+## Phase 7 alt — fgets REPL loop
+
+**`shell-repl-fgets.lisp`** — VM loop: stdin addr + `libc:fgets` + `libc:system` (alternative to Phase 2 `nano:read-line` REPL).
+
+```bash
+$RS compile lab/nano-lisp-jit/lisp/shell/shell-repl-fgets.lisp /tmp/rf.lbin
+printf '%s\n' 'echo nanolisp-shell-repl-fgets' | $RS run /tmp/rf.lbin
+```
+
+**Smoke**: `bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-shell-repl-fgets-smoke.sh` (rs-gate + dual bootstrap; **not** in shell-ci plan yet).
+
 ## Phase 4 — shell CI plan
 
 **`bootstrap-v45-shell-ci.lisp`** + **`nanolisp shell-ci`**
@@ -94,7 +106,7 @@ $COM                       # C release: usage exit 2 until cosmocc promote
 | Track | Gate script | Shell smokes |
 |-------|-------------|--------------|
 | C | `nano-jit-c-gate.sh` | `nano-jit-c-shell-noarg-smoke.sh` |
-| Rust | `nano-jit-rs-gate.sh` | `nano-jit-rs-shell-ci-smoke.sh`, `nano-jit-rs-shell-repl-vm-smoke.sh`, `nano-jit-shell-dual-smoke.sh`, `nano-jit-rs-shell-fgets-smoke.sh` |
+| Rust | `nano-jit-rs-gate.sh` | `nano-jit-rs-shell-ci-smoke.sh`, `nano-jit-rs-shell-repl-vm-smoke.sh`, `nano-jit-shell-dual-smoke.sh`, `nano-jit-rs-shell-fgets-smoke.sh`, `nano-jit-rs-shell-repl-fgets-smoke.sh` |
 
 ## Roadmap
 
@@ -105,7 +117,13 @@ $COM                       # C release: usage exit 2 until cosmocc promote
 | 4 | shell-ci bootstrap plan | ✅ |
 | 6 | dual-track compile/run | ✅ |
 | 7 | libc fgets via stdin addr | ✅ Rust |
-| 8 | C release rebake + dual-gate wiring | ⬜ rebake · ✅ dual-gate shell markers |
+| 7 alt | fgets REPL (`shell-repl-fgets`) | ✅ rs-gate · dual plan · ⬜ shell-ci |
+| 8 | C release rebake + `archive/c/embed/` | ⬜ rebake · ✅ dual-gate shell markers (P1) |
+| 9 | shell-ci fgets + repl-fgets steps | ⬜ next slice (~90% rubric) |
+
+## C release shell promote (prep)
+
+Source no-arg shell is gated (`nano-jit-c-shell-noarg-smoke.sh`); rebaking `release/nano-lisp.com` needs cosmocc. Run `bash lab/nano-lisp-jit/retired/scripts/nano-jit-c-shell-promote-smoke.sh` — it exits 0 with `skip cosmocc_missing` when the toolchain is absent, otherwise checks manifest parity and the release GAP without rewriting `manifest.txt`. Full regenesis is opt-in (`NANO_C_SHELL_PROMOTE_BUILD=1` → `build_nano_jit.sh`); after a green factory build, promote with `v45-manifest-pin.sh` and flip dual smoke via `NANO_C_RELEASE_HAS_SHELL=1`.
 
 ## Integration into `.com`
 
