@@ -42,9 +42,17 @@ static void usage(const char *argv0) {
   fprintf(stderr, "  %s nano-cc parse input.c\n", argv0);
   fprintf(stderr, "  %s nano-cc-compile-expect-exit expected input.c output.elf\n", argv0);
   fprintf(stderr, "  %s nano-cc-parse-expect-exit expected input.c\n", argv0);
+  fprintf(stderr, "  %s shell                       # compile+run shell-script.lisp\n", argv0);
+  fprintf(stderr, "  %s                             # no args → embedded shell or compile-run\n", argv0);
 }
 
 int main(int argc, char **argv) {
+  if (argc == 1) {
+    return cmd_shell_noarg(argv[0]);
+  }
+  if (argc >= 2 && strcmp(argv[1], "shell") == 0 && argc == 2) {
+    return cmd_shell();
+  }
   if (argc >= 2 && strcmp(argv[1], "compile") == 0 && argc == 4) {
     return cmd_compile(argv[2], argv[3]);
   }

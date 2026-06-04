@@ -447,4 +447,6 @@ static int check_compile_expect_exit(const char *expected_s, const char *mode,
 
 #include "nano_compile_elf64_cli.c"
 
+#include "nano_shell_cli.c"
+
 #include "nano_main.c"

@@ -12,4 +12,6 @@
   (spawn-wait 0 "lab/nano-lisp-jit/release/nanolisp.com" "spawn-wait" "0" "/bin/true")
   (compile "lab/nano-lisp-jit/lisp/shell/shell-stdin-smoke.lisp"
            "lab/nano-lisp-jit/.build/v45-shell-stdin-smoke.lbin")
-  (run "lab/nano-lisp-jit/.build/v45-shell-stdin-smoke.lbin"))
+  (run "lab/nano-lisp-jit/.build/v45-shell-stdin-smoke.lbin")
+  ; C no-arg: release COM still pre-promote (usage exit 2); host cc runner when NANO_C_HOST_RUNNER set.
+  (spawn-wait 2 "lab/nano-lisp-jit/release/nano-lisp.com"))
