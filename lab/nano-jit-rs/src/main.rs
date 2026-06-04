@@ -58,6 +58,7 @@ Usage:\n\
   {bin} shell                  # compile+run shell-script.lisp (Phase 1)\n\
   {bin} shell-repl             # VM read-line REPL (.lbin loop)\n\
   {bin} shell-ci               # run unified shell ladder bootstrap plan\n\
+  {bin} shell-full             # run shell-ci + dual parity bootstrap plan\n\
   {bin}                        # no args → run embedded shell.lbin\n\
   {bin} version\n\
 Env:\n\
@@ -154,6 +155,7 @@ fn main() -> ExitCode {
         "shell" if args.len() == 2 => cmd_shell(),
         "shell-repl" if args.len() == 2 => cmd_shell_repl(),
         "shell-ci" if args.len() == 2 => cmd_shell_ci(),
+        "shell-full" if args.len() == 2 => cmd_shell_full(),
         "inspect-capsule" if args.len() == 3 => {
             capsule::inspect_capsule(Path::new(&args[2]))
         }
@@ -390,6 +392,7 @@ fn cmd_run_capsule(args: &[String]) -> i32 {
 const SHELL_SCRIPT_LISP: &str = "lab/nano-lisp-jit/lisp/shell/shell-script.lisp";
 const SHELL_SCRIPT_LBIN: &str = "lab/nano-lisp-jit/.build/nanolisp-shell-script.lbin";
 const SHELL_CI_PLAN: &str = "lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-shell-ci.lisp";
+const SHELL_FULL_PLAN: &str = "lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-shell-full.lisp";
 
 fn cmd_shell_ci() -> i32 {
     let plan = Path::new(SHELL_CI_PLAN);
@@ -398,6 +401,16 @@ fn cmd_shell_ci() -> i32 {
         return 1;
     }
     println!("shell-ci.plan={}", plan.display());
+    bootstrap::run_bootstrap_plan(plan)
+}
+
+fn cmd_shell_full() -> i32 {
+    let plan = Path::new(SHELL_FULL_PLAN);
+    if !plan.is_file() {
+        eprintln!("shell-full=missing_plan path={}", plan.display());
+        return 1;
+    }
+    println!("shell-full.plan={}", plan.display());
     bootstrap::run_bootstrap_plan(plan)
 }
 
