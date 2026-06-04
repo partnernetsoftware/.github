@@ -46,11 +46,11 @@ ELF slices ──pack-ape──▶  .com  ──run-ape──▶  native exec
 | compose-15link semantic-154k | ✅ | ✅ 155036B parity · exit 42 | 90% |
 | compose-15link semantic-unified | ✅ | ✅ 154017B sem×15 · exit 42 | 90% |
 | compose-15link bulk-scale | ✅ | ✅ 154559B parity · exit 42 | 90% |
-| `run-bootstrap-plan` | ✅ | ✅ compose/APE/proc/build-slice-lisp | 98% |
+| `run-bootstrap-plan` | ✅ | ✅ compose/APE/build-slice/compose15 | 99% |
 | Rust release APE pack | ❌ | ✅ + `release/nanolisp.com` promote | 85% |
 | NLCap v0 `.nlcap` | ❌ | ✅ T0/T1/T2/T3 + arch-aware auto | 90% |
 | `run-expect-exit` | ✅ | ✅ | 100% |
-| 6-face COM 替换 release | ✅ | ✅ bootstrap-plan + nanolisp.com | 95% |
+| 6-face COM 替换 release | ✅ | ✅ nanolisp.com + compose-15link slice | 99% |
 
 ## 验收脚本（产品门禁）
 
@@ -75,6 +75,7 @@ bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-bootstrap-release-promote-smo
 bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-bootstrap-proc-io-smoke.sh # read-file/spawn-wait
 bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-bootstrap-boundary-negative-smoke.sh # type reject
 bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-bootstrap-build-slice-lisp-smoke.sh # factory regenesis
+bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-bootstrap-compose15-build-slice-smoke.sh # compose-15link
 bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-release-pack-smoke.sh   # Rust nanolisp → APE
 bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-release-promote-smoke.sh # release/nanolisp.com pin
 bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-capsule-smoke.sh    # NLCap v0 multi-tier + abin
@@ -84,7 +85,7 @@ cd lab/nano-jit-rs && cargo test
 
 ## 下一里程碑（商用 SOTA）
 
-1. **release 替换** — bootstrap-plan pack/proc/boundary/build-slice-lisp ✅ · compose-15link build-slice 待补
+1. **release 替换** — bootstrap-plan + build-slice-lisp + compose-15link build-slice ✅
 2. **semantic 阶梯** — 8K–154K + unified ✅
 3. **AOT** — x86_64 ✅ · aarch64 exit-stub ✅ · aarch64 VM/AOT codegen 待补
-4. **类型检查** — VM load-arg/call-arity reject ✅ · 更多边界待补
+4. **类型检查** — VM load-arg/call-arity reject ✅

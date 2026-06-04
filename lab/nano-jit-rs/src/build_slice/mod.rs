@@ -1,7 +1,8 @@
 //! build-slice / build-slice-lisp — port of C `cmd_build_slice_lisp`.
 
+use std::env;
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 fn normalize_arch(arch: &str) -> Option<&'static str> {
     match arch {
@@ -223,6 +224,215 @@ fn build_slice_lisp_aarch64(src: &Path, out: &Path, base: &str, src_text: &str) 
     }
 }
 
+struct ComposeMod {
+    path: &'static str,
+    sym: &'static str,
+    tag: &'static str,
+}
+
+const COMPOSE15_MODS: &[ComposeMod] = &[
+    ComposeMod {
+        path: "lab/nano-lisp-jit/lisp/core/lisp-tu-main.lisp",
+        sym: "nano_tu_main",
+        tag: "main",
+    },
+    ComposeMod {
+        path: "lab/nano-lisp-jit/lisp/core/lisp-tu-callee.lisp",
+        sym: "nano_tu_callee",
+        tag: "callee",
+    },
+    ComposeMod {
+        path: "lab/nano-lisp-jit/lisp/modules/01-runtime-extra.lisp",
+        sym: "nano_lispjit_extra",
+        tag: "extra",
+    },
+    ComposeMod {
+        path: "lab/nano-lisp-jit/lisp/modules/00-runtime-core.lisp",
+        sym: "nano_mod_core",
+        tag: "core",
+    },
+    ComposeMod {
+        path: "lab/nano-lisp-jit/lisp/core/multi-func.lisp",
+        sym: "nano_mf_mod",
+        tag: "mf",
+    },
+    ComposeMod {
+        path: "lab/nano-lisp-jit/lisp/modules/03-bootstrap-stub.lisp",
+        sym: "nano_mod_boot",
+        tag: "boot",
+    },
+    ComposeMod {
+        path: "lab/nano-lisp-jit/lisp/modules/04-vm.lisp",
+        sym: "nano_mod_vm",
+        tag: "vm",
+    },
+    ComposeMod {
+        path: "lab/nano-lisp-jit/lisp/modules/05-aot.lisp",
+        sym: "nano_mod_aot",
+        tag: "aot",
+    },
+    ComposeMod {
+        path: "lab/nano-lisp-jit/lisp/modules/06-elf.lisp",
+        sym: "nano_mod_elf",
+        tag: "elf",
+    },
+    ComposeMod {
+        path: "lab/nano-lisp-jit/lisp/modules/07-abi.lisp",
+        sym: "nano_mod_abi",
+        tag: "abi",
+    },
+    ComposeMod {
+        path: "lab/nano-lisp-jit/lisp/modules/08-manifest.lisp",
+        sym: "nano_mod_manifest",
+        tag: "manifest",
+    },
+    ComposeMod {
+        path: "lab/nano-lisp-jit/lisp/modules/09-run.lisp",
+        sym: "nano_mod_run",
+        tag: "run",
+    },
+    ComposeMod {
+        path: "lab/nano-lisp-jit/lisp/modules/10-pack.lisp",
+        sym: "nano_mod_pack",
+        tag: "pack",
+    },
+    ComposeMod {
+        path: "lab/nano-lisp-jit/lisp/modules/11-ape.lisp",
+        sym: "nano_mod_ape",
+        tag: "ape",
+    },
+    ComposeMod {
+        path: "lab/nano-lisp-jit/lisp/modules/12-parse.lisp",
+        sym: "nano_mod_parse",
+        tag: "parse",
+    },
+];
+
+fn env_flag(name: &str) -> bool {
+    env::var(name).ok().is_some_and(|v| v == "1")
+}
+
+fn compose15_profile() -> Option<String> {
+    env::var("NANO_LISPJIT_FROM_LISP_PROFILE")
+        .ok()
+        .filter(|s| !s.is_empty())
+}
+
+fn profile_is_compose15(profile: &str) -> bool {
+    matches!(
+        profile,
+        "compose-15link"
+            | "compose-15link-expand"
+            | "compose-15link-bulk-scale"
+            | "compose-15link-semantic"
+            | "compose-15link-semantic-32k"
+            | "compose-15link-semantic-64k"
+            | "compose-15link-semantic-154k"
+            | "compose-15link-semantic-unified"
+            | "compose-15link-semantic-full"
+            | "semantic-full"
+    )
+}
+
+fn is_lispjit_c(src: &Path) -> bool {
+    basename(src) == "lispjit.c"
+}
+
+fn build_compose_15link(out: &Path, arch: &str) -> i32 {
+    if arch != "x86_64" {
+        eprintln!("lispjit-from-lisp-compose-15link=aarch64_unsupported");
+        return 2;
+    }
+    if ensure_parent(out) != 0 {
+        return ensure_parent(out);
+    }
+
+    let prefix = out.to_string_lossy();
+    let mut objs: Vec<PathBuf> = Vec::with_capacity(COMPOSE15_MODS.len());
+    let mut object_bytes_total = 0usize;
+
+    for m in COMPOSE15_MODS {
+        let obj = PathBuf::from(format!("{prefix}.lispjit-compose15-{}.o", m.tag));
+        let src = PathBuf::from(m.path);
+        let rc = crate::aot::cmd_compile_elf64_obj_code(&src, &obj, m.sym);
+        if rc != 0 {
+            return rc;
+        }
+        if let Ok(meta) = fs::metadata(&obj) {
+            object_bytes_total += meta.len() as usize;
+        }
+        objs.push(obj);
+    }
+
+    let refs: Vec<&Path> = objs.iter().map(|p| p.as_path()).collect();
+    let link = match crate::elf64::link_exe(out, "nano_tu_main", &refs) {
+        Ok(l) => l,
+        Err(e) => {
+            eprintln!("{e}");
+            return 2;
+        }
+    };
+    println!("link.output={}", out.display());
+    println!("link.objects={}", objs.len());
+    println!("link.code.bytes={}", link.code_bytes);
+    println!("build-slice-lisp.compose15_link.object_bytes_total={object_bytes_total}");
+    if let Ok(meta) = fs::metadata(out) {
+        println!(
+            "build-slice-lisp.compose15_link.linked_bytes={}",
+            meta.len()
+        );
+    }
+    println!(
+        "build-slice-lisp.compose15_link.code_bytes={}",
+        link.code_bytes
+    );
+
+    let no_hybrid = env_flag("NANO_COMPOSE15_NO_HYBRID");
+    if link.code_bytes >= 16384 {
+        println!("build-slice-lisp.compose15_pure=1");
+        println!("build-slice-lisp.compose15_full_codegen=1");
+    } else if no_hybrid {
+        println!("build-slice-lisp.compose15_pure=1");
+        println!("build-slice-lisp.compose15_hybrid=skipped");
+    } else {
+        println!(
+            "build-slice-lisp.compose15_hybrid=stub code_bytes={}",
+            link.code_bytes
+        );
+        eprintln!("build-slice-lisp=hybrid_fallback_unimplemented");
+        return 2;
+    }
+
+    println!("build-slice-lisp.mode=compose-15link");
+    println!("build-slice-lisp.link.objects={}", COMPOSE15_MODS.len());
+    println!("build-slice.lispjit_codegen=1");
+    println!("build-slice-lisp.lispjit_modules=00-12+multi-func");
+    finish_file_size(out)
+}
+
+fn build_slice_via_lispjit_from_lisp(src: &Path, out: &Path, arch: &str) -> i32 {
+    let Some(arch_norm) = normalize_arch(arch) else {
+        eprintln!("build-slice=bad_arch arch={arch}");
+        return 2;
+    };
+    if let Some(profile) = compose15_profile() {
+        if profile_is_compose15(&profile) {
+            println!("build-slice.compiler=nano-jit-lisp");
+            println!("build-slice.arch={arch_norm}");
+            println!("build-slice.role=lispjit-from-lisp");
+            println!("build-slice.lispjit_proxy=semantic-full");
+            println!("build-slice.lispjit_profile_tier=9");
+            println!("build-slice.lispjit_link=tu+modules+all-nano");
+            println!("build-slice.lispjit_codegen=1");
+            println!("build-slice.source={}", src.display());
+            println!("build-slice.output={}", out.display());
+            return build_compose_15link(out, arch_norm);
+        }
+    }
+    eprintln!("build-slice-lisp=lispjit_profile_unsupported path={}", src.display());
+    2
+}
+
 pub fn cmd_build_slice_lisp(src: &Path, out: &Path, arch: &str) -> i32 {
     let Some(arch_norm) = normalize_arch(arch) else {
         eprintln!("build-slice-lisp=bad_arch arch={arch}");
@@ -248,6 +458,9 @@ pub fn cmd_build_slice(src: &Path, out: &Path, arch: &str) -> i32 {
     if src.extension().and_then(|s| s.to_str()) == Some("lisp") {
         println!("build-slice.route=lisp-by-extension");
         return cmd_build_slice_lisp(src, out, arch);
+    }
+    if is_lispjit_c(src) && env_flag("NANO_LISPJIT_FROM_LISP") {
+        return build_slice_via_lispjit_from_lisp(src, out, arch);
     }
     eprintln!("build-slice=unsupported_source path={}", src.display());
     2
