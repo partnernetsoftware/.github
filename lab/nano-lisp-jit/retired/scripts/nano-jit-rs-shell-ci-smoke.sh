@@ -32,6 +32,7 @@ echo "$log" | grep -q 'run-ape-expect-exit.ok=1' || {
   echo "$log"
   exit 1
 }
+# step1 from RS phase-1 run and C COM run (phase 7b) when present in plan output
 echo "$log" | grep -q 'nanolisp-shell-script-step1' || {
   echo "nano-jit-rs-shell-ci-smoke=fail script_run"
   echo "$log"
@@ -93,4 +94,4 @@ if [ -x "$COM" ]; then
 fi
 
 steps=$(echo "$ci_log" | sed -n 's/^bootstrap-plan.steps=//p' | head -1)
-echo "nano-jit-rs-shell-ci-smoke=ok steps=${steps:-22}"
+echo "nano-jit-rs-shell-ci-smoke=ok steps=${steps:-28}"

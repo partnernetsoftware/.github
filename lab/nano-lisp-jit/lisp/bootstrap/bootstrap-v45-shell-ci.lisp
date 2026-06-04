@@ -42,6 +42,19 @@
   (spawn-wait 0 "/bin/sh" "-c"
     "printf '%s\\n' 'echo nanolisp-shell-ci-repl-fgets' | lab/nano-lisp-jit/.build/nano-jit-rs/nanolisp run lab/nano-lisp-jit/.build/v45-shell-ci-repl-fgets.lbin")
 
+  ; Phase 7b: C embed parity + release COM (pre-promote gap) + shell-script via COM
+  (file-size "lab/nano-lisp-jit/archive/c/embed/shell-script.lbin")
+  (spawn-wait 0 "/bin/cmp" "-s"
+    "lab/nano-lisp-jit/archive/c/embed/shell-script.lbin"
+    "lab/nano-jit-rs/embed/shell-script.lbin")
+  (spawn-wait 0 "lab/nano-lisp-jit/release/nano-lisp.com" "spawn-wait" "0" "/bin/true")
+  (spawn-wait 2 "lab/nano-lisp-jit/release/nano-lisp.com")
+  (spawn-wait 0 "lab/nano-lisp-jit/release/nano-lisp.com" "compile"
+    "lab/nano-lisp-jit/lisp/shell/shell-script.lisp"
+    "lab/nano-lisp-jit/.build/v45-shell-ci-c.lbin")
+  (spawn-wait 0 "lab/nano-lisp-jit/release/nano-lisp.com" "run"
+    "lab/nano-lisp-jit/.build/v45-shell-ci-c.lbin")
+
   (pack-ape-bare "lab/nano-lisp-jit/.build/v45-shell-ci.ape"
                  "lab/nano-lisp-jit/.build/nano-jit-rs/nanolisp"
                  "lab/nano-lisp-jit/.build/nano-jit-rs/nanolisp.aarch64")
