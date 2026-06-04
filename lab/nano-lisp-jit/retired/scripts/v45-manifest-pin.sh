@@ -20,7 +20,7 @@ NANO_EXTRA=()
 if [ -f "$MAN" ]; then
   while IFS= read -r line; do
     case "$line" in
-      nanolisp.*) NANO_EXTRA+=("$line") ;;
+      nanolisp*) NANO_EXTRA+=("$line") ;;
     esac
   done <"$MAN"
 fi

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# nanolisp slim release smoke — genesis-pin slices → APE (~161KiB pathfinder).
+# nanolisp slim release smoke — verify-only: genesis-pin slices → APE must match release/ pin.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../../../.." && pwd)"
 RS="$ROOT/lab/nano-lisp-jit/.build/nano-jit-rs/nanolisp"
@@ -14,9 +14,8 @@ bash "$ROOT/lab/nano-lisp-jit/build_nano_jit_rs.sh" >/dev/null
 [ -x "$RS" ] || { echo "nano-jit-rs-release-slim-smoke=fail no_binary"; exit 1; }
 [ -f "$X86_PIN" ] || { echo "nano-jit-rs-release-slim-smoke=fail no_x86_pin"; exit 1; }
 [ -f "$A64_PIN" ] || { echo "nano-jit-rs-release-slim-smoke=fail no_a64_pin"; exit 1; }
-
-bash "$ROOT/lab/nano-lisp-jit/retired/scripts/nano-jit-rs-release-promote.sh" >/dev/null
 [ -f "$SLIM" ] || { echo "nano-jit-rs-release-slim-smoke=fail no_slim"; exit 1; }
+[ -f "$MAN" ] || { echo "nano-jit-rs-release-slim-smoke=fail no_manifest"; exit 1; }
 
 slim_bytes=$(wc -c <"$SLIM" | tr -d ' ')
 [ "${slim_bytes:-0}" -lt "$MAX_BYTES" ] || {
@@ -33,6 +32,24 @@ slim_hash=$("$RS" hash "$SLIM")
 }
 [ "$slim_hash" = "$pin_hash" ] || {
   echo "nano-jit-rs-release-slim-smoke=fail hash slim=$slim_hash pin=$pin_hash"
+  exit 1
+}
+
+TMP="$ROOT/lab/nano-lisp-jit/.build/nano-jit-rs-release-slim-smoke"
+mkdir -p "$TMP"
+"$RS" pack-ape "$TMP/rebuild-slim.com" "$X86_PIN" "$A64_PIN" >/dev/null
+rebuild_bytes=$(wc -c <"$TMP/rebuild-slim.com" | tr -d ' ')
+rebuild_hash=$("$RS" hash "$TMP/rebuild-slim.com")
+[ "$rebuild_bytes" = "$pin_bytes" ] || {
+  echo "nano-jit-rs-release-slim-smoke=fail rebuild_bytes slim=$rebuild_bytes pin=$pin_bytes"
+  exit 1
+}
+[ "$rebuild_hash" = "$pin_hash" ] || {
+  echo "nano-jit-rs-release-slim-smoke=fail rebuild_hash slim=$rebuild_hash pin=$pin_hash"
+  exit 1
+}
+cmp -s "$SLIM" "$TMP/rebuild-slim.com" || {
+  echo "nano-jit-rs-release-slim-smoke=fail rebuild_slim_mismatch"
   exit 1
 }
 
