@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Dual-track product gate — C release SSOT + Rust nanolisp SOTA.
 # Shell smokes (nested, not duplicated here):
-#   c-track: nano-jit-c-shell-noarg-smoke.sh (via nano-jit-c-gate.sh)
+#   c-track: nano-jit-c-shell-noarg-smoke.sh, nano-jit-c-shell-fgets-smoke.sh (via nano-jit-c-gate.sh)
 #   rs-track: shell-ci, shell-full, shell-repl-vm, shell-dual, shell-fgets, shell-repl-fgets (via nano-jit-rs-gate.sh)
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../../../.." && pwd)"
