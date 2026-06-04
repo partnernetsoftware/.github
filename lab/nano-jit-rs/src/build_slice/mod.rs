@@ -119,7 +119,116 @@ fn ensure_parent(out: &Path) -> i32 {
 const LISPJIT_FACTORY: &str = "lab/nano-lisp-jit/archive/c/runner/lispjit.c";
 const COMPOSE15_HYBRID_THRESHOLD: usize = 16384;
 
-fn cmd_build_slice_compile(src: &Path, out: &Path, arch: &str) -> i32 {
+enum HostCcRole {
+    PlanCompile,
+    Stage0Bridge,
+}
+
+fn build_slice_allow_host_cc() -> bool {
+    env_flag("NANO_REGENESIS") || env_flag("NANO_SLICE_ALLOW_HOST_CC")
+}
+
+fn build_slice_use_selfhost_reuse(src: &Path) -> bool {
+    is_lispjit_c(src) && !env_flag("NANO_LISPJIT_FROM_LISP") && env_flag("NANO_BUILD_SLICE_SELFHOST_REUSE")
+}
+
+fn build_slice_use_genesis_pin(src: &Path) -> bool {
+    if build_slice_use_selfhost_reuse(src) {
+        return false;
+    }
+    is_lispjit_c(src) && !build_slice_allow_host_cc()
+}
+
+fn genesis_pin_path_for_arch(arch: &str) -> Option<&'static str> {
+    match normalize_arch(arch)? {
+        "x86_64" => Some("lab/nano-lisp-jit/genesis/nano-jit.x86_64"),
+        "aarch64" => Some("lab/nano-lisp-jit/genesis/nano-jit.aarch64"),
+        _ => None,
+    }
+}
+
+fn selfhost_reuse_pin_for_arch(arch: &str) -> Option<String> {
+    match normalize_arch(arch)? {
+        "x86_64" => env::var("NANO_SELFHOST_REUSE_X86").ok(),
+        "aarch64" => env::var("NANO_SELFHOST_REUSE_AARCH64").ok(),
+        _ => None,
+    }
+}
+
+fn build_slice_copy_pin(pin: &Path, out: &Path) -> i32 {
+    if ensure_parent(out) != 0 {
+        return ensure_parent(out);
+    }
+    let data = match fs::read(pin) {
+        Ok(d) => d,
+        Err(_) => {
+            eprintln!("build-slice=genesis_pin_missing path={}", pin.display());
+            return 1;
+        }
+    };
+    if fs::write(out, &data).is_err() {
+        eprintln!("build-slice=genesis_pin_write_fail path={}", out.display());
+        return 3;
+    }
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        if let Ok(meta) = fs::metadata(out) {
+            let mut perms = meta.permissions();
+            perms.set_mode(0o755);
+            let _ = fs::set_permissions(out, perms);
+        }
+    }
+    0
+}
+
+fn build_slice_via_selfhost_reuse(src: &Path, out: &Path, arch: &str) -> i32 {
+    let Some(pin_s) = selfhost_reuse_pin_for_arch(arch).filter(|s| !s.is_empty()) else {
+        eprintln!("build-slice=selfhost_reuse_missing arch={arch}");
+        return 2;
+    };
+    let pin = PathBuf::from(&pin_s);
+    let Some(arch_norm) = normalize_arch(arch) else {
+        eprintln!("build-slice=bad_arch arch={arch}");
+        return 2;
+    };
+    println!("build-slice.compiler=none");
+    println!("build-slice.arch={arch_norm}");
+    println!("build-slice.role=selfhost-reuse");
+    println!("build-slice.selfhost_reuse={pin_s}");
+    println!("build-slice.source={}", src.display());
+    println!("build-slice.output={}", out.display());
+    let rc = build_slice_copy_pin(&pin, out);
+    if rc != 0 {
+        return rc;
+    }
+    finish_file_size(out)
+}
+
+fn build_slice_via_genesis_pin(src: &Path, out: &Path, arch: &str) -> i32 {
+    let Some(pin_path) = genesis_pin_path_for_arch(arch) else {
+        eprintln!("build-slice=genesis_pin_bad_arch arch={arch}");
+        return 2;
+    };
+    let Some(arch_norm) = normalize_arch(arch) else {
+        eprintln!("build-slice=bad_arch arch={arch}");
+        return 2;
+    };
+    let pin = PathBuf::from(pin_path);
+    println!("build-slice.compiler=none");
+    println!("build-slice.arch={arch_norm}");
+    println!("build-slice.role=genesis-pin");
+    println!("build-slice.genesis_pin={pin_path}");
+    println!("build-slice.source={}", src.display());
+    println!("build-slice.output={}", out.display());
+    let rc = build_slice_copy_pin(&pin, out);
+    if rc != 0 {
+        return rc;
+    }
+    finish_file_size(out)
+}
+
+fn run_host_cc_lispjit(src: &Path, out: &Path, arch: &str, role: HostCcRole) -> i32 {
     let Some(arch_norm) = normalize_arch(arch) else {
         eprintln!("build-slice-compile=bad_arch arch={arch}");
         return 2;
@@ -137,8 +246,15 @@ fn cmd_build_slice_compile(src: &Path, out: &Path, arch: &str) -> i32 {
     };
     println!("build-slice.compiler={cc}");
     println!("build-slice.arch={arch_norm}");
-    println!("build-slice.role=plan-compile");
-    println!("build-slice.lispjit_zero_genesis_pin=1");
+    match role {
+        HostCcRole::PlanCompile => {
+            println!("build-slice.role=plan-compile");
+            println!("build-slice.lispjit_zero_genesis_pin=1");
+        }
+        HostCcRole::Stage0Bridge => {
+            println!("build-slice.role=stage0-bridge");
+        }
+    }
     println!("build-slice.source={}", src.display());
     println!("build-slice.output={}", out.display());
     let ok = Command::new(cc)
@@ -159,6 +275,10 @@ fn cmd_build_slice_compile(src: &Path, out: &Path, arch: &str) -> i32 {
         return 2;
     }
     finish_file_size(out)
+}
+
+pub fn cmd_build_slice_compile(src: &Path, out: &Path, arch: &str) -> i32 {
+    run_host_cc_lispjit(src, out, arch, HostCcRole::PlanCompile)
 }
 
 fn compose15_hybrid_fallback(out: &Path, arch: &str, stub_label: &str, stub_val: usize) -> i32 {
@@ -668,8 +788,13 @@ pub fn cmd_build_slice(src: &Path, out: &Path, arch: &str) -> i32 {
     if is_lispjit_c(src) && env_flag("NANO_LISPJIT_FROM_LISP") {
         return build_slice_via_lispjit_from_lisp(src, out, arch);
     }
-    eprintln!("build-slice=unsupported_source path={}", src.display());
-    2
+    if build_slice_use_selfhost_reuse(src) {
+        return build_slice_via_selfhost_reuse(src, out, arch);
+    }
+    if build_slice_use_genesis_pin(src) {
+        return build_slice_via_genesis_pin(src, out, arch);
+    }
+    run_host_cc_lispjit(src, out, arch, HostCcRole::Stage0Bridge)
 }
 
 #[cfg(test)]
@@ -704,5 +829,17 @@ mod tests {
             "lab/nano-lisp-jit/lisp/modules-expand/26-bulk-main-expand.lisp"
         );
         env::remove_var("NANO_LISPJIT_FROM_LISP_PROFILE");
+    }
+
+    #[test]
+    fn genesis_pin_for_lispjit_without_regenesis() {
+        env::remove_var("NANO_REGENESIS");
+        env::remove_var("NANO_SLICE_ALLOW_HOST_CC");
+        env::remove_var("NANO_BUILD_SLICE_SELFHOST_REUSE");
+        env::remove_var("NANO_LISPJIT_FROM_LISP");
+        assert!(build_slice_use_genesis_pin(Path::new(LISPJIT_FACTORY)));
+        env::set_var("NANO_REGENESIS", "1");
+        assert!(!build_slice_use_genesis_pin(Path::new(LISPJIT_FACTORY)));
+        env::remove_var("NANO_REGENESIS");
     }
 }

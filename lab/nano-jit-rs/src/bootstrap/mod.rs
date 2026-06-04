@@ -98,6 +98,11 @@ pub(crate) enum Step {
         out: PathBuf,
         arch: String,
     },
+    BuildSliceCompile {
+        src: PathBuf,
+        out: PathBuf,
+        arch: String,
+    },
 }
 
 struct Parser<'a> {
@@ -331,6 +336,12 @@ impl<'a> Parser<'a> {
                 let out = PathBuf::from(self.parse_atom()?);
                 let arch = self.parse_atom()?;
                 Step::BuildSlice { src, out, arch }
+            }
+            "build-slice-compile" => {
+                let src = PathBuf::from(self.parse_atom()?);
+                let out = PathBuf::from(self.parse_atom()?);
+                let arch = self.parse_atom()?;
+                Step::BuildSliceCompile { src, out, arch }
             }
             _ => return None,
         };
@@ -636,6 +647,10 @@ pub fn run_bootstrap_plan(path: &Path) -> i32 {
             Step::BuildSlice { src, out, arch } => {
                 println!("bootstrap-step.{i}=build-slice");
                 crate::build_slice::cmd_build_slice(src, out, arch)
+            }
+            Step::BuildSliceCompile { src, out, arch } => {
+                println!("bootstrap-step.{i}=build-slice-compile");
+                crate::build_slice::cmd_build_slice_compile(src, out, arch)
             }
         };
         if rc != 0 {
