@@ -35,6 +35,7 @@ bash "$ROOT/lab/nano-lisp-jit/retired/scripts/nano-jit-rs-release-promote-smoke.
 bash "$ROOT/lab/nano-lisp-jit/retired/scripts/nano-jit-rs-release-slim-smoke.sh"
 bash "$ROOT/lab/nano-lisp-jit/retired/scripts/nano-jit-rs-shell-ci-smoke.sh"
 bash "$ROOT/lab/nano-lisp-jit/retired/scripts/nano-jit-rs-shell-full-smoke.sh"
+bash "$ROOT/lab/nano-lisp-jit/retired/scripts/nano-jit-rs-shell-promote-smoke.sh"
 bash "$ROOT/lab/nano-lisp-jit/retired/scripts/nano-jit-rs-shell-repl-vm-smoke.sh"
 bash "$ROOT/lab/nano-lisp-jit/retired/scripts/nano-jit-shell-dual-smoke.sh"
 bash "$ROOT/lab/nano-lisp-jit/retired/scripts/nano-jit-rs-shell-fgets-smoke.sh"

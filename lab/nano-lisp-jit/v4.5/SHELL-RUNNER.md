@@ -119,6 +119,17 @@ $RS run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-shell-full
 
 **shell-full CLI note (Wave 4)**: Rust daily path is `run-bootstrap-plan` on the plan above (no dedicated `nanolisp shell-full` subcommand required — smoke drives the ladder). C track has no equivalent one-shot CLI yet; Wave 4 adds a COM dispatch or documents `$COM run-bootstrap-plan …/bootstrap-v45-shell-full.lisp` parity so dual-gate can audit a C shell-full marker alongside rs-gate.
 
+## Phase 9 — shell-promote bootstrap
+
+**`bootstrap-v45-shell-promote.lisp`** — promote ladder: embed `cmp`, spawn-wait `bootstrap-v45-shell-c-noarg.lisp`, shell-ci subset (hash-match + `nanolisp shell`), probe-friendly C COM no-arg exit 2, COM compile/run `shell-script.lisp`. Host-cc and cosmocc rebake stay external (`nano-jit-c-shell-promote-smoke.sh`, manual `v45-manifest-pin.sh`).
+
+```bash
+RS=lab/nano-lisp-jit/.build/nano-jit-rs/nanolisp
+$RS run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-shell-promote.lisp
+```
+
+**Smoke**: `bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-shell-promote-smoke.sh` (rs-gate after shell-full; greps `bootstrap-plan.ok=1`).
+
 ## C release shell auto-probe (P2)
 
 **`retired/scripts/nanolisp-c-release-shell-probe.sh`** — run pinned `$COM` with no args; sets `NANO_C_RELEASE_HAS_SHELL` to `1` (`shell.mode=`) or `0` (`usage:` exit 2). Sourced by shell-ci, dual, and promote smokes; override with `export NANO_C_RELEASE_HAS_SHELL=0|1` before source.
@@ -135,7 +146,7 @@ bash lab/nano-lisp-jit/retired/scripts/nanolisp-c-release-shell-probe.sh
 | Track | Gate script | Shell smokes |
 |-------|-------------|--------------|
 | C | `nano-jit-c-gate.sh` | `nano-jit-c-shell-noarg-smoke.sh` |
-| Rust | `nano-jit-rs-gate.sh` | `nano-jit-rs-shell-ci-smoke.sh`, `nano-jit-rs-shell-full-smoke.sh`, `nano-jit-rs-shell-repl-vm-smoke.sh`, `nano-jit-shell-dual-smoke.sh`, `nano-jit-rs-shell-fgets-smoke.sh`, `nano-jit-rs-shell-repl-fgets-smoke.sh` |
+| Rust | `nano-jit-rs-gate.sh` | `nano-jit-rs-shell-ci-smoke.sh`, `nano-jit-rs-shell-full-smoke.sh`, `nano-jit-rs-shell-promote-smoke.sh`, `nano-jit-rs-shell-repl-vm-smoke.sh`, `nano-jit-shell-dual-smoke.sh`, `nano-jit-rs-shell-fgets-smoke.sh`, `nano-jit-rs-shell-repl-fgets-smoke.sh` |
 
 ## Roadmap
 
@@ -150,7 +161,7 @@ bash lab/nano-lisp-jit/retired/scripts/nanolisp-c-release-shell-probe.sh
 | 7b | C embed + shell-ci C track | ✅ plan + probe-conditional assert |
 | 8 | shell-full bootstrap (`bootstrap-v45-shell-full.lisp`) | ✅ rs-gate (~29 steps) |
 | 8b | shell-full C CLI / COM plan driver | ⬜ Wave 4 |
-| 9 | C release rebake + factory embed in pin | ⬜ cosmocc promote (product slice 58%; host-cc proves source) |
+| 9 | shell-promote bootstrap (`bootstrap-v45-shell-promote.lisp`) | ✅ rs-gate (~12 steps; host-cc/cosmocc external) |
 
 ## C release shell promote (prep)
 
