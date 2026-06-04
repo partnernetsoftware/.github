@@ -6,8 +6,10 @@ ROOT="$(cd "$(dirname "$0")/../../../.." && pwd)"
 LAB="$ROOT/lab/nano-lisp-jit"
 RETIRED="$LAB/retired"
 RUNNER_SRC="$RETIRED/archive-c/runner"
+EMBED_C="$LAB/archive/c/embed/shell-script.lbin"
 C_COM="$LAB/release/nano-lisp.com"
 MAN="$LAB/release/manifest.txt"
+HOST_BIN="$LAB/.build/nano-lisp-jit-host-shell-noarg"
 cd "$ROOT"
 
 discover_cosmo_bin() {
@@ -40,25 +42,72 @@ cosmocc_usable() {
   [ -x "$dir/x86_64-unknown-cosmo-cc" ]
 }
 
+promote_smoke_source_grep() {
+  grep -q 'cmd_shell_noarg' "$RUNNER_SRC/nano_main.c" || {
+    echo "nano-jit-c-shell-promote-smoke=fail source_main"
+    exit 1
+  }
+  grep -q 'cmd_shell_noarg' "$RUNNER_SRC/nano_shell_cli.c" || {
+    echo "nano-jit-c-shell-promote-smoke=fail source_shell_cli"
+    exit 1
+  }
+  echo "nano-jit-c-shell-promote-smoke=ok source_grep"
+}
+
+promote_smoke_host_cc_factory() {
+  [ -f "$EMBED_C" ] || {
+    echo "nano-jit-c-shell-promote-smoke=fail no_c_embed path=$EMBED_C"
+    exit 1
+  }
+  if ! command -v cc >/dev/null 2>&1; then
+    echo "nano-jit-c-shell-promote-smoke=skip host_cc_missing"
+    return 0
+  fi
+  mkdir -p "$(dirname "$HOST_BIN")"
+  cc -DNANO_LISP_JIT \
+    -I "$ROOT/lab/lispjit-ir" \
+    -I "$RUNNER_SRC" \
+    -Os -s "$LAB/archive/c/runner/lispjit.c" \
+    -ldl -o "$HOST_BIN"
+  chmod +x "$HOST_BIN"
+  log=$("$HOST_BIN" 2>&1) || true
+  echo "$log" | grep -q 'shell.mode=embedded-lbin' || {
+    echo "nano-jit-c-shell-promote-smoke=fail host_mode expected=embedded-lbin"
+    echo "$log"
+    exit 1
+  }
+  echo "$log" | grep -q "shell.lbin=lab/nano-lisp-jit/archive/c/embed/shell-script.lbin" || {
+    echo "nano-jit-c-shell-promote-smoke=fail host_embed_path"
+    echo "$log"
+    exit 1
+  }
+  echo "$log" | grep -q 'nanolisp-shell-script-step1' || {
+    echo "nano-jit-c-shell-promote-smoke=fail host_step1"
+    echo "$log"
+    exit 1
+  }
+  echo "$log" | grep -q 'ret=0' || {
+    echo "nano-jit-c-shell-promote-smoke=fail host_ret"
+    echo "$log"
+    exit 1
+  }
+  echo "nano-jit-c-shell-promote-smoke=ok host_cc_factory artifact=$HOST_BIN"
+}
+
 echo "nano-jit-c-shell-promote-smoke=begin"
 
 COSMO_DIR="$(discover_cosmo_bin)"
 if ! cosmocc_usable "$COSMO_DIR"; then
   echo "nano-jit-c-shell-promote-smoke=skip cosmocc_missing dir=$COSMO_DIR"
+  promote_smoke_source_grep
+  promote_smoke_host_cc_factory
+  echo "nano-jit-c-shell-promote-smoke=ok promote_prep=host_cc cosmocc=0"
   exit 0
 fi
 X86_CC="$COSMO_DIR/x86_64-unknown-cosmo-cc"
 echo "nano-jit-c-shell-promote-smoke=ok cosmocc dir=$COSMO_DIR"
 
-grep -q 'cmd_shell_noarg' "$RUNNER_SRC/nano_main.c" || {
-  echo "nano-jit-c-shell-promote-smoke=fail source_main"
-  exit 1
-}
-grep -q 'cmd_shell_noarg' "$RUNNER_SRC/nano_shell_cli.c" || {
-  echo "nano-jit-c-shell-promote-smoke=fail source_shell_cli"
-  exit 1
-}
-echo "nano-jit-c-shell-promote-smoke=ok source_grep"
+promote_smoke_source_grep
 
 [ -x "$C_COM" ] || { echo "nano-jit-c-shell-promote-smoke=fail no_c_com"; exit 1; }
 [ -f "$MAN" ] || { echo "nano-jit-c-shell-promote-smoke=fail no_manifest"; exit 1; }
