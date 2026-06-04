@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# nanolisp shell-full — Phase 8 unified bootstrap (ci + dual + embed) via run-bootstrap-plan.
+# nanolisp shell-full — Phase 8 unified bootstrap (ci + dual + embed) via shell-full subcommand.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../../../.." && pwd)"
 RS="$ROOT/lab/nano-lisp-jit/.build/nano-jit-rs/nanolisp"
@@ -10,8 +10,13 @@ bash "$ROOT/lab/nano-lisp-jit/build_nano_jit_rs.sh" >/dev/null
 [ -x "$RS" ] || { echo "nano-jit-rs-shell-full-smoke=fail no_binary"; exit 1; }
 [ -f "$PLAN" ] || { echo "nano-jit-rs-shell-full-smoke=fail no_plan"; exit 1; }
 
-full_log=$("$RS" run-bootstrap-plan "$PLAN" 2>&1) || true
+full_log=$("$RS" shell-full 2>&1) || true
 log="$full_log"
+echo "$log" | grep -q 'shell-full.plan=' || {
+  echo "nano-jit-rs-shell-full-smoke=fail cmd"
+  echo "$log"
+  exit 1
+}
 echo "$log" | grep -q 'bootstrap-plan.ok=1' || {
   echo "nano-jit-rs-shell-full-smoke=fail plan"
   echo "$log"
