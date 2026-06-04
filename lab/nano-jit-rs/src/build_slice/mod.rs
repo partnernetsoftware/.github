@@ -3,6 +3,7 @@
 use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::process::Command;
 
 fn normalize_arch(arch: &str) -> Option<&'static str> {
     match arch {
@@ -112,6 +113,61 @@ fn ensure_parent(out: &Path) -> i32 {
             return 3;
         }
     }
+    0
+}
+
+const LISPJIT_FACTORY: &str = "lab/nano-lisp-jit/archive/c/runner/lispjit.c";
+const COMPOSE15_HYBRID_THRESHOLD: usize = 16384;
+
+fn cmd_build_slice_compile(src: &Path, out: &Path, arch: &str) -> i32 {
+    let Some(arch_norm) = normalize_arch(arch) else {
+        eprintln!("build-slice-compile=bad_arch arch={arch}");
+        return 2;
+    };
+    if ensure_parent(out) != 0 {
+        return ensure_parent(out);
+    }
+    let cc = match arch_norm {
+        "x86_64" => "cc",
+        "aarch64" => "aarch64-linux-gnu-gcc",
+        _ => {
+            eprintln!("build-slice-compile=bad_arch arch={arch}");
+            return 2;
+        }
+    };
+    println!("build-slice.compiler={cc}");
+    println!("build-slice.arch={arch_norm}");
+    println!("build-slice.role=plan-compile");
+    println!("build-slice.lispjit_zero_genesis_pin=1");
+    println!("build-slice.source={}", src.display());
+    println!("build-slice.output={}", out.display());
+    let ok = Command::new(cc)
+        .args([
+            "-DNANO_LISP_JIT",
+            "-Ilab/lispjit-ir",
+            "-Ilab/nano-lisp-jit/retired/archive-c/runner",
+            "-Os",
+            "-s",
+        ])
+        .arg(src)
+        .args(["-ldl", "-o"])
+        .arg(out)
+        .status()
+        .is_ok_and(|s| s.success());
+    if !ok {
+        eprintln!("build-slice-compile=compile_fail");
+        return 2;
+    }
+    finish_file_size(out)
+}
+
+fn compose15_hybrid_fallback(out: &Path, arch: &str, stub_label: &str, stub_val: usize) -> i32 {
+    println!("build-slice-lisp.compose15_hybrid=stub {stub_label}={stub_val}");
+    let rc = cmd_build_slice_compile(Path::new(LISPJIT_FACTORY), out, arch);
+    if rc != 0 {
+        return rc;
+    }
+    println!("build-slice-lisp.compose15_hybrid=fallback_compile");
     0
 }
 
@@ -387,20 +443,34 @@ fn build_compose_15link(out: &Path, arch: &str) -> i32 {
         link.code_bytes
     );
 
+    let linked_bytes = fs::metadata(out).map(|m| m.len() as usize).unwrap_or(0);
     let no_hybrid = env_flag("NANO_COMPOSE15_NO_HYBRID");
-    if link.code_bytes >= 16384 {
+    if link.code_bytes > 0 && link.code_bytes < COMPOSE15_HYBRID_THRESHOLD {
+        if no_hybrid {
+            println!("build-slice-lisp.compose15_pure=1");
+            println!("build-slice-lisp.compose15_hybrid=skipped");
+        } else {
+            let rc = compose15_hybrid_fallback(out, arch, "code_bytes", link.code_bytes);
+            if rc != 0 {
+                return rc;
+            }
+        }
+    } else if link.code_bytes >= COMPOSE15_HYBRID_THRESHOLD {
         println!("build-slice-lisp.compose15_pure=1");
         println!("build-slice-lisp.compose15_full_codegen=1");
-    } else if no_hybrid {
-        println!("build-slice-lisp.compose15_pure=1");
-        println!("build-slice-lisp.compose15_hybrid=skipped");
+    } else if linked_bytes < COMPOSE15_HYBRID_THRESHOLD {
+        if no_hybrid {
+            println!("build-slice-lisp.compose15_pure=1");
+            println!("build-slice-lisp.compose15_hybrid=skipped");
+        } else {
+            let rc = compose15_hybrid_fallback(out, arch, "linked_bytes", linked_bytes);
+            if rc != 0 {
+                return rc;
+            }
+        }
     } else {
-        println!(
-            "build-slice-lisp.compose15_hybrid=stub code_bytes={}",
-            link.code_bytes
-        );
-        eprintln!("build-slice-lisp=hybrid_fallback_unimplemented");
-        return 2;
+        println!("build-slice-lisp.compose15_pure=1");
+        println!("build-slice-lisp.compose15_full_codegen=1");
     }
 
     println!("build-slice-lisp.mode=compose-15link");

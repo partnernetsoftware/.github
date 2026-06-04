@@ -50,7 +50,7 @@ ELF slices ──pack-ape──▶  .com  ──run-ape──▶  native exec
 | Rust release APE pack | ❌ | ✅ + `release/nanolisp.com` promote | 85% |
 | NLCap v0 `.nlcap` | ❌ | ✅ T0/T1/T2/T3 + arch-aware auto | 90% |
 | `run-expect-exit` | ✅ | ✅ | 100% |
-| 6-face COM 替换 release | ✅ | ✅ nanolisp.com + compose-15link slice | 99% |
+| 6-face COM 替换 release | ✅ | ✅ nanolisp.com + compose-15link slice + hybrid | 99% |
 
 ## 验收脚本（产品门禁）
 
@@ -76,6 +76,7 @@ bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-bootstrap-proc-io-smoke.sh # 
 bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-bootstrap-boundary-negative-smoke.sh # type reject
 bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-bootstrap-build-slice-lisp-smoke.sh # factory regenesis
 bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-bootstrap-compose15-build-slice-smoke.sh # compose-15link
+bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-bootstrap-compose15-hybrid-smoke.sh # compose-15link hybrid
 bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-release-pack-smoke.sh   # Rust nanolisp → APE
 bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-release-promote-smoke.sh # release/nanolisp.com pin
 bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-capsule-smoke.sh    # NLCap v0 multi-tier + abin
@@ -85,7 +86,7 @@ cd lab/nano-jit-rs && cargo test
 
 ## 下一里程碑（商用 SOTA）
 
-1. **release 替换** — bootstrap-plan + build-slice-lisp + compose-15link build-slice ✅
+1. **release 替换** — bootstrap-plan + build-slice-lisp + compose-15link build-slice + hybrid ✅
 2. **semantic 阶梯** — 8K–154K + unified ✅
 3. **AOT** — x86_64 ✅ · aarch64 exit-stub ✅ · aarch64 VM/AOT codegen 待补
 4. **类型检查** — VM load-arg/call-arity reject ✅
