@@ -10,7 +10,8 @@ bash "$ROOT/lab/nano-lisp-jit/build_nano_jit_rs.sh" >/dev/null
 [ -x "$RS" ] || { echo "nano-jit-rs-shell-ci-smoke=fail no_binary"; exit 1; }
 [ -f "$PLAN" ] || { echo "nano-jit-rs-shell-ci-smoke=fail no_plan"; exit 1; }
 
-log=$("$RS" shell-ci 2>&1) || true
+ci_log=$("$RS" shell-ci 2>&1) || true
+log="$ci_log"
 echo "$log" | grep -q 'shell-ci.plan=' || {
   echo "nano-jit-rs-shell-ci-smoke=fail cmd"
   echo "$log"
@@ -41,6 +42,21 @@ echo "$log" | grep -q 'shell.mode=embedded-lbin' || {
   echo "$log"
   exit 1
 }
+echo "$log" | grep -q 'resolve.*libc:fgets' || {
+  echo "nano-jit-rs-shell-ci-smoke=fail fgets_resolve"
+  echo "$log"
+  exit 1
+}
+echo "$log" | grep -q 'expect.*ok expected=nonnull' || {
+  echo "nano-jit-rs-shell-ci-smoke=fail fgets_run"
+  echo "$log"
+  exit 1
+}
+echo "$log" | grep -q 'nanolisp-shell-ci-repl-fgets' || {
+  echo "nano-jit-rs-shell-ci-smoke=fail repl_fgets"
+  echo "$log"
+  exit 1
+}
 
 if [ -x "$COM" ]; then
   log=$("$COM" spawn-wait 0 "/bin/true" 2>&1) || true
@@ -51,5 +67,5 @@ if [ -x "$COM" ]; then
   }
 fi
 
-steps=$(echo "$log" | sed -n 's/^bootstrap-plan.steps=//p' | head -1)
-echo "nano-jit-rs-shell-ci-smoke=ok steps=${steps:-15}"
+steps=$(echo "$ci_log" | sed -n 's/^bootstrap-plan.steps=//p' | head -1)
+echo "nano-jit-rs-shell-ci-smoke=ok steps=${steps:-22}"

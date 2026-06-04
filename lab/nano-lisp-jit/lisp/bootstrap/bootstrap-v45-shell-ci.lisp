@@ -1,4 +1,4 @@
-; shell-ci — unified shell ladder gate (Phase 0–3) as bootstrap plan only.
+; shell-ci — unified shell ladder gate (Phase 0–7) as bootstrap plan only.
 (bootstrap
   ; Phase 0: shell-v0 .lbin + proc I/O
   (compile "lab/nano-lisp-jit/lisp/shell/shell-v0-system.lisp"
@@ -31,6 +31,16 @@
            "lab/nano-lisp-jit/.build/v45-shell-ci-repl.lbin")
   (spawn-wait 0 "/bin/sh" "-c"
     "printf '%s\\n' 'echo nanolisp-shell-ci-repl' exit | lab/nano-lisp-jit/.build/nano-jit-rs/nanolisp shell-repl")
+
+  ; Phase 7: libc fgets smoke + repl-fgets (piped stdin)
+  (compile "lab/nano-lisp-jit/lisp/shell/shell-fgets-smoke.lisp"
+           "lab/nano-lisp-jit/.build/v45-shell-ci-fgets-smoke.lbin")
+  (spawn-wait 0 "/bin/sh" "-c"
+    "printf 'piped-fgets-line\\n' | lab/nano-lisp-jit/.build/nano-jit-rs/nanolisp run lab/nano-lisp-jit/.build/v45-shell-ci-fgets-smoke.lbin")
+  (compile "lab/nano-lisp-jit/lisp/shell/shell-repl-fgets.lisp"
+           "lab/nano-lisp-jit/.build/v45-shell-ci-repl-fgets.lbin")
+  (spawn-wait 0 "/bin/sh" "-c"
+    "printf '%s\\n' 'echo nanolisp-shell-ci-repl-fgets' | lab/nano-lisp-jit/.build/nano-jit-rs/nanolisp run lab/nano-lisp-jit/.build/v45-shell-ci-repl-fgets.lbin")
 
   (pack-ape-bare "lab/nano-lisp-jit/.build/v45-shell-ci.ape"
                  "lab/nano-lisp-jit/.build/nano-jit-rs/nanolisp"
