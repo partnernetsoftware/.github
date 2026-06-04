@@ -9,6 +9,7 @@
 | CLI | `spawn-wait` / `read-file` | ✅ | ✅ (Phase 0) |
 | bootstrap | `(spawn-wait …)` / `(read-file …)` | ✅ | ✅ |
 | `.lbin` VM | `libc:system` / `strlen` / … | ✅ | ✅ |
+| `.lbin` addr | `libc:stdin` addr resolve | Rust ✅ | C (pin; no-arg pending) |
 
 ## Phase 0 (baseline)
 
@@ -48,7 +49,17 @@ $RS shell                  # dev: compile+run fresh shell-script.lisp
 
 **Smoke**: `bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-shell-noarg-smoke.sh`
 
-## Phase 5 — VM read-line (current)
+## Phase 6 — dual-track shell (current)
+
+**`bootstrap-v45-shell-dual.lisp`** — Rust + C COM both compile/run `shell-v0`; stdin addr smoke.
+
+```bash
+bash lab/nano-lisp-jit/retired/scripts/nano-jit-shell-dual-smoke.sh
+```
+
+**Honest GAP**: C `nano-lisp.com` no-arg still prints usage (exit 2); Rust `nanolisp.com` runs embedded shell.
+
+## Phase 5 — VM read-line
 
 **`nano:read-line`** — `i32(ptr,i32)` FFI shim; **`shell-repl.lisp`** REPL loop in VM.
 
@@ -80,6 +91,7 @@ Legacy per-phase smokes remain under `retired/scripts/nano-jit-rs-shell-*-smoke.
 | 2 | `shell-repl` — VM read-line REPL (`nano:read-line`) | ✅ |
 | 3 | `$COM` no-arg → built-in `shell.lbin` | ✅ |
 | 4 | wave/ci scripts → shell plans only | ✅ |
+| 6 | dual-track shell (C+Rust compile/run) + `addr` stdin | ✅ |
 
 ## Integration into `.com`
 

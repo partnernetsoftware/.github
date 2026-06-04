@@ -202,6 +202,7 @@ impl<'a> Parser<'a> {
 
     fn parse_sig(sig: &str) -> Option<u32> {
         match sig {
+            "addr" => Some(crate::lbin::SIG_ADDR),
             "u64(ptr)" => Some(crate::lbin::SIG_U64_PTR),
             "i32(ptr)" => Some(crate::lbin::SIG_I32_PTR),
             "i32(ptr,ptr)" => Some(crate::lbin::SIG_I32_PTR_PTR),
