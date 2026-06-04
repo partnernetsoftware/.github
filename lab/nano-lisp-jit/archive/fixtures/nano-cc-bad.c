@@ -1,1 +1,1 @@
-../archive/fixtures/nano-cc/nano-cc-bad.c
+nano-cc/nano-cc-bad.c

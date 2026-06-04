@@ -51,6 +51,7 @@ ELF slices ──pack-ape──▶  .com  ──run-ape──▶  native exec
 | compose-15link semantic-unified | ✅ | ✅ 154017B sem×15 · exit 42 | 90% |
 | compose-15link bulk-scale | ✅ | ✅ 154559B parity · exit 42 | 90% |
 | `run-bootstrap-plan` | ✅ | ✅ compose/APE/build-slice/compose15/genesis-pin | 99% |
+| `build_slice_use_nano_cc` / nano-cc samples | ✅ | ✅ hello/add/build-slice via nano-cc | 95% |
 | Rust release APE pack | ❌ | ✅ + `release/nanolisp.com` promote | 85% |
 | NLCap v0 `.nlcap` | ❌ | ✅ T0/T1/T2/T3 + arch-aware auto | 90% |
 | `run-expect-exit` | ✅ | ✅ | 100% |
@@ -96,6 +97,7 @@ bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-bootstrap-15chain-smoke.sh # 
 bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-bootstrap-release-promote-smoke.sh # pack-ape plan
 bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-bootstrap-proc-io-smoke.sh # read-file/spawn-wait
 bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-bootstrap-boundary-negative-smoke.sh # type reject
+bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-nano-cc-build-slice-smoke.sh # nano-cc build-slice path
 bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-bootstrap-build-slice-lisp-smoke.sh # factory regenesis
 bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-bootstrap-build-slice-genesis-smoke.sh # genesis-pin + plan-compile
 bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-bootstrap-compose15-build-slice-smoke.sh # compose-15link

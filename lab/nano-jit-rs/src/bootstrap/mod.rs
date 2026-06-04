@@ -103,6 +103,10 @@ pub(crate) enum Step {
         out: PathBuf,
         arch: String,
     },
+    NanoCcCompile {
+        src: PathBuf,
+        out: PathBuf,
+    },
 }
 
 struct Parser<'a> {
@@ -342,6 +346,11 @@ impl<'a> Parser<'a> {
                 let out = PathBuf::from(self.parse_atom()?);
                 let arch = self.parse_atom()?;
                 Step::BuildSliceCompile { src, out, arch }
+            }
+            "nano-cc-compile" => {
+                let src = PathBuf::from(self.parse_atom()?);
+                let out = PathBuf::from(self.parse_atom()?);
+                Step::NanoCcCompile { src, out }
             }
             _ => return None,
         };
@@ -651,6 +660,15 @@ pub fn run_bootstrap_plan(path: &Path) -> i32 {
             Step::BuildSliceCompile { src, out, arch } => {
                 println!("bootstrap-step.{i}=build-slice-compile");
                 crate::build_slice::cmd_build_slice_compile(src, out, arch)
+            }
+            Step::NanoCcCompile { src, out } => {
+                println!("bootstrap-step.{i}=nano-cc-compile");
+                if let Some(parent) = out.parent() {
+                    if !parent.as_os_str().is_empty() {
+                        let _ = fs::create_dir_all(parent);
+                    }
+                }
+                crate::nano_cc::cmd_nano_cc_compile(src, out)
             }
         };
         if rc != 0 {

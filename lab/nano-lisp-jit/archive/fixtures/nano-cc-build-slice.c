@@ -1,1 +1,1 @@
-../archive/fixtures/nano-cc/nano-cc-build-slice.c
+nano-cc/nano-cc-build-slice.c

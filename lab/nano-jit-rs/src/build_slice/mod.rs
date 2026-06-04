@@ -776,10 +776,46 @@ pub fn cmd_build_slice_lisp(src: &Path, out: &Path, arch: &str) -> i32 {
     }
 }
 
+fn build_slice_via_nano_cc(src: &Path, out: &Path, arch: &str) -> i32 {
+    let Some(arch_norm) = normalize_arch(arch) else {
+        eprintln!("build-slice=nano_cc_arch_unsupported arch={arch}");
+        return 2;
+    };
+    let had_aarch64 = crate::nano_cc::target_is_aarch64();
+    if arch_norm == "aarch64" {
+        env::set_var("NANO_CC_ARCH", "aarch64");
+    } else {
+        env::remove_var("NANO_CC_ARCH");
+    }
+    println!("build-slice.compiler=nano-cc");
+    println!("build-slice.arch={arch_norm}");
+    println!("build-slice.role=lisp-codegen");
+    println!("build-slice.source={}", src.display());
+    println!("build-slice.output={}", out.display());
+    if let Some(parent) = out.parent() {
+        if !parent.as_os_str().is_empty() {
+            let _ = fs::create_dir_all(parent);
+        }
+    }
+    let rc = crate::nano_cc::cmd_nano_cc_compile(src, out);
+    if !had_aarch64 {
+        env::remove_var("NANO_CC_ARCH");
+    } else {
+        env::set_var("NANO_CC_ARCH", "aarch64");
+    }
+    if rc != 0 {
+        return rc;
+    }
+    finish_file_size(out)
+}
+
 pub fn cmd_build_slice(src: &Path, out: &Path, arch: &str) -> i32 {
     if src.extension().and_then(|s| s.to_str()) == Some("lisp") {
         println!("build-slice.route=lisp-by-extension");
         return cmd_build_slice_lisp(src, out, arch);
+    }
+    if crate::nano_cc::build_slice_use_nano_cc(src) {
+        return build_slice_via_nano_cc(src, out, arch);
     }
     if is_lispjit_c(src) && env_flag("NANO_LISPJIT_FROM_LISP") {
         return build_slice_via_lispjit_from_lisp(src, out, arch);

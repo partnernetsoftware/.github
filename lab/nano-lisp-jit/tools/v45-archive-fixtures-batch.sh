@@ -23,7 +23,9 @@ for f in "$@"; do
     cp "$src" "$dst"
   fi
   rm -f "$src"
-  ln -sf "../archive/fixtures/nano-cc/$base" "$src"
+  FIXTURES="$ROOT/lab/nano-lisp-jit/archive/fixtures"
+  rm -f "$FIXTURES/$base"
+  ln -sf "nano-cc/$base" "$FIXTURES/$base"
   echo "v45-archive-fixtures=ok track=$track file=$base"
 done
 echo "v45-archive-fixtures=done track=$track"

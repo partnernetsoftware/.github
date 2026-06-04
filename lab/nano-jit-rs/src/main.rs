@@ -8,6 +8,7 @@ mod compile;
 mod elf64;
 mod ffi;
 mod lbin;
+mod nano_cc;
 mod run;
 mod value;
 mod vm;

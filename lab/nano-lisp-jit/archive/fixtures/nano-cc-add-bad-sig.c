@@ -1,1 +1,1 @@
-../archive/fixtures/nano-cc/nano-cc-add-bad-sig.c
+nano-cc/nano-cc-add-bad-sig.c
