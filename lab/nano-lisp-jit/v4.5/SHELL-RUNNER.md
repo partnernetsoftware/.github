@@ -159,11 +159,11 @@ bash lab/nano-lisp-jit/retired/scripts/nanolisp-c-release-shell-probe.sh
 | Step | Command / artifact | Proves |
 |------|-------------------|--------|
 | 1 | `nano-jit-c-shell-noarg-smoke.sh` (host `cc` runner) | `cmd_shell_noarg` + `archive/c/embed/shell-script.lbin` → `shell.mode=embedded-lbin` |
-| 2 | `nano-jit-c-shell-promote-smoke.sh` (cosmocc present) | Manifest parity + release GAP or embedded (probe); never rewrites `manifest.txt` alone |
+| 2 | `nano-jit-c-shell-promote-smoke.sh` | cosmocc absent: host `cc` factory (`embedded-lbin`); cosmocc present: manifest parity + release GAP/embedded (probe); never rewrites `manifest.txt` alone |
 | 3 | `NANO_C_SHELL_PROMOTE_BUILD=1` on promote smoke | `build_nano_jit.sh` factory → `.build/nano-jit/nano-jit.com` with `shell.mode=` |
 | 4 | `v45-manifest-pin.sh` (manual) | `release/nano-lisp.com` pin; probe → `nanolisp.c-release-shell=embedded`; product slice can move off 58% |
 
-Run `bash lab/nano-lisp-jit/retired/scripts/nano-jit-c-shell-promote-smoke.sh` — exits 0 with `skip cosmocc_missing` when the toolchain is absent (step 1 still valid via noarg smoke). Shipping waits on step 4.
+Run `bash lab/nano-lisp-jit/retired/scripts/nano-jit-c-shell-promote-smoke.sh` — without cosmocc it logs `skip cosmocc_missing` then still builds `.build/nano-lisp-jit-host-shell-noarg` and asserts no-arg `shell.mode=embedded-lbin` (same host path as step 1); with cosmocc it runs manifest parity and the release probe without touching the pin. Dual-gate also runs step 1 via noarg smoke. Shipping waits on step 4.
 
 ## Integration into `.com`
 
