@@ -1,13 +1,13 @@
 # Shell runner — reflection (Phases 0–6 merged)
 
-**Updated**: 2026-06-04 · branch `cursor/nanolisp-shell-reflection-fc19`  
+**Updated**: 2026-06-04 · Phases 0–7 Rust merged; C source no-arg wired  
 **SSOT ladder**: [`SHELL-RUNNER.md`](SHELL-RUNNER.md) · **product tracks**: [`PRODUCT-TRACKS.md`](PRODUCT-TRACKS.md) · **rollup %**: [`OVERALL-PROGRESS.md`](OVERALL-PROGRESS.md)
 
 ## Executive summary
 
-Phases **0–6** are merged and gated on the **Rust** track: Lisp-native shell dogfood (`.lbin` + bootstrap plans + embedded no-arg dispatch) is proven. The ladder is **not product-done**: C wave SSOT `nano-lisp.com` still prints `usage:` on no-arg, shell smokes are outside `nanolisp-dual-gate.sh`, and release promote has not rebaked C COM with an embedded shell slice.
+Phases **0–7 (Rust)** and **C source no-arg** are merged and gated. C **release** `nano-lisp.com` pin still usage-on-no-arg until cosmocc promote.
 
-**Honest overall**: **~82%** (see [percent rubric](#percent-rubric) below).
+**Honest overall**: **~88%** (see [percent rubric](#percent-rubric) below).
 
 ---
 
@@ -21,9 +21,11 @@ Phases **0–6** are merged and gated on the **Rust** track: Lisp-native shell d
 | **3** | `$COM` no-arg → `embed/shell-script.lbin` | Rust binary embeds compile output; `argc==1` runs embedded `.lbin` (`shell.mode=embedded-lbin`). Hash-match in shell-ci proves embed freshness. Smoke: `nano-jit-rs-shell-noarg-smoke.sh`. |
 | **4** | `bootstrap-v45-shell-ci.lisp` + `shell-ci` | Unified ladder (0→3 + read-line + REPL + pack-ape) as **one bootstrap plan** — onion TDD replacement for per-phase `.sh` smokes. Smoke: `nano-jit-rs-shell-ci-smoke.sh`. |
 | **5** | *(alias)* | Same as Phase 2 in section headers of [`SHELL-RUNNER.md`](SHELL-RUNNER.md); numbering debt only. |
-| **6** | `bootstrap-v45-shell-dual.lisp` + dual smoke | C and Rust both compile/run `shell-v0`; `libc:stdin` **addr** resolve green on Rust; C stdin addr pinned but **no-arg dispatch absent** on C COM. Smoke: `nano-jit-shell-dual-smoke.sh`. |
+| **6** | `bootstrap-v45-shell-dual.lisp` + dual smoke | C and Rust both compile/run `shell-v0`; stdin addr + fgets on Rust. |
+| **7** | `libc:fgets` via stdin addr | Rust VM `ptr(ptr,i32,ptr)`; C opcode parity pending. |
+| **7b** | C `nano_main.c` no-arg | Source `cmd_shell_noarg`; release COM pin unchanged until promote. |
 
-**Phase 7 (not merged here; may be in flight elsewhere)**: C `nano-lisp.com` no-arg embed parity + release rebake / factory slice — closes the largest dual-track GAP.
+**Still open**: C release rebake, `nanolisp-dual-gate.sh` shell wiring, factory embed slice.
 
 ---
 

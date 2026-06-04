@@ -57,6 +57,8 @@ else
   echo "nanolisp.c-gate=ok manifest_pin_preserved_rust=0"
 fi
 
+bash "$RETIRED/nano-jit-c-shell-noarg-smoke.sh"
+
 if [ "${NANO_C_GATE_FACTORY:-0}" = 1 ]; then
   bash "$ROOT/lab/nano-lisp-jit/build_nano_jit.sh"
   echo "nanolisp.c-gate=ok factory_build"
