@@ -85,7 +85,7 @@ $RS compile lab/nano-lisp-jit/lisp/shell/shell-repl-fgets.lisp /tmp/rf.lbin
 printf '%s\n' 'echo nanolisp-shell-repl-fgets' | $RS run /tmp/rf.lbin
 ```
 
-**Smoke**: `bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-shell-repl-fgets-smoke.sh` (rs-gate + dual bootstrap; **not** in shell-ci plan yet).
+**Smoke**: `bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-shell-repl-fgets-smoke.sh` (rs-gate + dual bootstrap + shell-ci plan).
 
 ## Phase 4 — shell CI plan
 
@@ -93,11 +93,33 @@ printf '%s\n' 'echo nanolisp-shell-repl-fgets' | $RS run /tmp/rf.lbin
 
 **Smoke**: `bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-shell-ci-smoke.sh`
 
+**Phase 7b (C track in plan)**: embed `cmp` vs rs, `$COM` spawn-wait, no-arg `exit 2` (or `shell.mode=` when probe reports promote), COM compile/run `shell-script.lisp`. Smoke sources `nanolisp-c-release-shell-probe.sh` for conditional C no-arg assert (~28 steps).
+
 ## Phase 6 — dual-track shell
 
 **`bootstrap-v45-shell-dual.lisp`** — Rust + C compile/run shell-v0; stdin + fgets; C release no-arg GAP step.
 
 **Smoke**: `bash lab/nano-lisp-jit/retired/scripts/nano-jit-shell-dual-smoke.sh`
+
+## Phase 8 — shell-full bootstrap
+
+**`bootstrap-v45-shell-full.lisp`** — shell-ci essentials + dual C/Rust proc I/O + stdin/fgets + C no-arg pin in one plan (~29 steps).
+
+```bash
+RS=lab/nano-lisp-jit/.build/nano-jit-rs/nanolisp
+$RS run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-shell-full.lisp
+```
+
+**Smoke**: `bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-shell-full-smoke.sh` (rs-gate; greps `nanolisp-shell-full-*`, `shell.mode=embedded-lbin`, C `spawn-wait` exit 2).
+
+## C release shell auto-probe (P2)
+
+**`retired/scripts/nanolisp-c-release-shell-probe.sh`** — run pinned `$COM` with no args; sets `NANO_C_RELEASE_HAS_SHELL` to `1` (`shell.mode=`) or `0` (`usage:` exit 2). Sourced by shell-ci, dual, and promote smokes; override with `export NANO_C_RELEASE_HAS_SHELL=0|1` before source.
+
+```bash
+bash lab/nano-lisp-jit/retired/scripts/nanolisp-c-release-shell-probe.sh
+# nanolisp.c-release-shell=gap|embedded
+```
 
 ## Dual gate (shell audit markers)
 
@@ -106,7 +128,7 @@ printf '%s\n' 'echo nanolisp-shell-repl-fgets' | $RS run /tmp/rf.lbin
 | Track | Gate script | Shell smokes |
 |-------|-------------|--------------|
 | C | `nano-jit-c-gate.sh` | `nano-jit-c-shell-noarg-smoke.sh` |
-| Rust | `nano-jit-rs-gate.sh` | `nano-jit-rs-shell-ci-smoke.sh`, `nano-jit-rs-shell-repl-vm-smoke.sh`, `nano-jit-shell-dual-smoke.sh`, `nano-jit-rs-shell-fgets-smoke.sh`, `nano-jit-rs-shell-repl-fgets-smoke.sh` |
+| Rust | `nano-jit-rs-gate.sh` | `nano-jit-rs-shell-ci-smoke.sh`, `nano-jit-rs-shell-full-smoke.sh`, `nano-jit-rs-shell-repl-vm-smoke.sh`, `nano-jit-shell-dual-smoke.sh`, `nano-jit-rs-shell-fgets-smoke.sh`, `nano-jit-rs-shell-repl-fgets-smoke.sh` |
 
 ## Roadmap
 
@@ -117,17 +139,14 @@ printf '%s\n' 'echo nanolisp-shell-repl-fgets' | $RS run /tmp/rf.lbin
 | 4 | shell-ci bootstrap plan | ✅ |
 | 6 | dual-track compile/run | ✅ |
 | 7 | libc fgets via stdin addr | ✅ Rust |
-| 7 alt | fgets REPL (`shell-repl-fgets`) | ✅ rs-gate · dual plan · ⬜ shell-ci |
-| 8 | C release rebake + `archive/c/embed/` | ⬜ rebake · ✅ dual-gate shell markers (P1) |
-| 9 | shell-ci fgets + repl-fgets steps | ⬜ next slice (~90% rubric) |
+| 7 alt | fgets REPL (`shell-repl-fgets`) | ✅ rs-gate · shell-ci · dual plan |
+| 7b | C embed + shell-ci C track | ✅ plan + probe-conditional assert |
+| 8 | shell-full bootstrap (`bootstrap-v45-shell-full.lisp`) | ✅ rs-gate (~29 steps) |
+| 9 | C release rebake + factory embed in pin | ⬜ cosmocc promote (product slice 58%) |
 
 ## C release shell promote (prep)
 
-Source no-arg shell is gated (`nano-jit-c-shell-noarg-smoke.sh`); rebaking `release/nano-lisp.com` needs cosmocc. Run `bash lab/nano-lisp-jit/retired/scripts/nano-jit-c-shell-promote-smoke.sh` — it exits 0 with `skip cosmocc_missing` when the toolchain is absent, otherwise checks manifest parity and the release GAP without rewriting `manifest.txt`. Full regenesis is opt-in (`NANO_C_SHELL_PROMOTE_BUILD=1` → `build_nano_jit.sh`); after a green factory build, promote with `v45-manifest-pin.sh` and flip dual smoke via `NANO_C_RELEASE_HAS_SHELL=1`.
-
-## C release shell promote (prep)
-
-Source no-arg shell is gated (`nano-jit-c-shell-noarg-smoke.sh`); rebaking `release/nano-lisp.com` needs cosmocc. Run `bash lab/nano-lisp-jit/retired/scripts/nano-jit-c-shell-promote-smoke.sh` — it exits 0 with `skip cosmocc_missing` when the toolchain is absent, otherwise checks manifest parity and the release GAP without rewriting `manifest.txt`. Full regenesis is opt-in (`NANO_C_SHELL_PROMOTE_BUILD=1` → `build_nano_jit.sh`); after a green factory build, promote with `v45-manifest-pin.sh` and flip dual smoke via `NANO_C_RELEASE_HAS_SHELL=1`.
+Source no-arg shell is gated (`nano-jit-c-shell-noarg-smoke.sh`); rebaking `release/nano-lisp.com` needs cosmocc. Run `bash lab/nano-lisp-jit/retired/scripts/nano-jit-c-shell-promote-smoke.sh` — sources auto-probe when `NANO_C_RELEASE_HAS_SHELL` unset; exits 0 with `skip cosmocc_missing` when the toolchain is absent, otherwise checks manifest parity and the release GAP without rewriting `manifest.txt`. Full regenesis is opt-in (`NANO_C_SHELL_PROMOTE_BUILD=1` → `build_nano_jit.sh`); after a green factory build, promote with `v45-manifest-pin.sh` (probe should then report `nanolisp.c-release-shell=embedded`).
 
 ## Integration into `.com`
 
