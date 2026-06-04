@@ -390,6 +390,140 @@ fn profile_is_compose15(profile: &str) -> bool {
     )
 }
 
+fn profile_named(name: &str) -> bool {
+    compose15_profile().is_some_and(|p| p == name)
+}
+
+fn compose15_expand_env() -> bool {
+    env::var("NANO_COMPOSE15_EXPAND").ok().is_some_and(|v| {
+        let b = v.as_bytes();
+        !b.is_empty() && (b[0] == b'1' || b[0] == b'y' || b[0] == b'Y')
+    })
+}
+
+fn compose15_use_expand_modules() -> bool {
+    compose15_expand_env()
+        || profile_named("compose-15link-expand")
+        || profile_named("compose-15link-bulk-scale")
+}
+
+fn compose15_use_semantic_unified() -> bool {
+    profile_named("compose-15link-semantic-unified")
+}
+
+fn compose15_use_semantic_full_15slot() -> bool {
+    profile_named("compose-15link-semantic-full")
+}
+
+fn compose15_use_semantic_expand_modules() -> bool {
+    profile_named("compose-15link-semantic")
+        || profile_named("compose-15link-semantic-32k")
+        || profile_named("compose-15link-semantic-64k")
+        || profile_named("compose-15link-semantic-154k")
+        || compose15_use_semantic_unified()
+        || compose15_use_semantic_full_15slot()
+}
+
+fn compose15_semantic_full_path_for_tag(tag: &str) -> Option<&'static str> {
+    Some(match tag {
+        "main" => "lab/nano-lisp-jit/lisp/modules-semantic/sem-main.lisp",
+        "callee" => "lab/nano-lisp-jit/lisp/modules-semantic/sem-callee.lisp",
+        "extra" => "lab/nano-lisp-jit/lisp/modules-semantic/sem-extra.lisp",
+        "core" => "lab/nano-lisp-jit/lisp/modules-semantic/sem-core.lisp",
+        "mf" => "lab/nano-lisp-jit/lisp/modules-semantic/sem-mf.lisp",
+        "boot" => "lab/nano-lisp-jit/lisp/modules-semantic/sem-boot.lisp",
+        "vm" => "lab/nano-lisp-jit/lisp/modules-semantic/sem-vm.lisp",
+        "aot" => "lab/nano-lisp-jit/lisp/modules-semantic/sem-aot.lisp",
+        "elf" => "lab/nano-lisp-jit/lisp/modules-semantic/sem-elf.lisp",
+        "abi" => "lab/nano-lisp-jit/lisp/modules-semantic/sem-abi.lisp",
+        "manifest" => "lab/nano-lisp-jit/lisp/modules-semantic/sem-manifest.lisp",
+        "run" => "lab/nano-lisp-jit/lisp/modules-semantic/sem-run.lisp",
+        "pack" => "lab/nano-lisp-jit/lisp/modules-semantic/sem-pack.lisp",
+        "ape" => "lab/nano-lisp-jit/lisp/modules-semantic/sem-ape.lisp",
+        "parse" => "lab/nano-lisp-jit/lisp/modules-semantic/sem-parse.lisp",
+        _ => return None,
+    })
+}
+
+fn compose15_semantic_main_expand_path() -> &'static str {
+    if profile_named("compose-15link-semantic-154k") || compose15_use_semantic_unified() {
+        "lab/nano-lisp-jit/lisp/modules-semantic/tu-main-154k.lisp"
+    } else if profile_named("compose-15link-semantic-64k") {
+        "lab/nano-lisp-jit/lisp/modules-semantic/tu-main-64k.lisp"
+    } else if profile_named("compose-15link-semantic-32k") {
+        "lab/nano-lisp-jit/lisp/modules-semantic/tu-main-32k.lisp"
+    } else {
+        "lab/nano-lisp-jit/lisp/modules-semantic/tu-main-8k.lisp"
+    }
+}
+
+fn compose15_semantic_expand_path_for_tag(tag: &str) -> Option<&'static str> {
+    if compose15_use_semantic_unified() {
+        if tag == "main" {
+            return Some(compose15_semantic_main_expand_path());
+        }
+        return compose15_semantic_full_path_for_tag(tag);
+    }
+    if compose15_use_semantic_full_15slot() {
+        return compose15_semantic_full_path_for_tag(tag);
+    }
+    match tag {
+        "main" => Some(compose15_semantic_main_expand_path()),
+        "mf" => Some("lab/nano-lisp-jit/lisp/modules-semantic/mf-semantic-40.lisp"),
+        "core" => Some("lab/nano-lisp-jit/lisp/modules-semantic/core-semantic-40.lisp"),
+        _ => None,
+    }
+}
+
+fn compose15_expand_path_for_tag(tag: &str) -> Option<&'static str> {
+    Some(match tag {
+        "main" => "lab/nano-lisp-jit/lisp/modules-expand/26-bulk-main-expand.lisp",
+        "callee" => "lab/nano-lisp-jit/lisp/modules-expand/27-bulk-callee-expand.lisp",
+        "mf" => "lab/nano-lisp-jit/lisp/modules-expand/13-bulk-text-expand.lisp",
+        "extra" => "lab/nano-lisp-jit/lisp/modules-expand/15-bulk-extra-expand.lisp",
+        "core" => "lab/nano-lisp-jit/lisp/modules-expand/14-bulk-core-expand.lisp",
+        "boot" => "lab/nano-lisp-jit/lisp/modules-expand/17-bulk-boot-expand.lisp",
+        "vm" => "lab/nano-lisp-jit/lisp/modules-expand/16-bulk-vm-expand.lisp",
+        "aot" => "lab/nano-lisp-jit/lisp/modules-expand/18-bulk-aot-expand.lisp",
+        "elf" => "lab/nano-lisp-jit/lisp/modules-expand/19-bulk-elf-expand.lisp",
+        "abi" => "lab/nano-lisp-jit/lisp/modules-expand/20-bulk-abi-expand.lisp",
+        "manifest" => "lab/nano-lisp-jit/lisp/modules-expand/21-bulk-manifest-expand.lisp",
+        "run" => "lab/nano-lisp-jit/lisp/modules-expand/22-bulk-run-expand.lisp",
+        "pack" => "lab/nano-lisp-jit/lisp/modules-expand/23-bulk-pack-expand.lisp",
+        "ape" => "lab/nano-lisp-jit/lisp/modules-expand/24-bulk-ape-expand.lisp",
+        "parse" => "lab/nano-lisp-jit/lisp/modules-expand/25-bulk-parse-expand.lisp",
+        _ => return None,
+    })
+}
+
+fn compose15_module_path(m: &ComposeMod) -> PathBuf {
+    if compose15_use_semantic_expand_modules() {
+        if let Some(p) = compose15_semantic_expand_path_for_tag(m.tag) {
+            return PathBuf::from(p);
+        }
+    } else if compose15_use_expand_modules() {
+        if let Some(p) = compose15_expand_path_for_tag(m.tag) {
+            return PathBuf::from(p);
+        }
+    }
+    PathBuf::from(m.path)
+}
+
+fn print_compose15_profile_flags() {
+    if compose15_use_expand_modules() {
+        println!("build-slice-lisp.compose15_expand=1");
+    }
+    if compose15_use_semantic_expand_modules() {
+        println!("build-slice-lisp.compose15_semantic_expand=1");
+    }
+    if compose15_use_semantic_full_15slot() {
+        println!("build-slice-lisp.compose15_semantic_full_15slot=1");
+    }
+    if compose15_use_semantic_unified() {
+        println!("build-slice-lisp.compose15_semantic_unified=1");
+    }
+}
+
 fn is_lispjit_c(src: &Path) -> bool {
     basename(src) == "lispjit.c"
 }
@@ -403,13 +537,15 @@ fn build_compose_15link(out: &Path, arch: &str) -> i32 {
         return ensure_parent(out);
     }
 
+    print_compose15_profile_flags();
+
     let prefix = out.to_string_lossy();
     let mut objs: Vec<PathBuf> = Vec::with_capacity(COMPOSE15_MODS.len());
     let mut object_bytes_total = 0usize;
 
     for m in COMPOSE15_MODS {
         let obj = PathBuf::from(format!("{prefix}.lispjit-compose15-{}.o", m.tag));
-        let src = PathBuf::from(m.path);
+        let src = compose15_module_path(m);
         let rc = crate::aot::cmd_compile_elf64_obj_code(&src, &obj, m.sym);
         if rc != 0 {
             return rc;
@@ -544,5 +680,29 @@ mod tests {
     fn parse_expect_from_min_slice() {
         let src = r#"(module (main (u64 40) (add-u64 2) (expect 42)))"#;
         assert_eq!(parse_expect_imm(src), Some(42));
+    }
+
+    #[test]
+    fn compose15_semantic_unified_main_path() {
+        env::set_var(
+            "NANO_LISPJIT_FROM_LISP_PROFILE",
+            "compose-15link-semantic-unified",
+        );
+        assert_eq!(
+            compose15_semantic_main_expand_path(),
+            "lab/nano-lisp-jit/lisp/modules-semantic/tu-main-154k.lisp"
+        );
+        env::remove_var("NANO_LISPJIT_FROM_LISP_PROFILE");
+    }
+
+    #[test]
+    fn compose15_bulk_scale_uses_expand_main() {
+        env::set_var("NANO_LISPJIT_FROM_LISP_PROFILE", "compose-15link-bulk-scale");
+        let main = COMPOSE15_MODS.iter().find(|m| m.tag == "main").unwrap();
+        assert_eq!(
+            compose15_module_path(main).to_str().unwrap(),
+            "lab/nano-lisp-jit/lisp/modules-expand/26-bulk-main-expand.lisp"
+        );
+        env::remove_var("NANO_LISPJIT_FROM_LISP_PROFILE");
     }
 }
