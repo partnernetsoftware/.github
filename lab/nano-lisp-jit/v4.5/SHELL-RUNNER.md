@@ -145,7 +145,7 @@ bash lab/nano-lisp-jit/retired/scripts/nanolisp-c-release-shell-probe.sh
 
 | Track | Gate script | Shell smokes |
 |-------|-------------|--------------|
-| C | `nano-jit-c-gate.sh` | `nano-jit-c-shell-noarg-smoke.sh` |
+| C | `nano-jit-c-gate.sh` | `nano-jit-c-shell-noarg-smoke.sh`, `nano-jit-c-shell-fgets-smoke.sh`; dual-gate adds `nano-jit-c-shell-promote-smoke.sh` (prep). Optional: `nano-jit-c-shell-release-promote.sh` when `NANO_C_SHELL_RELEASE_PROMOTE=1` |
 | Rust | `nano-jit-rs-gate.sh` | `nano-jit-rs-shell-ci-smoke.sh`, `nano-jit-rs-shell-full-smoke.sh`, `nano-jit-rs-shell-promote-smoke.sh`, `nano-jit-rs-shell-repl-vm-smoke.sh`, `nano-jit-shell-dual-smoke.sh`, `nano-jit-rs-shell-fgets-smoke.sh`, `nano-jit-rs-shell-repl-fgets-smoke.sh` |
 
 ## Roadmap
@@ -174,7 +174,21 @@ bash lab/nano-lisp-jit/retired/scripts/nanolisp-c-release-shell-probe.sh
 | 3 | `NANO_C_SHELL_PROMOTE_BUILD=1` on promote smoke | `build_nano_jit.sh` factory → `.build/nano-jit/nano-jit.com` with `shell.mode=` |
 | 4 | `v45-manifest-pin.sh` (manual) | `release/nano-lisp.com` pin; probe → `nanolisp.c-release-shell=embedded`; product slice can move off 58% |
 
-Run `bash lab/nano-lisp-jit/retired/scripts/nano-jit-c-shell-promote-smoke.sh` — without cosmocc it logs `skip cosmocc_missing` then still builds `.build/nano-lisp-jit-host-shell-noarg` and asserts no-arg `shell.mode=embedded-lbin` (same host path as step 1); with cosmocc it runs manifest parity and the release probe without touching the pin. Dual-gate also runs step 1 via noarg smoke. Shipping waits on step 4.
+Run `bash lab/nano-lisp-jit/retired/scripts/nano-jit-c-shell-promote-smoke.sh` — without cosmocc it logs `skip cosmocc_missing` then still builds `.build/nano-lisp-jit-host-shell-noarg` and asserts no-arg `shell.mode=embedded-lbin` (same host path as step 1); with cosmocc it runs manifest parity and the release probe without touching the pin. Dual-gate runs promote prep (steps 1–2) by default; shipping waits on step 4.
+
+### C release shell promote (heavy — optional)
+
+**Not in default dual-gate** (cosmocc factory → `release/nano-lisp.com` + `v45-manifest-pin.sh`).
+
+| Step | Command | When |
+|------|---------|------|
+| 5 | `bash lab/nano-lisp-jit/retired/scripts/nano-jit-c-shell-release-promote.sh` | Manual or `NANO_C_SHELL_RELEASE_PROMOTE=1` on dual-gate after promote_prep |
+| 6 | Re-run `nanolisp-dual-gate.sh` | Confirm c-gate + rs-track green on new pin |
+
+```bash
+bash lab/nano-lisp-jit/retired/scripts/nano-jit-c-shell-release-promote.sh
+NANO_C_SHELL_RELEASE_PROMOTE=1 bash lab/nano-lisp-jit/retired/scripts/nanolisp-dual-gate.sh
+```
 
 ## Integration into `.com`
 

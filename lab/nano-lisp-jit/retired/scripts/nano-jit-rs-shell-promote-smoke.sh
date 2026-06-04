@@ -20,16 +20,16 @@ echo "$log" | grep -q 'hash-match.ok=1' || {
   echo "$log"
   exit 1
 }
-echo "$log" | grep -q 'nanolisp-shell-promote-embed' || {
-  echo "nano-jit-rs-shell-promote-smoke=fail embed_marker"
-  echo "$log"
-  exit 1
-}
-echo "$log" | grep -q 'nanolisp-shell-promote-ci-subset' || {
-  echo "nano-jit-rs-shell-promote-smoke=fail ci_subset"
-  echo "$log"
-  exit 1
-}
+for marker in \
+  nanolisp-shell-promote-embed \
+  nanolisp-shell-promote-ci-subset \
+  nanolisp-shell-promote-com-script; do
+  echo "$log" | grep -q "$marker" || {
+    echo "nano-jit-rs-shell-promote-smoke=fail marker=$marker"
+    echo "$log"
+    exit 1
+  }
+done
 echo "$log" | grep -q 'shell.mode=embedded-lbin' || {
   echo "nano-jit-rs-shell-promote-smoke=fail noarg"
   echo "$log"
@@ -50,11 +50,5 @@ echo "$log" | grep -q 'usage:' || {
   echo "$log"
   exit 1
 }
-echo "$log" | grep -q 'nanolisp-shell-promote-com-script' || {
-  echo "nano-jit-rs-shell-promote-smoke=fail com_script"
-  echo "$log"
-  exit 1
-}
-
 steps=$(echo "$log" | sed -n 's/^bootstrap-plan.steps=//p' | head -1)
 echo "nano-jit-rs-shell-promote-smoke=ok steps=${steps:-12}"

@@ -7,11 +7,16 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../../../.." && pwd)"
 cd "$ROOT"
 echo "nanolisp.dual-gate=begin"
-echo "nanolisp.dual-gate.shell=c-track begin smokes=nano-jit-c-shell-noarg-smoke.sh"
+echo "nanolisp.dual-gate.shell=c-track begin smokes=nano-jit-c-shell-noarg-smoke.sh,nano-jit-c-shell-fgets-smoke.sh"
 bash "$ROOT/lab/nano-lisp-jit/retired/scripts/nano-jit-c-gate.sh"
 echo "nanolisp.dual-gate.shell=c-track ok"
 bash "$ROOT/lab/nano-lisp-jit/retired/scripts/nano-jit-c-shell-promote-smoke.sh"
 echo "nanolisp.dual-gate.shell=c-track promote_prep ok"
+if [ "${NANO_C_SHELL_RELEASE_PROMOTE:-0}" = 1 ]; then
+  echo "nanolisp.dual-gate.shell=c-track release_promote begin smoke=nano-jit-c-shell-release-promote.sh"
+  bash "$ROOT/lab/nano-lisp-jit/retired/scripts/nano-jit-c-shell-release-promote.sh"
+  echo "nanolisp.dual-gate.shell=c-track release_promote ok"
+fi
 echo "nanolisp.dual-gate.shell=rs-track begin smokes=shell-ci,shell-full,shell-promote,shell-repl-vm,shell-dual,shell-fgets,shell-repl-fgets"
 bash "$ROOT/lab/nano-lisp-jit/retired/scripts/nano-jit-rs-gate.sh"
 echo "nanolisp.dual-gate.shell=rs-track ok"
