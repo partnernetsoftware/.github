@@ -1,6 +1,6 @@
 # Overall progress — nanolisp commercial SOTA
 
-**Updated**: 2026-06-04 · Wave 4 merged (C fgets opcode, shell-full CLI, host-cc promote). SSOT: [`SHELL-REFLECTION.md`](SHELL-REFLECTION.md).
+**Updated**: 2026-06-04 · Wave 5 reflection (gate readonly promote, cosmocc bootstrap, Phase 9 shell-promote plan). SSOT: [`SHELL-REFLECTION.md`](SHELL-REFLECTION.md).
 
 ## Executive summary
 
@@ -10,7 +10,7 @@
 | **Rust `nanolisp.com`** | **99%** feature parity | `nanolisp.gate=ok` | 2 959 413 B · full CLI APE |
 | **Rust slim pathfinder** | **40%** | slim smoke | `nanolisp-slim.com` ~161 KiB (genesis-pin pack) |
 | **Migration (Rust replaces C)** | **~86%** | dual gate | C maintained until slim + parity + shell embed |
-| **Shell runner ladder** | **~93%** | nested dual-gate + shell-ci + shell-full CLI | Phase 0–8; C fgets host-cc; release pin pending |
+| **Shell runner ladder** | **~93%** | nested dual-gate + shell-ci + shell-full CLI | Phase 0–8 merged; Wave 5 = promote plan + cosmocc bootstrap; **58%** product until manual pin |
 
 **Dual gate (both tracks)**:
 
@@ -46,8 +46,8 @@ bash lab/nano-lisp-jit/retired/scripts/nanolisp-dual-gate.sh
 2. **158KB pure Lisp codegen** — both tracks still depend on host `cc` or pin for full runner
 3. **aarch64 compose-15link** — Rust `build_compose_15link` x86-only
 4. **Wave scripts default COM** — still `nano-lisp.com`; Rust not wave SSOT yet
-5. **Shell ladder product closure** — host-cc + optional factory build prove source; cosmocc + `v45-manifest-pin.sh` rebake release pin (`nano-jit-c-shell-promote-smoke.sh`); auto-probe flips smokes when pin ships shell UX (P2 ~done)
-6. **Shell product closure** — cosmocc rebake `release/nano-lisp.com` (host-cc + promote prep done; probe auto-flips smokes)
+5. **Shell ladder product closure (P0 Wave 5)** — `nanolisp-cosmocc-bootstrap.sh` → `NANO_C_SHELL_PROMOTE_BUILD=1` factory → **manual** `v45-manifest-pin.sh` after factory (gate readonly promote; never auto-pin from smoke)
+6. **Shell product closure** — release pin rebake moves product slice off **58%**; auto-probe flips smokes when pin ships shell UX (P2 ~done)
 
 ## Milestone checklist
 
@@ -67,11 +67,13 @@ bash lab/nano-lisp-jit/retired/scripts/nanolisp-dual-gate.sh
 - [x] shell Phase 7 — VM `libc:fgets` via stdin addr — Rust + C host-cc (`nano-jit-c-shell-fgets-smoke.sh`)
 - [x] shell Phase 7 alt — `shell-repl-fgets.lisp` + smoke (shell-ci + dual bootstrap)
 - [x] shell Phase 7b source — C `cmd_shell_noarg` + `archive/c/embed/shell-script.lbin` (host-cc embedded-lbin)
-- [ ] shell Phase 7b release — C `nano-lisp.com` factory embed + manifest rebake (host-cc + `NANO_C_SHELL_PROMOTE_BUILD=1` prove source; pin blocks product)
+- [ ] shell Phase 7b release — C `nano-lisp.com` factory embed + manifest rebake (P0: cosmocc bootstrap → factory → manual `v45-manifest-pin.sh`)
 - [x] shell-ci extension — fgets + repl-fgets + Phase 7b C track (~28 steps)
 - [x] C release shell auto-probe — `nanolisp-c-release-shell-probe.sh` (P2 ~done)
 - [x] shell Phase 8 — `bootstrap-v45-shell-full.lisp` + `nano-jit-rs-shell-full-smoke.sh` (~29 steps, rs-gate)
-- [ ] shell Phase 8 C CLI — shell-full entry on C COM / `run-bootstrap-plan` (Wave 4)
+- [x] shell Phase 8 C CLI — shell-full entry on C COM / `run-bootstrap-plan` (Wave 4)
+- [ ] shell Phase 9 — `bootstrap-v45-shell-promote.lisp` + gate readonly promote wiring (Wave 5 plan)
+- [ ] shell P0 Wave 5 — `nanolisp-cosmocc-bootstrap.sh` + manual `v45-manifest-pin.sh` after factory (product **58%** until done)
 - [x] shell smokes in `nanolisp-dual-gate.sh` (c: shell-noarg · rs: shell-ci/shell-full/repl-vm/shell-dual/fgets/repl-fgets)
 - [ ] Rust APE size ≈ C COM with runnable full CLI
 - [ ] C/Rust zero host-cc 158KB codegen
