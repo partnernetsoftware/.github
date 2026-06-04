@@ -1,6 +1,6 @@
 # Overall progress — nanolisp commercial SOTA
 
-**Updated**: gate snapshot on `main`. SSOT tracks: [`PRODUCT-TRACKS.md`](PRODUCT-TRACKS.md) · parity matrix: [`RUST-MIGRATION.md`](RUST-MIGRATION.md).
+**Updated**: 2026-06-04 · gate snapshot on `main`. SSOT tracks: [`PRODUCT-TRACKS.md`](PRODUCT-TRACKS.md) · parity matrix: [`RUST-MIGRATION.md`](RUST-MIGRATION.md) · shell retrospective: [`SHELL-REFLECTION.md`](SHELL-REFLECTION.md).
 
 ## Executive summary
 
@@ -9,8 +9,8 @@
 | **C `nano-lisp.com`** | **95%** shipping-ready | `nanolisp.c-gate=ok` | 334 537 B · wave SSOT |
 | **Rust `nanolisp.com`** | **99%** feature parity | `nanolisp.gate=ok` | 2 959 413 B · full CLI APE |
 | **Rust slim pathfinder** | **40%** | slim smoke | `nanolisp-slim.com` ~161 KiB (genesis-pin pack) |
-| **Migration (Rust replaces C)** | **~86%** | dual gate | C maintained until slim + parity complete |
-| **Shell runner ladder** | **~85%** | shell-dual smoke | Phase 0–6; C no-arg pending |
+| **Migration (Rust replaces C)** | **~86%** | dual gate | C maintained until slim + parity + shell embed |
+| **Shell runner ladder** | **~82%** | shell-dual smoke | Phase 0–6 merged (Rust); C no-arg + dual-gate wiring pending |
 
 **Dual gate (both tracks)**:
 
@@ -46,6 +46,7 @@ bash lab/nano-lisp-jit/retired/scripts/nanolisp-dual-gate.sh
 2. **158KB pure Lisp codegen** — both tracks still depend on host `cc` or pin for full runner
 3. **aarch64 compose-15link** — Rust `build_compose_15link` x86-only
 4. **Wave scripts default COM** — still `nano-lisp.com`; Rust not wave SSOT yet
+5. **Shell ladder product closure** — C no-arg embed (Phase 7); `nano-jit-shell-dual-smoke.sh` not in `nanolisp-dual-gate.sh` (see [`SHELL-REFLECTION.md`](SHELL-REFLECTION.md))
 
 ## Milestone checklist
 
@@ -62,6 +63,8 @@ bash lab/nano-lisp-jit/retired/scripts/nanolisp-dual-gate.sh
 - [x] shell Phase 4 — `bootstrap-v45-shell-ci.lisp` + `nanolisp shell-ci`
 - [x] shell Phase 5 — VM `nano:read-line` + `shell-repl.lisp`
 - [x] shell Phase 6 — dual-track bootstrap + `libc:stdin` addr FFI
+- [ ] shell Phase 7 — C `nano-lisp.com` no-arg embed + release rebake
+- [ ] shell-dual smoke in `nanolisp-dual-gate.sh`
 - [ ] Rust APE size ≈ C COM with runnable full CLI
 - [ ] C/Rust zero host-cc 158KB codegen
 - [ ] v45-wave default → `nanolisp.com`

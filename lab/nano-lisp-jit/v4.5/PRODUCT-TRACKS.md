@@ -71,11 +71,12 @@ lab/nano-lisp-jit/release/nano-lisp.com inspect-ape lab/nano-lisp-jit/release/na
 lab/nano-lisp-jit/release/nanolisp.com version
 ```
 
-| **Shell runner** | bootstrap spawn-wait | **Phase 0** `.lbin` system + CLI parity | pending REPL / embed COM |
+| **Shell runner** | compile/run `shell-v0` via C COM | Ph **0–6** merged on Rust (REPL, embed, shell-ci, dual) | C **no-arg** embed pending (Ph **7**) — see [`SHELL-REFLECTION.md`](SHELL-REFLECTION.md) |
 
 ## Related docs
 
 - [`SHELL-RUNNER.md`](SHELL-RUNNER.md) — shell.lisp practice ladder · embed `.com` plan
+- [`SHELL-REFLECTION.md`](SHELL-REFLECTION.md) — Ph 0–6 retrospective · dual-track GAP · ~82% rubric
 - [`../release/README.md`](../release/README.md) — artifact table + manifest link
 - [`OVERALL-PROGRESS.md`](OVERALL-PROGRESS.md) — quantified % assessment · dual gate
 - [`RUST-MIGRATION.md`](RUST-MIGRATION.md) — component parity matrix & smoke index
