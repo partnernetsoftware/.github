@@ -62,18 +62,38 @@ echo "$log" | grep -q 'nanolisp-shell-full-repl-fgets' || {
   echo "$log"
   exit 1
 }
-echo "$log" | grep -q 'spawn-wait.expected=2' || {
-  echo "nano-jit-rs-shell-full-smoke=fail c_noarg_expected"
-  echo "$log"
-  exit 1
-}
-echo "$log" | grep -q 'usage:' || {
-  echo "nano-jit-rs-shell-full-smoke=fail c_noarg_usage"
+echo "$log" | grep -q 'spawn-wait.expected=0' || {
+  echo "nano-jit-rs-shell-full-smoke=fail c_noarg_spawn"
   echo "$log"
   exit 1
 }
 
 if [ -x "$COM" ]; then
+  if [ -z "${NANO_C_RELEASE_HAS_SHELL+x}" ]; then
+    # shellcheck source=nanolisp-c-release-shell-probe.sh
+    . "$ROOT/lab/nano-lisp-jit/retired/scripts/nanolisp-c-release-shell-probe.sh"
+    nanolisp_c_release_shell_probe_apply >/dev/null
+  fi
+  log=$("$COM" 2>&1) || rc=$?
+  rc=${rc:-0}
+  if [ "${NANO_C_RELEASE_HAS_SHELL}" = 1 ]; then
+    echo "$log" | grep -q 'shell.mode=embedded-lbin' || {
+      echo "nano-jit-rs-shell-full-smoke=fail c_com_shell_mode"
+      echo "$log"
+      exit 1
+    }
+  else
+    if [ "$rc" -ne 2 ]; then
+      echo "nano-jit-rs-shell-full-smoke=fail c_com_exit expected=2 actual=$rc"
+      echo "$log"
+      exit 1
+    fi
+    echo "$log" | grep -q 'usage:' || {
+      echo "nano-jit-rs-shell-full-smoke=fail c_com_usage"
+      echo "$log"
+      exit 1
+    }
+  fi
   log=$("$COM" spawn-wait 0 "/bin/true" 2>&1) || true
   echo "$log" | grep -q 'spawn-wait.ok=1' || {
     echo "nano-jit-rs-shell-full-smoke=fail com_spawn"
