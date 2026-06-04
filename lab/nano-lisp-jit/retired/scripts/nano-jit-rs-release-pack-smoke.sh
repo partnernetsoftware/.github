@@ -44,8 +44,8 @@ echo "$log" | grep -q 'run-ape.arch=x86_64' || {
   exit 1
 }
 
-# nanolisp with no args → usage → exit 1
-log=$("$RS" run-ape-expect-exit "$BARE" 1 2>&1) || true
+# nanolisp with no args → embedded shell.lbin → exit 0
+log=$("$RS" run-ape-expect-exit "$BARE" 0 2>&1) || true
 echo "$log" | grep -q 'run-ape-expect-exit.ok=1' || {
   echo "nano-jit-rs-release-pack-smoke=fail run_exit"
   echo "$log"
@@ -64,7 +64,7 @@ CAP="$TMP/nanolisp-release.nlcap"
 LBIN="$TMP/version.lbin"
 "$RS" compile "$ROOT/lab/nano-lisp-jit/lisp/core/arithmetic.lisp" "$LBIN" >/dev/null
 "$RS" pack-capsule "$CAP" "$LBIN" --abin "$BARE" >/dev/null
-log=$("$RS" run-capsule "$CAP" --tier abin --expect 1 2>&1) || true
+log=$("$RS" run-capsule "$CAP" --tier abin --expect 0 2>&1) || true
 echo "$log" | grep -q 'run-capsule.tier=abin' || {
   echo "nano-jit-rs-release-pack-smoke=fail nlcap_abin"
   echo "$log"

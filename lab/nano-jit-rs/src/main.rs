@@ -10,6 +10,7 @@ mod ffi;
 mod lbin;
 mod nano_cc;
 mod run;
+mod shell_embed;
 mod value;
 mod vm;
 
@@ -56,6 +57,7 @@ Usage:\n\
   {bin} spawn-wait <expected> <executable> [arg...]\n\
   {bin} shell                  # compile+run shell-script.lisp (Phase 1)\n\
   {bin} shell-repl             # minimal stdin REPL via /bin/sh -c\n\
+  {bin}                        # no args → run embedded shell.lbin\n\
   {bin} version\n\
 Env:\n\
   NANO_JIT_LEGACY       force legacy COM compile when set\n\
@@ -69,8 +71,7 @@ Env:\n\
 fn main() -> ExitCode {
     let args: Vec<String> = env::args().collect();
     if args.len() < 2 {
-        eprint!("{}", usage());
-        return ExitCode::from(1);
+        return ExitCode::from(cmd_shell_embedded() as u8);
     }
     let rc = match args[1].as_str() {
         "version" | "--version" | "-V" => {
@@ -179,10 +180,14 @@ fn cmd_run(path: &Path) -> i32 {
         Ok(d) => d,
         Err(e) => return e,
     };
-    let blob = match parse_blob(&data) {
+    cmd_run_bytes(&data)
+}
+
+fn cmd_run_bytes(data: &[u8]) -> i32 {
+    let blob = match parse_blob(data) {
         Ok(b) => b,
         Err(e) => {
-            eprintln!("blob=parse_fail path={} err={e:?}", path.display());
+            eprintln!("blob=parse_fail err={e:?}");
             return 1;
         }
     };
@@ -382,6 +387,12 @@ fn cmd_run_capsule(args: &[String]) -> i32 {
 
 const SHELL_SCRIPT_LISP: &str = "lab/nano-lisp-jit/lisp/shell/shell-script.lisp";
 const SHELL_SCRIPT_LBIN: &str = "lab/nano-lisp-jit/.build/nanolisp-shell-script.lbin";
+
+fn cmd_shell_embedded() -> i32 {
+    println!("shell.mode=embedded-lbin");
+    println!("shell.embed.bytes={}", shell_embed::SHELL_SCRIPT_LBIN.len());
+    cmd_run_bytes(shell_embed::SHELL_SCRIPT_LBIN)
+}
 
 fn cmd_shell() -> i32 {
     let lisp = Path::new(SHELL_SCRIPT_LISP);
