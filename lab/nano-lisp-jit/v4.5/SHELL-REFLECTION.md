@@ -1,13 +1,13 @@
 # Shell runner — reflection (Phases 0–8 merged)
 
-**Updated**: 2026-06-04 · Wave 5 reflection (gate readonly promote, cosmocc bootstrap, Phase 9 shell-promote plan)  
+**Updated**: 2026-06-04 · Wave 6 reflection (C release promote landed — P0 done)  
 **SSOT ladder**: [`SHELL-RUNNER.md`](SHELL-RUNNER.md) · **product tracks**: [`PRODUCT-TRACKS.md`](PRODUCT-TRACKS.md) · **rollup %**: [`OVERALL-PROGRESS.md`](OVERALL-PROGRESS.md)
 
 ## Executive summary
 
-Phases **0–8** (Rust ladder + C host-cc / opcode parity) are merged or gated on integrate. **Wave 4** landed: C **fgets opcode**, **`nanolisp shell-full`** CLI, **host-cc** path in promote smoke. **Wave 5** (reflection, docs/plan): **gate readonly promote** (c-gate + promote smoke never rebake `release/` from factory), **cosmocc bootstrap script** (dev-container prerequisite), **Phase 9** `bootstrap-v45-shell-promote.lisp` plan (host-cc → factory → manual pin). C **release** pin still `usage:` until cosmocc factory + **`v45-manifest-pin.sh`** — product slice unchanged.
+Phases **0–8** (Rust ladder + C host-cc / opcode parity) are merged or gated on integrate. **Wave 4** landed: C **fgets opcode**, **`nanolisp shell-full`** CLI, **host-cc** path in promote smoke. **Wave 5** landed: **gate readonly promote**, **cosmocc bootstrap**, **Phase 9** `bootstrap-v45-shell-promote.lisp` + promote smokes. **Wave 6**: C **release** pin rebaked via **`nano-jit-c-shell-release-promote.sh`** (cosmocc factory → **`v45-manifest-pin.sh`**); probe reports `nanolisp.c-release-shell=embedded`; dual-smoke expects Rust + C no-arg `shell.mode=embedded-lbin`.
 
-**Honest overall**: **~93%** (ladder unchanged until release pin rebakes; product slice **58%**).
+**Honest overall**: **~95%** headline (shell ladder ~95%); product / release slice **~75%+** (slim COM embed + wave SSOT pin — not full daily COM-only SOTA).
 
 ---
 
@@ -24,10 +24,10 @@ Phases **0–8** (Rust ladder + C host-cc / opcode parity) are merged or gated o
 | **6** | `bootstrap-v45-shell-dual.lisp` + dual smoke | C and Rust both compile/run `shell-v0`; stdin addr + fgets on Rust. |
 | **7** | `libc:fgets` via stdin addr | Rust + **C host-cc** VM `ptr(ptr,i32,ptr)`; smokes: `nano-jit-rs-shell-fgets-smoke.sh`, `nano-jit-c-shell-fgets-smoke.sh` (c-gate). Release COM compile pending rebake. |
 | **7 alt** | `shell-repl-fgets.lisp` | VM REPL on **fgets + stdin addr**; in shell-ci, dual bootstrap, rs-gate smoke. |
-| **7b** | C `nano_main.c` no-arg + file embed | Source `cmd_shell_noarg`; `archive/c/embed/shell-script.lbin` (280 B, hash-match rs embed); host-cc `shell.mode=embedded-lbin`. Release COM pin unchanged. Smoke: `nano-jit-c-shell-noarg-smoke.sh`. Promote prep: `nano-jit-c-shell-promote-smoke.sh` (skip if no cosmocc). |
+| **7b** | C `nano_main.c` no-arg + file embed | Source + **release** `cmd_shell_noarg`; `archive/c/embed/shell-script.lbin` (280 B, hash-match rs embed); pinned COM `shell.mode=embedded-lbin` after Wave 6 promote. Smokes: `nano-jit-c-shell-noarg-smoke.sh`, `nano-jit-c-shell-promote-smoke.sh`, `nano-jit-c-shell-release-promote.sh`. |
 | **8** | `bootstrap-v45-shell-full.lisp` + `shell-full` | One plan (~29 steps); `nanolisp shell-full` CLI + rs-gate smoke. |
 
-**Still open**: C release cosmocc rebake (factory embed in COM blob); dual-smoke auto-flip when probe reports embedded shell on release pin.
+**Still open**: wave scripts default COM; user daily = COM + plan only; Rust APE size parity — see product SOTA table below.
 
 ---
 
@@ -38,7 +38,7 @@ Phases **0–8** (Rust ladder + C host-cc / opcode parity) are merged or gated o
 | CLI `spawn-wait` / `read-file` | ✅ | ✅ |
 | `.lbin` `libc:system` compile/run | ✅ | ✅ |
 | `nanolisp shell` / `shell-repl` / `shell-ci` / **shell-full** | ❌ (C CLI differs; **shell-full CLI** Wave 4 planned) | ✅ (`run-bootstrap-plan` + rs-gate smoke) |
-| No-arg `$COM` → shell | ❌ **release** `usage:` exit 2 · ✅ **source** `cmd_shell_noarg` | ✅ embedded `shell-script.lbin` |
+| No-arg `$COM` → shell | ✅ **release** `shell.mode=embedded-lbin` (Wave 6 pin) · ✅ source | ✅ embedded `shell-script.lbin` |
 | `libc:stdin` addr in VM | ✅ (pinned release) | ✅ |
 | `libc:fgets` via stdin addr | ✅ Phase 7 opcode (`nano-jit-c-shell-fgets-smoke.sh`, c-gate) | ✅ Phase 7 |
 | Dual bootstrap plan | ✅ compile/run v0 via C COM | ✅ plan driver on Rust |
@@ -47,7 +47,7 @@ Phases **0–8** (Rust ladder + C host-cc / opcode parity) are merged or gated o
 | Dual-gate (`nanolisp-dual-gate.sh`) | ✅ nested via c-gate · audit `nanolisp.dual-gate.shell=c-track *` | ✅ nested via rs-gate · audit `nanolisp.dual-gate.shell=rs-track *` (incl. shell-full) |
 | P2 release assert | ✅ **auto-probe** sets `NANO_C_RELEASE_HAS_SHELL` | N/A |
 
-The dual smoke **expects** release asymmetry today unless probe reports embedded shell: Rust no-arg must print `shell.mode=embedded-lbin`; pinned C COM no-arg defaults to `usage:` (`nano-jit-shell-dual-smoke.sh`). Host-cc C runner can satisfy `cmd_shell_noarg` — documented in `nano-jit-c-shell-noarg-smoke.sh`. That is honest regression coverage, not full release parity.
+After Wave 6 promote, dual smoke **expects** parity on both tracks: Rust and pinned C COM no-arg print `shell.mode=embedded-lbin` (`nano-jit-shell-dual-smoke.sh` + `nanolisp-c-release-shell-probe.sh`). Host-cc path remains the fast pre-promote proof in `nano-jit-c-shell-noarg-smoke.sh`.
 
 ---
 
@@ -57,26 +57,26 @@ The dual smoke **expects** release asymmetry today unless probe reports embedded
 |-----------|--------------------------|--------------|
 | Lisp shell dogfood in `lisp/shell/` | ✅ | ✅ |
 | Bootstrap plans replace granular smokes | ✅ shell-ci + shell-full | ✅ nested in dual-gate (via track gates) |
-| `$COM` no-arg is a shell | ✅ Rust · ✅ C source | ⬜ C wave SSOT release still `usage:` |
-| Slim COM (~327 KiB) carries shell | N/A (Rust ~2.8 MiB full) | ⬜ embed not in C release pin |
+| `$COM` no-arg is a shell | ✅ Rust · ✅ C source · ✅ C release pin | ✅ Wave 6 promote |
+| Slim COM (~327 KiB) carries shell | N/A (Rust ~2.8 MiB full) | ✅ embed in pinned `release/nano-lisp.com` |
 | Wave scripts default COM | C `nano-lisp.com` | ⬜ unchanged |
-| User daily = COM + plan only | ✅ shell-ci / shell-full path | ⬜ factory regenesis for C embed pending |
-| P2 conditional release assert | ✅ auto-probe + manual override | ⬜ until cosmocc promote flips pin |
+| User daily = COM + plan only | ✅ shell-ci / shell-full path | ⬜ wave SSOT still C COM; Rust not default |
+| P2 conditional release assert | ✅ auto-probe + manual override | ✅ probe `embedded` after pin |
 
-**Done for engineering proof** ≠ **done for shipping**: wave SSOT and pinned `manifest.txt` still describe a C COM without no-arg shell dispatch on the **release** artifact. Rust release promote proves the UX on the candidate artifact only.
+**Done for engineering proof** ≈ **release shell UX shipped** on C pin; remaining product GAP is wave-default COM, slim-size parity, and pure-Lisp 158KB codegen — not no-arg dispatch.
 
 ---
 
-## Percent rubric (~91% / ~92% / ~93%)
+## Percent rubric (~91% → ~95%)
 
-Product / release slice stays **58%** until cosmocc promote rebakes `release/nano-lisp.com` — do not inflate for ladder-only wins.
+Product / release slice moved off **58%** after Wave 6 pin — cap below **~80%** until wave-default + slim parity close.
 
-| Slice | Wave 2 (~90%) | Wave 3b (~92%) | Wave 4 (~93%) | Wave 5 (~93% held) | Rationale |
-|-------|---------------|----------------|---------------|-------------------|-----------|
-| Rust ladder proof (Ph 0–8, REPL, fgets, repl-fgets, shell-ci ~28-step, shell-full ~29-step) | **98%** | **99%** | **99%** | **99%** | shell-full consolidates ci+dual in one rs-gate plan |
-| Dual-track parity (Ph 6–8, 7b source + file embed, C shell-ci steps, auto-probe) | **85%** | **90%** | **92%** | **92%** | Wave 4 closed fgets GAP; Wave 5 = promote plumbing only |
-| Product / release (slim COM, wave SSOT) | **58%** | **58%** | **58%** | **58%** | Unchanged until cosmocc factory + **manual** `v45-manifest-pin.sh` |
-| **Headline overall** | **~90%** | **~92%** | **~93%** | **~93%** | Wave 5 holds ladder; product pin caps shipping slice |
+| Slice | Wave 4 (~93%) | Wave 5 (~93%) | Wave 6 (~95%) | Rationale |
+|-------|---------------|---------------|---------------|-----------|
+| Rust ladder proof (Ph 0–8, REPL, fgets, repl-fgets, shell-ci ~28-step, shell-full ~29-step) | **99%** | **99%** | **99%** | shell-full + shell-promote rs-gate |
+| Dual-track parity (Ph 6–8, 7b release embed, C shell-ci, probe + dual-smoke) | **92%** | **92%** | **~95%** | Wave 6: C release no-arg matches Rust on pin |
+| Product / release (slim COM embed, wave SSOT, daily COM-only) | **58%** | **58%** | **~75%+** | Pin rebake + probe embedded; wave default + slim still open |
+| **Headline overall** | **~93%** | **~93%** | **~95%** | Ladder + release shell UX; product slice not 100% SOTA |
 
 ---
 
@@ -84,9 +84,9 @@ Product / release slice stays **58%** until cosmocc promote rebakes `release/nan
 
 | Priority | Item | Status |
 |----------|------|--------|
-| **P0** | C no-arg **release** embed — see [P0 checklist](#p0-checklist-wave-5) | ⬜ cosmocc bootstrap + factory + **manual** `v45-manifest-pin.sh`; release pin `usage:` until pin |
+| **P0** | C no-arg **release** embed — see [P0 checklist](#p0-checklist-wave-6) | **✅ done** (Wave 6 `nano-jit-c-shell-release-promote.sh` → pin; probe `embedded`) |
 | **P1** | Gate wiring — shell regression on daily dual path | **✅ done** |
-| **P2** | Release + docs convergence — conditional C COM assert when release ships | **~done** — `nanolisp-c-release-shell-probe.sh` sources shell-ci / dual / promote smokes; manual `NANO_C_RELEASE_HAS_SHELL` override retained |
+| **P2** | Release + docs convergence — conditional C COM assert when release ships | **✅ done** — probe defaults `NANO_C_RELEASE_HAS_SHELL=1` on pinned COM after Wave 6 |
 
 ---
 
@@ -137,21 +137,44 @@ Wave 5 on `cursor/nanolisp-shell-reflection-wave5-fc19` — **docs/plan slice** 
 
 | Item | Status | Notes |
 |------|--------|-------|
-| **Gate readonly promote** | 📋 planned | `nano-jit-c-gate.sh`: manifest **parity only** on pinned `release/nano-lisp.com`; pin roundtrip proves script, does **not** promote factory COM into `release/`. `nano-jit-c-shell-promote-smoke.sh` + dual-gate: manifest parity / probe / optional factory — **never** auto-`v45-manifest-pin.sh` on `.build/` artifact |
-| **cosmocc bootstrap script** | 📋 planned | `retired/scripts/nanolisp-cosmocc-bootstrap.sh` — symlink `third_party/cosmocc` → `/opt/cosmocc` (dev container per `AGENTS.md`); prerequisite before `NANO_C_SHELL_PROMOTE_BUILD=1` / `build_nano_jit.sh` factory |
-| **Phase 9 shell-promote plan** | 📋 planned | `bootstrap-v45-shell-promote.lisp` — ladder steps: host-cc no-arg → promote smoke keys → optional cosmocc factory → **manual** pin note; rs-gate N/A; c-gate nested via dual-gate after plan lands |
-| **P0 checklist** | ⬜ | See below |
+| **Gate readonly promote** | ✅ | `nano-jit-c-gate.sh`: manifest **parity only** on pinned `release/nano-lisp.com`; smokes never auto-pin factory into `release/` |
+| **cosmocc bootstrap script** | ✅ | `bootstrap-cosmocc.sh` — symlink `third_party/cosmocc` → `/opt/cosmocc` (dev container per `AGENTS.md`) |
+| **Phase 9 shell-promote plan** | ✅ | `bootstrap-v45-shell-promote.lisp` + rs-gate smoke; c-gate via dual-gate promote prep |
+| **P0 checklist** | ⬜ | See Wave 5 table (superseded by Wave 6) |
 | **Headline %** | **~93%** | Product slice **58%** until release pin rebake |
 
-### P0 checklist (Wave 5)
+### P0 checklist (Wave 5 — historical)
 
 | Step | Action | Owner |
 |------|--------|-------|
-| 1 | Run **`nanolisp-cosmocc-bootstrap.sh`** (or doc-equivalent symlink) so `third_party/cosmocc/bin/` resolves | Agent / dev container |
-| 2 | `NANO_C_SHELL_PROMOTE_BUILD=1 bash retired/scripts/nano-jit-c-shell-promote-smoke.sh` — factory `.build/nano-jit/nano-jit.com` asserts `shell.mode=embedded-lbin` | CI optional / manual |
-| 3 | **Manual** `bash retired/scripts/v45-manifest-pin.sh <factory-com>` — copy factory artifact → `release/nano-lisp.com` first if bytes differ; probe flips smokes | Human promote — **not** c-gate auto-pin |
+| 1 | Run **`bootstrap-cosmocc.sh`** so `third_party/cosmocc/bin/` resolves | Agent / dev container |
+| 2 | `NANO_C_SHELL_PROMOTE_BUILD=1 bash retired/scripts/nano-jit-c-shell-promote-smoke.sh` — factory asserts `shell.mode=embedded-lbin` | CI optional / manual |
+| 3 | **Manual** `bash retired/scripts/v45-manifest-pin.sh <factory-com>` | Human promote — **not** c-gate auto-pin |
 
-Until step 3 ships, do not inflate ladder or product % above **~93% / 58%**.
+---
+
+## Wave 6 reflection (2026-06-04)
+
+Wave 6 on `cursor/nanolisp-shell-reflection-wave6-fc19` — **docs slice** assuming C release promote lands on integrate.
+
+| Item | Status | Notes |
+|------|--------|-------|
+| **P0 release embed** | ✅ | `nano-jit-c-shell-release-promote.sh`: cosmocc bootstrap → factory → install + **`v45-manifest-pin.sh`**; c-gate pass on new pin |
+| **cosmocc bootstrap** | ✅ | `bootstrap-cosmocc.sh` / dev container `/opt/cosmocc` |
+| **Gate readonly promote** | ✅ | Smokes + c-gate never auto-pin; orchestrator owns `release/` write |
+| **Phase 9 shell-promote** | ✅ | Plan + rs-gate; dual-smoke C/Rust no-arg parity |
+| **Dual-smoke parity** | ✅ | `shell.mode=embedded-lbin` on both tracks when probe `embedded` |
+| **Headline %** | **~95%** | Product slice **~75%+** |
+
+### P0 checklist (Wave 6)
+
+| Step | Action | Status |
+|------|--------|--------|
+| 1 | **`bootstrap-cosmocc.sh`** — `third_party/cosmocc/bin/` resolves | ✅ |
+| 2 | **`nano-jit-c-shell-release-promote.sh`** — factory `shell.mode=embedded-lbin` | ✅ |
+| 3 | **`v45-manifest-pin.sh`** — probe `nanolisp.c-release-shell=embedded` | ✅ |
+
+Orchestrator SSOT: [`SHELL-RUNNER.md` § C release shell promote (Wave 6)](SHELL-RUNNER.md#c-release-shell-promote-wave-6).
 
 ---
 
