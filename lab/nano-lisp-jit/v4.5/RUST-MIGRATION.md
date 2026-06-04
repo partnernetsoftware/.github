@@ -52,7 +52,25 @@ ELF slices ──pack-ape──▶  .com  ──run-ape──▶  native exec
 | `run-expect-exit` | ✅ | ✅ | 100% |
 | 6-face COM 替换 release | ✅ | ✅ nanolisp.com + compose-15link slice + hybrid + semantic | 99% |
 
-## 验收脚本（产品门禁）
+## C 轨门禁（`release/nano-lisp.com` · 与 Rust 并行）
+
+```bash
+bash lab/nano-lisp-jit/retired/scripts/nano-jit-c-gate.sh   # manifest + verify-smoke · 无需 cosmocc
+# 可选全工厂重建（需 cosmocc）：
+# NANO_C_GATE_FACTORY=1 bash lab/nano-lisp-jit/retired/scripts/nano-jit-c-gate.sh
+bash lab/nano-lisp-jit/retired/scripts/v45-manifest-pin.sh   # 仅刷新 C COM pin · 保留 nanolisp.*
+```
+
+**诚实 C GAP**（商用 SOTA 未闭合）：
+
+| 项 | 状态 |
+|----|------|
+| 纯 lisp 158KB runner codegen（无 host cc hybrid） | 开卷 · compose15 stub ~4KB |
+| 工厂 zero-C（`build_nano_jit.sh` 仍编译 archive `lispjit.c`） | `factory_c_remains_scoped=1` |
+| 6-face cross-os runtime（macOS/Windows slice 为 placeholder） | probe 全表 · Linux runtime 2/6 |
+| `NANO_C_GATE_FACTORY=1` 全量 `build_nano_jit.sh` | 需 cosmocc · CI 默认只跑 release 面 |
+
+## 验收脚本（Rust 产品门禁）
 
 ```bash
 bash lab/nano-lisp-jit/build_nano_jit_rs.sh
