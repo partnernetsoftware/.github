@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# C track shell no-arg smoke — source grep, host cc runner, release COM GAP (manifest pin unchanged).
+# C track shell no-arg smoke — source grep, host cc runner, release COM via auto-probe.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../../../.." && pwd)"
 RETIRED="$ROOT/lab/nano-lisp-jit/retired"
@@ -88,8 +88,8 @@ fi
 log=$("$C_COM" 2>&1) || rc=$?
 rc=${rc:-0}
 if [ "${NANO_C_RELEASE_HAS_SHELL}" = 1 ]; then
-  echo "$log" | grep -q 'shell.mode=' || {
-    echo "nano-jit-c-shell-noarg-smoke=fail release_shell_mode"
+  echo "$log" | grep -q 'shell.mode=embedded-lbin' || {
+    echo "nano-jit-c-shell-noarg-smoke=fail release_shell_mode expected=embedded-lbin"
     echo "$log"
     exit 1
   }
@@ -105,7 +105,7 @@ else
     echo "$log"
     exit 1
   }
-  echo "nano-jit-c-shell-noarg-smoke=ok release_com_gap usage_exit=2"
+  echo "nano-jit-c-shell-noarg-smoke=ok release_gap usage_exit=2"
 fi
 
 if [ -x "$C_COM" ]; then

@@ -48,7 +48,7 @@
     "lab/nano-lisp-jit/archive/c/embed/shell-script.lbin"
     "lab/nano-jit-rs/embed/shell-script.lbin")
   (spawn-wait 0 "lab/nano-lisp-jit/release/nano-lisp.com" "spawn-wait" "0" "/bin/true")
-  (spawn-wait 2 "lab/nano-lisp-jit/release/nano-lisp.com")
+  ; C release no-arg: nano-jit-rs-shell-ci-smoke.sh + nanolisp-c-release-shell-probe.sh
   (spawn-wait 0 "lab/nano-lisp-jit/release/nano-lisp.com" "compile"
     "lab/nano-lisp-jit/lisp/shell/shell-script.lisp"
     "lab/nano-lisp-jit/.build/v45-shell-ci-c.lbin")
