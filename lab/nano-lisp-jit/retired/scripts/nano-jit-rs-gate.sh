@@ -32,6 +32,7 @@ bash "$ROOT/lab/nano-lisp-jit/retired/scripts/nano-jit-rs-bootstrap-compose15-hy
 bash "$ROOT/lab/nano-lisp-jit/retired/scripts/nano-jit-rs-bootstrap-compose15-semantic-build-slice-smoke.sh"
 bash "$ROOT/lab/nano-lisp-jit/retired/scripts/nano-jit-rs-release-pack-smoke.sh"
 bash "$ROOT/lab/nano-lisp-jit/retired/scripts/nano-jit-rs-release-promote-smoke.sh"
+bash "$ROOT/lab/nano-lisp-jit/retired/scripts/nano-jit-rs-release-slim-smoke.sh"
 bash "$ROOT/lab/nano-lisp-jit/retired/scripts/nano-jit-rs-capsule-smoke.sh"
 (cd "$ROOT/lab/nano-jit-rs" && cargo test)
 echo "nanolisp.gate=ok"

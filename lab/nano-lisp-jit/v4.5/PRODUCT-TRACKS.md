@@ -15,7 +15,9 @@
 | **Default gate** | `retired/scripts/v45-wave*.sh` + factory regenesis | `retired/scripts/nano-jit-rs-gate.sh` |
 | **Release promote** | `v45-wave91-release-promote-converge.sh` (native factory → `release/`) | `retired/scripts/nano-jit-rs-release-promote.sh` |
 
-Also pinned: `v45-selfhost-next.com` (334 537 B, same hash as `nano-lisp.com` today) · bare `nanolisp.ape` (2 958 136 B).
+Also pinned: `v45-selfhost-next.com` (334 537 B, same hash as `nano-lisp.com` today) · bare `nanolisp.ape` (2 958 136 B) · **`nanolisp-slim.com`** (~161 KiB genesis-pin pathfinder).
+
+**Progress assessment**: [`OVERALL-PROGRESS.md`](OVERALL-PROGRESS.md) · **Dual gate**: `bash lab/nano-lisp-jit/retired/scripts/nanolisp-dual-gate.sh`
 
 ## Source paths
 
@@ -44,7 +46,7 @@ Shared Lisp/bootstrap: `lab/nano-lisp-jit/lisp/`.
 
 | Area | C track | Rust track |
 |------|---------|------------|
-| **Binary size** | ~327 KiB — shipping constraint met | ~2.8 MiB — two full CLI ELF slices; slimming not done |
+| **Binary size** | ~327 KiB — shipping constraint met | ~2.8 MiB full CLI · **~161 KiB** `nanolisp-slim.com` genesis pathfinder |
 | **v4.5 wave SSOT** | `nano-lisp.com` is what wave scripts promote & pin | Parity proven; **not** the default COM in `v45-wave*.sh` |
 | **Factory / regenesis** | Native C slice compiler still seeds some factory paths | `run-bootstrap-plan` + build-slice paths largely green on Rust |
 | **AOT / compose** | Full 15-link semantic ladder on C COM | aarch64 compose-15link on release APE still **待补** (see RUST-MIGRATION) |
@@ -71,6 +73,7 @@ lab/nano-lisp-jit/release/nanolisp.com version
 
 ## Related docs
 
+- [`OVERALL-PROGRESS.md`](OVERALL-PROGRESS.md) — quantified % assessment · dual gate  
 - [`../release/README.md`](../release/README.md) — artifact table + manifest link  
 - [`RUST-MIGRATION.md`](RUST-MIGRATION.md) — component parity matrix & smoke index  
 - [`REFLECTION.md`](REFLECTION.md) — v4.5 narrative / wave history  

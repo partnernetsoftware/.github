@@ -10,8 +10,11 @@
 | `v45-selfhost-next.com` | 334 537 | `a1904c09aebbf58d` | 同上（自举 / 矩阵广面） |
 | `nanolisp.com` | 2 959 413 | `9ce3029047ffe784` | Rust · `nanolisp.com.engine=rust` |
 | `nanolisp.ape` | 2 958 136 | `90761f6dea4915ae` | Rust bare APE 容器 |
+| `nanolisp-slim.com` | ~161 083 | (see manifest) | Rust genesis-pin APE pathfinder (~48% of C COM size) |
 
 Verify locally: `wc -c release/*.com release/*.ape` · hashes in [`manifest.txt`](manifest.txt).
+
+**Progress**: [`../v4.5/OVERALL-PROGRESS.md`](../v4.5/OVERALL-PROGRESS.md) · **Gates**: `nanolisp-dual-gate.sh` (C + Rust)
 
 ## C track — `nano-lisp.com`（legacy ~327 KiB）
 

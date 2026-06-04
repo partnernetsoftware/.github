@@ -8,6 +8,9 @@ ARM="$ROOT/lab/nano-lisp-jit/.build/nano-jit-rs/nanolisp.aarch64"
 REL="$ROOT/lab/nano-lisp-jit/release"
 COM_OUT="$REL/nanolisp.com"
 APE_OUT="$REL/nanolisp.ape"
+SLIM_OUT="$REL/nanolisp-slim.com"
+X86_PIN="$ROOT/lab/nano-lisp-jit/genesis/nano-jit.x86_64"
+A64_PIN="$ROOT/lab/nano-lisp-jit/genesis/nano-jit.aarch64"
 MAN="$REL/manifest.txt"
 cd "$ROOT"
 bash "$ROOT/lab/nano-lisp-jit/build_nano_jit_rs.sh" >/dev/null
@@ -23,10 +26,21 @@ mkdir -p "$TMP"
 install -m 755 "$TMP/nanolisp.com" "$COM_OUT"
 install -m 755 "$TMP/nanolisp.ape" "$APE_OUT"
 
+if [ -f "$X86_PIN" ] && [ -f "$A64_PIN" ]; then
+  "$RS" pack-ape "$TMP/nanolisp-slim.com" "$X86_PIN" "$A64_PIN" >/dev/null
+  install -m 755 "$TMP/nanolisp-slim.com" "$SLIM_OUT"
+fi
+
 COM_BYTES=$(wc -c <"$COM_OUT" | tr -d ' ')
 COM_HASH=$("$RS" hash "$COM_OUT")
 APE_BYTES=$(wc -c <"$APE_OUT" | tr -d ' ')
 APE_HASH=$("$RS" hash "$APE_OUT")
+SLIM_BYTES=""
+SLIM_HASH=""
+if [ -f "$SLIM_OUT" ]; then
+  SLIM_BYTES=$(wc -c <"$SLIM_OUT" | tr -d ' ')
+  SLIM_HASH=$("$RS" hash "$SLIM_OUT")
+fi
 
 LEGACY_BYTES=""
 LEGACY_HASH=""
@@ -56,8 +70,16 @@ fi
   echo "nanolisp.com.engine=rust"
   echo "nanolisp.ape.bytes=$APE_BYTES"
   echo "nanolisp.ape.fnv1a64=$APE_HASH"
+  if [ -n "$SLIM_BYTES" ]; then
+    echo "nanolisp-slim.com.bytes=$SLIM_BYTES"
+    echo "nanolisp-slim.com.fnv1a64=$SLIM_HASH"
+    echo "nanolisp-slim.com.engine=rust-genesis-pin"
+  fi
 } >"$MAN"
 
 echo "nanolisp.release-promote=ok"
 echo "nanolisp.release-promote.com=$COM_OUT bytes=$COM_BYTES fnv1a64=$COM_HASH"
 echo "nanolisp.release-promote.ape=$APE_OUT bytes=$APE_BYTES fnv1a64=$APE_HASH"
+if [ -n "$SLIM_BYTES" ]; then
+  echo "nanolisp.release-promote.slim=$SLIM_OUT bytes=$SLIM_BYTES fnv1a64=$SLIM_HASH"
+fi
