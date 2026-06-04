@@ -54,38 +54,11 @@ bash "$RETIRED/bootstrap-cosmocc.sh" || true
 require_cosmocc
 
 export NANO_C_SHELL_PROMOTE_BUILD=1
-FACTORY_STAGING="$LAB/.build/nano-jit-c-shell-release-promote.factory.com"
-FACTORY_X86_STAGING="$LAB/.build/nano-jit-c-shell-release-promote.factory.x86_64"
-(
-  NANO_C_GATE_FACTORY=1 bash "$LAB/build_nano_jit.sh" || true
-) &
-build_pid=$!
-while kill -0 "$build_pid" 2>/dev/null; do
-  if [ -x "$LAB/.build/nano-jit/nano-jit.com" ]; then
-    cp -f "$LAB/.build/nano-jit/nano-jit.com" "$FACTORY_STAGING"
-  fi
-  if [ -x "$LAB/.build/nano-jit/nano-jit.x86_64" ]; then
-    cp -f "$LAB/.build/nano-jit/nano-jit.x86_64" "$FACTORY_X86_STAGING"
-  fi
-  sleep 1
-done
-wait "$build_pid" || true
-if [ -x "$LAB/.build/nano-jit/nano-jit.com" ]; then
-  cp -f "$LAB/.build/nano-jit/nano-jit.com" "$FACTORY_STAGING"
-fi
-if [ -x "$LAB/.build/nano-jit/nano-jit.x86_64" ]; then
-  cp -f "$LAB/.build/nano-jit/nano-jit.x86_64" "$FACTORY_X86_STAGING"
-fi
+NANO_C_GATE_FACTORY=1 bash "$LAB/build_nano_jit.sh" || true
 
 BUILD_COM="$LAB/.build/nano-jit/nano-jit.com"
 if [ ! -x "$BUILD_COM" ]; then
   BUILD_COM="$LAB/.build/nano-jit/nano-jit.x86_64"
-fi
-if [ ! -x "$BUILD_COM" ] && [ -x "$FACTORY_STAGING" ]; then
-  BUILD_COM="$FACTORY_STAGING"
-fi
-if [ ! -x "$BUILD_COM" ] && [ -x "$FACTORY_X86_STAGING" ]; then
-  BUILD_COM="$FACTORY_X86_STAGING"
 fi
 [ -x "$BUILD_COM" ] || {
   echo "nano-jit-c-shell-release-promote=fail factory_no_artifact"

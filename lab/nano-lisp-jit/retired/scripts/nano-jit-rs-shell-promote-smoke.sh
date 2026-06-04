@@ -4,6 +4,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../../../.." && pwd)"
 RS="$ROOT/lab/nano-lisp-jit/.build/nano-jit-rs/nanolisp"
 PLAN="$ROOT/lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-shell-promote.lisp"
+C_COM="$ROOT/lab/nano-lisp-jit/release/nano-lisp.com"
 cd "$ROOT"
 bash "$ROOT/lab/nano-lisp-jit/build_nano_jit_rs.sh" >/dev/null
 [ -x "$RS" ] || { echo "nano-jit-rs-shell-promote-smoke=fail no_binary"; exit 1; }
@@ -42,16 +43,16 @@ echo "$log" | grep -q 'nanolisp-shell-script-step1' || {
   exit 1
 }
 
-C_COM="$ROOT/lab/nano-lisp-jit/release/nano-lisp.com"
 if [ -x "$C_COM" ]; then
-  # shellcheck source=nanolisp-c-release-shell-probe.sh
-  . "$ROOT/lab/nano-lisp-jit/retired/scripts/nanolisp-c-release-shell-probe.sh"
-  nanolisp_c_release_shell_probe_apply >/dev/null
-
+  if [ -z "${NANO_C_RELEASE_HAS_SHELL+x}" ]; then
+    # shellcheck source=nanolisp-c-release-shell-probe.sh
+    . "$ROOT/lab/nano-lisp-jit/retired/scripts/nanolisp-c-release-shell-probe.sh"
+    nanolisp_c_release_shell_probe_apply >/dev/null
+  fi
   log=$("$C_COM" 2>&1) || rc=$?
   rc=${rc:-0}
   if [ "${NANO_C_RELEASE_HAS_SHELL}" = 1 ]; then
-    echo "$log" | grep -q 'shell.mode=' || {
+    echo "$log" | grep -q 'shell.mode=embedded-lbin' || {
       echo "nano-jit-rs-shell-promote-smoke=fail c_com_shell_mode"
       echo "$log"
       exit 1
@@ -71,4 +72,4 @@ if [ -x "$C_COM" ]; then
 fi
 
 steps=$(echo "$plan_log" | sed -n 's/^bootstrap-plan.steps=//p' | head -1)
-echo "nano-jit-rs-shell-promote-smoke=ok steps=${steps:-11}"
+echo "nano-jit-rs-shell-promote-smoke=ok steps=${steps:-13}"

@@ -20,4 +20,5 @@
   (compile "lab/nano-lisp-jit/lisp/shell/shell-repl-fgets.lisp"
            "lab/nano-lisp-jit/.build/v45-shell-repl-fgets.lbin")
   (spawn-wait 0 "/bin/sh" "-c"
-    "printf '%s\\n' 'echo nanolisp-shell-dual-repl-fgets' | lab/nano-lisp-jit/.build/nano-jit-rs/nanolisp run lab/nano-lisp-jit/.build/v45-shell-repl-fgets.lbin"))
+    "printf '%s\\n' 'echo nanolisp-shell-dual-repl-fgets' | lab/nano-lisp-jit/.build/nano-jit-rs/nanolisp run lab/nano-lisp-jit/.build/v45-shell-repl-fgets.lbin")
+  (spawn-wait 0 "lab/nano-lisp-jit/release/nano-lisp.com"))

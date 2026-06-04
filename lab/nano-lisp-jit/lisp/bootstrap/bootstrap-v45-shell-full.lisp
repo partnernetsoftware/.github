@@ -57,4 +57,4 @@
                  "lab/nano-lisp-jit/.build/nano-jit-rs/nanolisp"
                  "lab/nano-lisp-jit/.build/nano-jit-rs/nanolisp.aarch64")
   (run-ape-expect-exit "lab/nano-lisp-jit/.build/v45-shell-full.ape" 0)
-  (spawn-wait 2 "lab/nano-lisp-jit/release/nano-lisp.com"))
+  (spawn-wait 0 "lab/nano-lisp-jit/release/nano-lisp.com"))
