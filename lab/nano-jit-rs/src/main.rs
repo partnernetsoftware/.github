@@ -54,6 +54,8 @@ Usage:\n\
   {bin} run-expect-exit <executable> <expected_exit>\n\
   {bin} read-file <path>\n\
   {bin} spawn-wait <expected> <executable> [arg...]\n\
+  {bin} shell                  # compile+run shell-script.lisp (Phase 1)\n\
+  {bin} shell-repl             # minimal stdin REPL via /bin/sh -c\n\
   {bin} version\n\
 Env:\n\
   NANO_JIT_LEGACY       force legacy COM compile when set\n\
@@ -147,6 +149,8 @@ fn main() -> ExitCode {
             let extra: Vec<String> = args[4..].to_vec();
             run::spawn_wait(&args[2], Path::new(&args[3]), &extra)
         }
+        "shell" if args.len() == 2 => cmd_shell(),
+        "shell-repl" if args.len() == 2 => cmd_shell_repl(),
         "inspect-capsule" if args.len() == 3 => {
             capsule::inspect_capsule(Path::new(&args[2]))
         }
@@ -374,6 +378,64 @@ fn cmd_run_capsule(args: &[String]) -> i32 {
         i += 1;
     }
     capsule::cmd_run_capsule(path, tier, expect)
+}
+
+const SHELL_SCRIPT_LISP: &str = "lab/nano-lisp-jit/lisp/shell/shell-script.lisp";
+const SHELL_SCRIPT_LBIN: &str = "lab/nano-lisp-jit/.build/nanolisp-shell-script.lbin";
+
+fn cmd_shell() -> i32 {
+    let lisp = Path::new(SHELL_SCRIPT_LISP);
+    let lbin = Path::new(SHELL_SCRIPT_LBIN);
+    if !lisp.is_file() {
+        eprintln!("shell=missing_script path={}", lisp.display());
+        return 1;
+    }
+    if let Some(parent) = lbin.parent() {
+        let _ = fs::create_dir_all(parent);
+    }
+    let rc = cmd_compile(lisp, lbin);
+    if rc != 0 {
+        return rc;
+    }
+    println!("shell.mode=lbin-script");
+    println!("shell.lisp={}", lisp.display());
+    println!("shell.lbin={}", lbin.display());
+    cmd_run(lbin)
+}
+
+fn cmd_shell_repl() -> i32 {
+    use std::io::{self, BufRead, Write};
+
+    println!("nanolisp-shell-repl=begin");
+    let stdin = io::stdin();
+    let mut stdout = io::stdout();
+    for line in stdin.lock().lines() {
+        let line = match line {
+            Ok(l) => l,
+            Err(_) => break,
+        };
+        let trimmed = line.trim();
+        if trimmed.is_empty() {
+            continue;
+        }
+        if trimmed == "exit" || trimmed == "quit" {
+            break;
+        }
+        let _ = write!(stdout, "shell> {trimmed}\n");
+        let _ = stdout.flush();
+        let status = match Command::new("/bin/sh").arg("-c").arg(trimmed).status() {
+            Ok(s) => s,
+            Err(e) => {
+                eprintln!("shell-repl=exec_fail err={e}");
+                continue;
+            }
+        };
+        if let Some(code) = status.code() {
+            println!("shell-repl.exit={code}");
+        }
+    }
+    println!("nanolisp-shell-repl=ok");
+    0
 }
 
 #[cfg(test)]

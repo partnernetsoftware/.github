@@ -10,7 +10,7 @@
 | bootstrap | `(spawn-wait …)` / `(read-file …)` | ✅ | ✅ |
 | `.lbin` VM | `libc:system` / `strlen` / … | ✅ | ✅ |
 
-## Phase 0 (current)
+## Phase 0 (baseline)
 
 **`lisp/shell/shell-v0-system.lisp`** — compile → run → `libc:system("echo …")`.
 
@@ -22,15 +22,28 @@ $RS run /tmp/s.lbin
 
 **Smoke**: `bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-shell-v0-smoke.sh`
 
-**Bootstrap plan**: `lisp/bootstrap/bootstrap-v45-shell-v0-smoke.lisp` — `.lbin` + `spawn-wait` dual path.
+**Bootstrap plan**: `lisp/bootstrap/bootstrap-v45-shell-v0-smoke.lisp`
+
+## Phase 1 — multi-command script (current)
+
+**`lisp/shell/shell-script.lisp`** — chained `libc:system` (3 steps).
+
+```bash
+$RS shell              # compile+run shell-script.lisp
+$RS shell-repl         # stdin REPL (host readline + sh -c)
+```
+
+**Smoke**: `bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-shell-script-smoke.sh`
+
+**Bootstrap plan**: `lisp/bootstrap/bootstrap-v45-shell-script-smoke.lisp`
 
 ## Roadmap
 
 | Phase | Deliverable | Status |
 |-------|-------------|--------|
 | 0 | `shell-v0-system.lisp` + smoke + CLI parity | ✅ |
-| 1 | `shell-script.lisp` — multi-command via bootstrap | pending |
-| 2 | REPL — `fgets` / read-line FFI | pending |
+| 1 | `shell-script.lisp` + `nanolisp shell` | ✅ |
+| 2 | `shell-repl` — stdin REPL via `/bin/sh -c` | ✅ (host readline; VM fgets pending) |
 | 3 | `$COM` no-arg → built-in `shell.lbin` | pending |
 | 4 | wave/ci scripts → shell plans only | pending |
 
