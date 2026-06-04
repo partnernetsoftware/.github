@@ -46,7 +46,7 @@ bash lab/nano-lisp-jit/retired/scripts/nanolisp-dual-gate.sh
 2. **158KB pure Lisp codegen** — both tracks still depend on host `cc` or pin for full runner
 3. **aarch64 compose-15link** — Rust `build_compose_15link` x86-only
 4. **Wave scripts default COM** — still `nano-lisp.com`; Rust not wave SSOT yet
-5. **Shell ladder product closure** — C no-arg embed (Phase 7); `nano-jit-shell-dual-smoke.sh` not in `nanolisp-dual-gate.sh` (see [`SHELL-REFLECTION.md`](SHELL-REFLECTION.md))
+5. **Shell ladder product closure** — C no-arg embed in release COM (Phase 7b); shell smokes ride dual-gate via nested c/rs gates (see [`SHELL-RUNNER.md`](SHELL-RUNNER.md#dual-gate-shell-audit-markers))
 
 ## Milestone checklist
 
@@ -65,7 +65,7 @@ bash lab/nano-lisp-jit/retired/scripts/nanolisp-dual-gate.sh
 - [x] shell Phase 6 — dual-track bootstrap + `libc:stdin` addr FFI
 - [x] shell Phase 7 — VM `libc:fgets` via stdin addr (`ptr(ptr,i32,ptr)`)
 - [ ] shell Phase 7b — C `nano-lisp.com` no-arg embed + release rebake
-- [ ] shell-dual smoke in `nanolisp-dual-gate.sh`
+- [x] shell smokes in `nanolisp-dual-gate.sh` (c: no-arg · rs: shell-ci/repl-vm/shell-dual/fgets; audit markers)
 - [ ] Rust APE size ≈ C COM with runnable full CLI
 - [ ] C/Rust zero host-cc 158KB codegen
 - [ ] v45-wave default → `nanolisp.com`

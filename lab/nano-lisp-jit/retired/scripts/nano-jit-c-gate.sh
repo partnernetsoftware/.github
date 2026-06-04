@@ -57,6 +57,7 @@ else
   echo "nanolisp.c-gate=ok manifest_pin_preserved_rust=0"
 fi
 
+export NANO_C_GATE_RUNNING=1
 bash "$RETIRED/nano-jit-c-shell-noarg-smoke.sh"
 
 if [ "${NANO_C_GATE_FACTORY:-0}" = 1 ]; then

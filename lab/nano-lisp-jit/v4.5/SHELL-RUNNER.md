@@ -87,6 +87,15 @@ $COM                       # C release: usage exit 2 until cosmocc promote
 
 **Smoke**: `bash lab/nano-lisp-jit/retired/scripts/nano-jit-shell-dual-smoke.sh`
 
+## Dual gate (shell audit markers)
+
+`bash lab/nano-lisp-jit/retired/scripts/nanolisp-dual-gate.sh` runs C then Rust product gates. Shell regression is **not** invoked again at the dual-gate layer; log lines `nanolisp.dual-gate.shell=*` document nested smokes:
+
+| Track | Gate script | Shell smokes |
+|-------|-------------|--------------|
+| C | `nano-jit-c-gate.sh` | `nano-jit-c-shell-noarg-smoke.sh` |
+| Rust | `nano-jit-rs-gate.sh` | `nano-jit-rs-shell-ci-smoke.sh`, `nano-jit-rs-shell-repl-vm-smoke.sh`, `nano-jit-shell-dual-smoke.sh`, `nano-jit-rs-shell-fgets-smoke.sh` |
+
 ## Roadmap
 
 | Phase | Deliverable | Status |
@@ -96,7 +105,7 @@ $COM                       # C release: usage exit 2 until cosmocc promote
 | 4 | shell-ci bootstrap plan | ✅ |
 | 6 | dual-track compile/run | ✅ |
 | 7 | libc fgets via stdin addr | ✅ Rust |
-| 8 | C release rebake + dual-gate wiring | ⬜ |
+| 8 | C release rebake + dual-gate wiring | ⬜ rebake · ✅ dual-gate shell markers |
 
 ## Integration into `.com`
 
