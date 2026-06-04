@@ -9,7 +9,8 @@ bash "$ROOT/lab/nano-lisp-jit/build_nano_jit_rs.sh" >/dev/null
 [ -x "$RS" ] || { echo "nano-jit-rs-shell-promote-smoke=fail no_binary"; exit 1; }
 [ -f "$PLAN" ] || { echo "nano-jit-rs-shell-promote-smoke=fail no_plan"; exit 1; }
 
-log=$("$RS" run-bootstrap-plan "$PLAN" 2>&1) || true
+plan_log=$("$RS" run-bootstrap-plan "$PLAN" 2>&1) || true
+log="$plan_log"
 echo "$log" | grep -q 'bootstrap-plan.ok=1' || {
   echo "nano-jit-rs-shell-promote-smoke=fail plan"
   echo "$log"
@@ -20,16 +21,16 @@ echo "$log" | grep -q 'hash-match.ok=1' || {
   echo "$log"
   exit 1
 }
-echo "$log" | grep -q 'nanolisp-shell-promote-embed' || {
-  echo "nano-jit-rs-shell-promote-smoke=fail embed_marker"
-  echo "$log"
-  exit 1
-}
-echo "$log" | grep -q 'nanolisp-shell-promote-ci-subset' || {
-  echo "nano-jit-rs-shell-promote-smoke=fail ci_subset"
-  echo "$log"
-  exit 1
-}
+for marker in \
+  nanolisp-shell-promote-embed \
+  nanolisp-shell-promote-ci-subset \
+  nanolisp-shell-promote-com-script; do
+  echo "$log" | grep -q "$marker" || {
+    echo "nano-jit-rs-shell-promote-smoke=fail marker=$marker"
+    echo "$log"
+    exit 1
+  }
+done
 echo "$log" | grep -q 'shell.mode=embedded-lbin' || {
   echo "nano-jit-rs-shell-promote-smoke=fail noarg"
   echo "$log"
@@ -40,21 +41,34 @@ echo "$log" | grep -q 'nanolisp-shell-script-step1' || {
   echo "$log"
   exit 1
 }
-echo "$log" | grep -q 'spawn-wait.expected=2' || {
-  echo "nano-jit-rs-shell-promote-smoke=fail c_noarg_expected"
-  echo "$log"
-  exit 1
-}
-echo "$log" | grep -q 'usage:' || {
-  echo "nano-jit-rs-shell-promote-smoke=fail c_noarg_usage"
-  echo "$log"
-  exit 1
-}
-echo "$log" | grep -q 'nanolisp-shell-promote-com-script' || {
-  echo "nano-jit-rs-shell-promote-smoke=fail com_script"
-  echo "$log"
-  exit 1
-}
 
-steps=$(echo "$log" | sed -n 's/^bootstrap-plan.steps=//p' | head -1)
-echo "nano-jit-rs-shell-promote-smoke=ok steps=${steps:-12}"
+C_COM="$ROOT/lab/nano-lisp-jit/release/nano-lisp.com"
+if [ -x "$C_COM" ]; then
+  # shellcheck source=nanolisp-c-release-shell-probe.sh
+  . "$ROOT/lab/nano-lisp-jit/retired/scripts/nanolisp-c-release-shell-probe.sh"
+  nanolisp_c_release_shell_probe_apply >/dev/null
+
+  log=$("$C_COM" 2>&1) || rc=$?
+  rc=${rc:-0}
+  if [ "${NANO_C_RELEASE_HAS_SHELL}" = 1 ]; then
+    echo "$log" | grep -q 'shell.mode=' || {
+      echo "nano-jit-rs-shell-promote-smoke=fail c_com_shell_mode"
+      echo "$log"
+      exit 1
+    }
+  else
+    if [ "$rc" -ne 2 ]; then
+      echo "nano-jit-rs-shell-promote-smoke=fail c_com_exit expected=2 actual=$rc"
+      echo "$log"
+      exit 1
+    fi
+    echo "$log" | grep -q 'usage:' || {
+      echo "nano-jit-rs-shell-promote-smoke=fail c_com_usage"
+      echo "$log"
+      exit 1
+    }
+  fi
+fi
+
+steps=$(echo "$plan_log" | sed -n 's/^bootstrap-plan.steps=//p' | head -1)
+echo "nano-jit-rs-shell-promote-smoke=ok steps=${steps:-11}"

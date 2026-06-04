@@ -1,7 +1,7 @@
 ; shell-promote — Phase 9 C release promote ladder (plan-only; host-cc/cosmocc external).
 ; Ladder: (1) embed cmp archive/c vs rs; (2) host-cc factory — external
 ;   (nano-jit-c-shell-promote-smoke.sh); (3) spawn-wait c-noarg plan + shell-ci subset;
-; (4) probe-friendly release COM no-arg exit 2; (5) COM compile/run shell-script;
+; (4) release COM no-arg — smoke probe (gap vs embedded); (5) COM compile/run shell-script;
 ; (6) cosmocc factory + v45-manifest-pin — external/manual.
 (bootstrap
   ; Step 1: embed parity (promote gate)
@@ -26,8 +26,7 @@
   (spawn-wait 0 "lab/nano-lisp-jit/.build/nano-jit-rs/nanolisp" "shell")
   (spawn-wait 0 "/bin/sh" "-c" "echo nanolisp-shell-promote-ci-subset")
 
-  ; Step 4: probe-friendly release COM no-arg (pre-promote usage exit 2)
-  (spawn-wait 2 "lab/nano-lisp-jit/release/nano-lisp.com")
+  ; Step 4: release COM no-arg — external smokes (nanolisp-c-release-shell-probe.sh)
 
   ; Step 5: C COM compile/run shell-script (promote path proof)
   (spawn-wait 0 "lab/nano-lisp-jit/release/nano-lisp.com" "compile"

@@ -80,19 +80,33 @@ else
 fi
 
 [ -x "$C_COM" ] || { echo "nano-jit-c-shell-noarg-smoke=fail no_c_com"; exit 1; }
+
+# shellcheck source=nanolisp-c-release-shell-probe.sh
+. "$ROOT/lab/nano-lisp-jit/retired/scripts/nanolisp-c-release-shell-probe.sh"
+nanolisp_c_release_shell_probe_apply >/dev/null
+
 log=$("$C_COM" 2>&1) || rc=$?
 rc=${rc:-0}
-if [ "$rc" -ne 2 ]; then
-  echo "nano-jit-c-shell-noarg-smoke=fail release_exit expected=2 actual=$rc"
-  echo "$log"
-  exit 1
+if [ "${NANO_C_RELEASE_HAS_SHELL}" = 1 ]; then
+  echo "$log" | grep -q 'shell.mode=embedded-lbin' || {
+    echo "nano-jit-c-shell-noarg-smoke=fail release_shell_mode expected=embedded-lbin"
+    echo "$log"
+    exit 1
+  }
+  echo "nano-jit-c-shell-noarg-smoke=ok release_has_shell=1"
+else
+  if [ "$rc" -ne 2 ]; then
+    echo "nano-jit-c-shell-noarg-smoke=fail release_exit expected=2 actual=$rc"
+    echo "$log"
+    exit 1
+  fi
+  echo "$log" | grep -q 'usage:' || {
+    echo "nano-jit-c-shell-noarg-smoke=fail release_usage"
+    echo "$log"
+    exit 1
+  }
+  echo "nano-jit-c-shell-noarg-smoke=ok release_gap usage_exit=2"
 fi
-echo "$log" | grep -q 'usage:' || {
-  echo "nano-jit-c-shell-noarg-smoke=fail release_usage"
-  echo "$log"
-  exit 1
-}
-echo "nano-jit-c-shell-noarg-smoke=ok release_com_gap usage_exit=2"
 
 if [ -x "$C_COM" ]; then
   rc=0
@@ -103,7 +117,7 @@ if [ -x "$C_COM" ]; then
     exit 1
   }
   ok_count=$(echo "$log" | grep -c 'spawn-wait.ok=1' || true)
-  [ "$ok_count" -ge 4 ] || {
+  [ "$ok_count" -ge 3 ] || {
     echo "nano-jit-c-shell-noarg-smoke=fail bootstrap_plan_spawn ok=$ok_count"
     echo "$log"
     exit 1
