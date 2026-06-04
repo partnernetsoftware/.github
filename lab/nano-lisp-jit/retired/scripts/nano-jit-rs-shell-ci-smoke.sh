@@ -94,4 +94,4 @@ if [ -x "$COM" ]; then
 fi
 
 steps=$(echo "$ci_log" | sed -n 's/^bootstrap-plan.steps=//p' | head -1)
-echo "nano-jit-rs-shell-ci-smoke=ok steps=${steps:-28}"
+echo "nano-jit-rs-shell-ci-smoke=ok steps=${steps:-29}"
