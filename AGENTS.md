@@ -19,6 +19,7 @@ Multi-product personal codebase:
 - **Jekyll Blog** (root) — GitHub Pages site, `bundle exec jekyll serve` on port 4000
 - **Python MCP Services** (`products/`) — MCP stdio servers (`ctx.py`, `ai.py`, `ctx_store.py`)
 - **CosmoRun** (`cosmorun/`) — C code execution via TinyCC + Cosmopolitan (needs `third_party/cosmocc/` which is gitignored)
+- **nano-lisp / nanolisp** (`lab/nano-lisp-jit/`) — dual release tracks: C `nano-lisp.com` (~327 KiB) vs Rust `nanolisp.com` (~2.8 MiB); SSOT [`lab/nano-lisp-jit/v4.5/PRODUCT-TRACKS.md`](lab/nano-lisp-jit/v4.5/PRODUCT-TRACKS.md)
 - **TUI** (`tools/tui.ts`) — Bun-based tmux dashboard
 
 ### Running services

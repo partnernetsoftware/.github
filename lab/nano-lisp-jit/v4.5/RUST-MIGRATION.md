@@ -1,5 +1,7 @@
 # nanolisp.com Rust 迁移
 
+**双轨 SSOT（何时用 C COM vs Rust COM、体积、gate/promote）**：[`PRODUCT-TRACKS.md`](PRODUCT-TRACKS.md)
+
 **目标**：商用级 **nanolisp.com** Lisp 运行时 — 多架构 compile + run `.lisp` / `.lbin`，最终替换 C runner。内部 JIT / FFI / AOT 不进产品名。
 
 ## 品牌 rename（进行中）
@@ -24,6 +26,8 @@ ELF slices ──pack-ape──▶  .com  ──run-ape──▶  native exec
 类比 Java：`.lisp` ≈ `.java`，`.lbin` ≈ `.class`。
 
 ## 现状（2026-06）
+
+整体 **~99%**；release 面仍并存 `nano-lisp.com`（C）与 `nanolisp.com`（Rust）— 见 [PRODUCT-TRACKS](PRODUCT-TRACKS.md)。
 
 | 组件 | C | Rust | 进度 |
 |------|---|------|------|
