@@ -4,6 +4,8 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../../../.." && pwd)"
 RETIRED="$ROOT/lab/nano-lisp-jit/retired"
 RUNNER_SRC="$RETIRED/archive-c/runner"
+EMBED_C="$ROOT/lab/nano-lisp-jit/archive/c/embed/shell-script.lbin"
+EMBED_RS="$ROOT/lab/nano-jit-rs/embed/shell-script.lbin"
 C_COM="$ROOT/lab/nano-lisp-jit/release/nano-lisp.com"
 PLAN="$ROOT/lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-shell-c-noarg.lisp"
 HOST_BIN="$ROOT/lab/nano-lisp-jit/.build/nano-lisp-jit-host-shell-noarg"
@@ -22,6 +24,21 @@ grep -q 'cmd_shell_noarg' "$RUNNER_SRC/nano_shell_cli.c" || {
 }
 echo "nano-jit-c-shell-noarg-smoke=ok source_grep"
 
+[ -f "$EMBED_C" ] || {
+  echo "nano-jit-c-shell-noarg-smoke=fail no_c_embed path=$EMBED_C"
+  exit 1
+}
+[ -f "$EMBED_RS" ] || {
+  echo "nano-jit-c-shell-noarg-smoke=fail no_rs_embed path=$EMBED_RS"
+  exit 1
+}
+cmp -s "$EMBED_C" "$EMBED_RS" || {
+  echo "nano-jit-c-shell-noarg-smoke=fail embed_bytes_mismatch c=$EMBED_C rs=$EMBED_RS"
+  exit 1
+}
+embed_bytes=$(wc -c <"$EMBED_C" | tr -d ' ')
+echo "nano-jit-c-shell-noarg-smoke=ok embed_parity bytes=$embed_bytes"
+
 if ! command -v cc >/dev/null 2>&1; then
   echo "nano-jit-c-shell-noarg-smoke=skip host_cc_missing"
 else
@@ -33,8 +50,13 @@ else
     -ldl -o "$HOST_BIN"
   chmod +x "$HOST_BIN"
   log=$("$HOST_BIN" 2>&1) || true
-  echo "$log" | grep -q 'shell.mode=' || {
-    echo "nano-jit-c-shell-noarg-smoke=fail host_mode"
+  echo "$log" | grep -q 'shell.mode=embedded-lbin' || {
+    echo "nano-jit-c-shell-noarg-smoke=fail host_mode expected=embedded-lbin"
+    echo "$log"
+    exit 1
+  }
+  echo "$log" | grep -q "shell.lbin=lab/nano-lisp-jit/archive/c/embed/shell-script.lbin" || {
+    echo "nano-jit-c-shell-noarg-smoke=fail host_embed_path"
     echo "$log"
     exit 1
   }
@@ -81,7 +103,7 @@ if [ -x "$C_COM" ]; then
     exit 1
   }
   ok_count=$(echo "$log" | grep -c 'spawn-wait.ok=1' || true)
-  [ "$ok_count" -ge 3 ] || {
+  [ "$ok_count" -ge 4 ] || {
     echo "nano-jit-c-shell-noarg-smoke=fail bootstrap_plan_spawn ok=$ok_count"
     echo "$log"
     exit 1
