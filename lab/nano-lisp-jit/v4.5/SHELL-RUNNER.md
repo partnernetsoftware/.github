@@ -2,7 +2,7 @@
 
 **Goal**: `.com` becomes a Lisp-native shell runner — dogfood in `shell/*.lisp`, then embed in release COM.
 
-**Retrospective (Ph 0–7 proof, dual-track GAP, % rubric)**: [`SHELL-REFLECTION.md`](SHELL-REFLECTION.md)
+**Retrospective (Ph 0–8, Wave 4 prep, dual-track GAP, % rubric)**: [`SHELL-REFLECTION.md`](SHELL-REFLECTION.md)
 
 ## Capability layers
 
@@ -12,7 +12,7 @@
 | bootstrap | `(spawn-wait …)` / `(read-file …)` | ✅ | ✅ |
 | `.lbin` VM | `libc:system` / `strlen` / … | ✅ | ✅ |
 | `.lbin` addr | `libc:stdin` addr resolve | ✅ (pin) | ✅ |
-| `.lbin` fgets | `libc:fgets` + stdin addr | ⬜ | ✅ Phase 7 |
+| `.lbin` fgets | `libc:fgets` + stdin addr | ⬜ Wave 4 opcode | ✅ Phase 7 |
 | `.lbin` fgets REPL | `shell-repl-fgets.lisp` loop | ⬜ | ✅ Phase 7 alt |
 | no-arg dispatch | `$COM` → embedded shell | ❌ release · ✅ source | ✅ Phase 3 |
 
@@ -74,7 +74,12 @@ $COM                       # C release: usage exit 2 until cosmocc promote
 
 **Smoke**: `bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-shell-fgets-smoke.sh`
 
-**GAP**: C COM parity for fgets opcode not ported.
+**GAP**: C COM parity for fgets opcode — **Wave 4** planned (`OP_CALL_IMPORT_CONST_IMM_PTR` + stdin addr; c-gate smoke TBD).
+
+| Track | Phase 7 fgets |
+|-------|----------------|
+| Rust | ✅ `nano-jit-rs-shell-fgets-smoke.sh` |
+| C COM | ⬜ Wave 4 — port VM opcode + extend shell-ci / dual C steps |
 
 ## Phase 7 alt — fgets REPL loop
 
@@ -112,6 +117,8 @@ $RS run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-shell-full
 
 **Smoke**: `bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-shell-full-smoke.sh` (rs-gate; greps `nanolisp-shell-full-*`, `shell.mode=embedded-lbin`, C `spawn-wait` exit 2).
 
+**shell-full CLI note (Wave 4)**: Rust daily path is `run-bootstrap-plan` on the plan above (no dedicated `nanolisp shell-full` subcommand required — smoke drives the ladder). C track has no equivalent one-shot CLI yet; Wave 4 adds a COM dispatch or documents `$COM run-bootstrap-plan …/bootstrap-v45-shell-full.lisp` parity so dual-gate can audit a C shell-full marker alongside rs-gate.
+
 ## C release shell auto-probe (P2)
 
 **`retired/scripts/nanolisp-c-release-shell-probe.sh`** — run pinned `$COM` with no args; sets `NANO_C_RELEASE_HAS_SHELL` to `1` (`shell.mode=`) or `0` (`usage:` exit 2). Sourced by shell-ci, dual, and promote smokes; override with `export NANO_C_RELEASE_HAS_SHELL=0|1` before source.
@@ -138,15 +145,25 @@ bash lab/nano-lisp-jit/retired/scripts/nanolisp-c-release-shell-probe.sh
 | 3 | no-arg embed | ✅ Rust · ✅ C source · ⬜ C release |
 | 4 | shell-ci bootstrap plan | ✅ |
 | 6 | dual-track compile/run | ✅ |
-| 7 | libc fgets via stdin addr | ✅ Rust |
+| 7 | libc fgets via stdin addr | ✅ Rust · ⬜ C opcode (Wave 4) |
 | 7 alt | fgets REPL (`shell-repl-fgets`) | ✅ rs-gate · shell-ci · dual plan |
 | 7b | C embed + shell-ci C track | ✅ plan + probe-conditional assert |
 | 8 | shell-full bootstrap (`bootstrap-v45-shell-full.lisp`) | ✅ rs-gate (~29 steps) |
-| 9 | C release rebake + factory embed in pin | ⬜ cosmocc promote (product slice 58%) |
+| 8b | shell-full C CLI / COM plan driver | ⬜ Wave 4 |
+| 9 | C release rebake + factory embed in pin | ⬜ cosmocc promote (product slice 58%; host-cc proves source) |
 
 ## C release shell promote (prep)
 
-Source no-arg shell is gated (`nano-jit-c-shell-noarg-smoke.sh`); rebaking `release/nano-lisp.com` needs cosmocc. Run `bash lab/nano-lisp-jit/retired/scripts/nano-jit-c-shell-promote-smoke.sh` — sources auto-probe when `NANO_C_RELEASE_HAS_SHELL` unset; exits 0 with `skip cosmocc_missing` when the toolchain is absent, otherwise checks manifest parity and the release GAP without rewriting `manifest.txt`. Full regenesis is opt-in (`NANO_C_SHELL_PROMOTE_BUILD=1` → `build_nano_jit.sh`); after a green factory build, promote with `v45-manifest-pin.sh` (probe should then report `nanolisp.c-release-shell=embedded`).
+**Host-cc proves factory source; release pin still blocks product.**
+
+| Step | Command / artifact | Proves |
+|------|-------------------|--------|
+| 1 | `nano-jit-c-shell-noarg-smoke.sh` (host `cc` runner) | `cmd_shell_noarg` + `archive/c/embed/shell-script.lbin` → `shell.mode=embedded-lbin` |
+| 2 | `nano-jit-c-shell-promote-smoke.sh` (cosmocc present) | Manifest parity + release GAP or embedded (probe); never rewrites `manifest.txt` alone |
+| 3 | `NANO_C_SHELL_PROMOTE_BUILD=1` on promote smoke | `build_nano_jit.sh` factory → `.build/nano-jit/nano-jit.com` with `shell.mode=` |
+| 4 | `v45-manifest-pin.sh` (manual) | `release/nano-lisp.com` pin; probe → `nanolisp.c-release-shell=embedded`; product slice can move off 58% |
+
+Run `bash lab/nano-lisp-jit/retired/scripts/nano-jit-c-shell-promote-smoke.sh` — exits 0 with `skip cosmocc_missing` when the toolchain is absent (step 1 still valid via noarg smoke). Shipping waits on step 4.
 
 ## Integration into `.com`
 
