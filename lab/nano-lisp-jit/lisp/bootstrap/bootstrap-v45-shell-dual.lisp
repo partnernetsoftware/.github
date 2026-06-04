@@ -17,5 +17,9 @@
            "lab/nano-lisp-jit/.build/v45-shell-fgets-smoke.lbin")
   (spawn-wait 0 "/bin/sh" "-c"
     "printf 'piped-fgets-line\\n' | lab/nano-lisp-jit/.build/nano-jit-rs/nanolisp run lab/nano-lisp-jit/.build/v45-shell-fgets-smoke.lbin")
+  (compile "lab/nano-lisp-jit/lisp/shell/shell-repl-fgets.lisp"
+           "lab/nano-lisp-jit/.build/v45-shell-repl-fgets.lbin")
+  (spawn-wait 0 "/bin/sh" "-c"
+    "printf '%s\\n' 'echo nanolisp-shell-dual-repl-fgets' | lab/nano-lisp-jit/.build/nano-jit-rs/nanolisp run lab/nano-lisp-jit/.build/v45-shell-repl-fgets.lbin")
   ; C release no-arg: pre-promote pin still usage exit 2
   (spawn-wait 2 "lab/nano-lisp-jit/release/nano-lisp.com"))
