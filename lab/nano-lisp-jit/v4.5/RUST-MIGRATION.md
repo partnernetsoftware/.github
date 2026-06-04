@@ -105,7 +105,7 @@ bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-bootstrap-compose15-hybrid-sm
 bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-bootstrap-compose15-semantic-build-slice-smoke.sh # semantic/expand profiles
 bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-release-pack-smoke.sh   # Rust nanolisp → APE
 bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-release-promote-smoke.sh # release/nanolisp.com pin
-bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-capsule-smoke.sh    # NLCap v0 multi-tier + abin
+bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-shell-v0-smoke.sh   # shell libc:system + spawn-wait
 bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-gate.sh          # all of the above + cargo test
 cd lab/nano-jit-rs && cargo test
 ```

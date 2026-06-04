@@ -52,6 +52,8 @@ Usage:\n\
   {bin} run-capsule <file.nlcap> [--tier auto|lbin|sbin|xbin|abin] [--expect <code>]\n\
   {bin} run-bootstrap-plan <plan.lisp>\n\
   {bin} run-expect-exit <executable> <expected_exit>\n\
+  {bin} read-file <path>\n\
+  {bin} spawn-wait <expected> <executable> [arg...]\n\
   {bin} version\n\
 Env:\n\
   NANO_JIT_LEGACY       force legacy COM compile when set\n\
@@ -139,6 +141,11 @@ fn main() -> ExitCode {
         }
         "run-expect-exit" if args.len() == 4 => {
             run::run_expect_exit(Path::new(&args[2]), &args[3])
+        }
+        "read-file" if args.len() == 3 => run::read_file(Path::new(&args[2])),
+        "spawn-wait" if args.len() >= 4 => {
+            let extra: Vec<String> = args[4..].to_vec();
+            run::spawn_wait(&args[2], Path::new(&args[3]), &extra)
         }
         "inspect-capsule" if args.len() == 3 => {
             capsule::inspect_capsule(Path::new(&args[2]))

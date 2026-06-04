@@ -71,9 +71,12 @@ lab/nano-lisp-jit/release/nano-lisp.com inspect-ape lab/nano-lisp-jit/release/na
 lab/nano-lisp-jit/release/nanolisp.com version
 ```
 
+| **Shell runner** | bootstrap spawn-wait | **Phase 0** `.lbin` system + CLI parity | pending REPL / embed COM |
+
 ## Related docs
 
-- [`OVERALL-PROGRESS.md`](OVERALL-PROGRESS.md) — quantified % assessment · dual gate  
-- [`../release/README.md`](../release/README.md) — artifact table + manifest link  
-- [`RUST-MIGRATION.md`](RUST-MIGRATION.md) — component parity matrix & smoke index  
-- [`REFLECTION.md`](REFLECTION.md) — v4.5 narrative / wave history  
+- [`SHELL-RUNNER.md`](SHELL-RUNNER.md) — shell.lisp practice ladder · embed `.com` plan
+- [`../release/README.md`](../release/README.md) — artifact table + manifest link
+- [`OVERALL-PROGRESS.md`](OVERALL-PROGRESS.md) — quantified % assessment · dual gate
+- [`RUST-MIGRATION.md`](RUST-MIGRATION.md) — component parity matrix & smoke index
+- [`REFLECTION.md`](REFLECTION.md) — v4.5 narrative / wave history
