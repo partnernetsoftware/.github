@@ -55,6 +55,7 @@ bash lab/nano-lisp-jit/retired/scripts/nanolisp-dual-gate.sh
 - [x] aarch64 VM/AOT build-slice-lisp (min/ir pure-blob)
 - [x] nano_cc build-slice path
 - [x] `nanolisp-slim.com` genesis-pin release pathfinder
+- [x] shell-v0 — `libc:system` .lbin + CLI `spawn-wait`/`read-file`
 - [ ] Rust APE size ≈ C COM with runnable full CLI
 - [ ] C/Rust zero host-cc 158KB codegen
 - [ ] v45-wave default → `nanolisp.com`
