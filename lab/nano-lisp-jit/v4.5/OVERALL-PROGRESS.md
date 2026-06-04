@@ -1,6 +1,6 @@
 # Overall progress — nanolisp commercial SOTA
 
-**Updated**: 2026-06-04 · Wave 2 merge (shell-ci fgets, C embed, promote prep). SSOT tracks: [`PRODUCT-TRACKS.md`](PRODUCT-TRACKS.md) · shell: [`SHELL-REFLECTION.md`](SHELL-REFLECTION.md).
+**Updated**: 2026-06-04 · Wave 3 reflection (C release auto-probe, shell-ci C track, shell-full). SSOT tracks: [`PRODUCT-TRACKS.md`](PRODUCT-TRACKS.md) · shell: [`SHELL-REFLECTION.md`](SHELL-REFLECTION.md).
 
 ## Executive summary
 
@@ -10,7 +10,7 @@
 | **Rust `nanolisp.com`** | **99%** feature parity | `nanolisp.gate=ok` | 2 959 413 B · full CLI APE |
 | **Rust slim pathfinder** | **40%** | slim smoke | `nanolisp-slim.com` ~161 KiB (genesis-pin pack) |
 | **Migration (Rust replaces C)** | **~86%** | dual gate | C maintained until slim + parity + shell embed |
-| **Shell runner ladder** | **~90%** | nested dual-gate + shell-ci 22-step | Phase 0–7 + embed; C 7b file embed; release promote pending |
+| **Shell runner ladder** | **~91–92%** | nested dual-gate + shell-ci ~28-step + shell-full | Phase 0–8; C auto-probe (P2 ~done); product pin still 58% until cosmocc promote |
 
 **Dual gate (both tracks)**:
 
@@ -46,7 +46,7 @@ bash lab/nano-lisp-jit/retired/scripts/nanolisp-dual-gate.sh
 2. **158KB pure Lisp codegen** — both tracks still depend on host `cc` or pin for full runner
 3. **aarch64 compose-15link** — Rust `build_compose_15link` x86-only
 4. **Wave scripts default COM** — still `nano-lisp.com`; Rust not wave SSOT yet
-5. **Shell ladder product closure** — C release cosmocc promote (`nano-jit-c-shell-promote-smoke.sh`); dual-smoke flip when pin ships shell UX
+5. **Shell ladder product closure** — C release cosmocc promote (`nano-jit-c-shell-promote-smoke.sh`); auto-probe flips smokes when pin ships shell UX (P2 ~done)
 
 ## Milestone checklist
 
@@ -67,8 +67,10 @@ bash lab/nano-lisp-jit/retired/scripts/nanolisp-dual-gate.sh
 - [x] shell Phase 7 alt — `shell-repl-fgets.lisp` + smoke (shell-ci + dual bootstrap)
 - [x] shell Phase 7b source — C `cmd_shell_noarg` + `archive/c/embed/shell-script.lbin` (host-cc embedded-lbin)
 - [ ] shell Phase 7b release — C `nano-lisp.com` factory embed + manifest rebake
-- [x] shell-ci extension — fgets + repl-fgets (22 steps)
-- [x] shell smokes in `nanolisp-dual-gate.sh` (c: shell-noarg · rs: shell-ci/repl-vm/shell-dual/fgets/repl-fgets)
+- [x] shell-ci extension — fgets + repl-fgets + Phase 7b C track (~28 steps)
+- [x] C release shell auto-probe — `nanolisp-c-release-shell-probe.sh` (P2 ~done)
+- [x] shell Phase 8 — `bootstrap-v45-shell-full.lisp` + `nano-jit-rs-shell-full-smoke.sh` (~29 steps, rs-gate)
+- [x] shell smokes in `nanolisp-dual-gate.sh` (c: shell-noarg · rs: shell-ci/shell-full/repl-vm/shell-dual/fgets/repl-fgets)
 - [ ] Rust APE size ≈ C COM with runnable full CLI
 - [ ] C/Rust zero host-cc 158KB codegen
 - [ ] v45-wave default → `nanolisp.com`
