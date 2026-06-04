@@ -364,7 +364,7 @@ pub fn link_exe(path: &Path, entry_name: &str, obj_paths: &[&Path]) -> io::Resul
         )?;
     }
 
-    emit_exec_sections(path, &code, &rodata, &data_buf)?;
+    emit_exec_sections(path, &code, &rodata, &data_buf, super::MACHINE_X86_64)?;
     Ok(LinkResult {
         code_bytes: code.len(),
         rodata_bytes: rodata.len(),
