@@ -1,6 +1,6 @@
 # Overall progress — nanolisp commercial SOTA
 
-**Updated**: 2026-06-04 · gate snapshot on `main`. SSOT tracks: [`PRODUCT-TRACKS.md`](PRODUCT-TRACKS.md) · parity matrix: [`RUST-MIGRATION.md`](RUST-MIGRATION.md) · shell retrospective: [`SHELL-REFLECTION.md`](SHELL-REFLECTION.md).
+**Updated**: 2026-06-04 · shell reflection sync (Phase 7 + 7b source). SSOT tracks: [`PRODUCT-TRACKS.md`](PRODUCT-TRACKS.md) · parity matrix: [`RUST-MIGRATION.md`](RUST-MIGRATION.md) · shell retrospective: [`SHELL-REFLECTION.md`](SHELL-REFLECTION.md).
 
 ## Executive summary
 
@@ -10,7 +10,7 @@
 | **Rust `nanolisp.com`** | **99%** feature parity | `nanolisp.gate=ok` | 2 959 413 B · full CLI APE |
 | **Rust slim pathfinder** | **40%** | slim smoke | `nanolisp-slim.com` ~161 KiB (genesis-pin pack) |
 | **Migration (Rust replaces C)** | **~86%** | dual gate | C maintained until slim + parity + shell embed |
-| **Shell runner ladder** | **~88%** | shell-dual + fgets smoke | Phase 0–7 Rust; C no-arg source pending |
+| **Shell runner ladder** | **~88%** | nested dual-gate (c shell-noarg + rs dual/fgets) | Phase 0–7 Rust; C 7b source wired; release embed pending |
 
 **Dual gate (both tracks)**:
 
@@ -46,7 +46,7 @@ bash lab/nano-lisp-jit/retired/scripts/nanolisp-dual-gate.sh
 2. **158KB pure Lisp codegen** — both tracks still depend on host `cc` or pin for full runner
 3. **aarch64 compose-15link** — Rust `build_compose_15link` x86-only
 4. **Wave scripts default COM** — still `nano-lisp.com`; Rust not wave SSOT yet
-5. **Shell ladder product closure** — C no-arg embed in release COM (Phase 7b); shell smokes ride dual-gate via nested c/rs gates (see [`SHELL-RUNNER.md`](SHELL-RUNNER.md#dual-gate-shell-audit-markers))
+5. **Shell ladder product closure** — C no-arg **release** embed (7b source wired); shell smokes ride dual-gate via nested c/rs gates (see [`SHELL-RUNNER.md`](SHELL-RUNNER.md#dual-gate-shell-audit-markers) · [`SHELL-REFLECTION.md`](SHELL-REFLECTION.md))
 
 ## Milestone checklist
 
@@ -64,8 +64,9 @@ bash lab/nano-lisp-jit/retired/scripts/nanolisp-dual-gate.sh
 - [x] shell Phase 5 — VM `nano:read-line` + `shell-repl.lisp`
 - [x] shell Phase 6 — dual-track bootstrap + `libc:stdin` addr FFI
 - [x] shell Phase 7 — VM `libc:fgets` via stdin addr (`ptr(ptr,i32,ptr)`)
-- [ ] shell Phase 7b — C `nano-lisp.com` no-arg embed + release rebake
-- [x] shell smokes in `nanolisp-dual-gate.sh` (c: no-arg · rs: shell-ci/repl-vm/shell-dual/fgets; audit markers)
+- [x] shell Phase 7b source — C `cmd_shell_noarg` + `nano-jit-c-shell-noarg-smoke.sh` (host-cc; release `usage:` gap documented)
+- [ ] shell Phase 7b release — C `nano-lisp.com` no-arg embed + manifest rebake
+- [x] shell smokes in `nanolisp-dual-gate.sh` (c: shell-noarg · rs: shell-ci/repl-vm/shell-dual/fgets/repl-fgets; audit markers)
 - [ ] Rust APE size ≈ C COM with runnable full CLI
 - [ ] C/Rust zero host-cc 158KB codegen
 - [ ] v45-wave default → `nanolisp.com`
