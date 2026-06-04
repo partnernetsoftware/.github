@@ -107,6 +107,10 @@ $COM                       # C release: usage exit 2 until cosmocc promote
 | 7 | libc fgets via stdin addr | ✅ Rust |
 | 8 | C release rebake + dual-gate wiring | ⬜ rebake · ✅ dual-gate shell markers |
 
+## C release shell promote (prep)
+
+Source no-arg shell is gated (`nano-jit-c-shell-noarg-smoke.sh`); rebaking `release/nano-lisp.com` needs cosmocc. Run `bash lab/nano-lisp-jit/retired/scripts/nano-jit-c-shell-promote-smoke.sh` — it exits 0 with `skip cosmocc_missing` when the toolchain is absent, otherwise checks manifest parity and the release GAP without rewriting `manifest.txt`. Full regenesis is opt-in (`NANO_C_SHELL_PROMOTE_BUILD=1` → `build_nano_jit.sh`); after a green factory build, promote with `v45-manifest-pin.sh` and flip dual smoke via `NANO_C_RELEASE_HAS_SHELL=1`.
+
 ## Integration into `.com`
 
 1. Prove commands in `shell/*.lisp` + gate smoke. ✅ Rust

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # C track gate — release/nano-lisp.com SSOT; no cosmocc required.
 # Parity: manifest pin · verify-smoke plan · optional full factory (NANO_C_GATE_FACTORY=1).
+# Optional shell promote prep (off by default): NANO_C_SHELL_PROMOTE=1 → nano-jit-c-shell-promote-smoke.sh
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../../../.." && pwd)"
 RETIRED="$ROOT/lab/nano-lisp-jit/retired/scripts"
