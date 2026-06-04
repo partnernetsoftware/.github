@@ -1,15 +1,13 @@
 # Shell runner — reflection (Phases 0–8 merged)
 
-**Updated**: 2026-06-04 · Wave 3 reflection (probe + shell-ci C track + shell-full)  
+**Updated**: 2026-06-04 · Wave 3 merged (probe + shell-ci C track + shell-full)  
 **SSOT ladder**: [`SHELL-RUNNER.md`](SHELL-RUNNER.md) · **product tracks**: [`PRODUCT-TRACKS.md`](PRODUCT-TRACKS.md) · **rollup %**: [`OVERALL-PROGRESS.md`](OVERALL-PROGRESS.md)
-
-**Merge note**: No `origin/cursor/*wave3*` branches at reflection time; `cursor/nanolisp-shell-integrate-fc19` already carries probe, shell-ci Phase 7b C steps, and shell-full smokes — this doc syncs SSOT ahead of sibling wave-3 PRs.
 
 ## Executive summary
 
 Phases **0–7 (Rust)**, **Phase 7 alt** (`shell-repl-fgets`), **shell-ci** (fgets + repl-fgets + **Phase 7b C track**, ~28 steps), **C source no-arg + file embed (7b)**, **C release auto-probe (P2)**, and **Phase 8 shell-full** (`bootstrap-v45-shell-full.lisp`, ~29 steps, rs-gate) are merged or gated on integrate. C **release** `nano-lisp.com` pin still `usage:` on no-arg until cosmocc promote — product slice unchanged.
 
-**Honest overall**: **~91%** with probe + C shell-ci steps; **~92%** when shell-full is in daily rs-gate path (see [percent rubric](#percent-rubric)).
+**Honest overall**: **~92%** (shell-full in rs-gate; product slice still **58%** until cosmocc promote).
 
 ---
 
@@ -107,7 +105,7 @@ Post-integrate + wave-2 subagent merges:
 
 ## Wave 3 reflection (2026-06-04)
 
-Planned deliverables (landed on integrate; sibling branches pending merge if they diverge):
+Wave 3 merged on `cursor/nanolisp-shell-integrate-fc19`:
 
 | Item | Status | Notes |
 |------|--------|-------|

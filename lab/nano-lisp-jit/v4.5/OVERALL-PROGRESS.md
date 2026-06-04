@@ -10,7 +10,7 @@
 | **Rust `nanolisp.com`** | **99%** feature parity | `nanolisp.gate=ok` | 2 959 413 B · full CLI APE |
 | **Rust slim pathfinder** | **40%** | slim smoke | `nanolisp-slim.com` ~161 KiB (genesis-pin pack) |
 | **Migration (Rust replaces C)** | **~86%** | dual gate | C maintained until slim + parity + shell embed |
-| **Shell runner ladder** | **~91–92%** | nested dual-gate + shell-ci ~28-step + shell-full | Phase 0–8; C auto-probe (P2 ~done); product pin still 58% until cosmocc promote |
+| **Shell runner ladder** | **~92%** | nested dual-gate + shell-ci 28-step + shell-full | Phase 0–8; C auto-probe (P2 ~done); release promote pending |
 
 **Dual gate (both tracks)**:
 
