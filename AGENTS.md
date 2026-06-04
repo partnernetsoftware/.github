@@ -30,6 +30,7 @@ Multi-product personal codebase:
 | MCP ai.py | `python3 /workspace/products/ai.py server` | Stdio JSON-RPC; pipe JSON to stdin |
 | MCP ctx.py | `python3 /workspace/products/ctx.py server` | Has singleton check that may kill its own process via ps grep; test via direct Python import instead |
 | TUI | `bun run /workspace/tools/tui.ts status` | Needs `export PATH="$HOME/.bun/bin:$PATH"` |
+| nanolisp dual gate | `bash /workspace/lab/nano-lisp-jit/retired/scripts/nanolisp-dual-gate.sh` | C + Rust product gates; see `lab/nano-lisp-jit/v4.5/OVERALL-PROGRESS.md` |
 
 ### Gotchas
 
