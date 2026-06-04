@@ -5,9 +5,9 @@
 
 ## Executive summary
 
-Phases **0–7 (Rust)**, **Phase 7 alt** (`shell-repl-fgets` VM loop), and **C source no-arg (7b)** are merged and gated. C **release** `nano-lisp.com` pin still `usage:` on no-arg until cosmocc promote. **`bootstrap-v45-shell-ci.lisp`** unchanged (no fgets/repl-fgets steps yet).
+Phases **0–7 (Rust)**, **Phase 7 alt** (`shell-repl-fgets`), **shell-ci Phase 7 extension** (fgets + repl-fgets, 22 steps), and **C source no-arg + file embed (7b)** are merged and gated. C **release** `nano-lisp.com` pin still `usage:` on no-arg until cosmocc promote.
 
-**Honest overall**: **~89%** (see [percent rubric](#percent-rubric) below). **~90%** reserved for shell-ci plan extension + C embed slice.
+**Honest overall**: **~90%** (see [percent rubric](#percent-rubric) below).
 
 ---
 
@@ -19,14 +19,14 @@ Phases **0–7 (Rust)**, **Phase 7 alt** (`shell-repl-fgets` VM loop), and **C s
 | **1** | `shell-script.lisp` + `nanolisp shell` | Multi-step `libc:system` chain compiles and runs; dev CLI can compile+run fresh script without re-embedding. Smoke: `nano-jit-rs-shell-script-smoke.sh`. |
 | **2** | `nano:read-line` + `shell-repl.lisp` | VM FFI shim (`i32(ptr,i32)`) + stdin-driven REPL loop; interactive path distinct from one-shot script. *(Some docs label this Phase 5 — same capability.)* Smoke: `nano-jit-rs-shell-repl-vm-smoke.sh`. |
 | **3** | `$COM` no-arg → `embed/shell-script.lbin` | Rust binary embeds compile output; `argc==1` runs embedded `.lbin` (`shell.mode=embedded-lbin`). Hash-match in shell-ci proves embed freshness. Smoke: `nano-jit-rs-shell-noarg-smoke.sh`. |
-| **4** | `bootstrap-v45-shell-ci.lisp` + `shell-ci` | Unified ladder (0→3 + read-line + REPL + pack-ape) as **one bootstrap plan** — onion TDD replacement for per-phase `.sh` smokes. Smoke: `nano-jit-rs-shell-ci-smoke.sh`. |
+| **4** | `bootstrap-v45-shell-ci.lisp` + `shell-ci` | Unified ladder (0→3 + read-line + REPL + **fgets + repl-fgets** + pack-ape, 22 steps). Smoke: `nano-jit-rs-shell-ci-smoke.sh`. |
 | **5** | *(alias)* | Same as Phase 2 in section headers of [`SHELL-RUNNER.md`](SHELL-RUNNER.md); numbering debt only. |
 | **6** | `bootstrap-v45-shell-dual.lisp` + dual smoke | C and Rust both compile/run `shell-v0`; stdin addr + fgets on Rust. |
 | **7** | `libc:fgets` via stdin addr | Rust VM `ptr(ptr,i32,ptr)`; smoke: `nano-jit-rs-shell-fgets-smoke.sh`. C opcode parity pending. |
-| **7 alt** | `shell-repl-fgets.lisp` | VM REPL loop on **fgets + stdin addr** (distinct from Phase 2 `nano:read-line` REPL). In `bootstrap-v45-shell-dual.lisp` + `nano-jit-rs-shell-repl-fgets-smoke.sh` (rs-gate); **not** in shell-ci plan yet. |
-| **7b** | C `nano_main.c` no-arg | Source `cmd_shell_noarg` wired (`nano_shell_cli.c`); host-cc path green; release COM pin unchanged until promote. Smoke: `nano-jit-c-shell-noarg-smoke.sh` (in `nano-jit-c-gate.sh`). Embed candidate path `archive/c/embed/shell-script.lbin` — **directory absent** on branch (next slice). |
+| **7 alt** | `shell-repl-fgets.lisp` | VM REPL on **fgets + stdin addr**; in shell-ci, dual bootstrap, rs-gate smoke. |
+| **7b** | C `nano_main.c` no-arg + file embed | Source `cmd_shell_noarg`; `archive/c/embed/shell-script.lbin` (280 B, hash-match rs embed); host-cc `shell.mode=embedded-lbin`. Release COM pin unchanged. Smoke: `nano-jit-c-shell-noarg-smoke.sh`. Promote prep: `nano-jit-c-shell-promote-smoke.sh` (skip if no cosmocc). |
 
-**Still open**: C release rebake (`nano-lisp.com` no-arg embed), `archive/c/embed/` populate + factory regenesis, shell-ci fgets/repl-fgets steps, dual-smoke expectation flip when C COM ships shell UX.
+**Still open**: C release rebake (factory embed in COM blob), dual-smoke flip when pinned C COM ships shell UX, C fgets opcode parity.
 
 ---
 
@@ -63,16 +63,14 @@ The dual smoke **expects** release asymmetry today: Rust no-arg must print `shel
 
 ---
 
-## Percent rubric (~89%)
+## Percent rubric (~90%)
 
 | Slice | % | Rationale |
 |-------|---|-----------|
-| Rust ladder proof (Ph 0–7, REPL, fgets, **7 alt repl-fgets**) | **97%** | rs-gate smokes green incl. `nano-jit-rs-shell-repl-fgets-smoke.sh`; embed hash-match in shell-ci; **shell-ci plan still stops at read-line REPL** (no fgets steps) |
-| Dual-track parity (Ph 6–7, 7b source) | **82%** | Compile/run parity; C release no-arg + fgets opcode gap; `archive/c/embed/` not populated |
-| Product / release (slim COM, wave SSOT) | **58%** | No C embed in pin; factory rebake pending |
-| **Weighted overall** | **~89%** | +1 vs ~88% for repl-fgets gate/dual proof only — **not ~90%** until shell-ci extends |
-
-Previous **~88%** credited Phase 7 fgets + nested dual-gate markers. **~89%** adds **7 alt** without inflating product slice. Target **~90%** when `bootstrap-v45-shell-ci.lisp` gains fgets/repl-fgets steps and C embed path exists on disk.
+| Rust ladder proof (Ph 0–7, REPL, fgets, repl-fgets, shell-ci 22-step) | **98%** | All rs-gate smokes green; shell-ci includes fgets + repl-fgets |
+| Dual-track parity (Ph 6–7, 7b source + file embed) | **85%** | Host-cc embedded-lbin; C release no-arg + fgets opcode gap |
+| Product / release (slim COM, wave SSOT) | **58%** | No C embed in release pin; cosmocc promote pending |
+| **Weighted overall** | **~90%** | 0.45×98 + 0.35×85 + 0.20×58 ≈ 90 |
 
 ---
 
@@ -80,23 +78,22 @@ Previous **~88%** credited Phase 7 fgets + nested dual-gate markers. **~89%** ad
 
 | Priority | Item | Status |
 |----------|------|--------|
-| **P0** | C no-arg **release** embed — cosmocc promote / rebake `nano-lisp.com`; dual smoke flips C expectation from `usage:` to `shell.mode=embedded-lbin` | ⬜ source done (7b); promote pending |
-| **P1** | Gate wiring — shell regression on daily dual path | **✅ done** — `nanolisp-dual-gate.sh` nests c-gate + rs-gate; `nanolisp.dual-gate.shell=*` audit markers document smokes (no duplicate shell block) |
-| **P2** | Release + docs convergence — manifest pin; **conditional** shell-ci / dual asserts for C COM no-arg when release ships; populate `archive/c/embed/` | ⬜ prep only — dual plan already `spawn-wait 2` on pinned C COM; shell-ci has no C no-arg assert today |
+| **P0** | C no-arg **release** embed — `nano-jit-c-shell-promote-smoke.sh` + cosmocc rebake; dual-smoke flip hook ready | ⬜ file embed + source done; promote skip (no cosmocc in CI) |
+| **P1** | Gate wiring — shell regression on daily dual path | **✅ done** |
+| **P2** | Release + docs convergence — conditional C COM assert when release ships | **partial** — dual-smoke `NANO_C_RELEASE_HAS_SHELL` hook; shell-ci still Rust-only no-arg assert |
 
 ---
 
 ## Wave 2 reflection (2026-06-04)
 
-Post-integrate branch (`cursor/nanolisp-shell-integrate-fc19`) state after merge:
+Post-integrate + wave-2 subagent merges:
 
 | Item | Status |
 |------|--------|
-| **shell-repl-fgets** (Phase 7 alt) | ✅ `shell-repl-fgets.lisp`, rs-gate smoke, dual bootstrap compile/run; no `nanolisp shell-repl-fgets` CLI (run `.lbin` via `run` / plan) |
-| **Dual-gate audit markers** | ✅ `nanolisp.dual-gate.shell=c-track` / `rs-track` lines in `nanolisp-dual-gate.sh`; rs-track lists repl-fgets |
-| **C `archive/c/embed`** | ⬜ `nano_shell_cli.c` defines `SHELL_EMBED_C` → `lab/nano-lisp-jit/archive/c/embed/shell-script.lbin`; repo has `archive/c/README.md` only — active C TU under `retired/archive-c/runner/` |
-| **shell-ci extension** | ⬜ `bootstrap-v45-shell-ci.lisp` still Ph 0–3 + read-line + VM REPL + pack-ape (~15 steps); fgets / repl-fgets belong in next slice for ~90% |
-| **P0 / P1 / P2** | P0 cosmocc promote · P1 gate wiring **done** · P2 conditional C assert + embed path **prep** |
+| **shell-ci Phase 7** | ✅ fgets + repl-fgets in plan (22 steps); smoke greps `piped-fgets-line`, `nanolisp-shell-ci-repl-fgets` |
+| **C `archive/c/embed`** | ✅ `shell-script.lbin` 280 B; hash-match rs embed; host-cc no-arg → `shell.mode=embedded-lbin` |
+| **C promote prep** | ✅ `nano-jit-c-shell-promote-smoke.sh` (skip cosmocc_missing); dual-smoke flip hook |
+| **P0 / P1 / P2** | P0 cosmocc promote · P1 gate **done** · P2 conditional assert **partial** |
 
 ---
 
