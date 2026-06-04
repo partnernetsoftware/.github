@@ -25,6 +25,7 @@ bash "$ROOT/lab/nano-lisp-jit/retired/scripts/nano-jit-rs-bootstrap-proc-io-smok
 bash "$ROOT/lab/nano-lisp-jit/retired/scripts/nano-jit-rs-bootstrap-boundary-negative-smoke.sh"
 bash "$ROOT/lab/nano-lisp-jit/retired/scripts/nano-jit-rs-bootstrap-build-slice-lisp-smoke.sh"
 bash "$ROOT/lab/nano-lisp-jit/retired/scripts/nano-jit-rs-bootstrap-compose15-build-slice-smoke.sh"
+bash "$ROOT/lab/nano-lisp-jit/retired/scripts/nano-jit-rs-bootstrap-compose15-hybrid-smoke.sh"
 bash "$ROOT/lab/nano-lisp-jit/retired/scripts/nano-jit-rs-release-pack-smoke.sh"
 bash "$ROOT/lab/nano-lisp-jit/retired/scripts/nano-jit-rs-release-promote-smoke.sh"
 bash "$ROOT/lab/nano-lisp-jit/retired/scripts/nano-jit-rs-capsule-smoke.sh"

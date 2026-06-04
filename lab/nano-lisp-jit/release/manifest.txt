@@ -6,7 +6,7 @@ v45-selfhost-next.com.bytes=334537
 v45-selfhost-next.com.fnv1a64=a1904c09aebbf58d
 
 nanolisp.com.bytes=2869301
-nanolisp.com.fnv1a64=0860bf0ddacfb2b9
+nanolisp.com.fnv1a64=8edefa9df3d4ae44
 nanolisp.com.engine=rust
 nanolisp.ape.bytes=2868024
-nanolisp.ape.fnv1a64=b70140a32e9848fa
+nanolisp.ape.fnv1a64=80be31e34ba41602
