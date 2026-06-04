@@ -90,5 +90,5 @@ cd lab/nano-jit-rs && cargo test
 
 1. **release 替换** — bootstrap-plan + build-slice-lisp + compose-15link + genesis-pin ✅
 2. **semantic 阶梯** — 8K–154K + unified ✅
-3. **AOT** — x86_64 ✅ · aarch64 exit-stub ✅ · aarch64 VM/AOT codegen 待补
+3. **AOT** — x86_64 ✅ · aarch64 exit-stub ✅ · aarch64 VM/AOT codegen（min/ir pure-blob）✅ · compose-15link aarch64 待补
 4. **类型检查** — VM load-arg/call-arity reject ✅

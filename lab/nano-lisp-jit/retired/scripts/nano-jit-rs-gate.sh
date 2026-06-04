@@ -9,6 +9,7 @@ bash "$ROOT/lab/nano-lisp-jit/retired/scripts/nano-jit-rs-smoke.sh"
 bash "$ROOT/lab/nano-lisp-jit/retired/scripts/nano-jit-rs-compile-parity.sh"
 bash "$ROOT/lab/nano-lisp-jit/retired/scripts/nano-jit-rs-ape-smoke.sh"
 bash "$ROOT/lab/nano-lisp-jit/retired/scripts/nano-jit-rs-aot-smoke.sh"
+bash "$ROOT/lab/nano-lisp-jit/retired/scripts/nano-jit-rs-aarch64-aot-smoke.sh"
 bash "$ROOT/lab/nano-lisp-jit/retired/scripts/nano-jit-rs-lisp-tu-link-smoke.sh"
 bash "$ROOT/lab/nano-lisp-jit/retired/scripts/nano-jit-rs-compose5-smoke.sh"
 bash "$ROOT/lab/nano-lisp-jit/retired/scripts/nano-jit-rs-compose-link-smoke.sh" 8

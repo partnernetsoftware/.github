@@ -36,6 +36,9 @@ Usage:\n\
   {bin} run-ape-expect-exit <file.com> <exit> [arch]\n\
   {bin} emit-elf64-exit <out.elf> <exit_code>\n\
   {bin} emit-aarch64-exit <out.elf> <exit_code>\n\
+  {bin} aot-aarch64-exit <file.lbin> <out.elf>\n\
+  {bin} aot-aarch64-code <file.lbin> <out.elf>\n\
+  {bin} compile-aarch64-code <in.lisp> <out.elf>\n\
   {bin} aot-elf64-exit <file.lbin> <out.elf>\n\
   {bin} aot-elf64-code <file.lbin> <out.elf>\n\
   {bin} aot-elf64-obj-code <file.lbin> <out.o> <symbol>\n\
@@ -99,6 +102,15 @@ fn main() -> ExitCode {
         }
         "emit-aarch64-exit" if args.len() == 4 => {
             aot::cmd_emit_aarch64_exit(Path::new(&args[2]), &args[3])
+        }
+        "aot-aarch64-exit" if args.len() == 4 => {
+            aot::cmd_aot_aarch64_exit(Path::new(&args[2]), Path::new(&args[3]))
+        }
+        "aot-aarch64-code" if args.len() == 4 => {
+            aot::cmd_aot_aarch64_code(Path::new(&args[2]), Path::new(&args[3]))
+        }
+        "compile-aarch64-code" if args.len() == 4 => {
+            aot::cmd_compile_aarch64_code(Path::new(&args[2]), Path::new(&args[3]))
         }
         "aot-elf64-exit" if args.len() == 4 => {
             aot::cmd_aot_elf64_exit(Path::new(&args[2]), Path::new(&args[3]))

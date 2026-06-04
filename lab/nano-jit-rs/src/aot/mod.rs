@@ -1,3 +1,4 @@
+pub mod aarch64;
 mod multi;
 mod pure_eval;
 mod x86;
@@ -48,6 +49,91 @@ pub fn cmd_emit_aarch64_exit(out_path: &Path, exit_s: &str) -> i32 {
         Err(_) => {
             eprintln!("emit-aarch64-exit=write_fail path={}", out_path.display());
             2
+        }
+    }
+}
+
+pub fn cmd_aot_aarch64_exit(blob_path: &Path, out_path: &Path) -> i32 {
+    let data = match std::fs::read(blob_path) {
+        Ok(d) => d,
+        Err(_) => {
+            eprintln!("blob=parse_fail path={}", blob_path.display());
+            return 1;
+        }
+    };
+    let blob = match parse_blob(&data) {
+        Ok(b) => b,
+        Err(_) => {
+            eprintln!("blob=parse_fail path={}", blob_path.display());
+            return 1;
+        }
+    };
+    match aarch64::compile_pure_to_elf_exit(&blob, out_path) {
+        Ok((logical, exit)) => {
+            println!("aot.aarch64.output={}", out_path.display());
+            println!("aot.aarch64.bytes={logical}");
+            println!("aot.aarch64.exit={exit}");
+            println!("aarch64.emit.profile=vm-aot-v1");
+            0
+        }
+        Err(e) => e,
+    }
+}
+
+pub fn cmd_aot_aarch64_code(blob_path: &Path, out_path: &Path) -> i32 {
+    let data = match std::fs::read(blob_path) {
+        Ok(d) => d,
+        Err(_) => {
+            eprintln!("blob=parse_fail path={}", blob_path.display());
+            return 1;
+        }
+    };
+    let blob = match parse_blob(&data) {
+        Ok(b) => b,
+        Err(_) => {
+            eprintln!("blob=parse_fail path={}", blob_path.display());
+            return 1;
+        }
+    };
+    match aarch64::compile_pure_to_elf_code(&blob, out_path) {
+        Ok(logical) => {
+            println!("aot.aarch64.output={}", out_path.display());
+            println!("aot.aarch64.bytes={logical}");
+            println!("aarch64.emit.profile=vm-aot-v1");
+            0
+        }
+        Err(e) => e,
+    }
+}
+
+pub fn cmd_compile_aarch64_code(lisp_path: &Path, out_path: &Path) -> i32 {
+    match crate::compile::compile_to_blob(lisp_path) {
+        Ok(data) => {
+            let blob = match parse_blob(&data) {
+                Ok(b) => b,
+                Err(_) => {
+                    eprintln!("compile-aarch64-code=compile_fail");
+                    return 1;
+                }
+            };
+            match aarch64::compile_pure_to_elf_code(&blob, out_path) {
+                Ok(logical) => {
+                    println!("compile.aarch64.output={}", out_path.display());
+                    println!("compile.aarch64.bytes={logical}");
+                    println!("aarch64.emit.profile=vm-aot-v1");
+                    0
+                }
+                Err(2) => {
+                    eprintln!("compile-aarch64-code=unsupported_source");
+                    2
+                }
+                Err(e) => e,
+            }
+        }
+        Err(e) => {
+            eprintln!("{e}");
+            eprintln!("compile-aarch64-code=compile_fail");
+            1
         }
     }
 }

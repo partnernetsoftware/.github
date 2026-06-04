@@ -356,33 +356,29 @@ fn build_slice_lisp_aarch64(src: &Path, out: &Path, base: &str, src_text: &str) 
                 3
             }
         }
-    } else if base == "nano-jit-slice-min.lisp" || base.contains("nano-jit-slice-ir-exit") {
-        if crate::compile::compile_to_blob(src).is_err() {
-            eprintln!("build-slice-lisp=aarch64_unsupported_profile");
-            return 2;
-        }
-        match crate::elf64::emit_aarch64_exit(out, exit_code) {
-            Ok((logical, entry)) => {
-                println!("build-slice-lisp.mode=aarch64-exit-emit");
+    } else if let Ok(blob_data) = crate::compile::compile_to_blob(src) {
+        if let Ok(blob) = crate::lbin::parse_blob(&blob_data) {
+            if let Ok((logical, _exit)) = crate::aot::aarch64::compile_pure_to_elf_exit(&blob, out) {
+                println!("build-slice-lisp.mode=aarch64-vm-aot-emit");
+                println!("aarch64.emit.profile=vm-aot-v1");
                 if base.contains("nano-jit-slice-ir-exit") {
-                    println!("aarch64.emit.profile=ir-exit-v1");
-                    println!("aarch64.emit.encode=exit-only");
+                    println!("aarch64.emit.encode=vm-lowering");
                 }
                 println!("elf64.output={}", out.display());
                 println!("elf64.bytes={logical}");
-                println!("elf64.entry=0x{entry:x}");
                 println!("build-slice-lisp.aarch64.profile={base}");
-                finish_file_size(out)
-            }
-            Err(_) => {
-                eprintln!("build-slice-lisp=aarch64_emit_fail");
-                3
+                return finish_file_size(out);
             }
         }
-    } else if crate::compile::compile_to_blob(src).is_ok() {
         match crate::elf64::emit_aarch64_exit(out, exit_code) {
             Ok((logical, entry)) => {
                 println!("build-slice-lisp.mode=aarch64-exit-emit");
+                if base == "nano-jit-slice-min.lisp" || base.contains("nano-jit-slice-ir-exit") {
+                    if base.contains("nano-jit-slice-ir-exit") {
+                        println!("aarch64.emit.profile=ir-exit-v1");
+                        println!("aarch64.emit.encode=exit-only");
+                    }
+                }
                 println!("elf64.output={}", out.display());
                 println!("elf64.bytes={logical}");
                 println!("elf64.entry=0x{entry:x}");
@@ -800,6 +796,9 @@ pub fn cmd_build_slice(src: &Path, out: &Path, arch: &str) -> i32 {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::sync::Mutex;
+
+    static ENV_TEST_LOCK: Mutex<()> = Mutex::new(());
 
     #[test]
     fn parse_expect_from_min_slice() {
@@ -809,6 +808,8 @@ mod tests {
 
     #[test]
     fn compose15_semantic_unified_main_path() {
+        let _lock = ENV_TEST_LOCK.lock().unwrap();
+        env::remove_var("NANO_LISPJIT_FROM_LISP_PROFILE");
         env::set_var(
             "NANO_LISPJIT_FROM_LISP_PROFILE",
             "compose-15link-semantic-unified",
@@ -822,6 +823,8 @@ mod tests {
 
     #[test]
     fn compose15_bulk_scale_uses_expand_main() {
+        let _lock = ENV_TEST_LOCK.lock().unwrap();
+        env::remove_var("NANO_LISPJIT_FROM_LISP_PROFILE");
         env::set_var("NANO_LISPJIT_FROM_LISP_PROFILE", "compose-15link-bulk-scale");
         let main = COMPOSE15_MODS.iter().find(|m| m.tag == "main").unwrap();
         assert_eq!(

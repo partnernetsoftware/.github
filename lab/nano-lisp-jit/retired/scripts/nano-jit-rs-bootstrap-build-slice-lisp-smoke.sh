@@ -23,7 +23,7 @@ echo "$log" | grep -q 'build-slice-lisp.mode=compile-elf64-code' || {
   echo "$log"
   exit 1
 }
-echo "$log" | grep -q 'build-slice-lisp.mode=aarch64-exit-emit' || {
+echo "$log" | grep -qE 'build-slice-lisp.mode=aarch64-(vm-aot-emit|exit-emit)' || {
   echo "nano-jit-rs-bootstrap-build-slice-lisp-smoke=fail aarch64_mode"
   echo "$log"
   exit 1
