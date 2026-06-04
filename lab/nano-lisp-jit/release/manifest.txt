@@ -5,11 +5,11 @@ nano-lisp.com.fnv1a64=a1904c09aebbf58d
 v45-selfhost-next.com.bytes=334537
 v45-selfhost-next.com.fnv1a64=a1904c09aebbf58d
 
-nanolisp.com.bytes=3000373
-nanolisp.com.fnv1a64=9d0e46a2f16c8a3a
+nanolisp.com.bytes=2996277
+nanolisp.com.fnv1a64=53c4ae3d3cf68943
 nanolisp.com.engine=rust
-nanolisp.ape.bytes=2999096
-nanolisp.ape.fnv1a64=eced03845028df90
+nanolisp.ape.bytes=2995000
+nanolisp.ape.fnv1a64=a0ed7037ca0567e4
 nanolisp-slim.com.bytes=161083
 nanolisp-slim.com.fnv1a64=5eb073c0beb1b9f1
 nanolisp-slim.com.engine=rust-genesis-pin
