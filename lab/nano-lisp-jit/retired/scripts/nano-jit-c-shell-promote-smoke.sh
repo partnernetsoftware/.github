@@ -73,9 +73,15 @@ if [ "$COM_BYTES" != "$MAN_BYTES" ] || [ "$COM_HASH" != "$MAN_HASH" ]; then
 fi
 echo "nano-jit-c-shell-promote-smoke=ok manifest_parity bytes=$COM_BYTES"
 
+if [ -z "${NANO_C_RELEASE_HAS_SHELL+x}" ]; then
+  # shellcheck source=nanolisp-c-release-shell-probe.sh
+  . "$ROOT/lab/nano-lisp-jit/retired/scripts/nanolisp-c-release-shell-probe.sh"
+  nanolisp_c_release_shell_probe_apply >/dev/null
+fi
+
 log=$("$C_COM" 2>&1) || rc=$?
 rc=${rc:-0}
-if [ "${NANO_C_RELEASE_HAS_SHELL:-0}" = 1 ]; then
+if [ "${NANO_C_RELEASE_HAS_SHELL}" = 1 ]; then
   echo "$log" | grep -q 'shell.mode=' || {
     echo "nano-jit-c-shell-promote-smoke=fail release_shell_mode"
     echo "$log"

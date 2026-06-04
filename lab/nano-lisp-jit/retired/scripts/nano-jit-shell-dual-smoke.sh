@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 # nanolisp shell dual-track smoke — C nano-lisp.com + Rust nanolisp shell parity.
-# C no-arg expectation: default pre-promote (usage: / exit 2 via plan step). After C release
-# rebake ships embedded shell, set NANO_C_RELEASE_HAS_SHELL=1 to expect shell.mode= on $C_COM.
+# C no-arg expectation: auto-detected via nanolisp-c-release-shell-probe.sh (override: NANO_C_RELEASE_HAS_SHELL).
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../../../.." && pwd)"
 RS="$ROOT/lab/nano-lisp-jit/.build/nano-jit-rs/nanolisp"
@@ -43,9 +42,13 @@ echo "$log" | grep -q 'shell.mode=embedded-lbin' || {
   exit 1
 }
 
+# shellcheck source=nanolisp-c-release-shell-probe.sh
+. "$ROOT/lab/nano-lisp-jit/retired/scripts/nanolisp-c-release-shell-probe.sh"
+nanolisp_c_release_shell_probe_apply >/dev/null
+
 log=$("$C_COM" 2>&1) || rc=$?
 rc=${rc:-0}
-if [ "${NANO_C_RELEASE_HAS_SHELL:-0}" = 1 ]; then
+if [ "${NANO_C_RELEASE_HAS_SHELL}" = 1 ]; then
   echo "$log" | grep -q 'shell.mode=' || {
     echo "nano-jit-shell-dual-smoke=fail c_com_shell_mode"
     echo "$log"
