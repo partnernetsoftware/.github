@@ -1,6 +1,6 @@
 //! Dynamic library FFI — mirrors C runner import resolution.
 
-use crate::lbin::{sig_name, Blob, SIG_I32_I32, SIG_I32_PTR, SIG_I32_PTR_I32, SIG_I32_PTR_PTR, SIG_I32_VOID, SIG_U64_PTR};
+use crate::lbin::{sig_name, Blob, SIG_ADDR, SIG_I32_I32, SIG_I32_PTR, SIG_I32_PTR_I32, SIG_I32_PTR_PTR, SIG_I32_VOID, SIG_U64_PTR};
 use crate::value::Value;
 use libloading::{Library, Symbol};
 use std::collections::HashMap;
@@ -58,6 +58,9 @@ impl RuntimeImport {
             let _ = writeln!(io::stderr(), "ffi.open=fail lib={lib}");
             14
         })?;
+        if sig == SIG_ADDR {
+            return Self::resolve_addr(lib, sym, library);
+        }
         let mut ri = Self {
             lib: lib.to_string(),
             sym: sym.to_string(),
@@ -89,6 +92,32 @@ impl RuntimeImport {
             sym: sym.to_string(),
             sig,
             fn_addr: nano_readline_shim as *const () as usize,
+            _library: library,
+            u64_ptr: None,
+            i32_ptr: None,
+            i32_ptr_ptr: None,
+            i32_void: None,
+            i32_i32: None,
+            i32_ptr_i32: None,
+        })
+    }
+
+    fn resolve_addr(lib: &str, sym: &str, library: Library) -> Result<Self, i32> {
+        let cname = CString::new(sym).map_err(|_| 15)?;
+        let ptr = unsafe {
+            let symbol: Symbol<*const *const std::ffi::c_void> = library
+                .get(cname.as_bytes_with_nul())
+                .map_err(|_| {
+                    let _ = writeln!(io::stderr(), "ffi.symbol=fail symbol={sym}");
+                    15
+                })?;
+            *symbol as usize
+        };
+        Ok(Self {
+            lib: lib.to_string(),
+            sym: sym.to_string(),
+            sig: SIG_ADDR,
+            fn_addr: ptr,
             _library: library,
             u64_ptr: None,
             i32_ptr: None,

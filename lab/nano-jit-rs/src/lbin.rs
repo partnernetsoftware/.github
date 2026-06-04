@@ -57,6 +57,7 @@ pub const OP_CALL_FUNC: u8 = 42;
 pub const OP_LOAD_ARG_I64: u8 = 43;
 pub const OP_CALL_IMPORT_CONST_IMM: u8 = 44;
 
+pub const SIG_ADDR: u32 = 0;
 pub const SIG_U64_PTR: u32 = 1;
 pub const SIG_I32_PTR: u32 = 2;
 pub const SIG_I32_PTR_PTR: u32 = 3;
@@ -249,7 +250,7 @@ impl<'a> Blob<'a> {
 
 pub fn sig_name(sig: u32) -> &'static str {
     match sig {
-        0 => "addr",
+        SIG_ADDR => "addr",
         SIG_U64_PTR => "u64(ptr)",
         SIG_I32_PTR => "i32(ptr)",
         SIG_I32_PTR_PTR => "i32(ptr,ptr)",
