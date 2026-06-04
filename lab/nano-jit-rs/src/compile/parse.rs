@@ -65,6 +65,7 @@ pub struct InstrDef {
     pub name: Option<String>,
     pub const_name: Option<String>,
     pub const2_name: Option<String>,
+    pub ptr_import_name: Option<String>,
     pub imm: u64,
 }
 
@@ -209,6 +210,7 @@ impl<'a> Parser<'a> {
             "i32()" => Some(crate::lbin::SIG_I32_VOID),
             "i32(i32)" => Some(crate::lbin::SIG_I32_I32),
             "i32(ptr,i32)" => Some(crate::lbin::SIG_I32_PTR_I32),
+            "ptr(ptr,i32,ptr)" => Some(crate::lbin::SIG_PTR_PTR_I32_PTR),
             _ => None,
         }
     }
@@ -227,6 +229,7 @@ impl<'a> Parser<'a> {
         name: Option<String>,
         const_name: Option<String>,
         const2_name: Option<String>,
+        ptr_import_name: Option<String>,
         imm: u64,
     ) {
         instrs.push(InstrDef {
@@ -234,6 +237,7 @@ impl<'a> Parser<'a> {
             name,
             const_name,
             const2_name,
+            ptr_import_name,
             imm,
         });
     }
@@ -325,6 +329,7 @@ impl<'a> Parser<'a> {
                             import_name,
                             None,
                             None,
+                            None,
                             0,
                         );
                         true
@@ -334,7 +339,7 @@ impl<'a> Parser<'a> {
                 label.is_some()
                     && self.eat(')')
                     && {
-                        Self::push_instr(instrs, SrcForm::Branch, label, None, None, 0);
+                        Self::push_instr(instrs, SrcForm::Branch, label, None, None, None, 0);
                         true
                     }
             } else if head == "label" {
@@ -342,7 +347,7 @@ impl<'a> Parser<'a> {
                 label.is_some()
                     && self.eat(')')
                     && {
-                        Self::push_instr(instrs, SrcForm::Label, label, None, None, 0);
+                        Self::push_instr(instrs, SrcForm::Label, label, None, None, None, 0);
                         true
                     }
             } else if matches!(
@@ -399,7 +404,7 @@ impl<'a> Parser<'a> {
                 imm.is_some()
                     && self.eat(')')
                     && {
-                        Self::push_instr(instrs, form, None, None, None, imm.unwrap());
+                        Self::push_instr(instrs, form, None, None, None, None, imm.unwrap());
                         true
                     }
             } else if head == "bool" {
@@ -414,6 +419,7 @@ impl<'a> Parser<'a> {
                             None,
                             None,
                             None,
+                            None,
                             u64::from(b.unwrap()),
                         );
                         true
@@ -421,7 +427,7 @@ impl<'a> Parser<'a> {
             } else if head == "null-ptr" {
                 self.eat(')')
                     && {
-                        Self::push_instr(instrs, SrcForm::NullPtr, None, None, None, 0);
+                        Self::push_instr(instrs, SrcForm::NullPtr, None, None, None, None, 0);
                         true
                     }
             } else if head == "add-ptr" || head == "sub-ptr" {
@@ -435,7 +441,7 @@ impl<'a> Parser<'a> {
                 imm.is_some()
                     && self.eat(')')
                     && {
-                        Self::push_instr(instrs, form, None, None, None, imm.unwrap());
+                        Self::push_instr(instrs, form, None, None, None, None, imm.unwrap());
                         true
                     }
             } else if head == "ptr-to-u64" || head == "u64-to-ptr" {
@@ -446,7 +452,7 @@ impl<'a> Parser<'a> {
                 };
                 self.eat(')')
                     && {
-                        Self::push_instr(instrs, form, None, None, None, 0);
+                        Self::push_instr(instrs, form, None, None, None, None, 0);
                         true
                     }
             } else if head == "const-ptr" {
@@ -460,6 +466,7 @@ impl<'a> Parser<'a> {
                             None,
                             const_name,
                             None,
+                            None,
                             0,
                         );
                         true
@@ -472,7 +479,7 @@ impl<'a> Parser<'a> {
                 };
                 self.eat(')')
                     && {
-                        Self::push_instr(instrs, form, None, None, None, 0);
+                        Self::push_instr(instrs, form, None, None, None, None, 0);
                         true
                     }
             } else if matches!(head.as_str(), "store-u8" | "store-u16" | "store-u32") {
@@ -486,7 +493,7 @@ impl<'a> Parser<'a> {
                 imm.is_some()
                     && self.eat(')')
                     && {
-                        Self::push_instr(instrs, form, None, None, None, imm.unwrap());
+                        Self::push_instr(instrs, form, None, None, None, None, imm.unwrap());
                         true
                     }
             } else if head == "is-null-ptr" || head == "is-nonnull-ptr" {
@@ -497,13 +504,13 @@ impl<'a> Parser<'a> {
                 };
                 self.eat(')')
                     && {
-                        Self::push_instr(instrs, form, None, None, None, 0);
+                        Self::push_instr(instrs, form, None, None, None, None, 0);
                         true
                     }
             } else if head == "not-bool" {
                 self.eat(')')
                     && {
-                        Self::push_instr(instrs, SrcForm::NotBool, None, None, None, 0);
+                        Self::push_instr(instrs, SrcForm::NotBool, None, None, None, None, 0);
                         true
                     }
             } else if head == "and-bool" || head == "or-bool" {
@@ -520,6 +527,7 @@ impl<'a> Parser<'a> {
                         Self::push_instr(
                             instrs,
                             form,
+                            None,
                             None,
                             None,
                             None,
@@ -552,7 +560,7 @@ impl<'a> Parser<'a> {
                     && self.eat(')')
                     && {
                         let (form, imm) = parsed.unwrap();
-                        Self::push_instr(instrs, form, None, None, None, imm);
+                        Self::push_instr(instrs, form, None, None, None, None, imm);
                         true
                     }
             } else if head == "param" {
@@ -561,7 +569,7 @@ impl<'a> Parser<'a> {
                 if let Some(count) = param_count.as_mut() {
                     if ty.as_deref() == Some("i64") && *count < 2 && self.eat(')') {
                         *count += 1;
-                        Self::push_instr(instrs, SrcForm::ParamI64, None, None, None, 0);
+                        Self::push_instr(instrs, SrcForm::ParamI64, None, None, None, None, 0);
                         ok = true;
                     }
                 }
@@ -579,6 +587,7 @@ impl<'a> Parser<'a> {
                             None,
                             None,
                             None,
+                            None,
                             idx.unwrap(),
                         );
                         true
@@ -587,6 +596,7 @@ impl<'a> Parser<'a> {
                 let target = self.parse_atom();
                 let mut const_name = None;
                 let mut const2_name = None;
+                let mut ptr_import_name = None;
                 if target.is_some() {
                     self.skip_ws();
                     if self.peek() != Some(')') {
@@ -594,6 +604,10 @@ impl<'a> Parser<'a> {
                         self.skip_ws();
                         if self.peek() != Some(')') {
                             const2_name = self.parse_atom();
+                            self.skip_ws();
+                            if self.peek() != Some(')') {
+                                ptr_import_name = self.parse_atom();
+                            }
                         }
                     }
                 }
@@ -613,7 +627,15 @@ impl<'a> Parser<'a> {
                 target.is_some()
                     && self.eat(')')
                     && {
-                        Self::push_instr(instrs, form, target, const_name, const2_name, 0);
+                        Self::push_instr(
+                            instrs,
+                            form,
+                            target,
+                            const_name,
+                            const2_name,
+                            ptr_import_name,
+                            0,
+                        );
                         true
                     }
             } else {

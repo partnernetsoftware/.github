@@ -10,7 +10,7 @@
 | **Rust `nanolisp.com`** | **99%** feature parity | `nanolisp.gate=ok` | 2 959 413 B · full CLI APE |
 | **Rust slim pathfinder** | **40%** | slim smoke | `nanolisp-slim.com` ~161 KiB (genesis-pin pack) |
 | **Migration (Rust replaces C)** | **~86%** | dual gate | C maintained until slim + parity + shell embed |
-| **Shell runner ladder** | **~82%** | shell-dual smoke | Phase 0–6 merged (Rust); C no-arg + dual-gate wiring pending |
+| **Shell runner ladder** | **~88%** | shell-dual + fgets smoke | Phase 0–7 Rust; C no-arg source pending |
 
 **Dual gate (both tracks)**:
 
@@ -52,7 +52,7 @@ bash lab/nano-lisp-jit/retired/scripts/nanolisp-dual-gate.sh
 
 - [x] PRODUCT-TRACKS + dual gate
 - [x] C gate (`nano-jit-c-gate.sh`)
-- [x] Rust gate (`nano-jit-rs-gate.sh`) — 19 unit tests
+- [x] Rust gate (`nano-jit-rs-gate.sh`) — 20 unit tests
 - [x] compose-15link build-slice + semantic + hybrid + genesis-pin
 - [x] aarch64 VM/AOT build-slice-lisp (min/ir pure-blob)
 - [x] nano_cc build-slice path
@@ -63,7 +63,8 @@ bash lab/nano-lisp-jit/retired/scripts/nanolisp-dual-gate.sh
 - [x] shell Phase 4 — `bootstrap-v45-shell-ci.lisp` + `nanolisp shell-ci`
 - [x] shell Phase 5 — VM `nano:read-line` + `shell-repl.lisp`
 - [x] shell Phase 6 — dual-track bootstrap + `libc:stdin` addr FFI
-- [ ] shell Phase 7 — C `nano-lisp.com` no-arg embed + release rebake
+- [x] shell Phase 7 — VM `libc:fgets` via stdin addr (`ptr(ptr,i32,ptr)`)
+- [ ] shell Phase 7b — C `nano-lisp.com` no-arg embed + release rebake
 - [ ] shell-dual smoke in `nanolisp-dual-gate.sh`
 - [ ] Rust APE size ≈ C COM with runnable full CLI
 - [ ] C/Rust zero host-cc 158KB codegen

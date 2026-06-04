@@ -64,6 +64,21 @@ $RS shell                  # dev: compile+run fresh shell-script.lisp
 
 **Smoke**: `bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-shell-noarg-smoke.sh`
 
+## Phase 7 — libc fgets (stdin addr)
+
+**`ptr(ptr,i32,ptr)`** — VM opcode `OP_CALL_IMPORT_CONST_IMM_PTR`; third arg is a resolved `addr` import (e.g. `libc:stdin`).
+
+**`shell-fgets-smoke.lisp`** — resolve stdin, `fgets` into buf, expect nonnull from piped stdin.
+
+```bash
+$RS compile lab/nano-lisp-jit/lisp/shell/shell-fgets-smoke.lisp /tmp/f.lbin
+printf 'line\n' | $RS run /tmp/f.lbin
+```
+
+**Smoke**: `bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-shell-fgets-smoke.sh`
+
+**Honest GAP**: C COM parity for `ptr(ptr,i32,ptr)` not ported; Rust-only. `addr` resolve dereferences globals (FILE* for `stdin`).
+
 ## Phase 4 — shell CI plan
 
 **`lisp/bootstrap/bootstrap-v45-shell-ci.lisp`** — unified Phase 0–3 + read-line + REPL gate as bootstrap plan only.
@@ -97,7 +112,8 @@ bash lab/nano-lisp-jit/retired/scripts/nano-jit-shell-dual-smoke.sh
 | 3 | `$COM` no-arg → built-in `shell.lbin` (Rust) | ✅ |
 | 4 | wave/ci scripts → shell plans only (`shell-ci`) | ✅ |
 | 6 | dual-track shell (C+Rust compile/run) + `addr` stdin | ✅ |
-| 7 | C no-arg embed + release rebake + dual-gate wiring | ⬜ in progress elsewhere |
+| 7 | libc `fgets` via stdin addr (`ptr(ptr,i32,ptr)`) | ✅ Rust |
+| 7b | C no-arg embed + release rebake + dual-gate wiring | ⬜ |
 
 ## Integration into `.com`
 
