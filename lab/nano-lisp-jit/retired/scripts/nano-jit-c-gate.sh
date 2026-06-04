@@ -60,6 +60,7 @@ fi
 
 export NANO_C_GATE_RUNNING=1
 bash "$RETIRED/nano-jit-c-shell-noarg-smoke.sh"
+bash "$RETIRED/nano-jit-c-shell-fgets-smoke.sh"
 
 if [ "${NANO_C_GATE_FACTORY:-0}" = 1 ]; then
   bash "$ROOT/lab/nano-lisp-jit/build_nano_jit.sh"
