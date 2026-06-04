@@ -47,6 +47,10 @@ pub(crate) enum Step {
     Hash {
         path: PathBuf,
     },
+    HashMatch {
+        left: PathBuf,
+        right: PathBuf,
+    },
     PackApe {
         out: PathBuf,
         x86: PathBuf,
@@ -266,6 +270,10 @@ impl<'a> Parser<'a> {
             },
             "hash" => Step::Hash {
                 path: PathBuf::from(self.parse_atom()?),
+            },
+            "hash-match" => Step::HashMatch {
+                left: PathBuf::from(self.parse_atom()?),
+                right: PathBuf::from(self.parse_atom()?),
             },
             "pack-ape" => {
                 let out = PathBuf::from(self.parse_atom()?);
@@ -591,6 +599,34 @@ pub fn run_bootstrap_plan(path: &Path) -> i32 {
                     }
                 }
             }
+            Step::HashMatch { left, right } => {
+                println!("bootstrap-step.{i}=hash-match");
+                let read_hash = |path: &Path| -> Result<u64, i32> {
+                    fs::read(path)
+                        .map(|data| crate::lbin::fnv1a64(&data))
+                        .map_err(|_| {
+                            eprintln!("hash-match=read_fail path={}", path.display());
+                            1
+                        })
+                };
+                let hl = match read_hash(left) {
+                    Ok(h) => h,
+                    Err(e) => return e,
+                };
+                let hr = match read_hash(right) {
+                    Ok(h) => h,
+                    Err(e) => return e,
+                };
+                println!("hash-match.left={} fnv1a64={hl:016x}", left.display());
+                println!("hash-match.right={} fnv1a64={hr:016x}", right.display());
+                if hl == hr {
+                    println!("hash-match.ok=1");
+                    0
+                } else {
+                    eprintln!("hash-match=mismatch left={hl:016x} right={hr:016x}");
+                    5
+                }
+            }
             Step::PackApe { out, x86, arm } => {
                 println!("bootstrap-step.{i}=pack-ape");
                 match ensure_parent(out) {
@@ -703,6 +739,16 @@ mod tests {
 "#;
         let steps = parse_bootstrap_plan(src).unwrap();
         assert_eq!(steps.len(), 2);
+    }
+
+    #[test]
+    fn parse_hash_match_plan() {
+        let src = r#"
+(bootstrap
+  (hash-match "a.lbin" "b.lbin"))
+"#;
+        let steps = parse_bootstrap_plan(src).unwrap();
+        assert_eq!(steps.len(), 1);
     }
 
     #[test]

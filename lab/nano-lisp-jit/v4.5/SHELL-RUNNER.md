@@ -37,7 +37,7 @@ $RS shell-repl         # stdin REPL (host readline + sh -c)
 
 **Bootstrap plan**: `lisp/bootstrap/bootstrap-v45-shell-script-smoke.lisp`
 
-## Phase 3 — no-arg shell dispatch (current)
+## Phase 3 — no-arg shell dispatch
 
 **`embed/shell-script.lbin`** — baked into `nanolisp` binary; `$COM` with no args runs it.
 
@@ -48,6 +48,19 @@ $RS shell                  # dev: compile+run fresh shell-script.lisp
 
 **Smoke**: `bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-shell-noarg-smoke.sh`
 
+## Phase 4 — shell CI plan (current)
+
+**`lisp/bootstrap/bootstrap-v45-shell-ci.lisp`** — unified Phase 0–3 gate as bootstrap plan only.
+
+```bash
+$RS shell-ci           # run full shell ladder plan
+$RS run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-shell-ci.lisp
+```
+
+**Smoke**: `bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-shell-ci-smoke.sh`
+
+Legacy per-phase smokes remain under `retired/scripts/nano-jit-rs-shell-*-smoke.sh` for granular debug.
+
 ## Roadmap
 
 | Phase | Deliverable | Status |
@@ -56,7 +69,7 @@ $RS shell                  # dev: compile+run fresh shell-script.lisp
 | 1 | `shell-script.lisp` + `nanolisp shell` | ✅ |
 | 2 | `shell-repl` — stdin REPL via `/bin/sh -c` | ✅ (host readline; VM fgets pending) |
 | 3 | `$COM` no-arg → built-in `shell.lbin` | ✅ |
-| 4 | wave/ci scripts → shell plans only | pending |
+| 4 | wave/ci scripts → shell plans only | ✅ |
 
 ## Integration into `.com`
 
