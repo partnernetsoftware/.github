@@ -73,8 +73,10 @@ bash lab/nano-lisp-jit/retired/scripts/nanolisp-dual-gate.sh
 - [x] shell Phase 8 C CLI — shell-full entry on C COM / `run-bootstrap-plan` (Wave 4)
 - [x] shell Phase 9 — `bootstrap-v45-shell-promote.lisp` + gate readonly promote wiring (Wave 5–6)
 - [x] shell P0 Wave 6 — `nano-jit-c-shell-release-promote.sh` + `v45-manifest-pin.sh` (product shell **~85%**)
+- [x] shell Phase 8b — `bootstrap-v45-shell-full-c.lisp` + `nano-jit-c-shell-full-c-smoke.sh` (c-gate ~21 steps)
+- [x] shell ladder meta — `nano-jit-shell-ladder-smoke.sh` (scoped 100% ordered proof)
 - [x] shell Wave 7 closure — [`SHELL-CLOSURE.md`](SHELL-CLOSURE.md) scoped **100%** ladder lock
-- [x] shell smokes in `nanolisp-dual-gate.sh` (c: shell-noarg · rs: shell-ci/shell-full/repl-vm/shell-dual/fgets/repl-fgets)
+- [x] shell smokes in `nanolisp-dual-gate.sh` (c: noarg/fgets/full-c · rs: shell-ci/shell-full/repl-vm/shell-dual/fgets/repl-fgets)
 - [ ] Rust APE size ≈ C COM with runnable full CLI
 - [ ] C/Rust zero host-cc 158KB codegen
 - [ ] v45-wave default → `nanolisp.com`

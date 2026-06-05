@@ -182,11 +182,13 @@ Orchestrator SSOT: [`SHELL-RUNNER.md` § C release shell promote (Wave 6)](SHELL
 
 ## Wave 7 closure (2026-06-05)
 
-Wave 7 on `cursor/nanolisp-shell-closure-fc19` — **docs closure**; no new ladder phases.
+Wave 7 merges `cursor/nanolisp-shell-closure-fc19`, `cursor/nanolisp-shell-full-c-fc19`, `cursor/nanolisp-shell-ladder-smoke-fc19`, `cursor/nanolisp-shell-docs-sync-fc19` — **scoped 100% lock** + last C ladder slice.
 
 | Item | Status | Notes |
 |------|--------|-------|
 | **Scoped 100% definition** | ✅ | [`SHELL-CLOSURE.md`](SHELL-CLOSURE.md) — Ph 0–9 + dual-gate + pin + probe; excludes wave-default / slim / 158KB |
+| **Phase 8b C full plan** | ✅ | `bootstrap-v45-shell-full-c.lisp` (~21 steps) + `nano-jit-c-shell-full-c-smoke.sh` in c-gate |
+| **Ladder meta smoke** | ✅ | `nano-jit-shell-ladder-smoke.sh` — probe → c-noarg → rs-ci/full/promote → dual (manual; not daily dual-gate) |
 | **Timeline Waves 1–7** | ✅ | Closure table + phase→artifact matrix |
 | **Command cheat sheet** | ✅ | dual-gate · release-promote · ladder-smoke |
 | **Rubric lock** | ✅ | Ladder **100%** · product shell **~85%** · cross-track out of scope |
