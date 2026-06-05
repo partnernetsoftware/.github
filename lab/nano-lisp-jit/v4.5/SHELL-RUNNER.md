@@ -2,7 +2,7 @@
 
 **Goal**: `.com` becomes a Lisp-native shell runner — dogfood in `shell/*.lisp`, then embed in release COM.
 
-**Retrospective (Ph 0–8, Wave 6 promote, % rubric)**: [`SHELL-REFLECTION.md`](SHELL-REFLECTION.md)
+**Retrospective (Ph 0–9, Wave 7 closure)**: [`SHELL-REFLECTION.md`](SHELL-REFLECTION.md) · **scoped 100%**: [`SHELL-CLOSURE.md`](SHELL-CLOSURE.md)
 
 ## Capability layers
 
@@ -117,7 +117,7 @@ $RS run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-shell-full
 
 **Smoke**: `bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-shell-full-smoke.sh` (rs-gate; greps `nanolisp-shell-full-*`, `shell.mode=embedded-lbin` on both tracks after Wave 6).
 
-**shell-full CLI note (Wave 4)**: Rust daily path is `run-bootstrap-plan` on the plan above (no dedicated `nanolisp shell-full` subcommand required — smoke drives the ladder). C track has no equivalent one-shot CLI yet; Wave 4 adds a COM dispatch or documents `$COM run-bootstrap-plan …/bootstrap-v45-shell-full.lisp` parity so dual-gate can audit a C shell-full marker alongside rs-gate.
+**shell-full CLI note (Wave 4)**: Rust daily path is `run-bootstrap-plan` on the plan above (no dedicated `nanolisp shell-full` subcommand required — smoke drives the ladder). C track: pinned **`release/nano-lisp.com`** (**863 001 B**, Wave 6); optional `$COM run-bootstrap-plan …/bootstrap-v45-shell-full.lisp` parity — dedicated C `shell-full` subcommand still **⬜** (see [`SHELL-CLOSURE.md`](SHELL-CLOSURE.md)).
 
 ## Phase 9 — shell-promote bootstrap
 
@@ -195,4 +195,4 @@ NANO_C_SHELL_RELEASE_PROMOTE=1 bash lab/nano-lisp-jit/retired/scripts/nanolisp-d
 2. AOT or compose module into runner slice (15-link / factory). ✅ C release (Wave 6 pin)
 3. `main` dispatch `argc==1` → shell.lbin. ✅ Rust · ✅ C source · ✅ C release pin
 
-See also: [`SHELL-REFLECTION.md`](SHELL-REFLECTION.md) · [`PRODUCT-TRACKS.md`](PRODUCT-TRACKS.md) · [`OVERALL-PROGRESS.md`](OVERALL-PROGRESS.md)
+See also: [`SHELL-CLOSURE.md`](SHELL-CLOSURE.md) · [`SHELL-REFLECTION.md`](SHELL-REFLECTION.md) · [`PRODUCT-TRACKS.md`](PRODUCT-TRACKS.md) · [`OVERALL-PROGRESS.md`](OVERALL-PROGRESS.md)

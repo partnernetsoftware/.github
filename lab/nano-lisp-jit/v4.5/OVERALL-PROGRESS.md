@@ -1,16 +1,16 @@
 # Overall progress — nanolisp commercial SOTA
 
-**Updated**: 2026-06-04 · Wave 6 reflection (C release promote landed — P0 done). SSOT: [`SHELL-REFLECTION.md`](SHELL-REFLECTION.md).
+**Updated**: 2026-06-05 · Wave 7 shell closure (scoped **100%** ladder). SSOT: [`SHELL-CLOSURE.md`](SHELL-CLOSURE.md) · [`SHELL-REFLECTION.md`](SHELL-REFLECTION.md).
 
 ## Executive summary
 
 | Track | Overall | Gate | Release artifact |
 |-------|---------|------|------------------|
-| **C `nano-lisp.com`** | **95%** shipping-ready | `nanolisp.c-gate=ok` | 334 537 B · wave SSOT |
-| **Rust `nanolisp.com`** | **99%** feature parity | `nanolisp.gate=ok` | 2 959 413 B · full CLI APE |
+| **C `nano-lisp.com`** | **95%** shipping-ready | `nanolisp.c-gate=ok` | **863 001 B** · wave SSOT (Wave 6 shell promote pin) |
+| **Rust `nanolisp.com`** | **99%** feature parity | `nanolisp.gate=ok` | **3 000 373 B** · full CLI APE |
 | **Rust slim pathfinder** | **40%** | slim smoke | `nanolisp-slim.com` ~161 KiB (genesis-pin pack) |
-| **Migration (Rust replaces C)** | **~86%** | dual gate | C maintained until slim + parity + shell embed |
-| **Shell runner ladder** | **~95%** | nested dual-gate + shell-ci + shell-full + release promote | Phase 0–8 + Wave 6 C pin embed; product slice **~75%+** |
+| **Migration (Rust replaces C)** | **~86%** | dual gate | C maintained until slim + parity; shell embed **done** on C pin (863 001 B) |
+| **Shell runner ladder** | **100% scoped** | nested dual-gate + shell-ci + shell-full + release promote + probe | Ph 0–9 · [`SHELL-CLOSURE.md`](SHELL-CLOSURE.md); product shell slice **~85%** |
 
 **Dual gate (both tracks)**:
 
@@ -46,7 +46,7 @@ bash lab/nano-lisp-jit/retired/scripts/nanolisp-dual-gate.sh
 2. **158KB pure Lisp codegen** — both tracks still depend on host `cc` or pin for full runner
 3. **aarch64 compose-15link** — Rust `build_compose_15link` x86-only
 4. **Wave scripts default COM** — still `nano-lisp.com`; Rust not wave SSOT yet
-5. **Shell product SOTA** — user daily COM-only + slim Rust ≈ C COM size (~75%+ product slice; headline ~95%)
+5. **Shell product SOTA** — user daily COM-only + slim Rust ≈ C COM size (**~85%** product shell slice; ladder **100% scoped** per [`SHELL-CLOSURE.md`](SHELL-CLOSURE.md))
 
 ## Milestone checklist
 
@@ -72,7 +72,8 @@ bash lab/nano-lisp-jit/retired/scripts/nanolisp-dual-gate.sh
 - [x] shell Phase 8 — `bootstrap-v45-shell-full.lisp` + `nano-jit-rs-shell-full-smoke.sh` (~29 steps, rs-gate)
 - [x] shell Phase 8 C CLI — shell-full entry on C COM / `run-bootstrap-plan` (Wave 4)
 - [x] shell Phase 9 — `bootstrap-v45-shell-promote.lisp` + gate readonly promote wiring (Wave 5–6)
-- [x] shell P0 Wave 6 — `nano-jit-c-shell-release-promote.sh` + `v45-manifest-pin.sh` (product **~75%+**)
+- [x] shell P0 Wave 6 — `nano-jit-c-shell-release-promote.sh` + `v45-manifest-pin.sh` (product shell **~85%**)
+- [x] shell Wave 7 closure — [`SHELL-CLOSURE.md`](SHELL-CLOSURE.md) scoped **100%** ladder lock
 - [x] shell smokes in `nanolisp-dual-gate.sh` (c: shell-noarg · rs: shell-ci/shell-full/repl-vm/shell-dual/fgets/repl-fgets)
 - [ ] Rust APE size ≈ C COM with runnable full CLI
 - [ ] C/Rust zero host-cc 158KB codegen
