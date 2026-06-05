@@ -180,6 +180,7 @@
 #define BOOTSTRAP_STEP_SPAWN_WAIT 42u
 #define BOOTSTRAP_STEP_RUN_STDIN 43u
 #define BOOTSTRAP_STEP_BUILD_SLICE_LISP_PROFILE 44u
+#define BOOTSTRAP_STEP_LISP_ROOT 45u
 
 typedef uint64_t (*jit_entry_fn)(void);
 typedef int (*ffi_i32_ptr_fn)(const char *);

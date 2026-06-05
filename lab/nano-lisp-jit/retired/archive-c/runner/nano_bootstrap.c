@@ -995,6 +995,39 @@ static int compose15_use_expand_modules(void) {
          lispjit_from_lisp_profile_named("compose-15link-bulk-scale");
 }
 
+static const char *nano_lisp_root_default(void) {
+  const char *root = getenv("NANO_LISP_ROOT");
+  if (root && root[0]) return root;
+  return "lab/nano-lisp-jit";
+}
+
+static void nano_lisp_join(char *out, size_t out_n, const char *rel) {
+  const char *root = nano_lisp_root_default();
+  if (!rel || !rel[0]) {
+    snprintf(out, out_n, "%s", root);
+    return;
+  }
+  if (rel[0] == '/') {
+    snprintf(out, out_n, "%s", rel);
+    return;
+  }
+  if (strcmp(root, ".") == 0 || strcmp(root, "./") == 0)
+    snprintf(out, out_n, "%s", rel);
+  else
+    snprintf(out, out_n, "%s/%s", root, rel);
+}
+
+static int cmd_lisp_root(const char *root) {
+  if (!root || !root[0] || strcmp(root, "-") == 0 || strcmp(root, "default") == 0) {
+    unsetenv("NANO_LISP_ROOT");
+    printf("lisp-root=lab/nano-lisp-jit\n");
+    return 0;
+  }
+  setenv("NANO_LISP_ROOT", root, 1);
+  printf("lisp-root=%s\n", root);
+  return 0;
+}
+
 static int compose15_use_semantic_unified(void) {
   return lispjit_from_lisp_profile_named("compose-15link-semantic-unified");
 }
@@ -1015,47 +1048,47 @@ static int compose15_use_semantic_expand_modules(void) {
 static const char *compose15_semantic_full_path_for_tag(const char *tag) {
   if (!tag) return NULL;
   if (strcmp(tag, "main") == 0)
-    return "lab/nano-lisp-jit/lisp/modules-semantic/sem-main.lisp";
+    return "lisp/modules-semantic/sem-main.lisp";
   if (strcmp(tag, "callee") == 0)
-    return "lab/nano-lisp-jit/lisp/modules-semantic/sem-callee.lisp";
+    return "lisp/modules-semantic/sem-callee.lisp";
   if (strcmp(tag, "extra") == 0)
-    return "lab/nano-lisp-jit/lisp/modules-semantic/sem-extra.lisp";
+    return "lisp/modules-semantic/sem-extra.lisp";
   if (strcmp(tag, "core") == 0)
-    return "lab/nano-lisp-jit/lisp/modules-semantic/sem-core.lisp";
+    return "lisp/modules-semantic/sem-core.lisp";
   if (strcmp(tag, "mf") == 0)
-    return "lab/nano-lisp-jit/lisp/modules-semantic/sem-mf.lisp";
+    return "lisp/modules-semantic/sem-mf.lisp";
   if (strcmp(tag, "boot") == 0)
-    return "lab/nano-lisp-jit/lisp/modules-semantic/sem-boot.lisp";
+    return "lisp/modules-semantic/sem-boot.lisp";
   if (strcmp(tag, "vm") == 0)
-    return "lab/nano-lisp-jit/lisp/modules-semantic/sem-vm.lisp";
+    return "lisp/modules-semantic/sem-vm.lisp";
   if (strcmp(tag, "aot") == 0)
-    return "lab/nano-lisp-jit/lisp/modules-semantic/sem-aot.lisp";
+    return "lisp/modules-semantic/sem-aot.lisp";
   if (strcmp(tag, "elf") == 0)
-    return "lab/nano-lisp-jit/lisp/modules-semantic/sem-elf.lisp";
+    return "lisp/modules-semantic/sem-elf.lisp";
   if (strcmp(tag, "abi") == 0)
-    return "lab/nano-lisp-jit/lisp/modules-semantic/sem-abi.lisp";
+    return "lisp/modules-semantic/sem-abi.lisp";
   if (strcmp(tag, "manifest") == 0)
-    return "lab/nano-lisp-jit/lisp/modules-semantic/sem-manifest.lisp";
+    return "lisp/modules-semantic/sem-manifest.lisp";
   if (strcmp(tag, "run") == 0)
-    return "lab/nano-lisp-jit/lisp/modules-semantic/sem-run.lisp";
+    return "lisp/modules-semantic/sem-run.lisp";
   if (strcmp(tag, "pack") == 0)
-    return "lab/nano-lisp-jit/lisp/modules-semantic/sem-pack.lisp";
+    return "lisp/modules-semantic/sem-pack.lisp";
   if (strcmp(tag, "ape") == 0)
-    return "lab/nano-lisp-jit/lisp/modules-semantic/sem-ape.lisp";
+    return "lisp/modules-semantic/sem-ape.lisp";
   if (strcmp(tag, "parse") == 0)
-    return "lab/nano-lisp-jit/lisp/modules-semantic/sem-parse.lisp";
+    return "lisp/modules-semantic/sem-parse.lisp";
   return NULL;
 }
 
 static const char *compose15_semantic_main_expand_path(void) {
   if (lispjit_from_lisp_profile_named("compose-15link-semantic-154k") ||
       lispjit_from_lisp_profile_named("compose-15link-semantic-unified"))
-    return "lab/nano-lisp-jit/lisp/modules-semantic/tu-main-154k.lisp";
+    return "lisp/modules-semantic/tu-main-154k.lisp";
   if (lispjit_from_lisp_profile_named("compose-15link-semantic-64k"))
-    return "lab/nano-lisp-jit/lisp/modules-semantic/tu-main-64k.lisp";
+    return "lisp/modules-semantic/tu-main-64k.lisp";
   if (lispjit_from_lisp_profile_named("compose-15link-semantic-32k"))
-    return "lab/nano-lisp-jit/lisp/modules-semantic/tu-main-32k.lisp";
-  return "lab/nano-lisp-jit/lisp/modules-semantic/tu-main-8k.lisp";
+    return "lisp/modules-semantic/tu-main-32k.lisp";
+  return "lisp/modules-semantic/tu-main-8k.lisp";
 }
 
 static const char *compose15_semantic_expand_path_for_tag(const char *tag) {
@@ -1070,44 +1103,44 @@ static const char *compose15_semantic_expand_path_for_tag(const char *tag) {
   if (strcmp(tag, "main") == 0)
     return compose15_semantic_main_expand_path();
   if (strcmp(tag, "mf") == 0)
-    return "lab/nano-lisp-jit/lisp/modules-semantic/mf-semantic-40.lisp";
+    return "lisp/modules-semantic/mf-semantic-40.lisp";
   if (strcmp(tag, "core") == 0)
-    return "lab/nano-lisp-jit/lisp/modules-semantic/core-semantic-40.lisp";
+    return "lisp/modules-semantic/core-semantic-40.lisp";
   return NULL;
 }
 
 static const char *compose15_expand_path_for_tag(const char *tag) {
   if (!tag) return NULL;
   if (strcmp(tag, "main") == 0)
-    return "lab/nano-lisp-jit/lisp/modules-expand/26-bulk-main-expand.lisp";
+    return "lisp/modules-expand/26-bulk-main-expand.lisp";
   if (strcmp(tag, "callee") == 0)
-    return "lab/nano-lisp-jit/lisp/modules-expand/27-bulk-callee-expand.lisp";
+    return "lisp/modules-expand/27-bulk-callee-expand.lisp";
   if (strcmp(tag, "mf") == 0)
-    return "lab/nano-lisp-jit/lisp/modules-expand/13-bulk-text-expand.lisp";
+    return "lisp/modules-expand/13-bulk-text-expand.lisp";
   if (strcmp(tag, "extra") == 0)
-    return "lab/nano-lisp-jit/lisp/modules-expand/15-bulk-extra-expand.lisp";
+    return "lisp/modules-expand/15-bulk-extra-expand.lisp";
   if (strcmp(tag, "core") == 0)
-    return "lab/nano-lisp-jit/lisp/modules-expand/14-bulk-core-expand.lisp";
+    return "lisp/modules-expand/14-bulk-core-expand.lisp";
   if (strcmp(tag, "boot") == 0)
-    return "lab/nano-lisp-jit/lisp/modules-expand/17-bulk-boot-expand.lisp";
+    return "lisp/modules-expand/17-bulk-boot-expand.lisp";
   if (strcmp(tag, "vm") == 0)
-    return "lab/nano-lisp-jit/lisp/modules-expand/16-bulk-vm-expand.lisp";
+    return "lisp/modules-expand/16-bulk-vm-expand.lisp";
   if (strcmp(tag, "aot") == 0)
-    return "lab/nano-lisp-jit/lisp/modules-expand/18-bulk-aot-expand.lisp";
+    return "lisp/modules-expand/18-bulk-aot-expand.lisp";
   if (strcmp(tag, "elf") == 0)
-    return "lab/nano-lisp-jit/lisp/modules-expand/19-bulk-elf-expand.lisp";
+    return "lisp/modules-expand/19-bulk-elf-expand.lisp";
   if (strcmp(tag, "abi") == 0)
-    return "lab/nano-lisp-jit/lisp/modules-expand/20-bulk-abi-expand.lisp";
+    return "lisp/modules-expand/20-bulk-abi-expand.lisp";
   if (strcmp(tag, "manifest") == 0)
-    return "lab/nano-lisp-jit/lisp/modules-expand/21-bulk-manifest-expand.lisp";
+    return "lisp/modules-expand/21-bulk-manifest-expand.lisp";
   if (strcmp(tag, "run") == 0)
-    return "lab/nano-lisp-jit/lisp/modules-expand/22-bulk-run-expand.lisp";
+    return "lisp/modules-expand/22-bulk-run-expand.lisp";
   if (strcmp(tag, "pack") == 0)
-    return "lab/nano-lisp-jit/lisp/modules-expand/23-bulk-pack-expand.lisp";
+    return "lisp/modules-expand/23-bulk-pack-expand.lisp";
   if (strcmp(tag, "ape") == 0)
-    return "lab/nano-lisp-jit/lisp/modules-expand/24-bulk-ape-expand.lisp";
+    return "lisp/modules-expand/24-bulk-ape-expand.lisp";
   if (strcmp(tag, "parse") == 0)
-    return "lab/nano-lisp-jit/lisp/modules-expand/25-bulk-parse-expand.lisp";
+    return "lisp/modules-expand/25-bulk-parse-expand.lisp";
   return NULL;
 }
 
@@ -1117,24 +1150,21 @@ static int lispjit_from_lisp_build_compose_15link(const char *out_path, const ch
     const char *sym;
     const char *tag;
   } mods[] = {
-      {"lab/nano-lisp-jit/lisp/core/lisp-tu-main.lisp", "nano_tu_main", "main"},
-      {"lab/nano-lisp-jit/lisp/core/lisp-tu-callee.lisp", "nano_tu_callee", "callee"},
-      {"lab/nano-lisp-jit/lisp/modules/01-runtime-extra.lisp", "nano_lispjit_extra",
-       "extra"},
-      {"lab/nano-lisp-jit/lisp/modules/00-runtime-core.lisp", "nano_mod_core", "core"},
-      {"lab/nano-lisp-jit/lisp/core/multi-func.lisp", "nano_mf_mod", "mf"},
-      {"lab/nano-lisp-jit/lisp/modules/03-bootstrap-stub.lisp", "nano_mod_boot",
-       "boot"},
-      {"lab/nano-lisp-jit/lisp/modules/04-vm.lisp", "nano_mod_vm", "vm"},
-      {"lab/nano-lisp-jit/lisp/modules/05-aot.lisp", "nano_mod_aot", "aot"},
-      {"lab/nano-lisp-jit/lisp/modules/06-elf.lisp", "nano_mod_elf", "elf"},
-      {"lab/nano-lisp-jit/lisp/modules/07-abi.lisp", "nano_mod_abi", "abi"},
-      {"lab/nano-lisp-jit/lisp/modules/08-manifest.lisp", "nano_mod_manifest",
-       "manifest"},
-      {"lab/nano-lisp-jit/lisp/modules/09-run.lisp", "nano_mod_run", "run"},
-      {"lab/nano-lisp-jit/lisp/modules/10-pack.lisp", "nano_mod_pack", "pack"},
-      {"lab/nano-lisp-jit/lisp/modules/11-ape.lisp", "nano_mod_ape", "ape"},
-      {"lab/nano-lisp-jit/lisp/modules/12-parse.lisp", "nano_mod_parse", "parse"},
+      {"lisp/core/lisp-tu-main.lisp", "nano_tu_main", "main"},
+      {"lisp/core/lisp-tu-callee.lisp", "nano_tu_callee", "callee"},
+      {"lisp/modules/01-runtime-extra.lisp", "nano_lispjit_extra", "extra"},
+      {"lisp/modules/00-runtime-core.lisp", "nano_mod_core", "core"},
+      {"lisp/core/multi-func.lisp", "nano_mf_mod", "mf"},
+      {"lisp/modules/03-bootstrap-stub.lisp", "nano_mod_boot", "boot"},
+      {"lisp/modules/04-vm.lisp", "nano_mod_vm", "vm"},
+      {"lisp/modules/05-aot.lisp", "nano_mod_aot", "aot"},
+      {"lisp/modules/06-elf.lisp", "nano_mod_elf", "elf"},
+      {"lisp/modules/07-abi.lisp", "nano_mod_abi", "abi"},
+      {"lisp/modules/08-manifest.lisp", "nano_mod_manifest", "manifest"},
+      {"lisp/modules/09-run.lisp", "nano_mod_run", "run"},
+      {"lisp/modules/10-pack.lisp", "nano_mod_pack", "pack"},
+      {"lisp/modules/11-ape.lisp", "nano_mod_ape", "ape"},
+      {"lisp/modules/12-parse.lisp", "nano_mod_parse", "parse"},
   };
   enum { mod_count = (int)(sizeof(mods) / sizeof(mods[0])) };
   char obj_paths[15][4096];
@@ -1158,17 +1188,20 @@ static int lispjit_from_lisp_build_compose_15link(const char *out_path, const ch
     printf("build-slice-lisp.compose15_semantic_full_15slot=1\n");
   if (compose15_use_semantic_unified())
     printf("build-slice-lisp.compose15_semantic_unified=1\n");
+  printf("build-slice-lisp.lisp_root=%s\n", nano_lisp_root_default());
   for (i = 0; i < (size_t)mod_count; ++i) {
-    const char *src = mods[i].path;
+    char src_full[4096];
+    const char *rel = mods[i].path;
     const char *semantic =
         compose15_use_semantic_expand_modules() ? compose15_semantic_expand_path_for_tag(mods[i].tag)
                                                 : NULL;
     const char *expand =
         compose15_use_expand_modules() ? compose15_expand_path_for_tag(mods[i].tag) : NULL;
-    if (semantic) src = semantic;
-    else if (expand) src = expand;
+    if (semantic) rel = semantic;
+    else if (expand) rel = expand;
+    nano_lisp_join(src_full, sizeof(src_full), rel);
     snprintf(obj_paths[i], sizeof(obj_paths[i]), "%s.lispjit-compose15-%s.o", out_path, mods[i].tag);
-    rc = cmd_compile_elf64_obj_code(src, obj_paths[i], mods[i].sym);
+    rc = cmd_compile_elf64_obj_code(src_full, obj_paths[i], mods[i].sym);
     if (rc != 0) return rc;
     {
       long ob = bootstrap_path_bytes(obj_paths[i]);
@@ -1185,8 +1218,11 @@ static int lispjit_from_lisp_build_compose_15link(const char *out_path, const ch
   {
     long linked_bytes = bootstrap_path_bytes(out_path);
     size_t code_bytes = nano_link_last_code_bytes();
-    static const char *lispjit_factory = "lab/nano-lisp-jit/archive/c/runner/lispjit.c";
+    static char lispjit_factory_buf[4096];
     const char *no_hybrid = getenv("NANO_COMPOSE15_NO_HYBRID");
+    nano_lisp_join(lispjit_factory_buf, sizeof(lispjit_factory_buf),
+                   "archive/c/runner/lispjit.c");
+    const char *lispjit_factory = lispjit_factory_buf;
     printf("build-slice-lisp.compose15_link.object_bytes_total=%zu\n", object_bytes_total);
     printf("build-slice-lisp.compose15_link.linked_bytes=%ld\n", linked_bytes);
     printf("build-slice-lisp.compose15_link.code_bytes=%zu\n", code_bytes);
@@ -1772,6 +1808,15 @@ static int parse_bootstrap_plan(const char *src, BootstrapPlan *plan) {
         free(head);
         return 0;
       }
+    } else if (strcmp(head, "lisp-root") == 0) {
+      char *arg0 = parse_string(&p);
+      int ok = arg0 && eat(&p, ')') &&
+               bootstrap_add_step(plan, BOOTSTRAP_STEP_LISP_ROOT, arg0, NULL, NULL, NULL);
+      if (!ok) {
+        free(arg0);
+        free(head);
+        return 0;
+      }
     } else if (strcmp(head, "build-slice-lisp-profile") == 0) {
       char *arg0 = parse_string(&p);
       char *arg1 = parse_string(&p);
@@ -2163,6 +2208,9 @@ static int cmd_run_bootstrap_plan(const char *plan_path) {
     } else if (step->kind == BOOTSTRAP_STEP_RUN_STDIN) {
       printf("bootstrap-step.%zu=run-stdin\n", i);
       rc = cmd_run_stdin(step->arg0, step->arg1);
+    } else if (step->kind == BOOTSTRAP_STEP_LISP_ROOT) {
+      printf("bootstrap-step.%zu=lisp-root\n", i);
+      rc = cmd_lisp_root(step->arg0);
     } else if (step->kind == BOOTSTRAP_STEP_SPAWN_WAIT) {
       printf("bootstrap-step.%zu=spawn-wait\n", i);
       rc = run_spawn_wait_expect_exit(step->arg0, step->arg1,

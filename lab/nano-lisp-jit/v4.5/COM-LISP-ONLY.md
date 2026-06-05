@@ -28,6 +28,12 @@ bash lab/nano-lisp-jit/retired/scripts/nano-jit-c-codegen-158k-smoke.sh
 $COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-codegen-158k-daily.lisp
 ```
 
+**Flat bundle** (copy `nano-lisp.com`, `bootstrap/`, `lisp/` to one directory):
+
+```bash
+./nano-lisp.com run-bootstrap-plan bootstrap/bootstrap-v45-codegen-158k-bundle-daily.lisp
+```
+
 ## In scope (user path)
 
 | Allowed | Examples |
@@ -36,7 +42,7 @@ $COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-codegen-1
 | Bootstrap plans | `lisp/bootstrap/bootstrap-v45-*.lisp` or flat `bootstrap/*.lisp` |
 | Dogfood / core Lisp | `lisp/shell/*.lisp`, `lisp/core/*.lisp` |
 | Ephemeral `.lbin` | COM `compile` output under `.build/` |
-| Bootstrap DSL | `compile`, `run`, `run-stdin`, `compare`, `spawn-wait`, `file-size`, … |
+| Bootstrap DSL | `compile`, `run`, `run-stdin`, `lisp-root`, `build-slice-lisp-profile`, … |
 
 ## Out of scope (factory / dual-track — not user daily)
 
@@ -56,7 +62,7 @@ $COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-codegen-1
 |-------|---|---------|
 | **Shell com-only plan** | **100%** | plan 内无 `/bin/sh` |
 | **Daily com+lisp（用 pin）** | **100%** | release pin 含 `run-stdin`；运行时 OS libc |
-| **Portable flat bundle** | **100%** | flat bundle daily plan |
+| **Portable flat bundle (158KB codegen)** | **100%** | `(lisp-root ".")` + bundle daily plan |
 | **从 *.lisp 重造 158KB slice** | **~90%** | `build-slice-lisp-profile` in-plan · compose15 semantic-unified |
 | **从 *.lisp 重造 867KB COM** | **0%** | full runner still cosmocc factory |
 | **Factory zero toolchain** | **0%** | cosmocc 重打 867KB COM |

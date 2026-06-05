@@ -228,4 +228,4 @@ git branch --merged main | grep 'cursor/nanolisp-shell' | xargs -r git branch -d
 
 - [`SHELL-REFLECTION.md`](SHELL-REFLECTION.md) — wave narrative · Wave 7 closure section
 - [`PRODUCT-TRACKS.md`](PRODUCT-TRACKS.md) — C vs Rust release SSOT
-- [`../release/manifest.txt`](../release/manifest.txt) — pinned `nano-lisp.com.bytes=867097`
+- [`../release/manifest.txt`](../release/manifest.txt) — pinned `nano-lisp.com.bytes=863001`

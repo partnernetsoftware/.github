@@ -81,8 +81,8 @@ bash lab/nano-lisp-jit/retired/scripts/nanolisp-dual-gate.sh
 - [x] com+lisp-only daily — `bootstrap-v45-com-lisp-only-daily.lisp` + `nano-jit-com-lisp-only-smoke.sh`
 - [x] bootstrap `run-stdin` — fork+pipe fgets (no `/bin/sh` in com-only plans)
 - [x] flat bundle daily — `bootstrap-v45-com-lisp-only-bundle-daily.lisp` + isolated smoke
-- [x] release promote — pin **867097 B** `fnv1a64=48f65716181626e8` (`run-stdin` in release COM)
-- [x] 158KB codegen daily — `build-slice-lisp-profile` + `bootstrap-v45-codegen-158k-daily.lisp` + c-gate smoke
+- [x] release promote — pin **863001 B** `fnv1a64=3d9429564b04715c` (`lisp-root` + compose15 portable)
+- [x] 158KB codegen daily — `build-slice-lisp-profile` + `lisp-root` + flat bundle + c-gate smoke
 - [x] shell smokes in `nanolisp-dual-gate.sh` (c: noarg/fgets/full-c · rs: shell-ci/shell-full/repl-vm/shell-dual/fgets/repl-fgets)
 - [ ] Rust APE size ≈ C COM with runnable full CLI
 - [ ] C/Rust zero host-cc **867KB full COM** codegen
