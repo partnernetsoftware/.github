@@ -43,12 +43,15 @@ bash lab/nano-lisp-jit/retired/scripts/nano-jit-com-lisp-only-smoke.sh
 
 ## Honest remaining (com-only %)
 
+**口径**：「用户 daily」= 已有 pin 的 COM + plan 内无 `.sh`/`.c`/Rust；**≠** 从纯 Lisp 重造 COM（158KB codegen 另轨）。
+
 | Slice | % | Blocker |
 |-------|---|---------|
-| **Shell com-only plan** | **100%** | `bootstrap-v45-shell-com-only.lisp` — no `/bin/sh` |
-| **Daily com+lisp** | **100%** | release pin includes `run-stdin`; OS libc only |
-| **Portable flat bundle** | **100%** | `bootstrap-v45-com-lisp-only-bundle-daily.lisp` |
-| **Factory zero toolchain** | **0%** | cosmocc/host-cc for COM regen |
+| **Shell com-only plan** | **100%** | plan 内无 `/bin/sh` |
+| **Daily com+lisp（用 pin）** | **100%** | release pin 含 `run-stdin`；运行时 OS libc |
+| **Portable flat bundle** | **100%** | flat bundle daily plan |
+| **从 *.lisp 重造 COM** | **0%** | pure Lisp 158KB codegen — [`OVERALL-PROGRESS.md`](OVERALL-PROGRESS.md) |
+| **Factory zero toolchain** | **0%** | cosmocc 重打 867KB COM |
 
 ## Related
 

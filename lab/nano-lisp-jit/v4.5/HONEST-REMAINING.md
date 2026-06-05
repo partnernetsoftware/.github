@@ -1,6 +1,19 @@
 # 物理终局 — 诚实口径
 
-## v4.5 用户路径（✅ 2026-05-27）
+## v4.5 用户路径（两条 SSOT — 勿混称 100%）
+
+### A. COM + Lisp daily（dogfood / shell — 用 pin，不重造 COM）
+
+见 [`COM-LISP-ONLY.md`](COM-LISP-ONLY.md)：
+
+```bash
+COM=lab/nano-lisp-jit/release/nano-lisp.com
+$COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-com-lisp-only-daily.lisp
+```
+
+Flat bundle：`./nano-lisp.com run-bootstrap-plan bootstrap/bootstrap-v45-com-lisp-only-bundle-daily.lisp`
+
+### B. 工厂 / 矩阵（158KB slice · 零 genesis-pin — 仍要 host-cc/cosmocc）
 
 ```bash
 COM=lab/nano-lisp-jit/release/nano-lisp.com
