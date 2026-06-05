@@ -8,7 +8,7 @@
 |---|----------------------|----------------------------|
 | **Product file** | `release/nano-lisp.com` | `release/nanolisp.com` |
 | **Brand / CLI** | `nano-lisp` runner inside COM | `nanolisp` (`nanolisp.com=0.1.0`) |
-| **Pinned size** | **863 001 B** (~843 KiB; Wave 6 shell promote) | **3 000 373 B** (~2.86 MiB) |
+| **Pinned size** | **867 097 B** (~847 KiB; shell rodata embed) | **3 000 373 B** (~2.86 MiB) |
 | **APE** | v2 · **2×166 592 B** ELF slices (x86_64 + aarch64) | v2 · dual-arch `nanolisp` CLI packed |
 | **Engine** | C runner (`lispjit` + Cosmo slice factory) | Rust `lab/nano-jit-rs/` |
 | **Maturity** | **Production SSOT** for v4.5 wave convergence | **~99%** feature parity; gate-promoted release |

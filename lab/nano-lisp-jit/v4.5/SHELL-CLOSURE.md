@@ -195,8 +195,8 @@ bash lab/nano-lisp-jit/retired/scripts/nano-jit-shell-hygiene.sh
 
 | 项 | 当前 SSOT | 常见 stale |
 |----|-----------|------------|
-| C COM 字节 | **863 001** · `manifest.txt` | 334 537（Wave 6 前） |
-| C COM hash | `df4486d14a2ed2c2` | `a1904c09aebbf58d` |
+| C COM 字节 | **867 097** · `manifest.txt` | 334 537（Wave 6 前） |
+| C COM hash | `f893ddebfd7f938c` | `a1904c09aebbf58d` |
 | Shell probe | `nanolisp.c-release-shell=embedded` | manual `NANO_C_RELEASE_HAS_SHELL` only |
 | Ladder % | **100% scoped** | 混称 wave-default / slim / 158KB |
 
@@ -228,4 +228,4 @@ git branch --merged main | grep 'cursor/nanolisp-shell' | xargs -r git branch -d
 
 - [`SHELL-REFLECTION.md`](SHELL-REFLECTION.md) — wave narrative · Wave 7 closure section
 - [`PRODUCT-TRACKS.md`](PRODUCT-TRACKS.md) — C vs Rust release SSOT
-- [`../release/manifest.txt`](../release/manifest.txt) — pinned `nano-lisp.com.bytes=863001`
+- [`../release/manifest.txt`](../release/manifest.txt) — pinned `nano-lisp.com.bytes=867097`

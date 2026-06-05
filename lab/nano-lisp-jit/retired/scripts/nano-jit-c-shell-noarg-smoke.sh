@@ -55,8 +55,13 @@ else
     echo "$log"
     exit 1
   }
-  echo "$log" | grep -q "shell.lbin=lab/nano-lisp-jit/archive/c/embed/shell-script.lbin" || {
-    echo "nano-jit-c-shell-noarg-smoke=fail host_embed_path"
+  echo "$log" | grep -q 'shell.embed.source=rodata' || {
+    echo "nano-jit-c-shell-noarg-smoke=fail host_embed_rodata"
+    echo "$log"
+    exit 1
+  }
+  echo "$log" | grep -q 'shell.embed.bytes=280' || {
+    echo "nano-jit-c-shell-noarg-smoke=fail host_embed_bytes"
     echo "$log"
     exit 1
   }
@@ -77,6 +82,19 @@ else
     exit 1
   }
   echo "nano-jit-c-shell-noarg-smoke=ok host_cc runner=$HOST_BIN"
+
+  iso_dir=$(mktemp -d)
+  iso_bin="$iso_dir/nano-lisp-isolated"
+  cp "$HOST_BIN" "$iso_bin"
+  chmod +x "$iso_bin"
+  iso_log=$("$iso_bin" 2>&1) || true
+  rm -rf "$iso_dir"
+  echo "$iso_log" | grep -q 'shell.embed.source=rodata' || {
+    echo "nano-jit-c-shell-noarg-smoke=fail isolated_rodata"
+    echo "$iso_log"
+    exit 1
+  }
+  echo "nano-jit-c-shell-noarg-smoke=ok isolated_rodata"
 fi
 
 [ -x "$C_COM" ] || { echo "nano-jit-c-shell-noarg-smoke=fail no_c_com"; exit 1; }
@@ -93,6 +111,21 @@ if [ "${NANO_C_RELEASE_HAS_SHELL}" = 1 ]; then
     echo "$log"
     exit 1
   }
+  iso_dir=$(mktemp -d)
+  iso_com="$iso_dir/nano-lisp.com"
+  cp "$C_COM" "$iso_com"
+  chmod +x "$iso_com"
+  iso_log=$(cd "$iso_dir" && ./nano-lisp.com 2>&1) || true
+  rm -rf "$iso_dir"
+  if echo "$iso_log" | grep -q 'shell.embed.source=rodata'; then
+    echo "nano-jit-c-shell-noarg-smoke=ok release_isolated_rodata"
+  elif echo "$iso_log" | grep -q 'shell.lbin='; then
+    echo "nano-jit-c-shell-noarg-smoke=warn release_isolated_legacy_file_embed"
+  else
+    echo "nano-jit-c-shell-noarg-smoke=fail release_isolated"
+    echo "$iso_log"
+    exit 1
+  fi
   echo "nano-jit-c-shell-noarg-smoke=ok release_has_shell=1"
 else
   if [ "$rc" -ne 2 ]; then

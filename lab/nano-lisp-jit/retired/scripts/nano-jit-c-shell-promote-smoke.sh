@@ -80,8 +80,8 @@ promote_smoke_host_cc_factory() {
     echo "$log"
     exit 1
   }
-  echo "$log" | grep -q "shell.lbin=lab/nano-lisp-jit/archive/c/embed/shell-script.lbin" || {
-    echo "nano-jit-c-shell-promote-smoke=fail host_embed_path"
+  echo "$log" | grep -q 'shell.embed.source=rodata' || {
+    echo "nano-jit-c-shell-promote-smoke=fail host_embed_rodata"
     echo "$log"
     exit 1
   }

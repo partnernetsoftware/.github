@@ -195,6 +195,7 @@ Wave 7 merges `cursor/nanolisp-shell-closure-fc19`, `cursor/nanolisp-shell-full-
 | **Byte SSOT** | ✅ | C `nano-lisp.com` **863 001 B** per `manifest.txt` (not legacy 334 537 B) |
 | **P0 / P1 / P2** | ✅ | Unchanged from Wave 6 — probe `embedded`, gates nested |
 | **Hygiene pass** | ✅ | `release/README.md` pin sync · `nano-jit-shell-hygiene.sh` · merged branch prune doc |
+| **Rodata embed (Wave 8)** | ✅ | `nano_shell_embed.c` + `gen-shell-embed-c.sh`; isolated `$COM` no-arg · pin **867 097 B** |
 
 ---
 

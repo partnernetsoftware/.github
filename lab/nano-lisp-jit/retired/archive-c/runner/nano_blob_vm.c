@@ -950,6 +950,15 @@ static int cmd_run(const char *blob_path) {
   free(owned);
   return rc;
 }
+
+static int cmd_run_bytes(const unsigned char *data, size_t n) {
+  Blob b;
+  if (!data || n == 0 || !blob_init(&b, (unsigned char *)data, n)) {
+    fprintf(stderr, "blob=parse_fail source=bytes\n");
+    return 1;
+  }
+  return execute_blob(&b);
+}
 static int cmd_dump(const char *blob_path) {
   Blob b;
   unsigned char *owned = NULL;

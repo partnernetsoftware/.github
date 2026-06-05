@@ -31,6 +31,13 @@ static int cmd_shell_run_lbin(const char *lbin_path, const char *mode) {
   return rc;
 }
 
+static int cmd_shell_run_rodata(void) {
+  printf("shell.mode=embedded-lbin\n");
+  printf("shell.embed.source=rodata\n");
+  printf("shell.embed.bytes=%zu\n", nano_shell_script_lbin_len);
+  return cmd_run_bytes(nano_shell_script_lbin, nano_shell_script_lbin_len);
+}
+
 static int cmd_shell_try_embedded_files(void) {
   static const char *candidates[] = {SHELL_EMBED_C, SHELL_EMBED_RS, NULL};
   size_t i;
@@ -85,9 +92,11 @@ static int cmd_shell(void) { return cmd_shell_compile_run(); }
 static int cmd_shell_noarg(const char *argv0) {
   int rc = cmd_shell_try_run_app_self(argv0);
   if (rc >= 0) return rc;
+  if (nano_shell_script_lbin_len > 0) {
+    return cmd_shell_run_rodata();
+  }
   rc = cmd_shell_try_embedded_files();
   if (rc >= 0) return rc;
-  /* TODO(factory): pack-app embed shell-script.lbin in release COM for true embedded-lbin. */
   fprintf(stderr, "shell.noarg=fallback compile-run\n");
   return cmd_shell_compile_run();
 }

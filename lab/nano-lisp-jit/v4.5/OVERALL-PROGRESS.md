@@ -6,7 +6,7 @@
 
 | Track | Overall | Gate | Release artifact |
 |-------|---------|------|------------------|
-| **C `nano-lisp.com`** | **95%** shipping-ready | `nanolisp.c-gate=ok` | **863 001 B** · wave SSOT (Wave 6 shell promote pin) |
+| **C `nano-lisp.com`** | **95%** shipping-ready | `nanolisp.c-gate=ok` | **867 097 B** · wave SSOT (shell rodata embed pin) |
 | **Rust `nanolisp.com`** | **99%** feature parity | `nanolisp.gate=ok` | **3 000 373 B** · full CLI APE |
 | **Rust slim pathfinder** | **40%** | slim smoke | `nanolisp-slim.com` ~161 KiB (genesis-pin pack) |
 | **Migration (Rust replaces C)** | **~86%** | dual gate | C maintained until slim + parity; shell embed **done** on C pin (863 001 B) |
@@ -76,6 +76,7 @@ bash lab/nano-lisp-jit/retired/scripts/nanolisp-dual-gate.sh
 - [x] shell Phase 8b — `bootstrap-v45-shell-full-c.lisp` + `nano-jit-c-shell-full-c-smoke.sh` (c-gate ~21 steps)
 - [x] shell ladder meta — `nano-jit-shell-ladder-smoke.sh` (scoped 100% ordered proof)
 - [x] shell Wave 7 closure — [`SHELL-CLOSURE.md`](SHELL-CLOSURE.md) scoped **100%** ladder lock
+- [x] shell C rodata embed — `nano_shell_embed.c`; isolated release no-arg; pin **867 097 B**
 - [x] shell smokes in `nanolisp-dual-gate.sh` (c: noarg/fgets/full-c · rs: shell-ci/shell-full/repl-vm/shell-dual/fgets/repl-fgets)
 - [ ] Rust APE size ≈ C COM with runnable full CLI
 - [ ] C/Rust zero host-cc 158KB codegen

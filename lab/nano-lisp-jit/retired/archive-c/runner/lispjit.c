@@ -412,6 +412,8 @@ static int make_executable(const char *path) {
 
 #include "nano_blob_vm.c"
 
+#include "nano_shell_embed.c"
+
 #include "nano_compile_cli.c"
 #include "nano_libc_resolve.c"
 
