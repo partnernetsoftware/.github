@@ -2,7 +2,7 @@
 
 **Goal**: `.com` becomes a Lisp-native shell runner — dogfood in `shell/*.lisp`, then embed in release COM.
 
-**Retrospective (Ph 0–8, Wave 6 promote, % rubric)**: [`SHELL-REFLECTION.md`](SHELL-REFLECTION.md)
+**Retrospective (Ph 0–9, Wave 7 closure)**: [`SHELL-REFLECTION.md`](SHELL-REFLECTION.md) · **scoped 100%**: [`SHELL-CLOSURE.md`](SHELL-CLOSURE.md)
 
 ## Capability layers
 
@@ -117,7 +117,7 @@ $RS run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-shell-full
 
 **Smoke**: `bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-shell-full-smoke.sh` (rs-gate; greps `nanolisp-shell-full-*`, `shell.mode=embedded-lbin` on both tracks after Wave 6).
 
-**Phase 8b (C track)**: Pinned **`release/nano-lisp.com`** (**863 001 B**, Wave 6 shell promote). Rust: `nanolisp shell-full` or `run-bootstrap-plan` on the plan above (rs-gate smoke). C: **`$COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-shell-full.lisp`** — same ~29-step plan, no dedicated `shell-full` subcommand; shell-full smoke asserts C no-arg + spawn-wait on pin when probe `embedded`.
+**Phase 8b (C track)**: Pinned **`release/nano-lisp.com`** (**863 001 B**, Wave 6). Rust: `nanolisp shell-full` or `run-bootstrap-plan` on `bootstrap-v45-shell-full.lisp`. C: **`$COM run-bootstrap-plan …/bootstrap-v45-shell-full-c.lisp`** (21-step C subset; smoke `nano-jit-c-shell-full-c-smoke.sh` in c-gate). Full Rust plan uses hash-match/pack-ape — not C-parseable.
 
 ## Phase 9 — shell-promote bootstrap
 
@@ -213,4 +213,4 @@ NANO_C_SHELL_RELEASE_PROMOTE=1 bash lab/nano-lisp-jit/retired/scripts/nanolisp-d
 2. AOT or compose module into runner slice (15-link / factory). ✅ C release (Wave 6 pin)
 3. `main` dispatch `argc==1` → shell.lbin. ✅ Rust · ✅ C source · ✅ C release pin
 
-See also: [`SHELL-REFLECTION.md`](SHELL-REFLECTION.md) · [`PRODUCT-TRACKS.md`](PRODUCT-TRACKS.md) · [`OVERALL-PROGRESS.md`](OVERALL-PROGRESS.md)
+See also: [`SHELL-CLOSURE.md`](SHELL-CLOSURE.md) · [`SHELL-REFLECTION.md`](SHELL-REFLECTION.md) · [`PRODUCT-TRACKS.md`](PRODUCT-TRACKS.md) · [`OVERALL-PROGRESS.md`](OVERALL-PROGRESS.md)

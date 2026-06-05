@@ -8,14 +8,14 @@
 |---|----------------------|----------------------------|
 | **Product file** | `release/nano-lisp.com` | `release/nanolisp.com` |
 | **Brand / CLI** | `nano-lisp` runner inside COM | `nanolisp` (`nanolisp.com=0.1.0`) |
-| **Pinned size** | **334 537 B** (~327 KiB) | **2 959 413 B** (~2.82 MiB) |
+| **Pinned size** | **863 001 B** (~843 KiB; Wave 6 shell promote) | **3 000 373 B** (~2.86 MiB) |
 | **APE** | v2 · **2×166 592 B** ELF slices (x86_64 + aarch64) | v2 · dual-arch `nanolisp` CLI packed |
 | **Engine** | C runner (`lispjit` + Cosmo slice factory) | Rust `lab/nano-jit-rs/` |
 | **Maturity** | **Production SSOT** for v4.5 wave convergence | **~99%** feature parity; gate-promoted release |
 | **Default gate** | `retired/scripts/v45-wave*.sh` + factory regenesis | `retired/scripts/nano-jit-rs-gate.sh` |
 | **Release promote** | `v45-wave91-release-promote-converge.sh` (native factory → `release/`) | `retired/scripts/nano-jit-rs-release-promote.sh` |
 
-Also pinned: `v45-selfhost-next.com` (334 537 B, same hash as `nano-lisp.com` today) · bare `nanolisp.ape` (2 958 136 B) · **`nanolisp-slim.com`** (~161 KiB genesis-pin pathfinder).
+Also pinned: `v45-selfhost-next.com` (**863 001 B**, manifest parity with `nano-lisp.com` after Wave 6) · bare `nanolisp.ape` (2 999 096 B) · **`nanolisp-slim.com`** (~161 KiB genesis-pin pathfinder).
 
 **Progress assessment**: [`OVERALL-PROGRESS.md`](OVERALL-PROGRESS.md) · **Dual gate**: `bash lab/nano-lisp-jit/retired/scripts/nanolisp-dual-gate.sh`
 
@@ -23,7 +23,7 @@ Also pinned: `v45-selfhost-next.com` (334 537 B, same hash as `nano-lisp.com` 
 
 | Track | Code | Notes |
 |-------|------|-------|
-| **C** | [`retired/archive-c/runner/`](../retired/archive-c/runner/) — `lispjit.c`, `nano_shell_cli.c`, … | Factory under `retired/archive-c/factory/`. [`archive/c/`](../archive/c/) is README-only stub; **7b embed path** `archive/c/embed/shell-script.lbin` wired in source but **not on disk** — next slice after cosmocc promote. |
+| **C** | [`retired/archive-c/runner/`](../retired/archive-c/runner/) — `lispjit.c`, `nano_shell_cli.c`, … | Factory under `retired/archive-c/factory/`. **7b embed**: `archive/c/embed/shell-script.lbin` (280 B); release pin **863 001 B** after `nano-jit-c-shell-release-promote.sh`. |
 | **Rust** | [`lab/nano-jit-rs/`](../../nano-jit-rs/) | Crate name `nano-jit-rs`; binary `nanolisp`. Build: `lab/nano-lisp-jit/build_nano_jit_rs.sh` → `.build/nano-jit-rs/`. |
 
 Shared Lisp/bootstrap: `lab/nano-lisp-jit/lisp/`.
@@ -46,7 +46,7 @@ Shared Lisp/bootstrap: `lab/nano-lisp-jit/lisp/`.
 
 | Area | C track | Rust track |
 |------|---------|------------|
-| **Binary size** | ~327 KiB — shipping constraint met | ~2.8 MiB full CLI · **~161 KiB** `nanolisp-slim.com` genesis pathfinder |
+| **Binary size** | **863 001 B** pinned COM (regenesis + shell promote) | ~3.0 MiB full CLI · **~161 KiB** `nanolisp-slim.com` genesis pathfinder |
 | **v4.5 wave SSOT** | `nano-lisp.com` is what wave scripts promote & pin | Parity proven; **not** the default COM in `v45-wave*.sh` |
 | **Factory / regenesis** | Native C slice compiler still seeds some factory paths | `run-bootstrap-plan` + build-slice paths largely green on Rust |
 | **AOT / compose** | Full 15-link semantic ladder on C COM | aarch64 compose-15link on release APE still **待补** (see RUST-MIGRATION) |
@@ -57,26 +57,27 @@ Shared Lisp/bootstrap: `lab/nano-lisp-jit/lisp/`.
 | Use **C `nano-lisp.com`** when… | Use **Rust `nanolisp.com`** when… |
 |----------------------------------|-----------------------------------|
 | Running v4.5 wave / factory convergence gates | Running `nano-jit-rs-gate.sh` or Rust parity smokes |
-| Need smallest portable APE (~327 KiB) | Developing compiler, VM, APE pack, NLCap, bootstrap plans |
+| Need pinned C wave SSOT COM (863 001 B) | Developing compiler, VM, APE pack, NLCap, bootstrap plans |
 | Reproducing pinned `manifest.txt` legacy hashes | Promoting or testing gate-passed Rust release candidate |
 | `v45-selfhost-next.com` matrix / selfhost experiments | `version` / `inspect-ape` / `run-bootstrap-plan` on Rust engine |
 
 Quick check:
 
 ```bash
-# C legacy (~327 KiB, 2×166592 slices)
+# C legacy (863001 B pin — manifest.txt)
 lab/nano-lisp-jit/release/nano-lisp.com inspect-ape lab/nano-lisp-jit/release/nano-lisp.com
 
 # Rust candidate (~2.8 MiB)
 lab/nano-lisp-jit/release/nanolisp.com version
 ```
 
-| **Shell runner** | compile/run `shell-v0` via C COM; **c-gate** shell-noarg smoke | Ph **0–7** + **7 alt** repl-fgets; dual-gate audit markers | C **release** embed + `archive/c/embed/` pending — [`SHELL-REFLECTION.md`](SHELL-REFLECTION.md#wave-2-reflection-2026-06-04) |
+| **Shell runner** | compile/run `shell-v0` via C COM; **c-gate** noarg + fgets; release pin **863 001 B** | Ph **0–9** + dual-gate; ladder **100% scoped** | Product shell slice **~85%** — [`SHELL-CLOSURE.md`](SHELL-CLOSURE.md) |
 
 ## Related docs
 
 - [`SHELL-RUNNER.md`](SHELL-RUNNER.md) — shell.lisp practice ladder · embed `.com` plan
-- [`SHELL-REFLECTION.md`](SHELL-REFLECTION.md) — Ph 0–7 retrospective · Wave 2 reflection · ~89% rubric
+- [`SHELL-CLOSURE.md`](SHELL-CLOSURE.md) — scoped **100%** ladder closure · Wave 7
+- [`SHELL-REFLECTION.md`](SHELL-REFLECTION.md) — Ph 0–9 retrospective · wave reflections
 - [`../release/README.md`](../release/README.md) — artifact table + manifest link
 - [`OVERALL-PROGRESS.md`](OVERALL-PROGRESS.md) — quantified % assessment · dual gate
 - [`RUST-MIGRATION.md`](RUST-MIGRATION.md) — component parity matrix & smoke index

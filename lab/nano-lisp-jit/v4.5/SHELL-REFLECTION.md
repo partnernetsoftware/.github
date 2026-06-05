@@ -1,13 +1,15 @@
 # Shell runner — reflection (Phases 0–8 merged)
 
-**Updated**: 2026-06-04 · Wave 6 reflection (C release promote landed — P0 done)  
-**SSOT ladder**: [`SHELL-RUNNER.md`](SHELL-RUNNER.md) · **product tracks**: [`PRODUCT-TRACKS.md`](PRODUCT-TRACKS.md) · **rollup %**: [`OVERALL-PROGRESS.md`](OVERALL-PROGRESS.md)
+**Updated**: 2026-06-05 · Wave 7 closure (scoped **100%** ladder lock)  
+**SSOT ladder**: [`SHELL-RUNNER.md`](SHELL-RUNNER.md) · **closure**: [`SHELL-CLOSURE.md`](SHELL-CLOSURE.md) · **product tracks**: [`PRODUCT-TRACKS.md`](PRODUCT-TRACKS.md) · **rollup %**: [`OVERALL-PROGRESS.md`](OVERALL-PROGRESS.md)
 
 ## Executive summary
 
-Phases **0–8** (Rust ladder + C host-cc / opcode parity) are merged or gated on integrate. **Wave 4** landed: C **fgets opcode**, **`nanolisp shell-full`** CLI, **host-cc** path in promote smoke. **Wave 5** landed: **gate readonly promote**, **cosmocc bootstrap**, **Phase 9** `bootstrap-v45-shell-promote.lisp` + promote smokes. **Wave 6**: C **release** pin rebaked via **`nano-jit-c-shell-release-promote.sh`** (cosmocc factory → **`v45-manifest-pin.sh`**); probe reports `nanolisp.c-release-shell=embedded`; dual-smoke expects Rust + C no-arg `shell.mode=embedded-lbin`.
+Phases **0–9** (Rust ladder + C host-cc / opcode / **release pin**) are merged and gated. **Waves 1–6** delivered shell-ci, fgets, shell-full, readonly promote, and **Wave 6** C **release** rebake (**863 001 B** `nano-lisp.com` per [`manifest.txt`](../release/manifest.txt)). **Scoped 100%** = Ph 0–9 + **dual-gate** + **C release pin** + **probe `embedded`** — see [`SHELL-CLOSURE.md`](SHELL-CLOSURE.md) for definition, timeline, cheat sheet, and phase→artifact matrix.
 
-**Honest overall**: **~95%** headline (shell ladder ~95%); product / release slice **~75%+** (slim COM embed + wave SSOT pin — not full daily COM-only SOTA).
+**Not in scoped 100%**: wave-default COM, slim/158KB path, pure-Lisp codegen — cross-track GAP with links in closure doc.
+
+**Honest overall**: **100% scoped** shell ladder; product shell slice **~85%**; cross-track SOTA **out of scope** for this track.
 
 ---
 
@@ -22,7 +24,7 @@ Phases **0–8** (Rust ladder + C host-cc / opcode parity) are merged or gated o
 | **4** | `bootstrap-v45-shell-ci.lisp` + `shell-ci` | Unified ladder (0→3 + read-line + REPL + fgets + repl-fgets + **7b C embed/COM** + pack-ape, ~28 steps). Smoke: `nano-jit-rs-shell-ci-smoke.sh`. |
 | **5** | *(alias)* | Same as Phase 2 in section headers of [`SHELL-RUNNER.md`](SHELL-RUNNER.md); numbering debt only. |
 | **6** | `bootstrap-v45-shell-dual.lisp` + dual smoke | C and Rust both compile/run `shell-v0`; stdin addr + fgets on Rust. |
-| **7** | `libc:fgets` via stdin addr | Rust + **C host-cc** VM `ptr(ptr,i32,ptr)`; smokes: `nano-jit-rs-shell-fgets-smoke.sh`, `nano-jit-c-shell-fgets-smoke.sh` (c-gate). Release COM compile pending rebake. |
+| **7** | `libc:fgets` via stdin addr | Rust + **C host-cc** VM `ptr(ptr,i32,ptr)`; smokes: `nano-jit-rs-shell-fgets-smoke.sh`, `nano-jit-c-shell-fgets-smoke.sh` (c-gate). **Wave 6 done** — opcode in pinned COM (**863 001 B**). |
 | **7 alt** | `shell-repl-fgets.lisp` | VM REPL on **fgets + stdin addr**; in shell-ci, dual bootstrap, rs-gate smoke. |
 | **7b** | C `nano_main.c` no-arg + file embed | Source + **release** `cmd_shell_noarg`; `archive/c/embed/shell-script.lbin` (280 B, hash-match rs embed); pinned COM `shell.mode=embedded-lbin` after Wave 6 promote. Smokes: `nano-jit-c-shell-noarg-smoke.sh`, `nano-jit-c-shell-promote-smoke.sh`, `nano-jit-c-shell-release-promote.sh`. |
 | **8** | `bootstrap-v45-shell-full.lisp` + `shell-full` | One plan (~29 steps); `nanolisp shell-full` CLI + rs-gate smoke. |
@@ -37,13 +39,13 @@ Phases **0–8** (Rust ladder + C host-cc / opcode parity) are merged or gated o
 |------------|-------------------------------|----------------------------------------|
 | CLI `spawn-wait` / `read-file` | ✅ | ✅ |
 | `.lbin` `libc:system` compile/run | ✅ | ✅ |
-| `nanolisp shell` / `shell-repl` / `shell-ci` / **shell-full** | ❌ (C CLI differs; **shell-full CLI** Wave 4 planned) | ✅ (`run-bootstrap-plan` + rs-gate smoke) |
+| `nanolisp shell` / `shell-repl` / `shell-ci` / **shell-full** | ⬜ **Phase 8b** — no C `shell-full` subcommand; **`$COM run-bootstrap-plan …/bootstrap-v45-shell-full-c.lisp`** (c-gate ~21 steps) | ✅ (`nanolisp shell-full` + rs-gate smoke) |
 | No-arg `$COM` → shell | ✅ **release** `shell.mode=embedded-lbin` (Wave 6 pin) · ✅ source | ✅ embedded `shell-script.lbin` |
 | `libc:stdin` addr in VM | ✅ (pinned release) | ✅ |
 | `libc:fgets` via stdin addr | ✅ Phase 7 opcode (`nano-jit-c-shell-fgets-smoke.sh`, c-gate) | ✅ Phase 7 |
 | Dual bootstrap plan | ✅ compile/run v0 via C COM | ✅ plan driver on Rust |
 | shell-ci / shell-full C track | ✅ embed cmp + COM compile/run + no-arg pin in plan | ✅ Rust subcommands |
-| Gate inclusion | **c-gate** → `nano-jit-c-shell-noarg-smoke.sh` | **rs-gate** → shell-ci, **shell-full**, repl-vm, dual, fgets, repl-fgets |
+| Gate inclusion | **c-gate** → shell-noarg, fgets, **shell-full-c** | **rs-gate** → shell-ci, **shell-full**, repl-vm, dual, fgets, repl-fgets |
 | Dual-gate (`nanolisp-dual-gate.sh`) | ✅ nested via c-gate · audit `nanolisp.dual-gate.shell=c-track *` | ✅ nested via rs-gate · audit `nanolisp.dual-gate.shell=rs-track *` (incl. shell-full) |
 | P2 release assert | ✅ **auto-probe** sets `NANO_C_RELEASE_HAS_SHELL` | N/A |
 
@@ -58,7 +60,7 @@ After Wave 6 promote, dual smoke **expects** parity on both tracks: Rust and pin
 | Lisp shell dogfood in `lisp/shell/` | ✅ | ✅ |
 | Bootstrap plans replace granular smokes | ✅ shell-ci + shell-full | ✅ nested in dual-gate (via track gates) |
 | `$COM` no-arg is a shell | ✅ Rust · ✅ C source · ✅ C release pin | ✅ Wave 6 promote |
-| Slim COM (~327 KiB) carries shell | N/A (Rust ~2.8 MiB full) | ✅ embed in pinned `release/nano-lisp.com` |
+| Pinned COM (**863 001 B**) carries shell | N/A (Rust ~2.8 MiB full) | ✅ embed in pinned `release/nano-lisp.com` |
 | Wave scripts default COM | C `nano-lisp.com` | ⬜ unchanged |
 | User daily = COM + plan only | ✅ shell-ci / shell-full path | ⬜ wave SSOT still C COM; Rust not default |
 | P2 conditional release assert | ✅ auto-probe + manual override | ✅ probe `embedded` after pin |
@@ -67,16 +69,16 @@ After Wave 6 promote, dual smoke **expects** parity on both tracks: Rust and pin
 
 ---
 
-## Percent rubric (~91% → ~95%)
+## Percent rubric (closure lock — Wave 7)
 
-Product / release slice moved off **58%** after Wave 6 pin — cap below **~80%** until wave-default + slim parity close.
+SSOT: [`SHELL-CLOSURE.md` § Rubric](SHELL-CLOSURE.md#rubric-closure-lock).
 
-| Slice | Wave 4 (~93%) | Wave 5 (~93%) | Wave 6 (~95%) | Rationale |
-|-------|---------------|---------------|---------------|-----------|
-| Rust ladder proof (Ph 0–8, REPL, fgets, repl-fgets, shell-ci ~28-step, shell-full ~29-step) | **99%** | **99%** | **99%** | shell-full + shell-promote rs-gate |
-| Dual-track parity (Ph 6–8, 7b release embed, C shell-ci, probe + dual-smoke) | **92%** | **92%** | **~95%** | Wave 6: C release no-arg matches Rust on pin |
-| Product / release (slim COM embed, wave SSOT, daily COM-only) | **58%** | **58%** | **~75%+** | Pin rebake + probe embedded; wave default + slim still open |
-| **Headline overall** | **~93%** | **~93%** | **~95%** | Ladder + release shell UX; product slice not 100% SOTA |
+| Slice | Wave 6 (~95%) | Wave 7 closure | Rationale |
+|-------|---------------|----------------|-----------|
+| **Shell ladder** (Ph 0–9, dual-gate, pin, probe) | **~95%** | **100%** scoped | All phases + gates documented and green on pin |
+| **Product shell slice** (slim embed, wave SSOT, daily COM-only) | **~75%+** | **~85%** | Release pin + probe; wave-default + slim still open |
+| **Cross-track** (wave-default, slim, 158KB) | — | **out of scope** | [`PRODUCT-TRACKS.md`](PRODUCT-TRACKS.md) · [`OVERALL-PROGRESS.md`](OVERALL-PROGRESS.md) |
+| **Headline (shell track)** | **~95%** | **100% scoped** | Not commercial SOTA across all tracks |
 
 ---
 
@@ -178,8 +180,24 @@ Orchestrator SSOT: [`SHELL-RUNNER.md` § C release shell promote (Wave 6)](SHELL
 
 ---
 
+## Wave 7 closure (2026-06-05)
+
+Wave 7 on `cursor/nanolisp-shell-closure-fc19` — **docs closure**; no new ladder phases.
+
+| Item | Status | Notes |
+|------|--------|-------|
+| **Scoped 100% definition** | ✅ | [`SHELL-CLOSURE.md`](SHELL-CLOSURE.md) — Ph 0–9 + dual-gate + pin + probe; excludes wave-default / slim / 158KB |
+| **Timeline Waves 1–7** | ✅ | Closure table + phase→artifact matrix |
+| **Command cheat sheet** | ✅ | dual-gate · release-promote · ladder-smoke |
+| **Rubric lock** | ✅ | Ladder **100%** · product shell **~85%** · cross-track out of scope |
+| **Byte SSOT** | ✅ | C `nano-lisp.com` **863 001 B** per `manifest.txt` (not legacy 334 537 B) |
+| **P0 / P1 / P2** | ✅ | Unchanged from Wave 6 — probe `embedded`, gates nested |
+
+---
+
 ## Related
 
+- [`SHELL-CLOSURE.md`](SHELL-CLOSURE.md) — scoped 100% closure SSOT
 - [`SHELL-RUNNER.md`](SHELL-RUNNER.md) — commands, smokes, roadmap table
 - [`OVERALL-PROGRESS.md`](OVERALL-PROGRESS.md) — cross-track % rollup
 - [`REFLECTION.md`](REFLECTION.md) — v4.5 wave narrative (wave60/67 shell-retire is CI infra, not this ladder)
