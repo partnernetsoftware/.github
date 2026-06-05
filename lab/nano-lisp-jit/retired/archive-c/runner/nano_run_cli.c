@@ -57,6 +57,73 @@ static int cmd_run_app(const char *container_path) {
   return cmd_run_embedded(container_path, off_buf, size_buf);
 }
 
+static int cmd_run_stdin(const char *stdin_text, const char *blob_path) {
+#if defined(_WIN32)
+  (void)stdin_text;
+  (void)blob_path;
+  fprintf(stderr, "run-stdin=unsupported_platform\n");
+  return 2;
+#else
+  int pipefd[2];
+  pid_t pid;
+  int status = 0;
+  size_t len;
+  ssize_t wrote;
+  if (!stdin_text || !blob_path || !blob_path[0]) {
+    fprintf(stderr, "run-stdin=bad_args\n");
+    return 1;
+  }
+  if (pipe(pipefd) != 0) {
+    fprintf(stderr, "run-stdin=pipe_fail path=%s\n", blob_path);
+    return 2;
+  }
+  pid = fork();
+  if (pid < 0) {
+    close(pipefd[0]);
+    close(pipefd[1]);
+    fprintf(stderr, "run-stdin=fork_fail path=%s\n", blob_path);
+    return 2;
+  }
+  if (pid == 0) {
+    close(pipefd[1]);
+    if (dup2(pipefd[0], STDIN_FILENO) < 0) _exit(127);
+    close(pipefd[0]);
+    {
+      int rc = cmd_run(blob_path);
+      fflush(stdout);
+      fflush(stderr);
+      _exit(rc & 255);
+    }
+  }
+  close(pipefd[0]);
+  len = strlen(stdin_text);
+  wrote = write(pipefd[1], stdin_text, len);
+  close(pipefd[1]);
+  if (wrote != (ssize_t)len) {
+    fprintf(stderr, "run-stdin=write_fail path=%s\n", blob_path);
+    waitpid(pid, &status, 0);
+    return 3;
+  }
+  if (waitpid(pid, &status, 0) < 0) {
+    fprintf(stderr, "run-stdin=wait_fail path=%s\n", blob_path);
+    return 3;
+  }
+  printf("run-stdin.path=%s\n", blob_path);
+  printf("run-stdin.bytes=%zu\n", len);
+  if (WIFEXITED(status)) {
+    int actual = WEXITSTATUS(status);
+    printf("run-stdin.actual=%d\n", actual);
+    return actual;
+  }
+  if (WIFSIGNALED(status)) {
+    fprintf(stderr, "run-stdin=signaled signal=%d\n", WTERMSIG(status));
+    return 4;
+  }
+  fprintf(stderr, "run-stdin=unknown_status\n");
+  return 4;
+#endif
+}
+
 static int run_executable_expect_exit(const char *path, const char *expected_s) {
   size_t expected = 0;
   if (!parse_size_arg(expected_s, &expected) || expected > 255) {

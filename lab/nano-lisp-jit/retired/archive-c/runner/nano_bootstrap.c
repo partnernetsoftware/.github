@@ -1834,6 +1834,17 @@ static int parse_bootstrap_plan(const char *src, BootstrapPlan *plan) {
         free(head);
         return 0;
       }
+    } else if (strcmp(head, "run-stdin") == 0) {
+      char *arg0 = parse_string(&p);
+      char *arg1 = parse_string(&p);
+      int ok = arg0 && arg1 && eat(&p, ')') &&
+               bootstrap_add_step(plan, BOOTSTRAP_STEP_RUN_STDIN, arg0, arg1, NULL, NULL);
+      if (!ok) {
+        free(arg0);
+        free(arg1);
+        free(head);
+        return 0;
+      }
     } else if (strcmp(head, "spawn-wait") == 0) {
       char *arg0 = parse_atom(&p);
       char *arg1 = parse_string(&p);
@@ -2114,6 +2125,9 @@ static int cmd_run_bootstrap_plan(const char *plan_path) {
     } else if (step->kind == BOOTSTRAP_STEP_READ_FILE) {
       printf("bootstrap-step.%zu=read-file\n", i);
       rc = cmd_read_file(step->arg0);
+    } else if (step->kind == BOOTSTRAP_STEP_RUN_STDIN) {
+      printf("bootstrap-step.%zu=run-stdin\n", i);
+      rc = cmd_run_stdin(step->arg0, step->arg1);
     } else if (step->kind == BOOTSTRAP_STEP_SPAWN_WAIT) {
       printf("bootstrap-step.%zu=spawn-wait\n", i);
       rc = run_spawn_wait_expect_exit(step->arg0, step->arg1,

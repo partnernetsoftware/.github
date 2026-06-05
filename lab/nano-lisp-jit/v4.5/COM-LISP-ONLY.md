@@ -9,6 +9,12 @@ COM=lab/nano-lisp-jit/release/nano-lisp.com
 $COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-com-lisp-only-daily.lisp
 ```
 
+**Portable flat bundle** (same deps — copy `nano-lisp.com`, `bootstrap/`, `lisp/` to one directory):
+
+```bash
+./nano-lisp.com run-bootstrap-plan bootstrap/bootstrap-v45-com-lisp-only-bundle-daily.lisp
+```
+
 **Smoke**:
 
 ```bash
@@ -19,10 +25,11 @@ bash lab/nano-lisp-jit/retired/scripts/nano-jit-com-lisp-only-smoke.sh
 
 | Allowed | Examples |
 |---------|----------|
-| Pinned COM | `release/nano-lisp.com` |
-| Bootstrap plans | `lisp/bootstrap/bootstrap-v45-*.lisp` |
+| Pinned COM | `release/nano-lisp.com` or flat `nano-lisp.com` |
+| Bootstrap plans | `lisp/bootstrap/bootstrap-v45-*.lisp` or flat `bootstrap/*.lisp` |
 | Dogfood / core Lisp | `lisp/shell/*.lisp`, `lisp/core/*.lisp` |
 | Ephemeral `.lbin` | COM `compile` output under `.build/` |
+| Bootstrap DSL | `compile`, `run`, `run-stdin`, `compare`, `spawn-wait`, `file-size`, … |
 
 ## Out of scope (factory / dual-track — not user daily)
 
@@ -38,9 +45,9 @@ bash lab/nano-lisp-jit/retired/scripts/nano-jit-com-lisp-only-smoke.sh
 
 | Slice | % | Blocker |
 |-------|---|---------|
-| **Shell com-only plan** | **100%** | `bootstrap-v45-shell-com-only.lisp` |
-| **Daily com+lisp** | **~90%** | piped fgets still uses OS `/bin/sh` one-liner |
-| **Portable tree** | **~70%** | plans use repo-relative `lab/nano-lisp-jit/…` paths |
+| **Shell com-only plan** | **100%** | `bootstrap-v45-shell-com-only.lisp` — no `/bin/sh` |
+| **Daily com+lisp** | **~98%** | `run-stdin` bootstrap step; OS libc only |
+| **Portable flat bundle** | **100%** | `bootstrap-v45-com-lisp-only-bundle-daily.lisp` |
 | **Factory zero toolchain** | **0%** | cosmocc/host-cc for COM regen |
 
 ## Related

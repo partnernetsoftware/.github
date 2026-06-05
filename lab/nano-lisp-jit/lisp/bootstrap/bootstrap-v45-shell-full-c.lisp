@@ -34,10 +34,10 @@
   (spawn-wait 0 "lab/nano-lisp-jit/release/nano-lisp.com" "run"
     "lab/nano-lisp-jit/.build/v45-shell-full-c-com-script.lbin")
 
-  ; Phase 7: fgets smoke — compile in-plan, piped run via C COM
+  ; Phase 7: fgets smoke — compile in-plan, piped run via run-stdin (no /bin/sh)
   (compile "lab/nano-lisp-jit/lisp/shell/shell-fgets-smoke.lisp"
            "lab/nano-lisp-jit/.build/v45-shell-full-c-fgets.lbin")
-  (spawn-wait 0 "/bin/sh" "-c"
-    "printf 'piped-fgets-line\\n' | lab/nano-lisp-jit/release/nano-lisp.com run lab/nano-lisp-jit/.build/v45-shell-full-c-fgets.lbin")
+  (run-stdin "piped-fgets-line\n"
+    "lab/nano-lisp-jit/.build/v45-shell-full-c-fgets.lbin")
 
   (spawn-wait 0 "/bin/sh" "-c" "echo nanolisp-shell-full-c-ok"))

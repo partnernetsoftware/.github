@@ -2,6 +2,7 @@ static void usage(const char *argv0) {
   fprintf(stderr, "usage:\n");
   fprintf(stderr, "  %s compile input.%s output.%s\n", argv0, SOURCE_EXT, BLOB_EXT);
   fprintf(stderr, "  %s run program.%s\n", argv0, BLOB_EXT);
+  fprintf(stderr, "  %s run-stdin <text> program.%s\n", argv0, BLOB_EXT);
   fprintf(stderr, "  %s run-embedded container.com blob_offset blob_size\n", argv0);
   fprintf(stderr, "  %s inspect-ape container.com\n", argv0);
   fprintf(stderr, "  %s inspect-expect-exit expected inspect-ape|inspect-app container.com\n", argv0);
@@ -58,6 +59,9 @@ int main(int argc, char **argv) {
   }
   if (argc >= 2 && strcmp(argv[1], "run") == 0 && argc == 3) {
     return cmd_run(argv[2]);
+  }
+  if (argc >= 2 && strcmp(argv[1], "run-stdin") == 0 && argc == 4) {
+    return cmd_run_stdin(argv[2], argv[3]);
   }
   if (argc >= 2 && strcmp(argv[1], "run-embedded") == 0 && argc == 5) {
     return cmd_run_embedded(argv[2], argv[3], argv[4]);

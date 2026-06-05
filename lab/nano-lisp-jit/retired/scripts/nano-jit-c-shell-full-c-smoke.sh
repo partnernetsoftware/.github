@@ -23,12 +23,14 @@ if command -v cc >/dev/null 2>&1; then
   chmod +x "$HOST_BIN"
   C_COM="$HOST_BIN"
 fi
+PLAN_RUNNER="$C_COM"
 
 if [ -z "${NANO_C_RELEASE_HAS_SHELL+x}" ]; then
   # shellcheck source=nanolisp-c-release-shell-probe.sh
   . "$ROOT/lab/nano-lisp-jit/retired/scripts/nanolisp-c-release-shell-probe.sh"
   nanolisp_c_release_shell_probe_apply >/dev/null
 fi
+C_COM="$PLAN_RUNNER"
 
 rc=0
 log=$("$C_COM" run-bootstrap-plan "$PLAN" 2>&1) || rc=$?

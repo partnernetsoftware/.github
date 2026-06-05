@@ -24,5 +24,5 @@
 
   (compile "lab/nano-lisp-jit/lisp/shell/shell-fgets-smoke.lisp"
            "lab/nano-lisp-jit/.build/v45-shell-com-only-fgets.lbin")
-  (spawn-wait 0 "/bin/sh" "-c"
-    "printf 'piped-fgets-line\\n' | lab/nano-lisp-jit/release/nano-lisp.com run lab/nano-lisp-jit/.build/v45-shell-com-only-fgets.lbin"))
+  (run-stdin "piped-fgets-line\n"
+    "lab/nano-lisp-jit/.build/v45-shell-com-only-fgets.lbin"))
