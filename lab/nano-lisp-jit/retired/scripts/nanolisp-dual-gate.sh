@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 # Dual-track product gate — C release SSOT + Rust nanolisp SOTA.
+# Optional scoped shell ladder (NOT default — too heavy): nano-jit-shell-ladder-smoke.sh
+#   (probe embedded + c-noarg w/o nested c_gate + rs ci/full/promote/dual subset).
 # Shell smokes (nested, not duplicated here):
 #   c-track: nano-jit-c-shell-noarg-smoke.sh, nano-jit-c-shell-fgets-smoke.sh, nano-jit-c-shell-full-c-smoke.sh (via nano-jit-c-gate.sh)
 #   rs-track: shell-ci, shell-full, shell-promote, shell-repl-vm, shell-dual, shell-fgets, shell-repl-fgets (via nano-jit-rs-gate.sh)

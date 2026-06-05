@@ -117,7 +117,7 @@ $RS run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-shell-full
 
 **Smoke**: `bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-shell-full-smoke.sh` (rs-gate; greps `nanolisp-shell-full-*`, `shell.mode=embedded-lbin` on both tracks after Wave 6).
 
-**shell-full CLI note (Wave 4)**: Rust daily path is `run-bootstrap-plan` on the plan above (no dedicated `nanolisp shell-full` subcommand required — smoke drives the ladder). C track has no equivalent one-shot CLI yet; Wave 4 adds a COM dispatch or documents `$COM run-bootstrap-plan …/bootstrap-v45-shell-full.lisp` parity so dual-gate can audit a C shell-full marker alongside rs-gate.
+**Phase 8b (C track)**: Pinned **`release/nano-lisp.com`** (**863 001 B**, Wave 6 shell promote). Rust: `nanolisp shell-full` or `run-bootstrap-plan` on the plan above (rs-gate smoke). C: **`$COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-shell-full.lisp`** — same ~29-step plan, no dedicated `shell-full` subcommand; shell-full smoke asserts C no-arg + spawn-wait on pin when probe `embedded`.
 
 ## Phase 9 — shell-promote bootstrap
 
@@ -137,6 +137,24 @@ $RS run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-shell-prom
 ```bash
 bash lab/nano-lisp-jit/retired/scripts/nanolisp-c-release-shell-probe.sh
 # nanolisp.c-release-shell=gap|embedded
+```
+
+## Scoped shell ladder meta-smoke
+
+**`nano-jit-shell-ladder-smoke.sh`** — one-shot audit of the shell practice ladder without full `nano-jit-c-gate.sh` / `nano-jit-rs-gate.sh` (avoids double full gate). **Not** in `nanolisp-dual-gate.sh` (too heavy for daily dual-gate).
+
+| Step | Script | Notes |
+|------|--------|-------|
+| probe | `nanolisp-c-release-shell-probe.sh` | expects `nanolisp.c-release-shell=embedded` |
+| c-noarg | `nano-jit-c-shell-noarg-smoke.sh` | `NANO_SHELL_LADDER=1` skips nested c_gate |
+| rs-ci | `nano-jit-rs-shell-ci-smoke.sh` | Phase 4 plan |
+| rs-full | `nano-jit-rs-shell-full-smoke.sh` | Phase 8 |
+| rs-promote | `nano-jit-rs-shell-promote-smoke.sh` | Phase 9 |
+| shell-dual | `nano-jit-shell-dual-smoke.sh` | Phase 6 |
+
+```bash
+bash lab/nano-lisp-jit/retired/scripts/nano-jit-shell-ladder-smoke.sh
+# nano-jit-shell-ladder-smoke=ok steps=probe,c-noarg,rs-ci,rs-full,rs-promote,shell-dual
 ```
 
 ## Dual gate (shell audit markers)
@@ -160,7 +178,7 @@ bash lab/nano-lisp-jit/retired/scripts/nanolisp-c-release-shell-probe.sh
 | 7 alt | fgets REPL (`shell-repl-fgets`) | ✅ rs-gate · shell-ci · dual plan |
 | 7b | C embed + shell-ci C track | ✅ plan + probe-conditional assert |
 | 8 | shell-full bootstrap (`bootstrap-v45-shell-full.lisp`) | ✅ rs-gate (~29 steps) |
-| 8b | shell-full C CLI / COM plan driver | ⬜ Wave 4 |
+| 8b | shell-full C plan driver (`run-bootstrap-plan` on full plan; **863 001 B** COM) | ✅ plan · ⬜ dedicated C `shell-full` subcommand |
 | 9 | shell-promote bootstrap (`bootstrap-v45-shell-promote.lisp`) | ✅ rs-gate (~12 steps; host-cc/cosmocc external) |
 
 ## C release shell promote (Wave 6)
