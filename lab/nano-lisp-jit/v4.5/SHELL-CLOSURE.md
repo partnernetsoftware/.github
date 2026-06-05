@@ -1,6 +1,6 @@
 # Shell runner ladder — scoped 100% closure
 
-**Updated**: 2026-06-05 · closure wave 7 on `cursor/nanolisp-shell-closure-fc19`  
+**Updated**: 2026-06-05 · Wave 7 closure **merged on `main`** (scoped **100%** ladder)  
 **SSOT ladder**: [`SHELL-RUNNER.md`](SHELL-RUNNER.md) · **reflection**: [`SHELL-REFLECTION.md`](SHELL-REFLECTION.md) · **rollup**: [`OVERALL-PROGRESS.md`](OVERALL-PROGRESS.md)
 
 ## Definition — scoped 100%
@@ -177,6 +177,50 @@ Orchestration SSOT: [`SHELL-RUNNER.md` § C release shell promote](SHELL-RUNNER.
 | **9** | `bootstrap-v45-shell-promote.lisp` | promote ladder ~12 steps | `nano-jit-rs-shell-promote-smoke.sh` |
 | **pin** | factory cosmocc → `release/nano-lisp.com` | manifest **863 001 B** | `nano-jit-c-shell-release-promote.sh` + probe |
 | **gate** | — | dual-gate audit markers | `nanolisp-dual-gate.sh` |
+
+---
+
+## Hygiene（Wave 7 后 · scoped 100% 收口整理）
+
+**目的**：closure 后防止 stale pin（334 537 B）、分支名漂移、已 merge 分支堆积。
+
+### 一键卫生检查
+
+```bash
+bash lab/nano-lisp-jit/retired/scripts/nano-jit-shell-hygiene.sh
+# manifest bytes=863001 · shell docs · ladder-smoke
+```
+
+### SSOT 对齐清单
+
+| 项 | 当前 SSOT | 常见 stale |
+|----|-----------|------------|
+| C COM 字节 | **863 001** · `manifest.txt` | 334 537（Wave 6 前） |
+| C COM hash | `df4486d14a2ed2c2` | `a1904c09aebbf58d` |
+| Shell probe | `nanolisp.c-release-shell=embedded` | manual `NANO_C_RELEASE_HAS_SHELL` only |
+| Ladder % | **100% scoped** | 混称 wave-default / slim / 158KB |
+
+### 日常 vs 重
+
+| 频率 | 命令 |
+|------|------|
+| daily | `nanolisp-dual-gate.sh`（shell 段在 c/rs track 内） |
+| post-promote / 发版前 | `nano-jit-shell-hygiene.sh` 或 `nano-jit-shell-ladder-smoke.sh` |
+| C release rebake | `NANO_C_SHELL_RELEASE_PROMOTE=1` dual-gate（写 `release/`） |
+
+### 分支清理（已 merge 到 main）
+
+Wave 1–7 开发分支可删（本地）：
+
+```bash
+git branch --merged main | grep 'cursor/nanolisp-shell' | xargs -r git branch -d
+```
+
+保留 `main`；远程 `origin/cursor/nanolisp-shell-*` 由维护者按需 prune。
+
+### Out of scope（勿 inflate 到 ladder 100%）
+
+见上文 cross-track GAP 表 — 下一刀走 [`PRODUCT-TRACKS.md`](PRODUCT-TRACKS.md)，非 shell ladder 阻塞项。
 
 ---
 

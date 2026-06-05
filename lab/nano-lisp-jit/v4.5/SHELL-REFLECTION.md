@@ -194,6 +194,7 @@ Wave 7 merges `cursor/nanolisp-shell-closure-fc19`, `cursor/nanolisp-shell-full-
 | **Rubric lock** | ✅ | Ladder **100%** · product shell **~85%** · cross-track out of scope |
 | **Byte SSOT** | ✅ | C `nano-lisp.com` **863 001 B** per `manifest.txt` (not legacy 334 537 B) |
 | **P0 / P1 / P2** | ✅ | Unchanged from Wave 6 — probe `embedded`, gates nested |
+| **Hygiene pass** | ✅ | `release/README.md` pin sync · `nano-jit-shell-hygiene.sh` · merged branch prune doc |
 
 ---
 

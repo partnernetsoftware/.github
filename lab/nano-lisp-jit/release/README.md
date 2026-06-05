@@ -6,17 +6,19 @@
 
 | 文件 | 字节 | fnv1a64 | 引擎 |
 |------|------|---------|------|
-| `nano-lisp.com` | 334 537 | `a1904c09aebbf58d` | C runner · APE v2 · 2×166 592 B |
-| `v45-selfhost-next.com` | 334 537 | `a1904c09aebbf58d` | 同上（自举 / 矩阵广面） |
-| `nanolisp.com` | 2 959 413 | `9ce3029047ffe784` | Rust · `nanolisp.com.engine=rust` |
-| `nanolisp.ape` | 2 958 136 | `90761f6dea4915ae` | Rust bare APE 容器 |
+| `nano-lisp.com` | 863 001 | `df4486d14a2ed2c2` | C runner · Wave 6 shell embed pin · `nanolisp.c-release-shell=embedded` |
+| `v45-selfhost-next.com` | 863 001 | `df4486d14a2ed2c2` | 同上（自举 / 矩阵广面） |
+| `nanolisp.com` | 3 000 373 | `9d0e46a2f16c8a3a` | Rust · `nanolisp.com.engine=rust` |
+| `nanolisp.ape` | 2 999 096 | `eced03845028df90` | Rust bare APE 容器 |
 | `nanolisp-slim.com` | ~161 083 | (see manifest) | Rust genesis-pin APE pathfinder (~48% of C COM size) |
 
 Verify locally: `wc -c release/*.com release/*.ape` · hashes in [`manifest.txt`](manifest.txt).
 
 **Progress**: [`../v4.5/OVERALL-PROGRESS.md`](../v4.5/OVERALL-PROGRESS.md) · **Gates**: `nanolisp-dual-gate.sh` (C + Rust)
 
-## C track — `nano-lisp.com`（legacy ~327 KiB）
+## C track — `nano-lisp.com`（Wave 6 pin · ~843 KiB · shell embed）
+
+Shell ladder closure: [`../v4.5/SHELL-CLOSURE.md`](../v4.5/SHELL-CLOSURE.md) · probe: `bash lab/nano-lisp-jit/retired/scripts/nanolisp-c-release-shell-probe.sh`
 
 ```bash
 COM=lab/nano-lisp-jit/release/nano-lisp.com
@@ -25,7 +27,7 @@ $COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-converge-
 
 Wave / factory gates and promote: see [PRODUCT-TRACKS — C gate](../v4.5/PRODUCT-TRACKS.md#c--nano-lispcom).
 
-## Rust track — `nanolisp.com`（candidate ~2.8 MiB）
+## Rust track — `nanolisp.com`（candidate ~2.9 MiB）
 
 ```bash
 COM=lab/nano-lisp-jit/release/nanolisp.com
