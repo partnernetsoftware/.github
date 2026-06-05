@@ -6,8 +6,8 @@
 
 | 文件 | 字节 | fnv1a64 | 引擎 |
 |------|------|---------|------|
-| `nano-lisp.com` | 867 097 | `48f65716181626e8` | C runner · shell rodata embed · bootstrap `run-stdin` |
-| `v45-selfhost-next.com` | 867 097 | `48f65716181626e8` | 同上（自举 / 矩阵广面） |
+| `nano-lisp.com` | 867 097 | `5e0553e39544a245` | C runner · shell rodata · `run-stdin` · `build-slice-lisp-profile` |
+| `v45-selfhost-next.com` | 867 097 | `5e0553e39544a245` | 同上（自举 / 矩阵广面） |
 | `nanolisp.com` | 3 000 373 | `9d0e46a2f16c8a3a` | Rust · `nanolisp.com.engine=rust` |
 | `nanolisp.ape` | 2 999 096 | `eced03845028df90` | Rust bare APE 容器 |
 | `nanolisp-slim.com` | ~161 083 | (see manifest) | Rust genesis-pin APE pathfinder (~48% of C COM size) |

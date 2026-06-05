@@ -19,6 +19,13 @@ $COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-com-lisp-
 
 ```bash
 bash lab/nano-lisp-jit/retired/scripts/nano-jit-com-lisp-only-smoke.sh
+bash lab/nano-lisp-jit/retired/scripts/nano-jit-c-codegen-158k-smoke.sh
+```
+
+**158KB slice daily** (B 轨 — profile in-plan, no env):
+
+```bash
+$COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-codegen-158k-daily.lisp
 ```
 
 ## In scope (user path)
@@ -50,7 +57,8 @@ bash lab/nano-lisp-jit/retired/scripts/nano-jit-com-lisp-only-smoke.sh
 | **Shell com-only plan** | **100%** | plan 内无 `/bin/sh` |
 | **Daily com+lisp（用 pin）** | **100%** | release pin 含 `run-stdin`；运行时 OS libc |
 | **Portable flat bundle** | **100%** | flat bundle daily plan |
-| **从 *.lisp 重造 COM** | **0%** | pure Lisp 158KB codegen — [`OVERALL-PROGRESS.md`](OVERALL-PROGRESS.md) |
+| **从 *.lisp 重造 158KB slice** | **~90%** | `build-slice-lisp-profile` in-plan · compose15 semantic-unified |
+| **从 *.lisp 重造 867KB COM** | **0%** | full runner still cosmocc factory |
 | **Factory zero toolchain** | **0%** | cosmocc 重打 867KB COM |
 
 ## Related

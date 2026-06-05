@@ -38,7 +38,7 @@ bash lab/nano-lisp-jit/retired/scripts/nanolisp-dual-gate.sh
 | Wave convergence / factory | 95% | v45-wave chain through factory-build-lisp-only |
 | Release pin / manifest | 100% | `nano-jit-c-gate` manifest parity |
 | 158KB runner | 90% | host `cc` lispjit.c · genesis-pin 155648B |
-| Pure Lisp 158KB codegen | **0%** | honest GAP — still host cc or pin copy |
+| Pure Lisp 158KB codegen | **~90%** | `build-slice-lisp-profile` + semantic-unified · exit 42 · no host-cc hybrid |
 
 ## Honest remaining GAP (priority)
 
@@ -82,7 +82,8 @@ bash lab/nano-lisp-jit/retired/scripts/nanolisp-dual-gate.sh
 - [x] bootstrap `run-stdin` — fork+pipe fgets (no `/bin/sh` in com-only plans)
 - [x] flat bundle daily — `bootstrap-v45-com-lisp-only-bundle-daily.lisp` + isolated smoke
 - [x] release promote — pin **867097 B** `fnv1a64=48f65716181626e8` (`run-stdin` in release COM)
+- [x] 158KB codegen daily — `build-slice-lisp-profile` + `bootstrap-v45-codegen-158k-daily.lisp` + c-gate smoke
 - [x] shell smokes in `nanolisp-dual-gate.sh` (c: noarg/fgets/full-c · rs: shell-ci/shell-full/repl-vm/shell-dual/fgets/repl-fgets)
 - [ ] Rust APE size ≈ C COM with runnable full CLI
-- [ ] C/Rust zero host-cc 158KB codegen
+- [ ] C/Rust zero host-cc **867KB full COM** codegen
 - [ ] v45-wave default → `nanolisp.com`

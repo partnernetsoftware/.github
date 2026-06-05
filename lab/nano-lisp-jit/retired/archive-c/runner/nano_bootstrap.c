@@ -1464,6 +1464,25 @@ static int cmd_build_slice(const char *src_path, const char *out_path, const cha
   return cmd_file_size(out_path);
 }
 
+static int cmd_build_slice_lisp_profile(const char *profile, const char *src_path,
+                                        const char *out_path, const char *arch) {
+  int rc;
+  if (!profile || !profile[0] || !src_path || !out_path || !arch) {
+    fprintf(stderr, "build-slice-lisp-profile=bad_args\n");
+    return 1;
+  }
+  printf("build-slice-lisp-profile.profile=%s\n", profile);
+  setenv("NANO_LISPJIT_FROM_LISP", "1", 1);
+  setenv("NANO_LISPJIT_FROM_LISP_PROFILE", profile, 1);
+  if (strstr(profile, "semantic") != NULL)
+    setenv("NANO_COMPOSE15_NO_HYBRID", "1", 1);
+  rc = cmd_build_slice(src_path, out_path, arch);
+  unsetenv("NANO_COMPOSE15_NO_HYBRID");
+  unsetenv("NANO_LISPJIT_FROM_LISP_PROFILE");
+  unsetenv("NANO_LISPJIT_FROM_LISP");
+  return rc;
+}
+
 static long bootstrap_path_bytes(const char *path) {
   struct stat st;
   if (!path || stat(path, &st) != 0) return -1;
@@ -1750,6 +1769,22 @@ static int parse_bootstrap_plan(const char *src, BootstrapPlan *plan) {
       if (!ok) {
         free(arg0);
         free(arg1);
+        free(head);
+        return 0;
+      }
+    } else if (strcmp(head, "build-slice-lisp-profile") == 0) {
+      char *arg0 = parse_string(&p);
+      char *arg1 = parse_string(&p);
+      char *arg2 = parse_string(&p);
+      char *arg3 = parse_string(&p);
+      int ok = arg0 && arg1 && arg2 && arg3 && eat(&p, ')') &&
+               bootstrap_add_step(plan, BOOTSTRAP_STEP_BUILD_SLICE_LISP_PROFILE,
+                                  arg0, arg1, arg2, arg3);
+      if (!ok) {
+        free(arg0);
+        free(arg1);
+        free(arg2);
+        free(arg3);
         free(head);
         return 0;
       }
@@ -2210,6 +2245,9 @@ static int cmd_run_bootstrap_plan(const char *plan_path) {
     } else if (step->kind == BOOTSTRAP_STEP_BUILD_SLICE_LISP) {
       printf("bootstrap-step.%zu=build-slice-lisp\n", i);
       rc = cmd_build_slice_lisp(step->arg0, step->arg1, step->arg2);
+    } else if (step->kind == BOOTSTRAP_STEP_BUILD_SLICE_LISP_PROFILE) {
+      printf("bootstrap-step.%zu=build-slice-lisp-profile\n", i);
+      rc = cmd_build_slice_lisp_profile(step->arg0, step->arg1, step->arg2, step->arg3);
     } else if (step->kind == BOOTSTRAP_STEP_NANO_CC_COMPILE) {
       printf("bootstrap-step.%zu=nano-cc-compile\n", i);
       rc = cmd_nano_cc_compile(step->arg0, step->arg1);
