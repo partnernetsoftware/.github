@@ -3,7 +3,6 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../../../.." && pwd)"
 COM="$ROOT/lab/nano-lisp-jit/release/nano-lisp.com"
-HOST_BIN="$ROOT/lab/nano-lisp-jit/.build/nano-lisp-jit-host-com-lisp-only"
 DAILY="$ROOT/lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-com-lisp-only-daily.lisp"
 SHELL_ONLY="$ROOT/lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-shell-com-only.lisp"
 BUNDLE_DAILY="$ROOT/lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-com-lisp-only-bundle-daily.lisp"
@@ -33,6 +32,11 @@ PATS
   echo "nano-jit-com-lisp-only-smoke=ok audit plan=$name"
 }
 
+cleanup() {
+  rm -rf "${iso:-}" "${flat:-}"
+}
+trap cleanup EXIT
+
 echo "nano-jit-com-lisp-only-smoke=begin"
 [ -x "$COM" ] || { echo "nano-jit-com-lisp-only-smoke=fail no_com"; exit 1; }
 
@@ -41,36 +45,7 @@ audit_plan "$SHELL_ONLY" shell-com-only
 audit_plan "$BUNDLE_DAILY" com-lisp-only-bundle-daily
 audit_plan "$BUNDLE_SHELL" shell-com-only-bundle
 
-RUNNER="$COM"
-if command -v cc >/dev/null 2>&1; then
-  mkdir -p "$(dirname "$HOST_BIN")"
-  cc -DNANO_LISP_JIT \
-    -I "$ROOT/lab/lispjit-ir" \
-    -I "$ROOT/lab/nano-lisp-jit/archive/c/runner" \
-    -Os -s "$ROOT/lab/nano-lisp-jit/archive/c/runner/lispjit.c" \
-    -ldl -o "$HOST_BIN"
-  chmod +x "$HOST_BIN"
-  RUNNER="$HOST_BIN"
-  echo "nano-jit-com-lisp-only-smoke=ok host_cc runner=$HOST_BIN"
-else
-  echo "nano-jit-com-lisp-only-smoke=warn host_cc_missing using_release_com"
-fi
-
-cleanup() {
-  rm -rf "${iso:-}" "${flat:-}" "${tmp_daily:-}"
-}
-trap cleanup EXIT
-
-tmp_daily=""
-if [ "$RUNNER" != "$COM" ]; then
-  tmp_daily=$(mktemp)
-  sed "s|lab/nano-lisp-jit/release/nano-lisp.com|$HOST_BIN|g" "$DAILY" > "$tmp_daily"
-  DAILY_RUN="$tmp_daily"
-else
-  DAILY_RUN="$DAILY"
-fi
-
-log=$("$RUNNER" run-bootstrap-plan "$DAILY_RUN" 2>&1) || {
+log=$("$COM" run-bootstrap-plan "$DAILY" 2>&1) || {
   echo "$log"
   echo "nano-jit-com-lisp-only-smoke=fail daily_plan"
   exit 1
@@ -85,13 +60,13 @@ echo "$log" | grep -q 'bootstrap-step.*=run-stdin' || {
   echo "$log"
   exit 1
 }
-echo "nano-jit-com-lisp-only-smoke=ok daily_plan"
+echo "nano-jit-com-lisp-only-smoke=ok daily_plan release_com"
 
 iso=$(mktemp -d)
 mkdir -p "$iso/lab/nano-lisp-jit/release" "$iso/lab/nano-lisp-jit/lisp/bootstrap" \
   "$iso/lab/nano-lisp-jit/lisp/shell" "$iso/lab/nano-lisp-jit/lisp/core" \
   "$iso/lab/nano-lisp-jit/.build"
-cp "$RUNNER" "$iso/lab/nano-lisp-jit/release/nano-lisp.com"
+cp "$COM" "$iso/lab/nano-lisp-jit/release/nano-lisp.com"
 chmod +x "$iso/lab/nano-lisp-jit/release/nano-lisp.com"
 cp "$DAILY" "$iso/lab/nano-lisp-jit/lisp/bootstrap/"
 cp "$SHELL_ONLY" "$iso/lab/nano-lisp-jit/lisp/bootstrap/"
@@ -112,7 +87,7 @@ echo "nano-jit-com-lisp-only-smoke=ok isolated_tree"
 
 flat=$(mktemp -d)
 mkdir -p "$flat/bootstrap" "$flat/lisp/shell" "$flat/lisp/core" "$flat/.build"
-cp "$RUNNER" "$flat/nano-lisp.com"
+cp "$COM" "$flat/nano-lisp.com"
 chmod +x "$flat/nano-lisp.com"
 cp "$BUNDLE_DAILY" "$flat/bootstrap/"
 cp "$BUNDLE_SHELL" "$flat/bootstrap/"

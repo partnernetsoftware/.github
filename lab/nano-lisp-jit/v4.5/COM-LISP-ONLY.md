@@ -46,7 +46,7 @@ bash lab/nano-lisp-jit/retired/scripts/nano-jit-com-lisp-only-smoke.sh
 | Slice | % | Blocker |
 |-------|---|---------|
 | **Shell com-only plan** | **100%** | `bootstrap-v45-shell-com-only.lisp` — no `/bin/sh` |
-| **Daily com+lisp** | **~98%** | `run-stdin` bootstrap step; OS libc only |
+| **Daily com+lisp** | **100%** | release pin includes `run-stdin`; OS libc only |
 | **Portable flat bundle** | **100%** | `bootstrap-v45-com-lisp-only-bundle-daily.lisp` |
 | **Factory zero toolchain** | **0%** | cosmocc/host-cc for COM regen |
 

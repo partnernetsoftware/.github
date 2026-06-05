@@ -47,7 +47,7 @@ bash lab/nano-lisp-jit/retired/scripts/nanolisp-dual-gate.sh
 3. **aarch64 compose-15link** — Rust `build_compose_15link` x86-only
 4. **Wave scripts default COM** — still `nano-lisp.com`; Rust not wave SSOT yet
 5. **Shell product SOTA** — user daily COM-only + slim Rust ≈ C COM size (**~85%** product shell slice; ladder **100% scoped** per [`SHELL-CLOSURE.md`](SHELL-CLOSURE.md))
-6. **COM + Lisp only user path** — [`COM-LISP-ONLY.md`](COM-LISP-ONLY.md) · daily ~**98%** · flat bundle **100%**
+6. **COM + Lisp only user path** — [`COM-LISP-ONLY.md`](COM-LISP-ONLY.md) · daily **100%** · flat bundle **100%**
 
 ## Milestone checklist
 
@@ -81,6 +81,7 @@ bash lab/nano-lisp-jit/retired/scripts/nanolisp-dual-gate.sh
 - [x] com+lisp-only daily — `bootstrap-v45-com-lisp-only-daily.lisp` + `nano-jit-com-lisp-only-smoke.sh`
 - [x] bootstrap `run-stdin` — fork+pipe fgets (no `/bin/sh` in com-only plans)
 - [x] flat bundle daily — `bootstrap-v45-com-lisp-only-bundle-daily.lisp` + isolated smoke
+- [x] release promote — pin **867097 B** `fnv1a64=48f65716181626e8` (`run-stdin` in release COM)
 - [x] shell smokes in `nanolisp-dual-gate.sh` (c: noarg/fgets/full-c · rs: shell-ci/shell-full/repl-vm/shell-dual/fgets/repl-fgets)
 - [ ] Rust APE size ≈ C COM with runnable full CLI
 - [ ] C/Rust zero host-cc 158KB codegen
