@@ -1,13 +1,15 @@
 #!/usr/bin/env bash
 # Dual-track product gate — C release SSOT + Rust nanolisp SOTA.
+# Optional scoped shell ladder (NOT default — too heavy): nano-jit-shell-ladder-smoke.sh
+#   (probe embedded + c-noarg w/o nested c_gate + rs ci/full/promote/dual subset).
 # Shell smokes (nested, not duplicated here):
-#   c-track: nano-jit-c-shell-noarg-smoke.sh, nano-jit-c-shell-fgets-smoke.sh (via nano-jit-c-gate.sh)
+#   c-track: nano-jit-c-shell-noarg-smoke.sh, nano-jit-c-shell-fgets-smoke.sh, nano-jit-c-shell-full-c-smoke.sh (via nano-jit-c-gate.sh)
 #   rs-track: shell-ci, shell-full, shell-promote, shell-repl-vm, shell-dual, shell-fgets, shell-repl-fgets (via nano-jit-rs-gate.sh)
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../../../.." && pwd)"
 cd "$ROOT"
 echo "nanolisp.dual-gate=begin"
-echo "nanolisp.dual-gate.shell=c-track begin smokes=nano-jit-c-shell-noarg-smoke.sh,nano-jit-c-shell-fgets-smoke.sh"
+echo "nanolisp.dual-gate.shell=c-track begin smokes=nano-jit-c-shell-noarg-smoke.sh,nano-jit-c-shell-fgets-smoke.sh,nano-jit-c-shell-full-c-smoke.sh"
 bash "$ROOT/lab/nano-lisp-jit/retired/scripts/nano-jit-c-gate.sh"
 echo "nanolisp.dual-gate.shell=c-track ok"
 bash "$ROOT/lab/nano-lisp-jit/retired/scripts/nano-jit-c-shell-promote-smoke.sh"

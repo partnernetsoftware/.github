@@ -130,7 +130,7 @@ if [ -x "$C_COM" ]; then
   echo "nano-jit-c-shell-noarg-smoke=ok bootstrap_plan"
 fi
 
-if [ "${NANO_C_GATE_RUNNING:-}" != 1 ]; then
+if [ "${NANO_C_GATE_RUNNING:-}" != 1 ] && [ "${NANO_SHELL_LADDER:-}" != 1 ]; then
   bash "$GATE" >/tmp/nano-jit-c-gate-shell-noarg.log 2>&1 || {
     tail -20 /tmp/nano-jit-c-gate-shell-noarg.log >&2 || true
     echo "nano-jit-c-shell-noarg-smoke=fail c_gate"
