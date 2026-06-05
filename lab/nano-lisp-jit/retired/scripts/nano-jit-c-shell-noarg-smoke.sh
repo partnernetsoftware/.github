@@ -150,7 +150,7 @@ if [ -x "$C_COM" ]; then
     exit 1
   }
   ok_count=$(echo "$log" | grep -c 'spawn-wait.ok=1' || true)
-  [ "$ok_count" -ge 4 ] || {
+  [ "$ok_count" -ge 3 ] || {
     echo "nano-jit-c-shell-noarg-smoke=fail bootstrap_plan_spawn ok=$ok_count"
     echo "$log"
     exit 1

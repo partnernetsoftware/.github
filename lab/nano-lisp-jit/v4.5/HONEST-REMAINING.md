@@ -35,6 +35,7 @@ bash lab/nano-lisp-jit/retired/scripts/v45-wave71-lisp-codegen-diffuse-converge.
 | 项 | 状态 |
 |----|------|
 | 用户 daily plan 零 `.c`/`.sh`/`.py`/`archive/c` 步骤 | ✅ |
+| **com+lisp-only daily**（`bootstrap-v45-com-lisp-only-daily.lisp`） | ✅ — 见 [`COM-LISP-ONLY.md`](COM-LISP-ONLY.md) |
 | `release/nano-lisp.com` 进仓 + manifest pin | ✅ |
 | verify-smoke / core / all / entry / onion-tdd | ✅（`v45-terminal-com-promote.sh`） |
 | aarch64 slice | **154KB**（原 genesis 648KB 已消） |

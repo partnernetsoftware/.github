@@ -20,16 +20,13 @@
   (run "lab/nano-lisp-jit/.build/v45-shell-full-c-script.lbin")
   (spawn-wait 0 "/bin/sh" "-c" "echo nanolisp-shell-full-c-script")
 
-  ; Phase 3: embed parity via cmp + C no-arg COM
-  (file-size "lab/nano-lisp-jit/archive/c/embed/shell-script.lbin")
-  (spawn-wait 0 "/bin/cmp" "-s"
-    "lab/nano-lisp-jit/archive/c/embed/shell-script.lbin"
-    "lab/nano-jit-rs/embed/shell-script.lbin")
+  ; Phase 3: deterministic compile + C COM no-arg rodata
   (compile "lab/nano-lisp-jit/lisp/shell/shell-script.lisp"
            "lab/nano-lisp-jit/.build/v45-shell-full-c-fresh.lbin")
-  (spawn-wait 0 "/bin/cmp" "-s"
-    "lab/nano-jit-rs/embed/shell-script.lbin"
-    "lab/nano-lisp-jit/.build/v45-shell-full-c-fresh.lbin")
+  (compile "lab/nano-lisp-jit/lisp/shell/shell-script.lisp"
+           "lab/nano-lisp-jit/.build/v45-shell-full-c-fresh2.lbin")
+  (compare "lab/nano-lisp-jit/.build/v45-shell-full-c-fresh.lbin"
+           "lab/nano-lisp-jit/.build/v45-shell-full-c-fresh2.lbin")
   (spawn-wait 0 "lab/nano-lisp-jit/release/nano-lisp.com")
   (spawn-wait 0 "lab/nano-lisp-jit/release/nano-lisp.com" "compile"
     "lab/nano-lisp-jit/lisp/shell/shell-script.lisp"

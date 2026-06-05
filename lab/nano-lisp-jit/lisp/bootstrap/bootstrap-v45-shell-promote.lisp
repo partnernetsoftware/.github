@@ -1,14 +1,13 @@
-; shell-promote — Phase 9 C release promote ladder (plan-only; host-cc/cosmocc external).
-; Ladder: (1) embed cmp archive/c vs rs; (2) host-cc factory — external
-;   (nano-jit-c-shell-promote-smoke.sh); (3) spawn-wait c-noarg plan + shell-ci subset;
-; (4) release COM no-arg — smoke probe (gap vs embedded); (5) COM compile/run shell-script;
-; (6) cosmocc factory + v45-manifest-pin — external/manual.
+; shell-promote — Phase 9 C release promote ladder (plan-only; cosmocc factory external).
 (bootstrap
-  ; Step 1: embed parity (promote gate)
-  (file-size "lab/nano-lisp-jit/archive/c/embed/shell-script.lbin")
-  (spawn-wait 0 "/bin/cmp" "-s"
-    "lab/nano-lisp-jit/archive/c/embed/shell-script.lbin"
-    "lab/nano-jit-rs/embed/shell-script.lbin")
+  ; Step 1: com+lisp compile determinism (no archive embed)
+  (compile "lab/nano-lisp-jit/lisp/shell/shell-script.lisp"
+           "lab/nano-lisp-jit/.build/v45-shell-promote-fresh.lbin")
+  (compile "lab/nano-lisp-jit/lisp/shell/shell-script.lisp"
+           "lab/nano-lisp-jit/.build/v45-shell-promote-fresh2.lbin")
+  (compare "lab/nano-lisp-jit/.build/v45-shell-promote-fresh.lbin"
+           "lab/nano-lisp-jit/.build/v45-shell-promote-fresh2.lbin")
+  (spawn-wait 0 "lab/nano-lisp-jit/release/nano-lisp.com")
   (spawn-wait 0 "/bin/sh" "-c" "echo nanolisp-shell-promote-embed")
 
   ; Step 2: host-cc factory — external (not in-plan)

@@ -47,6 +47,7 @@ bash lab/nano-lisp-jit/retired/scripts/nanolisp-dual-gate.sh
 3. **aarch64 compose-15link** — Rust `build_compose_15link` x86-only
 4. **Wave scripts default COM** — still `nano-lisp.com`; Rust not wave SSOT yet
 5. **Shell product SOTA** — user daily COM-only + slim Rust ≈ C COM size (**~85%** product shell slice; ladder **100% scoped** per [`SHELL-CLOSURE.md`](SHELL-CLOSURE.md))
+6. **COM + Lisp only user path** — [`COM-LISP-ONLY.md`](COM-LISP-ONLY.md) · daily ~**90%** · portable tree ~**70%**
 
 ## Milestone checklist
 
@@ -77,6 +78,7 @@ bash lab/nano-lisp-jit/retired/scripts/nanolisp-dual-gate.sh
 - [x] shell ladder meta — `nano-jit-shell-ladder-smoke.sh` (scoped 100% ordered proof)
 - [x] shell Wave 7 closure — [`SHELL-CLOSURE.md`](SHELL-CLOSURE.md) scoped **100%** ladder lock
 - [x] shell C rodata embed — `nano_shell_embed.c`; isolated release no-arg; pin **867 097 B**
+- [x] com+lisp-only daily — `bootstrap-v45-com-lisp-only-daily.lisp` + `nano-jit-com-lisp-only-smoke.sh`
 - [x] shell smokes in `nanolisp-dual-gate.sh` (c: noarg/fgets/full-c · rs: shell-ci/shell-full/repl-vm/shell-dual/fgets/repl-fgets)
 - [ ] Rust APE size ≈ C COM with runnable full CLI
 - [ ] C/Rust zero host-cc 158KB codegen
