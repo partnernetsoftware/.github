@@ -28,7 +28,7 @@
 | **4** | integrate | C **fgets opcode** + `nano-jit-c-shell-fgets-smoke.sh`; shell-full rs path; host-cc promote smoke | ~93% headline |
 | **5** | `cursor/nanolisp-shell-reflection-wave5-fc19` | Gate **readonly promote**; `bootstrap-cosmocc.sh`; **Phase 9** `bootstrap-v45-shell-promote.lisp` | Product slice held until pin |
 | **6** | `cursor/nanolisp-shell-reflection-wave6-fc19` | **P0** `nano-jit-c-shell-release-promote.sh` + `v45-manifest-pin.sh`; dual-smoke C/Rust `shell.mode=embedded-lbin` | Probe `embedded` on **863 001 B** pin |
-| **7 (closure)** | `cursor/nanolisp-shell-closure-fc19` | **Scoped 100%** doc + rubric lock; byte SSOT **863 001**; executive links | Ladder **100%** · product shell slice **~85%** |
+| **7 (closure)** | `cursor/nanolisp-shell-closure-fc19` | **Scoped 100%** doc + rubric lock; **`bootstrap-v45-shell-full-c.lisp`** + c-gate; **`nano-jit-shell-ladder-smoke.sh`** meta | Ladder **100%** · product shell slice **~85%** |
 
 ---
 
@@ -72,6 +72,12 @@ Dual-track parity (C + Rust no-arg + fgets path):
 
 ```bash
 bash lab/nano-lisp-jit/retired/scripts/nano-jit-shell-dual-smoke.sh
+```
+
+Scoped 100% meta (ordered ladder smokes; not in default dual-gate):
+
+```bash
+bash lab/nano-lisp-jit/retired/scripts/nano-jit-shell-ladder-smoke.sh
 ```
 
 Promote plan slice (~12 steps; cosmocc external):
@@ -122,6 +128,7 @@ Embedded artifact (Rust + C source): `lab/nano-jit-rs/embed/shell-script.lbin` �
 | `bootstrap-v45-shell-ci.lisp` | 4 | `nano-jit-rs-shell-ci-smoke.sh` |
 | `bootstrap-v45-shell-dual.lisp` | 6 | `nano-jit-shell-dual-smoke.sh` |
 | `bootstrap-v45-shell-full.lisp` | 8 | `nano-jit-rs-shell-full-smoke.sh` |
+| `bootstrap-v45-shell-full-c.lisp` | 8b | `nano-jit-c-shell-full-c-smoke.sh` |
 | `bootstrap-v45-shell-promote.lisp` | 9 | `nano-jit-rs-shell-promote-smoke.sh` |
 
 ### Smokes (`retired/scripts/`)
@@ -140,7 +147,9 @@ Embedded artifact (Rust + C source): `lab/nano-jit-rs/embed/shell-script.lbin` �
 | `nano-jit-shell-dual-smoke.sh` | dual | dual-gate |
 | `nano-jit-c-shell-noarg-smoke.sh` | C | c-gate |
 | `nano-jit-c-shell-fgets-smoke.sh` | C | c-gate |
+| `nano-jit-c-shell-full-c-smoke.sh` | C | c-gate |
 | `nano-jit-c-shell-promote-smoke.sh` | C | dual-gate prep |
+| `nano-jit-shell-ladder-smoke.sh` | both | meta (manual) |
 | `nano-jit-c-shell-release-promote.sh` | C | manual / `NANO_C_SHELL_RELEASE_PROMOTE=1` |
 | `nanolisp-c-release-shell-probe.sh` | C | sourced by smokes |
 | `nanolisp-dual-gate.sh` | both | product dual-gate |
@@ -164,6 +173,7 @@ Orchestration SSOT: [`SHELL-RUNNER.md` § C release shell promote](SHELL-RUNNER.
 | **7 alt** | `shell-repl-fgets.lisp` | fgets REPL | `nano-jit-rs-shell-repl-fgets-smoke.sh` |
 | **7b** | `bootstrap-v45-shell-c-noarg.lisp` | C `cmd_shell_noarg` + release embed | c noarg + promote + release-promote |
 | **8** | `bootstrap-v45-shell-full.lisp` | full ladder ~29 steps | `nano-jit-rs-shell-full-smoke.sh` |
+| **8b** | `bootstrap-v45-shell-full-c.lisp` | C subset ~21 steps | `nano-jit-c-shell-full-c-smoke.sh` |
 | **9** | `bootstrap-v45-shell-promote.lisp` | promote ladder ~12 steps | `nano-jit-rs-shell-promote-smoke.sh` |
 | **pin** | factory cosmocc → `release/nano-lisp.com` | manifest **863 001 B** | `nano-jit-c-shell-release-promote.sh` + probe |
 | **gate** | — | dual-gate audit markers | `nanolisp-dual-gate.sh` |
