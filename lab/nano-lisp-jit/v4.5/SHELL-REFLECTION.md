@@ -22,7 +22,7 @@ Phases **0–8** (Rust ladder + C host-cc / opcode parity) are merged or gated o
 | **4** | `bootstrap-v45-shell-ci.lisp` + `shell-ci` | Unified ladder (0→3 + read-line + REPL + fgets + repl-fgets + **7b C embed/COM** + pack-ape, ~28 steps). Smoke: `nano-jit-rs-shell-ci-smoke.sh`. |
 | **5** | *(alias)* | Same as Phase 2 in section headers of [`SHELL-RUNNER.md`](SHELL-RUNNER.md); numbering debt only. |
 | **6** | `bootstrap-v45-shell-dual.lisp` + dual smoke | C and Rust both compile/run `shell-v0`; stdin addr + fgets on Rust. |
-| **7** | `libc:fgets` via stdin addr | Rust + **C host-cc** VM `ptr(ptr,i32,ptr)`; smokes: `nano-jit-rs-shell-fgets-smoke.sh`, `nano-jit-c-shell-fgets-smoke.sh` (c-gate). Release COM compile pending rebake. |
+| **7** | `libc:fgets` via stdin addr | Rust + **C host-cc** VM `ptr(ptr,i32,ptr)`; smokes: `nano-jit-rs-shell-fgets-smoke.sh`, `nano-jit-c-shell-fgets-smoke.sh` (c-gate). **Wave 6 done** — opcode in pinned COM (**863 001 B**). |
 | **7 alt** | `shell-repl-fgets.lisp` | VM REPL on **fgets + stdin addr**; in shell-ci, dual bootstrap, rs-gate smoke. |
 | **7b** | C `nano_main.c` no-arg + file embed | Source + **release** `cmd_shell_noarg`; `archive/c/embed/shell-script.lbin` (280 B, hash-match rs embed); pinned COM `shell.mode=embedded-lbin` after Wave 6 promote. Smokes: `nano-jit-c-shell-noarg-smoke.sh`, `nano-jit-c-shell-promote-smoke.sh`, `nano-jit-c-shell-release-promote.sh`. |
 | **8** | `bootstrap-v45-shell-full.lisp` + `shell-full` | One plan (~29 steps); `nanolisp shell-full` CLI + rs-gate smoke. |
@@ -37,13 +37,13 @@ Phases **0–8** (Rust ladder + C host-cc / opcode parity) are merged or gated o
 |------------|-------------------------------|----------------------------------------|
 | CLI `spawn-wait` / `read-file` | ✅ | ✅ |
 | `.lbin` `libc:system` compile/run | ✅ | ✅ |
-| `nanolisp shell` / `shell-repl` / `shell-ci` / **shell-full** | ❌ (C CLI differs; **shell-full CLI** Wave 4 planned) | ✅ (`run-bootstrap-plan` + rs-gate smoke) |
+| `nanolisp shell` / `shell-repl` / `shell-ci` / **shell-full** | ⬜ **Phase 8b** — no C `shell-full` subcommand; **`$COM run-bootstrap-plan …/bootstrap-v45-shell-full-c.lisp`** (C subset plan) | ✅ (`nanolisp shell-full` + rs-gate smoke) |
 | No-arg `$COM` → shell | ✅ **release** `shell.mode=embedded-lbin` (Wave 6 pin) · ✅ source | ✅ embedded `shell-script.lbin` |
 | `libc:stdin` addr in VM | ✅ (pinned release) | ✅ |
 | `libc:fgets` via stdin addr | ✅ Phase 7 opcode (`nano-jit-c-shell-fgets-smoke.sh`, c-gate) | ✅ Phase 7 |
 | Dual bootstrap plan | ✅ compile/run v0 via C COM | ✅ plan driver on Rust |
 | shell-ci / shell-full C track | ✅ embed cmp + COM compile/run + no-arg pin in plan | ✅ Rust subcommands |
-| Gate inclusion | **c-gate** → `nano-jit-c-shell-noarg-smoke.sh` | **rs-gate** → shell-ci, **shell-full**, repl-vm, dual, fgets, repl-fgets |
+| Gate inclusion | **c-gate** → shell-noarg, fgets, **shell-full-c** | **rs-gate** → shell-ci, **shell-full**, repl-vm, dual, fgets, repl-fgets |
 | Dual-gate (`nanolisp-dual-gate.sh`) | ✅ nested via c-gate · audit `nanolisp.dual-gate.shell=c-track *` | ✅ nested via rs-gate · audit `nanolisp.dual-gate.shell=rs-track *` (incl. shell-full) |
 | P2 release assert | ✅ **auto-probe** sets `NANO_C_RELEASE_HAS_SHELL` | N/A |
 
@@ -58,7 +58,7 @@ After Wave 6 promote, dual smoke **expects** parity on both tracks: Rust and pin
 | Lisp shell dogfood in `lisp/shell/` | ✅ | ✅ |
 | Bootstrap plans replace granular smokes | ✅ shell-ci + shell-full | ✅ nested in dual-gate (via track gates) |
 | `$COM` no-arg is a shell | ✅ Rust · ✅ C source · ✅ C release pin | ✅ Wave 6 promote |
-| Slim COM (~327 KiB) carries shell | N/A (Rust ~2.8 MiB full) | ✅ embed in pinned `release/nano-lisp.com` |
+| Pinned COM (**863 001 B**) carries shell | N/A (Rust ~2.8 MiB full) | ✅ embed in pinned `release/nano-lisp.com` |
 | Wave scripts default COM | C `nano-lisp.com` | ⬜ unchanged |
 | User daily = COM + plan only | ✅ shell-ci / shell-full path | ⬜ wave SSOT still C COM; Rust not default |
 | P2 conditional release assert | ✅ auto-probe + manual override | ✅ probe `embedded` after pin |

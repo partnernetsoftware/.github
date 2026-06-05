@@ -2234,6 +2234,7 @@ static int cmd_run_bootstrap_plan(const char *plan_path) {
     }
     if (rc != 0) break;
   }
+  if (rc == 0) printf("bootstrap-plan.ok=1\n");
   free(src);
   bootstrap_plan_free(&plan);
   return rc;

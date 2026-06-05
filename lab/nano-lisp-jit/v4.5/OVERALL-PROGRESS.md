@@ -6,7 +6,7 @@
 
 | Track | Overall | Gate | Release artifact |
 |-------|---------|------|------------------|
-| **C `nano-lisp.com`** | **95%** shipping-ready | `nanolisp.c-gate=ok` | 334 537 B · wave SSOT |
+| **C `nano-lisp.com`** | **95%** shipping-ready | `nanolisp.c-gate=ok` | **863 001 B** · wave SSOT (Wave 6 shell promote pin) |
 | **Rust `nanolisp.com`** | **99%** feature parity | `nanolisp.gate=ok` | 2 959 413 B · full CLI APE |
 | **Rust slim pathfinder** | **40%** | slim smoke | `nanolisp-slim.com` ~161 KiB (genesis-pin pack) |
 | **Migration (Rust replaces C)** | **~86%** | dual gate | C maintained until slim + parity + shell embed |
@@ -42,7 +42,7 @@ bash lab/nano-lisp-jit/retired/scripts/nanolisp-dual-gate.sh
 
 ## Honest remaining GAP (priority)
 
-1. **Rust release slim → C parity** — genesis slim ~161 KiB vs C 327 KiB (166592×2); need compose/build-slice slices not pin-only
+1. **Rust release slim → C parity** — genesis slim ~161 KiB vs C pin **863 001 B**; need compose/build-slice slices not pin-only
 2. **158KB pure Lisp codegen** — both tracks still depend on host `cc` or pin for full runner
 3. **aarch64 compose-15link** — Rust `build_compose_15link` x86-only
 4. **Wave scripts default COM** — still `nano-lisp.com`; Rust not wave SSOT yet
@@ -70,7 +70,7 @@ bash lab/nano-lisp-jit/retired/scripts/nanolisp-dual-gate.sh
 - [x] shell-ci extension — fgets + repl-fgets + Phase 7b C track (~28 steps)
 - [x] C release shell auto-probe — `nanolisp-c-release-shell-probe.sh` (P2 ~done)
 - [x] shell Phase 8 — `bootstrap-v45-shell-full.lisp` + `nano-jit-rs-shell-full-smoke.sh` (~29 steps, rs-gate)
-- [x] shell Phase 8 C CLI — shell-full entry on C COM / `run-bootstrap-plan` (Wave 4)
+- [x] shell Phase 8b — C `run-bootstrap-plan` on `bootstrap-v45-shell-full-c.lisp` + `nano-jit-c-shell-full-c-smoke.sh` (863 001 B COM)
 - [x] shell Phase 9 — `bootstrap-v45-shell-promote.lisp` + gate readonly promote wiring (Wave 5–6)
 - [x] shell P0 Wave 6 — `nano-jit-c-shell-release-promote.sh` + `v45-manifest-pin.sh` (product **~75%+**)
 - [x] shell smokes in `nanolisp-dual-gate.sh` (c: shell-noarg · rs: shell-ci/shell-full/repl-vm/shell-dual/fgets/repl-fgets)
