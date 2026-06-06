@@ -2356,7 +2356,9 @@ static int cmd_run_bootstrap_plan(const char *plan_path) {
       rc = run_ape_expect_exit(step->arg0, step->arg1, step->arg2);
     } else if (step->kind == BOOTSTRAP_STEP_PACK_APE) {
       printf("bootstrap-step.%zu=pack-ape\n", i);
-      rc = cmd_pack_ape(step->arg0, step->arg1, step->arg2);
+      rc = cmd_pack_ape(bootstrap_plan_path(plan_path0, sizeof(plan_path0), step->arg0),
+                        bootstrap_plan_path(plan_path1, sizeof(plan_path1), step->arg1),
+                        bootstrap_plan_path(plan_path2, sizeof(plan_path2), step->arg2));
     } else if (step->kind == BOOTSTRAP_STEP_PACK_APE_BARE) {
       printf("bootstrap-step.%zu=pack-ape-bare\n", i);
       rc = cmd_pack_ape_bare(step->arg0, step->arg1, step->arg2);
@@ -2389,7 +2391,7 @@ static int cmd_run_bootstrap_plan(const char *plan_path) {
       rc = cmd_nano_cc_compile(step->arg0, step->arg1);
     } else if (step->kind == BOOTSTRAP_STEP_INSPECT_APE) {
       printf("bootstrap-step.%zu=inspect-ape\n", i);
-      rc = cmd_inspect_ape(step->arg0);
+      rc = cmd_inspect_ape(bootstrap_plan_path(plan_path0, sizeof(plan_path0), step->arg0));
     } else if (step->kind == BOOTSTRAP_STEP_RUN_APE) {
       printf("bootstrap-step.%zu=run-ape\n", i);
       rc = cmd_run_ape(step->arg0, step->arg2);
