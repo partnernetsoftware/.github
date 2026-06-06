@@ -1512,13 +1512,25 @@ static int cmd_build_slice(const char *src_path, const char *out_path, const cha
   return cmd_file_size(out_path);
 }
 
+static const char *build_slice_lisp_profile_resolve(const char *profile) {
+  /* Bare compose-15link stubs are <16KB and fall back to host cc; daily codegen uses semantic. */
+  if (profile && strcmp(profile, "compose-15link") == 0)
+    return "compose-15link-semantic-unified";
+  return profile;
+}
+
 static int cmd_build_slice_lisp_profile(const char *profile, const char *src_path,
                                         const char *out_path, const char *arch) {
   int rc;
+  const char *resolved;
   if (!profile || !profile[0] || !src_path || !out_path || !arch) {
     fprintf(stderr, "build-slice-lisp-profile=bad_args\n");
     return 1;
   }
+  resolved = build_slice_lisp_profile_resolve(profile);
+  if (strcmp(resolved, profile) != 0)
+    printf("build-slice-lisp-profile.profile_upgrade=%s\n", resolved);
+  profile = resolved;
   printf("build-slice-lisp-profile.profile=%s\n", profile);
   setenv("NANO_LISPJIT_FROM_LISP", "1", 1);
   setenv("NANO_LISPJIT_FROM_LISP_PROFILE", profile, 1);
