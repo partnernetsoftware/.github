@@ -19,7 +19,10 @@
   (build-slice-lisp "lisp/core/nano-jit-slice-ir-exit-v1.lisp"
                     ".build/v45-unified-bundle-aarch64.elf"
                     "aarch64")
+  (extract-ape-slice "nano-lisp.com"
+                     ".build/v45-unified-bundle-x86-pack.elf"
+                     "x86_64")
   (pack-ape ".build/v45-unified-bundle-regenesis.com"
-            ".build/v45-unified-bundle-codegen.elf"
+            ".build/v45-unified-bundle-x86-pack.elf"
             ".build/v45-unified-bundle-aarch64.elf")
   (file-size ".build/v45-unified-bundle-regenesis.com"))
