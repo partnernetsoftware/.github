@@ -1547,10 +1547,17 @@ static int cmd_build_slice(const char *src_path, const char *out_path, const cha
 }
 
 static const char *build_slice_lisp_profile_resolve(const char *profile) {
-  /* Bare compose-15link stubs are <16KB and fall back to host cc; daily codegen uses semantic. */
   if (profile && strcmp(profile, "compose-15link") == 0)
     return "compose-15link-semantic-unified";
+  if (profile && strcmp(profile, "full") == 0)
+    return "compose-15link-bulk-scale";
   return profile;
+}
+
+static int build_slice_lisp_profile_no_hybrid(const char *profile) {
+  if (!profile || !profile[0]) return 0;
+  return strstr(profile, "compose-15link") != NULL || strstr(profile, "semantic") != NULL ||
+         strcmp(profile, "full") == 0;
 }
 
 static int cmd_build_slice_lisp_profile(const char *profile, const char *src_path,
@@ -1568,7 +1575,7 @@ static int cmd_build_slice_lisp_profile(const char *profile, const char *src_pat
   printf("build-slice-lisp-profile.profile=%s\n", profile);
   setenv("NANO_LISPJIT_FROM_LISP", "1", 1);
   setenv("NANO_LISPJIT_FROM_LISP_PROFILE", profile, 1);
-  if (strstr(profile, "semantic") != NULL)
+  if (build_slice_lisp_profile_no_hybrid(profile))
     setenv("NANO_COMPOSE15_NO_HYBRID", "1", 1);
   rc = cmd_build_slice(src_path, out_path, arch);
   unsetenv("NANO_COMPOSE15_NO_HYBRID");
