@@ -3,6 +3,7 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../../../.." && pwd)"
 COM="$ROOT/lab/nano-lisp-jit/release/nano-lisp.com"
+REGENESIS_COM="$ROOT/lab/nano-lisp-jit/.build/v45-unified-regenesis.com"
 HOST_BIN="$ROOT/lab/nano-lisp-jit/.build/nano-lisp-jit-host-daily-unified"
 UNIFIED="$ROOT/lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-daily-unified.lisp"
 BUNDLE="$ROOT/lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-daily-unified-bundle.lisp"
@@ -75,17 +76,25 @@ echo "$log" | grep -q 'run-expect-exit.ok=1' || {
   echo "$log"
   exit 1
 }
-echo "nano-jit-c-daily-unified-smoke=ok repo_tree"
+echo "$log" | grep -q 'bootstrap-step.*=pack-ape' || {
+  echo "nano-jit-c-daily-unified-smoke=fail repo_pack_ape"
+  echo "$log"
+  exit 1
+}
+regen_bytes=0
+[ -f "$REGENESIS_COM" ] && regen_bytes=$(stat -c%s "$REGENESIS_COM")
+[ "$regen_bytes" -gt 10000 ] || {
+  echo "nano-jit-c-daily-unified-smoke=fail repo_regenesis_bytes bytes=$regen_bytes"
+  echo "$log"
+  exit 1
+}
+echo "nano-jit-c-daily-unified-smoke=ok repo_tree regenesis_bytes=$regen_bytes"
 
 flat=$(mktemp -d)
 trap 'rm -rf "$flat"' EXIT
 mkdir -p "$flat/bootstrap" "$flat/lisp/shell" "$flat/lisp/core" \
   "$flat/lisp/modules-semantic" "$flat/lisp/modules" "$flat/.build"
-BUNDLE_RUNNER="$COM"
-if [ -x "$HOST_BIN" ]; then
-  BUNDLE_RUNNER="$HOST_BIN"
-fi
-cp "$BUNDLE_RUNNER" "$flat/nano-lisp.com"
+cp "$COM" "$flat/nano-lisp.com"
 chmod +x "$flat/nano-lisp.com"
 cp "$BUNDLE" "$flat/bootstrap/"
 cp "$SHELL_BUNDLE" "$flat/bootstrap/"
@@ -94,12 +103,34 @@ cp -r "$ROOT/lab/nano-lisp-jit/lisp/core/." "$flat/lisp/core/"
 cp -r "$ROOT/lab/nano-lisp-jit/lisp/modules-semantic/." "$flat/lisp/modules-semantic/"
 cp -r "$ROOT/lab/nano-lisp-jit/lisp/modules/." "$flat/lisp/modules/"
 cp "$ROOT/lab/nano-lisp-jit/archive/c/runner/lispjit.c" "$flat/lisp/lispjit.c"
-flat_log=$(cd "$flat" && ./nano-lisp.com run-bootstrap-plan \
-  bootstrap/bootstrap-v45-daily-unified-bundle.lisp 2>&1) || {
+
+run_flat_bundle() {
+  (cd "$flat" && ./nano-lisp.com run-bootstrap-plan \
+    bootstrap/bootstrap-v45-daily-unified-bundle.lisp 2>&1)
+}
+
+flat_log=$(run_flat_bundle) || {
   echo "$flat_log"
   echo "nano-jit-c-daily-unified-smoke=fail flat_bundle"
   exit 1
 }
+BUNDLE_RUNNER="$COM"
+if ! echo "$flat_log" | grep -q 'profile_upgrade=compose-15link-semantic-unified'; then
+  if [ -x "$HOST_BIN" ]; then
+    cp "$HOST_BIN" "$flat/nano-lisp.com"
+    chmod +x "$flat/nano-lisp.com"
+    BUNDLE_RUNNER="$HOST_BIN"
+    flat_log=$(run_flat_bundle) || {
+      echo "$flat_log"
+      echo "nano-jit-c-daily-unified-smoke=fail flat_bundle_host_cc"
+      exit 1
+    }
+  else
+    echo "nano-jit-c-daily-unified-smoke=fail flat_profile_upgrade"
+    echo "$flat_log"
+    exit 1
+  fi
+fi
 echo "$flat_log" | grep -q 'lisp-root=\.' || {
   echo "nano-jit-c-daily-unified-smoke=fail flat_lisp_root"
   echo "$flat_log"
@@ -115,12 +146,18 @@ echo "$flat_log" | grep -q 'compose15_full_codegen=1' || {
   echo "$flat_log"
   exit 1
 }
-if [ "$BUNDLE_RUNNER" = "$HOST_BIN" ]; then
-  echo "$flat_log" | grep -q 'profile_upgrade=compose-15link-semantic-unified' || {
-    echo "nano-jit-c-daily-unified-smoke=fail flat_profile_upgrade"
-    echo "$flat_log"
-    exit 1
-  }
-fi
-echo "nano-jit-c-daily-unified-smoke=ok flat_bundle"
+echo "$flat_log" | grep -q 'bootstrap-step.*=pack-ape' || {
+  echo "nano-jit-c-daily-unified-smoke=fail flat_pack_ape"
+  echo "$flat_log"
+  exit 1
+}
+flat_regen_bytes=0
+[ -f "$flat/.build/v45-unified-bundle-regenesis.com" ] && \
+  flat_regen_bytes=$(stat -c%s "$flat/.build/v45-unified-bundle-regenesis.com")
+[ "$flat_regen_bytes" -gt 10000 ] || {
+  echo "nano-jit-c-daily-unified-smoke=fail flat_regenesis_bytes bytes=$flat_regen_bytes"
+  echo "$flat_log"
+  exit 1
+}
+echo "nano-jit-c-daily-unified-smoke=ok flat_bundle runner=$BUNDLE_RUNNER regenesis_bytes=$flat_regen_bytes"
 echo "nano-jit-c-daily-unified-smoke=ok"
