@@ -1,6 +1,6 @@
 # nano-lisp 会话 handoff
 
-**更新**: 2026-05-24 · **main** @ `6098260` · **c-gate 全绿**（本 handoff 已复跑）
+**更新**: 2026-06-06 · **cursor/nanolisp-gate-build-dir-ee28** · **c-gate 全绿** · terminal daily
 
 ## 北极星
 
@@ -22,8 +22,8 @@
 ## Release pin（当前）
 
 ```
-nano-lisp.com.bytes=863001
-nano-lisp.com.fnv1a64=3d9429564b04715c
+nano-lisp.com.bytes=871193
+nano-lisp.com.fnv1a64=eb502ddb9aa426c1
 ```
 
 含：`run-stdin` · `build-slice-lisp-profile` · `(lisp-root ".")` · shell rodata embed
@@ -41,6 +41,15 @@ nano-lisp.com.fnv1a64=3d9429564b04715c
 compose15 模块路径：`lisp/modules-semantic/…`，经 `nano_lisp_join(root, rel)` 解析（`nano_bootstrap.c`）。
 
 ## Daily plans
+
+### TERMINAL — one plan (A+B+B′)
+
+```bash
+COM=lab/nano-lisp-jit/release/nano-lisp.com
+$COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-daily-terminal.lisp
+```
+
+产出：dogfood · 158KB codegen · pure-lisp pack (~161KB) · **871KB regenesis.com** · child spawn
 
 ### A 轨 — dogfood
 
@@ -110,9 +119,9 @@ c-gate 顺序：verify → com-lisp-only → codegen-158k → shell noarg/fgets/
 
 ## 诚实 GAP / 下一刀
 
-1. **863KB 全 COM 纯 Lisp 自举** — 唯一大卡点；158KB slice 已通
-2. **compose15 默认 profile**（无 semantic）仍 stub→host-cc hybrid
-3. **路径**：非 compose15 bootstrap 步骤仍硬编码 `lab/nano-lisp-jit/…`
+1. **863KB 全 COM 纯 Lisp 自举（零 extract）** — plan-only regenesis **871KB 已通**；slice 纯 codegen 仍 ~161KB
+2. ~~compose15 默认 profile hybrid~~ — ✅ profile_upgrade + NO_HYBRID
+3. **路径** — ✅ lisp-root + bootstrap_plan_path
 4. **Rust 轨**：dual-gate 独立；rs compose15 semantic smoke 已有
 5. **OS libc** — 短期不可避免
 

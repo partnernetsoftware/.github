@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
-# C track gate — release/nano-lisp.com SSOT; no cosmocc required.
-# Parity: manifest pin · verify-smoke plan · optional full factory (NANO_C_GATE_FACTORY=1).
-# Optional shell promote prep (off by default): NANO_C_SHELL_PROMOTE=1 → nano-jit-c-shell-promote-smoke.sh
+# C track gate — release/nano-lisp.com SSOT; terminal daily + core smokes.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../../../.." && pwd)"
 RETIRED="$ROOT/lab/nano-lisp-jit/retired/scripts"
@@ -10,6 +8,7 @@ MAN="$ROOT/lab/nano-lisp-jit/release/manifest.txt"
 NANO_C="$ROOT/lab/nano-lisp-jit/archive/c/runner/lispjit.c"
 VERIFY_PLAN="lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-verify-smoke.lisp"
 cd "$ROOT"
+mkdir -p "$ROOT/lab/nano-lisp-jit/.build"
 
 echo "nanolisp.c-gate=begin"
 
@@ -59,8 +58,7 @@ else
 fi
 
 export NANO_C_GATE_RUNNING=1
-bash "$RETIRED/nano-jit-com-lisp-only-smoke.sh"
-bash "$RETIRED/nano-jit-c-codegen-158k-smoke.sh"
+bash "$RETIRED/nano-jit-c-daily-terminal-smoke.sh"
 bash "$RETIRED/nano-jit-c-shell-noarg-smoke.sh"
 bash "$RETIRED/nano-jit-c-shell-fgets-smoke.sh"
 bash "$RETIRED/nano-jit-c-shell-full-c-smoke.sh"

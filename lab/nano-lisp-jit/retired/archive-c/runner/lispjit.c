@@ -10,6 +10,7 @@
 #include <windows.h>
 #else
 #include <dlfcn.h>
+#include <errno.h>
 #include <sys/stat.h>
 #include <sys/mman.h>
 #include <sys/utsname.h>
@@ -377,7 +378,36 @@ static unsigned char *read_file(const char *path, size_t *out_size) {
   return buf;
 }
 
+static int mkdir_p(const char *path) {
+  char buf[4096];
+  size_t n = strlen(path);
+  if (n == 0 || n >= sizeof(buf)) return 0;
+  memcpy(buf, path, n + 1);
+  char *p = buf;
+  if (*p == '/') ++p;
+  for (; *p; ++p) {
+    if (*p != '/') continue;
+    *p = 0;
+    if (mkdir(buf, 0755) != 0 && errno != EEXIST) return 0;
+    *p = '/';
+  }
+  if (mkdir(buf, 0755) != 0 && errno != EEXIST) return 0;
+  return 1;
+}
+
+static int ensure_parent_dir(const char *path) {
+  char buf[4096];
+  const char *slash = strrchr(path, '/');
+  if (!slash) return 1;
+  size_t n = (size_t)(slash - path);
+  if (n == 0 || n >= sizeof(buf)) return 0;
+  memcpy(buf, path, n);
+  buf[n] = 0;
+  return mkdir_p(buf);
+}
+
 static int write_file(const char *path, const unsigned char *data, size_t n) {
+  if (!ensure_parent_dir(path)) return 0;
   FILE *f = fopen(path, "wb");
   if (!f) return 0;
   int ok = fwrite(data, 1, n, f) == n;

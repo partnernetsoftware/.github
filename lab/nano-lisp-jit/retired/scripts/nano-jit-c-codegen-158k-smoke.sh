@@ -6,6 +6,7 @@ COM="$ROOT/lab/nano-lisp-jit/release/nano-lisp.com"
 HOST_BIN="$ROOT/lab/nano-lisp-jit/.build/nano-lisp-jit-host-codegen-158k"
 DAILY="$ROOT/lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-codegen-158k-daily.lisp"
 BUNDLE="$ROOT/lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-codegen-158k-bundle-daily.lisp"
+ALIAS_PROBE="$ROOT/lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-codegen-158k-compose15-alias-probe.lisp"
 cd "$ROOT"
 
 echo "nano-jit-c-codegen-158k-smoke=begin"
@@ -39,6 +40,29 @@ if command -v cc >/dev/null 2>&1; then
     echo "nano-jit-c-codegen-158k-smoke=ok host_cc runner=$HOST_BIN"
   fi
   rm -f "$probe"
+  if [ -x "$HOST_BIN" ] && [ -f "$ALIAS_PROBE" ]; then
+    alias_log=$("$HOST_BIN" run-bootstrap-plan "$ALIAS_PROBE" 2>&1) || {
+      echo "$alias_log"
+      echo "nano-jit-c-codegen-158k-smoke=fail compose15_alias_probe"
+      exit 1
+    }
+    echo "$alias_log" | grep -q 'build-slice-lisp-profile.profile_upgrade=compose-15link-semantic-unified' || {
+      echo "nano-jit-c-codegen-158k-smoke=fail compose15_alias_upgrade"
+      echo "$alias_log"
+      exit 1
+    }
+    echo "$alias_log" | grep -q 'build-slice-lisp.compose15_full_codegen=1' || {
+      echo "nano-jit-c-codegen-158k-smoke=fail compose15_alias_codegen"
+      echo "$alias_log"
+      exit 1
+    }
+    echo "$alias_log" | grep -q 'compose15_hybrid=fallback_compile' && {
+      echo "nano-jit-c-codegen-158k-smoke=fail compose15_alias_hybrid"
+      echo "$alias_log"
+      exit 1
+    }
+    echo "nano-jit-c-codegen-158k-smoke=ok compose15_alias_probe"
+  fi
 fi
 
 log=$("$RUNNER" run-bootstrap-plan "$DAILY" 2>&1) || {
