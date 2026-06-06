@@ -1829,6 +1829,19 @@ static int parse_bootstrap_plan(const char *src, BootstrapPlan *plan) {
         free(head);
         return 0;
       }
+    } else if (strcmp(head, "extract-ape-slice") == 0) {
+      char *arg0 = parse_string(&p);
+      char *arg1 = parse_string(&p);
+      char *arg2 = parse_string(&p);
+      int ok = arg0 && arg1 && arg2 && eat(&p, ')') &&
+               bootstrap_add_step(plan, BOOTSTRAP_STEP_EXTRACT_APE_SLICE, arg0, arg1, arg2, NULL);
+      if (!ok) {
+        free(arg0);
+        free(arg1);
+        free(arg2);
+        free(head);
+        return 0;
+      }
     } else if (strcmp(head, "pack-ape") == 0) {
       char *arg0 = parse_string(&p);
       char *arg1 = parse_string(&p);
@@ -2354,6 +2367,11 @@ static int cmd_run_bootstrap_plan(const char *plan_path) {
     } else if (step->kind == BOOTSTRAP_STEP_RUN_APE_EXPECT_EXIT) {
       printf("bootstrap-step.%zu=run-ape-expect-exit\n", i);
       rc = run_ape_expect_exit(step->arg0, step->arg1, step->arg2);
+    } else if (step->kind == BOOTSTRAP_STEP_EXTRACT_APE_SLICE) {
+      printf("bootstrap-step.%zu=extract-ape-slice\n", i);
+      rc = cmd_extract_ape_slice(
+          bootstrap_plan_path(plan_path0, sizeof(plan_path0), step->arg0),
+          bootstrap_plan_path(plan_path1, sizeof(plan_path1), step->arg1), step->arg2);
     } else if (step->kind == BOOTSTRAP_STEP_PACK_APE) {
       printf("bootstrap-step.%zu=pack-ape\n", i);
       rc = cmd_pack_ape(bootstrap_plan_path(plan_path0, sizeof(plan_path0), step->arg0),
