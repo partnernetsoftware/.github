@@ -10,6 +10,7 @@ MAN="$ROOT/lab/nano-lisp-jit/release/manifest.txt"
 NANO_C="$ROOT/lab/nano-lisp-jit/archive/c/runner/lispjit.c"
 VERIFY_PLAN="lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-verify-smoke.lisp"
 cd "$ROOT"
+mkdir -p "$ROOT/lab/nano-lisp-jit/.build"
 
 echo "nanolisp.c-gate=begin"
 

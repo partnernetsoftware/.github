@@ -1028,6 +1028,18 @@ static int cmd_lisp_root(const char *root) {
   return 0;
 }
 
+static const char *bootstrap_plan_path(char *buf, size_t buf_n, const char *path) {
+  static const char prefix[] = "lab/nano-lisp-jit/";
+  const char *root = nano_lisp_root_default();
+  if (!path) return path;
+  if (strncmp(path, prefix, sizeof(prefix) - 1) == 0 &&
+      strcmp(root, "lab/nano-lisp-jit") != 0) {
+    nano_lisp_join(buf, buf_n, path + (sizeof(prefix) - 1));
+    return buf;
+  }
+  return path;
+}
+
 static int compose15_use_semantic_unified(void) {
   return lispjit_from_lisp_profile_named("compose-15link-semantic-unified");
 }
@@ -2184,12 +2196,18 @@ static int cmd_run_bootstrap_plan(const char *plan_path) {
   printf("bootstrap-plan.steps=%zu\n", plan.step_count);
   for (size_t i = 0; i < plan.step_count; ++i) {
     const BootstrapStep *step = &plan.steps[i];
+    char plan_path0[4096];
+    char plan_path1[4096];
+    char plan_path2[4096];
     if (step->kind == BOOTSTRAP_STEP_COMPILE) {
       printf("bootstrap-step.%zu=compile\n", i);
-      rc = cmd_compile(step->arg0, step->arg1);
+      rc = cmd_compile(bootstrap_plan_path(plan_path0, sizeof(plan_path0), step->arg0),
+                       bootstrap_plan_path(plan_path1, sizeof(plan_path1), step->arg1));
     } else if (step->kind == BOOTSTRAP_STEP_COMPARE) {
       printf("bootstrap-step.%zu=compare\n", i);
-      rc = compare_files(step->arg0, step->arg1, "bootstrap-compare");
+      rc = compare_files(bootstrap_plan_path(plan_path0, sizeof(plan_path0), step->arg0),
+                         bootstrap_plan_path(plan_path1, sizeof(plan_path1), step->arg1),
+                         "bootstrap-compare");
     } else if (step->kind == BOOTSTRAP_STEP_HASH) {
       printf("bootstrap-step.%zu=hash\n", i);
       rc = cmd_hash(step->arg0);
@@ -2198,10 +2216,10 @@ static int cmd_run_bootstrap_plan(const char *plan_path) {
       rc = cmd_dump(step->arg0);
     } else if (step->kind == BOOTSTRAP_STEP_FILE_SIZE) {
       printf("bootstrap-step.%zu=file-size\n", i);
-      rc = cmd_file_size(step->arg0);
+      rc = cmd_file_size(bootstrap_plan_path(plan_path0, sizeof(plan_path0), step->arg0));
     } else if (step->kind == BOOTSTRAP_STEP_FILE_HASH) {
       printf("bootstrap-step.%zu=file-hash\n", i);
-      rc = cmd_file_hash(step->arg0);
+      rc = cmd_file_hash(bootstrap_plan_path(plan_path0, sizeof(plan_path0), step->arg0));
     } else if (step->kind == BOOTSTRAP_STEP_READ_FILE) {
       printf("bootstrap-step.%zu=read-file\n", i);
       rc = cmd_read_file(step->arg0);
@@ -2220,7 +2238,8 @@ static int cmd_run_bootstrap_plan(const char *plan_path) {
       rc = cmd_gen_libc_resolve(NULL, step->arg0);
     } else if (step->kind == BOOTSTRAP_STEP_EMIT_ELF64_EXIT) {
       printf("bootstrap-step.%zu=emit-elf64-exit\n", i);
-      rc = cmd_emit_elf64_exit(step->arg0, step->arg1);
+      rc = cmd_emit_elf64_exit(bootstrap_plan_path(plan_path0, sizeof(plan_path0), step->arg0),
+                               step->arg1);
     } else if (step->kind == BOOTSTRAP_STEP_AOT_ELF64_EXIT) {
       printf("bootstrap-step.%zu=aot-elf64-exit\n", i);
       rc = cmd_aot_elf64_exit(step->arg0, step->arg1);
@@ -2271,7 +2290,8 @@ static int cmd_run_bootstrap_plan(const char *plan_path) {
       rc = cmd_resolve(step->arg0, 1);
     } else if (step->kind == BOOTSTRAP_STEP_RUN_EXPECT_EXIT) {
       printf("bootstrap-step.%zu=run-expect-exit\n", i);
-      rc = run_executable_expect_exit(step->arg0, step->arg1);
+      rc = run_executable_expect_exit(
+          bootstrap_plan_path(plan_path0, sizeof(plan_path0), step->arg0), step->arg1);
     } else if (step->kind == BOOTSTRAP_STEP_RUN_APE_EXPECT_EXIT) {
       printf("bootstrap-step.%zu=run-ape-expect-exit\n", i);
       rc = run_ape_expect_exit(step->arg0, step->arg1, step->arg2);
@@ -2295,7 +2315,10 @@ static int cmd_run_bootstrap_plan(const char *plan_path) {
       rc = cmd_build_slice_lisp(step->arg0, step->arg1, step->arg2);
     } else if (step->kind == BOOTSTRAP_STEP_BUILD_SLICE_LISP_PROFILE) {
       printf("bootstrap-step.%zu=build-slice-lisp-profile\n", i);
-      rc = cmd_build_slice_lisp_profile(step->arg0, step->arg1, step->arg2, step->arg3);
+      rc = cmd_build_slice_lisp_profile(
+          step->arg0,
+          bootstrap_plan_path(plan_path0, sizeof(plan_path0), step->arg1),
+          bootstrap_plan_path(plan_path1, sizeof(plan_path1), step->arg2), step->arg3);
     } else if (step->kind == BOOTSTRAP_STEP_NANO_CC_COMPILE) {
       printf("bootstrap-step.%zu=nano-cc-compile\n", i);
       rc = cmd_nano_cc_compile(step->arg0, step->arg1);
@@ -2316,7 +2339,7 @@ static int cmd_run_bootstrap_plan(const char *plan_path) {
       rc = cmd_run_app(step->arg0);
     } else if (step->kind == BOOTSTRAP_STEP_RUN) {
       printf("bootstrap-step.%zu=run\n", i);
-      rc = cmd_run(step->arg0);
+      rc = cmd_run(bootstrap_plan_path(plan_path0, sizeof(plan_path0), step->arg0));
     } else if (step->kind == BOOTSTRAP_STEP_SQUAD_DISPATCH) {
       printf("bootstrap-step.%zu=squad-dispatch\n", i);
       rc = cmd_squad_dispatch(step->arg0);
