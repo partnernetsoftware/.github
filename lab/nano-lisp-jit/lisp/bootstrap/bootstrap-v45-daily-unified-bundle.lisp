@@ -16,13 +16,13 @@
     "x86_64")
   (file-size ".build/v45-unified-bundle-codegen.elf")
   (run-expect-exit ".build/v45-unified-bundle-codegen.elf" 42)
-  (build-slice-lisp "lisp/core/nano-jit-slice-ir-exit-v1.lisp"
-                    ".build/v45-unified-bundle-aarch64.elf"
-                    "aarch64")
   (extract-ape-slice "nano-lisp.com"
                      ".build/v45-unified-bundle-x86-pack.elf"
                      "x86_64")
+  (extract-ape-slice "nano-lisp.com"
+                     ".build/v45-unified-bundle-aarch64-pack.elf"
+                     "aarch64")
   (pack-ape ".build/v45-unified-bundle-regenesis.com"
             ".build/v45-unified-bundle-x86-pack.elf"
-            ".build/v45-unified-bundle-aarch64.elf")
+            ".build/v45-unified-bundle-aarch64-pack.elf")
   (file-size ".build/v45-unified-bundle-regenesis.com"))

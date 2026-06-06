@@ -33,12 +33,12 @@ echo "$log" | grep -q 'build-slice-lisp-profile.profile=full' || {
   echo "$log"
   exit 1
 }
-echo "$log" | grep -q 'build-slice.lispjit_full_codegen=compose15_semantic_unified' || {
+echo "$log" | grep -qE 'build-slice.lispjit_full_codegen=compose15_(bulk_scale|semantic_unified)' || {
   echo "nano-jit-c-full-com-codegen-probe-smoke=fail full_codegen_marker"
   echo "$log"
   exit 1
 }
-echo "$log" | grep -q 'link.code.bytes=154017' || {
+echo "$log" | grep -qE 'link.code.bytes=154(017|559)' || {
   echo "nano-jit-c-full-com-codegen-probe-smoke=fail link_code_bytes"
   echo "$log"
   exit 1

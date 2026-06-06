@@ -1313,7 +1313,7 @@ static int lispjit_from_lisp_build_full_codegen(const char *out_path, const char
   int rc;
   saved_buf[0] = 0;
   if (saved) snprintf(saved_buf, sizeof(saved_buf), "%s", saved);
-  setenv("NANO_LISPJIT_FROM_LISP_PROFILE", "compose-15link-semantic-unified", 1);
+  setenv("NANO_LISPJIT_FROM_LISP_PROFILE", "compose-15link-bulk-scale", 1);
   setenv("NANO_COMPOSE15_NO_HYBRID", "1", 1);
   rc = lispjit_from_lisp_build_compose_15link(out_path, arch);
   unsetenv("NANO_COMPOSE15_NO_HYBRID");
@@ -1346,7 +1346,7 @@ static int lispjit_from_lisp_build_full(const char *src_path, const char *out_pa
       printf("build-slice.role=lispjit-from-lisp-full\n");
       printf("build-slice.lispjit_proxy=full\n");
       printf("build-slice.lispjit_profile_tier=7\n");
-      printf("build-slice.lispjit_full_codegen=compose15_semantic_unified\n");
+      printf("build-slice.lispjit_full_codegen=compose15_bulk_scale\n");
       printf("build-slice.lispjit_full_honest=partial_154kb_not_863kb_com\n");
       printf("build-slice.source=%s\n", src_path);
       printf("build-slice.output=%s\n", out_path);

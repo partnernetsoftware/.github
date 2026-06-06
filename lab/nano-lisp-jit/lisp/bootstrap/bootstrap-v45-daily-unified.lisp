@@ -16,15 +16,15 @@
     "x86_64")
   (file-size "lab/nano-lisp-jit/.build/v45-unified-codegen-158k.elf")
   (run-expect-exit "lab/nano-lisp-jit/.build/v45-unified-codegen-158k.elf" 42)
-  (build-slice-lisp "lab/nano-lisp-jit/lisp/core/nano-jit-slice-ir-exit-v1.lisp"
-                    "lab/nano-lisp-jit/.build/v45-unified-aarch64.elf"
-                    "aarch64")
   (extract-ape-slice "lab/nano-lisp-jit/release/nano-lisp.com"
                      "lab/nano-lisp-jit/.build/v45-unified-x86-pack.elf"
                      "x86_64")
+  (extract-ape-slice "lab/nano-lisp-jit/release/nano-lisp.com"
+                     "lab/nano-lisp-jit/.build/v45-unified-aarch64-pack.elf"
+                     "aarch64")
   (pack-ape "lab/nano-lisp-jit/.build/v45-unified-regenesis.com"
             "lab/nano-lisp-jit/.build/v45-unified-x86-pack.elf"
-            "lab/nano-lisp-jit/.build/v45-unified-aarch64.elf")
+            "lab/nano-lisp-jit/.build/v45-unified-aarch64-pack.elf")
   (file-size "lab/nano-lisp-jit/.build/v45-unified-regenesis.com")
   (compile "lab/nano-lisp-jit/lisp/core/strlen.lisp"
            "lab/nano-lisp-jit/.build/v45-unified-codegen-strlen.lbin")

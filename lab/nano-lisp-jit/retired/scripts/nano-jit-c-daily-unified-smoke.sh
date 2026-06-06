@@ -88,7 +88,7 @@ echo "$log" | grep -q 'bootstrap-step.*=pack-ape' || {
 }
 regen_bytes=0
 [ -f "$REGENESIS_COM" ] && regen_bytes=$(stat -c%s "$REGENESIS_COM")
-[ "$regen_bytes" -gt 400000 ] || {
+[ "$regen_bytes" -gt 850000 ] || {
   echo "nano-jit-c-daily-unified-smoke=fail repo_regenesis_bytes bytes=$regen_bytes"
   echo "$log"
   exit 1
@@ -164,7 +164,7 @@ echo "$flat_log" | grep -q 'bootstrap-step.*=pack-ape' || {
 flat_regen_bytes=0
 [ -f "$flat/.build/v45-unified-bundle-regenesis.com" ] && \
   flat_regen_bytes=$(stat -c%s "$flat/.build/v45-unified-bundle-regenesis.com")
-[ "$flat_regen_bytes" -gt 400000 ] || {
+[ "$flat_regen_bytes" -gt 850000 ] || {
   echo "nano-jit-c-daily-unified-smoke=fail flat_regenesis_bytes bytes=$flat_regen_bytes"
   echo "$flat_log"
   exit 1

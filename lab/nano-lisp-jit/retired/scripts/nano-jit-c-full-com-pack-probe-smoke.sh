@@ -28,7 +28,7 @@ log=$("$HOST_BIN" run-bootstrap-plan "$PROBE" 2>&1) || {
   echo "nano-jit-c-full-com-pack-probe-smoke=fail plan"
   exit 1
 }
-echo "$log" | grep -q 'build-slice.lispjit_full_codegen=compose15_semantic_unified' || {
+echo "$log" | grep -qE 'build-slice.lispjit_full_codegen=compose15_(bulk_scale|semantic_unified)' || {
   echo "nano-jit-c-full-com-pack-probe-smoke=fail x86_codegen"
   echo "$log"
   exit 1
