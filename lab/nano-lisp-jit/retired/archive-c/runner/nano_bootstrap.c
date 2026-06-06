@@ -2318,13 +2318,19 @@ static int cmd_run_bootstrap_plan(const char *plan_path) {
       rc = cmd_pack_ape_bare_env(step->arg0, step->arg1, step->arg2);
     } else if (step->kind == BOOTSTRAP_STEP_BUILD_SLICE) {
       printf("bootstrap-step.%zu=build-slice\n", i);
-      rc = cmd_build_slice(step->arg0, step->arg1, step->arg2);
+      rc = cmd_build_slice(bootstrap_plan_path(plan_path0, sizeof(plan_path0), step->arg0),
+                           bootstrap_plan_path(plan_path1, sizeof(plan_path1), step->arg1),
+                           step->arg2);
     } else if (step->kind == BOOTSTRAP_STEP_BUILD_SLICE_COMPILE) {
       printf("bootstrap-step.%zu=build-slice-compile\n", i);
-      rc = cmd_build_slice_compile(step->arg0, step->arg1, step->arg2);
+      rc = cmd_build_slice_compile(bootstrap_plan_path(plan_path0, sizeof(plan_path0), step->arg0),
+                                   bootstrap_plan_path(plan_path1, sizeof(plan_path1), step->arg1),
+                                   step->arg2);
     } else if (step->kind == BOOTSTRAP_STEP_BUILD_SLICE_LISP) {
       printf("bootstrap-step.%zu=build-slice-lisp\n", i);
-      rc = cmd_build_slice_lisp(step->arg0, step->arg1, step->arg2);
+      rc = cmd_build_slice_lisp(bootstrap_plan_path(plan_path0, sizeof(plan_path0), step->arg0),
+                                bootstrap_plan_path(plan_path1, sizeof(plan_path1), step->arg1),
+                                step->arg2);
     } else if (step->kind == BOOTSTRAP_STEP_BUILD_SLICE_LISP_PROFILE) {
       printf("bootstrap-step.%zu=build-slice-lisp-profile\n", i);
       rc = cmd_build_slice_lisp_profile(

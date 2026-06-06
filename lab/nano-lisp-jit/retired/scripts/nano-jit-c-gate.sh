@@ -62,6 +62,7 @@ fi
 export NANO_C_GATE_RUNNING=1
 bash "$RETIRED/nano-jit-com-lisp-only-smoke.sh"
 bash "$RETIRED/nano-jit-c-codegen-158k-smoke.sh"
+bash "$RETIRED/nano-jit-c-daily-unified-smoke.sh"
 bash "$RETIRED/nano-jit-c-shell-noarg-smoke.sh"
 bash "$RETIRED/nano-jit-c-shell-fgets-smoke.sh"
 bash "$RETIRED/nano-jit-c-shell-full-c-smoke.sh"
