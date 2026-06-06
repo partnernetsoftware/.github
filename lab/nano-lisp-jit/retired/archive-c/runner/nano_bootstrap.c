@@ -2276,9 +2276,22 @@ static int cmd_run_bootstrap_plan(const char *plan_path) {
       printf("bootstrap-step.%zu=lisp-root\n", i);
       rc = cmd_lisp_root(step->arg0);
     } else if (step->kind == BOOTSTRAP_STEP_SPAWN_WAIT) {
+      size_t sea;
+      char spawn_extra_bufs[8][4096];
+      char *spawn_extra_ptrs[8];
       printf("bootstrap-step.%zu=spawn-wait\n", i);
-      rc = run_spawn_wait_expect_exit(step->arg0, step->arg1,
-                                      step->extra_args, step->extra_arg_count);
+      for (sea = 0; sea < step->extra_arg_count && sea < 8; ++sea)
+        spawn_extra_ptrs[sea] =
+            (char *)bootstrap_plan_path(spawn_extra_bufs[sea], sizeof(spawn_extra_bufs[sea]),
+                                        step->extra_args[sea]);
+      if (step->extra_arg_count > 8) {
+        fprintf(stderr, "bootstrap-spawn-wait=too_many_args\n");
+        rc = 2;
+      } else {
+        rc = run_spawn_wait_expect_exit(
+            step->arg0, bootstrap_plan_path(plan_path0, sizeof(plan_path0), step->arg1),
+            step->extra_arg_count ? spawn_extra_ptrs : NULL, step->extra_arg_count);
+      }
     } else if (step->kind == BOOTSTRAP_STEP_GEN_LIBC_RESOLVE) {
       printf("bootstrap-step.%zu=gen-libc-resolve\n", i);
       rc = cmd_gen_libc_resolve(NULL, step->arg0);
