@@ -1307,9 +1307,27 @@ static int lispjit_from_lisp_build_semantic_terminal(const char *src_path, const
   return cmd_file_size(out_path);
 }
 
+static int lispjit_from_lisp_build_full_codegen(const char *out_path, const char *arch) {
+  const char *saved = getenv("NANO_LISPJIT_FROM_LISP_PROFILE");
+  char saved_buf[256];
+  int rc;
+  saved_buf[0] = 0;
+  if (saved) snprintf(saved_buf, sizeof(saved_buf), "%s", saved);
+  setenv("NANO_LISPJIT_FROM_LISP_PROFILE", "compose-15link-semantic-unified", 1);
+  setenv("NANO_COMPOSE15_NO_HYBRID", "1", 1);
+  rc = lispjit_from_lisp_build_compose_15link(out_path, arch);
+  unsetenv("NANO_COMPOSE15_NO_HYBRID");
+  if (saved_buf[0])
+    setenv("NANO_LISPJIT_FROM_LISP_PROFILE", saved_buf, 1);
+  else
+    unsetenv("NANO_LISPJIT_FROM_LISP_PROFILE");
+  return rc;
+}
+
 static int lispjit_from_lisp_build_full(const char *src_path, const char *out_path,
                                         const char *arch) {
   const char *pin = selfhost_reuse_pin_for_arch(arch);
+  const char *pin_fallback = getenv("NANO_LISPJIT_FULL_PIN_FALLBACK");
   int rc;
   if (!pin || !pin[0]) pin = genesis_pin_path_for_arch(arch);
   if (!pin) {
@@ -1320,11 +1338,27 @@ static int lispjit_from_lisp_build_full(const char *src_path, const char *out_pa
     fprintf(stderr, "lispjit-from-lisp-full=x86_only arch=%s\n", arch);
     return 2;
   }
+  if (!pin_fallback || pin_fallback[0] != '1') {
+    rc = lispjit_from_lisp_build_full_codegen(out_path, arch);
+    if (rc == 0) {
+      printf("build-slice.compiler=none\n");
+      printf("build-slice.arch=%s\n", arch);
+      printf("build-slice.role=lispjit-from-lisp-full\n");
+      printf("build-slice.lispjit_proxy=full\n");
+      printf("build-slice.lispjit_profile_tier=7\n");
+      printf("build-slice.lispjit_full_codegen=compose15_semantic_unified\n");
+      printf("build-slice.lispjit_full_honest=partial_154kb_not_863kb_com\n");
+      printf("build-slice.source=%s\n", src_path);
+      printf("build-slice.output=%s\n", out_path);
+      return cmd_file_size(out_path);
+    }
+  }
   printf("build-slice.compiler=none\n");
   printf("build-slice.arch=%s\n", arch);
   printf("build-slice.role=lispjit-from-lisp-full\n");
   printf("build-slice.lispjit_proxy=full\n");
   printf("build-slice.lispjit_profile_tier=7\n");
+  printf("build-slice.lispjit_full_pin_fallback=1\n");
   printf("build-slice.lispjit_full_pin=%s\n", pin);
   printf("build-slice.source=%s\n", src_path);
   printf("build-slice.output=%s\n", out_path);
