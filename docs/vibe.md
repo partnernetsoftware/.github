@@ -4,11 +4,11 @@
 
 | 项 | 值 |
 |---|---|
-| 采集窗口 | `260603 07:01` UTC → `260605 07:01` UTC（48h，cron 触发 `2026-06-05T07:01Z`） |
-| 本文件更新 | `260605 07:01` UTC |
-| 条目数 | 13 |
-| 新模型 / 新产品 / 新模式 | 13（新模型 5 · 新产品 6 · 新模式 2） |
-| main 合并 commit | `4ab568b` |
+| 采集窗口 | `260604 07:01` UTC → `260606 07:01` UTC（48h，cron 触发 `2026-06-06T07:01Z`） |
+| 本文件更新 | `260606 07:01` UTC |
+| 条目数 | 12 |
+| 新模型 / 新产品 / 新模式 | 12（新模型 4 · 新产品 6 · 新模式 2） |
+| main 合并 commit | `待推送后填写` |
 
 ---
 
@@ -34,28 +34,6 @@ vibe-48h/
     - 权重/数据/配方全开放，**OpenMDW-1.1** 许可；Hugging Face、NVIDIA NIM、OpenRouter、Perplexity Pro；单 checkpoint 覆盖 Blackwell/Hopper/Ampere。
     - 官方称复杂 agent 负载推理吞吐最高 **~6×**、成本降 **~30%**；配套 agent harness cookbook（OpenClaw、OpenHands、CrewAI 等）。
 
-- **Introducing Gemma 4 12B: a unified, encoder-free multimodal model**
-  - 来源：**Google**
-  - 时间：`260603`
-  - 正文：~**920** tok
-  - URL：https://blog.google/innovation-and-ai/technology/developers-tools/introducing-gemma-4-12b/
-  - 类型：新模型
-  - 要点：
-    - **12B** 统一架构：**无独立 vision/audio encoder**，图/音直接进 LLM backbone；**Apache 2.0**，Hugging Face / Kaggle 权重。
-    - 消费级 **16GB** 本机可跑 agentic 多模态；性能接近 **Gemma 4 26B MoE**，内存约一半；内置 **MTP** drafter 降延迟。
-    - 配套 **Gemma Skills** 官方仓库，供 coding agent 生成 Gemma 应用；可上 Gemini Enterprise Model Garden / Cloud Run。
-
-- **Aion 1.0 Instruct and Aion 1.0 Plan — on-device Windows SLMs**
-  - 来源：**Microsoft**
-  - 时间：`260603`
-  - 正文：~**860** tok
-  - URL：https://news.microsoft.com/build-2026-live-blog/microsoft-build-2026-live/
-  - 类型：新模型
-  - 要点：
-    - **Aion 1.0 Instruct**：更小更快 on-device SLM，摘要/改写/意图/无障碍；Edge Insider 预览，**7 月** Hugging Face 开放权重。
-    - **Aion 1.0 Plan**：**14B** 推理+工具调用、**32K** 上下文，将随 Windows 内置，支持本地文件/子 agent 编排。
-    - 与 **Windows AI APIs**（CPU/NPU）协同，标志微软「云 frontier + 端侧 agent」双轨。
-
 - **Dnotitia Releases DNA 3.0, an Enterprise-Ready AI Language Model Family**
   - 来源：**Dnotitia**
   - 时间：`260604`
@@ -78,40 +56,29 @@ vibe-48h/
     - 面向港府/企业垂直场景（HKChat、HKPilot）；同步以 **ClawNet** 名称开源，便于定制 agent。
     - 代表亚太区域「主权/本地化 agent 平台」与全球 frontier 模型并行迭代。
 
+- **Gemma 4 QAT models: Optimizing model compression for mobile and laptop efficiency**
+  - 来源：**Google**
+  - 时间：`260605`
+  - 正文：~**940** tok
+  - URL：https://blog.google/innovation-and-ai/technology/developers-tools/quantization-aware-training-gemma-4/
+  - 类型：新模型
+  - 要点：
+    - 全家族 **QAT** 权重上线：**Q4_0** GGUF + 移动端专用量化格式；**E2B** 文本-only 可压至 **<1GB** 内存。
+    - 训练期模拟量化，质量优于标准 PTQ；保留 **MTP** drafter 加速；Hugging Face / Ollama / LM Studio / LiteRT-LM 即日可用。
+    - 延续 **Gemma 4 12B**（数日前发布）路线，把 on-device agentic 多模态推到消费级硬件。
+
 ### 新产品
 
-- **Be There for Every Customer With Meta Business Agent**
-  - 来源：**Meta**
-  - 时间：`260603`
+- **Announcing Microsoft Web IQ**
+  - 来源：**Microsoft**
+  - 时间：`260604`
   - 正文：~**980** tok
-  - URL：https://about.fb.com/news/2026/06/meta-business-agent/
+  - URL：https://www.microsoft.com/en-us/webiq
   - 类型：新产品
   - 要点：
-    - **Meta Business Agent** 全球扩展至 WhatsApp / Instagram / Messenger 全规模商家；分钟级配置，多语言、品牌语气，可推荐商品、预约、成交、转人工。
-    - 同步 **Meta Business Agent Platform**：企业可接 Shopify、Zendesk、Shopee 等，构建可规模部署的定制 agent，内置治理与计量。
-    - 初期免费，数月后分层订阅；印/墨/巴试点已超 **100 万** 商家，日活 B2C 线程超 **10 亿**。
-
-- **Nous Research Releases Hermes Desktop: A Native Cross-Platform Front End for Hermes Agent v0.15.2**
-  - 来源：**Nous**
-  - 时间：`260603`
-  - 正文：~**840** tok
-  - URL：https://www.marktechpost.com/2026/06/03/nous-research-releases-hermes-desktop-a-native-cross-platform-front-end-for-hermes-agent-v0-15-2-with-streaming-tool-output/
-  - 类型：新产品
-  - 要点：
-    - **Hermes Desktop** 公测：Win/macOS/Linux 原生 GUI，**MIT** 开源；与 CLI/gateway 共享配置、会话、技能、记忆，**v0.15.2** 核心。
-    - 流式工具输出、网页/文件预览、语音 I/O；五类沙箱后端（local/Docker/SSH/Singularity/Modal）；**MCP** 工具支持。
-    - 模型无关，可接 Nous Portal（**300+** 模型）、OpenRouter、OpenAI；降低 OpenClaw 类 agent 的非技术用户门槛。
-
-- **AlphaSense Introduces SuperAnalyst: The Always-On AI Agent for Decision-Grade Intelligence**
-  - 来源：**AlphaSense**
-  - 时间：`260603 08:00`
-  - 正文：~**620** tok
-  - URL：https://www.globenewswire.com/news-release/2026/06/03/3093842/0/en/AlphaSense-Introduces-SuperAnalyst-The-Always-On-AI-Agent-for-Decision-Grade-Intelligence.html
-  - 类型：新产品
-  - 要点：
-    - **SuperAnalyst**：面向金融/战略团队的 **24/7** agent，代执行高价值研究、尽调、竞品与行业工作流，嵌入 AlphaSense 情报平台。
-    - 基于平台 **>500M** 文档与实时数据馈送，输出可审计的决策级情报而非泛聊天。
-    - 企业客户早期访问，数周内逐步扩面；代表垂直领域「always-on 专业 analyst agent」产品化。
+    - **Web IQ**：AI-native 网页/新闻/图/视频 grounding API 套件，返回 citation-ready 片段而非整页 HTML，**P95 ~164ms**。
+    - **MCP-native**（JSON-RPC 2.0）+ REST/SDK；模型无关；已支撑 Copilot、ChatGPT 等 grounding；Azure 企业限量开放申请。
+    - 标志 Bing 二十年搜索基建「为 agent 推理时刻」重构，把 web grounding 做成可复用云服务而非每团队自建爬虫。
 
 - **MWM AI Partners with Google Cloud to Launch New Mobile Agents for App Creators and Entrepreneurs**
   - 来源：**MWM**
@@ -124,40 +91,51 @@ vibe-48h/
     - 提示词→原生 **Swift/Kotlin** iOS/Android 应用，内置 App Store / Google Play 发布、IAP、A/B 测试与增长工具。
     - 面向全球 **5 亿** 创作者与 SMB；公测后数月内全量开放，标志「多角色 agent 小队」进入移动应用制造场景。
 
-- **Meshy Brings AI Agents to 3D Creation: Meshy 3D Agent Beta Launches**
+- **Meshy Launches 3D Agent Beta, the World's First AI Agent for 3D Creation**
   - 来源：**Meshy**
   - 时间：`260604 09:05`
   - 正文：~**680** tok
-  - URL：https://www.eqs-news.com/news/corporate/meshy-brings-ai-agents-to-3d-creation-meshy-3d-agent-beta-launches/f1dbf054-7ab4-4bab-824f-a83364caa3e9_en
+  - URL：https://www.prnewswire.com/news-releases/meshy-launches-3d-agent-beta-the-worlds-first-ai-agent-for-3d-creation-302790052.html
   - 类型：新产品
   - 要点：
     - **Meshy 3D Agent Beta** 全用户开放：从自然语言创意到可编辑 3D 资产的 agent 流水线（建模、材质、迭代）。
     - 将 3D 生产关键步骤封装为 agent 工作流，而非单步文生 3D；面向游戏、电商、设计从业者。
     - 在 meshy.ai 即时可用，拓展 VibeCoding 从 2D 代码/界面到 3D 资产生成。
 
-- **Introducing the Services Track and Partner Hub of the Claude Partner Network**
-  - 来源：**Anthropic**
-  - 时间：`260603`
-  - 正文：~**760** tok
-  - URL：https://www.anthropic.com/news/services-track-partner-hub
+- **Dreaming: Better memory for a more helpful ChatGPT**
+  - 来源：**OpenAI**
+  - 时间：`260604`
+  - 正文：~**860** tok
+  - URL：https://openai.com/index/chatgpt-memory-dreaming/
   - 类型：新产品
   - 要点：
-    - **Claude Partner Network** 新增 **Services Track** 分级（按已交付 Claude 项目能力认证）与 **Partner Hub** 门户（伙伴自评进度、客户查目录）。
-    - 已有 **>4 万** 申请、**>1 万** 持 Claude 认证顾问；**$100M** 培训/技术支持/共营销基金延续。
-    - 降低企业选型与落地 Claude agent 的摩擦，标志 frontier 厂商以「认证生态 + 交付目录」争夺企业 agent 实施层。
+    - **Dreaming V3**：对话结束后后台合成记忆档案（工作/爱好/旅行等分类叙事），无需用户逐条「记住这个」。
+    - 计算效率 **~5×** 提升，使 Free 档即将获得 dreaming 记忆；Plus/Pro 美国用户先行，记忆容量翻倍。
+    - 新记忆摘要页可审阅/纠正/删除；代表 consumer agent「自动用户建模 + 时效衰减」产品化升级。
+
+- **NVIDIA Nemotron 3 Ultra now available on Amazon SageMaker JumpStart**
+  - 来源：**AWS**
+  - 时间：`260605`
+  - 正文：~**720** tok
+  - URL：https://aws.amazon.com/blogs/machine-learning/nvidia-nemotron-3-ultra-now-available-on-amazon-sagemaker-jumpstart/
+  - 类型：新产品
+  - 要点：
+    - **day-zero** 一键部署 **550B-A55B NVFP4** Nemotron 3 Ultra 至 SageMaker JumpStart，免自建 serving 框架。
+    - 支持 **ml.p5en.48xlarge** 等 GPU 实例；面向 agent orchestrator、coding agent、deep research 企业工作负载。
+    - 把 48h 内最强开源 agent 模型与 AWS 企业采购链打通，降低生产 agent 落地摩擦。
+
+- **Unlocking dependable responses with Gemini Enterprise Agent Platform's Agentic RAG**
+  - 来源：**Google**
+  - 时间：`260605`
+  - 正文：~**820** tok
+  - URL：https://research.google/blog/unlocking-dependable-responses-with-gemini-enterprise-agent-platforms-agentic-rag/
+  - 类型：新产品
+  - 要点：
+    - **Agentic RAG**（Cross-Corpus Retrieval）公测：多 agent 拆解企业复杂查询、迭代检索直至「足够上下文」再生成答案。
+    - 对比标准 RAG，事实性数据集准确率最高 **+34%**；与 Gemini Enterprise Agent Platform 深度集成。
+    - 输出可审计、可追溯、有引用，面向合规敏感的企业知识问答与 agent 后端。
 
 ### 新模式
-
-- **Frontier Tuning: Teaching AI to work the way you do**
-  - 来源：**Microsoft**
-  - 时间：`260603`
-  - 正文：~**1020** tok
-  - URL：https://devblogs.microsoft.com/microsoft365dev/frontier-tuning-teaching-ai-to-work-the-way-you-do/
-  - 类型：新模式
-  - 要点：
-    - **Frontier Tuning**：在客户合规边界内，用 **RLE（Reinforcement Learning Environment）**「训练健身房」让 MAI 等模型从真实工作流轨迹学习，而非仅 SFT。
-    -  tuned 模型/技能/编排逻辑留在客户环境，继承现有访问控制；Excel 场景官方称匹配 **GPT-5.4** 且 **~10×** 更高效。
-    - 私有预览经 **FDE** 交付，后续进 **Copilot Studio** / **Foundry**；代表「保留 foundation + 组织内 RL 定制」的企业 agent 范式。
 
 - **Multi-agent Mobile Squad（Designer → PM → Developer 串行编排）**
   - 来源：**MWM**
@@ -168,7 +146,18 @@ vibe-48h/
   - 要点：
     - 将「全栈应用制造」拆为三个专职 agent 角色按序 handoff，而非单 generalist coding agent 端到端硬扛。
     - 每角色绑定不同 Gemini 能力与工具面（设计资产 / 产品规格 / Swift·Kotlin 实现），共享同一产品上下文。
-    - 与 Microsoft Scout「单 Autopilot」、Zip「领域 Superagents」并列，体现 2026 年中「角色化多 agent 编排」成为可交付模式。
+    - 与 Microsoft Scout「单 Autopilot」、Google Agentic RAG「检索-验证」并列，体现 2026 年中「角色化多 agent 编排」成为可交付模式。
+
+- **Agent-native web grounding（passage-level evidence vs SERP scraping）**
+  - 来源：**Microsoft**
+  - 时间：`260604`
+  - 正文：~**640** tok
+  - URL：https://www.microsoft.com/en-us/webiq
+  - 类型：新模式
+  - 要点：
+    - 从「给 agent 整页 HTML/SERP」转向「推理时刻注入 ranked passage + provenance」，优化 token 预算与多步链延迟。
+    - **MCP 一等公民**：agent 通过 JSON-RPC 调用 grounding，而非每家 IDE 写定制搜索适配器。
+    - 与 Google Agentic RAG「足够上下文再答」、OpenAI Dreaming「后台记忆合成」同属 2026 年 agent 基础设施层范式迁移。
 
 ---
 
