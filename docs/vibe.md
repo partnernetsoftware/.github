@@ -4,11 +4,11 @@
 
 | 项 | 值 |
 |---|---|
-| 采集窗口 | `260604 07:01` UTC → `260606 07:01` UTC（48h，cron 触发 `2026-06-06T07:01Z`） |
-| 本文件更新 | `260606 07:01` UTC |
+| 采集窗口 | `260605 07:01` UTC → `260607 07:01` UTC（48h，cron 触发 `2026-06-07T07:01Z`） |
+| 本文件更新 | `260607 07:01` UTC |
 | 条目数 | 12 |
-| 新模型 / 新产品 / 新模式 | 12（新模型 4 · 新产品 6 · 新模式 2） |
-| main 合并 commit | `cbf138b` |
+| 新模型 / 新产品 / 新模式 | 12（新模型 2 · 新产品 7 · 新模式 3） |
+| main 合并 commit | _待推送后填写_ |
 
 ---
 
@@ -23,39 +23,6 @@ vibe-48h/
 
 ### 新模型
 
-- **NVIDIA Nemotron 3 Ultra Powers Faster, More Efficient Reasoning for Long-Running Agents**
-  - 来源：**NVIDIA**
-  - 时间：`260604`
-  - 正文：~**1120** tok
-  - URL：https://developer.nvidia.com/blog/nvidia-nemotron-3-ultra-powers-faster-more-efficient-reasoning-for-long-running-agents/
-  - 类型：新模型
-  - 要点：
-    - **550B-A55B** 开源 MoE（Hybrid Mamba-Attention LatentMoE + MTP），**1M** 上下文，面向长程 agent 编排（规划、工具、子 agent、验证、错误恢复）。
-    - 权重/数据/配方全开放，**OpenMDW-1.1** 许可；Hugging Face、NVIDIA NIM、OpenRouter、Perplexity Pro；单 checkpoint 覆盖 Blackwell/Hopper/Ampere。
-    - 官方称复杂 agent 负载推理吞吐最高 **~6×**、成本降 **~30%**；配套 agent harness cookbook（OpenClaw、OpenHands、CrewAI 等）。
-
-- **Dnotitia Releases DNA 3.0, an Enterprise-Ready AI Language Model Family**
-  - 来源：**Dnotitia**
-  - 时间：`260604`
-  - 正文：~**780** tok
-  - URL：https://www.prnewswire.com/news-releases/dnotitia-releases-dna-3-0--an-enterprise-ready-ai-language-model-family-302787871.html
-  - 类型：新模型
-  - 要点：
-    - 开源权重家族 **0.8B–122B-A10B**（含 MoE **35B-A3B**、**122B-A10B**），面向企业 agent/RAG，已上 Hugging Face。
-    - 与 **Seahorse Cloud** 集成：企业文档→语义检索→上下文回答→agent 工作流，强调组织数据微调而非裸 base。
-    - 延续 DNA 1.0/2.0 韩文与 agent 路线，3.0 强化企业一致性与产品化部署档位。
-
-- **SAR updates its first homegrown AI model**
-  - 来源：**ChinaDaily**
-  - 时间：`260604`
-  - 正文：~**720** tok
-  - URL：https://www.chinadaily.com.cn/a/202606/04/WS6a20d570a310d6866eb4c5cc.html
-  - 类型：新模型
-  - 要点：
-    - 香港 **HKGAI V3**：token 压缩效率 **>10×**、agent 连续运行 **~100×**（对比上代）；**Agent Workshop** 单会话最长 **28h**。
-    - 面向港府/企业垂直场景（HKChat、HKPilot）；同步以 **ClawNet** 名称开源，便于定制 agent。
-    - 代表亚太区域「主权/本地化 agent 平台」与全球 frontier 模型并行迭代。
-
 - **Gemma 4 QAT models: Optimizing model compression for mobile and laptop efficiency**
   - 来源：**Google**
   - 时间：`260605`
@@ -65,53 +32,42 @@ vibe-48h/
   - 要点：
     - 全家族 **QAT** 权重上线：**Q4_0** GGUF + 移动端专用量化格式；**E2B** 文本-only 可压至 **<1GB** 内存。
     - 训练期模拟量化，质量优于标准 PTQ；保留 **MTP** drafter 加速；Hugging Face / Ollama / LM Studio / LiteRT-LM 即日可用。
-    - 延续 **Gemma 4 12B**（数日前发布）路线，把 on-device agentic 多模态推到消费级硬件。
+    - 延续 **Gemma 4 12B** 路线，把 on-device agentic 多模态推到消费级硬件，降低本地 Agent 推理门槛。
+
+- **Alibaba Pitches Qwen3.7-Plus as Computer-Use AI Agent**
+  - 来源：**Winbuzzer**
+  - 时间：`260606`
+  - 正文：~**720** tok
+  - URL：https://winbuzzer.com/2026/06/06/alibaba-pitches-qwen37-plus-as-a-computer-use-ai-agent-xcxwbn/
+  - 类型：新模型
+  - 要点：
+    - **Qwen3.7-Plus**：多模态「交互混合 agent」，原生视觉输入 + 截图感知 + 浏览器/应用/终端/云控制台操作，**1M** 上下文（API）。
+    - 定位 computer-use：读屏→选动作→执行→验证闭环；与 Operator、Fara1.5 等竞品并列，强调 app+terminal+coding 一体化。
+    - API 定价约 **$2.50/$7.50** per M tokens（对比语言版 Max）；专有权重、Bailian/Model Studio 交付，亚太 agent 前沿档。
 
 ### 新产品
 
-- **Announcing Microsoft Web IQ**
-  - 来源：**Microsoft**
-  - 时间：`260604`
-  - 正文：~**980** tok
-  - URL：https://www.microsoft.com/en-us/webiq
+- **Introducing the Google Colab CLI**
+  - 来源：**Google**
+  - 时间：`260605`
+  - 正文：~**820** tok
+  - URL：https://developers.googleblog.com/introducing-the-google-colab-cli/
   - 类型：新产品
   - 要点：
-    - **Web IQ**：AI-native 网页/新闻/图/视频 grounding API 套件，返回 citation-ready 片段而非整页 HTML，**P95 ~164ms**。
-    - **MCP-native**（JSON-RPC 2.0）+ REST/SDK；模型无关；已支撑 Copilot、ChatGPT 等 grounding；Azure 企业限量开放申请。
-    - 标志 Bing 二十年搜索基建「为 agent 推理时刻」重构，把 web grounding 做成可复用云服务而非每团队自建爬虫。
+    - 开源 **Apache 2.0** CLI：`colab new --gpu T4/A100/H100`、`colab exec -f script.py`、`colab log` 等，本地终端直连远程 Colab GPU/TPU。
+    - 捆绑 **COLAB_SKILL.md**，Antigravity / Claude Code / Codex 等终端 agent 可零配置驱动云端 QLoRA 微调等 ML 流水线。
+    - 把 Colab 从浏览器笔记本变成 **agent 可编程算力后端**，补齐 VibeCoding 长程训练/实验的云端卸载层。
 
-- **MWM AI Partners with Google Cloud to Launch New Mobile Agents for App Creators and Entrepreneurs**
-  - 来源：**MWM**
-  - 时间：`260604`
-  - 正文：~**900** tok
-  - URL：https://www.prnewswire.com/news-releases/mwm-ai-partners-with-google-cloud-to-launch-new-mobile-agents-for-app-creators-and-entrepreneurs-302790646.html
+- **Buzzy Adds MCP Support, Bringing Governed Enterprise App Creation to Codex, Claude Code, Cursor, and AI Agents**
+  - 来源：**Buzzy**
+  - 时间：`260605`
+  - 正文：~**760** tok
+  - URL：https://www.prweb.com/releases/buzzy-adds-mcp-support-bringing-governed-enterprise-app-creation-to-codex-claude-code-cursor-and-ai-agents-302791408.html
   - 类型：新产品
   - 要点：
-    - **AI Mobile Squad**：Designer / Product Manager / Developer 三 agent 串行协作，基于 **Gemini Enterprise** 与 **Nano Banana**，替代原 MWM AI 通用体验。
-    - 提示词→原生 **Swift/Kotlin** iOS/Android 应用，内置 App Store / Google Play 发布、IAP、A/B 测试与增长工具。
-    - 面向全球 **5 亿** 创作者与 SMB；公测后数月内全量开放，标志「多角色 agent 小队」进入移动应用制造场景。
-
-- **Meshy Launches 3D Agent Beta, the World's First AI Agent for 3D Creation**
-  - 来源：**Meshy**
-  - 时间：`260604 09:05`
-  - 正文：~**680** tok
-  - URL：https://www.prnewswire.com/news-releases/meshy-launches-3d-agent-beta-the-worlds-first-ai-agent-for-3d-creation-302790052.html
-  - 类型：新产品
-  - 要点：
-    - **Meshy 3D Agent Beta** 全用户开放：从自然语言创意到可编辑 3D 资产的 agent 流水线（建模、材质、迭代）。
-    - 将 3D 生产关键步骤封装为 agent 工作流，而非单步文生 3D；面向游戏、电商、设计从业者。
-    - 在 meshy.ai 即时可用，拓展 VibeCoding 从 2D 代码/界面到 3D 资产生成。
-
-- **Dreaming: Better memory for a more helpful ChatGPT**
-  - 来源：**OpenAI**
-  - 时间：`260604`
-  - 正文：~**860** tok
-  - URL：https://openai.com/index/chatgpt-memory-dreaming/
-  - 类型：新产品
-  - 要点：
-    - **Dreaming V3**：对话结束后后台合成记忆档案（工作/爱好/旅行等分类叙事），无需用户逐条「记住这个」。
-    - 计算效率 **~5×** 提升，使 Free 档即将获得 dreaming 记忆；Plus/Pro 美国用户先行，记忆容量翻倍。
-    - 新记忆摘要页可审阅/纠正/删除；代表 consumer agent「自动用户建模 + 时效衰减」产品化升级。
+    - **Buzzy Builder MCP** GA：在 Codex / Claude Code / Cursor 内生成并迭代语义化 app 定义，由 Buzzy 引擎产出生产级 Web/原生移动应用。
+    - 双 MCP 能力：Custom MCP（已上线 app 暴露数据/函数）+ Builder MCP（创建流程本身 MCP 化）；字段级隐私控制 GA，自动化测试/安全审查 beta。
+    - 标志「治理式 VibeCoding」：agent 写 app spec 而非散落代码，企业设计系统与合规 cookbooks 内嵌。
 
 - **NVIDIA Nemotron 3 Ultra now available on Amazon SageMaker JumpStart**
   - 来源：**AWS**
@@ -122,7 +78,7 @@ vibe-48h/
   - 要点：
     - **day-zero** 一键部署 **550B-A55B NVFP4** Nemotron 3 Ultra 至 SageMaker JumpStart，免自建 serving 框架。
     - 支持 **ml.p5en.48xlarge** 等 GPU 实例；面向 agent orchestrator、coding agent、deep research 企业工作负载。
-    - 把 48h 内最强开源 agent 模型与 AWS 企业采购链打通，降低生产 agent 落地摩擦。
+    - 把最强开源 agent 模型与 AWS 企业采购链打通，降低生产 agent 落地摩擦。
 
 - **Unlocking dependable responses with Gemini Enterprise Agent Platform's Agentic RAG**
   - 来源：**Google**
@@ -135,29 +91,73 @@ vibe-48h/
     - 对比标准 RAG，事实性数据集准确率最高 **+34%**；与 Gemini Enterprise Agent Platform 深度集成。
     - 输出可审计、可追溯、有引用，面向合规敏感的企业知识问答与 agent 后端。
 
+- **xAI strikes GSA deal for Grok after weeks of speculation**
+  - 来源：**FedScoop**
+  - 时间：`260605`
+  - 正文：~**680** tok
+  - URL：https://fedscoop.com/grok-government-gsa-onegov-artificial-intelligence-elon-musk-contract-agency/
+  - 类型：新产品
+  - 要点：
+    - GSA **OneGov**：联邦机构以 **$0.42/机构** 获取 **Grok 4 / Grok 4 Fast**，合约定至 **2027-03**，含 xAI 驻场工程师与培训。
+    - 升级路径至 FedRAMP / DoD IL 对齐的企业订阅；与 OpenAI、Anthropic 等 **$1/年** 政府档并列。
+    - 标志 xAI 从模型实验室扩展到 **政府可采购 agent 栈**（聊天 + Build + Connectors）。
+
+- **Introducing Lockdown Mode and Elevated Risk labels in ChatGPT**
+  - 来源：**OpenAI**
+  - 时间：`260605`
+  - 正文：~**740** tok
+  - URL：https://openai.com/index/introducing-lockdown-mode-and-elevated-risk-labels-in-chatgpt/
+  - 类型：新产品
+  - 要点：
+    - **Lockdown Mode** 扩展至个人/自助 Business 账户：确定性关闭 live web、Deep Research、**Agent Mode**、Canvas 联网、connector、文件下载等出站能力。
+    - 针对 prompt-injection 数据外泄「致命三角」第三腿；个人用户 **Settings > Security** 一键开启，Workspace 可按角色配置。
+    - 与 Dreaming V3 记忆同期 rollout，代表 consumer/enterprise agent 的 **可治理安全档位** 产品化。
+
+- **Google will pay SpaceX $920M per month for compute**
+  - 来源：**TC**
+  - 时间：`260605`
+  - 正文：~**560** tok
+  - URL：https://techcrunch.com/2026/06/05/google-will-pay-spacex-920m-per-month-for-compute/
+  - 类型：新产品
+  - 要点：
+    - Google Cloud 与 SpaceX 签 **~11 万 NVIDIA GPU** 桥接算力协议，**2026-10** 至 **2029-06** 每月约 **$920M**，应对 **Gemini Enterprise** agent 平台超预期需求。
+    - 属短期 bridge capacity，非长期自建替代；把 agent 平台交付与弹性算力采购解耦。
+    - 反映 2026 年中企业 agent 部署引发的前沿推理算力「抢购」新常态。
+
 ### 新模式
 
-- **Multi-agent Mobile Squad（Designer → PM → Developer 串行编排）**
-  - 来源：**MWM**
-  - 时间：`260604`
-  - 正文：~**520** tok
-  - URL：https://www.prnewswire.com/news-releases/mwm-ai-partners-with-google-cloud-to-launch-new-mobile-agents-for-app-creators-and-entrepreneurs-302790646.html
+- **When AI builds itself**
+  - 来源：**Anthropic**
+  - 时间：`260605`
+  - 正文：~**1120** tok
+  - URL：https://www.anthropic.com/institute/recursive-self-improvement
   - 类型：新模式
   - 要点：
-    - 将「全栈应用制造」拆为三个专职 agent 角色按序 handoff，而非单 generalist coding agent 端到端硬扛。
-    - 每角色绑定不同 Gemini 能力与工具面（设计资产 / 产品规格 / Swift·Kotlin 实现），共享同一产品上下文。
-    - 与 Microsoft Scout「单 Autopilot」、Google Agentic RAG「检索-验证」并列，体现 2026 年中「角色化多 agent 编排」成为可交付模式。
+    - Anthropic Institute 报告：**>80%** 合并代码由 Claude 撰写，工程师季度产出 **~8×**；预警 **recursive self-improvement**（AI 自主设计下一代模型）可能早于机构准备就绪。
+    - 呼吁全球可验证的 **「刹车踏板」**：多前沿实验室在同等条件下协调减速/暂停，而非单边停工。
+    - 标志 agent 范式从「人写代码」转向「人审方向 + AI 闭环研发」，影响 VibeCoding 组织分工与治理假设。
 
-- **Agent-native web grounding（passage-level evidence vs SERP scraping）**
-  - 来源：**Microsoft**
-  - 时间：`260604`
+- **Sufficient Context Agent（迭代检索直至可答）**
+  - 来源：**Google**
+  - 时间：`260605`
   - 正文：~**640** tok
-  - URL：https://www.microsoft.com/en-us/webiq
+  - URL：https://research.google/blog/unlocking-dependable-responses-with-gemini-enterprise-agent-platforms-agentic-rag/
   - 类型：新模式
   - 要点：
-    - 从「给 agent 整页 HTML/SERP」转向「推理时刻注入 ranked passage + provenance」，优化 token 预算与多步链延迟。
-    - **MCP 一等公民**：agent 通过 JSON-RPC 调用 grounding，而非每家 IDE 写定制搜索适配器。
-    - 与 Google Agentic RAG「足够上下文再答」、OpenAI Dreaming「后台记忆合成」同属 2026 年 agent 基础设施层范式迁移。
+    - 在 Planner / Rewriter / Fanout 之后增加 **Sufficient Context Agent**：审阅检索片段与中间草稿，显式标注缺失信息并触发二次检索，避免「猜答」或过早放弃。
+    - Cross-corpus 场景下四库干扰仍达 **~90%** 准确率，延迟与单库相当。
+    - 与 Microsoft Web IQ「passage-level grounding」、OpenAI Lockdown「确定性出站控制」同属 agent 基础设施层范式迁移。
+
+- **Terminal-agent cloud offload（COLAB_SKILL 驱动远程 GPU）**
+  - 来源：**Google**
+  - 时间：`260605`
+  - 正文：~**520** tok
+  - URL：https://developers.googleblog.com/introducing-the-google-colab-cli/
+  - 类型：新模式
+  - 要点：
+    - 终端 agent 不再局限于本地算力：通过预置 **skill 文件** + `colab exec`，把 QLoRA 微调等重负载卸载到云端 T4/A100，本地只收 adapter 与 notebook log。
+    - 与 Grok Build / Claude Code 的「本地仓库 + 远程 API 推理」互补，形成 **薄客户端 agent + 可编程云运行时** 分工。
+    - 降低 VibeCoding 中 ML/agent 实验的 GPU 门槛，agent 可直接编排端到端训练-评测-清理流水线。
 
 ---
 
