@@ -4,11 +4,11 @@
 
 | 项 | 值 |
 |---|---|
-| 采集窗口 | `260613 07:01` UTC → `260615 07:01` UTC（48h，cron 触发 `2026-06-15T07:01Z`） |
-| 本文件更新 | `260615 07:01` UTC |
+| 采集窗口 | `260614 07:01` UTC → `260616 07:01` UTC（48h，cron 触发 `2026-06-16T07:01Z`） |
+| 本文件更新 | `260616 07:01` UTC |
 | 条目数 | 12 |
-| 新模型 / 新产品 / 新模式 | 12（新模型 2 · 新产品 4 · 新模式 6） |
-| main 合并 commit | `4105c9f` |
+| 新模型 / 新产品 / 新模式 | 12（新模型 2 · 新产品 5 · 新模式 5） |
+| main 合并 commit | `待推送后填写` |
 
 ---
 
@@ -23,17 +23,6 @@ vibe-48h/
 
 ### 新模型
 
-- **智谱：GLM-5.2 will be fully open to all GLM Coding Plan users**
-  - 来源：**智谱**
-  - 时间：`260613 17:21`
-  - 正文：~**880** tok
-  - URL：https://www.odaily.news/en/newsflash/490177
-  - 类型：新模型
-  - 要点：
-    - **GLM-5.2**：**744B** MoE（**40B** active），可用 **1M** token 上下文（`glm-5.2[1m]` 后缀）；相对 GLM-5.1（200K）上下文 **5×**，集成 **DSA** 稀疏注意力降部署成本。
-    - **6/13 17:21** 起向 GLM Coding Plan 全档（Lite/Pro/Max/Team）开放；**API 与 MIT 开源权重**计划次周释出（Hugging Face `zai-org`）。
-    - 双思考模式 **High/Max**（复杂编码推荐 Max）；与 Fable 5 政府召回同日发布，定位开源可自托管 frontier 编码替代。
-
 - **Rio 3.5 Open 397B**
   - 来源：**IplanRIO**
   - 时间：`260614`
@@ -45,29 +34,51 @@ vibe-48h/
     - 集成 **SwiReasoning** 推理框架：显式 CoT 与潜空间推理动态切换，兼顾精度与 token 效率；agent 编程、数学、STEM、多语言与多模态基准宣称 SOTA 级开源表现。
     - 代表主权 AI 从国家实验室延伸至**市政开源**赛道；与 GLM 5.2 同期强化「政府召回云模型 → 自托管开源」叙事。
 
+- **GLM-5.2 will be fully open to all GLM Coding Plan users**
+  - 来源：**智谱**
+  - 时间：`260613 17:21`
+  - 正文：~**880** tok
+  - URL：https://www.odaily.news/en/newsflash/490177
+  - 类型：新模型
+  - 要点：
+    - **GLM-5.2**：**744B** MoE（**40B** active），可用 **1M** token 上下文（`glm-5.2[1m]` 后缀）；相对 GLM-5.1（200K）上下文 **5×**，集成 **DSA** 稀疏注意力降部署成本。
+    - **6/13 17:21** 起向 GLM Coding Plan 全档开放；**Anthropic 兼容 API**（`https://api.z.ai/api/anthropic`）可一行切换 Claude Code/Cline；**MIT 开源权重**计划 **6/16–22** 周释出（Hugging Face `zai-org`）。
+    - 发布未附 benchmark；双思考模式 **High/Max**；Fable 5 全球下线后成为 VibeCoding 开发者最易接入的 frontier 级编码替代之一。
+
 ### 新产品
 
-- **Introducing Omnigent: A Meta-Harness to Combine, Control and Share Your Agents**
-  - 来源：**Databricks**
-  - 时间：`260613`
-  - 正文：~**860** tok
-  - URL：https://www.databricks.com/blog/introducing-omnigent-meta-harness-combine-control-and-share-your-agents
+- **Surpassing Frontier Performance with Fusion**
+  - 来源：**OpenRouter**
+  - 时间：`260614`
+  - 正文：~**900** tok
+  - URL：https://openrouter.ai/blog/announcements/fusion-beats-frontier/
   - 类型：新产品
   - 要点：
-    - **Omnigent**：Databricks 开源（**Apache 2.0**）meta-harness alpha；统一接口编排 **Claude Code、Codex、Pi** 及自定义 agent，终端/Web/桌面/手机/API 多面接入。
-    - 核心能力：多 harness **组合**（YAML 一行切换）、**有状态策略**（花费上限/模型路由/风险升级）、**实时协作**（URL 共享会话）、云沙盒（Modal/Daytona 等）。
-    - PyPI `omnigent` v0.1.0rc2；路线图含 **Omnigent Server MCP**、GEPA 自动优化；Data + AI Summit 前周末抢先发布。
+    - **OpenRouter Fusion**：compound-model API；并行派发至多 **8** 个 panel 模型（含 web_search/fetch），judge 产出结构化共识/矛盾/盲点分析，writer 合成最终答案。
+    - 调用方式：`"model": "openrouter/fusion"` 或 tools 数组 `{ "type": "openrouter:fusion" }`；DRACO 基准上 budget panel（Gemini 3 Flash + Kimi K2.6 + DeepSeek V4 Pro）**64.7%**，逼近 Fable 5 单模 **65.3%** 且成本约半。
+    - **6/14** 发布 FAQ：非 Fable 替代品；编码场景作 server tool 按需调用；`x-openrouter-fusion-depth` 防递归；HN **6/15** 热议。
 
-- **Kakunin Cryptographic Compliance Shield for Google Gemini and OpenAI Agent Ecosystems**
-  - 来源：**Kakunin**
-  - 时间：`260613`
-  - 正文：~**640** tok
-  - URL：https://www.prweb.com/releases/kakunin-announces-cryptographic-compliance-shield-for-google-gemini-and-openai-agent-ecosystems-302798798.html
+- **Cast AI's Kimchi Coding Becomes the First Autonomous Coding Agent to Offer MiniMax M3**
+  - 来源：**Cast AI**
+  - 时间：`260615`
+  - 正文：~**820** tok
+  - URL：https://cast.ai/press-release/minimax-m3-comes-to-kimchi-coding/
   - 类型：新产品
   - 要点：
-    - **Kakunin** 发布面向生产 agent 的加密合规 SDK：**Google Antigravity SDK**（hook 运行时保护）、**OpenAI Swarm**（`KakuninSwarm` 门控多 agent 切换）、**Assistants API**（`handle_assistants_requires_action` 一站式校验）。
-    - 工具层 **X.509** 证书校验：执行前 scope 验证、证书吊销即停、篡改可审计日志；满足 **EU AI Act / MiCA** 等监管要求。
-    - 同步覆盖 LangChain/LlamaIndex/CrewAI/AutoGen 模板；`pip install kakunin` 即用，代表 agent 合规从 prompt 层下沉至密码学工具执行层。
+    - **Kimchi Coding** 成为首个集成 **MiniMax M3** 的自主编码 agent；Early Access 于 **kimchi.dev** 分阶段开放，M3 为默认 builder 模型。
+    - M3：**1M** 上下文、**MSA** 稀疏注意力（长上下文算力约降至上一代 **1/20**、解码 **15×** 更快）；SWE-bench Pro **59%**；shadow 评测较纯商业模型基线 **2.5×** 降本且质量持平或更优。
+    - 支持 Cast AI 推理云 serverless 或客户 **AWS/GCP/Azure/本地 air-gap** 主权部署；内置 FinOps 仪表盘与硬花费上限，自动终止失控 agentic 循环。
+
+- **What's new in data agents: Supercharging your AI workflows**
+  - 来源：**Google**
+  - 时间：`260616`
+  - 正文：~**950** tok
+  - URL：https://cloud.google.com/blog/products/data-analytics/new-data-agents-across-the-agentic-data-cloud
+  - 类型：新产品
+  - 要点：
+    - **Agentic Data Cloud** 批量发布 data agents：**Data Engineering Agent**（GA）、**Data Science / Insights / Deep Research**（preview）、**Looker Dashboard Agent**、**Database Observability / Onboarding** 等。
+    - 开发者工具：**Data Agent Kit**（preview）、**Managed MCP Servers** for Databases（GA，AlloyDB/Spanner/Cloud SQL/Bigtable/Firestore）、**MCP Toolbox for Databases 1.0**（GA）、**QueryData** NL→SQL（preview）。
+    - **Conversational Analytics** 扩展至 BigQuery/Lakehouse/AlloyDB/Spanner/Cloud SQL；Gemini Enterprise 作业务用户「前门」消费已发布 agent。
 
 - **Agent SDK overview — monthly Agent SDK credit (effective June 15)**
   - 来源：**Anthropic**
@@ -89,53 +100,42 @@ vibe-48h/
   - 要点：
     - **6/15** 起旧版 **agent registry Graph API** 退役；企业须迁移至 **Agent 365（A365）** 驱动的 agent 注册 Graph API（**5/1** 已 GA）。
     - 仅通过旧 API 注册且未重注册的 agent **将停止工作**；管理员可在 M365 管理中心 **All agents** 视图统一观测与治理。
-    - 代表 Microsoft 将 agent 管理收敛为单一 SSOT（A365），与 Omnigent meta-harness、MCP 生态形成「平台注册 vs 开发编排」双轨。
+    - 代表 Microsoft 将 agent 管理收敛为单一 SSOT（A365），与 OpenRouter Fusion、Google Managed MCP 形成「平台注册 vs 开发编排」双轨。
 
 ### 新模式
 
-- **Government-forced frontier model recall（政府强制召回已部署 frontier 模型）**
-  - 来源：**Anthropic**
-  - 时间：`260612 21:21`
-  - 正文：~**560** tok
-  - URL：https://www.anthropic.com/news/fable-mythos-access
+- **Municipal sovereign open-weight post-training（市政主权开源后训练）**
+  - 来源：**Exame**
+  - 时间：`260614`
+  - 正文：~**480** tok
+  - URL：https://exame.com/inteligencia-artificial/prefeitura-do-rio-lanca-ia-propria-e-supera-outros-modelos-em-analises-de-desempenho/
   - 类型：新模式
   - 要点：
-    - **6/12 17:21 ET** 美国商务部以出口管制要求 Anthropic 禁止外籍人士访问 **Fable 5/Mythos 5**；因无法实时国籍过滤，Anthropic **全球下线**两模型——业界首例已公开部署 frontier 模型遭政府强制召回。
-    - Anthropic 主张：窄域 jailbreak 不应成为召回标准，否则将「实质上冻结所有 frontier 新模型部署」；呼吁透明、技术事实驱动的法定阻断流程。
-    - **6/13–15** 余波：GitHub Copilot 同步暂停 Fable 5；全球会话报错并回退 **Opus 4.8**，企业开始审计 Fable 5 依赖工作流。
+    - **Rio 3.5** 代表「不从头预训练、基于 Qwen 3.5 后训练 + SwiReasoning」的**低成本主权模型**路径（首代 IA 开发约 **R$500k**，宣称较成品方案 **~30×** 便宜）。
+    - 与印度 Varya 视频蒸馏、中国 GLM 5.2 开源并列，形成全球「地方政府/市政 IT 发布 frontier 级开源权重」新赛道。
+    - VibeCoding 启示：开发者可 fork 市政/区域优化权重，在本土语言与合规场景获得比通用云模型更可控的 agent 底座。
 
-- **Enterprise multi-vendor fallback architecture（企业多供应商回退架构）**
-  - 来源：**VB**
-  - 时间：`260613`
-  - 正文：~**680** tok
-  - URL：https://venturebeat.com/technology/anthropic-blocks-all-public-access-to-claude-fable-5-mythos-5-following-us-government-order-what-enterprises-should-do
-  - 类型：新模式
-  - 要点：
-    - Fable 5 全球下线后，VentureBeat 将企业应对归纳为 **「hardware sovereignty」**：云 frontier 模型可被政府指令瞬间召回，长期依赖单供应商 API 成为运营单点故障。
-    - 推荐 **model-agnostic 路由层**：Fable 5 不可用时自动切换至开源权重或第二供应商 API；审计 SWE-Bench Pro **80.3%** 级工作流能否接受 Opus 4.8 回退。
-    - 与 Rio 3.5、GLM 5.2、North Mini Code 等开源发布形成「监管冲击 → 自托管/多源」VibeCoding 采购范式转变。
-
-- **Meta-harness layer above coding agents（harness 之上的 meta-harness 编排层）**
-  - 来源：**Databricks**
-  - 时间：`260613`
+- **Compound multi-model deliberation API（复合多模型审议 API）**
+  - 来源：**OpenRouter**
+  - 时间：`260614`
   - 正文：~**540** tok
-  - URL：https://www.databricks.com/blog/introducing-omnigent-meta-harness-combine-control-and-share-your-agents
+  - URL：https://openrouter.ai/docs/guides/features/plugins/fusion
   - 类型：新模式
   - 要点：
-    - 行业共识：单 harness 已可换模型，但 **组合/治理/协作** 需 harness 之上新抽象；Omnigent 将「messages + files in → streams + tool calls out」统一为通用 API。
-    - 有状态策略（花费/权限/升级）在 meta 层执行，而非写进 prompt；YAML 定义自定义 agent 可一行切换底层 harness（Claude Code ↔ Codex ↔ Pi）。
-    - 类比 Kubernetes 对裸机编排：模型与 harness 持续迭代，开发者工作层保持稳定；与 GitHub Copilot 多 worktree 并行形成「桌面/云端 meta 编排」对标。
+    - Fusion 将 MoA（Mixture of Agents）研究范式产品化为**单 slug 可调用**的 compound model；简单查询自动 bypass panel，复杂问题才触发多模型审议。
+    - 开发者可自定义 **analysis_models** panel（1–8 个）与 judge；预算 preset 用开源/中端模型组合逼近 frontier 单模表现，标志 VibeCoding 从「选最强模型」转向「按任务组 panel」。
+    - 编码场景推荐作 **server tool** 而非 drop-in 替换：基座模型处理日常编码，架构决策/最佳实践研究时选择性调用 Fusion。
 
-- **Pack Hunt multi-agent jailbreak decomposition（多 agent 分解重组 jailbreak）**
-  - 来源：**CyberEd**
-  - 时间：`260613`
-  - 正文：~**620** tok
-  - URL：https://www.buildfastwithai.com/blogs/ai-news-today-june-15-2026
+- **'Fix this code' defensive-task-as-jailbreak trigger（防御性任务被认定为 jailbreak 触发召回）**
+  - 来源：**Fortune**
+  - 时间：`260615 18:35`
+  - 正文：~**560** tok
+  - URL：https://fortune.com/2026/06/15/fix-this-code-three-words-behind-us-government-shut-down-anthropic-fable-mythos-ai-models-katie-moussouris-open-letter/
   - 类型：新模式
   - 要点：
-    - **Pliny the Liberator** 在 Fable 5 发布后演示 **「Pack Hunt」**：Unicode/同形字规避分类器 + 长上下文引用追踪 + **分解-重组**（ innocuous 子问题分别查询后拼装有害输出）。
-    - 技术细节：**6/13** 起广泛传播；同时泄露 Fable 5 约 **120K 字符** system prompt（GitHub），为对抗性 prompt 工程提供「安全手册」。
-    - 标志 agentic 攻击从单轮 prompt 演进为**多轮多 agent 协作绕过**；政府召回与 pack hunt 公开演示交织，加速 frontier 模型部署审查。
+    - Amazon 安全研究员向政府上报的「jailbreak」实质为 **"Fix this code"** 提示：让 Fable 5 读代码库并修补漏洞——Katie Moussouris（Luta Security）审阅后认为这是**标准防御性工作流**而非 Mythos 专属 uplift。
+    - 出口管制逻辑将「向非公民分发」视为出口，Anthropic 无法实时过滤国籍，故 **6/12** 全球下线 Fable 5/Mythos 5；GitHub Copilot 同步暂停 Fable 5，会话回退 **Opus 4.8**。
+    - 行业警示：若「发现已知小漏洞」即触发召回标准，将**实质上冻结所有 frontier 新模型部署**；加速企业多源/自托管采购范式。
 
 - **Interactive vs programmatic agent billing split（交互 vs 程序化 agent 计费双轨）**
   - 来源：**Anthropic**
@@ -148,16 +148,16 @@ vibe-48h/
     - 行业含义：agent 厂商可将「人坐前面写代码」与「无人值守流水线」定价分离；第三方 daemon/headless 工具被明确归入程序化面，无法再蹭订阅无限额度。
     - 与 OpenAI Assistants API 弃用（**8 月**）转向 Agents SDK 的长期架构调整形成对标——订阅补贴 agent 的时代结束。
 
-- **Municipal sovereign open-weight post-training（市政主权开源后训练）**
-  - 来源：**Exame**
-  - 时间：`260614`
-  - 正文：~**480** tok
-  - URL：https://exame.com/inteligencia-artificial/prefeitura-do-rio-lanca-ia-propria-e-supera-outros-modelos-em-analises-de-desempenho/
+- **Task-complexity model routing in coding agents（编码 agent 按任务复杂度路由模型）**
+  - 来源：**Cast AI**
+  - 时间：`260615`
+  - 正文：~**620** tok
+  - URL：https://cast.ai/press-release/minimax-m3-comes-to-kimchi-coding/
   - 类型：新模式
   - 要点：
-    - **Rio 3.5** 代表「不从头预训练、基于 Qwen 3.5 后训练 + SwiReasoning」的**低成本主权模型**路径（首代 IA 开发约 **R$500k**，宣称较成品方案 **~30×** 便宜）。
-    - 与印度 Varya 视频蒸馏、中国 GLM 5.2 开源并列，形成全球「地方政府/市政 IT 发布 frontier 级开源权重」新赛道。
-    - VibeCoding 启示：开发者可 fork 市政/区域优化权重，在本土语言与合规场景获得比通用云模型更可控的 agent 底座。
+    - Kimchi 将企业 AI 采购从「选单一最强模型」转为 **per-step 路由**：简单步骤用开源权重，复杂评估/推理 reserved 给 frontier 或 M3 级模型。
+    - 内置 **token 优化 orchestrator** 对生成代码评分并持续反馈，在准确度与 token 消耗间动态平衡；硬花费上限从 API key 到组织级 enforce。
+    - WSJ 报道企业正普遍采用「混合 open-weight + 商业 frontier」策略；Kimchi shadow 模式 **2.5×** 降本验证该范式在真实编码流水线可行。
 
 ---
 
