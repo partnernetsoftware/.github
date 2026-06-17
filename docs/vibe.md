@@ -4,11 +4,11 @@
 
 | 项 | 值 |
 |---|---|
-| 采集窗口 | `260614 07:01` UTC → `260616 07:01` UTC（48h，cron 触发 `2026-06-16T07:01Z`） |
-| 本文件更新 | `260616 07:01` UTC |
-| 条目数 | 12 |
-| 新模型 / 新产品 / 新模式 | 12（新模型 2 · 新产品 5 · 新模式 5） |
-| main 合并 commit | `191ebba` |
+| 采集窗口 | `260615 07:01` UTC → `260617 07:01` UTC（48h，cron 触发 `2026-06-17T07:01Z`） |
+| 本文件更新 | `260617 07:01` UTC |
+| 条目数 | 14 |
+| 新模型 / 新产品 / 新模式 | 14（新模型 1 · 新产品 8 · 新模式 5） |
+| main 合并 commit | `待推送后填写` |
 
 ---
 
@@ -23,40 +23,18 @@ vibe-48h/
 
 ### 新模型
 
-- **Rio 3.5 Open 397B**
-  - 来源：**IplanRIO**
-  - 时间：`260614`
-  - 正文：~**920** tok
-  - URL：https://huggingface.co/prefeitura-rio/Rio-3.5-Open-397B
-  - 类型：新模型
-  - 要点：
-    - **Rio 3.5 Open 397B**：里约市政 IT 公司 IplanRIO 基于 Alibaba **Qwen 3.5 397B** 后训练；**397B/17B** MoE、**1,010,000** token 上下文、**MIT** 开源权重。
-    - 集成 **SwiReasoning** 推理框架：显式 CoT 与潜空间推理动态切换，兼顾精度与 token 效率；agent 编程、数学、STEM、多语言与多模态基准宣称 SOTA 级开源表现。
-    - 代表主权 AI 从国家实验室延伸至**市政开源**赛道；与 GLM 5.2 同期强化「政府召回云模型 → 自托管开源」叙事。
-
-- **GLM-5.2 will be fully open to all GLM Coding Plan users**
+- **GLM-5.2: Built for Long-Horizon Tasks**
   - 来源：**智谱**
-  - 时间：`260613 17:21`
-  - 正文：~**880** tok
-  - URL：https://www.odaily.news/en/newsflash/490177
+  - 时间：`260616`
+  - 正文：~**1050** tok
+  - URL：https://z.ai/blog/glm-5.2
   - 类型：新模型
   - 要点：
-    - **GLM-5.2**：**744B** MoE（**40B** active），可用 **1M** token 上下文（`glm-5.2[1m]` 后缀）；相对 GLM-5.1（200K）上下文 **5×**，集成 **DSA** 稀疏注意力降部署成本。
-    - **6/13 17:21** 起向 GLM Coding Plan 全档开放；**Anthropic 兼容 API**（`https://api.z.ai/api/anthropic`）可一行切换 Claude Code/Cline；**MIT 开源权重**计划 **6/16–22** 周释出（Hugging Face `zai-org`）。
-    - 发布未附 benchmark；双思考模式 **High/Max**；Fable 5 全球下线后成为 VibeCoding 开发者最易接入的 frontier 级编码替代之一。
+    - **GLM-5.2**：**753B** MoE、**1M** token 稳定上下文；**IndexShare** DSA 稀疏注意力在 1M 上下文降 per-token FLOPs **2.9×**；MTP speculative decoding 接受长度 +**20%**。
+    - **6/16** 权重同步上线 Hugging Face（`zai-org/GLM-5.2`）与 ModelScope，**MIT** 开源、无地域限制；Coding Plan 全档可用，Claude Code 用 `GLM-5.2[1m]` 后缀启用 1M。
+    - 长程编码基准：FrontierSWE 仅落后 Opus 4.8 **1%**、领先 GPT-5.5 **1%**；Terminal-Bench 2.1 **81.0**（开源 SOTA）；High/Max 双思考档位可调延迟与成本。
 
 ### 新产品
-
-- **Surpassing Frontier Performance with Fusion**
-  - 来源：**OpenRouter**
-  - 时间：`260614`
-  - 正文：~**900** tok
-  - URL：https://openrouter.ai/blog/announcements/fusion-beats-frontier/
-  - 类型：新产品
-  - 要点：
-    - **OpenRouter Fusion**：compound-model API；并行派发至多 **8** 个 panel 模型（含 web_search/fetch），judge 产出结构化共识/矛盾/盲点分析，writer 合成最终答案。
-    - 调用方式：`"model": "openrouter/fusion"` 或 tools 数组 `{ "type": "openrouter:fusion" }`；DRACO 基准上 budget panel（Gemini 3 Flash + Kimi K2.6 + DeepSeek V4 Pro）**64.7%**，逼近 Fable 5 单模 **65.3%** 且成本约半。
-    - **6/14** 发布 FAQ：非 Fable 替代品；编码场景作 server tool 按需调用；`x-openrouter-fusion-depth` 防递归；HN **6/15** 热议。
 
 - **Cast AI's Kimchi Coding Becomes the First Autonomous Coding Agent to Offer MiniMax M3**
   - 来源：**Cast AI**
@@ -100,31 +78,53 @@ vibe-48h/
   - 要点：
     - **6/15** 起旧版 **agent registry Graph API** 退役；企业须迁移至 **Agent 365（A365）** 驱动的 agent 注册 Graph API（**5/1** 已 GA）。
     - 仅通过旧 API 注册且未重注册的 agent **将停止工作**；管理员可在 M365 管理中心 **All agents** 视图统一观测与治理。
-    - 代表 Microsoft 将 agent 管理收敛为单一 SSOT（A365），与 OpenRouter Fusion、Google Managed MCP 形成「平台注册 vs 开发编排」双轨。
+    - 代表 Microsoft 将 agent 管理收敛为单一 SSOT（A365），与 Google Managed MCP、Databricks Genie MCP 形成「平台注册 vs 开发编排」双轨。
+
+- **Copilot Cowork is now generally available**
+  - 来源：**Microsoft**
+  - 时间：`260616`
+  - 正文：~**980** tok
+  - URL：https://www.microsoft.com/en-us/microsoft-365/blog/2026/06/16/copilot-cowork-is-now-generally-available/
+  - 类型：新产品
+  - 要点：
+    - **6/16** **Copilot Cowork** 全球 GA：多工具、长时程 agentic 任务系统，基于 **Work IQ** 在 M365 信任边界内端到端执行（发邮件、排会、建文档、Teams 发帖等），非仅草稿/建议。
+    - 需 M365 Copilot USL；实际用量按 **Copilot Credits** 计量（**$0.01/credit** PayGo 或 P3 预付折扣）；Frontier 预览租户延至 **7/1** 前免计费。
+    - GA 新增：9 个 partner **plugins**（Enosix/Harvey/Miro/monday.com 等）、**Edge 浏览器**任务、多模型选择（Opus 4.8/Sonnet 4.6，Cowork 1 自研模型即将上线）；租户/组/用户三级花费上限与用量报表。
+
+- **Introducing Genie One, Genie Agents, and Genie Ontology**
+  - 来源：**Databricks**
+  - 时间：`260616`
+  - 正文：~**1020** tok
+  - URL：https://www.databricks.com/blog/introducing-genie-one-genie-ontology-and-genie-agents
+  - 类型：新产品
+  - 要点：
+    - **Genie One**：面向业务用户的 data-smart AI coworker（Web/iOS/Android），连接 Lakehouse、Gmail/Slack/Teams 及 **MCP** 助手；超越对话分析，可生成文档、设告警、调度任务、写外部系统。
+    - **Genie Agents**：将 Genie Space 升级为可共享自治 agent；单 prompt 创建、基准测试、团队复用；**Genie Ontology** 自动抽取表/查询/仪表盘/工单知识为 living graph，内部基准首答准确率 **84.5%** vs 最强通用编码 agent **52.4%**。
+    - 无席位定价，每用户每月 **$10** 免费额度；**Genie One / Agents / Genie Code** 已 GA；**Genie App Builder / ZeroOps** 即将 private preview。
+
+- **Equixly launches MCP Integration, bringing continuous offensive security testing directly into developers' AI coding assistants**
+  - 来源：**Equixly**
+  - 时间：`260615`
+  - 正文：~**760** tok
+  - URL：https://equixly.com/blog/2026/06/15/equixly-launches-mcp-integration-bringing-continuous-offensive-security-testing-directly-into-developers-ai-coding-assistants/
+  - 类型：新产品
+  - 要点：
+    - **6/15** 发布 **Equixly MCP**：将持续渗透测试平台嵌入 **GitHub Copilot、Claude** 等 IDE 内 AI 助手；覆盖 Web 应用、LLM、MCP、API 攻击面。
+    - 工作流：MCP server 鉴权 → 自然语言创建服务/项目 → 触发持续渗透测试 → 获取 exploit 上下文与修复指引 → 确认修复，全程不离 IDE。
+    - 标志 VibeCoding 安全工具从 CI 后置审查前移到 **agent 实时编排面**；与 Google Managed MCP、Equixly 类 DevSecOps MCP 构成「开发-安全」闭环新品类。
+
+- **GitHits Public Beta 0.9 — Open-source code as context for AI coding agents**
+  - 来源：**GitHits**
+  - 时间：`260616`
+  - 正文：~**840** tok
+  - URL：https://githits.com/
+  - 类型：新产品
+  - 要点：
+    - **6/16** 公测 **GitHits CLI + 本地 MCP server**（`npx githits@latest init`）：为编码 agent 提供版本感知开源代码索引，工具含 `search`/`code_read`/`code_grep`/`pkg_info`/`pkg_vulns`/`get_example`。
+    - 从私测「示例生成」扩展为依赖级源码导航：查 API 实现、读 changelog、审漏洞、比对包版本；自动检测 Cursor/Claude Code 等并配置 MCP。
+    - 定位「代码 Google」补位而非替代 Codex/Claude Code；同日完成 **$1.75M** pre-seed（Vendep/Trind/Jerry Liu 等），计划索引全部公开开源仓库。
 
 ### 新模式
-
-- **Municipal sovereign open-weight post-training（市政主权开源后训练）**
-  - 来源：**Exame**
-  - 时间：`260614`
-  - 正文：~**480** tok
-  - URL：https://exame.com/inteligencia-artificial/prefeitura-do-rio-lanca-ia-propria-e-supera-outros-modelos-em-analises-de-desempenho/
-  - 类型：新模式
-  - 要点：
-    - **Rio 3.5** 代表「不从头预训练、基于 Qwen 3.5 后训练 + SwiReasoning」的**低成本主权模型**路径（首代 IA 开发约 **R$500k**，宣称较成品方案 **~30×** 便宜）。
-    - 与印度 Varya 视频蒸馏、中国 GLM 5.2 开源并列，形成全球「地方政府/市政 IT 发布 frontier 级开源权重」新赛道。
-    - VibeCoding 启示：开发者可 fork 市政/区域优化权重，在本土语言与合规场景获得比通用云模型更可控的 agent 底座。
-
-- **Compound multi-model deliberation API（复合多模型审议 API）**
-  - 来源：**OpenRouter**
-  - 时间：`260614`
-  - 正文：~**540** tok
-  - URL：https://openrouter.ai/docs/guides/features/plugins/fusion
-  - 类型：新模式
-  - 要点：
-    - Fusion 将 MoA（Mixture of Agents）研究范式产品化为**单 slug 可调用**的 compound model；简单查询自动 bypass panel，复杂问题才触发多模型审议。
-    - 开发者可自定义 **analysis_models** panel（1–8 个）与 judge；预算 preset 用开源/中端模型组合逼近 frontier 单模表现，标志 VibeCoding 从「选最强模型」转向「按任务组 panel」。
-    - 编码场景推荐作 **server tool** 而非 drop-in 替换：基座模型处理日常编码，架构决策/最佳实践研究时选择性调用 Fusion。
 
 - **'Fix this code' defensive-task-as-jailbreak trigger（防御性任务被认定为 jailbreak 触发召回）**
   - 来源：**Fortune**
@@ -135,7 +135,7 @@ vibe-48h/
   - 要点：
     - Amazon 安全研究员向政府上报的「jailbreak」实质为 **"Fix this code"** 提示：让 Fable 5 读代码库并修补漏洞——Katie Moussouris（Luta Security）审阅后认为这是**标准防御性工作流**而非 Mythos 专属 uplift。
     - 出口管制逻辑将「向非公民分发」视为出口，Anthropic 无法实时过滤国籍，故 **6/12** 全球下线 Fable 5/Mythos 5；GitHub Copilot 同步暂停 Fable 5，会话回退 **Opus 4.8**。
-    - 行业警示：若「发现已知小漏洞」即触发召回标准，将**实质上冻结所有 frontier 新模型部署**；加速企业多源/自托管采购范式。
+    - 行业警示：若「发现已知小漏洞」即触发召回标准，将**实质上冻结所有 frontier 新模型部署**；加速企业多源/自托管采购范式（GLM-5.2 MIT 权重同日释出形成对照）。
 
 - **Interactive vs programmatic agent billing split（交互 vs 程序化 agent 计费双轨）**
   - 来源：**Anthropic**
@@ -146,7 +146,7 @@ vibe-48h/
   - 要点：
     - **6/15** Anthropic 正式将 Claude 订阅拆为 **交互桶**（聊天、终端内 Claude Code、Cowork）与 **程序化桶**（SDK、`-p`、CI、第三方 agent），两桶独立计量、独立上限。
     - 行业含义：agent 厂商可将「人坐前面写代码」与「无人值守流水线」定价分离；第三方 daemon/headless 工具被明确归入程序化面，无法再蹭订阅无限额度。
-    - 与 OpenAI Assistants API 弃用（**8 月**）转向 Agents SDK 的长期架构调整形成对标——订阅补贴 agent 的时代结束。
+    - 与 Microsoft **Copilot Credits**（6/16 Cowork GA）、Databricks 用量计费 Genie 形成对标——订阅补贴 agent 的时代结束，按任务/按 credit 成为主流。
 
 - **Task-complexity model routing in coding agents（编码 agent 按任务复杂度路由模型）**
   - 来源：**Cast AI**
@@ -158,6 +158,28 @@ vibe-48h/
     - Kimchi 将企业 AI 采购从「选单一最强模型」转为 **per-step 路由**：简单步骤用开源权重，复杂评估/推理 reserved 给 frontier 或 M3 级模型。
     - 内置 **token 优化 orchestrator** 对生成代码评分并持续反馈，在准确度与 token 消耗间动态平衡；硬花费上限从 API key 到组织级 enforce。
     - WSJ 报道企业正普遍采用「混合 open-weight + 商业 frontier」策略；Kimchi shadow 模式 **2.5×** 降本验证该范式在真实编码流水线可行。
+
+- **Metered delegated-labor billing via Copilot Credits（按量计费的委托劳动定价）**
+  - 来源：**Microsoft**
+  - 时间：`260616`
+  - 正文：~**540** tok
+  - URL：https://www.microsoft.com/en-us/microsoft-365/blog/2026/06/16/copilot-cowork-is-now-generally-available/
+  - 类型：新模式
+  - 要点：
+    - Cowork GA 将 M365 Copilot 从「席位订阅」扩展为 **订阅 + Copilot Credits 用量双轨**：每任务按模型调用、上下文检索、工具调用、运行时四因子计价，非固定月费。
+    - 管理员默认关闭 Cowork、设租户/组/用户花费上限；用户可见每任务 credit 成本（GA 后陆续上线）；标志 office agent 从 chat 辅助升级为**可预算的委托劳动**品类。
+    - 与 Anthropic Agent SDK credit、OpenRouter Fusion panel 审议形成「按任务复杂度/自主度分层计费」行业共识。
+
+- **Genie Ontology as living business context graph（业务本体活图驱动 data-smart coworker）**
+  - 来源：**Databricks**
+  - 时间：`260616`
+  - 正文：~**580** tok
+  - URL：https://www.databricks.com/blog/introducing-genie-one-genie-ontology-and-genie-agents
+  - 类型：新模式
+  - 要点：
+    - **Genie Ontology** 自动从表/查询/仪表盘/工单/文档抽取知识，以类 **PageRank** 权威度排序定义来源，无需手工维护独立知识库或权限系统。
+    - 将「通用编码 agent 猜数据」转为「data-smart coworker 查可信源」：内部 28 题企业数据分析基准首答 **84.5%** vs 匿名最强编码 agent **52.4%**，且延迟 **2×** 更快。
+    - VibeCoding 启示：业务 agent 竞争力从 prompt 技巧转向**可治理的企业上下文层**；与 Google Agentic Data Cloud、MCP 数据库服务器形成 data-agent 基础设施三角。
 
 ---
 
