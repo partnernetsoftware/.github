@@ -4,11 +4,11 @@
 
 | 项 | 值 |
 |---|---|
-| 采集窗口 | `260615 07:01` UTC → `260617 07:01` UTC（48h，cron 触发 `2026-06-17T07:01Z`） |
-| 本文件更新 | `260617 07:01` UTC |
-| 条目数 | 14 |
-| 新模型 / 新产品 / 新模式 | 14（新模型 1 · 新产品 8 · 新模式 5） |
-| main 合并 commit | `8e45f7c` |
+| 采集窗口 | `260616 07:02` UTC → `260618 07:02` UTC（48h，cron 触发 `2026-06-18T07:02Z`） |
+| 本文件更新 | `260618 07:02` UTC |
+| 条目数 | 17 |
+| 新模型 / 新产品 / 新模式 | 17（新模型 3 · 新产品 9 · 新模式 5） |
+| main 合并 commit | `pending` |
 
 ---
 
@@ -34,18 +34,29 @@ vibe-48h/
     - **6/16** 权重同步上线 Hugging Face（`zai-org/GLM-5.2`）与 ModelScope，**MIT** 开源、无地域限制；Coding Plan 全档可用，Claude Code 用 `GLM-5.2[1m]` 后缀启用 1M。
     - 长程编码基准：FrontierSWE 仅落后 Opus 4.8 **1%**、领先 GPT-5.5 **1%**；Terminal-Bench 2.1 **81.0**（开源 SOTA）；High/Max 双思考档位可调延迟与成本。
 
-### 新产品
-
-- **Cast AI's Kimchi Coding Becomes the First Autonomous Coding Agent to Offer MiniMax M3**
-  - 来源：**Cast AI**
-  - 时间：`260615`
-  - 正文：~**820** tok
-  - URL：https://cast.ai/press-release/minimax-m3-comes-to-kimchi-coding/
-  - 类型：新产品
+- **VibeThinker-3B: Exploring the Frontier of Verifiable Reasoning in Small Language Models**
+  - 来源：**WeiboAI**
+  - 时间：`260616`
+  - 正文：~**920** tok
+  - URL：https://arxiv.org/abs/2606.16140
+  - 类型：新模型
   - 要点：
-    - **Kimchi Coding** 成为首个集成 **MiniMax M3** 的自主编码 agent；Early Access 于 **kimchi.dev** 分阶段开放，M3 为默认 builder 模型。
-    - M3：**1M** 上下文、**MSA** 稀疏注意力（长上下文算力约降至上一代 **1/20**、解码 **15×** 更快）；SWE-bench Pro **59%**；shadow 评测较纯商业模型基线 **2.5×** 降本且质量持平或更优。
-    - 支持 Cast AI 推理云 serverless 或客户 **AWS/GCP/Azure/本地 air-gap** 主权部署；内置 FinOps 仪表盘与硬花费上限，自动终止失控 agentic 循环。
+    - **3B** 稠密推理模型（基于 **Qwen2.5-Coder-3B**），**MIT** 开源；权重 Hugging Face `WeiboAI/VibeThinker-3B`、代码 GitHub `WeiboAI/VibeThinker`。
+    - **Spectrum-to-Signal** 后训练管线：AIME26 **94.3**（Claim-Level TTS **97.1**）、LiveCodeBench v6 Pass@1 **80.2**、IFEval **93.4**；宣称对齐 DeepSeek V3.2 / GLM-5 / Gemini 3 Pro 量级旗舰。
+    - 定位「可验证推理」小模型：数学/竞赛编程/STEM 强，非通用知识覆盖；训练成本远低于 frontier 规模，挑战「参数压缩-覆盖」假说。
+
+- **Grok Imagine Video 1.5**
+  - 来源：**xAI**
+  - 时间：`260616`
+  - 正文：~**780** tok
+  - URL：https://x.ai/news/grok-imagine-video-1-5
+  - 类型：新模型
+  - 要点：
+    - 图生视频 **GA**：同步生成音效/环境音/对白；运动与物理一致性升级；**1.5 Fast** 生成 6s **720p** 约 **25s**（上一代 **40s+**）。
+    - API 模型名 **`grok-imagine-video-1.5`** 脱离 preview；同步上线 grok.com/imagine、iOS/Android；配套 **Projects**、并行多 agent、库内搜索。
+    - Image-to-Video Arena 盲测 #1（xAI 宣称）；宽发布由 Musk **6/17** 推文推动，官方博客 **6/16** 标记 GA。
+
+### 新产品
 
 - **What's new in data agents: Supercharging your AI workflows**
   - 来源：**Google**
@@ -57,28 +68,6 @@ vibe-48h/
     - **Agentic Data Cloud** 批量发布 data agents：**Data Engineering Agent**（GA）、**Data Science / Insights / Deep Research**（preview）、**Looker Dashboard Agent**、**Database Observability / Onboarding** 等。
     - 开发者工具：**Data Agent Kit**（preview）、**Managed MCP Servers** for Databases（GA，AlloyDB/Spanner/Cloud SQL/Bigtable/Firestore）、**MCP Toolbox for Databases 1.0**（GA）、**QueryData** NL→SQL（preview）。
     - **Conversational Analytics** 扩展至 BigQuery/Lakehouse/AlloyDB/Spanner/Cloud SQL；Gemini Enterprise 作业务用户「前门」消费已发布 agent。
-
-- **Agent SDK overview — monthly Agent SDK credit (effective June 15)**
-  - 来源：**Anthropic**
-  - 时间：`260615`
-  - 正文：~**720** tok
-  - URL：https://docs.anthropic.com/en/docs/claude-code/sdk
-  - 类型：新产品
-  - 要点：
-    - **6/15** 起 **Agent SDK**、`claude -p` 无头模式、**Claude Code GitHub Actions** 及基于 SDK 的第三方 agent 从订阅额度迁至独立 **Agent SDK credit**（按月、不滚存、按 API 价计费）。
-    - 额度约 **Pro $20 / Max 5x $100 / Max 20x $200**；交互式 Claude.ai 聊天与终端内 **Claude Code 会话**仍走原订阅，不受影响。
-    - 耗尽后需手动开启 overflow 或切换 API key；标志 Anthropic 将「人机协作」与「无人值守 agent」拆为可计费 SKU。
-
-- **MC1297981 — Agent Registry API transition to Agent 365**
-  - 来源：**Microsoft**
-  - 时间：`260615`
-  - 正文：~**580** tok
-  - URL：https://mc.merill.net/message/MC1297981
-  - 类型：新产品
-  - 要点：
-    - **6/15** 起旧版 **agent registry Graph API** 退役；企业须迁移至 **Agent 365（A365）** 驱动的 agent 注册 Graph API（**5/1** 已 GA）。
-    - 仅通过旧 API 注册且未重注册的 agent **将停止工作**；管理员可在 M365 管理中心 **All agents** 视图统一观测与治理。
-    - 代表 Microsoft 将 agent 管理收敛为单一 SSOT（A365），与 Google Managed MCP、Databricks Genie MCP 形成「平台注册 vs 开发编排」双轨。
 
 - **Copilot Cowork is now generally available**
   - 来源：**Microsoft**
@@ -102,17 +91,6 @@ vibe-48h/
     - **Genie Agents**：将 Genie Space 升级为可共享自治 agent；单 prompt 创建、基准测试、团队复用；**Genie Ontology** 自动抽取表/查询/仪表盘/工单知识为 living graph，内部基准首答准确率 **84.5%** vs 最强通用编码 agent **52.4%**。
     - 无席位定价，每用户每月 **$10** 免费额度；**Genie One / Agents / Genie Code** 已 GA；**Genie App Builder / ZeroOps** 即将 private preview。
 
-- **Equixly launches MCP Integration, bringing continuous offensive security testing directly into developers' AI coding assistants**
-  - 来源：**Equixly**
-  - 时间：`260615`
-  - 正文：~**760** tok
-  - URL：https://equixly.com/blog/2026/06/15/equixly-launches-mcp-integration-bringing-continuous-offensive-security-testing-directly-into-developers-ai-coding-assistants/
-  - 类型：新产品
-  - 要点：
-    - **6/15** 发布 **Equixly MCP**：将持续渗透测试平台嵌入 **GitHub Copilot、Claude** 等 IDE 内 AI 助手；覆盖 Web 应用、LLM、MCP、API 攻击面。
-    - 工作流：MCP server 鉴权 → 自然语言创建服务/项目 → 触发持续渗透测试 → 获取 exploit 上下文与修复指引 → 确认修复，全程不离 IDE。
-    - 标志 VibeCoding 安全工具从 CI 后置审查前移到 **agent 实时编排面**；与 Google Managed MCP、Equixly 类 DevSecOps MCP 构成「开发-安全」闭环新品类。
-
 - **GitHits Public Beta 0.9 — Open-source code as context for AI coding agents**
   - 来源：**GitHits**
   - 时间：`260616`
@@ -124,40 +102,62 @@ vibe-48h/
     - 从私测「示例生成」扩展为依赖级源码导航：查 API 实现、读 changelog、审漏洞、比对包版本；自动检测 Cursor/Claude Code 等并配置 MCP。
     - 定位「代码 Google」补位而非替代 Codex/Claude Code；同日完成 **$1.75M** pre-seed（Vendep/Trind/Jerry Liu 等），计划索引全部公开开源仓库。
 
+- **Anthropic ships major Claude Design overhaul with design system imports, code round-trips, and a fix for its token-burning problem**
+  - 来源：**VB**
+  - 时间：`260617 19:00`
+  - 正文：~**1100** tok
+  - URL：https://venturebeat.com/technology/anthropic-ships-major-claude-design-overhaul-with-design-system-imports-code-round-trips-and-a-fix-for-its-token-burning-problem
+  - 类型：新产品
+  - 要点：
+    - **Claude Design** 大改版：从 GitHub/设计文件/上传导入**设计系统**，生成前自动校验并纠错；管理员可锁定企业标准组件库，输出强制 on-brand。
+    - **Claude Code ↔ Design 双向**：`/design-sync` 导入代码库设计系统；设计稿一键 handoff 至 Code 续写；Code 内 `/design` 命令不离终端编辑设计项目。
+    - Token 经济学修复：与 Chat/Cowork/Code **共享订阅额度**（非独立小池）；单轮消耗优化；导出至 Adobe/Canva/Gamma/Lovable/Miro/Replit/Vercel/Wix 等 **9** 家伙伴。
+
+- **Introducing eve, an open-source agent framework**
+  - 来源：**Vercel**
+  - 时间：`260617`
+  - 正文：~**880** tok
+  - URL：https://vercel.com/changelog/introducing-eve-an-open-source-agent-framework
+  - 类型：新产品
+  - 要点：
+    - **eve** 公测：filesystem-first TypeScript agent 框架；agent = 目录（`agent.ts` + `instructions.md` + `tools/`/`skills/`/`subagents/`/`channels/`/`schedules/`）。
+    - 内置 durable execution、沙箱、human-in-the-loop approvals、subagents、evals；`npx eve@latest init` 一分钟本地起 agent；`vercel deploy` 原样上生产。
+    - 任意模型 + 任意 MCP + Slack/Discord/GitHub 等 channel；Vercel 自用内部 agent 的同框架开源（`github.com/vercel/eve`）。
+
+- **Bringing more agent harnesses and frameworks to Cloudflare, starting with Flue**
+  - 来源：**Cloudflare**
+  - 时间：`260617`
+  - 正文：~**1050** tok
+  - URL：https://blog.cloudflare.com/agents-platform-flue-sdk/
+  - 类型：新产品
+  - 要点：
+    - **Agents SDK** 向第三方 harness 开放 Project Think 级原语：**runFiber** 崩溃恢复、**@cloudflare/codemode** 动态代码执行、**@cloudflare/shell** 持久虚拟文件系统、**@cloudflare/dynamic-workflows** 运行时写 workflow。
+    - **Flue 1.0 Beta**（Astro 团队）为首框架：声明式定义 agent 上下文（model/skills/sandbox/instructions），基于 **Pi** harness；Cloudflare 部署时每 agent 一 Durable Object。
+    - 三层栈范式：Framework（Flue）→ Harness（Pi/Think）→ Runtime（Agents SDK）；Flue 支持 Slack/GitHub/Linear/Discord channel 与 `@flue/react` 前端流式 UI。
+
+- **Agent finder for GitHub Copilot now available**
+  - 来源：**GitHub**
+  - 时间：`260617`
+  - 正文：~**720** tok
+  - URL：https://github.blog/changelog/2026-06-17-agent-finder-for-github-copilot-now-available/
+  - 类型：新产品
+  - 要点：
+    - **Agent finder**：自然语言描述任务 → 搜索已索引 MCP/skills/canvas/agent/tool → 按相关性排序按需加载，避免预装全量工具塞满 context。
+    - 实现开放 **ARD（Agentic Resource Discovery）** 规范；可指向 GitHub 公共目录或企业私有 registry；企业 managed settings 控制可发现资源；**不自动安装**。
+    - 全 Copilot 计划可用；同日 Google 发布 ARD 规范、Hugging Face 推出 Discover Tool 参考实现。
+
+- **An important update: Transitioning Gemini CLI to Antigravity CLI**
+  - 来源：**Google**
+  - 时间：`260618`
+  - 正文：~**900** tok
+  - URL：https://developers.googleblog.com/en/an-important-update-transitioning-gemini-cli-to-antigravity-cli/
+  - 类型：新产品
+  - 要点：
+    - **6/18** 起 **Gemini CLI** 与 Gemini Code Assist IDE 扩展对 Pro/Ultra/免费个人用户**停止服务**；GitHub Code Assist 同日禁新装、数周内停请求。
+    - 继任者 **Antigravity CLI**（`agy`，Go 闭源单二进制）：与 Antigravity 2.0 共享 agent harness；保留 Skills/Hooks/Subagents/Extensions（改 Antigravity plugins）；支持 `agy plugin import gemini` 迁移。
+    - 企业 **Code Assist Standard/Enterprise** 与 GCP GitHub 许可**保留 Gemini CLI**；API key 用户仍可用；标志 Google 将消费级 VibeCoding 终端收敛至闭源多 agent 平台。
+
 ### 新模式
-
-- **'Fix this code' defensive-task-as-jailbreak trigger（防御性任务被认定为 jailbreak 触发召回）**
-  - 来源：**Fortune**
-  - 时间：`260615 18:35`
-  - 正文：~**560** tok
-  - URL：https://fortune.com/2026/06/15/fix-this-code-three-words-behind-us-government-shut-down-anthropic-fable-mythos-ai-models-katie-moussouris-open-letter/
-  - 类型：新模式
-  - 要点：
-    - Amazon 安全研究员向政府上报的「jailbreak」实质为 **"Fix this code"** 提示：让 Fable 5 读代码库并修补漏洞——Katie Moussouris（Luta Security）审阅后认为这是**标准防御性工作流**而非 Mythos 专属 uplift。
-    - 出口管制逻辑将「向非公民分发」视为出口，Anthropic 无法实时过滤国籍，故 **6/12** 全球下线 Fable 5/Mythos 5；GitHub Copilot 同步暂停 Fable 5，会话回退 **Opus 4.8**。
-    - 行业警示：若「发现已知小漏洞」即触发召回标准，将**实质上冻结所有 frontier 新模型部署**；加速企业多源/自托管采购范式（GLM-5.2 MIT 权重同日释出形成对照）。
-
-- **Interactive vs programmatic agent billing split（交互 vs 程序化 agent 计费双轨）**
-  - 来源：**Anthropic**
-  - 时间：`260615`
-  - 正文：~**500** tok
-  - URL：https://docs.anthropic.com/en/docs/claude-code/sdk
-  - 类型：新模式
-  - 要点：
-    - **6/15** Anthropic 正式将 Claude 订阅拆为 **交互桶**（聊天、终端内 Claude Code、Cowork）与 **程序化桶**（SDK、`-p`、CI、第三方 agent），两桶独立计量、独立上限。
-    - 行业含义：agent 厂商可将「人坐前面写代码」与「无人值守流水线」定价分离；第三方 daemon/headless 工具被明确归入程序化面，无法再蹭订阅无限额度。
-    - 与 Microsoft **Copilot Credits**（6/16 Cowork GA）、Databricks 用量计费 Genie 形成对标——订阅补贴 agent 的时代结束，按任务/按 credit 成为主流。
-
-- **Task-complexity model routing in coding agents（编码 agent 按任务复杂度路由模型）**
-  - 来源：**Cast AI**
-  - 时间：`260615`
-  - 正文：~**620** tok
-  - URL：https://cast.ai/press-release/minimax-m3-comes-to-kimchi-coding/
-  - 类型：新模式
-  - 要点：
-    - Kimchi 将企业 AI 采购从「选单一最强模型」转为 **per-step 路由**：简单步骤用开源权重，复杂评估/推理 reserved 给 frontier 或 M3 级模型。
-    - 内置 **token 优化 orchestrator** 对生成代码评分并持续反馈，在准确度与 token 消耗间动态平衡；硬花费上限从 API key 到组织级 enforce。
-    - WSJ 报道企业正普遍采用「混合 open-weight + 商业 frontier」策略；Kimchi shadow 模式 **2.5×** 降本验证该范式在真实编码流水线可行。
 
 - **Metered delegated-labor billing via Copilot Credits（按量计费的委托劳动定价）**
   - 来源：**Microsoft**
@@ -168,7 +168,7 @@ vibe-48h/
   - 要点：
     - Cowork GA 将 M365 Copilot 从「席位订阅」扩展为 **订阅 + Copilot Credits 用量双轨**：每任务按模型调用、上下文检索、工具调用、运行时四因子计价，非固定月费。
     - 管理员默认关闭 Cowork、设租户/组/用户花费上限；用户可见每任务 credit 成本（GA 后陆续上线）；标志 office agent 从 chat 辅助升级为**可预算的委托劳动**品类。
-    - 与 Anthropic Agent SDK credit、OpenRouter Fusion panel 审议形成「按任务复杂度/自主度分层计费」行业共识。
+    - 与 Anthropic Agent SDK credit（6/15）、OpenRouter Fusion panel 审议形成「按任务复杂度/自主度分层计费」行业共识。
 
 - **Genie Ontology as living business context graph（业务本体活图驱动 data-smart coworker）**
   - 来源：**Databricks**
@@ -180,6 +180,39 @@ vibe-48h/
     - **Genie Ontology** 自动从表/查询/仪表盘/工单/文档抽取知识，以类 **PageRank** 权威度排序定义来源，无需手工维护独立知识库或权限系统。
     - 将「通用编码 agent 猜数据」转为「data-smart coworker 查可信源」：内部 28 题企业数据分析基准首答 **84.5%** vs 匿名最强编码 agent **52.4%**，且延迟 **2×** 更快。
     - VibeCoding 启示：业务 agent 竞争力从 prompt 技巧转向**可治理的企业上下文层**；与 Google Agentic Data Cloud、MCP 数据库服务器形成 data-agent 基础设施三角。
+
+- **Design-code round-trip as single-agent workflow（设计-代码单 agent 闭环）**
+  - 来源：**VB**
+  - 时间：`260617`
+  - 正文：~**620** tok
+  - URL：https://venturebeat.com/technology/anthropic-ships-major-claude-design-overhaul-with-design-system-imports-code-round-trips-and-a-fix-for-its-token-burning-problem
+  - 类型：新模式
+  - 要点：
+    - Anthropic 押注「同一 AI 既设计又编码」消除 Figma→Dev 损耗：共享组件库后 Design 输出与 Code 实现不再经 lossy handoff，而是**同一系统延续**。
+    - 与 Anthropic 研究（~40 万 Claude Code 会话：领域专长而非编程技能决定成败）呼应——设计师借 agent 跨模态成功靠业务理解，非学语法。
+    - 对标 Figma Dev Mode/Zeplin 规格传递范式；防御开源 **Open Design**（57k+ stars）靠 Adobe/Canva/Vercel 等**集成生态**而非自托管。
+
+- **ARD federated discovery layer over MCP/A2A（MCP 之上的联邦能力发现层）**
+  - 来源：**Google**
+  - 时间：`260617`
+  - 正文：~**680** tok
+  - URL：https://developers.googleblog.com/announcing-the-agentic-resource-discovery-specification/
+  - 类型：新模式
+  - 要点：
+    - **ARD v0.9**：域名托管 `/.well-known/ai-catalog.json` 静态清单 + 联邦 registry REST API；发现 MCP/A2A/Skills/API 后由原生协议直连执行，ARD 不介入运行时。
+    - 发布方一次描述、多 registry 索引；GitHub Agent finder、Hugging Face Discover、Google Agent Platform 同日落地；Apache 2.0，基于 Linux Foundation **AI Catalog** 数据模型。
+    - 逆转「每个平台重复注册」：agent 运行时按需发现工具，替代预装全量 MCP 塞 context——与 Copilot Agent finder「find not install」一致。
+
+- **Open-source terminal agent sunset to closed multi-agent platform（开源终端 agent 退役→闭源多 agent 平台）**
+  - 来源：**Google**
+  - 时间：`260618`
+  - 正文：~**560** tok
+  - URL：https://developers.googleblog.com/en/an-important-update-transitioning-gemini-cli-to-antigravity-cli/
+  - 类型：新模式
+  - 要点：
+    - Google 将 **Apache 2.0 Gemini CLI**（10 万+ stars）在消费级硬切至**闭源 Go Antigravity CLI**，理由：工作流已演进为「多 agent 共享统一后端」，单 TUI 不足承载。
+    - 迁移窗口约 30 天（I/O **5/19** 公告 → **6/18** 截止）；`gemini` 命令 CI/CD 脚本将静默失败；企业/API 用户双轨保留形成「tier 分裂」。
+    - 行业对照：Anthropic 拆交互/程序化计费、Microsoft Cowork credits、Cloudflare 将 harness 与 runtime 分层——大厂将 VibeCoding 从社区开源工具收编为**可计量商业 agent 平台**。
 
 ---
 
