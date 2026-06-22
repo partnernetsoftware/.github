@@ -4,11 +4,11 @@
 
 | 项 | 值 |
 |---|---|
-| 采集窗口 | `260619 07:02` UTC → `260621 07:02` UTC（48h，cron 触发 `2026-06-21T07:02Z`） |
-| 本文件更新 | `260621 07:02` UTC |
+| 采集窗口 | `260620 07:01` UTC → `260622 07:01` UTC（48h，cron 触发 `2026-06-22T07:01Z`） |
+| 本文件更新 | `260622 07:01` UTC |
 | 条目数 | 13 |
-| 新模型 / 新产品 / 新模式 | 13（新模型 3 · 新产品 5 · 新模式 5） |
-| main 合并 commit | `d9cab9c` |
+| 新模型 / 新产品 / 新模式 | 13（新模型 4 · 新产品 5 · 新模式 4） |
+| main 合并 commit | `待推送后填写` |
 
 ---
 
@@ -23,62 +23,62 @@ vibe-48h/
 
 ### 新模型
 
-- **Claude Fable 5 / Mythos 5 remain offline — Day 9, refund window closed**
+- **Claude Fable 5 / Mythos 5 remain offline — Day 10, free trial ends today**
   - 来源：**Anthropic**
-  - 时间：`260621`
-  - 正文：~**980** tok
+  - 时间：`260622`
+  - 正文：~**1020** tok
   - URL：https://www.anthropic.com/news/fable-mythos-access
   - 类型：新模型
   - 要点：
     - **6/12** 美国商务部出口管制令要求切断外国国民对 **Fable 5**（`claude-fable-5`）与 **Mythos 5** 的访问；Anthropic 为全球合规**全量下线**两模型，API 仍返回不可用错误。
-    - **6/20** 为 **6/9–14** 订阅用户退款处理截止日；**6/21** 进入禁令第 9 日，Chris Ciauri **6/18** 首尔称「数日内恢复」但尚未兑现；**6/22** 为付费用户免费试用窗口关闭日。
+    - **6/20** 为 **6/9–14** 订阅用户退款处理截止日；**6/22** 为付费用户免费试用窗口关闭日——原定于 **6/23** 起 Fable 5 移出订阅额度、改按 API 价（$10/$50 per M tokens）计费，但模型仍离线，Anthropic 尚未说明过渡方案。
     - 白宫要求「消除全部 jailbreak」遭安全界普遍认为技术上不可行；与 Gemini 3.5 Pro 延期、OpenRouter 自主度分层计费形成「前沿模型政府召回」先例。
 
-- **Gemini 3.5 Pro — nine days left in Google's June GA window**
+- **Gemini 3.5 Pro — eight days left in Google's June GA window**
   - 来源：**Google**
   - 时间：`260621`
-  - 正文：~**920** tok
+  - 正文：~**940** tok
   - URL：https://developers.googleblog.com/en/an-important-update-transitioning-gemini-cli-to-antigravity-cli/
   - 类型：新模型
   - 要点：
-    - **6/21** 时 **Gemini 3.5 Pro** 仍仅限 **Vertex AI** 企业预览，未进入 Gemini App、AI Studio 或公开 API；Sundar Pichai 在 **5/19** I/O 承诺 **6 月 GA**，月末仅剩 9 天。
+    - **6/21** 时 **Gemini 3.5 Pro** 仍仅限 **Vertex AI** 企业预览，未进入 Gemini App、AI Studio 或公开 API；Sundar Pichai 在 **5/19** I/O 承诺 **6 月 GA**，月末仅剩 8 天。
     - 已确认规格：**2M** 上下文、**Deep Think** 推理模式、前沿多模态；泄露定价约 **$15/$60** per M input/output tokens，约为 Flash 的 10×。
     - Fable 5 全球下线后，Pro 成为下一款有明确窗口的前沿模型；若 **6/30** 前未 GA，Google 或将被迫更新时间表。
 
-- **Ministral-3-14B-Instruct now on Amazon SageMaker JumpStart**
-  - 来源：**AWS**
-  - 时间：`260619`
-  - 正文：~**780** tok
-  - URL：https://insideai.news/news/agentic-ai/aws-debuts-mistrals-ministral-3-14b-instruct-for-multimodal-agentic-ai-in-sagemaker/1677/
+- **GPT-5.6 launch window starts Monday — alignment fix and 1.5M token context**
+  - 来源：**TechTimes**
+  - 时间：`260621`
+  - 正文：~**1180** tok
+  - URL：https://www.techtimes.com/articles/318799/20260621/gpt-56-launch-window-starts-monday-alignment-fix-15m-token-context-inside.htm
   - 类型：新模型
   - 要点：
-    - **6/19** AWS 将 Mistral **Ministral-3-14B-Instruct-2512** 加入 **SageMaker JumpStart**，一键部署 **14B** 多模态 instruct 模型，支持视觉+文本与 **function calling**。
-    - 面向边缘/本地 agent 场景：比 Mistral Large 3（675B MoE）更轻，适合企业私有云内嵌 agent 工具调用。
-    - 与 Mistral 3 家族（Large 3 + Ministral 3B/8B/14B，**Apache 2.0**）在 Bedrock、OpenRouter 等渠道形成「云端大模型 + JumpStart 边缘模型」双轨。
+    - **6/21** OpenAI 仍未官宣 **GPT-5.6**；Polymarket 合约将 **6/22–28** 标为最可能发布周（总交易量超 **$1.1M**）；**6/18** 泄露称 **6/25** 为计划发布日，内部代号 **kindle-alpha**。
+    - 开发者观测：部分 ChatGPT Pro 账户疑似已影子部署 GPT-5.6——单次软件构建耗时从 GPT-5.5 的 ~10 分钟增至 ~60 分钟，输出质量更高；Codex 路由日志曾短暂出现 `gpt-5.6` 标识。
+    - 预期升级：**1.5M** 上下文（较 GPT-5.5 API 的 1.05M 提升约 43%）、**5 月** 训练截止、重设计的 reward audit pipeline 修复 GPT-5.5「goblin 隐喻」对齐污染；Fable 5 下线后 agentic coding 市场出现空窗。
+
+- **LOGOS — Alibaba open-sources unified scientific grammar model (1B–8B)**
+  - 来源：**LOGOS**
+  - 时间：`260618`
+  - 正文：~**860** tok
+  - URL：https://github.com/LOGOS-Hub/LOGOS
+  - 类型：新模型
+  - 要点：
+    - **6/18** 阿里 **ATH-Token Foundry**（通义 + Future Life Lab 合并）与人大高瓴 AI 学院开源 **LOGOS**（Language Of Generative Objects in Science）：将蛋白质、小分子、化学反应、材料编码为统一 token 序列，纯自回归范式跨域生成。
+    - 参数规模 **1B–8B**（Apache 2.0）；**1B** 变体在多项科学基准上超越微软 **NatureLM**（56B+）；逆合成预测准确率 **74.8%**。
+    - **6/21** 媒体报道引发关注；同期美国防部 **1260H** 清单新增阿里（**6/27** 生效），企业自托管部署可规避云路由合规风险。
 
 ### 新产品
 
-- **Temporary Cloudflare Accounts for AI agents**
-  - 来源：**Cloudflare**
-  - 时间：`260619`
-  - 正文：~**950** tok
-  - URL：https://blog.cloudflare.com/temporary-accounts/
+- **Locus Founder — YC agent that builds and runs a business from a text message**
+  - 来源：**YC**
+  - 时间：`260620`
+  - 正文：~**900** tok
+  - URL：https://www.bipbipamerica.com/y-combinator-reveals-a-new-ai-agent-that-can-build-and-run-an-entire-business-just-from-a-text-message
   - 类型：新产品
   - 要点：
-    - **6/19** Cloudflare 发布 **Temporary Accounts**：agent 执行 `wrangler deploy --temporary` 即可**无需人类注册/OAuth** 获得临时账号与 API token，秒级部署 Worker。
-    - 部署后返回 **claim URL**；人类 **60 分钟内**认领则账号永久化（含 D1 等 binding）；超时自动删除全部资源。
-    - Wrangler 在认证失败时主动提示 `--temporary` 标志，让 LLM 自主发现该能力；与 Stripe 联合 agent 开户协议、WorkOS **auth.md** 构成「无摩擦 agent 部署」产品栈。
-
-- **Hermes Agent v0.17.0 — iMessage, Raft network, Cursor Composer via xAI OAuth**
-  - 来源：**Nous**
-  - 时间：`260619`
-  - 正文：~**1020** tok
-  - URL：https://github.com/NousResearch/hermes-agent/releases/tag/v2026.6.19
-  - 类型：新产品
-  - 要点：
-    - **6/19** 开源 **Hermes Agent v0.17.0**（The Reach Release）：新增 **iMessage** 通道（Photon）、**Raft** agent 网络、桌面端 agent builder 与安全登录。
-    - **Cursor Composer**（`grok-composer-2.5-fast`）经 **xAI Grok OAuth** 直连，无需单独 API key；新模型支持 `glm-5.2`、`laguna-m.1`、`nemotron-3-ultra`、`claude-fable-5`。
-    - `memory` 工具支持原子批量编辑；curator 默认关闭 aux-model 合并以省 token；~1,475 commits / 300+ issues closed。
+    - **6/20** YC 展示 **Locus Founder**：用户经 iMessage/SMS/Telegram 发送商业想法，agent 自主完成调研、建站、货源、营销并以 **USDC** 结算（**Pay With Locus** 非托管钱包）。
+    - 将 VibeCoding 从「写代码」扩展为「**运营商业实体**」；人类保留审计与支出控制。
+    - 订阅制按交易量或月费；标志 agent 范式从 developer tool 向 **autonomous operator** 迁移。
 
 - **Atomic Mail — email service where AI agents register their own inboxes**
   - 来源：**Atomic**
@@ -102,6 +102,17 @@ vibe-48h/
     - 处理非人类身份验证、欺诈防控与消费限额；定位「**Stripe for AI agents**」，按交易费或订阅 monetize。
     - 解锁 agent 从推荐到**自主执行真实世界采购**的闭环，餐饮配送为 PoC，可扩展至 B2B 供应链等场景。
 
+- **Ask Ad Manager — Gemini-powered agent for publisher ad ops**
+  - 来源：**Google**
+  - 时间：`260620`
+  - 正文：~**820** tok
+  - URL：https://zbrandco.com/google-ad-manager-ai-agent-launch/
+  - 类型：新产品
+  - 要点：
+    - **6/20** Google 在 **Google Ad Manager** 内推出 **Ask Ad Manager**：基于 **Gemini** 的对话式 agent，帮出版商广告运营团队消除重复手工操作。
+    - **6 月** 起向全部 GAM 用户逐步开放 public beta；更多 agentic 能力将分阶段发布至 **2026 年底**。
+    - Google 计划 **2026 年内**发布配套 REST API 与 **MCP server**，供第三方 ad tech 工具接入 trafficking 工作流。
+
 - **Qubitz AI — agentic platform from former AWS specialists**
   - 来源：**Cloud202**
   - 时间：`260620`
@@ -115,16 +126,16 @@ vibe-48h/
 
 ### 新模式
 
-- **Disposable temporary cloud accounts for agent deploy（一次性临时云账号部署）**
-  - 来源：**Cloudflare**
-  - 时间：`260619`
-  - 正文：~**580** tok
-  - URL：https://blog.cloudflare.com/temporary-accounts/
+- **Text-to-business autonomous agent（短信即创业）**
+  - 来源：**YC**
+  - 时间：`260620`
+  - 正文：~**560** tok
+  - URL：https://www.bipbipamerica.com/y-combinator-reveals-a-new-ai-agent-that-can-build-and-run-an-entire-business-just-from-a-text-message
   - 类型：新模式
   - 要点：
-    - 将 agent 部署范式从「阻塞等人类 OAuth」翻转为「**先部署、后认领**」：60 分钟窗口内无限次迭代 write→deploy→curl 验证。
-    - 未认领资源自动销毁，降低 agent 试错成本；与人类在环的 claim 步骤保留合规审计点。
-    - VibeCoding 启示：云厂商开始为**后台无人值守 agent** 重设身份与计费边界，而非仅 retrofit OAuth。
+    - Locus Founder 将 agent 交互面从 IDE/终端下沉至 **SMS/iMessage**——用户用自然语言描述商业意图，agent 端到端执行实体运营。
+    - **USDC** 非托管钱包（Pay With Locus）使 agent 可自主收付款，人类设定支出上限与审计规则。
+    - 与 Atomic Mail（通信）、Agentcard（支付）形成 consumer-grade agent 创业栈雏形。
 
 - **Agent-native payment rails（Agent 原生支付轨）**
   - 来源：**Agentcard**
@@ -148,27 +159,16 @@ vibe-48h/
     - JMAP + PoW 反垃圾使机器注册可行；与 Cloudflare 临时账号、Agentcard 支付形成 agent **身份-通信-支付** 三件套。
     - 企业 agent 落地需重新定义 IAM：何时允许 agent 对外通信、如何吊销机器身份。
 
-- **Text-to-business autonomous agent（短信即创业）**
-  - 来源：**YC**
-  - 时间：`260620`
-  - 正文：~**560** tok
-  - URL：https://www.bipbipamerica.com/y-combinator-reveals-a-new-ai-agent-that-can-build-and-run-an-entire-business-just-from-a-text-message
-  - 类型：新模式
-  - 要点：
-    - YC 展示 **Locus Founder**：用户经 iMessage/SMS/Telegram 发送商业想法，agent 自主完成调研、建站、货源、营销并以 **USDC** 结算（**Pay With Locus** 非托管钱包）。
-    - 将 VibeCoding 从「写代码」扩展为「**运营商业实体**」；人类保留审计与支出控制。
-    - 订阅制按交易量或月费；标志 agent 范式从 developer tool 向 **autonomous operator** 迁移。
-
-- **Usage-metered enterprise agent + open-model backend option（按量计费企业 agent + 开源后端选项）**
-  - 来源：**Microsoft**
-  - 时间：`260619`
+- **Unified scientific grammar for cross-domain generative AI（统一科学语法跨域生成）**
+  - 来源：**LOGOS**
+  - 时间：`260618`
   - 正文：~**540** tok
-  - URL：https://www.techoper.com/microsoft-copilot-cowork-generally-available-usage-pricing-deepseek-june-2026
+  - URL：https://arxiv.org/html/2606.16905
   - 类型：新模式
   - 要点：
-    - **6/16** **Copilot Cowork** GA 后，**6/19** 媒体报道确认转向 **Copilot Credits** 按量计费（长时后台 agent 任务无法被 flat licence 覆盖）。
-    - 微软同步探索在 Azure 托管微调 **DeepSeek V4** 或其他开源模型作为 Cowork 低成本后端——尚未定案，数周内公布。
-    - 与 Anthropic 合建 Cowork、但推理层可切换开源，标志大厂 agent 栈进入「**多模型路由 + 用量计量**」运营阶段。
+    - LOGOS 用单一 **scientific grammar** 将蛋白质、抗体、小分子、材料、空间交互编码为 token 序列，取代「每域一个专用模型 + 3D 几何输入」碎片化栈。
+    - 纯自回归 Transformer 在 **1B–8B** 参数范围展现稳定 scaling；药物发现、材料设计、反应建模共享同一推理循环。
+    - 对 VibeCoding 的类比：如同用统一 DSL 替代多语言胶水代码——科学 agent 可用一套工具链跨域编排生成与预测任务。
 
 ---
 
