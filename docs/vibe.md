@@ -56,16 +56,16 @@ vibe-48h/
     - GSMA Open Telco Leaderboard 平均 **89.6%**，超越所有已测闭源/开源通用与电信模型；由 Digital Future Institute 开发，为 TelecomGPT 系列第三代。
     - 运营商、设备商与研究机构可免费检视与适配，标志垂直领域开源推理模型在行业标准基准上首次全面领先闭源竞品。
 
-- **MOSS-TTS-Local-Transformer-v1.5 — 4B stereo speech model with 48 kHz output**
-  - 来源：**OpenMOSS**
-  - 时间：`260618`
-  - 正文：~**640** tok
-  - URL：https://github.com/OpenMOSS/MOSS-TTS
+- **Claude Fable 5 / Mythos 5 remain offline — free trial ends, API still blocked**
+  - 来源：**Anthropic**
+  - 时间：`260622`
+  - 正文：~**900** tok
+  - URL：https://www.anthropic.com/news/fable-mythos-access
   - 类型：新模型
   - 要点：
-    - **6/18** OpenMOSS 发布 **MOSS-TTS-Local-Transformer-v1.5**：**4B** `MossTTSLocal` 骨干由 Qwen3-1.7B 扩至 Qwen3-4B，搭配 **MOSS-Audio-Tokenizer-v2** 实现原生 **48 kHz 立体声**输出。
-    - 支持语言标签、稳定克隆、显式停顿控制；家族另含 1.2B–3.8B 变体，覆盖长文本、多说话人对话与实时流式 TTS。
-    - **6/22** 社区关注度上升（GitHub 3500+ stars）；对 agent 语音交互栈提供可自托管替代 ElevenLabs/OpenAI TTS 的开源选项。
+    - **6/12** 美国商务部出口管制令要求切断外国国民对 **Fable 5**（`claude-fable-5`）与 **Mythos 5** 的访问；Anthropic 为全球合规**全量下线**两模型，API 仍返回不可用错误。
+    - **6/22** 为付费用户免费试用窗口关闭日——原定于 **6/23** 起 Fable 5 移出订阅额度、改按 API 价（$10/$50 per M tokens）计费，但模型仍离线，过渡方案未公布。
+    - Fable 5 下线催生 Sakana Fugu 等编排替代方案；与 GPT-5.5-Cyber 扩围形成「前沿模型政府召回 vs 防御模型开放」两极。
 
 - **GPT-5.6 launch window — alignment fix and 1.5M token context (rumored)**
   - 来源：**TechTimes**
