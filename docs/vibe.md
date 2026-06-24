@@ -4,11 +4,11 @@
 
 | 项 | 值 |
 |---|---|
-| 采集窗口 | `260621 07:02` UTC → `260623 07:02` UTC（48h，cron 触发 `2026-06-23T07:02Z`） |
-| 本文件更新 | `260623 07:02` UTC |
-| 条目数 | 14 |
-| 新模型 / 新产品 / 新模式 | 14（新模型 5 · 新产品 6 · 新模式 3） |
-| main 合并 commit | `2a767ae` |
+| 采集窗口 | `260622 07:00` UTC → `260624 07:00` UTC（48h，cron 触发 `2026-06-24T07:00Z`） |
+| 本文件更新 | `260624 07:00` UTC |
+| 条目数 | 16 |
+| 新模型 / 新产品 / 新模式 | 16（新模型 7 · 新产品 6 · 新模式 3） |
+| main 合并 commit | `待推送后填写` |
 
 ---
 
@@ -45,40 +45,84 @@ vibe-48h/
     - 与 **Patch the Planet** 联动：联合 Trail of Bits、HackerOne、Calif 为 cURL、Python、Go、Sigstore 等 30+ 开源项目提供 AI 辅助审计与补丁；人类安全工程师在送达维护者前复核全部发现。
     - Anthropic Mythos/Fable 下线后，OpenAI 借 Daybreak 扩大国际政府合作（澳、加、法、德、日、韩、欧盟 ENISA）；Codex Security 插件同步更新，支持 SARIF/CodeQL 集成。
 
-- **TelecomGPT-R1 — 27B open reasoning model tops GSMA telco leaderboard**
-  - 来源：**KU**
+- **Pulsar 16B — 30B-class open reasoning at half the parameters (NVIDIA Nemotron)**
+  - 来源：**Multiverse**
+  - 时间：`260623 09:00`
+  - 正文：~**780** tok
+  - URL：https://www.globenewswire.com/news-release/2026/06/23/3315999/0/en/Multiverse-Computing-Launches-Pulsar-16B-in-collaboration-with-NVIDIA-Frontier-Grade-Reasoning-at-Half-the-Parameters.html
+  - 类型：新模型
+  - 要点：
+    - **6/23** 西班牙 **Multiverse Computing** 发布 **Pulsar 16B**：**16.15B** 总参数、**3.1B** 激活的 Hybrid Mamba2-Transformer MoE 开源推理模型，基于 NVIDIA **Nemotron-3-Nano-30B** 经 CompactifAI 压缩，无需从头重训。
+    - 宣称达到 30B 级前沿推理性能；提供 BF16/FP8/NVFP4 精度；Hugging Face **Apache 2.0** 开源，支持 vLLM/Transformers 推理与 tool calling。
+    - NVIDIA 独立复现评测；标志模型压缩技术让主权部署场景可用更小硬件跑前沿推理。
+
+- **Datalab lift — 9B open-weights vision model for schema-driven JSON extraction**
+  - 来源：**Datalab**
+  - 时间：`260623`
+  - 正文：~**850** tok
+  - URL：https://www.marktechpost.com/2026/06/23/datalab-releases-lift-a-9b-open-weights-vision-model-that-extracts-structured-json-from-pdfs-using-schemas/
+  - 类型：新模型
+  - 要点：
+    - **6/23** Datalab 发布 **lift**：**9B** 开源视觉模型，直接读 PDF/图像并按用户 JSON Schema 做约束解码输出结构化字段；训练 abstention 对缺失字段返回 null 而非幻觉。
+    - 字段准确率 **90.2%**（自托管模型最高），整文档准确率 **20.9%**；代码 Apache 2.0，权重 modified OpenRAIL-M；支持 HuggingFace 本地与 vLLM Docker 生产部署。
+    - 延伸 chandra/marker/surya OCR 工具链至 schema 驱动抽取；与同日 Mistral OCR 4 形成「自托管抽取 vs 托管结构化 API」对照。
+
+- **Baidu Unlimited-OCR — MIT open weights for one-shot multi-page PDF parsing**
+  - 来源：**Baidu**
   - 时间：`260622`
   - 正文：~**720** tok
-  - URL：https://www.middleeastainews.com/p/khalifa-university-telecomgpt-r1-wins
+  - URL：https://explainx.ai/blog/baidu-unlimited-ocr-one-shot-long-horizon-parsing-2026
   - 类型：新模型
   - 要点：
-    - **6/22** 阿布扎比 **Khalifa University** 在 MWC 上海发布 **TelecomGPT-R1**：**27B** 参数电信专用推理模型，Apache-2.0 开源。
-    - GSMA Open Telco Leaderboard 平均 **89.6%**，超越所有已测闭源/开源通用与电信模型；由 Digital Future Institute 开发，为 TelecomGPT 系列第三代。
-    - 运营商、设备商与研究机构可免费检视与适配，标志垂直领域开源推理模型在行业标准基准上首次全面领先闭源竞品。
+    - **6/22** 百度发布 **Unlimited-OCR**：**MIT** 开源，**32,768** token 上下文，单次前向完成整份 PDF/多页扫描解析，无需分块再拼接；GitHub 24h 内获 **1.8k** stars。
+    - Hugging Face `baidu/Unlimited-OCR` + ModelScope；附 SGLang wheel 与 `infer_multi` 批处理；arXiv `2606.23050`。
+    - 与次日 Mistral OCR 4 对比：Unlimited-OCR 胜在长文档自托管一次推理，Mistral 胜在 bbox/块类型/置信度结构化输出。
 
-- **Claude Fable 5 / Mythos 5 remain offline — free trial ends, API still blocked**
-  - 来源：**Anthropic**
-  - 时间：`260622`
-  - 正文：~**900** tok
-  - URL：https://www.anthropic.com/news/fable-mythos-access
+- **Mistral OCR 4 — bounding boxes, typed blocks, and confidence scores**
+  - 来源：**Mistral**
+  - 时间：`260623`
+  - 正文：~**680** tok
+  - URL：https://thecircuitry.to/article/mistral-ocr-4-featuring-bounding-boxes-and-typed-block-classification-mqqt4xhw
   - 类型：新模型
   - 要点：
-    - **6/12** 美国商务部出口管制令要求切断外国国民对 **Fable 5**（`claude-fable-5`）与 **Mythos 5** 的访问；Anthropic 为全球合规**全量下线**两模型，API 仍返回不可用错误。
-    - **6/22** 为付费用户免费试用窗口关闭日——原定于 **6/23** 起 Fable 5 移出订阅额度、改按 API 价（$10/$50 per M tokens）计费，但模型仍离线，过渡方案未公布。
-    - Fable 5 下线催生 Sakana Fugu 等编排替代方案；与 GPT-5.5-Cyber 扩围形成「前沿模型政府召回 vs 防御模型开放」两极。
+    - **6/23** Mistral 发布 **OCR 4**：紧凑文档模型，输出标题/表格/公式/签名等 typed block 分类 + 页/词级 bbox 与置信度；支持 PDF/DOC/PPT/ODF。
+    - API **$4/1k pages**（Batch API 半价）；接入 **Mistral Search Toolkit** 公测作为 RAG 摄取层；企业可单容器自托管满足数据驻留。
+    - 面向 agentic 原语（表单填写、合规检查）与语义分块索引；与 Baidu Unlimited-OCR 同日窗口形成开源长文档 vs 托管结构化两条路线。
 
-- **GPT-5.6 launch window — alignment fix and 1.5M token context (rumored)**
-  - 来源：**TechTimes**
-  - 时间：`260621`
-  - 正文：~**1050** tok
-  - URL：https://www.techtimes.com/articles/318799/20260621/gpt-56-launch-window-starts-monday-alignment-fix-15m-token-context-inside.htm
+- **GPT-5.6 — Codex repo wires model ID, Polymarket odds collapse (still unreleased)**
+  - 来源：**OpenAI**
+  - 时间：`260623`
+  - 正文：~**920** tok
+  - URL：https://www.proactiveinvestors.co.uk/companies/news/1094317/traders-abandon-bets-on-a-gpt-5-6-launch-this-week-1094317.html
   - 类型：新模型
   - 要点：
-    - **6/21–23** OpenAI 仍未官宣 **GPT-5.6**；Polymarket 合约将 **6/22–28** 标为最可能发布周（总交易量超 **$1.1M**）；**6/18** 泄露称 **6/25** 为计划发布日，内部代号 **kindle-alpha**。
-    - 部分 ChatGPT Pro 账户疑似已影子部署——单次软件构建耗时从 GPT-5.5 的 ~10 分钟增至 ~60 分钟；Codex 路由日志曾短暂出现 `gpt-5.6` 标识。
-    - 预期升级：**1.5M** 上下文、重设计 reward audit pipeline 修复 GPT-5.5 对齐污染；Fable 5 下线后 agentic coding 前沿出现空窗。
+    - **6/23** OpenAI 公开 **Codex** 仓库 PR #29644 加入 `gpt-5.6` 处理逻辑并列入 `NEVER_DEFAULT_MODELS`，阻止 staged rollout 时自动设为默认；尚无 model card 或 API 上架。
+    - Polymarket「6/22–28 发布」概率从月初 **83%** 跌至 **18%**；「7/31 前发布」仍定价 **94%**；内部代号 **kindle-alpha** 曾在 Codex 路由短暂出现后被撤回。
+    - 传闻规格：~**2M** 上下文、对齐修复、更强 agentic coding；Fable 5 下线后前沿 coding 模型出现空窗，但本周官宣仍未到来。
 
 ### 新产品
+
+- **Claude Tag — persistent multiplayer AI teammate in Slack (Opus 4.8)**
+  - 来源：**Anthropic**
+  - 时间：`260623`
+  - 正文：~**1050** tok
+  - URL：https://www.anthropic.com/news/introducing-claude-tag
+  - 类型：新产品
+  - 要点：
+    - **6/23** Anthropic 发布 **Claude Tag**：Slack 内常驻共享 AI 队友，频道内 `@Claude` 委派任务；基于 **Opus 4.8**，Claude Enterprise/Team 公测可用，取代旧 Claude in Slack（**8/3** 退役）。
+    - 组织级单一身份 + 管理员按频道限定工具/代码库/数据源；支持 ambient 主动跟进、跨频道记忆、异步长任务与定时自驱；Anthropic 内部产品团队 **65%** 代码经 Tag 生成。
+    - 与 Claude Code 演进关系：从单人 IDE agent 扩展为多人协作层；计划数周内扩展至 Slack 以外平台。
+
+- **Cursor proprietary model + Origin Git platform + Cursor Mobile iOS beta**
+  - 来源：**Cursor**
+  - 时间：`260623`
+  - 正文：~**880** tok
+  - URL：https://the-decoder.com/cursor-announces-its-own-ai-model-a-new-git-platform-and-a-mobile-app/
+  - 类型：新产品
+  - 要点：
+    - **6/23** Cursor（Anysphere）宣布三项产品：自研 frontier 级模型（从零训练、非开源底座，算力为前代 Composer **10–20×**，数周内出货）、**Origin** 云 Git 平台、**Cursor Mobile** iOS 测试版。
+    - **Origin** 面向人机/agent 并发读写：负载测试数千 agent 同时读写单仓库，自动解决 merge conflict、修复 CI 失败、处理 review 评论；内部与合作伙伴已用，秋季公开。
+    - **Cursor Mobile** 远程管理 agent、解阻塞任务、审阅 agent 截图；标志 VibeCoding 工具链向「自研模型 + agent-native Git + 移动端遥控」垂直整合。
 
 - **Google Interactions API — GA as primary interface for Gemini models and agents**
   - 来源：**Google**
@@ -102,49 +146,27 @@ vibe-48h/
     - 专用 agent 覆盖 VoC 分析、规格撰写、竞品研究、代码库理解；输出全程可溯源至真实客户笔记；规格可经新 **MCP** 一键推入 **Claude Code、Codex、Cursor**，消除 PM→工程 handoff 损耗。
     - 支持 GitHub 代码库接地规格、上线后自动拉取 Pendo/Hex/Amplitude 分析做 launch review；标志 VibeCoding 上游「产品意图→可执行 spec」链路产品化。
 
-- **Patch the Planet — Daybreak open-source maintainer security program**
-  - 来源：**OpenAI**
-  - 时间：`260622`
-  - 正文：~**860** tok
-  - URL：https://openai.com/index/patch-the-planet
+- **Zafin AIOS — agent orchestration control plane for regulated institutions**
+  - 来源：**Zafin**
+  - 时间：`260623`
+  - 正文：~**750** tok
+  - URL：https://www.prnewswire.com/news-releases/zafin-launches-aios-an-end-to-end-platform-to-orchestrate-and-govern-agentic-work-302806892.html
   - 类型：新产品
   - 要点：
-    - **6/22** OpenAI 在 Daybreak 下推出 **Patch the Planet**：与 Trail of Bits 合作，为开源维护者提供 AI 辅助漏洞发现+**人类复核**+补丁开发+协调披露全链路，避免 AI 报告淹没维护者。
-    - 首期覆盖 cURL、Python、Go、Sigstore、pyca/cryptography 等 19+ 项目；5 天冲刺发现数百问题、合并数十补丁，并产出可复用 fuzzing/差分测试流水线。
-    - 维护者可获 ChatGPT Pro、条件性 Codex Security 访问与 API 额度；标志「AI 找洞→专家验真→维护者拍板」的 agentic 安全运维新模式落地开源生态。
+    - **6/23** 金融科技平台商 **Zafin** 发布 **AIOS**：面向银行/保险等受监管机构的端到端 agent 编排与控制平面，统一调度自有与第三方已注册 agent、底层模型与工具调用。
+    - 内置企业护栏、成本管控与 **proof-of-work** 审计链；覆盖从业务运营到软件交付全路径；推出 **AIOS Accelerator** 限时计划助机构从实验迈向受控 agentic 生产。
+    - Deloitte 调查显示仅 **21%** 组织具备成熟自治 AI 治理——AIOS 定位填补「任务级 AI 生产力→跨工作流运营产能」缺口。
 
-- **Zoom Virtual Agent — Agent Architect and Agent Performance Suite**
-  - 来源：**Zoom**
-  - 时间：`260622`
+- **LumApps AI Employee Hub — workforce-wide agent discovery and orchestration**
+  - 来源：**LumApps**
+  - 时间：`260623`
   - 正文：~**680** tok
-  - URL：https://news.zoom.com/introducing-agent-architect-and-agent-performance-suite-for-zoom-virtual-agent/
+  - URL：https://www.prnewswire.co.uk/news-releases/lumapps-launches-the-ai-employee-hub-to-accelerate-ai-adoption-302807174.html
   - 类型：新产品
   - 要点：
-    - **6/22** Zoom 为 **Zoom Virtual Agent (ZVA)** 发布 **Agent Architect**（可视化 agent 生成与部署）与 **Agent Performance Suite**（持续优化与个性化），并增强跨 Zoom CX 的客户上下文层。
-    - 帮助企业更快生成端到端对话式 AI agent、优化多渠道客服表现；CCW Las Vegas **6/22–25** 展台首发演示。
-    - 标志企业客服栈从「聊天机器人配置」演进为「agent 架构师 + 性能闭环」一体化平台。
-
-- **i10X Superagent — human-directed Chief of Staff across 100+ tools**
-  - 来源：**i10X**
-  - 时间：`260622`
-  - 正文：~**620** tok
-  - URL：https://markets.businessinsider.com/news/stocks/i10x-launches-superagent-1036266766
-  - 类型：新产品
-  - 要点：
-    - **6/22** 新加坡 **i10X.ai**（15 万+ 用户工作流平台）发布 **Superagent**：用户设定商业目标后 agent 写计划并在 **100+** 已连接工具间执行，但在发邮件、上线 deck 或资金操作前**强制人工确认**。
-    - 定位「首席幕僚」而非完全自主 agent——计划可见、关键动作需批准、无静默越权。
-    - 已在 i10X 工作区内可用；代表 enterprise agent 部署中「autonomy with guardrails」的产品化路径。
-
-- **Zensar AgentMesh — 80+ pre-built enterprise agents on six-layer platform**
-  - 来源：**Zensar**
-  - 时间：`260622`
-  - 正文：~**700** tok
-  - URL：https://techedgeai.com/zensar-unveils-agentmesh-a-scalable-agentic-ai-platform-for-enterprises/
-  - 类型：新产品
-  - 要点：
-    - **6/22** 印度 IT 服务商 **Zensar** 发布 **ZenseAI.AgentMesh**：六层架构企业 agentic 平台，内置 **80+** 预部署 agent（KYC、欺诈检测、理赔、合规文档处理等）。
-    - 开箱集成 SAP、Salesforce、ServiceNow、Snowflake、Databricks；云或本地部署；宣称 **6–8 周**上线，内置 EU AI Act 与 SR 11-7 合规对齐。
-    - 标志垂直行业 agent 目录化交付——企业无需从零编排，直接选购行业 agent 接入现有数据管道。
+    - **6/23** 员工体验平台 **LumApps** 发布 **AI Employee Hub**：覆盖通讯、HR、IT、运营等日常业务流程的 agent 与服务目录，让员工无需 IT 技能即可发现、创建、编排数字劳动力。
+    - 集成 Google Workspace / Microsoft 365；面向 desk/frontline/分布式团队；已服务 **1000 万+** 用户（Zapier、Genuine Parts 等）。
+    - 标志 enterprise agent 从「IT 部门部署」转向「员工自助编排」——people-first 企业 AI 采用路径。
 
 ### 新模式
 
@@ -159,27 +181,27 @@ vibe-48h/
     - 与 RouteLLM/Not Diamond 等「选单一最优模型」路由不同，Fugu 支持多轮并行/串行委派；背景 orchestration token 计入账单。
     - 出口管制与单厂商断供背景下，「可替换 agent 池 + 学习型协调器」成为 frontier 能力的实用对冲——不必拥有最大单体模型也能逼近 Fable/Mythos 性能。
 
-- **Agent-first developer API — Interactions replaces generateContent for stateful workflows**
-  - 来源：**Google**
-  - 时间：`260622`
-  - 正文：~**520** tok
-  - URL：https://ai.google.dev/gemini-api/docs/interactions/interactions-overview
+- **Ambient multiplayer teammate — org-scoped shared agent with channel memory (Claude Tag)**
+  - 来源：**Anthropic**
+  - 时间：`260623`
+  - 正文：~**620** tok
+  - URL：https://venturebeat.com/technology/anthropic-launches-claude-tag-replacing-its-slack-app-with-a-persistent-ai-teammate-that-learns-monitors-and-works-autonomously
   - 类型：新模式
   - 要点：
-    - Google 明确前沿长任务与 agent 能力将**优先独家**登陆 Interactions API——从「无状态 completion」转向「有状态 step 流 + 服务端状态 + 托管沙箱」。
-    - 单一端点同时服务模型推理（`gemini-3.5-flash` 等）与 agent（`antigravity-preview`、`deep-research-*`）；`background=True` 解耦长任务与客户端连接。
-    - 对 VibeCoding 的影响：coding agent 默认通过 Interactions + Antigravity 沙箱构建，Gemini CLI 已让位于 **Antigravity CLI**（**6/18** 对个人 Pro/Ultra 停服）。
+    - Claude Tag 将 agent 从「单人私聊工具」变为「频道内共享队友」：组织级身份、按频道隔离记忆与工具权限，任何人可接续他人发起的线程。
+    - **Ambient** 模式主动监控频道上下文、标记遗漏任务、跨工具拉取相关信息——从 on-demand 问答演进为 always-on 协作参与者。
+    - 对比 Microsoft Copilot 横向铺全应用栈，Anthropic 选择先深耕 Slack 单表面：用持久 presence + 跨频道记忆积累机构知识，再扩展平台。
 
-- **Agentic product management — spec-to-IDE via MCP without copy-paste**
-  - 来源：**PB**
+- **Document AI bifurcation — self-hosted long-horizon parsing vs managed structured extraction**
+  - 来源：**Baidu**
   - 时间：`260622`
-  - 正文：~**480** tok
-  - URL：https://www.productboard.com/blog/introducing-spark-agentic-product-system/
+  - 正文：~**540** tok
+  - URL：https://explainx.ai/blog/baidu-unlimited-ocr-one-shot-long-horizon-parsing-2026
   - 类型：新模式
   - 要点：
-    - Productboard Spark 将 PM 工作流从「人写 spec → 复制到 IDE」变为「agent 从真实产品数据生成可追溯 spec → MCP 直推 Cursor/Codex/Claude Code」。
-    - 多专用 agent 共享产品战略、OKR、客户历史上下文——区别于每轮重置的通用 ChatGPT 会话。
-    - 标志 VibeCoding 上游意图层产品化：PM agent 与 coding agent 经 MCP 形成闭环，Spec-Driven 与 Vibe 的边界在工具链层面开始融合。
+    - **6/22–23** 百度 Unlimited-OCR（MIT 开源、整 PDF 一次推理）与 Mistral OCR 4（API $4/1k pages、bbox+块分类+置信度）同日窗口发布，框定 2026 文档 AI 两极。
+    - 自托管路线：数据驻留、离线、高吞吐批处理、schema/长文档一次过；托管路线：per-field 验证、引用溯源、低资源语言、agentic 表单/合规原语。
+    - 对 VibeCoding/RAG 影响：agent 文档摄取层选型从「统一 OCR API」变为按合规/精度/成本三角匹配路线，而非单一默认方案。
 
 ---
 
