@@ -4,11 +4,11 @@
 
 | 项 | 值 |
 |---|---|
-| 采集窗口 | `260625 07:00` UTC → `260627 07:00` UTC（48h，cron 触发 `2026-06-27T07:01Z`） |
-| 本文件更新 | `260627 07:00` UTC |
-| 条目数 | 15 |
-| 新模型 / 新产品 / 新模式 | 15（新模型 5 · 新产品 5 · 新模式 5） |
-| main 合并 commit | `cc8cc28` |
+| 采集窗口 | `260626 07:00` UTC → `260628 07:00` UTC（48h，cron 触发 `2026-06-28T07:00Z`） |
+| 本文件更新 | `260628 07:00` UTC |
+| 条目数 | 12 |
+| 新模型 / 新产品 / 新模式 | 12（新模型 3 · 新产品 5 · 新模式 4） |
+| main 合并 commit | `待推送后填写` |
 
 ---
 
@@ -30,53 +30,31 @@ vibe-48h/
   - URL：https://openai.com/index/previewing-gpt-5-6-sol/
   - 类型：新模型
   - 要点：
-    - **6/26** OpenAI 正式发布 **GPT-5.6** 三档：**Sol**（旗舰）、**Terra**（日常，性能≈GPT-5.5 但 **2×** 便宜）、**Luna**（最快最便宜）；定价 Sol **$5/$30**、Terra **$2.50/$15**、Luna **$1/$6** per 1M tokens；新增 **30 分钟** prompt cache 与显式 cache breakpoint。
-    - 能力：Sol **Terminal-Bench 2.1** SOTA；新增 **`max`** reasoning effort 与 **`ultra`** 模式（多 subagent 并行）；**7 月** Cerebras 上 Sol 达 **750 tok/s**。
+    - **6/26** OpenAI 发布 **GPT-5.6** 三档：**Sol**（旗舰）、**Terra**（日常，性能≈GPT-5.5 但 **2×** 便宜）、**Luna**（最快最便宜）；定价 Sol **$5/$30**、Terra **$2.50/$15**、Luna **$1/$6** per 1M tokens；新增 **30 分钟** prompt cache 与显式 cache breakpoint。
+    - 能力：Sol **Terminal-Bench 2.1** SOTA（标准 **88.8%**、Ultra **91.9%**）；新增 **`max`** reasoning effort 与 **`ultra`** 模式（多 subagent 并行）；**7 月** Cerebras 上 Sol 达 **750 tok/s**。
     - 访问：受美国政府要求，首批仅约 **20** 家可信伙伴经 API/Codex 预览，GA 计划数周内；OpenAI 公开反对将此审查流程长期化。
 
-- **Kimi K2.7 Code — 1T MoE open-source agentic coding model with 30% fewer thinking tokens**
-  - 来源：**Moonshot**
-  - 时间：`260625`
-  - 正文：~**980** tok
-  - URL：https://www.kimi.com/resources/kimi-k2-7-code
+- **MAI-Code-1-Flash — generally available for GitHub Copilot Business and Enterprise**
+  - 来源：**GitHub**
+  - 时间：`260626`
+  - 正文：~**680** tok
+  - URL：https://github.blog/changelog/2026-06-26-mai-code-1-flash-for-copilot-business-and-copilot-enterprise/
   - 类型：新模型
   - 要点：
-    - **6/25** Moonshot 发布 **Kimi K2.7 Code**：**1T** 总参 / **32B** 激活 MoE，**256K** 上下文，MoonViT **400M** 视觉编码器；Modified MIT 开源权重 Hugging Face `moonshotai/Kimi-K2.7-Code`。
-    - 相对 K2.6：Kimi Code Bench v2 **50.9→62.0**（+21.8%）、MCP Mark Verified **72.8→81.1**；thinking token 用量降约 **30%**；强制 thinking + preserve_thinking。
-    - 渠道：Kimi Code CLI 默认模型、Kimi API（**$0.95/$4.00** per 1M，cache hit **$0.19**）；vLLM/SGLang/KTransformers 部署。
+    - **6/26** Microsoft AI 自研 coding 模型 **MAI-Code-1-Flash** 在 **Copilot Business/Enterprise** GA（个人 VS Code 已于 **6/2** 起 rollout）；**256K** 上下文，无第三方蒸馏，直接针对 Copilot harness 训练。
+    - **Adaptive thinking**：简单任务短答、复杂任务自动加 reasoning budget；适合高并发 agentic 循环（低延迟 + 低 serving cost）。
+    - 企业管理员须在 Copilot 设置启用 **MAI-Code-1-Flash** policy；按 provider list price 计费（usage-based billing）。
 
-- **Ornith-1.0 — MIT-licensed agentic coding family with self-scaffolding RL**
-  - 来源：**DeepReinforce**
-  - 时间：`260625`
-  - 正文：~**850** tok
-  - URL：https://deep-reinforce.com/ornith_1_0.html
-  - 类型：新模型
-  - 要点：
-    - **6/25** Deep Reinforce AI 发布 **Ornith-1.0** 四档 MIT 开源 agentic coding 模型族：**9B** Dense、**31B**、**35B MoE**、**397B MoE**；基于 Gemma 4 / Qwen 3.5 预训练底座微调。
-    - **397B** 达 Terminal-Bench 2.1 **77.5**、SWE-Bench Verified **82.4**；**9B** 在单 **80GB** GPU 可部署（TB-2.1 **43.1**）。
-    - 核心创新：模型在 RL 中学习自身 scaffold，摆脱固定人工 harness；OpenAI-compatible endpoint，兼容 OpenHands/OpenCode。
-
-- **LFM2.5-230M — 230M edge agentic model running on Pi 5 and smartphones**
-  - 来源：**Liquid**
-  - 时间：`260625`
+- **Claude Mythos 5 — U.S. clears partial redeployment to 100+ trusted cyber partners (Fable 5 still blocked)**
+  - 来源：**日経**
+  - 时间：`260626`
   - 正文：~**720** tok
-  - URL：https://www.liquid.ai/blog/lfm2-5-230m
+  - URL：https://www.japantimes.co.jp/business/2026/06/27/tech/anthropic-mythos-ai-us-use/
   - 类型：新模型
   - 要点：
-    - **6/25** Liquid AI 发布 **LFM2.5-230M**（**230M** 参数，**32K** 上下文）：LFM2 混合架构（gated conv + GQA），**19T** token 预训练 + 三阶段 post-train（SFT 蒸馏→DPO→多域 RL）。
-    - 边缘实测：Galaxy S25 Ultra **213 tok/s** decode，Raspberry Pi 5 **42 tok/s**；数据抽取超越 **4×** 参数量级竞品；Unitree G1 人形机器人 Jetson Orin 技能编排 demo。
-    - Base + Instruct 双 checkpoint Hugging Face 开放；day-one 支持 llama.cpp/MLX/vLLM/SGLang/ONNX。
-
-- **OpenThinkerAgent-32B — open terminal and coding agent from Qwen3-32B post-training**
-  - 来源：**OpenThoughts**
-  - 时间：`260625`
-  - 正文：~**780** tok
-  - URL：https://arxiv.org/abs/2606.24855
-  - 类型：新模型
-  - 要点：
-    - **6/25** OpenThoughts 发布 **OpenThinkerAgent-32B** 与 **OpenThoughts-Agent-SFT-100K**：基于 **Qwen3-32B** 在 **100K** 过滤任务-轨迹对上 post-train；七项 agent 基准均值 **44.8%**，超 Nemotron-Terminal-32B **40.9%**。
-    - **100+** 消融实验验证任务来源与多样性关键性；数据集在多种训练规模下均优于其他开源 agent 数据配方。
-    - 同步开放权重、**AgentTrove**/**TaskTrove** 轨迹及 GitHub `open-thoughts/OpenThoughts-Agent` 可复现 pipeline。
+    - **6/26** 美国商务部 Lutnick 函告 Anthropic：经风险缓解，**Mythos 5** 可重新部署给 **100+** 可信美国组织（Fortune 500、联邦机构、关键基础设施防御方）；Anthropic 正快速恢复已批准客户访问。
+    - **Fable 5** 仍全面封锁、无恢复时间表——形成「最强 cyber 档恢复、消费级 cyber 档仍禁」的非对称格局；距 **6/12** 全球下架约两周。
+    - 与同日 OpenAI **GPT-5.6** 政府门控预览并列，标志美国 frontier cyber 模型发布从「自愿审查」转向「逐客户许可 + 分级恢复」。
 
 ### 新产品
 
@@ -102,38 +80,38 @@ vibe-48h/
     - 能力：沙箱创建、cartridge 部署、组件生成、作业管理；VS Code 扩展提供 B2C API 全谱调试与实时类型提示；GitHub Actions CI/CD 工作流。
     - 标志垂直电商 agent 工具链产品化——从通用 VibeCoding 向 **MCP 可交付 commerce agent** 渗透。
 
-- **WordPress Studio Code — agentic WordPress expert in desktop app beta**
-  - 来源：**WP**
-  - 时间：`260625`
-  - 正文：~**680** tok
-  - URL：https://wordpress.com/blog/2026/06/25/studio-code-desktop/
+- **GitHub Desktop 3.6 — Copilot SDK commit/conflict resolution + Git worktrees for parallel agents**
+  - 来源：**GitHub**
+  - 时间：`260626`
+  - 正文：~**740** tok
+  - URL：https://github.blog/changelog/2026-06-26-github-desktop-3-6-worktrees-and-deeper-copilot-integration/
   - 类型：新产品
   - 要点：
-    - **6/25** WordPress 将终端版 **Studio Code** agent 扩展至 **Studio 桌面应用**（macOS/Windows/Linux）公测，取代 V1 AI assistant；CLI 版仍免费可用。
-    - 自然语言驱动：创建站点、性能审计、批量内容/插件/主题管理、标注式批量更新、预览站生成与本地→staging/production 同步。
-    - 标志 VibeCoding 从通用 IDE 向**垂直 CMS agent** 渗透——降低 WordPress 开发者首次尝试 agentic 工作流门槛。
+    - **6/26** **GitHub Desktop 3.6.0** 全面迁移至 **Copilot SDK**：AI 辅助 commit message 生成（读取 `.github/copilot-instructions.md` + `AGENTS.md`）与 merge conflict 解释/建议 resolution。
+    - 新增 **Git worktrees** 原生支持——多分支并行开发无需反复 stash/switch/clone，直接对接 coding agent 的隔离 worktree 会话模式。
+    - 所有 Copilot 功能内置 **model picker** + **BYOK**（第三方 API 或本地模型）；macOS/Windows 渐进 rollout。
 
-- **Claude Code 2.1.191 — /rewind, permanent background-agent stop, MCP reliability**
-  - 来源：**Anthropic**
-  - 时间：`260625`
-  - 正文：~**640** tok
-  - URL：https://explainx.ai/blog/claude-code-2-1-191-rewind-mcp-background-agents-2026
+- **gstack — Garry Tan's 23-persona Claude Code slash-command engineering team (MIT)**
+  - 来源：**GitHub**
+  - 时间：`260627`
+  - 正文：~**820** tok
+  - URL：https://github.com/garrytan/gstack
   - 类型：新产品
   - 要点：
-    - **6/25** Claude Code **2.1.191** 发布 **20+** CLI 变更：`/rewind` 在 `/clear` 后恢复上下文；任务面板停止 background agent **永久生效**（不再静默复活导致重复编辑）。
-    - 流式输出 100ms coalescing 降低 CPU **~37%**；MCP `tools/list`/`prompts/list`/`resources/list` 瞬态错误退避重试；headless OAuth 跳过浏览器弹窗。
-    - 修复逗号分隔 hook matcher、沙箱网络「Always allow」会话持久、权限对话框 recently-denied 记忆——提升长时 agent 会话稳定性。
+    - **6/27** YC CEO **Garry Tan** 发布 **gstack**（MIT，**117K+** stars）：**23** 个 slash command 角色（CEO/Designer/Eng Manager/Release/Doc/QA/Security 等）+ **8** 工具，全 Markdown 配置，将 Claude Code 变为「虚拟工程团队」。
+    - 核心命令：`/ship`（sync→test→coverage audit→PR）、`/review`（生产级 bug hunt）、`/qa`（真实浏览器测试）、`/security`（OWASP+STRIDE）；无专有 runtime，纯 Claude Code 配置层。
+    - 标志 VibeCoding 从「单 agent 对话」转向**可 fork 的高层工程角色 playbook**——高管/创始人公开其 agent 工作流 SSOT。
 
-- **JetBrains AI — Codex (GPT-5.4-mini medium) as recommended default agent**
-  - 来源：**JetBrains**
-  - 时间：`260625`
-  - 正文：~**900** tok
-  - URL：https://blog.jetbrains.com/ai/2026/06/codex-is-now-the-recommended-agent-in-jetbrains-ai/
+- **DeepSpec + DSpark — open-source speculative decoding stack for DeepSeek-V4 (60–85% per-user speedup)**
+  - 来源：**DeepSeek**
+  - 时间：`260627`
+  - 正文：~**880** tok
+  - URL：https://github.com/deepseek-ai/DeepSpec
   - 类型：新产品
   - 要点：
-    - **6/25** JetBrains 将 **Codex + GPT-5.4-mini medium reasoning** 设为 AI Chat **推荐默认 agent**（取代需手动选择的 Chat 模式）；Junie/Claude Agent/ACP 兼容 agent 仍可切换。
-    - 离线基准：Java **225** + C# **38** + Python **90** 真实代码库任务；Codex solve rate **39.9%** vs Junie(Gemini 3 Flash) **39.1%**，在线 A/B 验证 Codex 留存更优；评估数据开源于 **DPAIA** 仓库。
-    - 标志 IDE 厂商从「多 agent 并列」转向**数据驱动默认路由**——降低新用户 agent 采用摩擦，OpenAI 获 JetBrains 官方背书。
+    - **6/26–27** DeepSeek 开源 **DeepSpec**（MIT 全栈 speculative decoding 训练/评测工具链）及 **DSpark** 框架；Hugging Face 发布 V4 Pro / V4 Flash 的 DSpark 版 checkpoint（原 V4 权重 + draft 模块，非新架构）。
+    - 生产实测（对比 MTP-1 baseline、吞吐不变）：V4-Flash 单用户生成 **+60–85%**、V4-Pro **+57–78%**；半自回归 draft + confidence-scheduled verification，离线 accepted length 超 Eagle3 **26–31%**。
+    - 与 OpenAI Cerebras **750 tok/s** 硬件路线对照：DSpark 走** commodity GPU 算法加速**开源路线——agent 长循环推理成本显著下降。
 
 ### 新模式
 
@@ -160,37 +138,26 @@ vibe-48h/
     - 标志 frontier API 从「调 temperature/reasoning effort」进化到**显式多 agent 编排开关**——厂商将 agent-of-agents 内建为产品能力。
 
 - **Government-gated staggered frontier release — vetted-partner preview before GA (GPT-5.6)**
-  - 来源：**VentureBeat**
+  - 来源：**TC**
   - 时间：`260626`
   - 正文：~**620** tok
-  - URL：https://venturebeat.com/technology/openai-unveils-gpt-5-6-sol-terra-and-luna-models-but-only-accessible-to-limited-preview-partners-for-now-per-us-gov
+  - URL：https://techcrunch.com/2026/06/26/openai-unveils-gpt-5-6-sol-terra-and-luna-models-but-only-accessible-to-limited-preview-partners-for-now-per-us-gov/
   - 类型：新模式
   - 要点：
     - **6/26** 特朗普 **6/2** 网络安全行政令后，OpenAI 接受「约 **20** 家可信伙伴预览 + 政府逐客户知情」而非即时全球 GA——较 Anthropic Fable/Mythos 全球下架更温和但仍创先例。
     - OpenAI 在官方稿中公开反对此流程长期化，称将阻碍 cyber defender 与全球伙伴获取工具；短期配合以换取数周内 broader availability。
     - 对 VibeCoding：前沿 coding 模型空窗期（Fable 5 下架 + GPT-5.6 受限预览）拉长，开发者短期更依赖 Opus 4.8、开源 Kimi K2.7 Code/Ornith 路线。
 
-- **Self-scaffolding RL — model learns its own training harness during reinforcement learning (Ornith)**
-  - 来源：**DeepReinforce**
-  - 时间：`260625`
+- **Asymmetric cyber-model re-access — Mythos 5 restored, Fable 5 still blocked under export controls**
+  - 来源：**POLITICO**
+  - 时间：`260626`
   - 正文：~**560** tok
-  - URL：https://deep-reinforce.com/ornith_1_0.html
+  - URL：https://www.politico.com/news/2026/06/26/white-house-makes-peace-with-anthropic-for-now-00965675
   - 类型：新模式
   - 要点：
-    - Ornith-1.0 将 RL 训练目标从「固定 harness 下优化解题」扩展为「**联合优化 scaffold + solution**」——模型自己写执行脚手架指导搜索，三层防 reward hacking（trust boundary + monitor + frozen judge）。
-    - 对比传统 agent 栈（固定 OpenHands/Terminus harness + 只训模型）：开源 agent 竞赛从 benchmark 刷分转向 **workflow 构造能力** 本身可学习。
-    - 标志 agentic coding 训练范式从「绑死生产 harness」转向「harness 与 policy 共同进化」。
-
-- **Benchmark-driven default agent routing — open DPAIA + online A/B for IDE defaults**
-  - 来源：**JetBrains**
-  - 时间：`260625`
-  - 正文：~**540** tok
-  - URL：https://blog.jetbrains.com/ai/2026/06/codex-is-now-the-recommended-agent-in-jetbrains-ai/
-  - 类型：新模式
-  - 要点：
-    - JetBrains 用真实代码库任务（自动化测试验证）+ 成本上限（≤2% 用户超 **$20/月**）+ 在线 A/B 行为信号，而非品牌或合作关系，选定默认 agent。
-    - **DPAIA**（Developer Productivity AI Arena）开源评测集使选择可复现、可随模型迭代重评——标志 IDE agent 默认从「厂商捆绑」转向「实证最优」。
-    - 用户可随时切换 agent；推荐仅为起点——但默认路由对 agent 采用率有决定性影响，将重塑 Codex vs Junie vs Claude Agent 市场份额。
+    - **6/26** 白宫部分撤销 Anthropic export ban：**Mythos 5** 恢复 **100+** 已批准美企/机构访问，但 **Fable 5**（面向更广泛开发者/消费者的 cyber 能力档）仍全面禁运——「最强档先放、普及档后议」的分级恢复模式。
+    - 与 OpenAI 同日 **GPT-5.6** 政府门控预览形成双厂商对齐：frontier cyber 模型发布默认附带**政府逐客户许可 + 非对称 tier 恢复**。
+    - VibeCoding 影响：general-purpose cyber coding（Fable 5）持续不可用，agent 开发者需转向 Mythos 受限渠道、GPT-5.6 预览名单或开源/亚太替代（Sakana Fugu、360 屠龙峰等）。
 
 ---
 
