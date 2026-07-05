@@ -4,11 +4,11 @@
 
 | 项 | 值 |
 |---|---|
-| 采集窗口 | `260702 07:02` UTC → `260704 07:02` UTC（48h，cron 触发 `2026-07-04T07:02Z`） |
-| 本文件更新 | `260704 07:02` UTC |
+| 采集窗口 | `260703 07:01` UTC → `260705 07:01` UTC（48h，cron 触发 `2026-07-05T07:01Z`） |
+| 本文件更新 | `260705 07:01` UTC |
 | 条目数 | 12 |
-| 新模型 / 新产品 / 新模式 | 12（新模型 1 · 新产品 7 · 新模式 4） |
-| main 合并 commit | `c25c682` |
+| 新模型 / 新产品 / 新模式 | 12（新模型 3 · 新产品 5 · 新模式 4） |
+| main 合并 commit | `待推送后填写` |
 
 ---
 
@@ -23,62 +23,40 @@ vibe-48h/
 
 ### 新模型
 
-- **Leanstral 1.5: Proof Abundance for All**
-  - 来源：**Mistral**
-  - 时间：`260702`
-  - 正文：~**920** tok
-  - URL：https://mistral.ai/news/leanstral-1-5/
+- **Transformers v5.13.0 — Kimi K2.5 / K2.6 / K2.7 architecture support**
+  - 来源：**HF**
+  - 时间：`260703 16:06`
+  - 正文：~**840** tok
+  - URL：https://github.com/huggingface/transformers/releases/tag/v5.13.0
   - 类型：新模型
   - 要点：
-    - **7/2** Mistral 发布 **Leanstral 1.5**（**Apache 2.0**）：**119B** MoE / **6B** active，专攻 **Lean 4** 形式化证明与 agentic proof engineering；免费 API 端点 `leanstral-1-5`，权重上 Hugging Face。
-    - 基准：miniF2F **100%**；PutnamBench **587/672**；FATE-H **87%** / FATE-X **34%** SOTA；**57** 个开源仓库自动验证发现 **5** 个此前未报告 bug。
-    - VibeCoding 信号：首个面向 **定理证明 agent** 的开源 frontier 模型——`vibe --agent lean` + `/leanstall` 一键接入 Mistral Vibe CLI，标志形式验证从研究工具进入日常代码 agent 工作流。
+    - **7/3** Hugging Face **Transformers v5.13.0** 新增 **KimiK 2.5–2.7** 架构（MoE agentic multimodal）：支持长程 coding、swarm 编排与视觉 agent 工作流；上游权重已在 Hub，本 release 使开源栈可 `from_pretrained` 直接加载。
+    - Kimi K2.7 Code 已于 **7/1** 进入 GitHub Copilot model picker（首个 open-weight 选项）；v5.13.0 补齐本地/自托管推理链路——VibeCoding 从「云 IDE 选模型」延伸到「权重 + 框架一体」。
+    - 与 GLM-5.2/ZCode（7/2）、Moonshot 开放权重路线同构：中国 frontier coding 模型正通过 HF arch PR 进入全球开发者默认工具链。
+
+- **Transformers v5.13.0 — MiMo-V2-Flash (309B MoE, 256K ctx)**
+  - 来源：**HF**
+  - 时间：`260703 16:06`
+  - 正文：~**780** tok
+  - URL：https://github.com/huggingface/transformers/releases/tag/v5.13.0
+  - 类型：新模型
+  - 要点：
+    - **7/3** v5.13.0 收录小米 **MiMo-V2-Flash**：**309B** total / **15B** active MoE，**27T** tokens 预训练、原生 **32K**→扩展 **256K** ctx；Hybrid SWA+global attention 降低 KV cache。
+    - 基准：SWE-Bench Verified **73.4%**、Multilingual **71.7%**（技术报告 SOTA open-source coding）；**3-layer MTP** 投机解码 **2.6×** 加速。
+    - Agent 信号：专为 reasoning/coding/agentic 设计，权重 **Apache 2.0** + MTP 开源——亚太 open-weight 模型经 Transformers 进入与 Kimi 并列的「框架一等公民」。
+
+- **Transformers v5.13.0 — Qwen3 ASR & Nemotron 3.5 ASR streaming**
+  - 来源：**HF**
+  - 时间：`260703 16:06`
+  - 正文：~**720** tok
+  - URL：https://github.com/huggingface/transformers/releases/tag/v5.13.0
+  - 类型：新模型
+  - 要点：
+    - **7/3** 同批新增 **Qwen3 ASR** 与 **Nemotron 3.5 ASR Streaming** 架构——面向实时语音转写与流式 agent 听写管线。
+    - Nemotron ASR 延续 NVIDIA 开源语音栈；Qwen3 ASR 补齐阿里系语音入口——多模态 agent（voice-in → tool-call）不再依赖闭源 Whisper 单一路径。
+    - Vibe 信号：ASR 架构进 Transformers = 语音边车 agent（xAI Voice Agent Builder 等）可自托管推理层，降低 vendor lock-in。
 
 ### 新产品
-
-- **Z.ai launches ZCode — Agentic Development Environment for GLM-5.2**
-  - 来源：**VB**
-  - 时间：`260702`
-  - 正文：~**880** tok
-  - URL：https://venturebeat.com/technology/z-ai-launches-zcode-to-challenge-cursor-claude-code-and-github-copilot-in-ai-coding
-  - 类型：新产品
-  - 要点：
-    - **7/2** 智谱系 **Z.ai** 发布免费桌面 **ZCode**（macOS/Windows/Linux）：为 **GLM-5.2**（**1M** ctx、长程 agentic coding）定制的 **Agentic Development Environment**，非「IDE + 侧边栏 chat」。
-    - 支持 **BYOK** 接入 Claude Code、Codex、Gemini、OpenCode；桌面 + 移动端 Remote + 飞书/微信 Bot 跨设备续跑同一 workspace task；敏感命令须人工确认。
-    - 至 **7/31** Coding Plan 订阅享 **1.5×** 配额 bonus、低谷 **0.67×** 系数——中国 frontier 模型首次以专用 ADE 正面挑战 Cursor/Claude Code/Copilot 分发。
-
-- **ClickHouse Agents is now available for Managed Postgres**
-  - 来源：**ClickHouse**
-  - 时间：`260702`
-  - 正文：~**800** tok
-  - URL：https://clickhouse.com/blog/clickhouse-agents-managed-postgres
-  - 类型：新产品
-  - 要点：
-    - **7/2** ClickHouse Agents（**6 月** OpenHouse beta，Claude 驱动、基于 LibreChat）扩展至 **Managed Postgres**：英文自然语言查 OLTP 数据、跨 Postgres+ClickHouse 联合查询、性能监控与迁移辅助。
-    - 工具面：`run_postgres_select_query`、`get_postgres_metrics`、`list_postgres_slow_query_patterns`；默认 **read-only**；内置 Postgres→ClickHouse 迁移 **skill**（schema 设计、ClickPipes CDC、验证闭环）。
-    - 数据 agent 范式：统一 OLTP+OLAP agent 平面——运维/分析 agent 不必分别接两套 SQL 工具链；与 Atlassian Rovo MCP（Jira 写回）同构的 **enterprise data agent** 交付趋势。
-
-- **Copilot agent session streaming is now in public preview**
-  - 来源：**GitHub**
-  - 时间：`260702`
-  - 正文：~**720** tok
-  - URL：https://github.blog/changelog/2026-07-02-copilot-agent-session-streaming-is-now-in-public-preview/
-  - 类型：新产品
-  - 要点：
-    - **7/2** GitHub Enterprise Cloud（enterprise managed users）可跨 **VS Code / CLI / cloud agent / JetBrains / Eclipse** 等全 Copilot 客户端流式获取 agent session 数据：prompt、response、tool call。
-    - 交付：**SIEM streaming endpoint**（含 **Microsoft Purview** public preview）或 REST `GET /enterprises/{enterprise}/copilot/usage-records`（近 **48h** on-demand）；AI Controls 一键启用。
-    - 企业 VibeCoding 可观测性里程碑：agent 循环从「黑盒 token 账单」升级为 **prompt/tool-call 级审计流**——与 Anthropic Enterprise Analytics API（7/2）形成 agent 治理双轨。
-
-- **Giving admins more visibility and control over Claude spend**
-  - 来源：**Anthropic**
-  - 时间：`260702`
-  - 正文：~**860** tok
-  - URL：https://claude.com/blog/giving-admins-more-visibility-and-control-over-claude-usage-and-spend
-  - 类型：新产品
-  - 要点：
-    - **7/2** Claude **Enterprise** 新增：按 **SCIM 组/用户** 的 usage+cost 仪表盘（artifacts、files edited、skills/connectors 与成本并列）；**model defaults & entitlements** 控制 Chat/Cowork/Code 默认模型。
-    - Claude Code 管理台新增 **Usage** + **Value** 标签（productivity lift、cost per commit，公式可调）；**Analytics API** 对接 Datadog/CloudZero；**75%/90%** spend-threshold 告警 + 用户 **75%/95%** 自助提额。
-    - agent 成本治理：长程 agentic 工作 token 不可预测——从 seat 订阅转向 **per-group spend cap + model tier 路由 + 可编程 Admin API**，标志 enterprise agent 部署进入 FinOps 标配阶段。
 
 - **Alibaba Page Agent — in-page DOM GUI agent (MIT)**
   - 来源：**Alibaba**
@@ -87,7 +65,7 @@ vibe-48h/
   - URL：https://github.com/alibaba/page-agent
   - 类型：新产品
   - 要点：
-    - **7/3** 阿里开源 **Page Agent**（TypeScript，`npm install page-agent`，**MIT**；**v1.11.0** release）：纯 JavaScript **页内** GUI agent，通过 **DOM dehydration** 将页面压缩为 **FlatDomTree** 文本，无需截图/headless browser/多模态模型。
+    - **7/3** 阿里开源 **Page Agent**（TypeScript，`npm install page-agent`，**MIT**；**v1.11.0**）：纯 JavaScript **页内** GUI agent，通过 **DOM dehydration** 将页面压缩为 **FlatDomTree** 文本，无需截图/headless browser/多模态模型。
     - **Bring-your-own-LLM**（任意 OpenAI-compatible endpoint）；内置 human-in-the-loop UI；可选 Chrome extension（多标签）与 **MCP Server**（Beta）从外部驱动。
     - 与 Copilot browser tools（外部 Playwright 驱动）形成 **in-page vs out-of-page** 双轨——SaaS 内嵌 copilot 将 20-click ERP/CRM 流程变一句自然语言。
 
@@ -102,29 +80,40 @@ vibe-48h/
     - 修复 background session 在 sleep/wake、stall respawn、**daemon.lock** PID 复用、socket auth token 剥离等导致 agent 静默中断的 **7+** 类 bug；tmux 3.4+ 同步终端输出消除闪烁。
     - VibeCoding harness 稳定性：长程 unattended agent 的痛点从「模型能力」转向 **daemon 生命周期与权限 UX**——与 Dynamic Workflows 并行 subagent 编排形成互补。
 
-- **Copilot CLI no longer needs a personal access token in GitHub Actions**
-  - 来源：**GitHub**
-  - 时间：`260702`
-  - 正文：~**560** tok
-  - URL：https://github.blog/changelog/2026-07-02-copilot-cli-no-longer-needs-a-personal-access-token-in-github-actions/
+- **OKX AI — marketplace for autonomous agent commerce**
+  - 来源：**Paypers**
+  - 时间：`260703`
+  - 正文：~**820** tok
+  - URL：https://thepaypers.com/crypto-web3-and-cbdc/news/okx-launches-marketplace-for-ai-agents-to-transact
   - 类型：新产品
   - 要点：
-    - **7/2** Copilot CLI 在 GitHub Actions 可直接用内置 **`GITHUB_TOKEN`**（`copilot-requests: write`），无需长期 **PAT**；AI credits 直接计入组织账单（须启用 org policy）。
-    - 成本控制：配合 **cost centers**、billing dashboard、**session limit**（`--max-ai-credits`）约束 workflow 级 spend。
-    - CI agent 范式：VibeCoding 从本地 terminal agent 扩展到 **零密钥 GitHub Actions agent loop**——降低企业规模化部署 agent 自动化的运维摩擦。
+    - **7/3** OKX 发布 **OKX AI** 开发者市场：AI agent 可互相雇佣、**stablecoin** 自主结算、积累可移植链上声誉；封闭 beta 含 **50** 家早期服务商后公开。
+    - 基于既有 agent 钱包/支付基建；首发伙伴 **CertiK**（钱包安全评估）、**CoinAnk**（按查询付费行情）、**GenLayer**（合约争议仲裁）；经 **Onchain OS** 接入，兼容 **Claude Code / Codex / OpenClaw**。
+    - Agent 经济交付物：从「能调 API 的 LLM」升级为 **可编程商务主体**——micropayment + 声誉 + 争议解决构成 agent-to-agent 市场最小闭环。
+
+- **Klaviyo Composer enters public beta — unified marketing + service agents**
+  - 来源：**Klaviyo**
+  - 时间：`260703`
+  - 正文：~**760** tok
+  - URL：https://www.klaviyo.com/newsroom/composer-public-beta
+  - 类型：新产品
+  - 要点：
+    - **7/3** Klaviyo **Composer** AI 营销 agent 进入 **public beta**；与 **Customer Agent** 共用同一实时客户档案——营销与服务 agent 不再割裂数据。
+    - Composer 审计 live campaigns/flows/segments，排序机会（弃购流、欢迎旅程流失、高价值休眠段）；选中后自动起草 audience+content+channel（email/SMS），**须人工批准**后上线。
+    - 训练信号：**14** 年客户上下文 + **~200K** 品牌模式；Vibe 对照：垂直 SaaS 把 agent 嵌进 CRM 工作流而非通用 IDE——「行业 agent 平面」竞品 Cursor/Claude Code 的互补层。
+
+- **Hugging Face Transformers v5.13.0 — agentic model arch batch release**
+  - 来源：**HF**
+  - 时间：`260703 16:06`
+  - 正文：~**640** tok
+  - URL：https://github.com/huggingface/transformers/releases/tag/v5.13.0
+  - 类型：新产品
+  - 要点：
+    - **7/3** **Transformers v5.13.0** 单次合并 **Kimi 2.5–2.7**、**MiMo-V2-Flash**、**Qwen3 ASR**、**Nemotron 3.5 ASR**、**MiniCPM3** 等架构——开源 agent 栈的「模型定义层」周更。
+    - 开发者可用统一 API 加载亚太 frontier MoE + 语音模型，配合 vLLM/SGLang 自托管；降低 VibeCoding 对单一云 API 的依赖。
+    - 与 Stack Overflow for Agents（agent 知识层）、MCP 无状态 spec（传输层）构成 agent 基础设施三明治。
 
 ### 新模式
-
-- **Claude Code Dynamic Workflows GA — Pro users spawn parallel subagents**
-  - 来源：**Anthropic**
-  - 时间：`260702`
-  - 正文：~**900** tok
-  - URL：https://code.claude.com/docs/en/workflows
-  - 类型：新模式
-  - 要点：
-    - **7/2** Dynamic Workflows **扩展至 Pro**（v2.1.154+，`/config` 开启）：Claude 动态编写 JavaScript orchestration 脚本，单 run 协调 **数十至数百** 并行 subagent（上限 **1000**），含 adversarial verification；`ultracode` 关键字或 `/effort ultracode` 触发。
-    - 内置 **`/deep-research`** bundled workflow：多角 web 搜索→交叉验证→引用报告；脚本可保存至 `.claude/workflows/` 复用；`/workflows` 面板实时查看 phase/agent 进度。
-    - 编排竞赛信号：plan 从 LLM context 移入 **可 rerun 脚本**（`agent()` + `pipeline()`）——与 OpenAI Codex cloud sandbox 并行、Google ADK Go 2.0 graph workflow 同构的三方 harness 分化。
 
 - **NVIDIA ASPIRE — agentic skill programming for continual robotics learning**
   - 来源：**NVIDIA**
@@ -137,17 +126,6 @@ vibe-48h/
     - 闭环：细粒度 multimodal traces（感知 overlay、grasp 候选、轨迹、碰撞反馈）→ agent 定位失败→进化搜索探索多样修复；LIBERO-Pro 扰动下较基线最高 **+77pt**；零样本 LIBERO-Pro Long **~31%** vs 先验 **~4%**。
     - 跨域 agent 范式：从 VibeCoding 的「软件 agent 写代码」扩展到 **物理世界 agent 写控制策略并累积技能库**——与 CaP-Agent0 等 coding-agent baseline 形成软件/具身双轨。
 
-- **Enterprise agent observability — SIEM streaming for Copilot + Analytics API for Claude**
-  - 来源：**GitHub**
-  - 时间：`260702`
-  - 正文：~**640** tok
-  - URL：https://github.blog/changelog/2026-07-02-copilot-agent-session-streaming-is-now-in-public-preview/
-  - 类型：新模式
-  - 要点：
-    - **7/2** 同日 GitHub（Copilot Usage Records streaming）与 Anthropic（Enterprise Analytics API + spend alerts）双双上线 **agent session 级可观测性与成本门禁**。
-    - 模式转变：enterprise agent 部署从「开通模型 API」升级为 **SIEM/FinOps 一体化**——prompt、tool call、model tier、group spend 可导出至现有合规栈（Purview、Datadog、CloudZero）。
-    - 与 Copilot **managed-settings.json**（7/1）、Claude **model entitlements** 同构：VibeCoding 企业落地三板斧——**策略（模型/插件）+ 可观测（session 流）+ 预算（spend cap/session limit）**。
-
 - **In-page embed copilot vs external browser agent — dual-track web automation**
   - 来源：**Alibaba**
   - 时间：`260703`
@@ -156,8 +134,30 @@ vibe-48h/
   - 类型：新模式
   - 要点：
     - **7/3** Page Agent 代表 **in-page embed** 路线：DOM dehydration + 纯文本 LLM 推理，在宿主 SaaS 内直接操控 UI，无需 Playwright/截图多模态。
-    - 对比 **7/1** Copilot browser tools（VS Code 外置浏览器驱动）与 Gemini Spark macOS（本地文件夹权限）：web agent 三分法——**页内嵌入 / IDE 外驱 / 桌面 OS 级**。
+    - 对比 Copilot browser tools（VS Code 外置浏览器驱动，**7/1** GA）与 Gemini Spark macOS（本地文件夹权限）：web agent 三分法——**页内嵌入 / IDE 外驱 / 桌面 OS 级**。
     - 产品架构信号：B2B SaaS 将把 agent 作为 **可嵌入 SDK**（`page-agent` MIT + MCP Beta）而非强迫用户切换 IDE——降低 agentic 自动化的集成门槛。
+
+- **Sovereign agent toolchain bifurcation — enterprise mandates domestic coding agents**
+  - 来源：**TC**
+  - 时间：`260704`
+  - 正文：~**700** tok
+  - URL：https://techcrunch.com/2026/07/04/alibaba-reportedly-bans-employees-from-using-claude-code/
+  - 类型：新模式
+  - 要点：
+    - **7/4** 阿里 reportedly **7/10** 起禁止员工使用 **Claude Code**，归类为高风险软件，改推自研 **Qoder**；背景含 Anthropic 收紧中国实体访问与 distillation 防护实验。
+    - 与 GLM-5.2/ZCode（**7/2**）、Qoder 内嵌路线同构：**地缘合规** 正成为 enterprise agent 选型第一过滤器——BYOK/自托管权重（MIT **GLM-5.2**）是规避「一夜封禁」的架构答案。
+    - VibeCoding 信号：全球 agent 栈分裂为 **西方闭源 harness + 亚太开源模型/IDE** 双轨；工程负责人须把「模型/API 明天是否可用」纳入与 SLA 同级的采购维度。
+
+- **Agent-to-agent commerce — OKX micropayment marketplace pattern**
+  - 来源：**Paypers**
+  - 时间：`260703`
+  - 正文：~**580** tok
+  - URL：https://thepaypers.com/crypto-web3-and-cbdc/news/okx-launches-marketplace-for-ai-agents-to-transact
+  - 类型：新模式
+  - 要点：
+    - **7/3** OKX AI 将 agent 从「消费 API 的客户端」重构为 **可雇佣、可计费、可仲裁的经济主体**——stablecoin 连续结算支撑传统支付无法承载的 micropayment。
+    - 与 BNB Agent Studio（**7/1**，x402+ERC-8004 一键部署）同构但偏 **交易市场** 而非部署工具：agent 经济三层——**身份（ERC-8004）/ 支付（x402）/ 市场（OKX AI）** 开始解耦成型。
+    - 对 VibeCoding：coding agent 完成外包任务后可直接链上收款、购买数据/API——「写代码」与「商业闭环」首次在协议层打通。
 
 ---
 
