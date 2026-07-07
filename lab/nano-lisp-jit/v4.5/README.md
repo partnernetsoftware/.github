@@ -48,7 +48,7 @@ grep v45.physical.zero_c=0 lab/nano-lisp-jit/.build/v45-entry.evidence
 ## 日常（Wave66 · zero-archive-path）
 
 ```bash
-COM=lab/nano-lisp-jit/.build/nano-lisp/nano-lisp.com
+COM=lab/nano-lisp-jit/release/nano-lisp.com
 $COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-converge-daily-v45-zero-archive-path.lisp
 bash lab/nano-lisp-jit/scripts/v45-wave66-archive-factory-lisp-retire-converge.sh
 ```

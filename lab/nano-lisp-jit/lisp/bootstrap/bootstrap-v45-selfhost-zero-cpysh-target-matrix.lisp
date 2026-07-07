@@ -1,8 +1,8 @@
 ; Wave56 W4: selfhost × zero_cpysh target 矩阵.
 ; Prefix v45-szct- · no build-slice lispjit.c · no .sh · no .py steps.
 (bootstrap
-  (file-size "lab/nano-lisp-jit/.build/v45-selfhost-next.com")
-  (file-size "lab/nano-lisp-jit/.build/nano-lisp/nano-lisp.com")
+  (file-size "lab/nano-lisp-jit/release/v45-selfhost-next.com")
+  (file-size "lab/nano-lisp-jit/release/nano-lisp.com")
   (build-slice-lisp "lab/nano-lisp-jit/lisp/core/nano-jit-slice-min.lisp"
                     "lab/nano-lisp-jit/.build/v45-szct-min-x86.elf"
                     "x86_64")

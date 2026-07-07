@@ -1,0 +1,54 @@
+{
+  "ssot": "v4.5/DIFFUSE-WAVE92.md",
+  "parent_goal": "mindmap-goal-nano-jit-com.json",
+  "updated_at": "2026-05-30T00:00:00Z",
+  "max_parallel": 4,
+  "breadth_ring": "lisp-codegen-resume \u2014 \u96f6\u65b0\u589e C \u00b7 semantic vs bulk \u8bda\u5b9e\u5bf9\u7167",
+  "nodes": [
+    {
+      "id": "v45-w92-gate",
+      "layer": 92,
+      "status": "done",
+      "accept": [
+        "v45.goal.proc_io_release=1"
+      ]
+    },
+    {
+      "id": "v45-w92-semantic",
+      "layer": 92,
+      "status": "done",
+      "deps": [
+        "v45-w92-gate"
+      ],
+      "plan": "bootstrap-v45-probe-compose15-semantic-pure-link.lisp",
+      "accept": [
+        "v45.goal.semantic_codegen_probe=1"
+      ]
+    },
+    {
+      "id": "v45-w92-audit",
+      "layer": 92,
+      "status": "done",
+      "deps": [
+        "v45-w92-semantic"
+      ],
+      "plan": "bootstrap-v45-goal-semantic-codegen-honest-audit.lisp",
+      "accept": [
+        "v45.goal.semantic_bulk_parity=1"
+      ]
+    },
+    {
+      "id": "v45-w92-resume",
+      "layer": 92,
+      "status": "done",
+      "deps": [
+        "v45-w92-audit"
+      ],
+      "plan": "bootstrap-v45-goal-lisp-codegen-resume.lisp",
+      "accept": [
+        "v45.goal.lisp_codegen_resume=1",
+        "v45.honest.no_new_c_wave92=1"
+      ]
+    }
+  ]
+}

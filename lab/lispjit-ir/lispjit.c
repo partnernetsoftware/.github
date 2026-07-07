@@ -1,1 +1,1 @@
-../nano-lisp-jit/archive/c/runner/lispjit.c
+../../nano-lisp-jit/retired/lispjit.c.archived

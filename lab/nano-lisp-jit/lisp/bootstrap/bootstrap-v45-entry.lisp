@@ -18,4 +18,4 @@
   (run "lab/nano-lisp-jit/.build/bootstrap-v45-entry-ctrl.lbin")
   (emit-elf64-exit "lab/nano-lisp-jit/.build/bootstrap-v45-entry-exit42.elf" 42)
   (run-expect-exit "lab/nano-lisp-jit/.build/bootstrap-v45-entry-exit42.elf" 42)
-  (file-hash "lab/nano-lisp-jit/.build/nano-lisp-jit"))
+  (file-hash "lab/nano-lisp-jit/release/nano-lisp.com"))

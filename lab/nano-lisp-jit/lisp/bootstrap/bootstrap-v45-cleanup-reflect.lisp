@@ -1,17 +1,11 @@
-; 清洗反思锚点：canonical evidence + /goal 总键 + Wave48 扩展签收.
+; 清洗反思锚点：honest-cleanup 工作池 + 证据 GAP 审计（≠ continue.100 终局）.
 (bootstrap
   (file-size "lab/nano-lisp-jit/v4.5/CLEANUP.md")
+  (file-size "lab/nano-lisp-jit/v4.5/EVIDENCE-GAP-AUDIT.md")
+  (file-size "lab/nano-lisp-jit/v4.5/mindmap-frontier-v45-honest-cleanup.json")
   (file-size "lab/nano-lisp-jit/.build/v45-entry.evidence.canonical")
+  (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.honest.cleanup_pool" "1")
+  (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.honest.wave70_plus_frozen" "1")
+  (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.honest.ape_two_slice_linux_only" "1")
   (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.goal.onion_tdd_tree_mindmap.100" "1")
-  (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.mindmap.nodes_done" "26")
-  (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.selfhost.100" "1")
-  (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.v45.lisp_com_bootstrap_terminal_continue.100" "1")
-  (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.v45.v45_terminal_complete.100" "1")
-  (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.v45.ci_plan_only_converge_continue.100" "1")
-  (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.v45.zero_cpysh_target_continue.100" "1")
-  (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.v45.lispjit_c_delete_continue.100" "1")
-  (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.v45.host_sh_retire_continue.100" "1")
-  (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.v45.tools_py_retire_continue.100" "1")
-  (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.physical.zero_cpysh" "1")
-  (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.v45.physical_honest_terminal_continue.100" "1")
   (file-hash "lab/nano-lisp-jit/v4.5/HONEST-REMAINING.md"))

@@ -1,0 +1,75 @@
+# Cloudflare Workers — mcp-cf-bots (deploy dir: workers/mcp-cf-bots/)
+# Override worker name: CLOUDFLARE_WORKER_NAME=... npx wrangler deploy
+name = "mcp-cf-bots"
+main = "src/index.ts"
+compatibility_date = "2024-11-01"
+workers_dev = true
+
+[triggers]
+crons = ["0 4 * * *"]
+
+[durable_objects]
+bindings = [
+  { name = "SESSION_STORE", class_name = "SessionStoreDO" },
+  { name = "REGISTRY", class_name = "RegistryDO" },
+  { name = "MEMORY_STORE", class_name = "MemorySqliteDO" },
+]
+
+[[kv_namespaces]]
+binding = "TOKENS"
+id = "ac6b8cef3cbe4d5fa315c2ed1106e04d"
+
+[[migrations]]
+tag = "v1"
+new_classes = ["SessionVaultDO", "RegistryDO"]
+
+[[migrations]]
+tag = "v2"
+renamed_classes = [{ from = "SessionVaultDO", to = "SessionStoreDO" }]
+
+[[migrations]]
+tag = "v3"
+new_classes = ["MemoryDO"]
+
+[[migrations]]
+tag = "v4"
+new_sqlite_classes = ["MemorySqliteDO"]
+
+[[migrations]]
+tag = "v5"
+deleted_classes = ["MemoryDO"]
+
+[ai]
+binding = "AI"
+
+# Vectorize accelerator — run ./scripts/setup-rag.sh (needs index + Vectorize Edit token)
+[[vectorize]]
+binding = "MEM_VECTORS"
+index_name = "mcp-cf-bots-mem"
+
+# Non-secret config — override per env (dashboard / wrangler vars put / CI).
+# Secrets (wrangler secret put): VAULT_TOKEN, optional ENCRYPTION_KEY
+[vars]
+MCP_HTTP_PATH = "/mcp"
+MCP_SERVER_NAME = "mcp-cf-bots"
+MCP_SERVER_VERSION = "1.0.2"
+MCP_API_VERSION = "1.0"
+MAX_BODY_BYTES = "2000000"
+MEM_CHUNK_CHARS = "1500"
+MAX_MEM_KEYS = "2000"
+MAX_MEM_BYTES = "8000000"
+MAX_MEM_CHUNK_BYTES = "32000"
+MEM_RATE_LIMIT_PER_MIN = "120"
+# MEM_ENCRYPT = "true"
+MEM_VECTORIZE_INDEX = "mcp-cf-bots-mem"
+MEM_CRON_REINDEX = "true"
+MEM_CRON_VECTOR_GC = "true"
+MEM_CRON_OWNER_LIMIT = "32"
+MEM_CRON_GC_PAGES_PER_RUN = "5"
+MCP_SERVER_DESCRIPTION = "Cloudflare MCP for cross-agent bots"
+MCP_PROTOCOL_VERSION = "2024-11-05"
+OWNER_HEADER = "X-Cf-Bots-Owner"
+DEFAULT_OWNER = "cloud-agent"
+DEFAULT_SESSION_SOURCE = "browser-use"
+# MCP_ALLOWED_ORIGINS = "https://cursor.com"
+# MCP_PUBLIC_HOST set at deploy from CLOUDFLARE_WORKER_DOMAIN (see scripts/deploy.sh)

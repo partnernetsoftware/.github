@@ -40,10 +40,10 @@
             "lab/nano-lisp-jit/.build/v45-cdp-x86.elf"
             "lab/nano-lisp-jit/.build/v45-cdp-arm.elf")
   (run-ape-expect-exit "lab/nano-lisp-jit/.build/v45-cdp-ape.com" 42)
-  (pack-ape "lab/nano-lisp-jit/.build/nano-lisp/nano-lisp.com"
+  (pack-ape "lab/nano-lisp-jit/release/nano-lisp.com"
             "lab/nano-lisp-jit/.build/v45-cdp-min-x86.elf"
             "lab/nano-lisp-jit/.build/v45-cdp-ir-aarch64.elf")
-  (inspect-ape "lab/nano-lisp-jit/.build/nano-lisp/nano-lisp.com")
+  (inspect-ape "lab/nano-lisp-jit/release/nano-lisp.com")
   (compile "lab/nano-lisp-jit/lisp/modules/00-runtime-core.lisp"
            "lab/nano-lisp-jit/.build/v45-cdp-mod00.lbin")
   (run "lab/nano-lisp-jit/.build/v45-cdp-mod00.lbin")

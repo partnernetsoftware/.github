@@ -57,6 +57,73 @@ static int cmd_run_app(const char *container_path) {
   return cmd_run_embedded(container_path, off_buf, size_buf);
 }
 
+static int cmd_run_stdin(const char *stdin_text, const char *blob_path) {
+#if defined(_WIN32)
+  (void)stdin_text;
+  (void)blob_path;
+  fprintf(stderr, "run-stdin=unsupported_platform\n");
+  return 2;
+#else
+  int pipefd[2];
+  pid_t pid;
+  int status = 0;
+  size_t len;
+  ssize_t wrote;
+  if (!stdin_text || !blob_path || !blob_path[0]) {
+    fprintf(stderr, "run-stdin=bad_args\n");
+    return 1;
+  }
+  if (pipe(pipefd) != 0) {
+    fprintf(stderr, "run-stdin=pipe_fail path=%s\n", blob_path);
+    return 2;
+  }
+  pid = fork();
+  if (pid < 0) {
+    close(pipefd[0]);
+    close(pipefd[1]);
+    fprintf(stderr, "run-stdin=fork_fail path=%s\n", blob_path);
+    return 2;
+  }
+  if (pid == 0) {
+    close(pipefd[1]);
+    if (dup2(pipefd[0], STDIN_FILENO) < 0) _exit(127);
+    close(pipefd[0]);
+    {
+      int rc = cmd_run(blob_path);
+      fflush(stdout);
+      fflush(stderr);
+      _exit(rc & 255);
+    }
+  }
+  close(pipefd[0]);
+  len = strlen(stdin_text);
+  wrote = write(pipefd[1], stdin_text, len);
+  close(pipefd[1]);
+  if (wrote != (ssize_t)len) {
+    fprintf(stderr, "run-stdin=write_fail path=%s\n", blob_path);
+    waitpid(pid, &status, 0);
+    return 3;
+  }
+  if (waitpid(pid, &status, 0) < 0) {
+    fprintf(stderr, "run-stdin=wait_fail path=%s\n", blob_path);
+    return 3;
+  }
+  printf("run-stdin.path=%s\n", blob_path);
+  printf("run-stdin.bytes=%zu\n", len);
+  if (WIFEXITED(status)) {
+    int actual = WEXITSTATUS(status);
+    printf("run-stdin.actual=%d\n", actual);
+    return actual;
+  }
+  if (WIFSIGNALED(status)) {
+    fprintf(stderr, "run-stdin=signaled signal=%d\n", WTERMSIG(status));
+    return 4;
+  }
+  fprintf(stderr, "run-stdin=unknown_status\n");
+  return 4;
+#endif
+}
+
 static int run_executable_expect_exit(const char *path, const char *expected_s) {
   size_t expected = 0;
   if (!parse_size_arg(expected_s, &expected) || expected > 255) {
@@ -135,4 +202,79 @@ static int cmd_file_hash(const char *path) {
   printf("%016llx\n", (unsigned long long)fnv1a64(data, n));
   free(data);
   return 0;
+}
+
+static int cmd_read_file(const char *path) {
+  size_t n = 0;
+  unsigned char *data = read_file(path, &n);
+  if (!data) {
+    fprintf(stderr, "read-file=read_fail path=%s\n", path);
+    return 1;
+  }
+  printf("read-file.path=%s\n", path);
+  printf("read-file.bytes=%zu\n", n);
+  printf("read-file.hash=%016llx\n", (unsigned long long)fnv1a64(data, n));
+  printf("read-file.ok=1\n");
+  free(data);
+  return 0;
+}
+
+static int run_spawn_wait_expect_exit(const char *expected_s, const char *path,
+                                      char **extra_args, size_t extra_arg_count) {
+  size_t expected = 0;
+  if (!path || !path[0]) {
+    fprintf(stderr, "spawn-wait=bad_path\n");
+    return 1;
+  }
+  if (!parse_size_arg(expected_s, &expected) || expected > 255) {
+    fprintf(stderr, "spawn-wait=bad_expected\n");
+    return 1;
+  }
+#if defined(_WIN32)
+  (void)extra_args;
+  (void)extra_arg_count;
+  fprintf(stderr, "spawn-wait=unsupported_platform\n");
+  return 2;
+#else
+  pid_t pid = fork();
+  if (pid < 0) {
+    fprintf(stderr, "spawn-wait=fork_fail path=%s\n", path);
+    return 2;
+  }
+  if (pid == 0) {
+    size_t argc = 1 + extra_arg_count;
+    char **argv = (char **)calloc(argc + 1, sizeof(char *));
+    if (!argv) _exit(127);
+    argv[0] = (char *)path;
+    for (size_t i = 0; i < extra_arg_count; ++i) argv[i + 1] = extra_args[i];
+    argv[argc] = NULL;
+    execvp(path, argv);
+    free(argv);
+    _exit(127);
+  }
+  int status = 0;
+  if (waitpid(pid, &status, 0) < 0) {
+    fprintf(stderr, "spawn-wait=wait_fail path=%s\n", path);
+    return 3;
+  }
+  printf("spawn-wait.path=%s\n", path);
+  printf("spawn-wait.expected=%zu\n", expected);
+  printf("spawn-wait.argc=%zu\n", 1 + extra_arg_count);
+  if (WIFEXITED(status)) {
+    int actual = WEXITSTATUS(status);
+    printf("spawn-wait.actual=%d\n", actual);
+    if (actual == (int)expected) {
+      printf("spawn-wait.ok=1\n");
+      return 0;
+    }
+    fprintf(stderr, "spawn-wait=mismatch expected=%zu actual=%d\n", expected, actual);
+    return 5;
+  }
+  if (WIFSIGNALED(status)) {
+    fprintf(stderr, "spawn-wait=signaled signal=%d\n", WTERMSIG(status));
+    return 4;
+  }
+  fprintf(stderr, "spawn-wait=unknown_status\n");
+  return 4;
+#endif
 }

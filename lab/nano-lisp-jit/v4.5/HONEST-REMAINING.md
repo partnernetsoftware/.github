@@ -1,38 +1,79 @@
 # 物理终局 — 诚实口径
 
-## v4.5 目标（未完成 ❌）
+## v4.5 用户路径（两条 SSOT — 勿混称 100%）
 
-**`*.lisp` 自举 `nano-lisp.com`**，用户路径 plan 内无 `.c` / `.sh` / `.py`；终局态仓库无上述残留。
+### A. COM + Lisp daily（dogfood / shell — 用 pin，不重造 COM）
 
-## 完成路径
+见 [`COM-LISP-ONLY.md`](COM-LISP-ONLY.md)：
 
-| 阶段 | Wave | 用户 plan | 仓库诚实 |
-|------|------|-----------|----------|
-| 原生 bootstrap | 63 | ✅ | COM = `nano-lisp.com` |
-| runner C 退仓 | 64 | ✅ | symlink 兼容 CI |
-| CI 工具 sh 终局 | 65 | ✅ | wave converge 壳仍在 |
-| **factory lisp 退仓** | **66** | ✅ `daily_v45_zero_archive_path` | **wave66 `.sh` 壳仍在** |
+```bash
+COM=lab/nano-lisp-jit/release/nano-lisp.com
+$COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-com-lisp-only-daily.lisp
+```
 
-## 签收（≠ DONE）
+Flat bundle：`./nano-lisp.com run-bootstrap-plan bootstrap/bootstrap-v45-com-lisp-only-bundle-daily.lisp`
+
+### B. 工厂 / 矩阵（158KB slice · 零 genesis-pin — 仍要 host-cc/cosmocc）
+
+```bash
+COM=lab/nano-lisp-jit/release/nano-lisp.com
+$COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-converge-daily-v45-zero-genesis-pin.lisp
+```
+
+## /goal nano-jit.com · Wave76（当前）
+
+```bash
+NANO_V45_FRONTIER=mindmap-frontier-v45-zero-genesis-pin.json \
+  python3 lab/nano-lisp-jit/retired/tools/mindmap-dp-v45.py ready
+bash lab/nano-lisp-jit/retired/scripts/v45-wave76-zero-genesis-pin-converge.sh
+```
+
+**突破**：plan 内 `build-slice-compile` → **158392B** · 零 genesis-pin
+
+## Wave75（已签收）
+
+```bash
+NANO_V45_FRONTIER=mindmap-frontier-v45-compose15-runner-promote.json \
+  python3 lab/nano-lisp-jit/retired/tools/mindmap-dp-v45.py ready
+bash lab/nano-lisp-jit/retired/scripts/v45-wave72-compose15-runner-promote-converge.sh
+```
+
+## Wave71（已签收）
+
+```bash
+# v45.v45.lisp_codegen_diffuse_continue.100=1
+bash lab/nano-lisp-jit/retired/scripts/v45-wave71-lisp-codegen-diffuse-converge.sh
+```
+
+| 项 | 状态 |
+|----|------|
+| 用户 daily plan 零 `.c`/`.sh`/`.py`/`archive/c` 步骤 | ✅ |
+| **com+lisp-only daily**（`bootstrap-v45-com-lisp-only-daily.lisp`） | ✅ — 见 [`COM-LISP-ONLY.md`](COM-LISP-ONLY.md) |
+| `release/nano-lisp.com` 进仓 + manifest pin | ✅ |
+| verify-smoke / core / all / entry / onion-tdd | ✅（`v45-terminal-com-promote.sh`） |
+| aarch64 slice | **154KB**（原 genesis 648KB 已消） |
+
+## 仍开卷（工厂 · 非用户路径）
+
+| 项 | 说明 |
+|----|------|
+| 6 面 APE | 2/6 Linux only |
+| `build_nano_jit.sh` 工厂 | `archive/c/runner/` 编译 · genesis pin 仍用于 `(build-slice lispjit.c …)` |
+| CI `run.sh` + `retired/scripts/*.sh` | 工厂面 |
+
+## 终局收敛
+
+```bash
+bash lab/nano-lisp-jit/retired/scripts/v45-terminal-com-promote.sh
+grep v45.v45.terminal_done=1 lab/nano-lisp-jit/.build/v45-entry.evidence.canonical
+```
+
+## 签收
 
 | 键 | 含义 |
 |----|------|
-| `v45.v45.archive_factory_lisp_retire_continue.100=1` | Wave66 四轨 + factory lisp 迁 retired |
-| `v45.honest.archive_factory_lisp_retired=1` | `archive/c/factory` → `retired/archive-c/factory` |
-| `v45.converge.daily_v45_zero_archive_path=1` | 用户 daily 零 archive/c 路径 |
-| `v45.honest.wave_converge_shell=1` | wave66 converge 壳仍在 CI |
-
-## 日常
-
-```bash
-# 用户路径（零 archive 路径 · Wave66）
-COM=lab/nano-lisp-jit/.build/nano-lisp/nano-lisp.com
-$COM run-bootstrap-plan lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-converge-daily-v45-zero-archive-path.lisp
-
-# CI 收敛（host 外层 · 诚实仍 .sh）
-bash lab/nano-lisp-jit/scripts/v45-wave66-archive-factory-lisp-retire-converge.sh
-```
-
-## 下一物理轨
-
-Wave67：wave converge `.sh` 终局退 retired · 用户路径纯 COM+plan
+| `v45.v45.terminal_done=1` | COM promote + 矩阵绿 |
+| `v45.v45.terminal_com_promoted=1` | release/ 已更新 |
+| `v45.honest.aarch64_slim_slice=1` | 双架构 154KB slice |
+| `v45.v45.compose15_runner_promote_continue.100=1` | Wave72 compose15 promote 续推 |
+| `v45.goal.zero_genesis_pin_continue.100=1` | Wave76 build-slice-compile 158KB（零 genesis-pin） |

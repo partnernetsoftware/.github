@@ -1,7 +1,12 @@
-; L4 TU main entry: linked executable entry symbol nano_tu_main (exit 42).
-; Wave64: 发行面 canonical · 自 archive/c/factory/misc 提升.
+; Wave93: semantic-rich TU main — multi-func chain · exit 42.
 (module
+  (func stage_a
+    (u64 20)
+    (add-u64 1))
+  (func stage_b
+    (call stage_a)
+    (add-u64 10))
   (main
-    (u64 40)
-    (add-u64 2)
+    (call stage_b)
+    (add-u64 11)
     (expect 42)))

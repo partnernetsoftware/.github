@@ -63,6 +63,7 @@ static void free_instr_list(InstrDef *instrs, size_t count) {
     free(instrs[i].import_name);
     free(instrs[i].const_name);
     free(instrs[i].const2_name);
+    free(instrs[i].ptr_import_name);
   }
   free(instrs);
 }
@@ -145,7 +146,7 @@ static int add_const(Module *m, char *name, char *value) {
 
 static int add_body_instr(InstrDef **instrs, size_t *instr_count, size_t *instr_cap,
                           uint32_t form, char *import_name, char *const_name,
-                          char *const2_name, uint64_t imm) {
+                          char *const2_name, char *ptr_import_name, uint64_t imm) {
   if (*instr_count == *instr_cap) {
     size_t next = *instr_cap ? *instr_cap * 2 : 4;
     InstrDef *p = (InstrDef *)realloc(*instrs, next * sizeof(*p));
@@ -153,7 +154,8 @@ static int add_body_instr(InstrDef **instrs, size_t *instr_count, size_t *instr_
     *instrs = p;
     *instr_cap = next;
   }
-  (*instrs)[(*instr_count)++] = (InstrDef){form, import_name, const_name, const2_name, imm};
+  (*instrs)[(*instr_count)++] =
+      (InstrDef){form, import_name, const_name, const2_name, ptr_import_name, imm};
   return 1;
 }
 
@@ -179,7 +181,7 @@ static int vm_find_func(const Module *m, const char *name) {
 static int add_instr(Module *m, uint32_t form, char *import_name, char *const_name,
                      char *const2_name, uint64_t imm) {
   return add_body_instr(&m->instrs, &m->instr_count, &m->instr_cap, form, import_name,
-                        const_name, const2_name, imm);
+                        const_name, const2_name, NULL, imm);
 }
 
 static AotFunc *aot_add_func(AotModule *m, char *name, int is_global) {
@@ -347,15 +349,15 @@ static int parse_body_items(const char **p, Module *m, VmFuncDef *func_ctx, Inst
     if (strcmp(head, "resolve") == 0) {
       char *import_name = parse_atom(p);
       ok = import_name && eat(p, ')') &&
-           add_body_instr(instrs, instr_count, instr_cap, SRC_FORM_RESOLVE, import_name, NULL, NULL, 0);
+           add_body_instr(instrs, instr_count, instr_cap, SRC_FORM_RESOLVE, import_name, NULL, NULL, NULL, 0);
     } else if (strcmp(head, "branch") == 0) {
       char *label_name = parse_atom(p);
       ok = label_name && eat(p, ')') &&
-           add_body_instr(instrs, instr_count, instr_cap, SRC_FORM_BRANCH, label_name, NULL, NULL, 0);
+           add_body_instr(instrs, instr_count, instr_cap, SRC_FORM_BRANCH, label_name, NULL, NULL, NULL, 0);
     } else if (strcmp(head, "label") == 0) {
       char *label_name = parse_atom(p);
       ok = label_name && eat(p, ')') &&
-           add_body_instr(instrs, instr_count, instr_cap, SRC_FORM_LABEL, label_name, NULL, NULL, 0);
+           add_body_instr(instrs, instr_count, instr_cap, SRC_FORM_LABEL, label_name, NULL, NULL, NULL, 0);
     } else if (strcmp(head, "u64") == 0 || strcmp(head, "add-u64") == 0 ||
                strcmp(head, "i64") == 0 || strcmp(head, "add-i64") == 0 ||
                strcmp(head, "sub-i64") == 0 || strcmp(head, "mul-i64") == 0 ||
@@ -383,42 +385,42 @@ static int parse_body_items(const char **p, Module *m, VmFuncDef *func_ctx, Inst
           strcmp(head, "gt-i64") == 0 || strcmp(head, "ne-i64") == 0 ||
           strcmp(head, "le-i64") == 0 || strcmp(head, "ge-i64") == 0) {
         ok = value && parse_i64_atom(value, &i64) && eat(p, ')') &&
-             add_body_instr(instrs, instr_count, instr_cap, form, NULL, NULL, NULL, (uint64_t)i64);
+             add_body_instr(instrs, instr_count, instr_cap, form, NULL, NULL, NULL, NULL, (uint64_t)i64);
       } else {
         ok = value && parse_u64_atom(value, &imm) && eat(p, ')') &&
-             add_body_instr(instrs, instr_count, instr_cap, form, NULL, NULL, NULL, imm);
+             add_body_instr(instrs, instr_count, instr_cap, form, NULL, NULL, NULL, NULL, imm);
       }
       free(value);
     } else if (strcmp(head, "bool") == 0) {
       char *value = parse_atom(p);
       int boolean = 0;
       ok = value && parse_bool_atom(value, &boolean) && eat(p, ')') &&
-           add_body_instr(instrs, instr_count, instr_cap, SRC_FORM_CONST_BOOL, NULL, NULL, NULL, (uint64_t)boolean);
+           add_body_instr(instrs, instr_count, instr_cap, SRC_FORM_CONST_BOOL, NULL, NULL, NULL, NULL, (uint64_t)boolean);
       free(value);
     } else if (strcmp(head, "null-ptr") == 0) {
-      ok = eat(p, ')') && add_body_instr(instrs, instr_count, instr_cap, SRC_FORM_NULL_PTR, NULL, NULL, NULL, 0);
+      ok = eat(p, ')') && add_body_instr(instrs, instr_count, instr_cap, SRC_FORM_NULL_PTR, NULL, NULL, NULL, NULL, 0);
     } else if (strcmp(head, "add-ptr") == 0 || strcmp(head, "sub-ptr") == 0) {
       char *value = parse_atom(p);
       uint64_t imm = 0;
       uint32_t form = strcmp(head, "add-ptr") == 0 ? SRC_FORM_ADD_PTR : SRC_FORM_SUB_PTR;
       ok = value && parse_u64_atom(value, &imm) && eat(p, ')') &&
-           add_body_instr(instrs, instr_count, instr_cap, form, NULL, NULL, NULL, imm);
+           add_body_instr(instrs, instr_count, instr_cap, form, NULL, NULL, NULL, NULL, imm);
       free(value);
     } else if (strcmp(head, "ptr-to-u64") == 0 || strcmp(head, "u64-to-ptr") == 0) {
       uint32_t form = strcmp(head, "ptr-to-u64") == 0 ?
                       SRC_FORM_PTR_TO_U64 :
                       SRC_FORM_U64_TO_PTR;
-      ok = eat(p, ')') && add_body_instr(instrs, instr_count, instr_cap, form, NULL, NULL, NULL, 0);
+      ok = eat(p, ')') && add_body_instr(instrs, instr_count, instr_cap, form, NULL, NULL, NULL, NULL, 0);
     } else if (strcmp(head, "const-ptr") == 0) {
       char *const_name = parse_atom(p);
       ok = const_name && eat(p, ')') &&
-           add_body_instr(instrs, instr_count, instr_cap, SRC_FORM_CONST_PTR, NULL, const_name, NULL, 0);
+           add_body_instr(instrs, instr_count, instr_cap, SRC_FORM_CONST_PTR, NULL, const_name, NULL, NULL, 0);
     } else if (strcmp(head, "load-u8") == 0 || strcmp(head, "load-u16") == 0 ||
                strcmp(head, "load-u32") == 0) {
       uint32_t form = strcmp(head, "load-u8") == 0 ? SRC_FORM_LOAD_U8 :
                       strcmp(head, "load-u16") == 0 ? SRC_FORM_LOAD_U16 :
                       SRC_FORM_LOAD_U32;
-      ok = eat(p, ')') && add_body_instr(instrs, instr_count, instr_cap, form, NULL, NULL, NULL, 0);
+      ok = eat(p, ')') && add_body_instr(instrs, instr_count, instr_cap, form, NULL, NULL, NULL, NULL, 0);
     } else if (strcmp(head, "store-u8") == 0 || strcmp(head, "store-u16") == 0 ||
                strcmp(head, "store-u32") == 0) {
       char *value = parse_atom(p);
@@ -427,22 +429,22 @@ static int parse_body_items(const char **p, Module *m, VmFuncDef *func_ctx, Inst
                       strcmp(head, "store-u16") == 0 ? SRC_FORM_STORE_U16 :
                       SRC_FORM_STORE_U32;
       ok = value && parse_u64_atom(value, &imm) && eat(p, ')') &&
-           add_body_instr(instrs, instr_count, instr_cap, form, NULL, NULL, NULL, imm);
+           add_body_instr(instrs, instr_count, instr_cap, form, NULL, NULL, NULL, NULL, imm);
       free(value);
     } else if (strcmp(head, "is-null-ptr") == 0 ||
                strcmp(head, "is-nonnull-ptr") == 0) {
       uint32_t form = strcmp(head, "is-null-ptr") == 0 ?
                       SRC_FORM_IS_NULL_PTR :
                       SRC_FORM_IS_NONNULL_PTR;
-      ok = eat(p, ')') && add_body_instr(instrs, instr_count, instr_cap, form, NULL, NULL, NULL, 0);
+      ok = eat(p, ')') && add_body_instr(instrs, instr_count, instr_cap, form, NULL, NULL, NULL, NULL, 0);
     } else if (strcmp(head, "not-bool") == 0) {
-      ok = eat(p, ')') && add_body_instr(instrs, instr_count, instr_cap, SRC_FORM_NOT_BOOL, NULL, NULL, NULL, 0);
+      ok = eat(p, ')') && add_body_instr(instrs, instr_count, instr_cap, SRC_FORM_NOT_BOOL, NULL, NULL, NULL, NULL, 0);
     } else if (strcmp(head, "and-bool") == 0 || strcmp(head, "or-bool") == 0) {
       char *value = parse_atom(p);
       int boolean = 0;
       uint32_t form = strcmp(head, "and-bool") == 0 ? SRC_FORM_AND_BOOL : SRC_FORM_OR_BOOL;
       ok = value && parse_bool_atom(value, &boolean) && eat(p, ')') &&
-           add_body_instr(instrs, instr_count, instr_cap, form, NULL, NULL, NULL, (uint64_t)boolean);
+           add_body_instr(instrs, instr_count, instr_cap, form, NULL, NULL, NULL, NULL, (uint64_t)boolean);
       free(value);
     } else if (strcmp(head, "expect") == 0) {
       char *value = parse_atom(p);
@@ -452,16 +454,16 @@ static int parse_body_items(const char **p, Module *m, VmFuncDef *func_ctx, Inst
       int ptr_state = 0;
       if (value && parse_bool_atom(value, &boolean)) {
         ok = eat(p, ')') &&
-             add_body_instr(instrs, instr_count, instr_cap, SRC_FORM_EXPECT_BOOL, NULL, NULL, NULL, (uint64_t)boolean);
+             add_body_instr(instrs, instr_count, instr_cap, SRC_FORM_EXPECT_BOOL, NULL, NULL, NULL, NULL, (uint64_t)boolean);
       } else if (value && parse_expect_ptr_atom(value, &ptr_state)) {
         ok = eat(p, ')') &&
-             add_body_instr(instrs, instr_count, instr_cap, SRC_FORM_EXPECT_PTR, NULL, NULL, NULL, (uint64_t)ptr_state);
+             add_body_instr(instrs, instr_count, instr_cap, SRC_FORM_EXPECT_PTR, NULL, NULL, NULL, NULL, (uint64_t)ptr_state);
       } else if (value && parse_i64_atom(value, &expected_i64) && expected_i64 < 0) {
         ok = eat(p, ')') &&
-             add_body_instr(instrs, instr_count, instr_cap, SRC_FORM_EXPECT_I64, NULL, NULL, NULL, (uint64_t)expected_i64);
+             add_body_instr(instrs, instr_count, instr_cap, SRC_FORM_EXPECT_I64, NULL, NULL, NULL, NULL, (uint64_t)expected_i64);
       } else {
         ok = value && parse_u64_atom(value, &expected) && eat(p, ')') &&
-             add_body_instr(instrs, instr_count, instr_cap, SRC_FORM_EXPECT, NULL, NULL, NULL, expected);
+             add_body_instr(instrs, instr_count, instr_cap, SRC_FORM_EXPECT, NULL, NULL, NULL, NULL, expected);
       }
       free(value);
     } else if (strcmp(head, "param") == 0) {
@@ -469,19 +471,20 @@ static int parse_body_items(const char **p, Module *m, VmFuncDef *func_ctx, Inst
       ok = func_ctx && type && strcmp(type, "i64") == 0 && func_ctx->param_count < 2 && eat(p, ')');
       if (ok) {
         func_ctx->param_count++;
-        ok = add_body_instr(instrs, instr_count, instr_cap, SRC_FORM_PARAM_I64, NULL, NULL, NULL, 0);
+        ok = add_body_instr(instrs, instr_count, instr_cap, SRC_FORM_PARAM_I64, NULL, NULL, NULL, NULL, 0);
       }
       free(type);
     } else if (strcmp(head, "load-arg-i64") == 0) {
       char *value = parse_atom(p);
       uint64_t idx = 0;
       ok = func_ctx && value && parse_u64_atom(value, &idx) && eat(p, ')') &&
-           add_body_instr(instrs, instr_count, instr_cap, SRC_FORM_LOAD_ARG_I64, NULL, NULL, NULL, idx);
+           add_body_instr(instrs, instr_count, instr_cap, SRC_FORM_LOAD_ARG_I64, NULL, NULL, NULL, NULL, idx);
       free(value);
     } else if (strcmp(head, "call") == 0) {
       char *target = parse_atom(p);
       char *const_name = NULL;
       char *const2_name = NULL;
+      char *ptr_import_name = NULL;
       uint32_t form = SRC_FORM_CALL_FUNC;
       if (target) {
         skip_ws(p);
@@ -490,6 +493,10 @@ static int parse_body_items(const char **p, Module *m, VmFuncDef *func_ctx, Inst
           skip_ws(p);
           if (**p != ')') {
             const2_name = parse_atom(p);
+            skip_ws(p);
+            if (**p != ')') {
+              ptr_import_name = parse_atom(p);
+            }
           }
         }
         if (find_import(m, target) >= 0) {
@@ -498,13 +505,14 @@ static int parse_body_items(const char **p, Module *m, VmFuncDef *func_ctx, Inst
           free(target);
           free(const_name);
           free(const2_name);
+          free(ptr_import_name);
           free(head);
           return 0;
         }
       }
       ok = target && eat(p, ')') &&
            add_body_instr(instrs, instr_count, instr_cap, form, target, const_name,
-                          const2_name, 0);
+                          const2_name, ptr_import_name, 0);
     }
     free(head);
     if (!ok) return 0;
@@ -819,6 +827,31 @@ static int compile_instr_buf(const Module *m, const InstrDef *instrs, size_t cou
       }
       emit_instr(out_instrs, OP_CALL_IMPORT_CONST2, (uint32_t)import_idx,
                  pack_const_pair((uint32_t)const_idx, (uint32_t)const2_idx));
+    } else if (sig == SIG_I32_PTR_I32) {
+      int const_idx = in->const_name ? find_const(m, in->const_name) : -1;
+      int32_t imm = 0;
+      if (const_idx < 0 || in->const2_name == NULL || in->ptr_import_name != NULL ||
+          !parse_i32_atom(in->const2_name, &imm) || imm < 0 || imm > 0xffff) {
+        return 0;
+      }
+      emit_instr(out_instrs, OP_CALL_IMPORT_CONST_IMM, (uint32_t)import_idx,
+                  (uint32_t)const_idx | ((uint32_t)imm << 16));
+    } else if (sig == SIG_PTR_PTR_I32_PTR) {
+      int const_idx = in->const_name ? find_const(m, in->const_name) : -1;
+      int stream_idx = in->ptr_import_name ? find_import(m, in->ptr_import_name) : -1;
+      int32_t imm = 0;
+      if (const_idx < 0 || in->const2_name == NULL || stream_idx < 0 ||
+          !parse_i32_atom(in->const2_name, &imm) || imm < 0 || imm > 0xffff ||
+          const_idx > 0xffff || stream_idx > 0xffff) {
+        return 0;
+      }
+      if (m->imports[stream_idx].sig != SIG_ADDR) {
+        fprintf(stderr, "compile=fail reason=ptr_import_not_addr\n");
+        return 0;
+      }
+      emit_instr(out_instrs, OP_CALL_IMPORT_CONST_IMM_PTR,
+                  (uint32_t)import_idx | ((uint32_t)stream_idx << 16),
+                  (uint32_t)const_idx | ((uint32_t)imm << 16));
     } else {
       fprintf(stderr, "signature.not_callable=%s\n", sig_name(sig));
       return 0;

@@ -1,6 +1,13 @@
 # 洋葱 TDD × tree-mind-map 耦合（v4.5 SSOT）
 
-> **活图**：[`mindmap-frontier-v45.json`](mindmap-frontier-v45.json) · **DP**：`tools/mindmap-dp-v45.py`  
+> **2026-05-27 · /goal · Wave76**  
+> **活图**：[`mindmap-frontier-v45-zero-genesis-pin.json`](mindmap-frontier-v45-zero-genesis-pin.json) · [`DIFFUSE-WAVE76.md`](DIFFUSE-WAVE76.md) · **journal**：[`mindmap-goal-nano-jit-com.json`](mindmap-goal-nano-jit-com.json)
+
+> **Wave74（已签收）**：[`mindmap-frontier-v45-regenesis-promote.json`](mindmap-frontier-v45-regenesis-promote.json)
+
+> **Wave70**：[`mindmap-frontier-v45-daily-zero-archive-audit.json`](mindmap-frontier-v45-daily-zero-archive-audit.json) · [`DIFFUSE-WAVE70.md`](DIFFUSE-WAVE70.md)
+
+> **活图（历史基线）**：[`mindmap-frontier-v45.json`](mindmap-frontier-v45.json) · **DP**：`retired/tools/mindmap-dp-v45.py`  
 > **洋葱真源**：[`ONION-TDD.md`](ONION-TDD.md)
 
 ## 扩散循环（广度 × 并发）

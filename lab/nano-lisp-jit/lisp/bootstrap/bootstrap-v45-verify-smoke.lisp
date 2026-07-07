@@ -27,4 +27,4 @@
   (run "lab/nano-lisp-jit/.build/v45-smoke-func-call.lbin")
   (emit-elf64-exit "lab/nano-lisp-jit/.build/v45-smoke-exit42.elf" 42)
   (run-expect-exit "lab/nano-lisp-jit/.build/v45-smoke-exit42.elf" 42)
-  (file-hash "lab/nano-lisp-jit/.build/nano-lisp-jit"))
+  (file-hash "lab/nano-lisp-jit/release/nano-lisp.com"))

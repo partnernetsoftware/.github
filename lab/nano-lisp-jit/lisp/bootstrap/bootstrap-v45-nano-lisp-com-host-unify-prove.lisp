@@ -1,9 +1,9 @@
 ; Wave62 W1: nano-lisp.com host 统一证明 — 产品 + bootstrap 宿主均在 nano-lisp/ 树.
 ; Prefix v45-nlchup- · no .sh/.py steps.
 (bootstrap
-  (file-size "lab/nano-lisp-jit/.build/nano-lisp/nano-lisp.com")
+  (file-size "lab/nano-lisp-jit/release/nano-lisp.com")
   (file-size "lab/nano-lisp-jit/.build/nano-lisp/nano-lisp-host.com")
-  (inspect-ape "lab/nano-lisp-jit/.build/nano-lisp/nano-lisp.com")
+  (inspect-ape "lab/nano-lisp-jit/release/nano-lisp.com")
   (inspect-ape "lab/nano-lisp-jit/.build/nano-lisp/nano-lisp-host.com")
   (compile "lab/nano-lisp-jit/lisp/core/strlen.lisp"
            "lab/nano-lisp-jit/.build/v45-nlchup-smoke-strlen.lbin")

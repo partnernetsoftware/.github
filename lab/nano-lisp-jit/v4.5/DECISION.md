@@ -5,7 +5,7 @@
 ## 发行面（用户路径）
 
 ```text
-nano-lisp.com         # 对外名；仓内暂 .build/nano-jit/nano-jit.com
+nano-lisp.com         # 对外名；仓内 SSOT = release/nano-lisp.com
 lisp/**/*.lisp        # bootstrap · modules · core · boundary
 ```
 

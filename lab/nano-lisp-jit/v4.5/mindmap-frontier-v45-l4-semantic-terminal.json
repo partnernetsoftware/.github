@@ -1,0 +1,16 @@
+{
+  "ssot": "v4.5/DIFFUSE-WAVE100.md",
+  "parent_goal": "mindmap-goal-nano-jit-com.json",
+  "updated_at": "2026-06-01T00:00:00Z",
+  "max_parallel": 4,
+  "breadth_ring": "L4 semantic terminal — 7-profile matrix · codegen track done",
+  "nodes": [
+    {"id": "v45-w100-gate", "status": "todo", "accept": ["v45.goal.semantic_unified_milestone=1"]},
+    {"id": "v45-w100-matrix", "status": "todo", "deps": ["v45-w100-gate"],
+     "accept": ["v45.goal.l4_semantic_matrix_pass=1"]},
+    {"id": "v45-w100-terminal", "status": "todo", "deps": ["v45-w100-matrix"],
+     "accept": ["v45.goal.l4_semantic_codegen_terminal=1"]},
+    {"id": "v45-w100-journal", "status": "todo", "deps": ["v45-w100-terminal"],
+     "accept": ["journal[-1].verified=true"]}
+  ]
+}

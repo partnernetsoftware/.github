@@ -7,6 +7,7 @@
 
 | 层 | 现状 | 建议 |
 |----|------|------|
+| **OS / proc（Wave89–90）** | `run-expect-exit`/`spawn-wait` + **`read-file`** 已入 bootstrap；release COM 待 promote | release cosmocc rebuild · bulk→语义 |
 | VM `.lbin` | 算术/比较/ptr/u8/u16/多函数 call 稳定 | 补齐 func 内 CF |
 | VM 类型检查 | 部分 ill-typed 源可 `compile` 通过 | 与 AOT 对齐拒错 |
 | AOT `.elf` | 多函数 + func 内 block/branch OK | 保持 parity 目标 |
@@ -25,8 +26,12 @@
 | B07 | `load-u16-rodata` / `store-u16-mutate` | ✅ | — | rodata 变宽读写 | 文档化 mutability |
 | B08 | `NANO_SELFHOST_REUSE_*` 环境 | compare 漂移 | — | 非样例；运维 | 文档 + 默认 genesis |
 | B09 | `v45-w3-lisp-only.com` | exit 42 only | — | **非**完整 runner；`run-bootstrap-plan` 不可用 | 产品区分 slice 探针 vs `nano-jit.com` |
+| B10 | proc-smoke plan | ✅ fork 链 | — | 仅无 argv 的 `execv`；制品读靠 file-size/hash | `read-file` + `spawn-wait` |
+| B11 | proc-io plan（Wave90） | ✅ read-file/spawn-wait | — | factory slice cc 验收；release COM 未 promote | cosmocc promote |
 
 ## 推荐引擎优先级
+
+0. **P0（Wave91+）** — release COM cosmocc promote（携带 read-file/spawn-wait）
 
 1. **P0** — VM 实现 func 内 `block`/`branch`（闭合 B01，与 AOT parity）  
 2. **P1** — VM `compile` 类型检查对齐 AOT（B02/B03）  

@@ -16,6 +16,8 @@ extern const unsigned char NANO_APE_V2_MAGIC[NANO_APE_V2_MAGIC_LEN];
 #define NANO_APE_V2_ARCH_X86_64 1u
 #define NANO_APE_V2_ARCH_AARCH64 2u
 #define NANO_APE_V2_OS_LINUX 1u
+#define NANO_APE_V2_OS_MACOS 2u   /* Wave102+ planned */
+#define NANO_APE_V2_OS_WINDOWS 3u /* Wave102+ planned */
 
 typedef struct {
   uint8_t arch_id;

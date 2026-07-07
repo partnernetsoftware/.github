@@ -1,0 +1,16 @@
+{
+  "ssot": "v4.5/DIFFUSE-WAVE98.md",
+  "parent_goal": "mindmap-goal-nano-jit-com.json",
+  "updated_at": "2026-05-30T00:00:00Z",
+  "max_parallel": 4,
+  "breadth_ring": "semantic-full 15slot — modules-semantic mirror · compose-15link-semantic-full",
+  "nodes": [
+    {"id": "v45-w98-gate", "status": "todo", "accept": ["v45.goal.semantic_154k_milestone=1"]},
+    {"id": "v45-w98-mirror", "status": "todo", "deps": ["v45-w98-gate"],
+     "plan": "tools/gen-semantic-modules15.py"},
+    {"id": "v45-w98-full", "status": "todo", "deps": ["v45-w98-mirror"],
+     "accept": ["v45.goal.semantic_15slot_real_modules=1", "compose15_semantic_full_15slot=1"]},
+    {"id": "v45-w98-journal", "status": "todo", "deps": ["v45-w98-full"],
+     "accept": ["journal[-1].verified=true"]}
+  ]
+}

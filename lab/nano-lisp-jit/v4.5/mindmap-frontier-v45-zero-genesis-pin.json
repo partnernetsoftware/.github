@@ -1,0 +1,90 @@
+{
+  "ssot": "v4.5/DIFFUSE-WAVE76.md",
+  "parent_goal": "mindmap-goal-nano-jit-com.json",
+  "updated_at": "2026-05-27T19:00:00Z",
+  "max_parallel": 4,
+  "breadth_ring": "zero-genesis-pin \u2014 build-slice-compile plan-only 158KB",
+  "nodes": [
+    {
+      "id": "v45-zgp76-gate",
+      "layer": 76,
+      "ring": "gate",
+      "status": "done",
+      "deps": [],
+      "accept": [
+        "v45.goal.full_runner_154kb_continue.100=1"
+      ]
+    },
+    {
+      "id": "v45-zgp76-compile",
+      "layer": 76,
+      "ring": "codegen",
+      "status": "done",
+      "deps": [
+        "v45-zgp76-gate"
+      ],
+      "parallel_slot": "W1",
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-zero-genesis-pin-compile-prove.lisp"
+    },
+    {
+      "id": "v45-zgp76-compose15",
+      "layer": 76,
+      "ring": "\u5bf9\u6bd4",
+      "status": "done",
+      "deps": [
+        "v45-zgp76-gate"
+      ],
+      "parallel_slot": "W2",
+      "plan": "lisp/bootstrap/bootstrap-v45-probe-compose15-regenesis-build-slice.lisp"
+    },
+    {
+      "id": "v45-zgp76-pack",
+      "layer": 76,
+      "ring": "\u81ea\u4e3e",
+      "status": "done",
+      "deps": [
+        "v45-zgp76-gate"
+      ],
+      "parallel_slot": "W3",
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-zero-genesis-pin-pack.lisp"
+    },
+    {
+      "id": "v45-zgp76-daily",
+      "layer": 76,
+      "ring": "plan",
+      "status": "done",
+      "deps": [
+        "v45-zgp76-gate"
+      ],
+      "parallel_slot": "W4",
+      "plan": "lisp/bootstrap/bootstrap-v45-converge-daily-v45-zero-genesis-pin.lisp"
+    },
+    {
+      "id": "v45-zgp76-terminal",
+      "layer": 77,
+      "ring": "\u7ec8\u5c40",
+      "status": "done",
+      "deps": [
+        "v45-zgp76-compile",
+        "v45-zgp76-compose15",
+        "v45-zgp76-pack",
+        "v45-zgp76-daily"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-zero-genesis-pin-tree.lisp"
+    },
+    {
+      "id": "v45-zgp76-goal",
+      "layer": 78,
+      "ring": "continue",
+      "status": "done",
+      "deps": [
+        "v45-zgp76-terminal"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-v45-zero-genesis-pin-continue-100.lisp"
+    }
+  ],
+  "next_wave_preview": {
+    "id": "wave77-release-promote-compile-com",
+    "theme": "build-slice-compile COM \u2192 release promote \u00b7 \u77e9\u9635\u5168\u7eff"
+  }
+}

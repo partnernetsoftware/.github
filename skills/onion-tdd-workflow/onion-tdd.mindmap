@@ -1,0 +1,84 @@
+### mindmap v0.1
+// 洋葱TDD工作流 — 基于 skills/mindmap/ 构建
+
+- {P} 状态机 [✓]
+  - 状态链: IDLE→RED→GREEN→REFACTOR→DONE→IDLE [✓]
+  - 副作用推外层，层次从重构中生长 [✓]
+  - RED/GREEN不引入mock [✓]
+
+  - RED: 写测试 → verify → fail=RED_FAIL→GREEN | pass=RED_PASS→REFACTOR
+  - GREEN: 最小实现 → if build: build → verify → 全绿→verify_all→REFACTOR
+    - 失败≤3次重试 >3→BLOCKED
+  - REFACTOR: 纯逻辑→去重抽象 | 副作用→定义接口推外层(new [→]) → verify_all全绿→DONE
+  - DONE: git add+commit+push → [→]→[✓] → IDLE
+
+  - {V} verify判定
+    - exit≠0且含fail=RED | exit=0全pass=GREEN | skip伪装pass=blocked
+    - state: currentTask/phase/attempts/blocked | 主agent心跳读写
+
+- {F} 任务字段扩展（叠加 .mindmap 规范）
+  - type: feature | fix | refactor
+  - spec: <输入/输出/边界/异常>
+  - files: { src: ["path"], test: ["path"] }
+  - build: "<编译命令>"
+  - verify: "<单测命令>"
+  - verify_all: "<全量回归>"
+
+- {L} 测试层级 L0-L9（由内而外）
+  - L0: 纯逻辑单元 | L1: 最小集成 | L2: 功能
+  - L3: 系统 | L4: 端到端 | L5+: 自定义
+
+- {A} 双定时器架构
+  - 主agent: prompt=main-agent-prompt.md | 调度/决策/commit | 不写业务代码
+  - 副agent: prompt=agent-prompt.md | 机械执行单phase | 不思考
+  - 观察轮: prompt=observer-prompt.md | 战略监督+纠偏 | 不动手
+
+  - 主agent 每轮心跳
+    - [seq] read-state
+      - dev-mindmap.ts state(currentTask, phase)
+    - [if] dispatch-by-phase
+      - check-phase
+      - IDLE: 无[→]→自动规划(fix>feature>refactor,内层>外层) | 有[→]→取首个展开
+        - [seq]/[if]/[while]节点: 展开首子→RED
+        - 原子任务: 直接→RED
+      - RED: 派副agent → RED_FAIL→GREEN | RED_PASS→REFACTOR
+      - GREEN: 派副agent → 全绿→REFACTOR | 失败attempts≤3
+      - REFACTOR: 派副agent → verify_all全绿→DONE | 失败attempts≤3
+      - DONE: git add+commit+push → [→]→[✓] → IDLE
+    - 逻辑回溯: [seq]推下级 | [if]选分支 | [while]循环 | ≥10次→[✗]
+
+  - 副agent 执行
+    - RED: write(test) → shell(verify) → 报告fail/pass
+    - GREEN: write(src) → if build: shell(build) → shell(verify) → shell(verify_all) → 报告
+      - 失败≤3回退 >3→BLOCKED
+    - REFACTOR: 纯逻辑→去重 | 副作用→接口推外层 → shell(verify_all) → 报告
+    - 铁律: 不改白名单外 | 诊断先行 | zig本地 podman跨平台 | 不感知逻辑节点
+
+  - 观察轮 三段
+    - 事实: state(task+phase) + 最近agent行为
+    - 数据: read(mindmap) + shell(git log) + grep→file:line
+    - 观察: 轮转≥2角度
+      - A状态机 | B verify真执行 | C agent规范 | D 任务充分
+      - E 回退 | F REFACTOR认真 | G 测试质量 | H skill改进
+      - I 目标一致性（新增）：当前子任务是否直接服务于 mindmap 粗树第一条最高优先级目标？
+    - IDLE监督: 自动规划触发? | 优先级合规? | 连续2轮未触发=异常
+      - 目标一致性检查（新增）：连续2轮以上子任务与核心目标相关度低，必须在 mindmap 中显式记录“漂移风险 + 理由”
+    - 硬约束: 不改业务代码 | 不改mindmap | 不空转
+      - 文档同步强制（新增）：当对应产品文档（如 fasmgx2.md）与 mindmap 粗树第一条描述不一致时，视为严重偏差，必须先修正文档再继续
+
+- {C} 约束 [✓]
+  - ≤3 agent并行 | 派工必含context(3-5行架构摘要)
+  - 永不停转直到SOTA | zig build本地 podman跨平台
+
+- {ex} 任务示例
+  - [seq] cross-platform-build [→]
+    - compile [ ]
+    - link [ ]
+    - test [ ]
+  - [if] deploy [→]
+    - detect-os [ ]
+    - macos-sign [ ]
+    - linux-package [ ]
+  - [while] flaky-retry [→]
+    - attempts<3? [ ]
+    - run-flaky-suite [ ]

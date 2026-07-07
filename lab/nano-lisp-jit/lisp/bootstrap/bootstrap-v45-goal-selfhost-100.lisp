@@ -1,7 +1,7 @@
 ; /goal 自举终局：S5+T3 + 代际矩阵 + lisp-only 链签收.
 (bootstrap
   (file-size "lab/nano-lisp-jit/v4.5/SELFHOST.md")
-  (file-size "lab/nano-lisp-jit/.build/v45-selfhost-next.com")
+  (file-size "lab/nano-lisp-jit/release/v45-selfhost-next.com")
   (file-size "lab/nano-lisp-jit/.build/v45-w3-lisp-only.com")
   (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.selfhost.gen2_distinct" "1")
   (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.selfhost.lisp_slice" "1")

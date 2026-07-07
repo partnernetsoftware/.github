@@ -1,0 +1,79 @@
+{
+  "ssot": "v4.5/DIFFUSE-WAVE91.md",
+  "parent_goal": "mindmap-goal-nano-jit-com.json",
+  "onion_ssot": "v4.5/ONION-TDD.md",
+  "updated_at": "2026-05-30T00:00:00Z",
+  "max_parallel": 5,
+  "breadth_ring": "proc-io-release-promote \u2014 native regenesis \u00b7 release COM \u00b7 \u77e9\u9635",
+  "nodes": [
+    {
+      "id": "v45-w91-gate",
+      "layer": 91,
+      "ring": "gate",
+      "onion_ring": 53,
+      "status": "done",
+      "deps": [],
+      "accept": [
+        "v45.goal.proc_io=1"
+      ]
+    },
+    {
+      "id": "v45-w91-build",
+      "layer": 91,
+      "ring": "factory",
+      "onion_ring": 53,
+      "status": "done",
+      "deps": [
+        "v45-w91-gate"
+      ],
+      "plan": "build_nano_jit.sh",
+      "accept": [
+        "nano-jit.com.bytes>=320000"
+      ]
+    },
+    {
+      "id": "v45-w91-promote",
+      "layer": 91,
+      "ring": "release",
+      "onion_ring": 53,
+      "status": "done",
+      "deps": [
+        "v45-w91-build"
+      ],
+      "plan": "retired/scripts/v45-manifest-pin.sh",
+      "accept": [
+        "v45.goal.proc_io_release_parity=1"
+      ]
+    },
+    {
+      "id": "v45-w91-matrix",
+      "layer": 91,
+      "ring": "matrix",
+      "onion_ring": 53,
+      "status": "done",
+      "deps": [
+        "v45-w91-promote"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-proc-io-release-promote.lisp",
+      "accept": [
+        "read-file.ok=1",
+        "spawn-wait.ok=1"
+      ]
+    },
+    {
+      "id": "v45-w91-journal",
+      "layer": 91,
+      "ring": "journal",
+      "onion_ring": 53,
+      "status": "done",
+      "deps": [
+        "v45-w91-matrix"
+      ],
+      "plan": "retired/scripts/v45-wave91-release-promote-converge.sh",
+      "accept": [
+        "v45.goal.proc_io_release=1",
+        "journal[-1].verified=true"
+      ]
+    }
+  ]
+}

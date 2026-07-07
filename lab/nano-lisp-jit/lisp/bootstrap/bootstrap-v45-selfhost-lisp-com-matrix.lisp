@@ -1,7 +1,7 @@
 ; Wave37 W4: 代际 selfhost × nano-lisp.com 矩阵（lisp-only chain，键由收敛写入）.
 (bootstrap
-  (file-size "lab/nano-lisp-jit/.build/v45-selfhost-next.com")
-  (file-size "lab/nano-lisp-jit/.build/nano-lisp/nano-lisp.com")
+  (file-size "lab/nano-lisp-jit/release/v45-selfhost-next.com")
+  (file-size "lab/nano-lisp-jit/release/nano-lisp.com")
   (build-slice-lisp "lab/nano-lisp-jit/lisp/core/nano-jit-slice-min.lisp"
                     "lab/nano-lisp-jit/.build/v45-shm-min-x86.elf"
                     "x86_64")

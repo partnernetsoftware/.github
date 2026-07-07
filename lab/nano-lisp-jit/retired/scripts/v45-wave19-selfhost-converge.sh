@@ -4,7 +4,7 @@ set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
 EV="$ROOT/lab/nano-lisp-jit/.build/v45-entry.evidence"
 COM="$ROOT/lab/nano-lisp-jit/.build/nano-jit/nano-jit.com"
-NEXT="$ROOT/lab/nano-lisp-jit/.build/v45-selfhost-next.com"
+NEXT="$ROOT/lab/nano-lisp-jit/release/v45-selfhost-next.com"
 W3="$ROOT/lab/nano-lisp-jit/.build/v45-w3-lisp-only.com"
 GEN2="$ROOT/lab/nano-lisp-jit/.build/v45-w19-lisp-gen2.com"
 SMOKE="$ROOT/lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-verify-smoke.lisp"

@@ -2,6 +2,7 @@ static void usage(const char *argv0) {
   fprintf(stderr, "usage:\n");
   fprintf(stderr, "  %s compile input.%s output.%s\n", argv0, SOURCE_EXT, BLOB_EXT);
   fprintf(stderr, "  %s run program.%s\n", argv0, BLOB_EXT);
+  fprintf(stderr, "  %s run-stdin <text> program.%s\n", argv0, BLOB_EXT);
   fprintf(stderr, "  %s run-embedded container.com blob_offset blob_size\n", argv0);
   fprintf(stderr, "  %s inspect-ape container.com\n", argv0);
   fprintf(stderr, "  %s inspect-expect-exit expected inspect-ape|inspect-app container.com\n", argv0);
@@ -27,6 +28,8 @@ static void usage(const char *argv0) {
   fprintf(stderr, "  %s hash program.%s\n", argv0, BLOB_EXT);
   fprintf(stderr, "  %s file-size path\n", argv0);
   fprintf(stderr, "  %s file-hash path\n", argv0);
+  fprintf(stderr, "  %s read-file path\n", argv0);
+  fprintf(stderr, "  %s spawn-wait expected executable [arg...]\n", argv0);
   fprintf(stderr, "  %s gen-libc-resolve [libc.so] output.%s\n", argv0, SOURCE_EXT);
   fprintf(stderr, "  %s compare left.%s right.%s\n", argv0, BLOB_EXT, BLOB_EXT);
   fprintf(stderr, "  %s resolve [--quiet] program.%s\n", argv0, BLOB_EXT);
@@ -40,14 +43,25 @@ static void usage(const char *argv0) {
   fprintf(stderr, "  %s nano-cc parse input.c\n", argv0);
   fprintf(stderr, "  %s nano-cc-compile-expect-exit expected input.c output.elf\n", argv0);
   fprintf(stderr, "  %s nano-cc-parse-expect-exit expected input.c\n", argv0);
+  fprintf(stderr, "  %s shell                       # compile+run shell-script.lisp\n", argv0);
+  fprintf(stderr, "  %s                             # no args → embedded shell or compile-run\n", argv0);
 }
 
 int main(int argc, char **argv) {
+  if (argc == 1) {
+    return cmd_shell_noarg(argv[0]);
+  }
+  if (argc >= 2 && strcmp(argv[1], "shell") == 0 && argc == 2) {
+    return cmd_shell();
+  }
   if (argc >= 2 && strcmp(argv[1], "compile") == 0 && argc == 4) {
     return cmd_compile(argv[2], argv[3]);
   }
   if (argc >= 2 && strcmp(argv[1], "run") == 0 && argc == 3) {
     return cmd_run(argv[2]);
+  }
+  if (argc >= 2 && strcmp(argv[1], "run-stdin") == 0 && argc == 4) {
+    return cmd_run_stdin(argv[2], argv[3]);
   }
   if (argc >= 2 && strcmp(argv[1], "run-embedded") == 0 && argc == 5) {
     return cmd_run_embedded(argv[2], argv[3], argv[4]);
@@ -129,6 +143,13 @@ int main(int argc, char **argv) {
   }
   if (argc >= 2 && strcmp(argv[1], "file-hash") == 0 && argc == 3) {
     return cmd_file_hash(argv[2]);
+  }
+  if (argc >= 2 && strcmp(argv[1], "read-file") == 0 && argc == 3) {
+    return cmd_read_file(argv[2]);
+  }
+  if (argc >= 2 && strcmp(argv[1], "spawn-wait") == 0 && argc >= 4) {
+    return run_spawn_wait_expect_exit(argv[2], argv[3], argc > 4 ? &argv[4] : NULL,
+                                      argc > 4 ? (size_t)(argc - 4) : 0);
   }
   if (argc >= 2 && strcmp(argv[1], "gen-libc-resolve") == 0) {
     if (argc == 3) return cmd_gen_libc_resolve(NULL, argv[2]);

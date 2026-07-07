@@ -1,1 +1,1 @@
-../archive/fixtures/nano-cc/nano-cc-hello.c
+nano-cc/nano-cc-hello.c

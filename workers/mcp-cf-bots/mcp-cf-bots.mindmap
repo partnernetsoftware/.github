@@ -1,0 +1,37 @@
+{
+  "product": "mcp-cf-bots",
+  "version": "1.0.2",
+  "updated_at": "2026-05-30T12:40:00Z",
+  "north_star": "跨 Agent HTTP MCP + REST：sess 会话、mem 记忆 RAG、cfb 多租户",
+  "roadmap": {
+    "current_phase": "v1.0.x-complete",
+    "current_version": "1.0.2",
+    "last_review": "2026-05-30",
+    "summary": "1.0.2：v1.1 迁至 deferred、production_hints、mem-kind；API 仍 1.0。",
+    "v1_1_status": "deferred — src/deferred/v11/ 未注册 MCP",
+    "active_waves": [
+      {
+        "id": "v10x-hardening",
+        "label": "v1.0.x 加固",
+        "status": "done",
+        "items": [
+          { "id": "v101-rate", "label": "mem_get + sess_* 限流", "status": "done" },
+          { "id": "v101-session-secret", "label": "MCP_SESSION_SECRET 可选分离", "status": "done" },
+          { "id": "v101-docs", "label": "MCP POST-only / 加密 / CF API 运维说明", "status": "done" },
+          { "id": "v102-deferred", "label": "v1.1 代码 deferred + mem-kind", "status": "done" },
+          { "id": "v102-hints", "label": "/health production_hints + verify-production", "status": "done" },
+          { "id": "v102-cf-api", "label": "产线 cf_api_ready（运维 secrets）", "status": "ops_pending" }
+        ]
+      }
+    ],
+    "milestones_done": [
+      { "version": "1.0.2", "label": "deferred v1.1 + production_hints", "status": "done" },
+      { "version": "1.0.1", "label": "限流补齐 + session secret 分离", "status": "done" },
+      { "version": "1.0.0", "label": "GA api 1.0 冻结", "status": "done" }
+    ]
+  },
+  "tech_debt": [
+    { "id": "TD-12", "label": "cf_api_ready false（需 sync-cf-api-secrets）", "status": "open" }
+  ],
+  "doc_index": "INDEX.md"
+}

@@ -3,7 +3,7 @@
 (bootstrap
   (file-size "lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-converge-daily-semantic.lisp")
   (file-size "lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-nano-lisp-com-semantic-run.lisp")
-  (file-size "lab/nano-lisp-jit/.build/nano-lisp/nano-lisp.com")
+  (file-size "lab/nano-lisp-jit/release/nano-lisp.com")
   (compile "lab/nano-lisp-jit/lisp/core/strlen.lisp"
            "lab/nano-lisp-jit/.build/v45-cdt-smoke-strlen.lbin")
   (run "lab/nano-lisp-jit/.build/v45-cdt-smoke-strlen.lbin")
@@ -14,10 +14,10 @@
                     "lab/nano-lisp-jit/.build/v45-cdt-min-x86.elf"
                     "x86_64")
   (run-expect-exit "lab/nano-lisp-jit/.build/v45-cdt-min-x86.elf" 42)
-  (pack-ape "lab/nano-lisp-jit/.build/nano-lisp/nano-lisp.com"
+  (pack-ape "lab/nano-lisp-jit/release/nano-lisp.com"
             "lab/nano-lisp-jit/.build/v45-cdt-min-x86.elf"
             "lab/nano-lisp-jit/.build/v45-cdt-min-x86.elf")
-  (inspect-ape "lab/nano-lisp-jit/.build/nano-lisp/nano-lisp.com")
+  (inspect-ape "lab/nano-lisp-jit/release/nano-lisp.com")
   (compile-elf64-obj-code "lab/nano-lisp-jit/archive/c/factory/misc/lisp-tu-callee.lisp"
                           "lab/nano-lisp-jit/.build/v45-cdt-cl5-callee.o"
                           "nano_tu_callee")

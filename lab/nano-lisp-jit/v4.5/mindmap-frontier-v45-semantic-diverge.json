@@ -1,0 +1,16 @@
+{
+  "ssot": "v4.5/DIFFUSE-WAVE93.md",
+  "parent_goal": "mindmap-goal-nano-jit-com.json",
+  "updated_at": "2026-05-30T00:00:00Z",
+  "max_parallel": 4,
+  "breadth_ring": "semantic diverge — compose15 expand 门控 · modules 真路径",
+  "nodes": [
+    {"id": "v45-w93-fix", "layer": 93, "status": "todo", "accept": ["v45.wave93.fix=compose15_expand_gate"]},
+    {"id": "v45-w93-semantic", "layer": 93, "status": "todo", "deps": ["v45-w93-fix"],
+     "accept": ["run-expect-exit.ok=1", "code_bytes=489"]},
+    {"id": "v45-w93-diverge", "layer": 93, "status": "todo", "deps": ["v45-w93-semantic"],
+     "accept": ["v45.goal.semantic_bulk_diverge=1"]},
+    {"id": "v45-w93-release", "layer": 93, "status": "todo", "deps": ["v45-w93-diverge"],
+     "accept": ["v45.goal.semantic_v93_continue.100=1"]}
+  ]
+}

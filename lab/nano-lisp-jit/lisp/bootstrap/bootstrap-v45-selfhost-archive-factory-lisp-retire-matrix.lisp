@@ -1,8 +1,8 @@
 ; Wave66 W4: selfhost × archive factory lisp retire 矩阵.
 ; Prefix v45-saflrm- · no build-slice lispjit.c · no .sh · no .py steps.
 (bootstrap
-  (file-size "lab/nano-lisp-jit/.build/v45-selfhost-next.com")
-  (file-size "lab/nano-lisp-jit/.build/nano-lisp/nano-lisp.com")
+  (file-size "lab/nano-lisp-jit/release/v45-selfhost-next.com")
+  (file-size "lab/nano-lisp-jit/release/nano-lisp.com")
   (file-size "lab/nano-lisp-jit/lisp/core/lisp-tu-main.lisp")
   (file-size "lab/nano-lisp-jit/retired/archive-c/factory/misc/lisp-tu-main.lisp")
   (build-slice-lisp "lab/nano-lisp-jit/lisp/core/nano-jit-slice-min.lisp"

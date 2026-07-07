@@ -1,8 +1,8 @@
 ; Wave47 W4: selfhost × plan-only terminal 矩阵 — 代际 com + squad 锚.
 ; Prefix v45-spotm- · no build-slice lispjit.c · no .sh steps.
 (bootstrap
-  (file-size "lab/nano-lisp-jit/.build/v45-selfhost-next.com")
-  (file-size "lab/nano-lisp-jit/.build/nano-lisp/nano-lisp.com")
+  (file-size "lab/nano-lisp-jit/release/v45-selfhost-next.com")
+  (file-size "lab/nano-lisp-jit/release/nano-lisp.com")
   (build-slice-lisp "lab/nano-lisp-jit/lisp/core/nano-jit-slice-min.lisp"
                     "lab/nano-lisp-jit/.build/v45-spotm-min-x86.elf"
                     "x86_64")

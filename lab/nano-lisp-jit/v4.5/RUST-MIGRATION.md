@@ -1,0 +1,118 @@
+# nanolisp.com Rust 迁移
+
+**双轨 SSOT（何时用 C COM vs Rust COM、体积、gate/promote）**：[`PRODUCT-TRACKS.md`](PRODUCT-TRACKS.md)
+
+**目标**：商用级 **nanolisp.com** Lisp 运行时 — 多架构 compile + run `.lisp` / `.lbin`，最终替换 C runner。内部 JIT / FFI / AOT 不进产品名。
+
+## 品牌 rename（进行中）
+
+| 对外 | 内部 crate / 路径 |
+|------|------------------|
+| 产品 `nanolisp.com` | `lab/nano-jit-rs/`（crate 名暂保留 `nano-jit-rs`） |
+| CLI 二进制 `nanolisp` | `src/brand.rs` |
+| 兼容 symlink `nano-jit` | build 脚本自动创建 |
+
+`version` 输出主行：`nanolisp.com=0.1.0`；保留 `nano-jit-rs=` 供 CI 过渡。
+
+## 产物模型
+
+```
+.lisp  ──compile──▶  .lbin  ──run──▶  exit code
+ 源（S-expr）         字节码（LBIN01）    VM 执行
+
+ELF slices ──pack-ape──▶  .com  ──run-ape──▶  native exec
+```
+
+类比 Java：`.lisp` ≈ `.java`，`.lbin` ≈ `.class`。
+
+## 现状（2026-06）
+
+整体 **~99%**；release 面仍并存 `nano-lisp.com`（C）与 `nanolisp.com`（Rust）— 见 [PRODUCT-TRACKS](PRODUCT-TRACKS.md)。
+
+| 组件 | C | Rust | 进度 |
+|------|---|------|------|
+| `.lbin` VM run | ✅ | ✅ | 100% |
+| `.lisp` → `.lbin` compile | ✅ | ✅ 21/21 `lisp/core` module | 95%（ir-table 另 DSL） |
+| `pack-ape` / `pack-ape-bare` | ✅ | ✅ 与 C 字节一致 | 90% |
+| `inspect-ape` | ✅ | ✅ | 100% |
+| `run-ape` | ✅ | ✅ v2 memfd（bare+stub） | 85% |
+| x86_64 / aarch64 CLI 二进制 | ✅ | ✅ cross-build | 90% |
+| x86_64 AOT codegen | ✅ | ✅ obj+link + rodata/data + multi-func CF | 90% |
+| `link-elf64-exe` | ✅ | ✅ | 100% |
+| `compile-elf64-exe` | ✅ | ✅ multi-func + control-flow exit 43 | 85% |
+| `compile-elf64-obj-code` / `aot-elf64-obj-code` | ✅ | ✅ obj+link 分步 | 90% |
+| lisp-tu 两 TU link | ✅ | ✅ exit 42 + 92B parity | 90% |
+| compose-5link 五 TU | ✅ | ✅ exit 42 + code parity | 85% |
+| compose-8link 八 TU | ✅ | ✅ exit 42 + code parity | 85% |
+| compose-15link semantic-8k | ✅ | ✅ 9286B parity · exit 42 | 90% |
+| compose-15link semantic-32k | ✅ | ✅ 32001B parity · exit 42 | 90% |
+| compose-15link semantic-64k | ✅ | ✅ 64066B parity · exit 42 | 90% |
+| compose-15link semantic-154k | ✅ | ✅ 155036B parity · exit 42 | 90% |
+| compose-15link semantic-unified | ✅ | ✅ 154017B sem×15 · exit 42 | 90% |
+| compose-15link bulk-scale | ✅ | ✅ 154559B parity · exit 42 | 90% |
+| `run-bootstrap-plan` | ✅ | ✅ compose/APE/build-slice/compose15/genesis-pin | 99% |
+| `build_slice_use_nano_cc` / nano-cc samples | ✅ | ✅ hello/add/build-slice via nano-cc | 95% |
+| Rust release APE pack | ❌ | ✅ + `release/nanolisp.com` promote | 85% |
+| NLCap v0 `.nlcap` | ❌ | ✅ T0/T1/T2/T3 + arch-aware auto | 90% |
+| `run-expect-exit` | ✅ | ✅ | 100% |
+| 6-face COM 替换 release | ✅ | ✅ nanolisp.com + compose-15link slice + hybrid + semantic | 99% |
+
+## C 轨门禁（`release/nano-lisp.com` · 与 Rust 并行）
+
+```bash
+bash lab/nano-lisp-jit/retired/scripts/nano-jit-c-gate.sh   # manifest + verify-smoke · 无需 cosmocc
+# 可选全工厂重建（需 cosmocc）：
+# NANO_C_GATE_FACTORY=1 bash lab/nano-lisp-jit/retired/scripts/nano-jit-c-gate.sh
+bash lab/nano-lisp-jit/retired/scripts/v45-manifest-pin.sh   # 仅刷新 C COM pin · 保留 nanolisp.*
+```
+
+**诚实 C GAP**（商用 SOTA 未闭合）：
+
+| 项 | 状态 |
+|----|------|
+| 纯 lisp 158KB runner codegen（无 host cc hybrid） | 开卷 · compose15 stub ~4KB |
+| 工厂 zero-C（`build_nano_jit.sh` 仍编译 archive `lispjit.c`） | `factory_c_remains_scoped=1` |
+| 6-face cross-os runtime（macOS/Windows slice 为 placeholder） | probe 全表 · Linux runtime 2/6 |
+| `NANO_C_GATE_FACTORY=1` 全量 `build_nano_jit.sh` | 需 cosmocc · CI 默认只跑 release 面 |
+
+## 验收脚本（Rust 产品门禁）
+
+```bash
+bash lab/nano-lisp-jit/build_nano_jit_rs.sh
+bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-smoke.sh          # bootstrap 8 + run
+bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-compile-parity.sh # 21 module hash
+bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-ape-smoke.sh      # pack-ape parity
+bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-aot-smoke.sh      # AOT ELF + run-expect-exit
+bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-lisp-tu-link-smoke.sh  # two-TU link exit 42
+bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-compose5-smoke.sh   # compose-5link exit 42
+bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-compose-link-smoke.sh 8   # compose-8link
+bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-compose-link-smoke.sh 15  # compose-15link
+bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-compose-semantic-8k-smoke.sh  # semantic 8K
+bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-compose-semantic-smoke.sh 32  # semantic 32K
+bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-compose-semantic-smoke.sh 64  # semantic 64K
+bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-compose-semantic-smoke.sh 154 # semantic 154K
+bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-compose-semantic-unified-smoke.sh # sem×15 unified
+bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-compose-bulk-smoke.sh   # bulk 154559B
+bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-bootstrap-15chain-smoke.sh # run-bootstrap-plan compose
+bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-bootstrap-release-promote-smoke.sh # pack-ape plan
+bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-bootstrap-proc-io-smoke.sh # read-file/spawn-wait
+bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-bootstrap-boundary-negative-smoke.sh # type reject
+bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-nano-cc-build-slice-smoke.sh # nano-cc build-slice path
+bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-bootstrap-build-slice-lisp-smoke.sh # factory regenesis
+bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-bootstrap-build-slice-genesis-smoke.sh # genesis-pin + plan-compile
+bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-bootstrap-compose15-build-slice-smoke.sh # compose-15link
+bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-bootstrap-compose15-hybrid-smoke.sh # compose-15link hybrid
+bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-bootstrap-compose15-semantic-build-slice-smoke.sh # semantic/expand profiles
+bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-release-pack-smoke.sh   # Rust nanolisp → APE
+bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-release-promote-smoke.sh # release/nanolisp.com pin
+bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-shell-v0-smoke.sh   # shell libc:system + spawn-wait
+bash lab/nano-lisp-jit/retired/scripts/nano-jit-rs-gate.sh          # all of the above + cargo test
+cd lab/nano-jit-rs && cargo test
+```
+
+## 下一里程碑（商用 SOTA）
+
+1. **release 替换** — bootstrap-plan + build-slice-lisp + compose-15link + genesis-pin ✅
+2. **semantic 阶梯** — 8K–154K + unified ✅
+3. **AOT** — x86_64 ✅ · aarch64 exit-stub ✅ · aarch64 VM/AOT codegen（min/ir pure-blob）✅ · compose-15link aarch64 待补
+4. **类型检查** — VM load-arg/call-arity reject ✅

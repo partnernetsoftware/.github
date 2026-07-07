@@ -1,0 +1,105 @@
+{
+  "ssot": "v4.5/DIFFUSE-WAVE70.md",
+  "parent_goal": "v45.honest.cleanup_pool",
+  "onion_ssot": "v4.5/ONION-TDD.md",
+  "updated_at": "2026-05-27T12:30:00Z",
+  "max_parallel": 4,
+  "breadth_ring": "daily-zero-archive-audit \u2014 \u6d3b\u8dc3 daily/prove \u96f6 archive/c \u8def\u5f84\u5ba1\u8ba1",
+  "nodes": [
+    {
+      "id": "v45-dzaa-gate",
+      "layer": 70,
+      "ring": "gate",
+      "onion_ring": 50,
+      "status": "done",
+      "deps": [],
+      "accept": [
+        "v45.honest.cleanup_pool=1",
+        "v45.converge.daily_v45_honest_cleanup=1"
+      ]
+    },
+    {
+      "id": "v45-dzaa-audit-prove",
+      "layer": 70,
+      "ring": "audit",
+      "onion_ring": 50,
+      "status": "done",
+      "deps": [
+        "v45-dzaa-gate"
+      ],
+      "parallel_slot": "W1",
+      "plan": "lisp/bootstrap/bootstrap-v45-daily-zero-archive-audit-prove.lisp",
+      "agent": "engineer-a"
+    },
+    {
+      "id": "v45-dzaa-stale-honest",
+      "layer": 70,
+      "ring": "\u8bda\u5b9e",
+      "onion_ring": 50,
+      "status": "done",
+      "deps": [
+        "v45-dzaa-gate"
+      ],
+      "parallel_slot": "W2",
+      "plan": "lisp/bootstrap/bootstrap-v45-daily-stale-archive-plan-honest.lisp",
+      "agent": "engineer-b"
+    },
+    {
+      "id": "v45-dzaa-daily",
+      "layer": 70,
+      "ring": "plan",
+      "onion_ring": 50,
+      "status": "done",
+      "deps": [
+        "v45-dzaa-gate"
+      ],
+      "parallel_slot": "W3",
+      "plan": "lisp/bootstrap/bootstrap-v45-converge-daily-v45-zero-archive-audit-terminal.lisp",
+      "agent": "engineer-a"
+    },
+    {
+      "id": "v45-dzaa-matrix",
+      "layer": 70,
+      "ring": "\u4ee3\u9645",
+      "onion_ring": 50,
+      "status": "done",
+      "deps": [
+        "v45-dzaa-gate"
+      ],
+      "parallel_slot": "W4",
+      "plan": "lisp/bootstrap/bootstrap-v45-selfhost-daily-zero-archive-matrix.lisp",
+      "agent": "engineer-b"
+    },
+    {
+      "id": "v45-dzaa-terminal",
+      "layer": 71,
+      "ring": "\u7ec8\u5c40",
+      "onion_ring": 50,
+      "status": "done",
+      "deps": [
+        "v45-dzaa-audit-prove",
+        "v45-dzaa-stale-honest",
+        "v45-dzaa-daily",
+        "v45-dzaa-matrix"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-daily-zero-archive-audit-tree.lisp",
+      "agent": "reviewer"
+    },
+    {
+      "id": "v45-dzaa-goal",
+      "layer": 72,
+      "ring": "continue",
+      "onion_ring": 50,
+      "status": "done",
+      "deps": [
+        "v45-dzaa-terminal"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-v45-daily-zero-archive-audit-continue-100.lisp",
+      "agent": "reviewer"
+    }
+  ],
+  "next_wave_preview": {
+    "id": "wave71-lisp-selfhost-no-genesis",
+    "theme": "\u81ea\u4e3e\u94fe\u96f6 genesis promote \u00b7 COM \u4ee3\u9645 promote"
+  }
+}

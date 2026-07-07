@@ -1,6 +1,9 @@
 /* Included from lispjit.c — bootstrap plan DSL parse + run-bootstrap-plan. */
 static int cmd_compile_elf64_code(const char *src_path, const char *out_path);
 static int cmd_compile_elf64_exe(const char *src_path, const char *out_path, const char *symbol);
+static int cmd_build_slice_compile(const char *src_path, const char *out_path, const char *arch);
+static long bootstrap_path_bytes(const char *path);
+size_t nano_link_last_code_bytes(void);
 
 unsigned char *compile_source_path_to_blob(const char *src_path, size_t *out_blob_n,
                                            int *out_rc);
@@ -724,8 +727,19 @@ static const char *lispjit_from_lisp_profile_path(void) {
     return "lab/nano-lisp-jit/lisp/modules/00-runtime-core.lisp";
   if (lispjit_from_lisp_profile_named("lispjit-mod-compile"))
     return "lab/nano-lisp-jit/lisp/modules/02-compile.lisp";
+  if (lispjit_from_lisp_profile_named("compose-15link") ||
+      lispjit_from_lisp_profile_named("compose-15link-expand") ||
+      lispjit_from_lisp_profile_named("compose-15link-bulk-scale") ||
+      lispjit_from_lisp_profile_named("compose-15link-semantic") ||
+      lispjit_from_lisp_profile_named("compose-15link-semantic-32k") ||
+      lispjit_from_lisp_profile_named("compose-15link-semantic-64k") ||
+      lispjit_from_lisp_profile_named("compose-15link-semantic-154k") ||
+      lispjit_from_lisp_profile_named("compose-15link-semantic-unified") ||
+      lispjit_from_lisp_profile_named("compose-15link-semantic-full") ||
+      lispjit_from_lisp_profile_named("semantic-full"))
+    return "lab/nano-lisp-jit/lisp/core/lisp-tu-main.lisp";
   if (p) return p;
-  return "lab/nano-lisp-jit/samples/nano-jit-runner-core.lisp";
+  return "lab/nano-lisp-jit/lisp/core/nano-jit-slice-min.lisp";
 }
 
 static int lispjit_from_lisp_profile_is_linked_tu(void) {
@@ -974,36 +988,202 @@ static int lispjit_from_lisp_build_compose_9link(const char *out_path, const cha
   return cmd_file_size(out_path);
 }
 
+static int compose15_use_expand_modules(void) {
+  const char *e = getenv("NANO_COMPOSE15_EXPAND");
+  if (e && (e[0] == '1' || e[0] == 'y' || e[0] == 'Y')) return 1;
+  return lispjit_from_lisp_profile_named("compose-15link-expand") ||
+         lispjit_from_lisp_profile_named("compose-15link-bulk-scale");
+}
+
+static const char *nano_lisp_root_default(void) {
+  const char *root = getenv("NANO_LISP_ROOT");
+  if (root && root[0]) return root;
+  return "lab/nano-lisp-jit";
+}
+
+static void nano_lisp_join(char *out, size_t out_n, const char *rel) {
+  const char *root = nano_lisp_root_default();
+  if (!rel || !rel[0]) {
+    snprintf(out, out_n, "%s", root);
+    return;
+  }
+  if (rel[0] == '/') {
+    snprintf(out, out_n, "%s", rel);
+    return;
+  }
+  if (strcmp(root, ".") == 0 || strcmp(root, "./") == 0)
+    snprintf(out, out_n, "%s", rel);
+  else
+    snprintf(out, out_n, "%s/%s", root, rel);
+}
+
+static int cmd_lisp_root(const char *root) {
+  if (!root || !root[0] || strcmp(root, "-") == 0 || strcmp(root, "default") == 0) {
+    unsetenv("NANO_LISP_ROOT");
+    printf("lisp-root=lab/nano-lisp-jit\n");
+    return 0;
+  }
+  setenv("NANO_LISP_ROOT", root, 1);
+  printf("lisp-root=%s\n", root);
+  return 0;
+}
+
+static const char *bootstrap_plan_path(char *buf, size_t buf_n, const char *path) {
+  static const char prefix[] = "lab/nano-lisp-jit/";
+  const char *root = nano_lisp_root_default();
+  if (!path) return path;
+  if (strncmp(path, prefix, sizeof(prefix) - 1) == 0 &&
+      strcmp(root, "lab/nano-lisp-jit") != 0) {
+    nano_lisp_join(buf, buf_n, path + (sizeof(prefix) - 1));
+    return buf;
+  }
+  return path;
+}
+
+static int compose15_use_semantic_unified(void) {
+  return lispjit_from_lisp_profile_named("compose-15link-semantic-unified");
+}
+
+static int compose15_use_semantic_full_15slot(void) {
+  return lispjit_from_lisp_profile_named("compose-15link-semantic-full");
+}
+
+static int compose15_use_semantic_expand_modules(void) {
+  return lispjit_from_lisp_profile_named("compose-15link-semantic") ||
+         lispjit_from_lisp_profile_named("compose-15link-semantic-32k") ||
+         lispjit_from_lisp_profile_named("compose-15link-semantic-64k") ||
+         lispjit_from_lisp_profile_named("compose-15link-semantic-154k") ||
+         compose15_use_semantic_unified() ||
+         compose15_use_semantic_full_15slot();
+}
+
+static const char *compose15_semantic_full_path_for_tag(const char *tag) {
+  if (!tag) return NULL;
+  if (strcmp(tag, "main") == 0)
+    return "lisp/modules-semantic/sem-main.lisp";
+  if (strcmp(tag, "callee") == 0)
+    return "lisp/modules-semantic/sem-callee.lisp";
+  if (strcmp(tag, "extra") == 0)
+    return "lisp/modules-semantic/sem-extra.lisp";
+  if (strcmp(tag, "core") == 0)
+    return "lisp/modules-semantic/sem-core.lisp";
+  if (strcmp(tag, "mf") == 0)
+    return "lisp/modules-semantic/sem-mf.lisp";
+  if (strcmp(tag, "boot") == 0)
+    return "lisp/modules-semantic/sem-boot.lisp";
+  if (strcmp(tag, "vm") == 0)
+    return "lisp/modules-semantic/sem-vm.lisp";
+  if (strcmp(tag, "aot") == 0)
+    return "lisp/modules-semantic/sem-aot.lisp";
+  if (strcmp(tag, "elf") == 0)
+    return "lisp/modules-semantic/sem-elf.lisp";
+  if (strcmp(tag, "abi") == 0)
+    return "lisp/modules-semantic/sem-abi.lisp";
+  if (strcmp(tag, "manifest") == 0)
+    return "lisp/modules-semantic/sem-manifest.lisp";
+  if (strcmp(tag, "run") == 0)
+    return "lisp/modules-semantic/sem-run.lisp";
+  if (strcmp(tag, "pack") == 0)
+    return "lisp/modules-semantic/sem-pack.lisp";
+  if (strcmp(tag, "ape") == 0)
+    return "lisp/modules-semantic/sem-ape.lisp";
+  if (strcmp(tag, "parse") == 0)
+    return "lisp/modules-semantic/sem-parse.lisp";
+  return NULL;
+}
+
+static const char *compose15_semantic_main_expand_path(void) {
+  if (lispjit_from_lisp_profile_named("compose-15link-semantic-154k") ||
+      lispjit_from_lisp_profile_named("compose-15link-semantic-unified"))
+    return "lisp/modules-semantic/tu-main-154k.lisp";
+  if (lispjit_from_lisp_profile_named("compose-15link-semantic-64k"))
+    return "lisp/modules-semantic/tu-main-64k.lisp";
+  if (lispjit_from_lisp_profile_named("compose-15link-semantic-32k"))
+    return "lisp/modules-semantic/tu-main-32k.lisp";
+  return "lisp/modules-semantic/tu-main-8k.lisp";
+}
+
+static const char *compose15_semantic_expand_path_for_tag(const char *tag) {
+  if (!tag) return NULL;
+  if (compose15_use_semantic_unified()) {
+    if (strcmp(tag, "main") == 0)
+      return compose15_semantic_main_expand_path();
+    return compose15_semantic_full_path_for_tag(tag);
+  }
+  if (compose15_use_semantic_full_15slot())
+    return compose15_semantic_full_path_for_tag(tag);
+  if (strcmp(tag, "main") == 0)
+    return compose15_semantic_main_expand_path();
+  if (strcmp(tag, "mf") == 0)
+    return "lisp/modules-semantic/mf-semantic-40.lisp";
+  if (strcmp(tag, "core") == 0)
+    return "lisp/modules-semantic/core-semantic-40.lisp";
+  return NULL;
+}
+
+static const char *compose15_expand_path_for_tag(const char *tag) {
+  if (!tag) return NULL;
+  if (strcmp(tag, "main") == 0)
+    return "lisp/modules-expand/26-bulk-main-expand.lisp";
+  if (strcmp(tag, "callee") == 0)
+    return "lisp/modules-expand/27-bulk-callee-expand.lisp";
+  if (strcmp(tag, "mf") == 0)
+    return "lisp/modules-expand/13-bulk-text-expand.lisp";
+  if (strcmp(tag, "extra") == 0)
+    return "lisp/modules-expand/15-bulk-extra-expand.lisp";
+  if (strcmp(tag, "core") == 0)
+    return "lisp/modules-expand/14-bulk-core-expand.lisp";
+  if (strcmp(tag, "boot") == 0)
+    return "lisp/modules-expand/17-bulk-boot-expand.lisp";
+  if (strcmp(tag, "vm") == 0)
+    return "lisp/modules-expand/16-bulk-vm-expand.lisp";
+  if (strcmp(tag, "aot") == 0)
+    return "lisp/modules-expand/18-bulk-aot-expand.lisp";
+  if (strcmp(tag, "elf") == 0)
+    return "lisp/modules-expand/19-bulk-elf-expand.lisp";
+  if (strcmp(tag, "abi") == 0)
+    return "lisp/modules-expand/20-bulk-abi-expand.lisp";
+  if (strcmp(tag, "manifest") == 0)
+    return "lisp/modules-expand/21-bulk-manifest-expand.lisp";
+  if (strcmp(tag, "run") == 0)
+    return "lisp/modules-expand/22-bulk-run-expand.lisp";
+  if (strcmp(tag, "pack") == 0)
+    return "lisp/modules-expand/23-bulk-pack-expand.lisp";
+  if (strcmp(tag, "ape") == 0)
+    return "lisp/modules-expand/24-bulk-ape-expand.lisp";
+  if (strcmp(tag, "parse") == 0)
+    return "lisp/modules-expand/25-bulk-parse-expand.lisp";
+  return NULL;
+}
+
 static int lispjit_from_lisp_build_compose_15link(const char *out_path, const char *arch) {
   static const struct {
     const char *path;
     const char *sym;
     const char *tag;
   } mods[] = {
-      {"lab/nano-lisp-jit/samples/lisp-tu-main.lisp", "nano_tu_main", "main"},
-      {"lab/nano-lisp-jit/samples/lisp-tu-callee.lisp", "nano_tu_callee", "callee"},
-      {"lab/nano-lisp-jit/lisp/modules/01-runtime-extra.lisp", "nano_lispjit_extra",
-       "extra"},
-      {"lab/nano-lisp-jit/lisp/modules/00-runtime-core.lisp", "nano_mod_core", "core"},
-      {"lab/nano-lisp-jit/lisp/core/multi-func.lisp", "nano_mf_mod", "mf"},
-      {"lab/nano-lisp-jit/lisp/modules/03-bootstrap-stub.lisp", "nano_mod_boot",
-       "boot"},
-      {"lab/nano-lisp-jit/lisp/modules/04-vm.lisp", "nano_mod_vm", "vm"},
-      {"lab/nano-lisp-jit/lisp/modules/05-aot.lisp", "nano_mod_aot", "aot"},
-      {"lab/nano-lisp-jit/lisp/modules/06-elf.lisp", "nano_mod_elf", "elf"},
-      {"lab/nano-lisp-jit/lisp/modules/07-abi.lisp", "nano_mod_abi", "abi"},
-      {"lab/nano-lisp-jit/lisp/modules/08-manifest.lisp", "nano_mod_manifest",
-       "manifest"},
-      {"lab/nano-lisp-jit/lisp/modules/09-run.lisp", "nano_mod_run", "run"},
-      {"lab/nano-lisp-jit/lisp/modules/10-pack.lisp", "nano_mod_pack", "pack"},
-      {"lab/nano-lisp-jit/lisp/modules/11-ape.lisp", "nano_mod_ape", "ape"},
-      {"lab/nano-lisp-jit/lisp/modules/12-parse.lisp", "nano_mod_parse", "parse"},
+      {"lisp/core/lisp-tu-main.lisp", "nano_tu_main", "main"},
+      {"lisp/core/lisp-tu-callee.lisp", "nano_tu_callee", "callee"},
+      {"lisp/modules/01-runtime-extra.lisp", "nano_lispjit_extra", "extra"},
+      {"lisp/modules/00-runtime-core.lisp", "nano_mod_core", "core"},
+      {"lisp/core/multi-func.lisp", "nano_mf_mod", "mf"},
+      {"lisp/modules/03-bootstrap-stub.lisp", "nano_mod_boot", "boot"},
+      {"lisp/modules/04-vm.lisp", "nano_mod_vm", "vm"},
+      {"lisp/modules/05-aot.lisp", "nano_mod_aot", "aot"},
+      {"lisp/modules/06-elf.lisp", "nano_mod_elf", "elf"},
+      {"lisp/modules/07-abi.lisp", "nano_mod_abi", "abi"},
+      {"lisp/modules/08-manifest.lisp", "nano_mod_manifest", "manifest"},
+      {"lisp/modules/09-run.lisp", "nano_mod_run", "run"},
+      {"lisp/modules/10-pack.lisp", "nano_mod_pack", "pack"},
+      {"lisp/modules/11-ape.lisp", "nano_mod_ape", "ape"},
+      {"lisp/modules/12-parse.lisp", "nano_mod_parse", "parse"},
   };
   enum { mod_count = (int)(sizeof(mods) / sizeof(mods[0])) };
   char obj_paths[15][4096];
   char *link_argv[4 + 15];
   int rc;
   size_t i;
+  size_t object_bytes_total = 0;
   if (strcmp(arch, "aarch64") == 0 || strcmp(arch, "arm64") == 0) {
     fprintf(stderr, "lispjit-from-lisp-compose-15link=aarch64_unsupported\n");
     return 2;
@@ -1012,10 +1192,33 @@ static int lispjit_from_lisp_build_compose_15link(const char *out_path, const ch
     fprintf(stderr, "lispjit-from-lisp-compose-15link=bad_arch arch=%s\n", arch);
     return 2;
   }
+  if (compose15_use_expand_modules())
+    printf("build-slice-lisp.compose15_expand=1\n");
+  if (compose15_use_semantic_expand_modules())
+    printf("build-slice-lisp.compose15_semantic_expand=1\n");
+  if (compose15_use_semantic_full_15slot())
+    printf("build-slice-lisp.compose15_semantic_full_15slot=1\n");
+  if (compose15_use_semantic_unified())
+    printf("build-slice-lisp.compose15_semantic_unified=1\n");
+  printf("build-slice-lisp.lisp_root=%s\n", nano_lisp_root_default());
   for (i = 0; i < (size_t)mod_count; ++i) {
+    char src_full[4096];
+    const char *rel = mods[i].path;
+    const char *semantic =
+        compose15_use_semantic_expand_modules() ? compose15_semantic_expand_path_for_tag(mods[i].tag)
+                                                : NULL;
+    const char *expand =
+        compose15_use_expand_modules() ? compose15_expand_path_for_tag(mods[i].tag) : NULL;
+    if (semantic) rel = semantic;
+    else if (expand) rel = expand;
+    nano_lisp_join(src_full, sizeof(src_full), rel);
     snprintf(obj_paths[i], sizeof(obj_paths[i]), "%s.lispjit-compose15-%s.o", out_path, mods[i].tag);
-    rc = cmd_compile_elf64_obj_code(mods[i].path, obj_paths[i], mods[i].sym);
+    rc = cmd_compile_elf64_obj_code(src_full, obj_paths[i], mods[i].sym);
     if (rc != 0) return rc;
+    {
+      long ob = bootstrap_path_bytes(obj_paths[i]);
+      if (ob > 0) object_bytes_total += (size_t)ob;
+    }
   }
   link_argv[0] = (char *)"run-bootstrap-plan";
   link_argv[1] = (char *)"link-elf64-exe";
@@ -1024,6 +1227,45 @@ static int lispjit_from_lisp_build_compose_15link(const char *out_path, const ch
   for (i = 0; i < (size_t)mod_count; ++i) link_argv[4 + i] = obj_paths[i];
   rc = cmd_link_elf64_exe(4 + mod_count, link_argv);
   if (rc != 0) return rc;
+  {
+    long linked_bytes = bootstrap_path_bytes(out_path);
+    size_t code_bytes = nano_link_last_code_bytes();
+    static char lispjit_factory_buf[4096];
+    const char *no_hybrid = getenv("NANO_COMPOSE15_NO_HYBRID");
+    nano_lisp_join(lispjit_factory_buf, sizeof(lispjit_factory_buf),
+                   "archive/c/runner/lispjit.c");
+    const char *lispjit_factory = lispjit_factory_buf;
+    printf("build-slice-lisp.compose15_link.object_bytes_total=%zu\n", object_bytes_total);
+    printf("build-slice-lisp.compose15_link.linked_bytes=%ld\n", linked_bytes);
+    printf("build-slice-lisp.compose15_link.code_bytes=%zu\n", code_bytes);
+    if (code_bytes > 0 && code_bytes < 16384) {
+      if (no_hybrid && no_hybrid[0] == '1') {
+        printf("build-slice-lisp.compose15_pure=1\n");
+        printf("build-slice-lisp.compose15_hybrid=skipped\n");
+      } else {
+        printf("build-slice-lisp.compose15_hybrid=stub code_bytes=%zu\n", code_bytes);
+        rc = cmd_build_slice_compile(lispjit_factory, out_path, arch);
+        if (rc != 0) return rc;
+        printf("build-slice-lisp.compose15_hybrid=fallback_compile\n");
+      }
+    } else if (code_bytes >= 16384) {
+      printf("build-slice-lisp.compose15_pure=1\n");
+      printf("build-slice-lisp.compose15_full_codegen=1\n");
+    } else if (linked_bytes >= 0 && linked_bytes < 16384) {
+      if (no_hybrid && no_hybrid[0] == '1') {
+        printf("build-slice-lisp.compose15_pure=1\n");
+        printf("build-slice-lisp.compose15_hybrid=skipped\n");
+      } else {
+        printf("build-slice-lisp.compose15_hybrid=stub linked_bytes=%ld\n", linked_bytes);
+        rc = cmd_build_slice_compile(lispjit_factory, out_path, arch);
+        if (rc != 0) return rc;
+        printf("build-slice-lisp.compose15_hybrid=fallback_compile\n");
+      }
+    } else if (linked_bytes >= 16384) {
+      printf("build-slice-lisp.compose15_pure=1\n");
+      printf("build-slice-lisp.compose15_full_codegen=1\n");
+    }
+  }
   printf("build-slice-lisp.mode=compose-15link\n");
   printf("build-slice-lisp.link.objects=%d\n", mod_count);
   printf("build-slice.lispjit_codegen=1\n");
@@ -1065,9 +1307,27 @@ static int lispjit_from_lisp_build_semantic_terminal(const char *src_path, const
   return cmd_file_size(out_path);
 }
 
+static int lispjit_from_lisp_build_full_codegen(const char *out_path, const char *arch) {
+  const char *saved = getenv("NANO_LISPJIT_FROM_LISP_PROFILE");
+  char saved_buf[256];
+  int rc;
+  saved_buf[0] = 0;
+  if (saved) snprintf(saved_buf, sizeof(saved_buf), "%s", saved);
+  setenv("NANO_LISPJIT_FROM_LISP_PROFILE", "compose-15link-bulk-scale", 1);
+  setenv("NANO_COMPOSE15_NO_HYBRID", "1", 1);
+  rc = lispjit_from_lisp_build_compose_15link(out_path, arch);
+  unsetenv("NANO_COMPOSE15_NO_HYBRID");
+  if (saved_buf[0])
+    setenv("NANO_LISPJIT_FROM_LISP_PROFILE", saved_buf, 1);
+  else
+    unsetenv("NANO_LISPJIT_FROM_LISP_PROFILE");
+  return rc;
+}
+
 static int lispjit_from_lisp_build_full(const char *src_path, const char *out_path,
                                         const char *arch) {
   const char *pin = selfhost_reuse_pin_for_arch(arch);
+  const char *pin_fallback = getenv("NANO_LISPJIT_FULL_PIN_FALLBACK");
   int rc;
   if (!pin || !pin[0]) pin = genesis_pin_path_for_arch(arch);
   if (!pin) {
@@ -1078,11 +1338,27 @@ static int lispjit_from_lisp_build_full(const char *src_path, const char *out_pa
     fprintf(stderr, "lispjit-from-lisp-full=x86_only arch=%s\n", arch);
     return 2;
   }
+  if (!pin_fallback || pin_fallback[0] != '1') {
+    rc = lispjit_from_lisp_build_full_codegen(out_path, arch);
+    if (rc == 0) {
+      printf("build-slice.compiler=none\n");
+      printf("build-slice.arch=%s\n", arch);
+      printf("build-slice.role=lispjit-from-lisp-full\n");
+      printf("build-slice.lispjit_proxy=full\n");
+      printf("build-slice.lispjit_profile_tier=7\n");
+      printf("build-slice.lispjit_full_codegen=compose15_bulk_scale\n");
+      printf("build-slice.lispjit_full_honest=partial_154kb_not_863kb_com\n");
+      printf("build-slice.source=%s\n", src_path);
+      printf("build-slice.output=%s\n", out_path);
+      return cmd_file_size(out_path);
+    }
+  }
   printf("build-slice.compiler=none\n");
   printf("build-slice.arch=%s\n", arch);
   printf("build-slice.role=lispjit-from-lisp-full\n");
   printf("build-slice.lispjit_proxy=full\n");
   printf("build-slice.lispjit_profile_tier=7\n");
+  printf("build-slice.lispjit_full_pin_fallback=1\n");
   printf("build-slice.lispjit_full_pin=%s\n", pin);
   printf("build-slice.source=%s\n", src_path);
   printf("build-slice.output=%s\n", out_path);
@@ -1101,7 +1377,29 @@ static int build_slice_use_lispjit_from_lisp(const char *src_path) {
 static int build_slice_via_lispjit_from_lisp(const char *src_path, const char *out_path,
                                              const char *arch) {
   const char *profile = lispjit_from_lisp_profile_path();
+  const char *profile_env = lispjit_from_lisp_profile_env();
   int rc;
+  /* Early dispatch: env profile string (COM slice may not match named() after exec). */
+  if (profile_env && strcmp(profile_env, "compose-15link") == 0)
+    return lispjit_from_lisp_build_compose_15link(out_path, arch);
+  if (profile_env && strcmp(profile_env, "compose-15link-expand") == 0)
+    return lispjit_from_lisp_build_compose_15link(out_path, arch);
+  if (profile_env && strcmp(profile_env, "compose-15link-bulk-scale") == 0)
+    return lispjit_from_lisp_build_compose_15link(out_path, arch);
+  if (profile_env && strcmp(profile_env, "compose-15link-semantic") == 0)
+    return lispjit_from_lisp_build_compose_15link(out_path, arch);
+  if (profile_env && strcmp(profile_env, "compose-15link-semantic-32k") == 0)
+    return lispjit_from_lisp_build_compose_15link(out_path, arch);
+  if (profile_env && strcmp(profile_env, "compose-15link-semantic-64k") == 0)
+    return lispjit_from_lisp_build_compose_15link(out_path, arch);
+  if (profile_env && strcmp(profile_env, "compose-15link-semantic-154k") == 0)
+    return lispjit_from_lisp_build_compose_15link(out_path, arch);
+  if (profile_env && strcmp(profile_env, "compose-15link-semantic-unified") == 0)
+    return lispjit_from_lisp_build_compose_15link(out_path, arch);
+  if (profile_env && strcmp(profile_env, "compose-15link-semantic-full") == 0)
+    return lispjit_from_lisp_build_compose_15link(out_path, arch);
+  if (profile_env && strcmp(profile_env, "semantic-full") == 0)
+    return lispjit_from_lisp_build_compose_15link(out_path, arch);
   if (lispjit_from_lisp_profile_named("full"))
     return lispjit_from_lisp_build_full(src_path, out_path, arch);
   if (lispjit_from_lisp_profile_named("semantic-terminal") ||
@@ -1140,6 +1438,10 @@ static int build_slice_via_lispjit_from_lisp(const char *src_path, const char *o
     printf("build-slice.lispjit_link=tu+modules+semantic\n");
     printf("build-slice.lispjit_codegen=1\n");
   } else if (lispjit_from_lisp_profile_named("compose-15link") ||
+             lispjit_from_lisp_profile_named("compose-15link-expand") ||
+             lispjit_from_lisp_profile_named("compose-15link-bulk-scale") ||
+             lispjit_from_lisp_profile_named("compose-15link-semantic-unified") ||
+             lispjit_from_lisp_profile_named("compose-15link-semantic-full") ||
              lispjit_from_lisp_profile_named("semantic-full")) {
     printf("build-slice.lispjit_proxy=semantic-full\n");
     printf("build-slice.lispjit_profile_tier=9\n");
@@ -1173,6 +1475,8 @@ static int build_slice_via_lispjit_from_lisp(const char *src_path, const char *o
            lispjit_from_lisp_profile_named("semantic-codegen"))
     rc = lispjit_from_lisp_build_compose_9link(out_path, arch);
   else if (lispjit_from_lisp_profile_named("compose-15link") ||
+           lispjit_from_lisp_profile_named("compose-15link-expand") ||
+           lispjit_from_lisp_profile_named("compose-15link-bulk-scale") ||
            lispjit_from_lisp_profile_named("semantic-full"))
     rc = lispjit_from_lisp_build_compose_15link(out_path, arch);
   else
@@ -1226,8 +1530,10 @@ static int cmd_build_slice(const char *src_path, const char *out_path, const cha
     fprintf(stderr, "build-slice=bad_arch arch=%s\n", arch);
     return 2;
   }
-  snprintf(cmd, sizeof(cmd), "%s -DNANO_LISP_JIT -Os -s '%s' -ldl -o '%s'", cc, src_path,
-           out_path);
+  snprintf(cmd, sizeof(cmd),
+           "%s -DNANO_LISP_JIT -Ilab/lispjit-ir -Ilab/nano-lisp-jit/retired/archive-c/runner "
+           "-Os -s '%s' -ldl -o '%s'",
+           cc, src_path, out_path);
   printf("build-slice.compiler=%s\n", cc);
   printf("build-slice.arch=%s\n", arch);
   printf("build-slice.role=stage0-bridge\n");
@@ -1235,6 +1541,80 @@ static int cmd_build_slice(const char *src_path, const char *out_path, const cha
   printf("build-slice.output=%s\n", out_path);
   if (system(cmd) != 0) {
     fprintf(stderr, "build-slice=compile_fail\n");
+    return 2;
+  }
+  return cmd_file_size(out_path);
+}
+
+static const char *build_slice_lisp_profile_resolve(const char *profile) {
+  if (profile && strcmp(profile, "compose-15link") == 0)
+    return "compose-15link-semantic-unified";
+  if (profile && strcmp(profile, "full") == 0)
+    return "compose-15link-bulk-scale";
+  return profile;
+}
+
+static int build_slice_lisp_profile_no_hybrid(const char *profile) {
+  if (!profile || !profile[0]) return 0;
+  return strstr(profile, "compose-15link") != NULL || strstr(profile, "semantic") != NULL ||
+         strcmp(profile, "full") == 0;
+}
+
+static int cmd_build_slice_lisp_profile(const char *profile, const char *src_path,
+                                        const char *out_path, const char *arch) {
+  int rc;
+  const char *resolved;
+  if (!profile || !profile[0] || !src_path || !out_path || !arch) {
+    fprintf(stderr, "build-slice-lisp-profile=bad_args\n");
+    return 1;
+  }
+  resolved = build_slice_lisp_profile_resolve(profile);
+  if (strcmp(resolved, profile) != 0)
+    printf("build-slice-lisp-profile.profile_upgrade=%s\n", resolved);
+  profile = resolved;
+  printf("build-slice-lisp-profile.profile=%s\n", profile);
+  setenv("NANO_LISPJIT_FROM_LISP", "1", 1);
+  setenv("NANO_LISPJIT_FROM_LISP_PROFILE", profile, 1);
+  if (build_slice_lisp_profile_no_hybrid(profile))
+    setenv("NANO_COMPOSE15_NO_HYBRID", "1", 1);
+  rc = cmd_build_slice(src_path, out_path, arch);
+  unsetenv("NANO_COMPOSE15_NO_HYBRID");
+  unsetenv("NANO_LISPJIT_FROM_LISP_PROFILE");
+  unsetenv("NANO_LISPJIT_FROM_LISP");
+  return rc;
+}
+
+static long bootstrap_path_bytes(const char *path) {
+  struct stat st;
+  if (!path || stat(path, &st) != 0) return -1;
+  return (long)st.st_size;
+}
+
+static int cmd_build_slice_compile(const char *src_path, const char *out_path, const char *arch) {
+  char cmd[8192];
+  const char *cc = "cc";
+  if (!src_path || !out_path || !arch) {
+    fprintf(stderr, "build-slice-compile=bad_args\n");
+    return 1;
+  }
+  if (strcmp(arch, "aarch64") == 0 || strcmp(arch, "arm64") == 0) {
+    cc = "aarch64-linux-gnu-gcc";
+  } else if (strcmp(arch, "x86_64") != 0 && strcmp(arch, "amd64") != 0) {
+    fprintf(stderr, "build-slice-compile=bad_arch arch=%s\n", arch);
+    return 2;
+  }
+  snprintf(cmd, sizeof(cmd),
+           "%s -DNANO_LISP_JIT -Ilab/lispjit-ir -Ilab/nano-lisp-jit/retired/archive-c/runner "
+           "-Os -s '%s' -ldl -o '%s'",
+           cc, src_path, out_path);
+  printf("build-slice.compiler=%s\n", cc);
+  printf("build-slice.arch=%s\n", arch);
+  printf("build-slice.role=plan-compile\n");
+  printf("build-slice.lispjit_zero_genesis_pin=1\n");
+  printf("build-slice.source=%s\n", src_path);
+  printf("build-slice.output=%s\n", out_path);
+  if (system(cmd) != 0) {
+    fprintf(stderr, "build-slice-compile=compile_fail\n");
     return 2;
   }
   return cmd_file_size(out_path);
@@ -1456,6 +1836,19 @@ static int parse_bootstrap_plan(const char *src, BootstrapPlan *plan) {
         free(head);
         return 0;
       }
+    } else if (strcmp(head, "extract-ape-slice") == 0) {
+      char *arg0 = parse_string(&p);
+      char *arg1 = parse_string(&p);
+      char *arg2 = parse_string(&p);
+      int ok = arg0 && arg1 && arg2 && eat(&p, ')') &&
+               bootstrap_add_step(plan, BOOTSTRAP_STEP_EXTRACT_APE_SLICE, arg0, arg1, arg2, NULL);
+      if (!ok) {
+        free(arg0);
+        free(arg1);
+        free(arg2);
+        free(head);
+        return 0;
+      }
     } else if (strcmp(head, "pack-ape") == 0) {
       char *arg0 = parse_string(&p);
       char *arg1 = parse_string(&p);
@@ -1493,11 +1886,38 @@ static int parse_bootstrap_plan(const char *src, BootstrapPlan *plan) {
         free(head);
         return 0;
       }
-    } else if (strcmp(head, "build-slice") == 0 || strcmp(head, "build-slice-lisp") == 0) {
+    } else if (strcmp(head, "lisp-root") == 0) {
+      char *arg0 = parse_string(&p);
+      int ok = arg0 && eat(&p, ')') &&
+               bootstrap_add_step(plan, BOOTSTRAP_STEP_LISP_ROOT, arg0, NULL, NULL, NULL);
+      if (!ok) {
+        free(arg0);
+        free(head);
+        return 0;
+      }
+    } else if (strcmp(head, "build-slice-lisp-profile") == 0) {
       char *arg0 = parse_string(&p);
       char *arg1 = parse_string(&p);
       char *arg2 = parse_string(&p);
-      uint32_t kind = strcmp(head, "build-slice") == 0 ? BOOTSTRAP_STEP_BUILD_SLICE :
+      char *arg3 = parse_string(&p);
+      int ok = arg0 && arg1 && arg2 && arg3 && eat(&p, ')') &&
+               bootstrap_add_step(plan, BOOTSTRAP_STEP_BUILD_SLICE_LISP_PROFILE,
+                                  arg0, arg1, arg2, arg3);
+      if (!ok) {
+        free(arg0);
+        free(arg1);
+        free(arg2);
+        free(arg3);
+        free(head);
+        return 0;
+      }
+    } else if (strcmp(head, "build-slice") == 0 || strcmp(head, "build-slice-lisp") == 0 ||
+               strcmp(head, "build-slice-compile") == 0) {
+      char *arg0 = parse_string(&p);
+      char *arg1 = parse_string(&p);
+      char *arg2 = parse_string(&p);
+      uint32_t kind = strcmp(head, "build-slice-compile") == 0 ? BOOTSTRAP_STEP_BUILD_SLICE_COMPILE :
+                      strcmp(head, "build-slice") == 0 ? BOOTSTRAP_STEP_BUILD_SLICE :
                       BOOTSTRAP_STEP_BUILD_SLICE_LISP;
       int ok = arg0 && arg1 && arg2 && eat(&p, ')') &&
                bootstrap_add_step(plan, kind, arg0, arg1, arg2, NULL);
@@ -1560,6 +1980,55 @@ static int parse_bootstrap_plan(const char *src, BootstrapPlan *plan) {
                bootstrap_add_step(plan, kind, arg0, NULL, NULL, NULL);
       if (!ok) {
         free(arg0);
+        free(head);
+        return 0;
+      }
+    } else if (strcmp(head, "read-file") == 0) {
+      char *arg0 = parse_string(&p);
+      int ok = arg0 && eat(&p, ')') &&
+               bootstrap_add_step(plan, BOOTSTRAP_STEP_READ_FILE, arg0, NULL, NULL, NULL);
+      if (!ok) {
+        free(arg0);
+        free(head);
+        return 0;
+      }
+    } else if (strcmp(head, "run-stdin") == 0) {
+      char *arg0 = parse_string(&p);
+      char *arg1 = parse_string(&p);
+      int ok = arg0 && arg1 && eat(&p, ')') &&
+               bootstrap_add_step(plan, BOOTSTRAP_STEP_RUN_STDIN, arg0, arg1, NULL, NULL);
+      if (!ok) {
+        free(arg0);
+        free(arg1);
+        free(head);
+        return 0;
+      }
+    } else if (strcmp(head, "spawn-wait") == 0) {
+      char *arg0 = parse_atom(&p);
+      char *arg1 = parse_string(&p);
+      char **extra_args = NULL;
+      size_t extra_arg_count = 0;
+      size_t extra_arg_cap = 0;
+      int ok = arg0 && arg1;
+      while (ok) {
+        skip_ws(&p);
+        if (*p == ')') break;
+        char *arg = parse_string(&p);
+        if (!arg || !bootstrap_push_string_arg(&extra_args, &extra_arg_count,
+                                               &extra_arg_cap, arg)) {
+          free(arg);
+          ok = 0;
+          break;
+        }
+      }
+      ok = ok && eat(&p, ')') &&
+           bootstrap_add_step_extra(plan, BOOTSTRAP_STEP_SPAWN_WAIT,
+                                    arg0, arg1, NULL, NULL,
+                                    extra_args, extra_arg_count);
+      if (!ok) {
+        free(arg0);
+        free(arg1);
+        bootstrap_free_string_array(extra_args, extra_arg_count);
         free(head);
         return 0;
       }
@@ -1793,12 +2262,18 @@ static int cmd_run_bootstrap_plan(const char *plan_path) {
   printf("bootstrap-plan.steps=%zu\n", plan.step_count);
   for (size_t i = 0; i < plan.step_count; ++i) {
     const BootstrapStep *step = &plan.steps[i];
+    char plan_path0[4096];
+    char plan_path1[4096];
+    char plan_path2[4096];
     if (step->kind == BOOTSTRAP_STEP_COMPILE) {
       printf("bootstrap-step.%zu=compile\n", i);
-      rc = cmd_compile(step->arg0, step->arg1);
+      rc = cmd_compile(bootstrap_plan_path(plan_path0, sizeof(plan_path0), step->arg0),
+                       bootstrap_plan_path(plan_path1, sizeof(plan_path1), step->arg1));
     } else if (step->kind == BOOTSTRAP_STEP_COMPARE) {
       printf("bootstrap-step.%zu=compare\n", i);
-      rc = compare_files(step->arg0, step->arg1, "bootstrap-compare");
+      rc = compare_files(bootstrap_plan_path(plan_path0, sizeof(plan_path0), step->arg0),
+                         bootstrap_plan_path(plan_path1, sizeof(plan_path1), step->arg1),
+                         "bootstrap-compare");
     } else if (step->kind == BOOTSTRAP_STEP_HASH) {
       printf("bootstrap-step.%zu=hash\n", i);
       rc = cmd_hash(step->arg0);
@@ -1807,16 +2282,43 @@ static int cmd_run_bootstrap_plan(const char *plan_path) {
       rc = cmd_dump(step->arg0);
     } else if (step->kind == BOOTSTRAP_STEP_FILE_SIZE) {
       printf("bootstrap-step.%zu=file-size\n", i);
-      rc = cmd_file_size(step->arg0);
+      rc = cmd_file_size(bootstrap_plan_path(plan_path0, sizeof(plan_path0), step->arg0));
     } else if (step->kind == BOOTSTRAP_STEP_FILE_HASH) {
       printf("bootstrap-step.%zu=file-hash\n", i);
-      rc = cmd_file_hash(step->arg0);
+      rc = cmd_file_hash(bootstrap_plan_path(plan_path0, sizeof(plan_path0), step->arg0));
+    } else if (step->kind == BOOTSTRAP_STEP_READ_FILE) {
+      printf("bootstrap-step.%zu=read-file\n", i);
+      rc = cmd_read_file(step->arg0);
+    } else if (step->kind == BOOTSTRAP_STEP_RUN_STDIN) {
+      printf("bootstrap-step.%zu=run-stdin\n", i);
+      rc = cmd_run_stdin(step->arg0, step->arg1);
+    } else if (step->kind == BOOTSTRAP_STEP_LISP_ROOT) {
+      printf("bootstrap-step.%zu=lisp-root\n", i);
+      rc = cmd_lisp_root(step->arg0);
+    } else if (step->kind == BOOTSTRAP_STEP_SPAWN_WAIT) {
+      size_t sea;
+      char spawn_extra_bufs[8][4096];
+      char *spawn_extra_ptrs[8];
+      printf("bootstrap-step.%zu=spawn-wait\n", i);
+      for (sea = 0; sea < step->extra_arg_count && sea < 8; ++sea)
+        spawn_extra_ptrs[sea] =
+            (char *)bootstrap_plan_path(spawn_extra_bufs[sea], sizeof(spawn_extra_bufs[sea]),
+                                        step->extra_args[sea]);
+      if (step->extra_arg_count > 8) {
+        fprintf(stderr, "bootstrap-spawn-wait=too_many_args\n");
+        rc = 2;
+      } else {
+        rc = run_spawn_wait_expect_exit(
+            step->arg0, bootstrap_plan_path(plan_path0, sizeof(plan_path0), step->arg1),
+            step->extra_arg_count ? spawn_extra_ptrs : NULL, step->extra_arg_count);
+      }
     } else if (step->kind == BOOTSTRAP_STEP_GEN_LIBC_RESOLVE) {
       printf("bootstrap-step.%zu=gen-libc-resolve\n", i);
       rc = cmd_gen_libc_resolve(NULL, step->arg0);
     } else if (step->kind == BOOTSTRAP_STEP_EMIT_ELF64_EXIT) {
       printf("bootstrap-step.%zu=emit-elf64-exit\n", i);
-      rc = cmd_emit_elf64_exit(step->arg0, step->arg1);
+      rc = cmd_emit_elf64_exit(bootstrap_plan_path(plan_path0, sizeof(plan_path0), step->arg0),
+                               step->arg1);
     } else if (step->kind == BOOTSTRAP_STEP_AOT_ELF64_EXIT) {
       printf("bootstrap-step.%zu=aot-elf64-exit\n", i);
       rc = cmd_aot_elf64_exit(step->arg0, step->arg1);
@@ -1867,13 +2369,21 @@ static int cmd_run_bootstrap_plan(const char *plan_path) {
       rc = cmd_resolve(step->arg0, 1);
     } else if (step->kind == BOOTSTRAP_STEP_RUN_EXPECT_EXIT) {
       printf("bootstrap-step.%zu=run-expect-exit\n", i);
-      rc = run_executable_expect_exit(step->arg0, step->arg1);
+      rc = run_executable_expect_exit(
+          bootstrap_plan_path(plan_path0, sizeof(plan_path0), step->arg0), step->arg1);
     } else if (step->kind == BOOTSTRAP_STEP_RUN_APE_EXPECT_EXIT) {
       printf("bootstrap-step.%zu=run-ape-expect-exit\n", i);
       rc = run_ape_expect_exit(step->arg0, step->arg1, step->arg2);
+    } else if (step->kind == BOOTSTRAP_STEP_EXTRACT_APE_SLICE) {
+      printf("bootstrap-step.%zu=extract-ape-slice\n", i);
+      rc = cmd_extract_ape_slice(
+          bootstrap_plan_path(plan_path0, sizeof(plan_path0), step->arg0),
+          bootstrap_plan_path(plan_path1, sizeof(plan_path1), step->arg1), step->arg2);
     } else if (step->kind == BOOTSTRAP_STEP_PACK_APE) {
       printf("bootstrap-step.%zu=pack-ape\n", i);
-      rc = cmd_pack_ape(step->arg0, step->arg1, step->arg2);
+      rc = cmd_pack_ape(bootstrap_plan_path(plan_path0, sizeof(plan_path0), step->arg0),
+                        bootstrap_plan_path(plan_path1, sizeof(plan_path1), step->arg1),
+                        bootstrap_plan_path(plan_path2, sizeof(plan_path2), step->arg2));
     } else if (step->kind == BOOTSTRAP_STEP_PACK_APE_BARE) {
       printf("bootstrap-step.%zu=pack-ape-bare\n", i);
       rc = cmd_pack_ape_bare(step->arg0, step->arg1, step->arg2);
@@ -1882,16 +2392,31 @@ static int cmd_run_bootstrap_plan(const char *plan_path) {
       rc = cmd_pack_ape_bare_env(step->arg0, step->arg1, step->arg2);
     } else if (step->kind == BOOTSTRAP_STEP_BUILD_SLICE) {
       printf("bootstrap-step.%zu=build-slice\n", i);
-      rc = cmd_build_slice(step->arg0, step->arg1, step->arg2);
+      rc = cmd_build_slice(bootstrap_plan_path(plan_path0, sizeof(plan_path0), step->arg0),
+                           bootstrap_plan_path(plan_path1, sizeof(plan_path1), step->arg1),
+                           step->arg2);
+    } else if (step->kind == BOOTSTRAP_STEP_BUILD_SLICE_COMPILE) {
+      printf("bootstrap-step.%zu=build-slice-compile\n", i);
+      rc = cmd_build_slice_compile(bootstrap_plan_path(plan_path0, sizeof(plan_path0), step->arg0),
+                                   bootstrap_plan_path(plan_path1, sizeof(plan_path1), step->arg1),
+                                   step->arg2);
     } else if (step->kind == BOOTSTRAP_STEP_BUILD_SLICE_LISP) {
       printf("bootstrap-step.%zu=build-slice-lisp\n", i);
-      rc = cmd_build_slice_lisp(step->arg0, step->arg1, step->arg2);
+      rc = cmd_build_slice_lisp(bootstrap_plan_path(plan_path0, sizeof(plan_path0), step->arg0),
+                                bootstrap_plan_path(plan_path1, sizeof(plan_path1), step->arg1),
+                                step->arg2);
+    } else if (step->kind == BOOTSTRAP_STEP_BUILD_SLICE_LISP_PROFILE) {
+      printf("bootstrap-step.%zu=build-slice-lisp-profile\n", i);
+      rc = cmd_build_slice_lisp_profile(
+          step->arg0,
+          bootstrap_plan_path(plan_path0, sizeof(plan_path0), step->arg1),
+          bootstrap_plan_path(plan_path1, sizeof(plan_path1), step->arg2), step->arg3);
     } else if (step->kind == BOOTSTRAP_STEP_NANO_CC_COMPILE) {
       printf("bootstrap-step.%zu=nano-cc-compile\n", i);
       rc = cmd_nano_cc_compile(step->arg0, step->arg1);
     } else if (step->kind == BOOTSTRAP_STEP_INSPECT_APE) {
       printf("bootstrap-step.%zu=inspect-ape\n", i);
-      rc = cmd_inspect_ape(step->arg0);
+      rc = cmd_inspect_ape(bootstrap_plan_path(plan_path0, sizeof(plan_path0), step->arg0));
     } else if (step->kind == BOOTSTRAP_STEP_RUN_APE) {
       printf("bootstrap-step.%zu=run-ape\n", i);
       rc = cmd_run_ape(step->arg0, step->arg2);
@@ -1906,7 +2431,7 @@ static int cmd_run_bootstrap_plan(const char *plan_path) {
       rc = cmd_run_app(step->arg0);
     } else if (step->kind == BOOTSTRAP_STEP_RUN) {
       printf("bootstrap-step.%zu=run\n", i);
-      rc = cmd_run(step->arg0);
+      rc = cmd_run(bootstrap_plan_path(plan_path0, sizeof(plan_path0), step->arg0));
     } else if (step->kind == BOOTSTRAP_STEP_SQUAD_DISPATCH) {
       printf("bootstrap-step.%zu=squad-dispatch\n", i);
       rc = cmd_squad_dispatch(step->arg0);
@@ -1924,6 +2449,7 @@ static int cmd_run_bootstrap_plan(const char *plan_path) {
     }
     if (rc != 0) break;
   }
+  if (rc == 0) printf("bootstrap-plan.ok=1\n");
   free(src);
   bootstrap_plan_free(&plan);
   return rc;

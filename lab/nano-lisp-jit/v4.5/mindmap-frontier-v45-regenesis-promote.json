@@ -1,0 +1,97 @@
+{
+  "ssot": "v4.5/DIFFUSE-WAVE74.md",
+  "parent_goal": "mindmap-goal-nano-jit-com.json",
+  "onion_ssot": "v4.5/ONION-TDD.md",
+  "updated_at": "2026-05-27T17:00:00Z",
+  "max_parallel": 4,
+  "breadth_ring": "regenesis-promote \u2014 compose-15link env OK \u00b7 release COM 318KB \u00b7 genesis 158KB",
+  "nodes": [
+    {
+      "id": "v45-njc74-gate",
+      "layer": 74,
+      "ring": "gate",
+      "status": "done",
+      "deps": [],
+      "accept": [
+        "v45.goal.nano_jit_com.continue.100=1"
+      ]
+    },
+    {
+      "id": "v45-njc74-regenesis-promote",
+      "layer": 74,
+      "ring": "\u5de5\u5382",
+      "status": "done",
+      "deps": [
+        "v45-njc74-gate"
+      ],
+      "parallel_slot": "W1",
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-nano-jit-com-regenesis-promote.lisp",
+      "agent": "engineer-a"
+    },
+    {
+      "id": "v45-njc74-compose15-env",
+      "layer": 74,
+      "ring": "codegen",
+      "status": "done",
+      "deps": [
+        "v45-njc74-gate"
+      ],
+      "parallel_slot": "W2",
+      "plan": "lisp/bootstrap/bootstrap-v45-probe-compose15-regenesis-build-slice.lisp",
+      "agent": "engineer-b"
+    },
+    {
+      "id": "v45-njc74-release-matrix",
+      "layer": 74,
+      "ring": "\u9a8c\u6536",
+      "status": "done",
+      "deps": [
+        "v45-njc74-gate"
+      ],
+      "parallel_slot": "W3",
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-nano-jit-com-release-matrix.lisp",
+      "agent": "engineer-a"
+    },
+    {
+      "id": "v45-njc74-daily",
+      "layer": 74,
+      "ring": "plan",
+      "status": "done",
+      "deps": [
+        "v45-njc74-gate"
+      ],
+      "parallel_slot": "W4",
+      "plan": "lisp/bootstrap/bootstrap-v45-converge-daily-v45-regenesis-promote.lisp",
+      "agent": "engineer-b"
+    },
+    {
+      "id": "v45-njc74-terminal",
+      "layer": 75,
+      "ring": "\u7ec8\u5c40",
+      "status": "done",
+      "deps": [
+        "v45-njc74-regenesis-promote",
+        "v45-njc74-compose15-env",
+        "v45-njc74-release-matrix",
+        "v45-njc74-daily"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-regenesis-promote-tree.lisp",
+      "agent": "reviewer"
+    },
+    {
+      "id": "v45-njc74-goal",
+      "layer": 76,
+      "ring": "continue",
+      "status": "done",
+      "deps": [
+        "v45-njc74-terminal"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-v45-regenesis-promote-continue-100.lisp",
+      "agent": "reviewer"
+    }
+  ],
+  "next_wave_preview": {
+    "id": "wave75-full-runner-154kb",
+    "theme": "link-elf64 4096B\u2192full runner \u00b7 lisp-only 154KB slice pack"
+  }
+}

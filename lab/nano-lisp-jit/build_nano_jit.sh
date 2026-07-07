@@ -108,6 +108,11 @@ GENESIS_DIR="$LAB_DIR/genesis"
 GENESIS_X86="$GENESIS_DIR/nano-jit.x86_64"
 GENESIS_AARCH64="$GENESIS_DIR/nano-jit.aarch64"
 NANO_C="$ROOT_DIR/lab/nano-lisp-jit/archive/c/runner/lispjit.c"
+NANO_RUNNER_DIR="$ROOT_DIR/lab/nano-lisp-jit/retired/archive-c/runner"
+NANO_INC=(
+  "$ROOT_DIR/lab/lispjit-ir"
+  "$NANO_RUNNER_DIR"
+)
 STRLEN_SRC="$LAB_DIR/samples/strlen.lisp"
 LAB_BUILD_DIR="$LAB_DIR/.build"
 ARITH_SRC="$LAB_DIR/samples/arithmetic.lisp"
@@ -420,6 +425,7 @@ EOF
 
 COMMON=(
   -DNANO_LISP_JIT
+  "${NANO_INC[@]/#/-I}"
   -Os
   -mtiny
   -ffunction-sections
@@ -463,8 +469,8 @@ case "$NANO_SLICE_COMPILER" in
       echo "genesis.pin.dir=$GENESIS_DIR"
     } | tee -a "$REPORT"
     if [ "${NANO_REGENESIS:-}" = "1" ]; then
-      run_case "regenesis-build-x86_64-slice" cc -DNANO_LISP_JIT -Os -s "$NANO_C" -ldl \
-        -o "$BUILD_DIR/nano-jit.x86_64"
+      run_case "regenesis-build-x86_64-slice" cc -DNANO_LISP_JIT "${NANO_INC[@]/#/-I}" -Os -s \
+        "$NANO_C" -ldl -o "$BUILD_DIR/nano-jit.x86_64"
       run_case "regenesis-update-genesis-x86_64" bash -c '
         cp "'"$BUILD_DIR/nano-jit.x86_64"'" "'"$GENESIS_X86"'" && chmod +x "'"$GENESIS_X86"'"
       '
@@ -475,8 +481,8 @@ case "$NANO_SLICE_COMPILER" in
       '
       echo "slice.x86_64.source=genesis-pin" | tee -a "$REPORT"
     fi
-    run_case "build-native-runner-current-tree" cc -DNANO_LISP_JIT -Os -s "$NANO_C" -ldl \
-      -o "$LAB_DIR/.build/nano-lisp-jit"
+    run_case "build-native-runner-current-tree" cc -DNANO_LISP_JIT "${NANO_INC[@]/#/-I}" -Os -s \
+      "$NANO_C" -ldl -o "$LAB_DIR/.build/nano-lisp-jit"
     if cosmocc_bin_usable "$COSMO_BIN"; then
       if [ "${NANO_REGENESIS:-}" = "1" ]; then
         run_case "regenesis-build-aarch64-slice" "$ARM_CC" "${COMMON[@]}" -o "$BUILD_DIR/nano-jit.aarch64"
@@ -499,8 +505,8 @@ case "$NANO_SLICE_COMPILER" in
           AARCH64_STATIC_FLAGS="$AARCH64_STATIC_FLAGS -static"
           echo "slice.aarch64.link=static-for-qemu" | tee -a "$REPORT"
         fi
-        run_case "regenesis-build-aarch64-slice-cross" "$ARM_CROSS" $AARCH64_STATIC_FLAGS "$NANO_C" -ldl \
-          -o "$BUILD_DIR/nano-jit.aarch64"
+        run_case "regenesis-build-aarch64-slice-cross" "$ARM_CROSS" $AARCH64_STATIC_FLAGS \
+          "${NANO_INC[@]/#/-I}" "$NANO_C" -ldl -o "$BUILD_DIR/nano-jit.aarch64"
         run_case "regenesis-update-genesis-aarch64-cross" bash -c '
           cp "'"$BUILD_DIR/nano-jit.aarch64"'" "'"$GENESIS_AARCH64"'" && chmod +x "'"$GENESIS_AARCH64"'"
         '

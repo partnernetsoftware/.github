@@ -4,7 +4,7 @@
   (file-size "lab/nano-lisp-jit/v4.5/DIFFUSE-WAVE62.md")
   (file-size "lab/nano-lisp-jit/nano-jit.md")
   (file-size "lab/nano-lisp-jit/.build/nano-jit/nano-jit.com")
-  (file-size "lab/nano-lisp-jit/.build/nano-lisp/nano-lisp.com")
+  (file-size "lab/nano-lisp-jit/release/nano-lisp.com")
   (file-size "lab/nano-lisp-jit/.build/nano-lisp/nano-lisp-host.com")
   (file-size "lab/nano-lisp-jit/retired/scripts/v45-wave61-physical-honest-terminal-converge.sh")
   (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.host.com_nano_lisp_only" "1")

@@ -1,0 +1,48 @@
+### mindmap v0.2
+// moltbaby DSL 架构 — Sardine 已归档，.mindmap 是唯一 DSL
+// 2026-05-26 用户决策: Sardine 协议彻底移除 — 已完成
+// 迁移收口: skills/mindmap/SARDINE-MIGRATION.mindmap
+
+- {V} 顶层定位（[✓] 完成）
+  - 唯一 DSL: .mindmap (缩进树 + 状态机)
+  - bot LLM 输出: 自由文本 + FLY_DONE_SIGNAL JSON + mindmap 片段（见 bot-prompt.mindmap）
+  - bot 人格: bot-soul.mindmap
+  - 知识沉淀: .md (叙事/手册) 或 .mindmap (执行树/状态卡片)
+
+- {S} .sd / Sardine 协议域（[✗] 已归档）
+  - 形态（历史）: function-call AST，例 `done("title", [...])` `decision(...)` `plan(...)`
+  - 解析器: corp-engine/archive/sardine-core/ (冻结，仅 session-watcher.poller 消费解析历史会话)
+  - 归档时间: 2026-05-26
+  - 归档边界: corp-engine/archive/README.md + skills/github/cpmp.ts DENY_PATTERN 双层防护
+  - 现役 .sd 文件: 仓库内零（.claude/worktrees 隔离副本除外，自然衰减）
+
+- {M} .mindmap 协议域（[✓] 上位）
+  - 形态: 缩进树 + 节点 `- {id} 标题 [status] #tag @k=v ->ref`
+  - 解析: 规范级别已定义 (skills/mindmap/mindmap.ebnf)
+  - 控制流: [seq] / [if] / [while] 逻辑节点
+  - 状态机: [ ]→[→]→[~]→{[✓]|[✗]} | [~]↔[P] | [→]→[D]→[~]
+  - 现役范围:
+    - skills/**/*.mindmap = 工作流/skill 描述
+    - 仓根 *.mindmap = bot 协议/工具/工作流索引 (bot-prompt/bot-soul/workflow/moltbaby/tools/mapp/identity/tmux_cc/tmux_cc_tg)
+    - corp-engine/lib/github-docs/tree.mindmap = github 操作流程树
+    - knowledge/**/*.mindmap = 结构化知识卡片（可选，叙事沉淀用 .md）
+
+- {C} 2026-05-26 迁移成果（5 commits 闭环）
+  - efd3d9404 Phase 2: skills/fly + github-docs + 仓根 .sd → .mindmap
+  - ec0af39a5 Phase 3: launch-super/evolve-bot 容器脚本 + 删 sardine.sd/soul.sd
+  - 7e3231c54 Phase 4: corp-engine sardine-core + llmgate/sardine 归档
+  - 327d15407 Phase 5: knowledge/*.sd → .md + cpmp 白名单 + 文档措辞
+  - 4f3a6b448 Phase 5+: kb/ + tools/desk/ + mapp/stubs/ 残余清扫
+  - 验证: fly + telegram context-builder 29 pass 0 fail
+
+- {X} 反模式（沉淀给未来同类迁移，避免）
+  - 不要一次性大 commit 全砍 — 无法定位回归
+  - 不要先砍 SDK 再改消费者 — 中间窗口生产链全挂
+  - 不要批量重写 .claude/*.sd 历史 agent 记忆 — 那是数据不是规范
+  - archive/ 目录禁止新增/修改实现 — 见 corp-engine/archive/README.md
+
+- {H} 历史复盘
+  - 2026-05-26 上午: 误判 .sd 为"早期格式"，纠正后做 21→11 精准梳理
+  - 2026-05-26 下午: 决策"Sardine 彻底移除"，phase 1 完成（架构文档化）
+  - 2026-05-26 晚: phase 2-5+ 全部完成，仓库零 active .sd
+  - 教训: DSL 迁移不是改后缀，是完整生态替换；前置审计 + 替代品决策 + 分阶段 + per-phase 测试 = 零回归

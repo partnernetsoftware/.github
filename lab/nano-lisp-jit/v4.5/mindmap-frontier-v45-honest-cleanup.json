@@ -1,0 +1,107 @@
+{
+  "ssot": "v4.5/DIFFUSE-WAVE-CLEANUP.md",
+  "parent_goal": "v45.v45.run_sh_archive_honest_continue.100",
+  "onion_ssot": "v4.5/ONION-TDD.md",
+  "updated_at": "2026-05-27T12:00:00Z",
+  "max_parallel": 4,
+  "breadth_ring": "honest-cleanup — SSOT 整理 · 证据审计 · Wave70+ 冻结 · 工作池编排",
+  "wave_freeze": true,
+  "nodes": [
+    {
+      "id": "v45-hcl-gate",
+      "layer": 0,
+      "ring": "gate",
+      "onion_ring": 50,
+      "status": "done",
+      "deps": [],
+      "accept": [
+        "v45.v45.run_sh_archive_honest_continue.100=1",
+        "v45.converge.daily_v45_factory_honest_terminal=1"
+      ]
+    },
+    {
+      "id": "v45-hcl-evidence-audit",
+      "layer": 1,
+      "ring": "audit",
+      "onion_ring": 50,
+      "status": "done",
+      "deps": [
+        "v45-hcl-gate"
+      ],
+      "parallel_slot": "W1",
+      "plan": "lisp/bootstrap/bootstrap-v45-honest-evidence-key-audit.lisp",
+      "agent": "engineer-a"
+    },
+    {
+      "id": "v45-hcl-ape-gap",
+      "layer": 1,
+      "ring": "诚实",
+      "onion_ring": 50,
+      "status": "done",
+      "deps": [
+        "v45-hcl-gate"
+      ],
+      "parallel_slot": "W2",
+      "plan": "lisp/bootstrap/bootstrap-v45-honest-ape-six-face-gap.lisp",
+      "agent": "engineer-b"
+    },
+    {
+      "id": "v45-hcl-ssot-unify",
+      "layer": 1,
+      "ring": "doc",
+      "onion_ring": 50,
+      "status": "done",
+      "deps": [
+        "v45-hcl-gate"
+      ],
+      "parallel_slot": "W3",
+      "plan": "lisp/bootstrap/bootstrap-v45-honest-ssot-unify-prove.lisp",
+      "agent": "engineer-a"
+    },
+    {
+      "id": "v45-hcl-wave-freeze",
+      "layer": 1,
+      "ring": "anchor",
+      "onion_ring": 50,
+      "status": "done",
+      "deps": [
+        "v45-hcl-gate"
+      ],
+      "parallel_slot": "W4",
+      "plan": "lisp/bootstrap/bootstrap-v45-honest-wave-freeze-anchor.lisp",
+      "agent": "engineer-b"
+    },
+    {
+      "id": "v45-hcl-terminal",
+      "layer": 2,
+      "ring": "终局",
+      "onion_ring": 50,
+      "status": "done",
+      "deps": [
+        "v45-hcl-evidence-audit",
+        "v45-hcl-ape-gap",
+        "v45-hcl-ssot-unify",
+        "v45-hcl-wave-freeze"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-mindmap-honest-cleanup-tree.lisp",
+      "agent": "reviewer"
+    },
+    {
+      "id": "v45-hcl-goal",
+      "layer": 3,
+      "ring": "pool",
+      "onion_ring": 50,
+      "status": "done",
+      "deps": [
+        "v45-hcl-terminal"
+      ],
+      "plan": "lisp/bootstrap/bootstrap-v45-goal-v45-honest-cleanup-pool.lisp",
+      "agent": "reviewer"
+    }
+  ],
+  "next_wave_preview": {
+    "id": "wave70-daily-zero-archive-audit",
+    "theme": "活跃 daily/prove plan 零 archive/c 路径审计",
+    "blocked_by": "v45.honest.cleanup_pool=1 and user confirm"
+  }
+}

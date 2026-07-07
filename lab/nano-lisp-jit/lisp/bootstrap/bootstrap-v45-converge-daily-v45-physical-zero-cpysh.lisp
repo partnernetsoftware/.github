@@ -5,7 +5,7 @@
   (file-size "lab/nano-lisp-jit/retired/lispjit.c.archived")
   (file-size "lab/nano-lisp-jit/retired/tools/mindmap-dp-v45.py")
   (file-size "lab/nano-lisp-jit/retired/scripts/v45-wave59-tools-py-retire-converge.sh")
-  (file-size "lab/nano-lisp-jit/.build/nano-lisp/nano-lisp.com")
+  (file-size "lab/nano-lisp-jit/release/nano-lisp.com")
   (squad-dispatch "lab/nano-lisp-jit/squad/catalog-v45.yaml")
   (squad-assess "lab/nano-lisp-jit/squad/catalog-v45.yaml")
   (compile "lab/nano-lisp-jit/lisp/core/strlen.lisp"

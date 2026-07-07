@@ -1,8 +1,8 @@
 ; Wave52 W4: selfhost × 零 cpysh 矩阵 — 154KB 探针 + plan_no_c 续推.
 ; Prefix v45-szcm- · no build-slice lispjit.c · no .sh steps.
 (bootstrap
-  (file-size "lab/nano-lisp-jit/.build/v45-selfhost-next.com")
-  (file-size "lab/nano-lisp-jit/.build/nano-lisp/nano-lisp.com")
+  (file-size "lab/nano-lisp-jit/release/v45-selfhost-next.com")
+  (file-size "lab/nano-lisp-jit/release/nano-lisp.com")
   (build-slice-lisp "lab/nano-lisp-jit/lisp/core/nano-jit-slice-min.lisp"
                     "lab/nano-lisp-jit/.build/v45-szcm-min-x86.elf"
                     "x86_64")

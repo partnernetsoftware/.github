@@ -16,7 +16,7 @@ for p in selfhost-modules-full factory-matrix wave2-diffuse-global selfhost-next
   "$COM" run-bootstrap-plan "$src" >/dev/null
   echo "v45-wave2-converge=ok plan=$p"
 done
-NEXT=lab/nano-lisp-jit/.build/v45-selfhost-next.com
+NEXT=lab/nano-lisp-jit/release/v45-selfhost-next.com
 SMOKE=lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-verify-smoke.lisp
 if [ -x "$NEXT" ] && [ -f "$SMOKE" ]; then
   "${GEN[@]}" "$NEXT" run-bootstrap-plan "$SMOKE" >/dev/null

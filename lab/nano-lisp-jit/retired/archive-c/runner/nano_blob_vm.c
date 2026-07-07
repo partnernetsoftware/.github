@@ -189,6 +189,15 @@ static int resolve_import_ref(const Blob *b, uint32_t idx, RuntimeImport *out) {
     fprintf(stderr, "ffi.open=fail lib=%s\n", out->lib);
     return 14;
   }
+  if (out->sig == SIG_ADDR) {
+    void **sym = (void **)load_symbol(out->handle, out->sym);
+    if (!sym) {
+      fprintf(stderr, "ffi.symbol=fail symbol=%s\n", out->sym);
+      return 15;
+    }
+    out->fn = *sym;
+    return 0;
+  }
   out->fn = load_symbol(out->handle, out->sym);
   if (!out->fn) {
     fprintf(stderr, "ffi.symbol=fail symbol=%s\n", out->sym);
@@ -246,6 +255,30 @@ static int call_import_i32(const RuntimeImport *ri, int32_t arg, Value *out) {
     return 17;
   }
   *out = value_i64((int64_t)((ffi_i32_i32_fn)ri->fn)((int)arg));
+  return 0;
+}
+
+typedef int (*ffi_i32_ptr_i32_fn)(char *, int);
+typedef void *(*ffi_ptr_ptr_i32_ptr_fn)(void *, int, void *);
+
+static int call_import_const_imm(const RuntimeImport *ri, const char *buf, int32_t size, Value *out) {
+  if (!buf) return 13;
+  if (ri->sig != SIG_I32_PTR_I32) {
+    fprintf(stderr, "signature.arg_mismatch=%s\n", sig_name(ri->sig));
+    return 17;
+  }
+  *out = value_i64((int64_t)((ffi_i32_ptr_i32_fn)ri->fn)((char *)buf, (int)size));
+  return 0;
+}
+
+static int call_import_const_imm_ptr(const RuntimeImport *ri, const char *buf, int32_t size,
+                                     const RuntimeImport *stream, Value *out) {
+  if (!buf) return 13;
+  if (ri->sig != SIG_PTR_PTR_I32_PTR) {
+    fprintf(stderr, "signature.arg_mismatch=%s\n", sig_name(ri->sig));
+    return 17;
+  }
+  *out = value_ptr(((ffi_ptr_ptr_i32_ptr_fn)ri->fn)((void *)buf, (int)size, stream->fn));
   return 0;
 }
 
@@ -847,7 +880,13 @@ static int execute_blob(const Blob *b) {
       pc++;
       continue;
     }
-    rc = resolve_import_ref(b, arg0, &ri);
+    {
+      uint32_t import_idx = arg0;
+      if (op == OP_CALL_IMPORT_CONST_IMM_PTR) {
+        import_idx = arg0 & 0xffffu;
+      }
+      rc = resolve_import_ref(b, import_idx, &ri);
+    }
     if (rc != 0) return rc;
     if (op == OP_CALL_IMPORT_CONST) {
       rc = call_import1(&ri, const_string_ref(b, arg1), &last);
@@ -859,6 +898,18 @@ static int execute_blob(const Blob *b) {
       rc = call_import0(&ri, &last);
     } else if (op == OP_CALL_IMPORT_IMM) {
       rc = call_import_i32(&ri, (int32_t)arg1, &last);
+    } else if (op == OP_CALL_IMPORT_CONST_IMM) {
+      uint32_t c0 = arg1 & 0xffffu;
+      int32_t imm = (int32_t)(arg1 >> 16);
+      rc = call_import_const_imm(&ri, const_string_ref(b, c0), imm, &last);
+    } else if (op == OP_CALL_IMPORT_CONST_IMM_PTR) {
+      uint32_t stream_idx = arg0 >> 16;
+      uint32_t c0 = arg1 & 0xffffu;
+      int32_t imm = (int32_t)(arg1 >> 16);
+      RuntimeImport stream = {0};
+      rc = resolve_import_ref(b, stream_idx, &stream);
+      if (rc != 0) return rc;
+      rc = call_import_const_imm_ptr(&ri, const_string_ref(b, c0), imm, &stream, &last);
     } else {
       fprintf(stderr, "unsupported.op=%u\n", op);
       return 11;
@@ -898,6 +949,15 @@ static int cmd_run(const char *blob_path) {
   int rc = execute_blob(&b);
   free(owned);
   return rc;
+}
+
+static int cmd_run_bytes(const unsigned char *data, size_t n) {
+  Blob b;
+  if (!data || n == 0 || !blob_init(&b, (unsigned char *)data, n)) {
+    fprintf(stderr, "blob=parse_fail source=bytes\n");
+    return 1;
+  }
+  return execute_blob(&b);
 }
 static int cmd_dump(const char *blob_path) {
   Blob b;

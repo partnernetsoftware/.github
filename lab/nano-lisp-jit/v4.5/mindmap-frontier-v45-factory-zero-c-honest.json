@@ -1,0 +1,16 @@
+{
+  "ssot": "v4.5/DIFFUSE-WAVE101.md",
+  "parent_goal": "mindmap-goal-nano-jit-com.json",
+  "updated_at": "2026-06-01T00:00:00Z",
+  "max_parallel": 4,
+  "breadth_ring": "factory zero-C honest — lisp tree zero .c · archive runner scoped",
+  "nodes": [
+    {"id": "v45-w101-gate", "status": "todo", "accept": ["v45.goal.l4_semantic_codegen_terminal=1"]},
+    {"id": "v45-w101-audit", "status": "todo", "deps": ["v45-w101-gate"],
+     "accept": ["v45.honest.lisp_tree_zero_c=1", "v45.honest.archive_runner_c=1"]},
+    {"id": "v45-w101-milestone", "status": "todo", "deps": ["v45-w101-audit"],
+     "accept": ["v45.goal.factory_zero_c_honest_milestone=1"]},
+    {"id": "v45-w101-journal", "status": "todo", "deps": ["v45-w101-milestone"],
+     "accept": ["journal[-1].verified=true"]}
+  ]
+}

@@ -1,7 +1,7 @@
 ; Wave50 W4: selfhost × 154KB codegen 深矩阵.
 ; Prefix v45-sc154d- · no build-slice lispjit.c · no .sh steps.
 (bootstrap
-  (file-size "lab/nano-lisp-jit/.build/v45-selfhost-next.com")
+  (file-size "lab/nano-lisp-jit/release/v45-selfhost-next.com")
   (file-size "lab/nano-lisp-jit/archive/c/runner/lispjit.c")
   (build-slice-lisp "lab/nano-lisp-jit/lisp/core/nano-jit-slice-min.lisp"
                     "lab/nano-lisp-jit/.build/v45-sc154d-min-x86.elf"

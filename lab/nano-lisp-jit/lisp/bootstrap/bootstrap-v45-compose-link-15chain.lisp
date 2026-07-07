@@ -2,11 +2,11 @@
 ; Prefix v45-cl15- · no build-slice lispjit.c · no .sh steps.
 ; mods[] order matches nano_bootstrap.c lispjit_from_lisp_build_compose_15link.
 (bootstrap
-  (compile-elf64-obj-code "lab/nano-lisp-jit/archive/c/factory/misc/lisp-tu-callee.lisp"
+  (compile-elf64-obj-code "lab/nano-lisp-jit/lisp/core/lisp-tu-callee.lisp"
                           "lab/nano-lisp-jit/.build/v45-cl15-callee.o"
                           "nano_tu_callee")
   (file-size "lab/nano-lisp-jit/.build/v45-cl15-callee.o")
-  (compile-elf64-obj-code "lab/nano-lisp-jit/archive/c/factory/misc/lisp-tu-main.lisp"
+  (compile-elf64-obj-code "lab/nano-lisp-jit/lisp/core/lisp-tu-main.lisp"
                           "lab/nano-lisp-jit/.build/v45-cl15-main.o"
                           "nano_tu_main")
   (file-size "lab/nano-lisp-jit/.build/v45-cl15-main.o")

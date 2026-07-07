@@ -1,0 +1,16 @@
+{
+  "ssot": "v4.5/DIFFUSE-WAVE105.md",
+  "parent_goal": "mindmap-goal-nano-jit-com.json",
+  "updated_at": "2026-06-05T00:00:00Z",
+  "max_parallel": 4,
+  "breadth_ring": "factory build lisp-only path — plan regenesis · C seed honest",
+  "nodes": [
+    {"id": "v45-w105-gate", "status": "todo", "accept": ["v45.goal.ape_six_face_probe_milestone=1"]},
+    {"id": "v45-w105-wrapper", "status": "todo", "deps": ["v45-w105-gate"],
+     "accept": ["v45.factory.build_lisp_only_path=1"]},
+    {"id": "v45-w105-milestone", "status": "todo", "deps": ["v45-w105-wrapper"],
+     "accept": ["v45.goal.factory_build_lisp_only_milestone=1"]},
+    {"id": "v45-w105-journal", "status": "todo", "deps": ["v45-w105-milestone"],
+     "accept": ["journal[-1].verified=true"]}
+  ]
+}

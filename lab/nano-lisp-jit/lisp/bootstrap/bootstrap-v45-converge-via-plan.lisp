@@ -28,10 +28,10 @@
             "lab/nano-lisp-jit/.build/v45-cvp-x86.elf"
             "lab/nano-lisp-jit/.build/v45-cvp-arm.elf")
   (run-ape-expect-exit "lab/nano-lisp-jit/.build/v45-cvp-ape.com" 42)
-  (pack-ape "lab/nano-lisp-jit/.build/nano-lisp/nano-lisp.com"
+  (pack-ape "lab/nano-lisp-jit/release/nano-lisp.com"
             "lab/nano-lisp-jit/.build/v45-cvp-min-x86.elf"
             "lab/nano-lisp-jit/.build/v45-cvp-ir-aarch64.elf")
-  (inspect-ape "lab/nano-lisp-jit/.build/nano-lisp/nano-lisp.com")
+  (inspect-ape "lab/nano-lisp-jit/release/nano-lisp.com")
   (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.v45.zero_sh_continue.100" "1")
   (results-min "lab/nano-lisp-jit/.build/v45-entry.evidence" "v45.converge.plan_all" "1")
   (file-hash "lab/nano-lisp-jit/v4.5/mindmap-frontier-v45-host-orchestrator.json"))

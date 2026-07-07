@@ -3,7 +3,7 @@
 (bootstrap
   (file-size "lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-converge-daily-physical-honest.lisp")
   (file-size "lab/nano-lisp-jit/lisp/bootstrap/bootstrap-v45-runner-codegen-full-chain.lisp")
-  (file-size "lab/nano-lisp-jit/.build/nano-lisp/nano-lisp.com")
+  (file-size "lab/nano-lisp-jit/release/nano-lisp.com")
   (compile "lab/nano-lisp-jit/lisp/core/strlen.lisp"
            "lab/nano-lisp-jit/.build/v45-cdct-smoke-strlen.lbin")
   (run "lab/nano-lisp-jit/.build/v45-cdct-smoke-strlen.lbin")

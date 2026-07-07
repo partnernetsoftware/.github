@@ -50,6 +50,8 @@
 #define OP_STORE_U32 41u
 #define OP_CALL_FUNC 42u
 #define OP_LOAD_ARG_I64 43u
+#define OP_CALL_IMPORT_CONST_IMM 44u
+#define OP_CALL_IMPORT_CONST_IMM_PTR 45u
 
 #define SRC_FORM_CALL 1u
 #define SRC_FORM_RESOLVE 2u
@@ -173,6 +175,13 @@
 #define BOOTSTRAP_STEP_SQUAD_DISPATCH 38u
 #define BOOTSTRAP_STEP_RESULTS_MIN 38u
 #define BOOTSTRAP_STEP_IR_TABLE_LISP 39u
+#define BOOTSTRAP_STEP_BUILD_SLICE_COMPILE 40u
+#define BOOTSTRAP_STEP_READ_FILE 41u
+#define BOOTSTRAP_STEP_SPAWN_WAIT 42u
+#define BOOTSTRAP_STEP_RUN_STDIN 43u
+#define BOOTSTRAP_STEP_BUILD_SLICE_LISP_PROFILE 44u
+#define BOOTSTRAP_STEP_LISP_ROOT 45u
+#define BOOTSTRAP_STEP_EXTRACT_APE_SLICE 46u
 
 typedef uint64_t (*jit_entry_fn)(void);
 typedef int (*ffi_i32_ptr_fn)(const char *);
@@ -197,6 +206,7 @@ typedef struct {
   char *import_name;
   char *const_name;
   char *const2_name;
+  char *ptr_import_name;
   uint64_t imm;
 } InstrDef;
 

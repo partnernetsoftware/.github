@@ -475,6 +475,215 @@ semantic(43) → nano-lisp.com(44) → 诚实零C(45) → 15link全链(46) → p
 | host CI `.sh` 不能混称 DONE | `honest.host_sh_ci_only=1` 保留 |
 | 收敛链迁入 plan | `ci_plan_only_converge_chain=1` |
 
-## 十八、Wave3（整表扩散，勿逐条）
+## 四十一、Wave68–69（v4.5 真目标树 · 广度扩散）
+
+### 真目标（未完成 ❌）
+
+```text
+用户路径 = nano-lisp.com + *.lisp bootstrap plan
+  └─ plan 内零 .c / .sh / .py 步骤
+  └─ plan 内零 archive/c 路径（Wave66+ daily 已收口）
+物理诚实 = retired/ 可存历史 · CI run.sh 工厂面须显式分层，禁止混称 DONE
+```
+
+### 三层签收（禁止混称）
+
+| 层 | 键族 | 能声称 | 不能声称 |
+|----|------|--------|----------|
+| L6 | `goal.onion_tdd_tree_mindmap.100` | /goal 26/26 | v4.5 物理 DONE |
+| L7 | `v45.*.continue.100` | 扩展活图分卷 Wave34–N | 全仓零 C/sh/py |
+| **L8** | **用户 daily + 诚实键** | **用户可 COM+plan 收敛** | **run.sh 已退役** |
+
+### 已完成物理轨（Wave62–68）
+
+```text
+COM 统一(nano-lisp/) → 原生 bootstrap(63) → runner C 退仓(64) → CI sh 退(65)
+→ factory lisp 退(66) → wave sh 退(67) → 种子 COM 退(68)
+```
+
+### 广度扩散（下一圈 ≤4 槽）
+
+| Wave | 环 | W1 | W2 | W3 daily | W4 |
+|------|-----|----|----|----------|-----|
+| **69** | run.sh 工厂诚实 | prove | archive-honest | factory-honest-terminal | selfhost-matrix |
+| 70 | daily 零 archive 审计 | audit-prove | stale-plan-honest | daily-audit-terminal | matrix |
+| 71 | genesis 锚点诚实 | genesis-prove | anchor-honest | daily-genesis-free | matrix |
+
+**停损线**：Wave69 只收口「run.sh = 工厂 · 用户不依赖」；不删 `run.sh`、不宣称 v4.5 DONE。
+
+## 四十二、release/ COM 进仓（2026-05-27）
+
+| 变更 | 说明 |
+|------|------|
+| `release/nano-lisp.com` | 产品 COM SSOT · git 跟踪 · `manifest.txt` pin |
+| `release/v45-selfhost-next.com` | 自举代际 COM 同步进仓 |
+| 路径迁移 | bootstrap / 收敛脚本 / 文档 → `release/` 取代 `.build/nano-lisp/` |
+| `.build/` | 仍 gitignore · 仅本地 runtime 缓存 |
+
+## 四十三、honest-cleanup（反思整理 · Wave70+ 冻结）
+
+### 问题
+
+Wave34–69 产生 **36+ 张**扩展活图与大量 `*.continue.100` 键；听像完成，物理上仍是 **2/6 APE · Linux-only · genesis 依赖**。Agent 未用 mindmap DP 编排后台池，而是 wave 编号记账式推进。
+
+### 调整
+
+| 动作 | 产物 |
+|------|------|
+| 冻结 Wave70+ 功能 | `v45.honest.wave70_plus_frozen=1` |
+| 证据键审计 | [`EVIDENCE-GAP-AUDIT.md`](EVIDENCE-GAP-AUDIT.md) |
+| 单一活图工作池 | `mindmap-frontier-v45-honest-cleanup.json` 7 节点 |
+| 非 continue.100 签收 | `v45.honest.cleanup_pool=1` |
+| daily 切换 | `converge-daily-v45-honest-cleanup.lisp` |
+
+### 编排协议（恢复）
+
+```text
+读 honest-cleanup frontier → DP ready ≤4 → 四轨 bootstrap 并行 → v45-honest-cleanup-converge → 用户确认下一目标
+```
+
+### 停损线
+
+- 禁止把 L7 `continue.100` 写成 v4.5 DONE
+- 下一 falsifiable 目标见 [`DIFFUSE-WAVE70.md`](DIFFUSE-WAVE70.md) `next_wave_preview`
+
+## 四十四、Wave70（daily zero-archive audit）
+
+| 变更 | 说明 |
+|------|------|
+| `lisp/core/nano-jit-slice-add.lisp` | 自举链 slice 迁出 archive/c symlink |
+| `ARCHIVE-PATH-AUDIT.md` | 活跃 daily 零 archive/c · ~84 历史 plan 保留 |
+| daily 升维 | `converge-daily-v45-zero-archive-audit-terminal.lisp` |
+| 签收 | `v45.v45.daily_zero_archive_audit_continue.100=1` |
+
+**诚实**：`release/nano-lisp.com` 仍 ~819KB genesis 锚 · 瘦 slice pack 不能替代 runner
+
+见 [`DIFFUSE-WAVE70.md`](DIFFUSE-WAVE70.md)
+
 
 见 DIFFUSE-WAVE2 §Wave3：无 C plan · run.sh 单行化 · wave 归档。
+
+## Wave85 反思
+
+- **code_bytes 阶梯**：stub 445 → wave84 bulk 32459（`link.code.bytes` SSOT）；`gen-bulk-expand.py -n` 线性扩面，下一档 64K、终局 154K 需 n≈877 或真实语义模块替代纯 .text 堆量。
+
+## Wave86 反思
+
+- **154K 纯 link 探针**：`-n 925` × 15 槽 bulk → `code_bytes=154559`，`linked_bytes=155648`，零 hybrid；L4 compose15 体积目标在 bulk 路径上达成。
+- **下一刀**：从 bulk stub 切到真实 `lispjit.c` 语义模块 codegen，或 regenesis 全 lisp 链签收 `nano-jit.com`。
+
+## Wave87 反思
+
+- **154KB pack → genesis pin → release promote**：compose15 bulk-scale x86 slice 写入 genesis，`build_nano_jit.sh` 无 REGENESIS 重建 COM，矩阵并行跑通即签收。
+- **下一刀**：bulk stub 换真实语义模块；`strict_done` 全 lisp plan-only regenesis 终局。
+
+## Wave88 反思
+
+- **strict_done 终局**：terminal-com-promote 全矩阵 + container audit + genesis slice 155648 与 release COM 对齐。
+- **nano-jit.com 里程碑**：`/goal` strict_done_requires 全绿；后续维护 bulk→语义模块替换与 run.sh 回归。
+
+## Wave89 反思
+
+- **proc dogfooding**：`bootstrap-v45-proc-smoke.lisp` 用 `emit-elf64-exit` + `run-expect-exit` + `/bin/true` 验证 plan 级子进程链；制品 I/O 暂用 `file-size`/`file-hash`。
+- **缺口**：plan 尚无具名 `read-file`/`spawn-wait(argv)`；Wave90 补引擎原语 + 工厂 rebuild。
+- **下一刀**：bulk stub → 真实 `lispjit.c` 语义 codegen；release slice 与 genesis 同源 repack。
+
+## Wave90 反思
+
+- **引擎原语**：`read-file`（bytes+hash）· `spawn-wait expected exe [argv...]`（execvp）入 bootstrap + CLI。
+- **验收路径**：factory `cc` rebuild `.build/nano-jit/nano-jit.x86_64`；release COM promote 留 Wave91。
+- **下一刀**：cosmocc promote + bulk→语义 codegen。
+
+## Wave91 反思
+
+- **release COM promote**：native regenesis 326K APE · manifest pin · proc-io/strict-done 矩阵在 release 上全绿。
+- **下一刀**：bulk stub → 真实 `lispjit.c` 语义 codegen；genesis/release slice 同源。
+
+## Wave92 反思 — 「回到 .c」分层
+
+| 轨道 | 内容 | 是否回退 |
+|------|------|----------|
+| **bootstrap runner** | Wave90–91：`nano_run_cli.c` 增 `read-file`/`spawn-wait` | OS 编排边界，**非** codegen |
+| **release COM** | Wave91：native regenesis promote | runner 二进制更新，**非** lisp 模块 |
+| **lisp/modules** | Wave92：semantic pure link 探针 | **主线** · 零新增 C |
+
+**诚实对照**：`compose-15link` semantic 与 `bulk-scale` 产出 **同 ELF** — **Wave93 已修复**：expand 门控 bug；semantic=489B · bulk=154559B。
+
+## Wave93 反思
+
+- **根因**：`compose15_expand_path_for_tag` 未门控 → semantic 误走 bulk（Wave92 同 hash 假象）。
+- **修复**：仅 `bulk-scale`/`expand` profile 启用 expand；`lisp/modules` 真路径 code_bytes=**489**。
+- **双轨**：体积 metric（154K bulk）vs 语义 metric（489 semantic）并存；下一刀 semantic 阶梯扩面。
+
+## Wave94 反思
+
+- **semantic 8K**：`lisp/modules-semantic/tu-main-8k.lisp`（700 func）+ profile `compose-15link-semantic` → code_bytes=**9286**。
+- **非 bulk**：semantic 轨用 `modules-semantic/`，bulk 仍 `modules-expand/`；双轨并存。
+- **下一刀**：semantic 32K 阶梯（调 `-n` / 多槽扩面）。
+
+## Wave95 反思
+
+- **semantic 32K**：`tu-main-32k.lisp`（2765 func）+ profile `compose-15link-semantic-32k` → code_bytes=**32001**。
+- **三轨**：8K(9286) / 32K(32001) / bulk(154559) 并存；genesis pin 155648B 保留。
+- **下一刀**：semantic 64K 阶梯。
+
+## Wave96 反思
+
+- **semantic 64K**：`tu-main-64k.lisp`（5680 func）+ profile `compose-15link-semantic-64k` → code_bytes=**64066**。
+- **多轨回归**：8K / 32K / bulk 154559 并存。
+- **下一刀**：15 槽真语义模块替换 stub（非生成体）。
+
+## Wave97 反思
+
+- **semantic 154K**：`tu-main-154k.lisp`（13920 func）+ `compose-15link-semantic-154k` → code_bytes=**154706**（bulk 154559 对齐）。
+- **阶梯闭合**：8K→32K→64K→154K 全轨 regression 通过。
+- **下一刀**：semantic-full + 154K main 组合（真模块 + 体积轨合一）。
+
+## Wave98 反思
+
+- **15 槽真语义**：`gen-semantic-modules15.py` 镜像 `lisp/modules` + `lisp/core` → `modules-semantic/sem-*.lisp`。
+- **profile** `compose-15link-semantic-full`：全 15 槽走 modules-semantic，hash ≠ bulk。
+- **双轨并存**：154K 生成体阶梯保留；full 轨用真模块（~489B code）。
+- **下一刀**：真模块 + 154K main 合一 profile。
+
+## Wave99 反思
+
+- **semantic-unified**：`tu-main-154k` + `sem-*` ×14 · profile `compose-15link-semantic-unified`。
+- **合一**：154K 体积轨 + 真语义 14 槽；hash ≠ semantic-full(489B)。
+- **下一刀**：L4 semantic 终局签收 · 工厂零 C 卷。
+
+## Wave101 反思
+
+- **factory zero-C honest**：`lisp/` 零 `.c` · archive runner **20** 文件透明计数。
+- **分层**：`physical.zero_c=1`（发行面树）≠ monorepo zero C · `factory_c_remains_scoped=1`。
+- **下一刀**：APE 6 面 · 工厂 build lisp-only 路径。
+
+## Wave102 反思
+
+- **APE 6 面扩面诚实锚**：release COM `slice_count=2` · 全 `os_id=1`（Linux x86_64 + aarch64）。
+- **分层**：Linux **2/2** ✅ · cross-os **0/4** 缺失透明 · 不混称 6/6 DONE。
+- **下一刀**：os_id 2 macOS slice 探针 · 工厂 build lisp-only 路径。
+
+## Wave103 反思
+
+- **macOS os_id=2 探针**：4-row APE v2 · Linux ELF + macOS placeholder（size=0）。
+- **分层**：`inspect-ape` 识别 os_id=2 · **非** Mach-O runtime · run-ape 仍选 Linux。
+- **下一刀**：Windows os_id=3 探针 · 6 面全表。
+
+## Wave104 反思
+
+- **APE 6 面全表探针**：6-row · os_id 1/2/3 · Linux runtime 2/6。
+- **分层**：`inspect-ape` 全表 6/6 · cross-os 均为 placeholder · 不混称 runtime DONE。
+- **下一刀**：build_nano_jit 工厂 lisp-only 路径。
+
+## Wave105 反思
+
+- **factory build lisp-only**：`build_nano_jit_lisp_only.sh` · plan `build-slice-lisp` regenesis。
+- **分层**：regenesis plan 零 lispjit.c · `build_nano_jit.sh` C 种子仍在 · 非工厂 zero C DONE。
+- **下一刀**：Mach-O/PE 真实 slice · 工厂 C 种子退仓。
+
+## Wave100 反思
+
+- **L4 semantic terminal**：7-profile 矩阵（8K→unified + bulk）全绿 · `l4_semantic_codegen_terminal=1`。
+- **与 strict_done 分层**：Wave88 签用户 COM；Wave100 签 semantic 深化轨终局。
+- **下一刀**：工厂零 C 卷 · physical-zero-c honest。

@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # Wave66: archive-factory-lisp-retire — factory lisp 迁 retired + wave65 迁 retired · 快 seed（默认）.
 set -uo pipefail
-ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
+ROOT="$(cd "$(dirname "$0")/../../../.." && pwd)"
 EV="$ROOT/lab/nano-lisp-jit/.build/v45-entry.evidence"
-COM="$ROOT/lab/nano-lisp-jit/.build/nano-lisp/nano-lisp.com"
+COM="$ROOT/lab/nano-lisp-jit/release/nano-lisp.com"
 FACTORY_SRC="$ROOT/lab/nano-lisp-jit/archive/c/factory"
 FACTORY_RET="$ROOT/lab/nano-lisp-jit/retired/archive-c/factory"
 TU_DST="$ROOT/lab/nano-lisp-jit/lisp/core/lisp-tu-main.lisp"
@@ -154,7 +154,7 @@ next_plan_ok() {
   [ "$ec" = 0 ]
 }
 
-NEXT_FULL="$ROOT/lab/nano-lisp-jit/.build/v45-selfhost-next.com"
+NEXT_FULL="$ROOT/lab/nano-lisp-jit/release/v45-selfhost-next.com"
 broad_ok=1
 bpids=()
 if [ -x "$NEXT_FULL" ]; then

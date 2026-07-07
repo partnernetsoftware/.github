@@ -452,6 +452,79 @@ static int cmd_inspect_ape(const char *container_path) {
   }
   return rc;
 }
+
+static int cmd_extract_ape_slice(const char *container_path, const char *out_path,
+                                 const char *arch) {
+  size_t n = 0;
+  unsigned char *data = read_file(container_path, &n);
+  if (!data) {
+    fprintf(stderr, "read=fail path=%s\n", container_path);
+    return 1;
+  }
+  size_t payload_start = 0;
+  if (!find_nano_ape_payload_start(data, n, &payload_start)) {
+    fprintf(stderr, "extract-ape-slice=payload_region_missing\n");
+    free(data);
+    return 2;
+  }
+  int rc = 0;
+  if (nano_ape_v2_magic_at(data, n, payload_start)) {
+    NanoApeV2Image img = {0};
+    const NanoApeV2SliceRow *row = NULL;
+    const char *arch_name = NULL;
+    rc = validate_nano_ape_v2(data, n, payload_start, &img, is_elf, fnv1a64,
+                              "extract-ape-slice");
+    if (rc == 0)
+      rc = nano_ape_v2_slice_for_arch(&img, arch, &row, &arch_name);
+    if (rc == 0) {
+      size_t payload_base = payload_start + img.header_bytes;
+      size_t abs_off = payload_base + (size_t)row->offset;
+      size_t slice_size = (size_t)row->size;
+      if (!is_elf(data + abs_off, slice_size)) {
+        fprintf(stderr, "extract-ape-slice=bad_slice_elf arch=%s\n", arch_name);
+        rc = 4;
+      } else if (!write_file(out_path, data + abs_off, slice_size) ||
+                 !make_executable(out_path)) {
+        fprintf(stderr, "extract-ape-slice=write_fail path=%s\n", out_path);
+        rc = 3;
+      } else {
+        printf("extract-ape-slice.source=%s\n", container_path);
+        printf("extract-ape-slice.output=%s\n", out_path);
+        printf("extract-ape-slice.container=ape-v2\n");
+        printf("extract-ape-slice.arch=%s\n", arch_name);
+        printf("extract-ape-slice.bytes=%zu\n", slice_size);
+        rc = cmd_file_size(out_path);
+      }
+    }
+    free(data);
+    return rc;
+  }
+  NanoApeManifest m = {0};
+  rc = validate_ape_manifest(data, n, &m, "extract-ape-slice");
+  if (rc == 0) {
+    size_t rel_off = 0;
+    size_t slice_size = 0;
+    const char *arch_name = NULL;
+    rc = ape_slice_for_arch(&m, arch, &rel_off, &slice_size, &arch_name);
+    if (rc == 0) {
+      size_t abs_off = m.payload_start + rel_off;
+      if (!write_file(out_path, data + abs_off, slice_size) || !make_executable(out_path)) {
+        fprintf(stderr, "extract-ape-slice=write_fail path=%s\n", out_path);
+        rc = 3;
+      } else {
+        printf("extract-ape-slice.source=%s\n", container_path);
+        printf("extract-ape-slice.output=%s\n", out_path);
+        printf("extract-ape-slice.container=%s\n", m.container);
+        printf("extract-ape-slice.arch=%s\n", arch_name);
+        printf("extract-ape-slice.bytes=%zu\n", slice_size);
+        rc = cmd_file_size(out_path);
+      }
+    }
+  }
+  free(data);
+  return rc;
+}
+
 static const char *nano_pack_ape_mode(void) {
   const char *mode = getenv("NANO_PACK_APE_MODE");
   if (!mode || !*mode || strcmp(mode, "stub") == 0) return "stub";

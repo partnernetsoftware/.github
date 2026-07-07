@@ -1,0 +1,15 @@
+# fnv1a64 and byte size for pinned release .com artifacts
+
+nano-lisp.com.bytes=871193
+nano-lisp.com.fnv1a64=b5f213868ef25b3b
+v45-selfhost-next.com.bytes=871193
+v45-selfhost-next.com.fnv1a64=b5f213868ef25b3b
+
+nanolisp.com.bytes=3000373
+nanolisp.com.fnv1a64=9d0e46a2f16c8a3a
+nanolisp.com.engine=rust
+nanolisp.ape.bytes=2999096
+nanolisp.ape.fnv1a64=eced03845028df90
+nanolisp-slim.com.bytes=161083
+nanolisp-slim.com.fnv1a64=5eb073c0beb1b9f1
+nanolisp-slim.com.engine=rust-genesis-pin

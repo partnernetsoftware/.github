@@ -1,6 +1,6 @@
 ; Wave40 W4: selfhost daily matrix on lisp-only path.
 (bootstrap
-  (file-size "lab/nano-lisp-jit/.build/v45-selfhost-next.com")
+  (file-size "lab/nano-lisp-jit/release/v45-selfhost-next.com")
   (build-slice-lisp "lab/nano-lisp-jit/lisp/core/nano-jit-slice-min.lisp"
                     "lab/nano-lisp-jit/.build/v45-sdm-min-x86.elf"
                     "x86_64")

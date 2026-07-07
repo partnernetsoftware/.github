@@ -8195,11 +8195,66 @@ else
   skip_case "run-bootstrap-v45-wave49-endgame-honest-rollup-converge-plan" "nano-jit.com or v45-wave49-endgame-honest-rollup-converge.sh missing"
 fi
 
+# --- v4.5: Wave69 run-sh-archive-honest（run.sh 工厂面诚实分层）---
+V45_WAVE69_CONVERGE_RET="$LAB_DIR/retired/scripts/v45-wave69-run-sh-archive-honest-converge.sh"
+if [ -f "$ROOT_DIR/lab/nano-lisp-jit/release/nano-lisp.com" ] && host_is_linux_x86_64 && [ -x "$V45_WAVE69_CONVERGE_RET" ]; then
+  run_case "run-bootstrap-v45-wave69-run-sh-archive-honest-converge-plan" bash -c '
+    cd "'"$ROOT_DIR"'" && bash "'"$V45_WAVE69_CONVERGE_RET"'"
+    grep -q v45.v45.run_sh_archive_honest_continue.100=1 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.honest.run_sh_factory_only=1 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.honest.archive_symlink_ci_only=1 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.converge.daily_v45_factory_honest_terminal=1 "'"$V45_ENTRY_EVIDENCE"'"
+    test -f "'"$ROOT_DIR"'/lab/nano-lisp-jit/retired/com/nano-jit.com.archived"
+    test -f "'"$ROOT_DIR"'/lab/nano-lisp-jit/run.sh"
+  '
+else
+  skip_case "run-bootstrap-v45-wave69-run-sh-archive-honest-converge-plan" "nano-lisp.com or v45-wave69-run-sh-archive-honest-converge.sh missing"
+fi
+
+# --- v4.5: Wave68 lisp-selfhost-bootstrap-chain（种子 COM 退 retired）---
+V45_WAVE68_CONVERGE_RET="$LAB_DIR/retired/scripts/v45-wave68-lisp-selfhost-bootstrap-chain-converge.sh"
+if [ -f "$NANO_JIT_COM" ] && host_is_linux_x86_64 && [ -x "$V45_WAVE68_CONVERGE_RET" ]; then
+  run_case "run-bootstrap-v45-wave68-lisp-selfhost-bootstrap-chain-converge-plan" bash -c '
+    cd "'"$ROOT_DIR"'" && bash "'"$V45_WAVE68_CONVERGE_RET"'"
+    grep -q v45.v45.lisp_selfhost_bootstrap_chain_continue.100=1 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.honest.seed_com_retired=1 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.converge.daily_v45_lisp_selfhost_chain=1 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.selfhost.bootstrap_chain_promoted=1 "'"$V45_ENTRY_EVIDENCE"'"
+    test ! -f "'"$ROOT_DIR"'/lab/nano-lisp-jit/.build/nano-jit/nano-jit.com"
+    test -f "'"$ROOT_DIR"'/lab/nano-lisp-jit/retired/com/nano-jit.com.archived"
+  '
+else
+  skip_case "run-bootstrap-v45-wave68-lisp-selfhost-bootstrap-chain-converge-plan" "nano-jit.com or v45-wave68-lisp-selfhost-bootstrap-chain-converge.sh missing"
+fi
+
+# --- v4.5: Wave67 wave-converge-shell-retire（scripts/ 零 wave sh）---
+V45_WAVE67_CONVERGE="$LAB_DIR/scripts/v45-wave67-wave-converge-shell-retire-converge.sh"
+V45_WAVE67_CONVERGE_RET="$LAB_DIR/retired/scripts/v45-wave67-wave-converge-shell-retire-converge.sh"
+if [ -f "$NANO_JIT_COM" ] && host_is_linux_x86_64 && { [ -x "$V45_WAVE67_CONVERGE" ] || [ -x "$V45_WAVE67_CONVERGE_RET" ]; }; then
+  run_case "run-bootstrap-v45-wave67-wave-converge-shell-retire-converge-plan" bash -c '
+    W67="'${V45_WAVE67_CONVERGE}'"
+    [ -x "$W67" ] || W67="'"${V45_WAVE67_CONVERGE_RET}"'"
+    cd "'"$ROOT_DIR"'" && bash "$W67"
+    grep -q v45.v45.wave_converge_shell_retire_continue.100=1 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.honest.wave_converge_shell_retired=1 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.converge.daily_v45_com_plan_only_terminal=1 "'"$V45_ENTRY_EVIDENCE"'"
+    grep -q v45.physical.scripts_zero_active_sh=1 "'"$V45_ENTRY_EVIDENCE"'"
+    test ! -f "'"$ROOT_DIR"'/lab/nano-lisp-jit/scripts/v45-wave66-archive-factory-lisp-retire-converge.sh"
+    test ! -f "'"$ROOT_DIR"'/lab/nano-lisp-jit/scripts/v45-wave67-wave-converge-shell-retire-converge.sh"
+    test -f "'"$ROOT_DIR"'/lab/nano-lisp-jit/retired/scripts/v45-wave67-wave-converge-shell-retire-converge.sh"
+  '
+else
+  skip_case "run-bootstrap-v45-wave67-wave-converge-shell-retire-converge-plan" "nano-jit.com or v45-wave67-wave-converge-shell-retire-converge.sh missing"
+fi
+
 # --- v4.5: Wave66 archive-factory-lisp-retire（factory lisp 退仓）---
 V45_WAVE66_CONVERGE="$LAB_DIR/scripts/v45-wave66-archive-factory-lisp-retire-converge.sh"
-if [ -f "$NANO_JIT_COM" ] && host_is_linux_x86_64 && [ -x "$V45_WAVE66_CONVERGE" ]; then
+V45_WAVE66_CONVERGE_RET="$LAB_DIR/retired/scripts/v45-wave66-archive-factory-lisp-retire-converge.sh"
+if [ -f "$NANO_JIT_COM" ] && host_is_linux_x86_64 && { [ -x "$V45_WAVE66_CONVERGE" ] || [ -x "$V45_WAVE66_CONVERGE_RET" ]; }; then
   run_case "run-bootstrap-v45-wave66-archive-factory-lisp-retire-converge-plan" bash -c '
-    cd "'"$ROOT_DIR"'" && bash "'"$V45_WAVE66_CONVERGE"'"
+    W66="'${V45_WAVE66_CONVERGE}'"
+    [ -x "$W66" ] || W66="'"${V45_WAVE66_CONVERGE_RET}"'"
+    cd "'"$ROOT_DIR"'" && bash "$W66"
     grep -q v45.v45.archive_factory_lisp_retire_continue.100=1 "'"$V45_ENTRY_EVIDENCE"'"
     grep -q v45.honest.archive_factory_lisp_retired=1 "'"$V45_ENTRY_EVIDENCE"'"
     grep -q v45.converge.daily_v45_zero_archive_path=1 "'"$V45_ENTRY_EVIDENCE"'"
@@ -8254,7 +8309,7 @@ if [ -f "$NANO_JIT_COM" ] && host_is_linux_x86_64 && [ -x "$V45_WAVE63_CONVERGE"
     grep -q v45.honest.nano_lisp_host_retired=1 "'"$V45_ENTRY_EVIDENCE"'"
     test ! -f "'"$ROOT_DIR"'/lab/nano-lisp-jit/scripts/v45-wave62-nano-lisp-com-host-only-converge.sh"
     test ! -f "'"$ROOT_DIR"'/lab/nano-lisp-jit/.build/nano-lisp/nano-lisp-host.com"
-    test -f "'"$ROOT_DIR"'/lab/nano-lisp-jit/.build/nano-lisp/nano-lisp.com"
+    test -f "'"$ROOT_DIR"'/lab/nano-lisp-jit/release/nano-lisp.com"
   '
 else
   skip_case "run-bootstrap-v45-wave63-nano-lisp-com-native-bootstrap-converge-plan" "nano-jit.com or v45-wave63-nano-lisp-com-native-bootstrap-converge.sh missing"
@@ -8286,7 +8341,7 @@ if [ -f "$NANO_JIT_COM" ] && host_is_linux_x86_64 && [ -x "$V45_WAVE61_CONVERGE"
     grep -q v45.converge.daily_v45_nano_lisp_com=1 "'"$V45_ENTRY_EVIDENCE"'"
     grep -q v45.physical.zero_cpysh=1 "'"$V45_ENTRY_EVIDENCE"'"
     test ! -f "'"$ROOT_DIR"'/lab/nano-lisp-jit/scripts/v45-wave60-ci-shell-retire-converge.sh"
-    test -f "'"$ROOT_DIR"'/lab/nano-lisp-jit/.build/nano-lisp/nano-lisp.com"
+    test -f "'"$ROOT_DIR"'/lab/nano-lisp-jit/release/nano-lisp.com"
   '
 else
   skip_case "run-bootstrap-v45-wave61-physical-honest-terminal-converge-plan" "nano-jit.com or v45-wave61-physical-honest-terminal-converge.sh missing"

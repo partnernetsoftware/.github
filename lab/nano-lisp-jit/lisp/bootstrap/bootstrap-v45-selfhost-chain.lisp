@@ -22,7 +22,7 @@
   (build-slice "lab/nano-lisp-jit/archive/c/runner/lispjit.c"
                "lab/nano-lisp-jit/.build/v45-selfhost-regen-aarch64.elf"
                "aarch64")
-  (pack-ape "lab/nano-lisp-jit/.build/v45-selfhost-next.com"
+  (pack-ape "lab/nano-lisp-jit/release/v45-selfhost-next.com"
             "lab/nano-lisp-jit/.build/v45-selfhost-regen-x86.elf"
             "lab/nano-lisp-jit/.build/v45-selfhost-regen-aarch64.elf")
-  (file-hash "lab/nano-lisp-jit/.build/v45-selfhost-next.com"))
+  (file-hash "lab/nano-lisp-jit/release/v45-selfhost-next.com"))

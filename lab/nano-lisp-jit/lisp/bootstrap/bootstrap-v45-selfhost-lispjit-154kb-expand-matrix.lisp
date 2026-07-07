@@ -1,7 +1,7 @@
 ; Wave53 W4: selfhost × 154KB 扩面矩阵.
 ; Prefix v45-sl15e- · no build-slice lispjit.c · no .sh steps.
 (bootstrap
-  (file-size "lab/nano-lisp-jit/.build/v45-selfhost-next.com")
+  (file-size "lab/nano-lisp-jit/release/v45-selfhost-next.com")
   (file-size "lab/nano-lisp-jit/archive/c/runner/lispjit.c")
   (build-slice-lisp "lab/nano-lisp-jit/lisp/core/nano-jit-slice-min.lisp"
                     "lab/nano-lisp-jit/.build/v45-sl15e-min-x86.elf"

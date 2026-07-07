@@ -28,13 +28,17 @@ Shell stub (optional v1 `# nano.manifest.*` for stub/`run-ape`), then payload re
 | Off | Size | Field |
 |-----|------|-------|
 | 0 | 1 | `arch_id`: **1**=x86_64, **2**=aarch64 |
-| 1 | 1 | `os_id`: **1**=linux |
+| 1 | 1 | `os_id`: **1**=linux · **2**=macOS (planned) · **3**=Windows (planned) |
 | 2 | 2 | reserved (0) |
 | 4 | 8 | `offset` u64 |
 | 12 | 8 | `size` u64 |
 | 20 | 8 | `hash` u64 FNV-1a64; **0** = optional (skip verify) |
 
 Rows SHOULD be sorted by `(arch_id, os_id)`. Default pack: two rows (x86_64/linux, aarch64/linux).
+
+**Wave103 probe rows**: macOS (`os_id=2`) may appear with `size=0` and `hash=0` as table placeholders; `inspect-ape` accepts them but `run-ape` still selects Linux ELF slices only.
+
+**Wave104 probe rows**: Windows (`os_id=3`) uses the same placeholder rule; a full six-face table may contain six rows (Linux ELF ×2 + macOS ×2 + Windows ×2).
 
 ## `inspect-ape` detection
 
