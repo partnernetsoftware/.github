@@ -19,9 +19,18 @@ import {
   accessSync, appendFileSync, chmodSync, constants, copyFileSync, existsSync,
   mkdirSync, readFileSync, rmSync, writeFileSync,
 } from "fs";
+import { execFileSync } from "child_process";
 import { randomUUID } from "crypto";
-import { homedir } from "os";
-import { join } from "path";
+import { StringDecoder } from "string_decoder";
+import { homedir, tmpdir } from "os";
+import { dirname, join } from "path";
+import {
+  captureFrame, getPaneInfo, listAgentTargets, looksLikeCursor,
+  inputBandHas, inputResidue as _inputResidue, analyzeFrame, formatDigestRow,
+} from "./fleet-analyzer";
+import { runOsCli } from "./os/cli.ts";
+import { taskLabelForTarget, ensureOsInit, osPanelLines } from "./os/tui-bridge.ts";
+import { createOsTuiActions, type OsTuiActions } from "./os/tui-handlers.ts";
 
 const PREVIEW_DELAY = 1000;        // preview debounce（驾驶 ↑↓ 停稳后再抓）
 const DRIVE_NAV_QUIET_MS = 1500;   // ↑↓ 期间暂停后台 snap/proc（覆盖 PREVIEW_DELAY）
@@ -37,6 +46,7 @@ const RETURN_FROM_ATTACH_DELAY = 120; // detach 后静默 sync tree / restore st
 const PREVIEW_LINES = 80;
 
 const SHELL_COMMS = new Set(["bash", "zsh", "sh", "fish", "dash", "tmux", "-bash", "-zsh"]);
+const AGENT_COMMS = new Set(["claude", "node", "python", "python3", "bun"]);
 
 const TUI_CONFIG = {
   VERSION: '0.6.0',
@@ -178,6 +188,11 @@ function cliError(message: string, code = 2): number {
   return code;
 }
 
+/** catch(e){return cliError(e instanceof Error?e.message:String(e))} 样板收敛,catch块直接 return cliCatch(e) */
+function cliCatch(e: unknown, code = 2): number {
+  return cliError(e instanceof Error ? e.message : String(e), code);
+}
+
 // PART:tmux-bootstrap
 
 function isExecutable(p: string): boolean {
@@ -203,7 +218,7 @@ function resolveTmuxPath(): string | null {
     const p = process.env.TMUX_BIN;
     if (isExecutable(p)) return p;
   }
-  const tmuxFirst = process.env.TUI_USE_TMUX === "1";
+  const tmuxFirst = process.env.TUI_USE_TMUX !== "0"; // 默认 tmux 优先
   const tryTmux = (): string | null => {
     if (isExecutable(TUI_CONFIG.TMUX_PORTABLE_BIN)) return TUI_CONFIG.TMUX_PORTABLE_BIN;
     return Bun.which("tmux") ?? null;
@@ -443,6 +458,14 @@ function installRmuxPortable(force = false): number {
   }
   copyFileSync(extracted, TUI_CONFIG.RMUX_PORTABLE_BIN);
   chmodSync(TUI_CONFIG.RMUX_PORTABLE_BIN, 0o755);
+  // 拷贝 libexec/ 目录（rmux 二进制运行时需要找到 libexec/rmux/rmux helper）
+  const extractedDir = dirname(extracted);
+  const libexecSrc = join(extractedDir, "..", "libexec");
+  const libexecDst = join(TUI_CONFIG.RMUX_HOME, "libexec");
+  if (existsSync(libexecSrc)) {
+    rmSync(libexecDst, { recursive: true, force: true });
+    Bun.spawnSync(["cp", "-r", libexecSrc, libexecDst], { stdout: "pipe", stderr: "pipe" });
+  }
   if (process.platform === "darwin") {
     Bun.spawnSync(["xattr", "-dr", "com.apple.quarantine", TUI_CONFIG.RMUX_HOME], { stdout: "pipe", stderr: "pipe" });
   }
@@ -553,6 +576,7 @@ interface IMultiplexerBackend {
   loadBuffer(target: string, file: string): unknown;
   pasteBuffer(target: string): unknown;
   sendKeysEnter(target: string): unknown;
+  listPanes(target: string, fmt: string): string[];
 
   // ── 选项 ──
   getGlobalOption(key: string): string;
@@ -581,25 +605,48 @@ interface IMultiplexerBackend {
   assertAvailable(): void;
 }
 
-// TmuxBackend — IMultiplexerBackend 的 tmux 实现。target 一律用 `=NAME[:IDX]` 精确语法。
-function tmux(args: string[], opts?: { missingOk?: boolean; unsetOk?: boolean }): string {
-  const bin = tmuxBin();
+/**
+ * 本地 tmuxApi 与 -L 独立 socket 的 super 共用的 spawnSync+错误处理核心：
+ * mode="print" 静默吞掉后 stderr 打印+照常返回 stdout(本地 tmux() / capturePaneText 用)；
+ * mode="throw" 未命中 missingRe 时直接抛错(super 需要调用方能感知失败,不能悄悄吞掉)；
+ * mode="silent" 只用 exitCode 判断,不打印不抛(superTmuxHasSession 这类纯探活场景)。
+ */
+function runTmuxCmd(
+  bin: string,
+  label: string,
+  args: string[],
+  opts?: { missingOk?: boolean; missingRe?: RegExp; mode?: "print" | "throw" | "silent" },
+): { stdout: string; exitCode: number } {
   const out = Bun.spawnSync([bin, ...args], { stdout: "pipe", stderr: "pipe" });
   if (out.exitCode !== 0) {
     const stderr = out.stderr.toString();
-    // 幂等清理命令（kill/has/rename-session 等）目标不存在时静默吞掉
-    if (opts?.missingOk && /can't find session|no such session|session not found/i.test(stderr)) {
-      return out.stdout.toString();
+    const missingRe = opts?.missingRe ?? /can't find session|no such session|session not found/i;
+    if (opts?.missingOk && missingRe.test(stderr)) {
+      return { stdout: out.stdout.toString(), exitCode: 0 };
     }
-    // 用户自定义 @option 未设置时 show-options 报 invalid option，视为空值
-    if (opts?.unsetOk && /invalid option|unknown option|option not found/i.test(stderr)) {
-      return "";
+    const mode = opts?.mode ?? "print";
+    if (mode === "throw") {
+      throw new Error(`[${label} ${args.join(" ")}] exit=${out.exitCode} ${stderr.trim()}`);
     }
-    if (!tmuxQuietDepth) {
-      cliWriteStderr(`[tmux ${args.join(" ")}] exit=${out.exitCode} ${stderr}`);
+    if (mode === "print" && !tmuxQuietDepth) {
+      cliWriteStderr(`[${label} ${args.join(" ")}] exit=${out.exitCode} ${stderr}`);
     }
   }
-  return out.stdout.toString();
+  return { stdout: out.stdout.toString(), exitCode: out.exitCode };
+}
+
+// TmuxBackend — IMultiplexerBackend 的 tmux 实现。target 一律用 `=NAME[:IDX]` 精确语法。
+function tmux(args: string[], opts?: { missingOk?: boolean; unsetOk?: boolean }): string {
+  // 用户自定义 @option 未设置时 show-options 报 invalid option，视为空值——这个特判先于
+  // 通用错误上报(不打印/不抛,直接判空),故不下沉进 runTmuxCmd。
+  if (opts?.unsetOk) {
+    const probe = Bun.spawnSync([tmuxBin(), ...args], { stdout: "pipe", stderr: "pipe" });
+    if (probe.exitCode !== 0 && /invalid option|unknown option|option not found/i.test(probe.stderr.toString())) {
+      return "";
+    }
+    return probe.stdout.toString();
+  }
+  return runTmuxCmd(tmuxBin(), "tmux", args, { missingOk: opts?.missingOk, mode: "print" }).stdout;
 }
 
 const TMUX_PASTE_BUF = `tui_v2_${process.pid}`;
@@ -628,18 +675,13 @@ const tmuxApi: IMultiplexerBackend = {
     }),
   capturePane: (target: string, startN: number, endArg: string) =>
     Bun.spawn([tmuxBin(), "capture-pane", "-p", "-t", target, "-S", `-${startN}`, "-E", endArg]),
-  capturePaneText: (target: string, startN: number, endArg = "-") => {
-    const r = Bun.spawnSync(
-      [tmuxBin(), "capture-pane", "-p", "-t", target, "-S", `-${startN}`, "-E", endArg],
-      { stdout: "pipe", stderr: "pipe" },
-    );
-    if (r.exitCode !== 0 && !tmuxQuietDepth) {
-      cliWriteStderr(
-        `[tmux capture-pane -t ${target}] exit=${r.exitCode} ${r.stderr?.toString() || ""}`,
-      );
-    }
-    return r.stdout?.toString() || "";
-  },
+  capturePaneText: (target: string, startN: number, endArg = "-") =>
+    runTmuxCmd(
+      tmuxBin(),
+      "tmux capture-pane",
+      ["capture-pane", "-p", "-t", target, "-S", `-${startN}`, "-E", endArg],
+      { mode: "print" },
+    ).stdout,
   sendKeys: (target: string, text: string) => {
     tmuxApi.loadBufferFromText(text);
     tmuxApi.pasteBuffer(target);
@@ -655,10 +697,15 @@ const tmuxApi: IMultiplexerBackend = {
     }),
   loadBuffer: (target: string, file: string) =>
     Bun.spawnSync([tmuxBin(), "load-buffer", "-b", TMUX_PASTE_BUF, file]),
+  // -p：发 bracketed-paste 控制码(应用请求时)。无此则多行正文里的 \n 被当 Enter 逐行提交→
+  // claude TUI 把 @file 拆成多条 queued 消息且末行(无尾 \n)滞留输入框=「落框未提交」根因。
+  // 对未启用 bracketed-paste 的应用(bash)是 no-op,安全通用。
   pasteBuffer: (target: string) =>
-    Bun.spawnSync([tmuxBin(), "paste-buffer", "-d", "-b", TMUX_PASTE_BUF, "-t", target]),
+    Bun.spawnSync([tmuxBin(), "paste-buffer", "-p", "-d", "-b", TMUX_PASTE_BUF, "-t", target]),
   sendKeysEnter: (target: string) =>
     Bun.spawnSync([tmuxBin(), "send-keys", "-t", target, "Enter"]),
+  listPanes: (target: string, fmt: string): string[] =>
+    tmux(["list-panes", "-t", target, "-F", fmt]).trim().split("\n").filter(Boolean),
   // options
   getGlobalOption: (key: string): string =>
     tmux(["show-options", "-gv", key]).trim(),
@@ -718,7 +765,48 @@ function buildSessOnlyTarget(sessionName: string): string {
   return sessionName;
 }
 function buildWinTarget(sessionName: string, idx: string | number): string {
+  // window 名含 `.` 时（如 buddy-glm5.2）tmux 会把 `.` 解析为 pane 分隔符
+  // → 必须先查 list-windows 把 name 翻译成 window_index 再拼，否则 sendKeys / capture-pane 全报 can't find pane
+  if (typeof idx === "string") {
+    return `${sessionName}:${resolveWindowIndex(sessionName, idx)}`;
+  }
   return `${sessionName}:${idx}`;
+}
+
+function buildWinIndexTarget(sessionName: string, idx: string | number): string {
+  return `${sessionName}:${idx}`;
+}
+
+/** name → window_index：先按 window_name 精确匹配（抗窗口索引漂移）。纯数字拒绝回退为索引，强制使用窗口名称。*/
+function resolveWindowIndex(sessionName: string, nameOrIdx: string): string {
+  // name-first: 先按 window_name 精确匹配当前 index(抗窗口索引漂移;用户铁律:target 用 name 找 idx)
+  try {
+    for (const row of tmuxApi.listWindows(sessionName, "#{window_index}|#{window_name}")) {
+      const [wi, wn] = row.split("|");
+      if (wn === nameOrIdx) return wi;
+    }
+  } catch { /* fallthrough */ }
+  if (/^\d+$/.test(nameOrIdx))
+    throw new Error(`拒绝数字 "${nameOrIdx}" 作为窗口标识——mux 要求使用窗口名称, 不使用窗口索引。用 "session:窗口名" 格式。`);
+  return nameOrIdx; // 非数字且无同名→交给 tmux 报错
+}
+
+function currentTmuxSessionName(): string {
+  if (!process.env.TMUX_PANE) return "";
+  const r = Bun.spawnSync([tmuxBin(), "display-message", "-p", "-t", process.env.TMUX_PANE, "#S"], {
+    stdout: "pipe",
+    stderr: "pipe",
+  });
+  return (r.stdout?.toString() ?? "").trim();
+}
+
+function hasWindowName(sessionName: string, windowName: string): boolean {
+  try {
+    for (const wn of tmuxApi.listWindows(sessionName, "#{window_name}")) {
+      if (wn === windowName) return true;
+    }
+  } catch { /* fallthrough */ }
+  return false;
 }
 
 // 统一 set/unset option 入口：val=null → unset；isWindow 控制 -w/-t 维度
@@ -774,7 +862,7 @@ function readUserOption(
 ): string {
   const sessTarget = buildSessTarget(node.sessionName);
   const winTarget = node.type === "window"
-    ? buildWinTarget(node.sessionName, node.target.split(":")[1] ?? "")
+    ? buildWinIndexTarget(node.sessionName, node.target.split(":")[1] ?? "")
     : sessTarget;
   const raw = node.type === "session"
     ? tmuxApi.showSessionRaw(sessTarget, key)
@@ -818,7 +906,7 @@ function writeNodeOpt(node: TreeNode, key: string, raw: string | null): void {
     setUserOption(buildSessTarget(node.sessionName), false, key, val);
   } else {
     const idx = node.target.split(":")[1] ?? "";
-    setUserOption(buildWinTarget(node.sessionName, idx), true, key, val);
+    setUserOption(buildWinIndexTarget(node.sessionName, idx), true, key, val);
   }
 }
 
@@ -869,6 +957,26 @@ function parseTargetSpec(spec: string): { target: string; node: TreeNode } {
         node: { label: "", target: `${sess}:${idx}`, indent: 1, type: "window", sessionName: sess },
       };
     }
+    const currentSession = currentTmuxSessionName();
+    if (currentSession && hasWindowName(currentSession, spec)) {
+      const target = buildWinTarget(currentSession, spec);
+      return {
+        target,
+        node: { label: "", target: `${currentSession}:${spec}`, indent: 1, type: "window", sessionName: currentSession },
+      };
+    }
+    // 当前 session 无此窗口 → 搜所有 session 的 window name
+    for (const sess of tmuxApi.listSessions()) {
+      if (sess === currentSession) continue; // 已查过
+      if (hasWindowName(sess, spec)) {
+        const target = buildWinTarget(sess, spec);
+        return {
+          target,
+          node: { label: "", target: `${sess}:${spec}`, indent: 1, type: "window", sessionName: sess },
+        };
+      }
+    }
+    // 全 session 找不到 → 当 session 名处理
     const target = buildSessTarget(spec);
     return {
       target,
@@ -879,7 +987,7 @@ function parseTargetSpec(spec: string): { target: string; node: TreeNode } {
   if (!node) throw new Error(`找不到逻辑名 ${spec}`);
   const target =
     node.type === "window"
-      ? buildWinTarget(node.sessionName, node.target.split(":")[1] ?? "")
+      ? buildWinIndexTarget(node.sessionName, node.target.split(":")[1] ?? "")
       : buildSessTarget(node.sessionName);
   return { target, node };
 }
@@ -911,10 +1019,10 @@ function opNewWindow(sessionSpec: string, winName: string): string {
 }
 
 function opRename(spec: string, newName: string): string {
-  const { node } = parseTargetSpec(spec);
+  const { node, target } = parseTargetSpec(spec);
   const n = normName(newName, node.type);
   if (node.type === "session") tmuxApi.renameSession(node.sessionName, n);
-  else tmuxApi.renameWindow(buildWinTarget(node.sessionName, node.target.split(":")[1] ?? ""), n);
+  else tmuxApi.renameWindow(target, n);
   return n;
 }
 
@@ -924,9 +1032,429 @@ function opKillWindow(spec: string): void {
   tmuxApi.killWindow(target);
 }
 
+function paneCount(target: string): number {
+  try {
+    return tmuxApi.listPanes(target, "#{pane_index}").length;
+  } catch {
+    return 0;
+  }
+}
+
+function resolveInputPaneTarget(target: string): string {
+  return paneCount(target) > 1 ? `${target}.0` : target;
+}
+
+function splitScriptPath(target: string): string {
+  const safe = target.replace(/[^a-zA-Z0-9._-]/g, "_");
+  return join(TUI_CONFIG.DATA_DIR, "split-buffer", `${safe}.sh`);
+}
+
+function writeSplitBufferScript(target: string): string {
+  const pane0 = `${target}.0`;
+  const path = splitScriptPath(target);
+  mkdirSync(dirname(path), { recursive: true });
+  // 用 mux send（paste-buffer + Enter 已验证可靠），不用 fd write
+  const muxBin = join(process.cwd(), "bin", "mux");
+  const script = `#!/usr/bin/env bash
+set -euo pipefail
+target=${JSON.stringify(pane0)}
+while IFS= read -r -e -p '> ' line; do
+  [[ -n "$line" ]] && ${JSON.stringify(muxBin)} send "$target" "$line"
+done
+`;
+  writeFileSync(path, script);
+  chmodSync(path, 0o755);
+  return path;
+}
+
+function opSplit(spec: string): { target: string; paneCount: number; created: boolean } {
+  const { node, target } = parseTargetSpec(spec);
+  if (node.type !== "window") throw new Error("split 仅支持 window（sess:idx / sess:name / @remark→window）");
+  const before = paneCount(target);
+  if (before > 1) return { target, paneCount: before, created: false };
+  const script = writeSplitBufferScript(target);
+  const r = tmuxApi.rawSpawnSync(["split-window", "-v", "-l", "3", "-t", target, `bash ${script}`]) as { exitCode?: number; stderr?: Uint8Array };
+  if ((r.exitCode ?? 0) !== 0) {
+    throw new Error(`split-window failed: ${Buffer.from(r.stderr ?? new Uint8Array()).toString().trim()}`);
+  }
+  return { target, paneCount: paneCount(target), created: true };
+}
+
+function opUnsplit(spec: string): { target: string; paneCount: number; killed: boolean } {
+  const { node, target } = parseTargetSpec(spec);
+  if (node.type !== "window") throw new Error("unsplit 仅支持 window（sess:idx / sess:name / @remark→window）");
+  const before = paneCount(target);
+  if (before <= 1) return { target, paneCount: before, killed: false };
+  const r = tmuxApi.rawSpawnSync(["kill-pane", "-t", `${target}.1`]) as { exitCode?: number; stderr?: Uint8Array };
+  if ((r.exitCode ?? 0) !== 0) {
+    throw new Error(`kill-pane failed: ${Buffer.from(r.stderr ?? new Uint8Array()).toString().trim()}`);
+  }
+  return { target, paneCount: paneCount(target), killed: true };
+}
+
+// PART:super — byobu-super 外壳（独立 tmux socket + 下方输入框）
+const SUPER_DEFAULT_SOCK = "byobu-super";
+const SUPER_DEFAULT_SESSION = "main";
+const SUPER_DEFAULT_INPUT_LINES = 6;
+const SUPER_INPUT_TITLE = "byobu-super-input";
+
+/** super 模式强制用真 tmux（byobu / -L / -f /dev/null 均依赖 tmux 语义） */
+function superTmuxBin(): string {
+  if (process.env.TMUX_BIN && isExecutable(process.env.TMUX_BIN)) return process.env.TMUX_BIN;
+  if (isExecutable(TUI_CONFIG.TMUX_PORTABLE_BIN)) return TUI_CONFIG.TMUX_PORTABLE_BIN;
+  const p = Bun.which("tmux");
+  if (!p) throw new Error("super 需要 tmux（byobu 基于 tmux）；运行: mux install-tmux");
+  return p;
+}
+
+function superTmuxArgs(sock: string, args: string[], opts?: { newServer?: boolean }): string[] {
+  const prefix: string[] = ["-L", sock];
+  if (opts?.newServer) prefix.push("-f", "/dev/null");
+  return prefix.concat(args);
+}
+
+const SUPER_MISSING_RE = /can't find session|no such session|session not found|can't find pane|unknown command|not bound|no key bindings/i;
+
+function superTmux(sock: string, args: string[], opts?: { newServer?: boolean; missingOk?: boolean }): string {
+  return runTmuxCmd(superTmuxBin(), `tmux -L ${sock}`, superTmuxArgs(sock, args, opts), {
+    missingOk: opts?.missingOk,
+    missingRe: SUPER_MISSING_RE,
+    mode: "throw",
+  }).stdout;
+}
+
+function superTmuxHasSession(sock: string, session: string): boolean {
+  return runTmuxCmd(superTmuxBin(), `tmux -L ${sock}`, ["-L", sock, "has-session", "-t", session], { mode: "silent" }).exitCode === 0;
+}
+
+function shSingleQuote(s: string): string {
+  return `'${s.replace(/'/g, "'\\''")}'`;
+}
+
+function buildSuperInputInvoke(selfScript: string, target: string, sock: string, session: string): string {
+  const args = `super-input ${shSingleQuote(target)} ${shSingleQuote(sock)} ${shSingleQuote(session)}`;
+  if (selfScript.endsWith(".ts")) {
+    const bun = Bun.which("bun") ?? "bun";
+    return `${bun} ${shSingleQuote(selfScript)} ${args}`;
+  }
+  return `${shSingleQuote(selfScript)} ${args}`;
+}
+
+function validateSuperSock(sock: string): string | null {
+  if (!/^[A-Za-z0-9_.-]+$/.test(sock)) return `invalid socket name: ${sock}`;
+  // 防呆：拒绝 tmux/byobu 系统保留 socket 名，避免 super 绑定污染用户主会话（F-key 劫持事故根因）
+  if (/^(default|byobu)$/i.test(sock)) return `refused reserved socket "${sock}": 会污染 byobu/tmux 主会话，请用隔离名（默认 byobu-super）`;
+  return null;
+}
+
+function validateSuperSession(session: string): string | null {
+  return /^[A-Za-z0-9_-]+$/.test(session) ? null : `invalid session name: ${session}`;
+}
+
+function validateSuperInputLines(lines: number): string | null {
+  return Number.isInteger(lines) && lines >= 1 ? null : `invalid --lines: ${lines}`;
+}
+
+/** 多个 validate* 依次判,返回第一个非空错误(样板收敛:一次guard替代逐条check+return) */
+function firstValidationError(...errs: (string | null)[]): string | null {
+  for (const e of errs) if (e) return e;
+  return null;
+}
+
+/** session级自定义option,记录input pane真实pane_id,免疫用户手改pane title致title扫描失联 */
+const SUPER_INPUT_PANE_OPT = "@super_input_pane";
+
+function findSuperInputPane(sock: string, mainWin: string): string {
+  // 优先信缓存的 pane_id(双保险第一层):title 可被用户手改,pane_id 不会变。
+  // option 未设置或指向的 pane 已不存在(respawn/kill 后)一律静默回退 title 扫描,零风险。
+  try {
+    const cached = superTmux(sock, ["show-options", "-v", "-t", mainWin, SUPER_INPUT_PANE_OPT]).trim();
+    if (cached) {
+      const alivePanes = superTmux(sock, ["list-panes", "-t", mainWin, "-F", "#{pane_id}"]).trim().split("\n");
+      if (alivePanes.includes(cached)) return cached;
+    }
+  } catch { /* 未设置/pane已消失 → 回退 title 扫描 */ }
+  const raw = superTmux(sock, ["list-panes", "-t", mainWin, "-F", "#{pane_id} #{pane_title}"]).trim();
+  for (const line of raw.split("\n").filter(Boolean)) {
+    const sp = line.indexOf(" ");
+    if (sp < 0) continue;
+    const id = line.slice(0, sp);
+    const title = line.slice(sp + 1);
+    if (title === SUPER_INPUT_TITLE) return id;
+  }
+  return "";
+}
+
+/** bracketed-paste 载荷：内嵌 LF→CR；剥尾部 CR/LF 防 TUI 把 paste 尾当隐式 Enter（双发根因） */
+function superTrimPastePayload(raw: string): string {
+  return raw.replace(/\n/g, "\r").replace(/[\r\n]+$/, "");
+}
+
+function superCapturePane(sock: string, target: string, lines = 60): string {
+  try {
+    return superTmux(sock, ["capture-pane", "-p", "-t", target, "-S", `-${lines}`]);
+  } catch {
+    return "";
+  }
+}
+
+function superPaneComm(sock: string, target: string): string {
+  try {
+    return superTmux(sock, ["list-panes", "-t", target, "-F", "#{pane_current_command}"]).trim().split("\n")[0] || "?";
+  } catch {
+    return "?";
+  }
+}
+
+/** 上方 pane comm 常为 byobu；靠帧特征判 node TUI（composer 提示符 / cursor 帧） */
+function superFrameLooksNodeTui(frame: string): boolean {
+  if (looksLikeCursor(frame)) return true;
+  const tail = frame.replace(/\s+$/g, "").split("\n").slice(-12);
+  if (tail.some((l) => DRV_COMPOSER_PROMPT.test(l))) return true;
+  return /Add a follow-up|Type your message/i.test(frame);
+}
+
+/**
+ * 组装走 -L 独立socket 的 DrvIo 后端(P0-1 commit#2):capture/comm 直接复用既有
+ * super原子操作;paste/enter 走 load-buffer/paste-buffer/send-keys 同款 super 原语。
+ * 有了这层,原 superDrvAnalyze/superWaitRender/superVerifyNodeSubmit 三个重复实现
+ * 全部改为直接调用 drvAnalyze/drvWaitRender/drvVerifyNodeSubmit(..., io) 复用,
+ * SAMPLES/GAP_MS/NEED 采样常量与 kimi 特判也随之合一到 drvVerifyNodeSubmit 一处。
+ */
+function makeSuperIo(sock: string): DrvIo {
+  return {
+    capture: (target, lines = 60) => superCapturePane(sock, target, lines),
+    comm: (target) => superPaneComm(sock, target),
+    paste: (target, text) => {
+      const buf = `byobu-super-${process.pid}-${Date.now()}`;
+      superLoadPasteBuffer(sock, buf, text);
+      superPasteBuffer(sock, buf, target);
+    },
+    enter: (target) => superSendEnter(sock, target),
+  };
+}
+
+function superLoadPasteBuffer(sock: string, buf: string, text: string): void {
+  const bin = superTmuxBin();
+  const out = Bun.spawnSync([bin, ...superTmuxArgs(sock, ["load-buffer", "-b", buf, "-"])], {
+    stdin: Buffer.from(text, "utf8"),
+    stdout: "pipe",
+    stderr: "pipe",
+  });
+  if (out.exitCode !== 0) {
+    throw new Error(`super load-buffer: ${out.stderr.toString().trim()}`);
+  }
+}
+
+function superPasteBuffer(sock: string, buf: string, target: string): void {
+  superTmux(sock, ["paste-buffer", "-p", "-d", "-b", buf, "-t", target]);
+}
+
+function superSendEnter(sock: string, target: string): void {
+  superTmux(sock, ["send-keys", "-t", target, "Enter"]);
+}
+
+/**
+ * super 输入框 → 上方 pane 投递（load-buffer→paste-buffer -p→Enter）。
+ * node TUI：paste 后不立刻 Enter（防 bracketed-paste 尾换行/慢渲染双发），等渲染后单次 Enter+验证。
+ */
+function superDeliverPayload(sock: string, target: string, raw: string): void {
+  const text = superTrimPastePayload(raw);
+  if (!text) return;
+  const io = makeSuperIo(sock);
+  const preFrame = superCapturePane(sock, target, 60);
+  const comm = superPaneComm(sock, target);
+  // isNodeTui 判据刻意保留 superFrameLooksNodeTui(比 drvLooksCursor 多 composer-prompt 尾行 +
+  // "Add a follow-up"/"Type your message" 文案两条启发式),不与 driveSubmitVerify 的判据合并,
+  // 避免静默改变 super 路径既有行为(P0-1 commit#2 范围收窄:只并采样/验证逻辑,不动判据)。
+  const isNodeTui = DRV_NODE_TUI.test(comm) || superFrameLooksNodeTui(preFrame);
+
+  io.paste(target, text);
+
+  if (!isNodeTui) {
+    io.enter(target);
+    return;
+  }
+
+  const probe = text.trim().split(/\r|\n/)[0]!.slice(0, 24);
+  const rendered = drvWaitRender(target, probe, 1800, io);
+  const frame = superCapturePane(sock, target, 60);
+  const preHadProbe = rendered || (!!probe && drvComposerHasProbe(frame, probe));
+  io.enter(target);
+  let why = drvVerifyNodeSubmit(target, probe, preHadProbe, comm, io);
+  for (let i = 0; i < 3 && !why; i++) {
+    Bun.sleepSync(800);
+    io.enter(target);
+    why = drvVerifyNodeSubmit(target, probe, preHadProbe, comm, io);
+  }
+}
+
+/** super-input worker：zsh vared 多行编辑；无 zsh 时 bash read -e 单行降级 */
+function runSuperInputLoop(target: string, sock: string, session: string): number {
+  const zshBin = Bun.which("zsh") ?? "";
+  const tmuxB = superTmuxBin();
+  const hist = join(tmpdir(), `byobu-super-history-${process.env.USER ?? "user"}`);
+  const muxScript = resolveSelfScript();
+  const muxBun = Bun.which("bun") ?? "bun";
+  const deliverCmd = `${shSingleQuote(muxBun)} ${shSingleQuote(muxScript)} super-deliver ${shSingleQuote(target)} ${shSingleQuote(sock)} -`;
+
+  if (!zshBin) {
+    const script = `set -euo pipefail
+BS_TARGET=${JSON.stringify(target)}
+BS_SOCK=${JSON.stringify(sock)}
+BS_SESSION=${JSON.stringify(session)}
+BS_HIST=${JSON.stringify(hist)}
+BS_TMUX=${JSON.stringify(tmuxB)}
+BS_DELIVER=${JSON.stringify(deliverCmd)}
+T=("$BS_TMUX" -L "$BS_SOCK")
+trap '"$BS_TMUX" -L "$BS_SOCK" kill-session -t "$BS_SESSION" 2>/dev/null; exit 0' INT
+history -r "$BS_HIST" 2>/dev/null || true
+while IFS= read -e -r -p "> " line; do
+  [ -z "$line" ] && continue
+  history -s -- "$line"; history -w "$BS_HIST" 2>/dev/null || true
+  printf '%s' "$line" | eval "$BS_DELIVER"
+done
+"$BS_TMUX" -L "$BS_SOCK" kill-session -t "$BS_SESSION" 2>/dev/null
+`;
+    const r = Bun.spawnSync(["bash", "-c", script], { stdin: "inherit", stdout: "inherit", stderr: "inherit" });
+    return r.exitCode ?? 0;
+  }
+
+  const zshScript = `
+T=("$BS_TMUX_BIN" -L "$BS_SOCK")
+HISTFILE="$BS_HIST"; HISTSIZE=1000; SAVEHIST=1000
+fc -R "$BS_HIST" 2>/dev/null
+byequit() { "\${T[@]}" kill-session -t "$BS_SESSION" 2>/dev/null; exit 0; }
+trap byequit INT
+bindkey -e
+bindkey "^J" self-insert-unmeta
+bindkey "^D" undefined-key
+# 上下键翻历史：zsh -c 非交互态 ZLE 历史导航被禁，改用自维护数组 + 自定义 widget
+_H=(); [[ -r "$BS_HIST" ]] && while IFS= read -r _l; do [[ -n "$_l" ]] && _H+="$_l"; done < "$BS_HIST"
+_hidx=0
+_hup(){ (( \${#_H} == 0 )) && return; (( _hidx < \${#_H} )) && (( _hidx++ )); BUFFER="\${_H[-_hidx]}"; CURSOR=\${#BUFFER}; }
+_hdown(){ (( _hidx <= 1 )) && { _hidx=0; BUFFER=""; CURSOR=0; return }; (( _hidx-- )); BUFFER="\${_H[-_hidx]}"; CURSOR=\${#BUFFER}; }
+zle -N _hup; zle -N _hdown
+bindkey "^[[A" _hup; bindkey "^[OA" _hup
+bindkey "^[[B" _hdown; bindkey "^[OB" _hdown
+while :; do
+  line=""; _hidx=0
+  vared -p "> " line || continue
+  [[ -z "$line" ]] && continue
+  print -s -- "$line"; fc -W "$BS_HIST" 2>/dev/null
+  _H+="$line"
+  print -rn -- "$line" | eval "$BS_DELIVER"
+done
+`;
+  const r = Bun.spawnSync([zshBin, "-f", "-c", zshScript], {
+    stdin: "inherit",
+    stdout: "inherit",
+    stderr: "inherit",
+    env: {
+      ...process.env,
+      BS_TARGET: target,
+      BS_SOCK: sock,
+      BS_SESSION: session,
+      BS_TMUX_BIN: tmuxB,
+      BS_HIST: hist,
+      BS_DELIVER: deliverCmd,
+    },
+  });
+  return r.exitCode ?? 0;
+}
+
+/** super 焦点切换：相对 -U/-D（不绑 pane_id，抗 respawn 漂移）；先 unbind 再绑 */
+function superBindPaneFocusKeys(sock: string): void {
+  for (const key of ["C-Up", "C-Down", "M-Up", "M-Down"]) {
+    superTmux(sock, ["unbind-key", "-n", key], { missingOk: true });
+  }
+  superTmux(sock, ["bind-key", "-n", "C-Up", "select-pane", "-U"]);
+  superTmux(sock, ["bind-key", "-n", "C-Down", "select-pane", "-D"]);
+  superTmux(sock, ["bind-key", "-n", "M-Up", "select-pane", "-U"]);
+  superTmux(sock, ["bind-key", "-n", "M-Down", "select-pane", "-D"]);
+}
+
+/** 上方 pane 直接跑 byobu；显式剥 tmux 环境，避免 byobu 报 nested session。 */
+function buildSuperByobuPaneCmd(): string {
+  return "exec env -u TMUX -u TMUX_PANE -u TMUX_TMPDIR byobu";
+}
+
+function superExecAttach(sock: string, session: string): never {
+  const bin = superTmuxBin();
+  const env = { ...process.env } as Record<string, string | undefined>;
+  delete env.TMUX;
+  delete env.TMUX_PANE;
+  delete env.TMUX_TMPDIR;
+  execFileSync(bin, ["-L", sock, "attach", "-t", session], {
+    stdio: "inherit",
+    env: env as NodeJS.ProcessEnv,
+  });
+  process.exit(0);
+}
+
+function opSuperStart(opts: {
+  session: string;
+  sock: string;
+  inputLines: number;
+}): { session: string; sock: string; inputPane: string } {
+  const { session, sock, inputLines } = opts;
+  if (!Bun.which("byobu")) throw new Error("super 需要 byobu: apt/yum/brew install byobu");
+
+  const mainWin = `${session}:main`;
+  const mainPane = `${session}:main.0`;
+  const self = resolveSelfScript();
+  const inputCmd = buildSuperInputInvoke(self, mainPane, sock, session);
+
+  if (!superTmuxHasSession(sock, session)) {
+    superTmux(sock, ["new-session", "-d", "-s", session, "-n", "main", buildSuperByobuPaneCmd()], { newServer: true });
+    Bun.sleepSync(400);
+  } else {
+    superTmux(sock, ["respawn-pane", "-k", "-t", mainPane, buildSuperByobuPaneCmd()]);
+    Bun.sleepSync(400);
+  }
+
+  let inputPane = findSuperInputPane(sock, mainWin);
+  if (!inputPane) {
+    inputPane = superTmux(sock, [
+      "split-window", "-P", "-F", "#{pane_id}", "-t", mainWin, "-v", "-l", String(inputLines), inputCmd,
+    ]).trim();
+  } else {
+    superTmux(sock, ["respawn-pane", "-k", "-t", inputPane, inputCmd]);
+    superTmux(sock, ["resize-pane", "-t", inputPane, "-y", String(inputLines)]);
+  }
+
+  superTmux(sock, ["select-pane", "-t", inputPane, "-T", SUPER_INPUT_TITLE]);
+  // 双保险第二层:把真实 pane_id 记进 session option,供下次 findSuperInputPane 优先命中(title 免疫)
+  superTmux(sock, ["set-option", "-t", mainWin, SUPER_INPUT_PANE_OPT, inputPane]);
+  superTmux(sock, ["set-hook", "-g", "client-resized", `resize-pane -t ${inputPane} -y ${inputLines}`]);
+
+  const sessOpts: [string, string][] = [
+    ["prefix", "None"],
+    ["status", "off"],
+    ["pane-border-status", "off"],
+    ["mouse", "on"],
+    ["pane-border-style", "fg=colour238"],
+    ["pane-active-border-style", "fg=colour46,bold"],
+  ];
+  for (const [opt, val] of sessOpts) {
+    superTmux(sock, ["set-option", "-t", session, opt, val]);
+  }
+
+  superBindPaneFocusKeys(sock);
+  // F 键转发到 byobu pane：显式 mainPane 目标（{up-of} 在焦点位于上方 pane 时无解析目标会报错）；
+  // 先 unbind 清掉旧版/残留 run-shell 类绑定，保证重入幂等
+  for (let i = 1; i <= 12; i++) {
+    superTmux(sock, ["unbind-key", "-n", `F${i}`], { missingOk: true });
+    superTmux(sock, ["bind-key", "-n", `F${i}`, "send-keys", "-t", mainPane, `F${i}`]);
+  }
+
+  superTmux(sock, ["select-pane", "-t", inputPane]);
+  return { session, sock, inputPane };
+}
+
 /** 向 window 注入文本（默认带 Enter）；CLI send / 驾驶 i 共用。paste-buffer 发正文，Enter 单独 send-keys（同 smux） */
 function injectToWindow(specOrTarget: string, text: string, opts?: { enter?: boolean }): void {
-  const target = resolveTarget(specOrTarget);
+  const target = resolveInputPaneTarget(resolveTarget(specOrTarget));
   if (!text) throw new Error("消息为空");
   tmuxApi.loadBufferFromText(text);
   tmuxApi.pasteBuffer(target);
@@ -935,7 +1463,7 @@ function injectToWindow(specOrTarget: string, text: string, opts?: { enter?: boo
 
 /** load-buffer + paste-buffer；CLI paste / 驾驶 P 共用 */
 function pasteFileToWindow(specOrTarget: string, file: string): void {
-  const target = resolveTarget(specOrTarget);
+  const target = resolveInputPaneTarget(resolveTarget(specOrTarget));
   const path = file.startsWith("~") ? join(homedir(), file.slice(1)) : file;
   if (!existsSync(path)) throw new Error(`文件不存在: ${file}`);
   tmuxApi.loadBuffer(target, path);
@@ -1118,6 +1646,143 @@ function listRegisteredAgents(source?: TreeNode[]): Array<{ id: string; target: 
   return out;
 }
 
+// PART:hook-registry
+//
+// ===== hook 事件契约（event → handler JSON 契约，Phase 2a 锁定）=====
+//
+// registry event 串格式: `<kind>:<target...>`
+//   - kind   : 固定枚举（首段，冒号前第一段），见 HOOK_EVENT_KINDS。
+//   - target : 其余全部段（可再含冒号，如 `naos:lane-c`）。
+//   - 拆分规则: 以「第一个冒号」切一刀 → 左=kind，右=target。
+//     例: `window-pane-changed:naos:lane-c` → kind=`window-pane-changed`, target=`naos:lane-c`
+//     无冒号(如 `agent-inbox-arrived` 直配 kind)时 target="".
+//
+// kind 枚举（HOOK_EVENT_KINDS）:
+//   - window-pane-changed   : 某 window 当前 pane 内容/最后一行变化（lastLine 携带尾行）。
+//   - agent-inbox-arrived   : 某 agent 收到新 inbox 消息（payload.unread 携带条数）。
+//   - window-activity       : 某 window 出现活动（tmux activity flag）。
+//   - cabin-state-changed   : 某 window 的「驾驶舱状态」(CabinState.kind) 发生迁移。
+//         cabin = 每窗口状态机，枚举见 CABIN_TTL_MS：
+//         error/agent/focus/running/waiting/stuck/idle（详见 PART:drive-bg detectCabinState）。
+//         此事件在 St 列状态码切换时触发，payload 可带 {from,to} 状态码。
+//   - agent-exit            : 进程/agent 进入终态（跑完/退出），显式触发「agent 跑完→PM 审计」，
+//         替代用 window-pane-changed 当完成代理。payload 可带 {pid,code}。
+//
+// dispatcher 注入 handler 的 stdin JSON schema（dispatchHook 组装）:
+//   {
+//     "kind":     <string>,        // event 串首段
+//     "target":   <string>,        // event 串拆 kind 后剩余段（可空串）
+//     "lastLine"?:<string>,        // payload.lastLine 提升（便于 handler 直读）
+//     "payload"?: <object>,        // 派发方传入的原始 payload（透传）
+//     "ts":       <number>         // 派发时刻 Date.now()
+//   }
+// handler 须「一次性读 stdin」(IN=$(cat))，再 echo "$IN" | jq —— stdin 只能消费一次。
+// =====================================================================
+
+/** hook event kind 固定枚举（registry event 串首段）。 */
+const HOOK_EVENT_KINDS = [
+  "window-pane-changed",
+  "agent-inbox-arrived",
+  "window-activity",
+  "cabin-state-changed",
+  "agent-exit",
+] as const;
+type HookEventKind = (typeof HOOK_EVENT_KINDS)[number];
+
+/** event 串 `<kind>:<target...>` → {kind,target}（以首个冒号切分）。 */
+function parseHookEvent(event: string): { kind: string; target: string } {
+  const i = event.indexOf(":");
+  if (i < 0) return { kind: event, target: "" };
+  return { kind: event.slice(0, i), target: event.slice(i + 1) };
+}
+
+interface HookEntry {
+  event: string;
+  handler: string;
+  timestamp?: number;
+}
+
+const HOOKS_FILE = join(homedir(), ".tmuxloop", "hooks.jsonl");
+
+function loadHooks(): HookEntry[] {
+  if (!existsSync(HOOKS_FILE)) return [];
+  const out: HookEntry[] = [];
+  for (const line of readFileSync(HOOKS_FILE, "utf8").split("\n")) {
+    const t = line.trim();
+    if (!t) continue;
+    try {
+      out.push(JSON.parse(t) as HookEntry);
+    } catch {
+      /* skip bad lines */
+    }
+  }
+  return out;
+}
+
+function saveHooks(entries: HookEntry[]): void {
+  mkdirSync(dirname(HOOKS_FILE), { recursive: true });
+  writeFileSync(HOOKS_FILE, entries.map(e => JSON.stringify(e)).join("\n") + "\n");
+}
+
+function hookOn(eventPattern: string, handlerScript: string): void {
+  const handler = handlerScript.startsWith("~") ? join(homedir(), handlerScript.slice(1)) : handlerScript;
+  if (!existsSync(handler)) throw new Error(`handler script not found: ${handler}`);
+  const hooks = loadHooks();
+  const dup = hooks.find(h => h.event === eventPattern && h.handler === handler);
+  if (!dup) {
+    hooks.push({ event: eventPattern, handler, timestamp: Date.now() });
+    saveHooks(hooks);
+  }
+}
+
+function hookOff(eventPattern: string, handlerScript?: string): void {
+  const hooks = loadHooks();
+  const filtered = handlerScript
+    ? hooks.filter(h => !(h.event === eventPattern && h.handler === handlerScript))
+    : hooks.filter(h => h.event !== eventPattern);
+  saveHooks(filtered);
+}
+
+function listHooks(): HookEntry[] {
+  return loadHooks();
+}
+
+type HookFireResult = { handler: string; rc: number; stdout: string; stderr: string };
+
+/**
+ * 派发一个 event：读 registry 找 event 完全匹配的 handler，按契约 schema 组装 stdin JSON
+ * 后逐个执行。payload 为派发方原始对象（可含 lastLine/unread 等）。
+ */
+function dispatchHook(event: string, payload: Record<string, unknown>): HookFireResult[] {
+  const { kind, target } = parseHookEvent(event);
+  const stdinObj: Record<string, unknown> = {
+    kind,
+    target,
+    ts: Date.now(),
+  };
+  if (typeof payload.lastLine === "string") stdinObj.lastLine = payload.lastLine;
+  if (Object.keys(payload).length > 0) stdinObj.payload = payload;
+  const stdinJson = JSON.stringify(stdinObj);
+
+  const matched = loadHooks().filter(h => h.event === event);
+  const results: HookFireResult[] = [];
+  for (const h of matched) {
+    const handler = h.handler.startsWith("~") ? join(homedir(), h.handler.slice(1)) : h.handler;
+    const r = Bun.spawnSync(["bash", handler], {
+      stdin: Buffer.from(stdinJson),
+      stdout: "pipe",
+      stderr: "pipe",
+    });
+    results.push({
+      handler,
+      rc: r.exitCode ?? -1,
+      stdout: r.stdout?.toString() ?? "",
+      stderr: r.stderr?.toString() ?? "",
+    });
+  }
+  return results;
+}
+
 // PART:cli-fleet
 
 type CliCtx = { bin: string; rest: string[]; json?: boolean };
@@ -1221,7 +1886,7 @@ type WindowFleetDetail = {
 /** status / inspect / 驾驶 meta 同源：一次 paneSnap + windowMeta + proc */
 function windowFleetDetail(n: TreeNode, previewLines: number): WindowFleetDetail {
   const winIdx = n.target.split(":")[1] ?? "";
-  const winTarget = buildWinTarget(n.sessionName, winIdx);
+  const winTarget = buildWinIndexTarget(n.sessionName, winIdx);
   const cap = paneSnap(winTarget, { sync: true, lines: previewLines });
   const meta = windowMeta(n, undefined, { sync: true, cap });
   return { winIdx, winTarget, cap, meta, proc: readDriveProc(winTarget) };
@@ -1233,7 +1898,7 @@ function windowNameFromNode(node: TreeNode): string {
 
 function winTargetFromNode(node: TreeNode): string {
   const winIdx = node.target.split(":")[1] ?? "";
-  return buildWinTarget(node.sessionName, winIdx);
+  return buildWinIndexTarget(node.sessionName, winIdx);
 }
 
 const DRIVE_PH = "—";
@@ -1246,17 +1911,18 @@ const CABIN_STUCK_MS = 180_000;
 const CABIN_CPU_RUN = 2;
 const CABIN_CPU_IDLE = 0.8;
 
-const CABIN_TTL_MS = {
-  error: 1000,
-  agent: 1500,
-  focus: 2000,
-  running: 1500,
-  waiting: 2500,
-  stuck: 6000,
-  idle: 8000,
-} as const;
+/** 驾驶表单窗口状态机：St 列单字 code + 该状态下缓存快照的 TTL,一处维护免两表漂移 */
+const CABIN_STATE: Record<string, { code: string; ttlMs: number }> = {
+  error: { code: "E", ttlMs: 1000 },
+  agent: { code: "A", ttlMs: 1500 },
+  focus: { code: "F", ttlMs: 2000 },
+  running: { code: "R", ttlMs: 1500 },
+  waiting: { code: "W", ttlMs: 2500 },
+  stuck: { code: "S", ttlMs: 6000 },
+  idle: { code: "\u00b7", ttlMs: 8000 },
+};
 
-type CabinStateKind = keyof typeof CABIN_TTL_MS;
+type CabinStateKind = keyof typeof CABIN_STATE;
 
 type CabinSnapCtx = {
   lastLine: string;
@@ -1271,40 +1937,35 @@ type CabinState = {
   snapTtlMs: number;
 };
 
-const CABIN_CODE: Record<CabinStateKind, string> = {
-  error: "E",
-  agent: "A",
-  focus: "F",
-  running: "R",
-  waiting: "W",
-  stuck: "S",
-  idle: "·",
-};
+function cabinState(kind: CabinStateKind): CabinState {
+  const s = CABIN_STATE[kind];
+  return { kind, code: s.code, snapTtlMs: s.ttlMs };
+}
 
 function detectCabinState(node: TreeNode, snap: CabinSnapCtx, proc: ProcInfo | null): CabinState {
   const unread = node.agent ? (node.cachedUnread ?? 0) : 0;
-  if (snap.alert) return { kind: "error", code: CABIN_CODE.error, snapTtlMs: CABIN_TTL_MS.error };
-  if (unread > 0) return { kind: "agent", code: CABIN_CODE.agent, snapTtlMs: CABIN_TTL_MS.agent };
-  if (node.windowActive) return { kind: "focus", code: CABIN_CODE.focus, snapTtlMs: CABIN_TTL_MS.focus };
+  if (snap.alert) return cabinState("error");
+  if (unread > 0) return cabinState("agent");
+  if (node.windowActive) return cabinState("focus");
 
   const line = stripAnsi(snap.lastLine).trim();
   const cpu = proc?.cpu ?? 0;
   if (line && CABIN_PROMPT_RE.test(line) && cpu < CABIN_CPU_IDLE) {
-    return { kind: "waiting", code: CABIN_CODE.waiting, snapTtlMs: CABIN_TTL_MS.waiting };
+    return cabinState("waiting");
   }
   if (cpu >= CABIN_CPU_RUN) {
-    return { kind: "running", code: CABIN_CODE.running, snapTtlMs: CABIN_TTL_MS.running };
+    return cabinState("running");
   }
   if (snap.lineStillSince !== undefined && Date.now() - snap.lineStillSince >= CABIN_STUCK_MS) {
     const ageSec = windowAgeSec(node);
     if (ageSec >= 120 && cpu < CABIN_CPU_IDLE) {
-      return { kind: "stuck", code: CABIN_CODE.stuck, snapTtlMs: CABIN_TTL_MS.stuck };
+      return cabinState("stuck");
     }
   }
   if (line && snap.lineStillSince !== undefined && Date.now() - snap.lineStillSince < 8000 && cpu > 0.2) {
-    return { kind: "running", code: CABIN_CODE.running, snapTtlMs: CABIN_TTL_MS.running };
+    return cabinState("running");
   }
-  return { kind: "idle", code: CABIN_CODE.idle, snapTtlMs: CABIN_TTL_MS.idle };
+  return cabinState("idle");
 }
 
 function driveSnapTtlForTarget(target: string, nodeByTarget: Map<string, TreeNode>, now = Date.now()): number {
@@ -1388,6 +2049,10 @@ type ProcInfo = { pid: number; cmd: string; cpu: number; rssMB: number; shellPid
 const driveSnap = new Map<string, WinSnap>();
 const driveProc = new Map<string, ProcInfo>();
 const drivePrevLineHash = new Map<string, string>();
+const lastCabinKind = new Map<string, string>();
+/** 去抖：target → 待确认的 cabin 状态（同 kind 连续 snaps 计数） */
+const cabinPendingSince = new Map<string, { kind: CabinStateKind; since: number; snaps: number }>();
+const AGENT_EVENTS_FILE = join(homedir(), ".tmuxloop", "agent-events.jsonl");
 
 let driveSnapTimer: ReturnType<typeof setInterval> | null = null;
 let driveProcTimer: ReturnType<typeof setInterval> | null = null;
@@ -1432,15 +2097,18 @@ function withDriveMetaCache(fn: () => void): void {
 
 /** 后台 snap/proc 更新：只重绘表区，不碰 preview */
 function scheduleDriveRender(): void {
-  if (state.uiMode !== "drive" || driveNavQuiet()) return;
+  if (driveNavQuiet()) return;
   if (driveRenderTimer) return;
   driveRenderTimer = setTimeout(() => {
     driveRenderTimer = null;
-    if (state.uiMode !== "drive" || driveNavQuiet()) return;
+    if (driveNavQuiet()) return;
     const [cols, rows] = screen.getSize();
     const layout = getLayout(cols, rows);
     if (layout.mode === "drive") {
       withDriveMetaCache(() => renderDriveRows(cols, layout));
+    } else if (layout.mode === "smart") {
+      // 智能模式背景刷新：完整重绘
+      render();
     }
   }, DRIVE_RENDER_DEBOUNCE_MS);
 }
@@ -1473,7 +2141,6 @@ async function capturePaneTailAsync(target: string): Promise<string> {
 
 async function refreshDriveSnapshots(force = false): Promise<void> {
   if (driveSnapRefreshing) return;
-  if (state.uiMode !== "drive") return;
   if (!force && driveNavQuiet()) return;
   driveSnapRefreshing = true;
   try {
@@ -1512,7 +2179,31 @@ async function refreshDriveSnapshots(force = false): Promise<void> {
       const node = nodeByTarget.get(target);
       if (node) {
         const cabin = detectCabinState(node, driveSnap.get(target)!, driveProc.get(target) ?? null);
-        if (cabin.kind !== prevCabin) sortDirty = true;
+        if (cabin.kind !== prevCabin) {
+          sortDirty = true;
+          // 去抖：error 需连续 2 次 snap 确认，其他 kind 即时（≥1 已足）。
+          const needSnaps = cabin.kind === "error" ? 2 : 1;
+          const pend = cabinPendingSince.get(target);
+          const snaps = pend && pend.kind === cabin.kind ? pend.snaps + 1 : 1;
+          if (snaps >= needSnaps) {
+            const emitted = lastCabinKind.get(target) ?? prevCabin ?? "unknown";
+            if (emitted !== cabin.kind) {
+              const sess = node.sessionName;
+              const project = sess.startsWith("tmux-") ? sess.slice(5) : sess;
+              const role = windowNameFromNode(node) || node.agent || target;
+              emitCabinStateChanged(target, emitted, cabin.kind, project, role);
+            }
+            lastCabinKind.set(target, cabin.kind);
+            cabinPendingSince.delete(target);
+          } else {
+            // 未达确认阈值：记/累计 pending，不更新 lastCabinKind
+            cabinPendingSince.set(target, { kind: cabin.kind, since: pend && pend.kind === cabin.kind ? pend.since : now, snaps });
+          }
+        } else {
+          // 稳定回到已确认状态：清 pending
+          if (cabinPendingSince.has(target)) cabinPendingSince.delete(target);
+          lastCabinKind.set(target, cabin.kind);
+        }
       }
     });
 
@@ -1569,15 +2260,77 @@ function findMainProcess(shellPid: number, rows: PsRow[]): { pid: number; cmd: s
   return { pid: pick.pid, cmd: pick.comm, cpu: pick.pcpu, rssMB: Math.round(pick.rss / 1024) };
 }
 
+function emitCabinStateChanged(
+  target: string,
+  prev: string,
+  next: CabinStateKind,
+  project: string,
+  role: string,
+): void {
+  const payload = JSON.stringify({
+    kind: "cabin-state-changed",
+    target,
+    project,
+    role,
+    cabin_state_prev: prev,
+    cabin_state_next: next,
+    ts: Date.now(),
+  });
+  try {
+    mkdirSync(dirname(AGENT_EVENTS_FILE), { recursive: true });
+    appendFileSync(AGENT_EVENTS_FILE, payload + "\n");
+  } catch { /* best-effort */ }
+}
+
+function emitAgentExit(target: string, prevPid: number, project: string, role: string): void {
+  const cabinPrev = lastCabinKind.get(target) ?? "unknown";
+  const payload = JSON.stringify({
+    kind: "agent-exit",
+    target,
+    pid: prevPid,
+    project,
+    role,
+    cabin_state_prev: cabinPrev,
+    cabin_state_final: "idle",
+    ts: Date.now(),
+  });
+  try {
+    mkdirSync(dirname(AGENT_EVENTS_FILE), { recursive: true });
+    appendFileSync(AGENT_EVENTS_FILE, payload + "\n");
+  } catch { /* best-effort */ }
+}
+
 function applyPaneProcMap(paneRaw: string, psRows: PsRow[]): void {
   for (const line of paneRaw.split("\n").filter(Boolean)) {
     const [loc, active, pidStr] = line.split("|");
     if (active !== "1") continue;
-    const [sess, winIdx] = (loc ?? "").split(":");
+    const parts = (loc ?? "").split(":");
+    const sess = parts[0] ?? "";
+    const winIdx = parts[1] ?? "";
+    const winName = parts[2] ?? winIdx;
     const shellPid = parseInt(pidStr ?? "", 10);
     if (!sess || !winIdx || !shellPid) continue;
-    const target = buildWinTarget(sess, winIdx);
+    const target = buildWinIndexTarget(sess, winIdx);
+    const prev = driveProc.get(target);
     const main = findMainProcess(shellPid, psRows);
+
+    // agent-exit: prev was agent process, now degraded to shell
+    if (prev && AGENT_COMMS.has(prev.cmd) && SHELL_COMMS.has(main.cmd)) {
+      // second confirmation via /proc/<pid>/comm (Linux only, no-op elsewhere)
+      let confirmed = false;
+      try {
+        const comm = readFileSync(`/proc/${prev.pid}/comm`, "utf8").trim();
+        confirmed = !AGENT_COMMS.has(comm);
+      } catch {
+        confirmed = true; // ENOENT → process dead
+      }
+      if (confirmed) {
+        const project = sess.startsWith("tmux-") ? sess.slice(5) : sess;
+        const role = winName;
+        emitAgentExit(target, prev.pid, project, role);
+      }
+    }
+
     driveProc.set(target, { ...main, shellPid, ts: Date.now() });
   }
 }
@@ -1585,7 +2338,7 @@ function applyPaneProcMap(paneRaw: string, psRows: PsRow[]): void {
 function updateDriveProcMapSync(): void {
   const paneRaw = tmux([
     "list-panes", "-a",
-    "-F", "#{session_name}:#{window_index}|#{pane_active}|#{pane_pid}",
+    "-F", "#{session_name}:#{window_index}:#{window_name}|#{pane_active}|#{pane_pid}",
   ]).trim();
   const psRaw = Bun.spawnSync(["ps", "-A", "-o", "pid=,ppid=,pcpu=,rss=,comm="], { stdout: "pipe" }).stdout?.toString() ?? "";
   applyPaneProcMap(paneRaw, parsePsDump(psRaw));
@@ -1595,7 +2348,7 @@ async function updateDriveProcMap(): Promise<void> {
   if (driveNavQuiet()) return;
   const paneRaw = tmux([
     "list-panes", "-a",
-    "-F", "#{session_name}:#{window_index}|#{pane_active}|#{pane_pid}",
+    "-F", "#{session_name}:#{window_index}:#{window_name}|#{pane_active}|#{pane_pid}",
   ]).trim();
   const proc = Bun.spawn(["ps", "-A", "-o", "pid=,ppid=,pcpu=,rss=,comm="], { stdout: "pipe", stderr: "pipe" });
   const psRaw = await new Response(proc.stdout).text();
@@ -1606,7 +2359,6 @@ async function updateDriveProcMap(): Promise<void> {
 
 async function refreshDriveProc(force = false): Promise<void> {
   if (driveProcRefreshing) return;
-  if (state.uiMode !== "drive") return;
   if (!force && driveNavQuiet()) return;
   const now = Date.now();
   if (!force && driveProc.size > 0) {
@@ -1689,6 +2441,10 @@ function formatRelativeAge(epochSec: number): string {
 }
 
 function driveTaskLabel(node: TreeNode, lastLine: string): string {
+  if (state.osMode && node.type === "window") {
+    const osLabel = taskLabelForTarget(node.target);
+    if (osLabel) return osLabel;
+  }
   if (node.remark) return node.remark;
   if (node.agent) {
     const summary = inboxLastSummary(node.agent);
@@ -1731,7 +2487,7 @@ function windowMeta(
 ): WindowMeta {
   if (treeIdx !== undefined && driveMetaCache?.has(treeIdx)) return driveMetaCache.get(treeIdx)!;
   const target = winTargetFromNode(node);
-  const inDrive = state.uiMode === "drive" && !opts?.sync;
+  const inDrive = !opts?.sync;
   const unread = inDrive
     ? (node.cachedUnread ?? 0)
     : (node.cachedUnread ?? (node.agent ? agentUnreadCount(node.agent) : 0));
@@ -1950,20 +2706,18 @@ interface InputMode {
 const HEADER_H = 1;
 const FOOTER_H = 1;
 const BODY_START_ROW = HEADER_H + 1; // 2
-const DRIVE_TREE_FRAC = 0.4; // 驾驶模式：上区 tree-table 约占 body 40%
-
-type UiMode = "index" | "drive";
+type UiMode = "index" | "smart";
 
 type LayoutInfo =
   | { mode: "index"; bodyH: number; leftW: number; rightW: number }
-  | { mode: "drive"; bodyH: number; fullW: number; treeHeaderH: number; treeDataH: number; paneH: number };
+  | { mode: "smart"; bodyH: number; leftW: number; rightW: number; chatW: number; treeHeaderH: number; treeDataH: number; operW: number; paneH: number };
 
 class TuiState {
   tree: TreeNode[] = [];
   cursor = 0;
   viewOffset = 0;
-  /** 索引（左右）| 驾驶（上下 tree-table） */
-  uiMode: UiMode = "index";
+  /** 索引（左右）| 驾驶（上下 tree-table）| 智能（树+oper双行+chatroom） */
+  uiMode: UiMode = "smart";
   preview = "";
   previewTimer: ReturnType<typeof setTimeout> | null = null;
   previewFetchId = 0;
@@ -1980,12 +2734,37 @@ class TuiState {
   driveViewIndices: number[] | null = null;
   /** 驾驶模式增量绘：false 时 render 不清屏 */
   needsFullClear = true;
+  /** 智能模式：右区内容（preview 或 team chatroom） */
+  smartRightMode: "preview" | "chat" = "preview";
+  /** Agents OS 驾驶舱模式（mux os 进入） */
+  osMode = false;
+  osBusy = "";
+  osFlash = "";
+  private _osActions: OsTuiActions | null = null;
+
+  osActions(): OsTuiActions {
+    if (!this._osActions) {
+      this._osActions = createOsTuiActions({
+        cursorTarget: () => {
+          const n = state.tree[state.cursor];
+          return n?.type === "window" ? n.target : null;
+        },
+        startInput,
+        setBusy: (msg) => { state.osBusy = msg; },
+        setFlash: (msg) => { state.osFlash = msg; },
+        refresh: refreshAll,
+        render,
+      });
+    }
+    return this._osActions;
+  }
+
+  resetOsActions(): void {
+    this._osActions = null;
+  }
 
   clampView(bodyH: number) {
-    if (state.uiMode === "drive") {
-      clampDriveView(bodyH);
-      return;
-    }
+    if (state.uiMode === "smart") { clampSmartView(bodyH); return; }
     if (this.cursor < this.viewOffset) this.viewOffset = this.cursor;
     else if (this.cursor >= this.viewOffset + bodyH) this.viewOffset = this.cursor - bodyH + 1;
     if (this.viewOffset < 0) this.viewOffset = 0;
@@ -1996,30 +2775,29 @@ const state = new TuiState();
 function getPreviewH(): number {
   const [cols, rows] = screen.getSize();
   const layout = getLayout(cols, rows);
-  return layout.mode === "drive" ? layout.paneH : layout.bodyH;
+  return layout.bodyH;
 }
 
 function getLayout(cols: number, rows: number): LayoutInfo {
   const bodyH = rows - HEADER_H - FOOTER_H;
-  if (state.uiMode === "drive") {
-    const treeHeaderH = 1;
-    const treeDataH = Math.max(3, Math.floor(bodyH * DRIVE_TREE_FRAC) - treeHeaderH);
-    const paneDividerH = 1;
-    const paneH = Math.max(1, bodyH - treeHeaderH - treeDataH - paneDividerH);
-    return { mode: "drive", bodyH, fullW: cols, treeHeaderH, treeDataH, paneH };
+  if (state.uiMode === "index") {
+    const leftW = Math.min(Math.max(Math.floor(cols * 0.2), 12), 30);
+    const rightW = cols - leftW - 1;
+    return { mode: "index", bodyH, leftW, rightW };
   }
-  const leftW = Math.min(Math.max(Math.floor(cols * 0.2), 12), 30);
-  const rightW = cols - leftW - 1;
-  return { mode: "index", bodyH, leftW, rightW };
+  const previewW = Math.max(30, Math.floor(cols * 0.48));
+  const treeW = cols - previewW - 1;
+  return { mode: "smart", bodyH, leftW: previewW, rightW: treeW, treeHeaderH: 0, treeDataH: bodyH, paneH: 0, operW: 0, chatW: 15 };
 }
 
 function uiModeTag(): string {
-  const mode = state.uiMode === "drive" ? "[驾驶]" : "[索引]";
+  if (state.osMode) return process.env.TUI_DEV ? "[OS·dev]" : "[OS]";
+  const mode = state.uiMode === "smart" ? "[智能]" : "[索引]";
   return process.env.TUI_DEV ? `${mode}·dev` : mode;
 }
 
 function treeVisibleRows(layout: LayoutInfo): number {
-  return layout.mode === "drive" ? layout.treeDataH : layout.bodyH;
+  return layout.bodyH;
 }
 
 function invalidateDriveView() {
@@ -2031,24 +2809,18 @@ function invalidateDriveView() {
   driveViewDirty = false;
 }
 
-function toggleUiMode() {
-  const enteringDrive = state.uiMode === "index";
-  state.uiMode = enteringDrive ? "drive" : "index";
+function cycleUiMode(): void {
+  state.uiMode = state.uiMode === "index" ? "smart" : "index";
   state.viewOffset = 0;
   state.scrollOffset = 0;
   state.needsFullClear = true;
-  invalidateDriveView();
-  if (enteringDrive) {
-    hydrateDriveSortScores(state.tree);
-    startDriveLoops();
-  } else stopDriveLoops();
   const [cols, rows] = screen.getSize();
   state.clampView(treeVisibleRows(getLayout(cols, rows)));
   render();
-  schedulePreview();
+  if (state.uiMode === "smart") schedulePreview();
 }
 
-/** 驾驶表列（固定宽 + task 弹性） */
+// === DEAD CODE: 驾驶模式渲染（保留参考） ===
 type DriveColWidths = {
   stat: number; sess: number; win: number; wname: number; pname: number; pid: number; task: number;
   unread: number; lvl: number; age: number; st: number; act: number;
@@ -2183,8 +2955,17 @@ function clampDriveView(treeDataH: number): void {
   if (state.viewOffset < 0) state.viewOffset = 0;
 }
 
+function clampSmartView(treeDataH: number): void {
+  // 智能模式使用索引风格：viewOffset 是 tree-index 单位
+  if (state.cursor < state.viewOffset) state.viewOffset = state.cursor;
+  else if (state.cursor >= state.viewOffset + treeDataH) state.viewOffset = state.cursor - treeDataH + 1;
+  const maxOff = Math.max(0, state.tree.length - treeDataH);
+  if (state.viewOffset > maxOff) state.viewOffset = maxOff;
+  if (state.viewOffset < 0) state.viewOffset = 0;
+}
+
 function driveTreeScrollMax(treeDataH: number): number {
-  return Math.max(0, getDriveViewIndices().length - treeDataH);
+  return Math.max(0, state.tree.length - treeDataH);
 }
 
 function scrollDriveTree(delta: number, treeDataH: number): void {
@@ -2195,11 +2976,14 @@ function scrollDriveTree(delta: number, treeDataH: number): void {
   const layout = getLayout(cols, rows);
   if (layout.mode === "drive") {
     withDriveMetaCache(() => renderDriveRows(cols, layout));
+  } else if (layout.mode === "smart") {
+    render();
   } else render();
 }
 
 function treeScrollThumb(treeDataH: number): { thumbH: number; thumbStart: number } {
-  const total = Math.max(getDriveViewIndices().length, treeDataH);
+  const view = state.uiMode === "smart" ? getSmartViewIndices() : getDriveViewIndices();
+  const total = Math.max(view.length, treeDataH);
   const thumbH = Math.max(1, Math.round((treeDataH * treeDataH) / total));
   const maxOff = driveTreeScrollMax(treeDataH);
   const thumbStart = maxOff <= 0
@@ -2274,7 +3058,7 @@ function pastePrompt(): void {
 }
 
 function driveCursorStep(dir: -1 | 1): void {
-  const view = getDriveViewIndices();
+  const view = getSmartViewIndices();
   const pos = view.indexOf(state.cursor);
   const next = pos < 0 ? 0 : pos + dir;
   if (next < 0 || next >= view.length) return;
@@ -2296,6 +3080,13 @@ function driveCursorStep(dir: -1 | 1): void {
       } else {
         renderDriveRows(cols, layout, { treeIndices: [prevCursor, state.cursor] });
       }
+    });
+    renderFooter(cols, rows);
+  } else if (layout.mode === "smart") {
+    withDriveMetaCache(() => {
+      screen.hideCursor();
+      renderSmartLeft(cols, layout);
+      renderSmartRight(cols, layout);
     });
     renderFooter(cols, rows);
   } else {
@@ -2462,6 +3253,201 @@ function renderDriveTableRow(
   });
   writeDriveRow(row, cols, line, selected);
 }
+// === END DEAD CODE ===
+
+// SMART: 智能模式 — 左区 team子树+chat-preview列 / 右区 preview↔chatroom toggle
+
+/** 计算 session 下的 oper 数量 */
+function countOpers(sessIdx: number): number {
+  let n = 0;
+  for (let i = sessIdx + 1; i < state.tree.length && state.tree[i]?.type === "window"; i++) n++;
+  return n;
+}
+
+/** 每个 team 的 chat 消息缓存 */
+const teamChats = new Map<string, string[]>();
+
+function ensureTeamChat(name: string): string[] {
+  if (!teamChats.has(name)) teamChats.set(name, ["bot: 准备就绪 ·", "等待指令 ─", "───", "", ""]);
+  return teamChats.get(name)!;
+}
+
+function getSmartViewIndices(): number[] {
+  const out: number[] = [];
+  for (let i = 0; i < state.tree.length; i++) out.push(i);
+  return out;
+}
+
+/** 从 treeIdx 向上找到所属 session */
+function findTeamIdx(treeIdx: number): number {
+  for (let i = treeIdx; i >= 0; i--) if (state.tree[i]?.type === "session") return i;
+  return 0;
+}
+
+/** 跳到前/后一个 team */
+function jumpTeam(dir: -1 | 1): void {
+  if (state.tree.length === 0) return;
+  let i = state.cursor + dir;
+  while (i >= 0 && i < state.tree.length) {
+    if (state.tree[i]?.type === "session") { state.cursor = i; schedulePreview(); return; }
+    i += dir;
+  }
+}
+
+/** 切换右区模式 preview ↔ chat */
+function toggleSmartRightMode(): void {
+  state.smartRightMode = state.smartRightMode === "preview" ? "chat" : "preview";
+  if (state.smartRightMode === "preview") schedulePreview();
+  else render();
+}
+
+/** 渲染右区顶栏 */
+function renderSmartRightHeader(col: number, textW: number): void {
+  const tag = state.smartRightMode === "preview" ? "Preview" : "Chat";
+  let line: string;
+  if (state.osMode) {
+    const target = state.tree[state.cursor]?.type === "window" ? state.tree[state.cursor].target : null;
+    const panel = osPanelLines(target).join(" · ");
+    line = ` OS ${panel}`;
+    if (state.osBusy) line = ` ${state.osBusy}`;
+    else if (state.osFlash) line = ` ${state.osFlash}`;
+  } else if (state.smartRightMode === "preview" && state.tree[state.cursor]?.type === "window") {
+    line = ` ${screen.dim(tag)} ${state.tree[state.cursor].target}  c切换`;
+  } else if (state.smartRightMode === "chat") {
+    const teamName = state.tree[findTeamIdx(state.cursor)]?.sessionName ?? "?";
+    line = ` ${screen.dim(tag)} ${teamName}  c切换`;
+  } else {
+    line = ` ${screen.dim(tag)}  c切换`;
+  }
+  screen.cursorAt(BODY_START_ROW, col);
+  screen.write(screen.inv(padVis(truncVis(line, textW), textW)));
+}
+
+/** 左区：preview */
+function renderRightPreview(col: number, textW: number, bodyH: number): void {
+  const allPLines = state.preview.split("\n");
+  const rows = bodyH - 1;
+  const pLines = allPLines.length > rows ? allPLines.slice(allPLines.length - rows) : allPLines;
+  for (let i = 0; i < rows; i++) {
+    const r = i + BODY_START_ROW + 1;
+    const snippet = (pLines[i] ?? "").slice(0, textW);
+    screen.cursorAt(r, col);
+    screen.write(snippet + " ".repeat(Math.max(0, textW - snippet.length)));
+  }
+}
+
+/** 右区：chatroom */
+function renderRightChat(col: number, textW: number, bodyH: number): void {
+  const teamIdx = findTeamIdx(state.cursor);
+  const teamName = state.tree[teamIdx]?.sessionName ?? "?";
+  const msgs = ensureTeamChat(teamName);
+  const rows = bodyH - 1;
+  const start = Math.max(0, msgs.length - rows);
+  for (let i = 0; i < rows; i++) {
+    const r = i + BODY_START_ROW + 1;
+    const msg = i + start < msgs.length ? msgs[i + start]! : "";
+    screen.cursorAt(r, col);
+    screen.write(padVis(truncVis(msg, textW), textW));
+  }
+}
+
+/** 渲染一个 team 子树 + chat-preview 列 */
+function renderTeamBlock(
+  startRow: number, sessIdx: number, chatW: number, treeW: number, bodyH: number, baseCol = 1,
+): number {
+  const sess = state.tree[sessIdx]!;
+  const nOpers = countOpers(sessIdx);
+  const blockH = Math.max(5, 1 + nOpers);
+  const chat = ensureTeamChat(sess.sessionName);
+  const maxRow = BODY_START_ROW + bodyH;
+  const chatCol = baseCol;
+  const treeCol = baseCol + chatW + 1;
+  let row = startRow;
+  if (row >= maxRow) return row;
+
+  // chat-preview 列（显示最近 blockH 条消息，底部对齐）
+  const chatStart = Math.max(0, chat.length - blockH);
+  for (let ci = 0; ci < blockH; ci++) {
+    const r = row + ci;
+    if (r >= maxRow) break;
+    screen.cursorAt(r, chatCol);
+    const msgIdx = chatStart + ci;
+    const msg = msgIdx < chat.length ? chat[msgIdx]! : "";
+    screen.write(screen.dim(padVis(truncVis(msg, chatW), chatW)));
+    screen.cursorAt(r, treeCol - 1);
+    screen.write(screen.dim("│"));
+  }
+
+  // Team header
+  const isTeamSelected = state.cursor === sessIdx;
+  const unread = sess.cachedUnread ?? 0;
+  const stats = `op:${nOpers}` + (unread > 0 ? ` rd:${unread}` : "");
+  const header = `▣ ${sess.sessionName}  ${screen.dim(stats)}`;
+  screen.cursorAt(row, treeCol);
+  screen.write(isTeamSelected ? screen.inv(screen.bold(padVis(truncVis(header, treeW), treeW))) : screen.bold(padVis(truncVis(header, treeW), treeW)));
+  row++;
+
+  // Oper 行
+  for (let i = sessIdx + 1; i < state.tree.length && state.tree[i]?.type === "window"; i++) {
+    if (row >= maxRow) break;
+    screen.cursorAt(row, treeCol);
+    renderLeftCell(state.tree[i]!, state.cursor === i, treeW);
+    row++;
+  }
+
+  // 不足 blockH 补空
+  while (row < startRow + blockH && row < maxRow) {
+    screen.cursorAt(row, treeCol);
+    screen.write(" ".repeat(treeW));
+    row++;
+  }
+  return startRow + blockH;
+}
+
+/** 左区（40%）：preview / chatroom */
+function renderSmartLeft(cols: number, layout: Extract<LayoutInfo, { mode: "smart" }>): void {
+  const col = 1;
+  const textW = Math.max(8, layout.leftW - 1);
+  const bodyH = layout.treeDataH;
+
+  // 左右分隔线
+  for (let r = BODY_START_ROW; r < BODY_START_ROW + bodyH; r++) {
+    screen.cursorAt(r, layout.leftW);
+    screen.write(screen.dim("│"));
+  }
+
+  renderSmartRightHeader(col, textW);
+  if (state.smartRightMode === "chat") renderRightChat(col, textW, bodyH);
+  else renderRightPreview(col, textW, bodyH);
+}
+
+/** 右区（60%）：team 子树 + chat-preview 列 */
+function renderSmartRight(cols: number, layout: Extract<LayoutInfo, { mode: "smart" }>): void {
+  const col = layout.leftW + 1;
+  const chatW = layout.chatW;
+  const treeW = layout.rightW - chatW - 1;
+  const maxRow = BODY_START_ROW + layout.treeDataH;
+  let row = BODY_START_ROW;
+
+  for (let i = state.viewOffset; i < state.tree.length && row < maxRow; ) {
+    if (state.tree[i]?.type !== "session") { i++; continue; }
+    const nextRow = renderTeamBlock(row, i, chatW, treeW, layout.treeDataH, col);
+    if (nextRow >= maxRow) break;
+    row = nextRow;
+    if (row < maxRow) {
+      screen.cursorAt(row, col);
+      screen.write(screen.dim(padVis("─".repeat(layout.rightW), layout.rightW)));
+      row++;
+    }
+    i++;
+    while (i < state.tree.length && state.tree[i]?.type !== "session") i++;
+  }
+}
+
+function renderSmartBody(cols: number, rows: number, layout: Extract<LayoutInfo, { mode: "smart" }>) {
+  renderSmartLeft(cols, layout);
+  renderSmartRight(cols, layout);
+}
 
 // PART:render
 
@@ -2498,8 +3484,7 @@ function renderLeftCell(node: TreeNode, isSelected: boolean, cap: number): void 
 function renderHeader(cols: number): void {
   screen.cursorAt(1, 1);
   const previewScrollInd = state.scrollOffset > 0 ? ` ↕${state.scrollOffset}` : "";
-  const treeScrollInd =
-    state.uiMode === "drive" && state.viewOffset > 0 ? ` 表↑${state.viewOffset}` : "";
+  const treeScrollInd = state.viewOffset > 0 ? ` ↑${state.viewOffset}` : "";
   const helpRest = `${uiModeTag()} ${tuiHeaderHelp()}${treeScrollInd}${previewScrollInd}`;
   const maxW = cols - 1;
   const logoVis = truncVis(TUI_CONFIG.TITLE + " " + TUI_CONFIG.VERSION, maxW);
@@ -2518,8 +3503,10 @@ function renderFooter(cols: number, rows: number): void {
     const line = ` ${state.inputMode.prompt}: ${state.inputMode.value}█ `;
     screen.write(screen.gold(padVis(truncVis(line, cols - 1), cols - 1)));
     screen.showCursor();
-  } else if (state.uiMode === "drive") {
-    const hint = " Space折 · i发 · P贴 · Enter进舱";
+  } else if (state.uiMode === "smart") {
+    const hint = state.osMode
+      ? ` D派工 O并行 V验 A全验 Y重试 · ${state.osActions().statusLine()}`
+      : ` c:${state.smartRightMode === "preview" ? "preview" : "chat"} · [ ]跳组 · i发 · P贴 · Enter进舱`;
     screen.write(screen.gold(padVis(truncVis(hint, cols - 1), cols - 1)));
   } else {
     const hint = " i发 · P贴 · Enter进舱";
@@ -2544,17 +3531,16 @@ function renderPreviewLine(
 ): void {
   screen.cursorAt(row, col);
   const pending = state.previewDoneId < state.previewFetchId;
-  if (state.previewTarget && lineIdx === 0 && pending && state.uiMode !== "drive") {
+  const indexMode = state.uiMode === "index";
+  if (state.previewTarget && lineIdx === 0 && pending && !indexMode) {
     screen.write(screen.dim(`⏳ ${state.previewTarget} ...`).slice(0, textW));
   } else if (state.suppressPreviewAfterAttach && lineIdx === 0) {
     screen.write(screen.dim("  已从分舱返回 · 按 f 刷新预览").slice(0, textW));
   } else if (state.suppressPreviewAfterAttach) {
     screen.write(" ".repeat(textW));
-  } else if (pending && state.uiMode === "drive" && pLines[lineIdx]) {
-    screen.write(screen.dim((pLines[lineIdx] || "").slice(0, textW)));
   } else {
     const raw = (pLines[lineIdx] || "").slice(0, textW);
-    screen.write(pending && state.uiMode === "drive" ? screen.dim(raw) : raw);
+    screen.write(raw);
   }
   if (thumb) {
     screen.cursorAt(row, col + textW);
@@ -2570,7 +3556,6 @@ function renderIndexBody(cols: number, rows: number, layout: Extract<LayoutInfo,
   const blankLeft = " ".repeat(leftW - 1);
   const textW = Math.max(0, rightW - 1);
   const { thumbH, thumbStart } = previewScrollMetrics(bodyH);
-
   for (let i = 0; i < bodyH; i++) {
     const row = i + BODY_START_ROW;
     const treeIdx = i + state.viewOffset;
@@ -2587,28 +3572,20 @@ function renderIndexBody(cols: number, rows: number, layout: Extract<LayoutInfo,
   }
 }
 
-function renderDriveBody(cols: number, layout: Extract<LayoutInfo, { mode: "drive" }>) {
-  renderDriveRows(cols, layout);
-  renderDrivePreviewPane(cols, layout);
-}
+// 驾驶模式（已弃用，保留参考）
 
 function render() {
   const [cols, rows] = screen.getSize();
   const layout = getLayout(cols, rows);
   state.clampView(treeVisibleRows(layout));
 
-  const driveIncremental = layout.mode === "drive" && !state.needsFullClear;
-  if (!driveIncremental) {
-    screen.clear();
-    if (layout.mode === "drive") state.needsFullClear = false;
-  }
+  if (!state.needsFullClear) state.needsFullClear = false;
+  screen.clear();
 
-  withDriveMetaCache(() => {
-    screen.hideCursor();
-    renderHeader(cols);
-    if (layout.mode === "drive") renderDriveBody(cols, layout);
-    else renderIndexBody(cols, rows, layout);
-  });
+  screen.hideCursor();
+  renderHeader(cols);
+  if (layout.mode === "smart") renderSmartBody(cols, rows, layout);
+  else renderIndexBody(cols, rows, layout);
   renderFooter(cols, rows);
 }
 
@@ -2708,10 +3685,6 @@ function matchKeyDown(s: string): boolean {
 }
 
 function cursorUp() {
-  if (state.uiMode === "drive") {
-    driveCursorStep(-1);
-    return;
-  }
   if (state.cursor > 0) {
     state.cursor--;
     schedulePreview();
@@ -2719,10 +3692,6 @@ function cursorUp() {
 }
 
 function cursorDown() {
-  if (state.uiMode === "drive") {
-    driveCursorStep(1);
-    return;
-  }
   if (state.cursor < state.tree.length - 1) {
     state.cursor++;
     schedulePreview();
@@ -2764,15 +3733,27 @@ const TUI_NAV: { help: string; match: (s: string) => boolean; run: () => void }[
 
 const TUI_INSTANT: TuiInstantSpec[] = [
   { key: "f", help: "f:刷", run: refreshAll },
-  { key: "o", help: "o:模式", run: toggleUiMode },
+  { key: "o", help: "o:模式", run: cycleUiMode },
   { key: "i", help: "i:发", run: sendPrompt },
   { key: "P", help: "P:贴", run: pastePrompt },
+  { key: "c", help: "c:右区", run: toggleSmartRightMode },
+  { key: "[", help: "[:跳组", run: () => jumpTeam(-1) },
+  { key: "]", help: "]:跳组", run: () => jumpTeam(1) },
 ];
 
 let TUI_PROMPTS: TuiPromptSpec[] = [];
 let TUI_KEYBINDS: { help: string; match: (s: string) => boolean; run: () => void }[] = [];
 
+const TUI_OS_INSTANT: TuiInstantSpec[] = [
+  { key: "D", help: "D:派工", run: () => state.osActions().dispatchPrompt() },
+  { key: "O", help: "O:并行", run: () => state.osActions().orchestratePrompt() },
+  { key: "V", help: "V:验", run: () => state.osActions().verify() },
+  { key: "A", help: "A:全验", run: () => state.osActions().verifyAll() },
+  { key: "Y", help: "Y:重试", run: () => state.osActions().retry() },
+];
+
 function buildTuiKeybinds(): { help: string; match: (s: string) => boolean; run: () => void }[] {
+  const instant = state.osMode ? [...TUI_OS_INSTANT, ...TUI_INSTANT] : TUI_INSTANT;
   return [
     ...TUI_NAV,
     ...TUI_PROMPTS.map((p) => ({
@@ -2780,7 +3761,7 @@ function buildTuiKeybinds(): { help: string; match: (s: string) => boolean; run:
       match: (s: string) => s === p.key,
       run: () => runTuiPrompt(p),
     })),
-    ...TUI_INSTANT.map((i) => ({
+    ...instant.map((i) => ({
       help: i.help,
       match: (s: string) => s === i.key,
       run: i.run,
@@ -2788,8 +3769,8 @@ function buildTuiKeybinds(): { help: string; match: (s: string) => boolean; run:
   ];
 }
 
-function initTuiRegistry(): void {
-  if (TUI_KEYBINDS.length > 0) return;
+function initTuiRegistry(force = false): void {
+  if (TUI_KEYBINDS.length > 0 && !force) return;
   assertTuiCliMirror();
   TUI_PROMPTS = buildTuiPrompts();
   TUI_KEYBINDS = buildTuiKeybinds();
@@ -2850,6 +3831,11 @@ function enterImmersiveAttach(sess: string, idx?: string): void {
 
   screen.showCursor();
   screen.disableMouse();
+  // 进舱期把整条 TTY 输入让给 tmux 子进程：摘掉 Node 的 data 监听并暂停 stdin，
+  // 否则 Node(flowing) 与 tmux attach 争抢同一 tty 字节流，会把 Ctrl-Left 等
+  // 转义序列切碎——tmux 收到残缺/裸 ESC 并透传给 grouped 的 claude pane，误中断其工作。
+  process.stdin.off("data", handleKey);
+  process.stdin.pause();
   process.stdin.setRawMode(false);
   // 主界面 disableOuterMouse 可能关了全局 mouse；沉浸式须开回，否则 server 收不到滚轮
   tmuxApi.setGlobalOption("mouse", "on");
@@ -2862,7 +3848,11 @@ function enterImmersiveAttach(sess: string, idx?: string): void {
 /** 出舱后：恢复 TUI 态 + 延迟 sync tree（detach 后静默） */
 function exitImmersiveAttach(): void {
   withTmuxQuiet(uninstallDetachKeys);
+  // 复原 stdin 消费；丢弃 attach 期间可能残留的半条转义序列，避免被误解析成 TUI 按键
+  keyInputBuf = "";
   process.stdin.setRawMode(true);
+  process.stdin.resume();
+  process.stdin.on("data", handleKey);
   disableOuterMouse();
   screen.enableMouse();
   screen.enterAltScreen();
@@ -2880,12 +3870,12 @@ function exitImmersiveAttach(): void {
   setTimeout(() => {
     withTmuxQuiet(() => {
       state.tree = syncTree();
-      if (state.uiMode === "drive") hydrateDriveSortScores(state.tree);
+      hydrateDriveSortScores(state.tree);
       if (state.cursor >= state.tree.length) {
         state.cursor = Math.max(0, state.tree.length - 1);
       }
     });
-    if (state.uiMode === "drive") startDriveLoops();
+    startDriveLoops();
     render();
   }, RETURN_FROM_ATTACH_DELAY);
 }
@@ -2920,12 +3910,10 @@ function refreshAll() {
   state.needsFullClear = true;
   invalidateDriveView();
   state.tree = syncTree();
-  if (state.uiMode === "drive") hydrateDriveSortScores(state.tree);
+  hydrateDriveSortScores(state.tree);
   if (state.cursor >= state.tree.length) state.cursor = Math.max(0, state.tree.length - 1);
-  if (state.uiMode === "drive") {
-    void refreshDriveSnapshots(true);
-    void refreshDriveProc(true);
-  }
+  void refreshDriveSnapshots(true);
+  void refreshDriveProc(true);
   schedulePreview({ delay: 0 });
 }
 
@@ -2938,7 +3926,6 @@ function clearPreview(): void {
 async function refreshPreview() {
   const [cols, rows] = screen.getSize();
   const layout = getLayout(cols, rows);
-  const drive = layout.mode === "drive";
 
   if (
     state.tree.length > 0 &&
@@ -2947,7 +3934,7 @@ async function refreshPreview() {
   ) {
     const id = state.previewFetchId;
     const target = state.tree[state.cursor].target;
-    if (!state.preview && !drive) {
+    if (!state.preview) {
       state.previewTarget = target;
       render();
     }
@@ -2960,11 +3947,7 @@ async function refreshPreview() {
     clearPreview();
   }
 
-  if (drive && layout.mode === "drive") {
-    renderDrivePreviewPane(cols, layout);
-  } else {
-    render();
-  }
+  render();
 }
 
 function schedulePreview(opts?: {
@@ -3012,6 +3995,8 @@ let lastClickY = -1;
 let lastClickT = 0;
 /** raw stdin 分片 ESC 缓冲 */
 let keyInputBuf = "";
+/** stdin 原始字节→UTF-8 流式解码器：跨 chunk 保留未完成的多字节序列尾部，防止中文等多字节输入在 chunk 边界被错误切断解码成乱码 */
+const keyStdinDecoder = new StringDecoder("utf8");
 
 function isEscapeComplete(s: string): boolean {
   if (!s.startsWith("\x1b")) return true;
@@ -3022,8 +4007,8 @@ function isEscapeComplete(s: string): boolean {
   return s.length >= 2;
 }
 
-function pullKeySequences(data: Buffer): string[] {
-  keyInputBuf += data.toString();
+export function pullKeySequences(data: Buffer): string[] {
+  keyInputBuf += keyStdinDecoder.write(data);
   const out: string[] = [];
   while (keyInputBuf.length > 0) {
     const mouse = keyInputBuf.match(/^\x1b\[<(\d+);(\d+);(\d+)([Mm])/);
@@ -3059,11 +4044,7 @@ function handleMouse(rawBtn: number, x: number, y: number, press: boolean) {
   const [cols, rows] = screen.getSize();
   const layout = getLayout(cols, rows);
   const bodyY = y - BODY_START_ROW;
-  const treeZoneH = layout.mode === "drive" ? layout.treeHeaderH + layout.treeDataH : layout.bodyH;
-  const paneStartY = layout.mode === "drive" ? treeZoneH + 1 : layout.bodyH;
-  const inPreviewZone = layout.mode === "index"
-    ? x >= layout.leftW
-    : bodyY >= paneStartY;
+  const inPreviewZone = layout.mode === "index" ? x >= layout.leftW : x < layout.leftW;
   // 滚轮
   if (btn === 64 || btn === 65) {
     if (!press) return;
@@ -3074,9 +4055,6 @@ function handleMouse(rawBtn: number, x: number, y: number, press: boolean) {
       const maxScroll = Math.max(0, PREVIEW_SCROLL_MAX - previewH);
       if (state.scrollOffset > maxScroll) state.scrollOffset = maxScroll;
       refreshPreview();
-    } else if (layout.mode === "drive") {
-      const delta = btn === 64 ? -3 : 3;
-      scrollDriveTree(delta, layout.treeDataH);
     } else {
       if (btn === 64 && state.cursor > 0) { state.cursor--; schedulePreview(); }
       else if (btn === 65 && state.cursor < state.tree.length - 1) { state.cursor++; schedulePreview(); }
@@ -3087,15 +4065,9 @@ function handleMouse(rawBtn: number, x: number, y: number, press: boolean) {
   if (y > rows - FOOTER_H) return;
   if (y < BODY_START_ROW) return;
   if (layout.mode === "index" && x >= layout.leftW) return;
-  if (layout.mode === "drive" && bodyY >= paneStartY) return;
+  if (layout.mode === "smart" && x < layout.leftW) return;
   let idx: number;
-  if (layout.mode === "drive") {
-    const view = getDriveViewIndices();
-    const viewPos = Math.max(0, bodyY - layout.treeHeaderH) + state.viewOffset;
-    idx = view[viewPos] ?? -1;
-  } else {
-    idx = bodyY + state.viewOffset;
-  }
+  idx = bodyY + state.viewOffset;
   if (idx < 0 || idx >= state.tree.length) return;
   const now = Date.now();
   const dbl = lastClickY === idx && now - lastClickT < MOUSE_DBLCLICK_MS;
@@ -3126,7 +4098,10 @@ function handleKeySeq(s: string) {
     enterAttach();
     return;
   }
-  if (s === " " && state.uiMode === "drive") {
+  // Ctrl+↑/↓ / [/] → 跳 team
+  if (s === "\x1b[1;5A") { jumpTeam(-1); return; }
+  if (s === "\x1b[1;5B") { jumpTeam(1); return; }
+  if (s === " ") {
     const node = state.tree[state.cursor];
     if (node?.type === "session") toggleSessionCollapse(node.sessionName);
     return;
@@ -3335,13 +4310,15 @@ const TUI_PROMPT_HANDLERS: Record<string, { prompt: () => string; args: (answer:
     prompt: () => {
       const node = tuiCursorNode();
       if (node.type !== "window") return "不可删 session；请将光标移到 window";
-      return `删除 window [${node.target}]? (y/n)`;
+      return `删除 window [${node.target}]? (d/Enter 确认)`;
     },
     args: (a) => {
       if (a === null) return null;
       const node = tuiCursorNode();
-      if (a.toLowerCase() !== "y" || node.type !== "window") return null;
-      return [node.target];
+      if (node.type !== "window") return null;
+      // 空 Enter 或 d/y 都视为确认
+      if (a === "" || a.toLowerCase() === "d" || a.toLowerCase() === "y") return [node.target];
+      return null;
     },
   },
   rename: {
@@ -3400,46 +4377,44 @@ function tuiOpSubmit(mirror: string, answer: string | null): void {
   if (mirror === "new-session" || mirror === "new-window") refreshPreview();
 }
 
+/** buildTuiPrompts 的公共单元:一条 mirror entry → 一条 TuiPromptSpec,ops/userOpts 两张表同形复用 */
+function pushPrompts(prompts: TuiPromptSpec[], mirrorMap: Record<string, TuiMirrorEntry>): void {
+  for (const [mirror, meta] of Object.entries(mirrorMap)) {
+    const h = TUI_PROMPT_HANDLERS[mirror];
+    if (!h) throw new Error(`TUI_PROMPT_HANDLERS 缺少 ${mirror}`);
+    prompts.push({
+      key: meta.key,
+      help: meta.help,
+      mirror,
+      needsTree: meta.needsTree,
+      prompt: h.prompt,
+      submit: (answer) => tuiOpSubmit(mirror, answer),
+    });
+  }
+}
+
 function buildTuiPrompts(): TuiPromptSpec[] {
   const prompts: TuiPromptSpec[] = [];
-  for (const [mirror, meta] of Object.entries(TUI_CLI_MIRROR.ops) as [keyof typeof CLI_OPS, TuiMirrorEntry][]) {
-    const h = TUI_PROMPT_HANDLERS[mirror];
-    if (!h) throw new Error(`TUI_PROMPT_HANDLERS 缺少 ${mirror}`);
-    prompts.push({
-      key: meta.key,
-      help: meta.help,
-      mirror,
-      needsTree: meta.needsTree,
-      prompt: h.prompt,
-      submit: (answer) => tuiOpSubmit(mirror, answer),
-    });
-  }
-  for (const [mirror, meta] of Object.entries(TUI_CLI_MIRROR.userOpts) as [keyof typeof CLI_USER_OPTS, TuiMirrorEntry][]) {
-    const h = TUI_PROMPT_HANDLERS[mirror];
-    if (!h) throw new Error(`TUI_PROMPT_HANDLERS 缺少 ${mirror}`);
-    prompts.push({
-      key: meta.key,
-      help: meta.help,
-      mirror,
-      needsTree: meta.needsTree,
-      prompt: h.prompt,
-      submit: (answer) => tuiOpSubmit(mirror, answer),
-    });
-  }
+  pushPrompts(prompts, TUI_CLI_MIRROR.ops);
+  pushPrompts(prompts, TUI_CLI_MIRROR.userOpts);
   return prompts;
 }
 
+/** assertTuiCliMirror 的公共单元:一张 mirror 表 → 校验其 key 均在 knownKeys 里且有对应 handler */
+function assertMirrorTableComplete(
+  mirrorLabel: string, mirrorMap: Record<string, unknown>,
+  knownLabel: string, knownKeys: Record<string, unknown>,
+): void {
+  for (const key of Object.keys(mirrorMap)) {
+    if (!(key in knownKeys)) throw new Error(`${mirrorLabel} 引用未知 ${knownLabel}: ${key}`);
+    const h = TUI_PROMPT_HANDLERS[key];
+    if (!h?.prompt || !h.args) throw new Error(`TUI_PROMPT_HANDLERS 缺少 ${key}`);
+  }
+}
+
 function assertTuiCliMirror(): void {
-  for (const op of Object.keys(TUI_CLI_MIRROR.ops)) {
-    if (!(op in CLI_OPS)) throw new Error(`TUI_CLI_MIRROR.ops 引用未知 CLI_OPS: ${op}`);
-    const h = TUI_PROMPT_HANDLERS[op];
-    if (!h?.prompt || !h.args) throw new Error(`TUI_PROMPT_HANDLERS 缺少 ${op}`);
-  }
-  for (const opt of Object.keys(TUI_CLI_MIRROR.userOpts)) {
-    if (!(opt in CLI_USER_OPTS)) throw new Error(`TUI_CLI_MIRROR.userOpts 引用未知 CLI_USER_OPTS: ${opt}`);
-    const h = TUI_PROMPT_HANDLERS[opt];
-    if (!h?.prompt || !h.args) throw new Error(`TUI_PROMPT_HANDLERS 缺少 ${opt}`);
-  }
+  assertMirrorTableComplete("TUI_CLI_MIRROR.ops", TUI_CLI_MIRROR.ops, "CLI_OPS", CLI_OPS);
+  assertMirrorTableComplete("TUI_CLI_MIRROR.userOpts", TUI_CLI_MIRROR.userOpts, "CLI_USER_OPTS", CLI_USER_OPTS);
 }
 
 type FleetViewSpec = {
@@ -3571,7 +4546,7 @@ function cliUserOptSet(optName: string, ctx: CliCtx): number {
   try {
     cliWriteStdout(runRegistryOp(optName, args) + "\n");
   } catch (e: unknown) {
-    return cliError(e instanceof Error ? e.message : String(e));
+    return cliCatch(e);
   }
   return 0;
 }
@@ -3595,7 +4570,7 @@ function cliOp(opName: string, ctx: CliCtx): number {
   try {
     cliWriteStdout(runRegistryOp(opName, positional) + "\n");
   } catch (e: unknown) {
-    return cliError(e instanceof Error ? e.message : String(e));
+    return cliCatch(e);
   }
   return 0;
 }
@@ -3618,6 +4593,22 @@ function buildLeafCmd(name: string, spec: LeafCmdSpec): CliCommand {
     needsTmux: spec.needsTmux,
     helpHidden: spec.helpHidden,
   };
+}
+
+function cliOs(ctx: CliCtx): number {
+  const sub = ctx.rest[0];
+  if (!sub || sub === "watch") {
+    startTui({ osMode: true });
+    return 0;
+  }
+  const args = ctx.json ? ["--json", ...ctx.rest] : ctx.rest;
+  const out = runOsCli(args);
+  if (out.json !== undefined) cliWriteJson(out.json);
+  else if (out.text) {
+    if (out.code === 0) cliWriteStdout(out.text);
+    else cliWriteStderr(out.text);
+  }
+  return out.code;
 }
 
 function buildUserOptGroup(name: string, spec: UserOptSpec): CliCommand {
@@ -3685,6 +4676,421 @@ function printInspectText(info: CliInspectResult): void {
   if (info.preview?.lastLine) cliWriteStdout(`last: ${info.preview.lastLine}\n`);
 }
 
+// ════════════════════════════════════════════════════════════════════
+// PART:driving — 主动驾驶动词（帧分析委托 fleet-analyzer.ts）
+//
+// 帧忙闲判定 / agent 检测 / 格式化 → fleet-analyzer.ts（单一真源）。
+// 本 section 保留：DriveStatus 接口、drvComposer*、drvSend、drvWaitIdle、drvRecover 等操控逻辑。
+// 全部经 tmuxApi 后端（rmux 默认 / tmux 回退）。
+
+interface DriveStatus {
+  target: string; comm: string; state: "busy" | "idle" | "unknown";
+  verb?: string; elapsed?: string; tokens?: string; model?: string; ctxPct?: number;
+  lastResult?: string; tailLine?: string;
+}
+
+// 仅本地引用的常量（fleet-analyzer 不涵盖的操控逻辑）
+const DRV_HR_LINE = /^[\s─━╌╍┄┅]+$/;
+const DRV_STATUS_LINE = /(bypass permissions|shift\+tab|已跳过工具批准|YOLO|ctx\s*\(?\d+%|to compact|context used|⏵⏵|effort\s+auto|本次命中)/i;
+const DRV_NODE_TUI = /^(claude|node|cursor|codex|kimi)$/i;
+
+// ── bridge：委托 fleet-analyzer ──
+
+/**
+ * drv族(本地tmux)与super族(-L独立socket)的唯一差异是"走哪个tmux句柄"。
+ * 抽出这四个原子操作作为可替换后端,drv族与driveSubmitVerify 默认走 DEFAULT_IO(本地tmuxApi),
+ * super 侧后续(P0-1 commit#2)组装同形的 SUPER_IO 传入,复用同一套 capture/analyze/等待/验证逻辑,
+ * 不必维护两份几乎相同的函数族。
+ */
+type DrvIo = {
+  capture(target: string, lines?: number): string;
+  comm(target: string): string;
+  /** load-buffer+paste-buffer,不发 Enter(是否/何时 Enter 由调用方决定) */
+  paste(target: string, text: string): void;
+  enter(target: string): void;
+};
+
+const DEFAULT_IO: DrvIo = {
+  capture: (target, lines = 60) => captureFrame(tmuxApi, target, lines),
+  comm: (target) => getPaneInfo(tmuxApi, target).comm,
+  paste: (target, text) => injectToWindow(target, text, { enter: false }),
+  enter: (target) => tmuxApi.sendKeysEnter(target),
+};
+
+function drvCapture(target: string, lines = 60, io: DrvIo = DEFAULT_IO): string {
+  return io.capture(target, lines);
+}
+function drvPaneComm(target: string, io: DrvIo = DEFAULT_IO): string {
+  return io.comm(target);
+}
+function drvAgentTargets(): string[] {
+  return listAgentTargets(tmuxApi);
+}
+function drvLooksCursor(frame: string): boolean {
+  return looksLikeCursor(frame);
+}
+function drvInputBandHas(frame: string, probe: string, botN = 6): boolean {
+  return inputBandHas(frame, probe, botN);
+}
+function drvFrameIsBusy(all: string[]): boolean {
+  const frame = all.join("\n");
+  const r = analyzeFrame("bridge", "?", frame, 18);
+  return r.ok && r.value.state === "busy";
+}
+function drvAnalyze(target: string, lines = 18, io: DrvIo = DEFAULT_IO): DriveStatus {
+  const comm = drvPaneComm(target, io);
+  let frame = "";
+  try { frame = drvCapture(target, 60, io); } catch { return { target, comm, state: "unknown" }; }
+  if (!frame) return { target, comm, state: "unknown" };
+  const r = analyzeFrame(target, comm, frame, lines);
+  if (!r.ok) return { target, comm, state: "unknown" };
+  return { target, comm, ...r.value };
+}
+function drvFmtStatus(s: DriveStatus): string {
+  return formatDigestRow(s as any);
+}
+function drvSendKey(target: string, key: string): void {
+  tmuxApi.rawSpawnSync(["send-keys", "-t", target, key]);
+}
+
+// composer 输入行前缀：codex=`›` / cursor=`→` / claude=`❯`/`>` / reasonix=`»`。
+const DRV_COMPOSER_PROMPT = /^\s*[›→❯»>]\s/;
+
+// 定位 composer 输入行(末 ~10 行内最后一条带 prompt 前缀的行)。提交后该行回到占位/空。
+function drvComposerLine(frame: string): string | null {
+  const lines = frame.replace(/\s+$/g, "").split("\n");
+  for (let i = lines.length - 1; i >= 0 && i >= lines.length - 10; i--) {
+    if (DRV_COMPOSER_PROMPT.test(lines[i])) return lines[i];
+  }
+  return null;
+}
+
+// probe 是否仍**在 composer 输入行内**(权威:区分"仍卡输入框"vs"已提交进历史气泡")。
+// 找不到 composer prompt 行 → 退化到底带含 probe。
+function drvComposerHasProbe(frame: string, probe: string): boolean {
+  if (!probe) return false;
+  const cl = drvComposerLine(frame);
+  if (cl !== null) return cl.includes(probe);
+  return drvInputBandHas(frame, probe);
+}
+
+// 等 paste 渲染进 composer(慢 TUI 如 cursor/codex：立刻发 Enter 会被吞)：轮询 composer 含 probe,最多 waitMs。
+function drvWaitRender(target: string, probe: string, waitMs = 1800, io: DrvIo = DEFAULT_IO): boolean {
+  if (!probe) return true;
+  const t0 = Date.now();
+  while (Date.now() - t0 < waitMs) {
+    if (drvComposerHasProbe(drvCapture(target, 60, io), probe)) return true;
+    Bun.sleepSync(200);
+  }
+  return false;
+}
+
+// codex/cursor send：Enter 后 busy 常瞬抖→须连续多采样确认真提交（纯采样，零前景输出）
+function drvVerifyNodeSubmit(target: string, probe: string, preHadProbe: boolean, comm = "", io: DrvIo = DEFAULT_IO): "busy" | "cleared" | "" {
+  const SAMPLES = 4, GAP_MS = 500, NEED = 2;
+  let busyStreak = 0;
+  for (let i = 0; i < SAMPLES; i++) {
+    if (drvAnalyze(target, 18, io).state === "busy") { busyStreak++; if (busyStreak >= NEED) return "busy"; }
+    else busyStreak = 0;
+    if (i < SAMPLES - 1) Bun.sleepSync(GAP_MS);
+  }
+  if (preHadProbe) {
+    let clearStreak = 0;
+    for (let i = 0; i < SAMPLES; i++) {
+      if (!drvInputBandHas(drvCapture(target, 60, io), probe)) { clearStreak++; if (clearStreak >= NEED) return "cleared"; }
+      else clearStreak = 0;
+      if (i < SAMPLES - 1) Bun.sleepSync(GAP_MS);
+    }
+  }
+  // task#19: kimi composer 是输入边框盒(非 DRV_COMPOSER_PROMPT 单行提示符), preHadProbe 常测不到
+  // 导致上面 preHadProbe 段整段被跳过, 即便消息已真送达处理完也误判失败。
+  // 仅对 kimi 加一条独立兜底(范围收窄到本 TUI, 不影响 claude/cursor/codex 既有判据):
+  // 连续 NEED 次采样都非 busy 且探针不在底部输入带 -> 判定已提交清空。
+  if (/^kimi$/i.test(comm)) {
+    let idleStreak = 0;
+    for (let i = 0; i < SAMPLES; i++) {
+      const st = drvAnalyze(target, 18, io).state;
+      if (st !== "busy" && !drvInputBandHas(drvCapture(target, 60, io), probe)) {
+        idleStreak++;
+        if (idleStreak >= NEED) return "cleared";
+      } else idleStreak = 0;
+      if (i < SAMPLES - 1) Bun.sleepSync(GAP_MS);
+    }
+  }
+  return "";
+}
+
+type DriveSubmitVerifyResult = { submitNote: string; submitFailed: boolean };
+
+/**
+ * send/envelope 共用的"慢渲染稳提交"注入+验证:
+ * nodeTui(codex/cursor/kimi等) 走 paste 不立即 Enter(会被吞)→等渲染→Enter→连续采样验证提交，
+ * 未提交则拉到 ~800ms 间隔重试 Enter；非 nodeTui(claude等) 直接注入立即 Enter(不回归)。
+ * target 为 injectToWindow 用的原始 spec，resolved 为已解析的 pane target(用于 capture/verify)。
+ */
+function driveSubmitVerify(target: string, resolved: string, payload: string, io: DrvIo = DEFAULT_IO): DriveSubmitVerifyResult {
+  const comm = drvPaneComm(resolved, io);
+  let preFrame = "";
+  try { preFrame = drvCapture(resolved, 60, io); } catch { /* 抓不到帧→按非 nodeTui 处理 */ }
+  const isNodeTui = DRV_NODE_TUI.test(comm) || drvLooksCursor(preFrame);
+  io.paste(target, payload);
+  let submitNote = ""; let submitFailed = false;
+  if (!isNodeTui) {
+    // injectToWindow 原实现内部会自行 resolveInputPaneTarget(resolveTarget(...)) 再发 Enter，
+    // 等价于调用方已算好的 resolved——用 resolved 而非原始 target，保持行为不变。
+    io.enter(resolved);
+  } else {
+    const probe = payload.trim().split("\n")[0].slice(0, 24);
+    const rendered = drvWaitRender(resolved, probe, 1800, io);
+    const preHadProbe = rendered || (!!probe && drvComposerHasProbe(drvCapture(resolved, 60, io), probe));
+    io.enter(resolved);
+    let why = drvVerifyNodeSubmit(resolved, probe, preHadProbe, comm, io);
+    for (let i = 0; i < 3 && !why; i++) {
+      io.enter(resolved);
+      Bun.sleepSync(800);
+      why = drvVerifyNodeSubmit(resolved, probe, preHadProbe, comm, io);
+    }
+    const how = DRV_NODE_TUI.test(comm) ? "" : ":cursor帧判";
+    if (why) submitNote = ` [submitted✓:${why === "busy" ? "BUSY" : "composer清空"}${how}]`;
+    else { submitNote = " [submit-failed✗:未验证到 BUSY/composer 仍滞留]"; submitFailed = true; }
+  }
+  return { submitNote, submitFailed };
+}
+
+// 输入：paste-buffer 法（零转义 + pre-check IDLE + BUSY上升沿确认 + 单独 Enter）
+// v2: 不再逐 TUI 适配文本渲染差异。统一用 BUSY 上升沿做提交确认。
+function drvSend(target: string, text: string, noEnter = false): { ok: boolean; preIdle: boolean; delivered: boolean } {
+  // Phase A: pre-check — agent must be IDLE before we paste
+  const preStatus = drvAnalyze(target, 18);
+  const preIdle = preStatus.state === "idle";
+  if (!preIdle) {
+    return { ok: false, preIdle: false, delivered: false };
+  }
+
+  // Phase B: deliver — paste-buffer + Enter, no text-probe verification
+  tmuxApi.loadBufferFromText(text);
+  tmuxApi.pasteBuffer(target);
+  if (noEnter) {
+    return { ok: true, preIdle: true, delivered: true };
+  }
+  Bun.sleepSync(400);
+  tmuxApi.sendKeysEnter(target);
+
+  // Phase C: confirm — BUSY 上升沿(IDLE→BUSY) 或 composer 清空
+  // 等最多 4s，轮询 BUSY 或 composer 清空。没看到就重发一次 Enter。
+  let delivered = false;
+  for (let attempt = 0; attempt < 2 && !delivered; attempt++) {
+    if (attempt > 0) {
+      tmuxApi.sendKeysEnter(target);
+      Bun.sleepSync(800);
+    }
+    const t0 = Date.now();
+    while (Date.now() - t0 < 4000) {
+      Bun.sleepSync(500);
+      const frame = drvCapture(target);
+      const lines = frame.replace(/\s+$/g, "").split("\n").filter(l => l.trim());
+      // Signal 1: BUSY (unified across all 4 agent types)
+      if (drvFrameIsBusy(lines)) { delivered = true; break; }
+      // Signal 2: composer cleared (text consumed from input area into history)
+      const cl = drvComposerLine(frame);
+      if (cl !== null) {
+        const content = cl.replace(/^\s*[›→❯»>]\s?/, "").trim();
+        if (!content || content === "Add a follow-up" || content === "Type your message") {
+          delivered = true; break;
+        }
+      }
+      // Signal 3: transcript show new user turn (agent started processing)
+      if (frame.includes("⎿  Read") || frame.includes("● Thinking") || frame.includes("✻ Determining")) {
+        delivered = true; break;
+      }
+    }
+  }
+
+  return { ok: true, preIdle: true, delivered };
+}
+
+// 输入框残留检测：TUI 输入框被框线(───/━━━)夹住，框内非空且非状态/框线行即残留。
+function drvInputResidue(frame: string, botN = 12): string {
+  const all = frame.replace(/\s+$/g, "").split("\n");
+  const lines = all.slice(-botN);
+  let lastHr = -1;
+  for (let i = lines.length - 1; i >= 0; i--) if (DRV_HR_LINE.test(lines[i]) && lines[i].trim().length >= 4) { lastHr = i; break; }
+  let prevHr = -1;
+  for (let i = lastHr - 1; i >= 0; i--) if (DRV_HR_LINE.test(lines[i]) && lines[i].trim().length >= 4) { prevHr = i; break; }
+  const band = lastHr >= 0 ? lines.slice(prevHr + 1, lastHr) : lines;
+  for (const l of band) {
+    if (DRV_HR_LINE.test(l) || DRV_STATUS_LINE.test(l)) continue;
+    const stripped = l.replace(/^\s*[❯›>]\s?/, "").trim();
+    if (stripped.length > 0) return stripped;
+  }
+  return "";
+}
+
+// interrupt：发 Esc 让正在跑的 agent 停下，验证转 idle(仅 busy 时发)。
+function drvInterrupt(target: string, timeoutS = 30): { wasBusy: boolean; nowIdle: boolean; before?: string; after: DriveStatus } {
+  const before = drvAnalyze(target);
+  if (before.state !== "busy") return { wasBusy: false, nowIdle: before.state === "idle", before: before.verb, after: before };
+  for (let i = 0; i < 2; i++) { drvSendKey(target, "Escape"); Bun.sleepSync(500); }
+  const t0 = Date.now();
+  while ((Date.now() - t0) / 1000 < timeoutS) {
+    const s = drvAnalyze(target);
+    if (s.state !== "busy") return { wasBusy: true, nowIdle: s.state === "idle", before: before.verb, after: s };
+    Bun.sleepSync(1500);
+  }
+  return { wasBusy: true, nowIdle: false, before: before.verb, after: drvAnalyze(target) };
+}
+
+// clear：清空输入框残留文本(Ctrl-U 删到行首；多行须多发)，验证空。
+function drvClearInput(target: string, maxRounds = 6): { before: string; after: string; cleared: boolean } {
+  const before = drvInputResidue(drvCapture(target));
+  if (!before) return { before: "", after: "", cleared: true };
+  for (let i = 0; i < maxRounds; i++) {
+    drvSendKey(target, "C-u");
+    Bun.sleepSync(350);
+    if (!drvInputResidue(drvCapture(target))) break;
+  }
+  const after = drvInputResidue(drvCapture(target));
+  return { before, after, cleared: after.length === 0 };
+}
+
+// recover：interrupt + clear + 验证 idle(长跑卡住/残留输入的标准恢复流)。
+function drvRecover(target: string): { interrupt: ReturnType<typeof drvInterrupt>; clear: ReturnType<typeof drvClearInput>; idle: boolean } {
+  const i = drvInterrupt(target);
+  const c = drvClearInput(target);
+  const s = drvAnalyze(target);
+  return { interrupt: i, clear: c, idle: s.state === "idle" && c.cleared };
+}
+
+// 主动等待：内部轮询到 idle 再返回(一次调用替 N 次抓帧)。
+// graceMs: dispatch 后 agent 尚未 spin-up 时的瞬时 idle 是"还没开始"非"已完成"——
+// 在见到首次 busy 之前的 grace 窗口内不认 idle，避免 wait/drive 秒返假 idle。
+function drvWaitIdle(target: string, timeoutS = 600, quietRounds = 2, intervalMs = 4000, graceMs = 8000): DriveStatus & { waitedSec: number; timedOut: boolean; sawBusy: boolean } {
+  const comm = drvPaneComm(target);
+  const nodeTui = DRV_NODE_TUI.test(comm);
+  const pollMs = nodeTui ? 500 : intervalMs;
+  const idleNeed = nodeTui ? Math.max(quietRounds, 4) : quietRounds;
+  const t0 = Date.now(); let prevTail = ""; let quiet = 0; let idleStreak = 0; let sawBusy = false;
+  while ((Date.now() - t0) / 1000 < timeoutS) {
+    const s = drvAnalyze(target);
+    const tail = s.tailLine || "";
+    if (s.state === "busy") { sawBusy = true; idleStreak = 0; quiet = 0; }
+    const inGrace = !sawBusy && (Date.now() - t0) < graceMs;
+    if (s.state === "idle" && !inGrace) {
+      if (nodeTui) {
+        idleStreak++;
+        if (idleStreak >= idleNeed) return { ...s, waitedSec: Math.round((Date.now() - t0) / 1000), timedOut: false, sawBusy };
+      } else {
+        if (tail === prevTail) quiet++; else quiet = 1;
+        if (quiet >= quietRounds) return { ...s, waitedSec: Math.round((Date.now() - t0) / 1000), timedOut: false, sawBusy };
+      }
+    } else if (s.state !== "idle" || inGrace) { idleStreak = 0; quiet = 0; }
+    prevTail = tail;
+    Bun.sleepSync(pollMs);
+  }
+  return { ...drvAnalyze(target), waitedSec: Math.round((Date.now() - t0) / 1000), timedOut: true, sawBusy };
+}
+
+function drvResolveText(raw: string): string {
+  // 三种取文本方式复用同一发送路：内联文本 / @文件 / - (stdin/heredoc)
+  if (raw === "-") {
+    // fd 0 读全部 stdin（heredoc/管道）；内容字面，不经 shell 展开
+    const s = readFileSync(0, "utf8");
+    if (s.trim() === "") throw new Error("stdin 为空：- 取文本但无输入(别静默发空)");
+    return s;
+  }
+  if (!raw?.startsWith("@")) return raw;
+  let p = raw.slice(1);
+  if (p.startsWith("~")) p = join(homedir(), p.slice(1));
+  if (!existsSync(p)) throw new Error(`@文件不存在: ${raw.slice(1)}`);
+  return readFileSync(p, "utf8");
+}
+
+// ── 驾驶动词 CLI 处理器 ──────────────────────────────────────────────
+
+function cliDriveFleet(ctx: CliCtx): number {
+  const stats = drvAgentTargets().map((t) => drvAnalyze(t));
+  return cliRespond(ctx, stats, () => cliWriteStdout((stats.map(drvFmtStatus).join("\n") || "(无 agent 窗口)") + "\n"));
+}
+
+function cliDriveStatus(ctx: CliCtx): number {
+  const { positional, flags } = parseCliFlags(ctx.rest);
+  if (!positional[0]) return cliFailUsage("dstatus <spec> [--lines N] [--json]");
+  const s = drvAnalyze(resolveTarget(positional[0]), Number(flags.lines || 18));
+  return cliRespond(ctx, s, () => cliWriteStdout(drvFmtStatus(s) + "\n"));
+}
+
+function cliRead(ctx: CliCtx): number {
+  const { positional, flags } = parseCliFlags(ctx.rest);
+  if (!positional[0]) return cliFailUsage("read <spec> [--tail N] [--head N]");
+  let out = drvCapture(resolveTarget(positional[0]), 200).replace(/\s+$/g, "");
+  const ls = out.split("\n");
+  if (flags.head) out = ls.slice(0, Number(flags.head)).join("\n");
+  else if (flags.tail) out = ls.slice(-Number(flags.tail)).join("\n");
+  cliWriteStdout(out + "\n");
+  return 0;
+}
+
+function cliInterrupt(ctx: CliCtx): number {
+  const { positional, flags } = parseCliFlags(ctx.rest);
+  if (!positional[0]) return cliFailUsage("interrupt <spec> [--timeout S]");
+  const r = drvInterrupt(resolveTarget(positional[0]), Number(flags.timeout || 30));
+  if (ctx.json) cliWriteJson(r);
+  else cliWriteStdout((r.wasBusy ? `interrupted (was BUSY ${r.before || ""}) → ${r.nowIdle ? "IDLE ✓" : "still BUSY ✗"}  «${r.after.tailLine || ""}»` : `noop (已 ${r.after.state}, 无需中断)`) + "\n");
+  return r.wasBusy && !r.nowIdle ? 2 : 0;
+}
+
+function cliClear(ctx: CliCtx): number {
+  const { positional } = parseCliFlags(ctx.rest);
+  if (!positional[0]) return cliFailUsage("clear <spec>");
+  const r = drvClearInput(resolveTarget(positional[0]));
+  if (ctx.json) cliWriteJson(r);
+  else cliWriteStdout((r.before ? `cleared: «${r.before.slice(0, 60)}» → ${r.cleared ? "空 ✓" : "仍残留«" + r.after.slice(0, 40) + "» ✗"}` : `noop (输入框已空)`) + "\n");
+  return r.cleared ? 0 : 4;
+}
+
+function cliRecover(ctx: CliCtx): number {
+  const { positional } = parseCliFlags(ctx.rest);
+  if (!positional[0]) return cliFailUsage("recover <spec>");
+  const r = drvRecover(resolveTarget(positional[0]));
+  if (ctx.json) cliWriteJson(r);
+  else cliWriteStdout(`recover: interrupt=${r.interrupt.wasBusy ? (r.interrupt.nowIdle ? "stopped✓" : "FAIL✗") : "noop"} clear=${r.clear.cleared ? "空✓" : "FAIL✗"} → ${r.idle ? "READY(idle+空)✓" : "未就绪✗"}\n`);
+  return r.idle ? 0 : 2;
+}
+
+function cliWait(ctx: CliCtx): number {
+  const { positional, flags } = parseCliFlags(ctx.rest);
+  if (!positional[0]) return cliFailUsage("wait <spec> [--timeout S] [--quiet-rounds N]");
+  const s = drvWaitIdle(resolveTarget(positional[0]), Number(flags.timeout || 600), Number(flags["quiet-rounds"] || 2));
+  if (ctx.json) cliWriteJson(s);
+  else cliWriteStdout(`${s.timedOut ? "TIMEOUT" : "IDLE"} after ${s.waitedSec}s — ${drvFmtStatus(s)}\n`);
+  return s.timedOut ? 2 : 0;
+}
+
+function cliDrive(ctx: CliCtx): number {
+  const { positional, flags } = parseCliFlags(ctx.rest);
+  if (positional.length < 2) return cliFailUsage("drive <spec> <task|@file> [--timeout S]");
+  const target = resolveTarget(positional[0]);
+  const r = drvSend(target, drvResolveText(positional.slice(1).join(" ")), false);
+  if (!r.preIdle) { cliWriteStderr("目标非 IDLE,拒绝发送(避免对 BUSY agent 盲注)\n"); return 3; }
+  if (!r.delivered) { cliWriteStderr("paste+Enter 后未检测到 BUSY/composer清空,可能未提交\n"); return 4; }
+  Bun.sleepSync(2000);
+  const s = drvWaitIdle(target, Number(flags.timeout || 600), 2);
+  if (ctx.json) cliWriteJson(s);
+  else cliWriteStdout(`${s.timedOut ? "TIMEOUT" : "DONE"} after ${s.waitedSec}s\n${drvFmtStatus(s)}\n`);
+  return s.timedOut ? 2 : 0;
+}
+
+const CLI_DRIVE_CMDS: Record<string, LeafCmdSpec> = {
+  drive: { summary: "send+wait+结果 digest(一次调用驱动一轮)", usage: "<spec> <task|@file> [--timeout S] [--json]", run: cliDrive },
+  wait: { summary: "内部轮询到 idle 再返回(替反复抓帧)", usage: "<spec> [--timeout S] [--quiet-rounds N] [--json]", run: cliWait },
+  interrupt: { summary: "中断正在跑的 agent(Esc)+验证转 idle", usage: "<spec> [--timeout S] [--json]", aliases: ["int"], run: cliInterrupt },
+  clear: { summary: "清空输入框残留(Ctrl-U)+验证空", usage: "<spec> [--json]", run: cliClear },
+  recover: { summary: "interrupt+clear+验证 idle(卡住/残留标准恢复)", usage: "<spec> [--json]", run: cliRecover },
+  read: { summary: "抓帧→stdout(--tail N/--head N)", usage: "<spec> [--tail N] [--head N]", run: cliRead },
+  dfleet: { summary: "全 agent 窗口驾驶 digest(busy/idle+verb+model+ctx)", usage: "[--json]", aliases: ["fl"], run: cliDriveFleet },
+  dstatus: { summary: "单窗口驾驶 digest(busy/idle+verb+elapsed+model+ctx+lastResult)", usage: "<spec> [--lines N] [--json]", aliases: ["ds"], run: cliDriveStatus },
+};
+
 function cliInspect(ctx: CliCtx): number {
   const { positional, flags } = parseCliFlags(ctx.rest);
   if (!positional[0]) return cliFailUsage("inspect <spec> [--lines N] [--json]");
@@ -3717,16 +5123,205 @@ function cliCapture(ctx: CliCtx): number {
 }
 
 function cliSend(ctx: CliCtx): number {
-  if (ctx.rest.length < 2) return cliFailUsage("send <spec> <text...>");
+  if (ctx.rest.length < 2) return cliFailUsage("send <spec> <text...|@file|->");
   const target = ctx.rest[0];
-  const body = ctx.rest.slice(1).join(" ");
+  const raw = ctx.rest.slice(1).join(" ");
+  let body: string;
   try {
-    injectToWindow(target, body);
+    body = drvResolveText(raw);
   } catch (e: unknown) {
-    return cliError(e instanceof Error ? e.message : String(e));
+    return cliCatch(e);
   }
-  cliWriteStdout(`sent → ${resolveTarget(target)}: ${body.length} chars\n`);
-  return 0;
+  // codex(node)/cursor 类 TUI 检测：comm(node/cursor/codex) 或帧特征(cursor composer `→ ` 前缀,
+  // cursor comm 常显示为 bash 判不到)。命中则走"慢渲染稳提交"路:先 paste 不立刻 Enter(会被吞)→等渲染→Enter→验证。
+  const resolved = resolveInputPaneTarget(resolveTarget(target));
+  let submitNote = ""; let submitFailed = false;
+  try {
+    ({ submitNote, submitFailed } = driveSubmitVerify(target, resolved, body));
+  } catch (e: unknown) {
+    return cliCatch(e);
+  }
+  const src = raw === "-" ? " (from stdin)" : raw.startsWith("@") ? ` (from ${raw})` : "";
+  cliWriteStdout(`sent → ${resolved}: ${body.length} chars${src}${submitNote}\n`);
+  return submitFailed ? 3 : 0;
+}
+
+type EnvelopeFromIdentity = {
+  ancestorWindowName?: string;
+};
+
+/**
+ * envelope sender 身份链:
+ *
+ * | 优先级 | 来源 | 安全语义 |
+ * | --- | --- | --- |
+ * | 1 | 实时 `tmux list-panes -a` pane pid 表 + `/proc` PPid 祖先链 | 唯一可信来源；每次调用现场活算，零缓存 |
+ * | reject | env/cache/fallback/user supplied names | 任何声明式 sender 都可能 stale 或冒名，全部忽略 |
+ */
+export function resolveEnvelopeFromIdentity(input: EnvelopeFromIdentity): string {
+  return (input.ancestorWindowName || "").trim();
+}
+
+function parseProcParentPid(statusText: string): number | null {
+  const m = statusText.match(/^PPid:\s+(\d+)$/m);
+  if (!m) return null;
+  const ppid = Number(m[1]);
+  return Number.isFinite(ppid) && ppid > 0 ? ppid : null;
+}
+
+export function findTmuxAncestorWindowName(
+  startPid: number,
+  panePidToWindow: Map<number, string>,
+  readStatus: (pid: number) => string | null = (pid) => {
+    try { return readFileSync(`/proc/${pid}/status`, "utf8"); } catch { return null; }
+  },
+  maxDepth = 50,
+): string {
+  const seen = new Set<number>();
+  let pid = startPid;
+  for (let depth = 0; depth < maxDepth && pid > 1 && !seen.has(pid); depth++) {
+    const win = panePidToWindow.get(pid);
+    if (win) return win;
+    seen.add(pid);
+    const status = readStatus(pid);
+    if (!status) break;
+    const ppid = parseProcParentPid(status);
+    if (!ppid) break;
+    pid = ppid;
+  }
+  return "";
+}
+
+function listPanePidWindowMap(): Map<number, string> {
+  const map = new Map<number, string>();
+  const r = tmuxApi.rawSpawnSync(["list-panes", "-a", "-F", "#{pane_pid}|#{session_name}|#{window_name}"]) as {
+    exitCode?: number;
+    stdout?: Uint8Array;
+  };
+  if ((r.exitCode ?? 0) !== 0) return map;
+  const out = Buffer.from(r.stdout ?? new Uint8Array()).toString("utf8");
+  for (const line of out.split("\n")) {
+    if (!line.trim()) continue;
+    const [pidRaw, sess, ...nameParts] = line.split("|");
+    const pid = Number(pidRaw);
+    const winName = nameParts.join("|").trim();
+    if (Number.isFinite(pid) && pid > 0 && sess && winName) map.set(pid, winName);
+  }
+  return map;
+}
+
+/**
+ * 祖先链起点 pid：默认 process.pid（tmux pane 内直接调用）；
+ * 若上游(如 mapp-http.ts 反查 HTTP 真实调用者)通过 MUX_CALLER_PID 声明了别的起点，
+ * 仍须活算校验（存活 + /proc/<pid>/stat starttime 匹配，防 pid 复用冒名）才采信，
+ * 校验失败一律回退 process.pid（daemon 自身脱离 tmux 会再降级 external，不伪造窗口）。
+ */
+function resolveAncestryStartPid(): number {
+  const raw = process.env.MUX_CALLER_PID;
+  if (!raw) return process.pid;
+  const pid = Number.parseInt(raw, 10);
+  if (!Number.isFinite(pid) || pid <= 0) return process.pid;
+  try {
+    process.kill(pid, 0);
+  } catch {
+    return process.pid;
+  }
+  const expectedStarttime = process.env.MUX_CALLER_PID_STARTTIME;
+  if (expectedStarttime) {
+    try {
+      const stat = readFileSync(`/proc/${pid}/stat`, "utf8");
+      const afterComm = stat.slice(stat.lastIndexOf(")") + 2);
+      const actualStarttime = afterComm.split(" ")[19];
+      if (actualStarttime !== expectedStarttime) return process.pid;
+    } catch {
+      return process.pid;
+    }
+  }
+  return pid;
+}
+
+function resolveFromWindowName(): string {
+  return resolveEnvelopeFromIdentity({
+    ancestorWindowName: findTmuxAncestorWindowName(resolveAncestryStartPid(), listPanePidWindowMap()),
+  });
+}
+
+function targetWindowName(target: string): string {
+  const r = Bun.spawnSync([tmuxBin(), "display-message", "-p", "-t", target, "#W"], {
+    stdout: "pipe",
+    stderr: "pipe",
+  });
+  if (r.exitCode !== 0) return "";
+  return (r.stdout?.toString() ?? "").trim();
+}
+
+export function assertEnvelopeNotSelf(from: string, to: string): void {
+  if (from && to && from === to) {
+    throw new Error(
+      `envelope: sender 与 receiver 不能是同一个窗口 '${from}'; ` +
+      "自发消息请改用 drive 或 send",
+    );
+  }
+}
+
+function cliEnvelope(ctx: CliCtx): number {
+  // mux envelope <spec> <title> <body...|@file|->
+  // From 每次由实时 tmux pane 祖先链活算；不接受任何声明式 sender。
+  const USAGE = "envelope <spec> <title> <body...|@file|->";
+  if (ctx.rest.length < 3) return cliFailUsage(USAGE);
+  const target = ctx.rest[0];
+  const rest = ctx.rest.slice(1);
+  let from = "";
+  let title: string, bodyRaw: string;
+  try {
+    from = resolveFromWindowName();
+  } catch (e) {
+    return cliCatch(e);
+  }
+  if (!from) {
+    // 调用者脱离 tmux 进程树(如守护化的 MCP shell 后端 PPid=1)：无可信 PID→pane 链。
+    // 不再死胡同硬失败；也绝不伪造具体窗口名(防冒名铁律)——降级为非特定发送者 "external"
+    // + stderr 告警，消息照常投递。要真实落款请在 tmux pane 内发送，或改用 `mux send`。
+    from = "external";
+    cliWriteStderr(
+      "envelope: 无法从实时 tmux pane 祖先链推断发送窗口(调用者脱离 tmux 进程树); " +
+      "以 from=external 降级投递(不伪造具体窗口)。真实落款请在 tmux pane 内发送或用 mux send。\n",
+    );
+  }
+  title = rest[0];
+  bodyRaw = rest.slice(1).join(" ");
+  if (!bodyRaw) return cliFailUsage(USAGE);
+  let body: string;
+  try {
+    body = drvResolveText(bodyRaw);
+  } catch (e: unknown) {
+    return cliCatch(e);
+  }
+  // To 从 spec 自动提取 window 名
+  const to = target.includes(":") ? target.split(":").pop()! : target;
+  const resolved = resolveInputPaneTarget(resolveTarget(target));
+  const resolvedTo = targetWindowName(resolved) || to;
+  try {
+    assertEnvelopeNotSelf(from, resolvedTo);
+  } catch (e: unknown) {
+    return cliCatch(e);
+  }
+  // 提取目标会话 (1: 形式) 用于 ReplyCmd
+  const sess = target.includes(":") ? target.split(":")[0] : "";
+  const replySpec = sess ? `${sess}:${from}` : from;
+  const replyCmd = `bin/mux envelope ${replySpec} "<title>" "<body>"`;
+  const envelope = `${to}，你有新消息来自 ${from}, 标题：${title || "无主题"};内容：
+${body}
+[ReplyCmd] ${replyCmd}`;
+  let submitNote = ""; let submitFailed = false;
+  try {
+    ({ submitNote, submitFailed } = driveSubmitVerify(target, resolved, envelope));
+  } catch (e: unknown) {
+    return cliCatch(e);
+  }
+  const src = bodyRaw.startsWith("@") ? ` (from ${bodyRaw})` : "";
+  cliWriteStdout(`envelope → ${resolved}: ${envelope.length} chars${src}${submitNote}\n`);
+  return submitFailed ? 3 : 0;
 }
 
 function cliPaste(ctx: CliCtx): number {
@@ -3736,10 +5331,101 @@ function cliPaste(ctx: CliCtx): number {
   try {
     pasteFileToWindow(target, file);
   } catch (e: unknown) {
-    return cliError(e instanceof Error ? e.message : String(e));
+    return cliCatch(e);
   }
-  cliWriteStdout(`pasted ${file} → ${resolveTarget(target)}\n`);
+  cliWriteStdout(`pasted ${file} → ${resolveInputPaneTarget(resolveTarget(target))}\n`);
   return 0;
+}
+
+function cliSplit(ctx: CliCtx): number {
+  const { positional } = parseCliFlags(ctx.rest);
+  if (!positional[0]) return cliFailUsage("split <spec>");
+  try {
+    const r = opSplit(positional[0]);
+    if (ctx.json) cliWriteJson(r);
+    else cliWriteStdout(`${r.created ? "split" : "already split"} → ${r.target} (${r.paneCount} panes)\n`);
+    return 0;
+  } catch (e: unknown) {
+    return cliCatch(e);
+  }
+}
+
+function cliUnsplit(ctx: CliCtx): number {
+  const { positional } = parseCliFlags(ctx.rest);
+  if (!positional[0]) return cliFailUsage("unsplit <spec>");
+  try {
+    const r = opUnsplit(positional[0]);
+    if (ctx.json) cliWriteJson(r);
+    else cliWriteStdout(`${r.killed ? "unsplit" : "already single"} → ${r.target} (${r.paneCount} panes)\n`);
+    return 0;
+  } catch (e: unknown) {
+    return cliCatch(e);
+  }
+}
+
+function cliSuperInput(ctx: CliCtx): number {
+  const { positional } = parseCliFlags(ctx.rest);
+  const target = positional[0];
+  const sock = positional[1];
+  const session = positional[2];
+  if (!target || !sock || !session) {
+    return cliFailUsage("super-input <target> <sock> <session>");
+  }
+  try {
+    superTmuxBin();
+    return runSuperInputLoop(target, sock, session);
+  } catch (e: unknown) {
+    return cliCatch(e);
+  }
+}
+
+function cliSuperDeliver(ctx: CliCtx): number {
+  const { positional } = parseCliFlags(ctx.rest);
+  const target = positional[0];
+  const sock = positional[1];
+  const raw = positional[2];
+  if (!target || !sock || !raw) {
+    return cliFailUsage("super-deliver <target> <sock> <text...|@file|->");
+  }
+  let body: string;
+  try {
+    body = drvResolveText(raw);
+  } catch (e: unknown) {
+    return cliCatch(e);
+  }
+  try {
+    superTmuxBin();
+    superDeliverPayload(sock, target, body);
+    return 0;
+  } catch (e: unknown) {
+    return cliCatch(e);
+  }
+}
+
+function cliSuper(ctx: CliCtx): number {
+  const { positional, flags } = parseCliFlags(ctx.rest);
+  if (positional[0] === "--help" || positional[0] === "-h") return cliHelp();
+  const session = positional[0] ?? SUPER_DEFAULT_SESSION;
+  const sock = flags.sock ?? SUPER_DEFAULT_SOCK;
+  const inputLines = flags.lines ? parseInt(flags.lines, 10) : SUPER_DEFAULT_INPUT_LINES;
+
+  const validationErr = firstValidationError(
+    validateSuperSock(sock),
+    validateSuperSession(session),
+    validateSuperInputLines(inputLines),
+  );
+  if (validationErr) return cliError(validationErr);
+
+  try {
+    const r = opSuperStart({ session, sock, inputLines });
+    if (ctx.json) {
+      cliWriteJson(r);
+      return 0;
+    }
+    superExecAttach(sock, session);
+  } catch (e: unknown) {
+    return cliCatch(e);
+  }
 }
 
 function cliHelp(): number {
@@ -3780,6 +5466,15 @@ function parseCliFlags(rest: string[]): { positional: string[]; flags: Record<st
     if (a === "--reply") { flags.kind = "reply"; continue; }
     if (a === "--lines" && rest[i + 1]) { flags.lines = rest[++i]; continue; }
     if (a.startsWith("--lines=")) { flags.lines = a.slice(8); continue; }
+    if (a === "--sock" && rest[i + 1]) { flags.sock = rest[++i]; continue; }
+    if (a.startsWith("--sock=")) { flags.sock = a.slice(7); continue; }
+    if (a === "--tail" && rest[i + 1]) { flags.tail = rest[++i]; continue; }
+    if (a.startsWith("--tail=")) { flags.tail = a.slice(7); continue; }
+    if (a === "--head" && rest[i + 1]) { flags.head = rest[++i]; continue; }
+    if (a.startsWith("--head=")) { flags.head = a.slice(7); continue; }
+    if (a === "--quiet-rounds" && rest[i + 1]) { flags["quiet-rounds"] = rest[++i]; continue; }
+    if (a.startsWith("--quiet-rounds=")) { flags["quiet-rounds"] = a.slice(15); continue; }
+    if (a === "--no-enter") { flags["no-enter"] = "1"; continue; }
     if (a === "--json" || a === "-j") continue; // 由 peelJsonFlag / ctx.json 处理
     positional.push(a);
   }
@@ -3899,7 +5594,7 @@ function cliAgentList(ctx: CliCtx): number {
           const n = findNodeByAgent(a.id);
           if (!n) return undefined;
           const idx = n.target.split(":")[1] ?? "";
-          return paneSnap(buildWinTarget(n.sessionName, idx), { lines: 1, sync: true }).lastLine;
+          return paneSnap(buildWinIndexTarget(n.sessionName, idx), { lines: 1, sync: true }).lastLine;
         })(),
       })),
     });
@@ -4014,6 +5709,139 @@ function buildAgentGroup(): CliCommand {
   };
 }
 
+type HookCmdSpec = {
+  summary: string;
+  usage?: string;
+  run: CliHandler;
+};
+
+const CLI_HOOK_CMDS: Record<string, HookCmdSpec> = {
+  "on": {
+    summary: "绑定事件 hook（event-pattern → handler script）",
+    usage: "<event-pattern> <handler-path>",
+    run: cliHookOn,
+  },
+  "off": {
+    summary: "解绑 hook",
+    usage: "<event-pattern> [handler-path]",
+    run: cliHookOff,
+  },
+  "list": {
+    summary: "列出所有已绑定 hook",
+    usage: "[--json]",
+    run: cliHookList,
+  },
+  "fire": {
+    summary: "手工派发事件：找匹配 event 的 handler，按契约喂 stdin JSON 执行",
+    usage: "<event> [payload-json]   例: hook fire window-pane-changed:naos:lane-c '{\"lastLine\":\"PASS ✓\"}'",
+    run: cliHookFire,
+  },
+};
+
+function cliHookOn(ctx: CliCtx): number {
+  const [pattern, handler, ...extra] = ctx.rest;
+  if (!pattern || !handler) {
+    return cliError("用法: mux hook on <event-pattern> <handler-path>");
+  }
+  try {
+    hookOn(pattern, handler);
+    cliWriteStdout(`✓ hook 已绑定: ${pattern} → ${handler}\n`);
+    return 0;
+  } catch (e) {
+    return cliError(String(e));
+  }
+}
+
+function cliHookOff(ctx: CliCtx): number {
+  const [pattern, handler] = ctx.rest;
+  if (!pattern) {
+    return cliError("用法: mux hook off <event-pattern> [handler-path]");
+  }
+  try {
+    hookOff(pattern, handler);
+    cliWriteStdout(`✓ hook 已解绑: ${pattern}\n`);
+    return 0;
+  } catch (e) {
+    return cliError(String(e));
+  }
+}
+
+function cliHookList(ctx: CliCtx): number {
+  const hooks = listHooks();
+  if (ctx.json) {
+    cliWriteJson(hooks);
+  } else {
+    if (hooks.length === 0) {
+      cliWriteStdout("(no hooks registered)\n");
+    } else {
+      for (const h of hooks) {
+        cliWriteStdout(`${h.event} → ${h.handler}\n`);
+      }
+    }
+  }
+  return 0;
+}
+
+function cliHookFire(ctx: CliCtx): number {
+  const [event, payloadStr] = ctx.rest;
+  if (!event) {
+    return cliError("用法: mux hook fire <event> [payload-json]");
+  }
+  let payload: Record<string, unknown> = {};
+  if (payloadStr) {
+    try {
+      const parsed = JSON.parse(payloadStr);
+      if (parsed && typeof parsed === "object") payload = parsed as Record<string, unknown>;
+      else return cliError("payload-json 必须是 JSON 对象");
+    } catch (e) {
+      return cliError(`payload-json 解析失败: ${String(e)}`);
+    }
+  }
+  const results = dispatchHook(event, payload);
+  if (ctx.json) {
+    cliWriteJson({ event, matched: results.length, results });
+    return results.every(r => r.rc === 0) ? 0 : 1;
+  }
+  if (results.length === 0) {
+    cliWriteStdout(`(no handler matched event: ${event})\n`);
+    return 0;
+  }
+  let worst = 0;
+  for (const r of results) {
+    cliWriteStdout(`── handler: ${r.handler} (rc=${r.rc}) ──\n`);
+    if (r.stdout) cliWriteStdout(r.stdout.endsWith("\n") ? r.stdout : r.stdout + "\n");
+    if (r.stderr) cliWriteStdout(`[stderr] ${r.stderr}`);
+    if (r.rc !== 0) worst = r.rc;
+  }
+  return worst;
+}
+
+function buildHookCmd(name: string, spec: HookCmdSpec): CliCommand {
+  return {
+    name,
+    summary: spec.summary,
+    usage: spec.usage,
+    run: spec.run,
+  };
+}
+
+function buildHookGroup(): CliCommand {
+  return {
+    name: "hook",
+    summary: "事件驱动 hook 机制（Monitor daemon 触发回调脚本）",
+    run: (ctx: CliCtx) => {
+      const sub = ctx.rest[0];
+      const spec = CLI_HOOK_CMDS[sub];
+      if (!spec) {
+        return cliError(`未知 hook 子命令: ${sub ?? "(none)"}`);
+      }
+      return spec.run({ ...ctx, rest: ctx.rest.slice(1) });
+    },
+    needsTmux: false,
+    children: Object.entries(CLI_HOOK_CMDS).map(([n, s]) => buildHookCmd(n, s)),
+  };
+}
+
 const CLI_META_CMDS: Record<string, LeafCmdSpec> = {
   help: {
     summary: "显示帮助",
@@ -4071,15 +5899,51 @@ const CLI_TOOL_CMDS: Record<string, LeafCmdSpec> = {
     run: cliCapture,
   },
   send: {
-    summary: "send-keys 注入",
-    usage: "<spec> <text...>",
+    summary: "paste-buffer 注入(零转义);@file 灌文件;- 从 stdin/heredoc 读正文",
+    usage: "<spec> <text...|@file|->",
     aliases: ["msg"],
     run: cliSend,
+  },
+  envelope: {
+    summary: "send + 信封头 (To/From/Title/Body + ReplyCmd 行);From 每次由实时 tmux pane 祖先链活算",
+    usage: "<spec> <title> <body...|@file|->",
+    run: cliEnvelope,
   },
   paste: {
     summary: "load-buffer + paste-buffer",
     usage: "<spec> <file>",
     run: cliPaste,
+  },
+  split: {
+    summary: "给 agent 窗 split 一个 3 行输入 buffer，实现人机输入分离",
+    usage: "<spec> [--json]",
+    run: cliSplit,
+  },
+  unsplit: {
+    summary: "移除 split 输入 buffer pane，恢复单窗",
+    usage: "<spec> [--json]",
+    run: cliUnsplit,
+  },
+  super: {
+    summary: "byobu 全屏 + 下方固定行数输入框（独立 tmux socket，F 键转发上方）",
+    usage: "[session] [--lines N] [--sock NAME]",
+    aliases: ["byobu"],
+    run: cliSuper,
+    needsTmux: false,
+  },
+  "super-input": {
+    summary: "super 输入框 worker（split-window 回调，勿手动调用）",
+    usage: "<target> <sock> <session>",
+    run: cliSuperInput,
+    needsTmux: false,
+    helpHidden: true,
+  },
+  "super-deliver": {
+    summary: "super 输入框投递 worker（super-input 回调，勿手动调用）",
+    usage: "<target> <sock> <text...|@file|->",
+    run: cliSuperDeliver,
+    needsTmux: false,
+    helpHidden: true,
   },
 };
 
@@ -4088,13 +5952,25 @@ type CliRootSection = {
   build: () => CliCommand[];
 };
 
+const CLI_OS_CMD: LeafCmdSpec = {
+  summary: "Agents OS（无子命令=驾驶舱 TUI；watch 同）",
+  usage: "[watch] | init | goal | task | dispatch | verify | …",
+  run: cliOs,
+  needsTmux: false,
+};
+
 const CLI_ROOT_SECTIONS: CliRootSection[] = [
   { build: () => Object.entries(CLI_META_CMDS).map(([n, s]) => buildLeafCmd(n, s)) },
+  {
+    title: "Agents OS",
+    build: () => [buildLeafCmd("os", CLI_OS_CMD)],
+  },
   {
     title: "维护",
     build: () => Object.entries(CLI_MAINT_CMDS).map(([n, s]) => buildLeafCmd(n, s)),
   },
   { title: "Agent 总线", build: () => [buildAgentGroup()] },
+  { title: "事件 Hook", build: () => [buildHookGroup()] },
   {
     title: "车队视图",
     build: () => [
@@ -4105,6 +5981,10 @@ const CLI_ROOT_SECTIONS: CliRootSection[] = [
   {
     title: "窗口工具",
     build: () => Object.entries(CLI_TOOL_CMDS).map(([n, s]) => buildLeafCmd(n, s)),
+  },
+  {
+    title: "主动驾驶",
+    build: () => Object.entries(CLI_DRIVE_CMDS).map(([n, s]) => buildLeafCmd(n, s)),
   },
   {
     title: "Session / Window",
@@ -4411,12 +6291,15 @@ if (import.meta.main) {
     } else {
       process.exit(code);
     }
-  } else {
+  } else if (process.stdin.isTTY) {
     startTui();
+  } else {
+    // 非 TTY 下无 CLI 子命令时，走非交互分支，避免 startTui 调 setRawMode 崩。
+    process.exit(cliHelp());
   }
 }
 
-function startTui(): void {
+function startTui(opts?: { osMode?: boolean }): void {
   const _tmuxAtStart = resolveTmuxPath();
   if (!_tmuxAtStart) {
     cliWriteStderr(`复用器后端未找到。默认安装 rmux: ${CLI_BIN} install-rmux\n`);
@@ -4424,7 +6307,12 @@ function startTui(): void {
     process.exit(1);
   }
   _resolvedTmuxBin = _tmuxAtStart;
-  initTuiRegistry();
+  state.osMode = opts?.osMode ?? false;
+  if (state.osMode) ensureOsInit();
+  state.resetOsActions();
+  TUI_KEYBINDS = [];
+  TUI_PROMPTS = [];
+  initTuiRegistry(true);
 
   state.tree = syncTree();
   if (state.tree.length === 0) {

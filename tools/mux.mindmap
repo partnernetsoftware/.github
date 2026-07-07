@@ -1,0 +1,39 @@
+mux Agent OS 中枢
+  arch: 三层模型
+    读（视图）: dfleet/dstatus status/list inspect
+    写（工具）: send/envelope capture/paste split/unsplit remark/auto
+    控（驾驶）: drive/wait interrupt/clear/recover
+    通讯层: agent register/send/inbox hook on/off/fire
+  modules
+    types.ts: IMultiplexerBackend Result<T,E> FrameAnalysis WindowDigest FleetDigest
+    fleet-analyzer.ts: 14 regex centralized digestFleet analyzeFrame formatDigestRow
+    mux.ts: 5647 loc CLI+TUI+backend+drive+bus+hook
+    test-mux.sh: smoke test read-only assertions
+  verbs: 36 in 10 groups
+    维护: help doctor dev install-tmux install-rmux
+    车队视图: status list dfleet dstatus
+    窗口工具: inspect capture send envelope paste split unsplit
+    主动驾驶: drive wait interrupt clear recover
+    Agent总线: register unregister send inbox wait list
+    事件Hook: on off list fire
+    Session/Window: new-session new-window rename kill-window
+    用户选项: remark auto
+    服务: serve
+  backend: rmux(default) tmux(fallback)
+  key patterns
+    paste-buffer: zero-escaping no TUI char-splitting
+    submit-verify: codex/cursor auto-Enter composer-clear-check
+    grace-gate: no false-idle must-see-busy-first
+    slow-model: GLM/Reasoning 9min+ --timeout 1800
+  agent coverage: 9 types
+    comm-match: claude node cursor codex reasonix2 pi buddy aider hermes
+    frame-fallback: cursor bash-comm ↦ → prompt
+    exclude: shell vim htop lazygit
+  philosophy
+    shared reality: who-doing-what evidence-where blocked-on-what
+    evidence loop: no-completion-without-proof
+    small steps: auditable reversible state transitions
+    responsibility boundary: no-work-without-ownership
+  future: WorkItem state machine
+    idle→assigned→in-progress→done(with-evidence)→verified(manual)
+    timeout→unassigned
